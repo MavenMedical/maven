@@ -18,3 +18,5 @@ __author__='Yuki Uchino'
 import backend as maven
 
 maven.backend.run(host='0.0.0.0', port=8080, debug=True)
+
+git commit -am "Mave-1 Created skeleton of scalable Maven application with necessary architecture for sub-applications (i.e. backend, frontend_web) which will be run as separate threads synchronously (frontend_web) or asynchronously (backend) as needed."
