@@ -19,10 +19,9 @@ create schema terminology authorization maven;
 
 CREATE TABLE terminology.codemap
 (
-
-)
-WITH (
-  OIDS=FALSE
+  snomedid numeric(18,0),
+  codetype character varying(50),
+  code character varying(50)
 );
 ALTER TABLE terminology.codemap
   OWNER TO maven;
@@ -35,7 +34,11 @@ ALTER TABLE terminology.codemap
 
 CREATE TABLE terminology.concept
 (
-
+  id numeric(18,0),
+  effectivetime numeric(18,0),
+  active integer,
+  moduleid numeric(18,0),
+  statusid numeric(18,0)
 )
 WITH (
   OIDS=FALSE
@@ -49,7 +52,8 @@ ALTER TABLE terminology.concept
 
 CREATE TABLE terminology.conceptancestry
 (
-
+  ancestor numeric(18,0) NOT NULL,
+  child numeric(18,0) NOT NULL
 )
 WITH (
   OIDS=FALSE
@@ -62,7 +66,15 @@ ALTER TABLE terminology.conceptancestry
 
 CREATE TABLE terminology.descriptions
 (
-
+  id numeric(18,0),
+  effectivetime integer,
+  active integer,
+  moduleid numeric(18,0),
+  conceptid numeric(18,0),
+  languagecode character varying(2),
+  typeid numeric(18,0),
+  term character varying(2000),
+  casesignificanceid character varying(500)
 )
 WITH (
   OIDS=FALSE
@@ -75,31 +87,27 @@ ALTER TABLE terminology.descriptions
 
 CREATE TABLE terminology.relationships
 (
-
+  id numeric(18,0),
+  effectivetime integer,
+  active integer,
+  moduleid numeric(18,0),
+  sourceid numeric(18,0),
+  destinationid numeric(18,0),
+  relationshipgroup numeric(18,0),
+  typeid numeric(18,0),
+  characteristictypeid numeric(18,0),
+  modifierid numeric(18,0)
 )
 WITH (
   OIDS=FALSE
 );
 ALTER TABLE terminology.relationships
   OWNER TO maven;
--- Table: terminology.snomedmap
 
--- DROP TABLE terminology.snomedmap;
-
-CREATE TABLE terminology.snomedmap
-(
-
-)
-WITH (
-  OIDS=FALSE
-);
-ALTER TABLE terminology.snomedmap
-  OWNER TO maven;
-
-create index ixConceptActiveConceptId on Concept(Id,active);
-create index ixCodeMap on codeMap (SnomedId,code);
-create index ixCodeMapCodes on CodeMap(code,CodeType);
-Create Index ixRelationships on Relationships(SourceId,TypeId,DestinationId);
-create index ixRelationshipsDest on Relationships(destinationId,typeid,SourceId);
-Create index ixDescriptionsConcept on Descriptions(ConceptId,Active);
+create index ixConceptActiveConceptId on terminology.Concept(Id,active);
+create index ixCodeMap on terminology.codeMap (SnomedId,code);
+create index ixCodeMapCodes on terminology.CodeMap(code,CodeType);
+Create Index ixRelationships on terminology.Relationships(SourceId,TypeId,DestinationId);
+create index ixRelationshipsDest on terminology.Relationships(destinationId,typeid,SourceId);
+Create index ixDescriptionsConcept on terminology.Descriptions(ConceptId,Active);
 
