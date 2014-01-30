@@ -111,3 +111,46 @@ Create Index ixRelationships on terminology.Relationships(SourceId,TypeId,Destin
 create index ixRelationshipsDest on terminology.Relationships(destinationId,typeid,SourceId);
 Create index ixDescriptionsConcept on terminology.Descriptions(ConceptId,Active);
 
+
+CREATE FUNCTION isicd10child(vparentconcept numeric, vchildcode character varying) RETURNS boolean
+    LANGUAGE plpgsql
+    AS $$
+Declare rtn Boolean;
+begin
+        select (count(*)>0) into rtn
+        from conceptAncestry a
+        inner join CodeMap b on a.child=b.snomedid
+        where
+                b.codeType='ICD-10' and b.code=vChildCode
+                and a.Ancestor=vParentConcept ;
+        return rtn;
+end;
+$$;
+
+CREATE FUNCTION isicd9child(vparentconcept numeric, vchildcode character varying) RETURNS boolean
+    LANGUAGE plpgsql
+    AS $$
+Declare rtn Boolean;
+begin
+        select (count(*)>0) into rtn
+        from conceptAncestry a
+        inner join CodeMap b on a.child=b.snomedid
+        where
+                b.codeType='ICD-9' and b.code=vChildCode
+                and a.Ancestor=vParentConcept ;
+        return rtn;
+end;
+$$;
+
+
+CREATE FUNCTION issnomedchild(vparentconcept numeric, vchildconcept numeric) RETURNS boolean
+    LANGUAGE plpgsql
+    AS $$
+Declare rtn Boolean;
+begin
+        select (count(*)>0) into rtn from conceptAncestry where Ancestor=vParentConcept and Child=vChildConcept;
+        return rtn;
+end;
+$$;
+
+
