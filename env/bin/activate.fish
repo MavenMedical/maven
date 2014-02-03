@@ -32,7 +32,7 @@ end
 # unset irrelevant variables
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV "/home/yuki/yuki_workfold/maven0.1/maven/env"
+set -gx VIRTUAL_ENV "/home/devel/yukidev/maven/env"
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/bin" $PATH

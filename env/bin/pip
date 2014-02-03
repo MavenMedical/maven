@@ -1,4 +1,4 @@
-#!/home/yuki/yuki_workfold/maven0.1/maven/env/bin/python3.3
+#!/home/devel/yukidev/maven/env/bin/python3.3
 
 # -*- coding: utf-8 -*-
 import re
