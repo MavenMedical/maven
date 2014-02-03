@@ -14,7 +14,8 @@ __author__='Yuki Uchino'
 #************************
 #LAST MODIFIED FOR JIRA ISSUE: MAV-1
 #*************************************************************************
-
+from werkzeug.wsgi import DispatcherMiddleware
 import backend as maven
 
-maven.backend.run(host='0.0.0.0', port=8080, debug=True)
+application = DispatcherMiddleware({'/webservice': maven.backend.run(host='0.0.0.0', port=8080, debug=True)})
+
