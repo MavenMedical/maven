@@ -153,5 +153,74 @@ begin
 end;
 $$;
 
+-- Schema: Logging
+
+-- DROP SCHEMA "Logging";
+
+CREATE SCHEMA "Logging"
+  AUTHORIZATION maven;
+
+COMMENT ON SCHEMA "Logging"
+  IS 'This schema is to track/log every time ana lert is fired and the content in which it was fired';
+
+
+-- Table: "Logging".alerts
+
+-- DROP TABLE "Logging".alerts;
+
+CREATE TABLE "Logging".alerts
+(
+  pid character varying(20) NOT NULL,
+  userid character varying(20) NOT NULL,
+  encounter_id character varying(20) NOT NULL,
+  dep character varying(50),
+  encounter_date timestamp without time zone NOT NULL,
+  alert_date timestamp without time zone NOT NULL,
+  orderable character varying(50),
+  provider character varying(50),
+  outcome character varying(50)
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE "Logging".alerts
+  OWNER TO maven;
+
+-- Index: "Logging".ixdepartment
+
+-- DROP INDEX "Logging".ixdepartment;
+
+CREATE INDEX ixdepartment
+  ON "Logging".alerts
+  USING btree
+  (dep COLLATE pg_catalog."default");
+
+-- Index: "Logging".ixencounter_date
+
+-- DROP INDEX "Logging".ixencounter_date;
+
+CREATE INDEX ixencounter_date
+  ON "Logging".alerts
+  USING btree
+  (encounter_date);
+
+-- Index: "Logging".ixpatient
+
+-- DROP INDEX "Logging".ixpatient;
+
+CREATE INDEX ixpatient
+  ON "Logging".alerts
+  USING btree
+  (pid COLLATE pg_catalog."default");
+
+-- Index: "Logging".ixuser
+
+-- DROP INDEX "Logging".ixuser;
+
+CREATE INDEX ixuser
+  ON "Logging".alerts
+  USING btree
+  (userid COLLATE pg_catalog."default");
+
 
 
