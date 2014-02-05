@@ -153,5 +153,96 @@ begin
 end;
 $$;
 
+-- Schema: Logging
 
+-- DROP SCHEMA "Logging";
+
+CREATE SCHEMA "Logging"
+  AUTHORIZATION maven;
+
+COMMENT ON SCHEMA "Logging"
+  IS 'This schema is to track/log every time ana lert is fired and the content in which it was fired';
+
+
+-- Table: "Logging".alerts
+
+-- DROP TABLE "Logging".alerts;
+
+CREATE TABLE "Logging".alerts
+(
+  pid character varying(20) NOT NULL,
+  userid character varying(20) NOT NULL,
+  encounter_id character varying(20) NOT NULL,
+  dep character varying(50),
+  encounter_date timestamp without time zone NOT NULL,
+  alert_date timestamp without time zone NOT NULL,
+  orderable character varying(50),
+  provider character varying(50),
+  outcome character varying(50)
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE "Logging".alerts
+  OWNER TO maven;
+
+-- Index: "Logging".ixdepartment
+
+-- DROP INDEX "Logging".ixdepartment;
+
+CREATE INDEX ixdepartment
+  ON "Logging".alerts
+  USING btree
+  (dep COLLATE pg_catalog."default");
+
+-- Index: "Logging".ixencounter_date
+
+-- DROP INDEX "Logging".ixencounter_date;
+
+CREATE INDEX ixencounter_date
+  ON "Logging".alerts
+  USING btree
+  (encounter_date);
+
+-- Index: "Logging".ixpatient
+
+-- DROP INDEX "Logging".ixpatient;
+
+CREATE INDEX ixpatient
+  ON "Logging".alerts
+  USING btree
+  (pid COLLATE pg_catalog."default");
+
+-- Index: "Logging".ixuser
+
+-- DROP INDEX "Logging".ixuser;
+
+CREATE INDEX ixuser
+  ON "Logging".alerts
+  USING btree
+  (userid COLLATE pg_catalog."default");
+
+create schema ruleTest authorization maven;
+-- Table: ruleTest.rules
+
+DROP TABLE ruleTest.rules;
+
+CREATE TABLE ruleTest.rules
+(
+  ruleName character varying(50),
+  ruleDescription character varying(500),
+  orderType character varying(4), --Med or Proc
+  orderedCPT numeric(5), --CPT code
+  minAge numeric(3),
+  maxAge numeric(3),
+  withDx character varying(500), --snomedids separated by commas
+  withoutDx character varying(500), 
+  details character varying(500),
+  onlyInDept character varying(50),
+  notInDept character varying(50)
+);
+ALTER TABLE ruleTest.rules
+  OWNER TO maven;
+
+INSERT INTO ruleTest.rules VALUES ('Test rule name','This is the test rule description','proc',12345,0,200,'12345678,9012345,67890123,1222222,56789876','90324023984,43987523,309753492785,53425243235','These are the details for the test rule','test only in department','test not in department'); 
 
