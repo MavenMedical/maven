@@ -222,5 +222,27 @@ CREATE INDEX ixuser
   USING btree
   (userid COLLATE pg_catalog."default");
 
+create schema ruleTest authorization maven;
+-- Table: ruleTest.rules
 
+DROP TABLE ruleTest.rules;
+
+CREATE TABLE ruleTest.rules
+(
+  ruleName character varying(50),
+  ruleDescription character varying(500),
+  orderType character varying(4), --Med or Proc
+  orderedCPT numeric(5), --CPT code
+  minAge numeric(3),
+  maxAge numeric(3),
+  withDx character varying(500), --snomedids separated by commas
+  withoutDx character varying(500), 
+  details character varying(500),
+  onlyInDept character varying(50),
+  notInDept character varying(50)
+);
+ALTER TABLE ruleTest.rules
+  OWNER TO maven;
+
+INSERT INTO ruleTest.rules VALUES ('Test rule name','This is the test rule description','proc',12345,0,200,'12345678,9012345,67890123,1222222,56789876','90324023984,43987523,309753492785,53425243235','These are the details for the test rule','test only in department','test not in department'); 
 
