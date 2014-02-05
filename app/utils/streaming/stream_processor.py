@@ -41,12 +41,21 @@ class StreamProcessor():
         self.write_raw(bytes)
     
     # Check the config file to determine what we are listening on/writing to
-    def __init__(self, MavenConfig, configname):
+    def __init__(self, configname):
+        global MavenConfig
         try:
             self.configname = configname
             # make "listener" point to the correct listener
-            readertype = MavenConfig(configname,'readertype')
-            readerconfig = MavenConfig(configname,'readerconfig')
+            if(not configname in MavenConfig):
+                raise Exception(configname+" is not in the MavenConfig map.")
+            else:
+                try:
+                    readertype = MavenConfig[configname]['readertype']
+                    readerconfig = MavenConfig[configname]['readerconfig']
+                    writertype = MavenConfig[configname]['writertype']
+                    writerconfig = MavenConfig[configname]['writerconfig']
+                except Exception:
+                    raise Exception(configname +" did not have sufficient parameters.")    
             if(readertype == 'RabbitMQ'):
                 self.listener=self.rabbit_listener
                 # read other config from readerconfig and setup
@@ -56,8 +65,6 @@ class StreamProcessor():
             elif(readertype != "Testing"):
                 raise Exception("Invalid reader type for "+configname+": "+readertype)
                 # the testing reader does nothing, but raise and exception if readertype is invalid
-            writertype = MavenConfig(configname,'writertype')
-            writerconfig = MavenConfig(configname,'writerconfig')
             if(writertype == 'RabbitMQ'):
                 self.write_raw=self.rabbit_writer
                 # read other config from writerconfig and setup
