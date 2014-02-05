@@ -15,7 +15,17 @@ __author__='Yuki Uchino'
 #LAST MODIFIED FOR JIRA ISSUE: MAV-1
 #*************************************************************************
 from werkzeug.wsgi import DispatcherMiddleware
+from werkzeug.contrib.fixers import ProxyFix
+import aiohttp
+from aiohttp.wsgi import WSGIServerHttpProtocol as wsgi
+
 import backend as maven
 
-application = DispatcherMiddleware({'/webservice': maven.backend.run(host='0.0.0.0', port=8080, debug=True)})
+#application = maven.backend.run(host='0.0.0.0', port=8087, debug=True)
 
+application = maven.backend.run(debug=True)
+
+#application = DispatcherMiddleware({'/webservice': maven.backend.run(host='0.0.0.0',
+                                                                     #port=8080,
+                                                                     #debug=True)})
+#application = wsgi(maven.backend.run(host='0.0.0.0', port=8080, debug=True))
