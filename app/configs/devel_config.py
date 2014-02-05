@@ -27,3 +27,15 @@ CSRF_SESSION_KEY = "secret"
 
 # Secret key for signing cookies
 SECRET_KEY = "secret"
+
+
+global MavenConfig
+MavenConfig = {
+    'NoSuchExamplePackage': {
+        'ExampleParam':3,
+        'ExampleParam2':'localhost'
+        },
+    'NoSuchExample2': {
+        'OtherParam':23
+        }
+    }
