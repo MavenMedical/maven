@@ -28,7 +28,7 @@ CREATE TABLE diagnosis(
 	dx_name varchar(200),
 	DX_IMO_ID varchar(254),
 	IMO_TERM_ID varchar(30),
-	concept_id varchar(254)
+	concept_id varchar(2000)
 ) ;
 create index ixdiagnosispk on diagnosis(dx_id);
 
