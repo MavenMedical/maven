@@ -16,16 +16,17 @@ __author__='Yuki Uchino'
 #*************************************************************************
 from werkzeug.wsgi import DispatcherMiddleware
 from werkzeug.contrib.fixers import ProxyFix
-import aiohttp
-from aiohttp.wsgi import WSGIServerHttpProtocol as wsgi
 
-import backend as maven
+
+import backend as maven_backend
+import frontend_web as maven_frontend
 
 #application = maven.backend.run(host='0.0.0.0', port=8087, debug=True)
+#application = maven_backend.backend.run(debug=True)
 
-application = maven.backend.run(debug=True)
+application = maven_frontend.frontend_web.run(debug=True)
 
-#application = DispatcherMiddleware({'/webservice': maven.backend.run(host='0.0.0.0',
-                                                                     #port=8080,
-                                                                     #debug=True)})
-#application = wsgi(maven.backend.run(host='0.0.0.0', port=8080, debug=True))
+
+#application = DispatcherMiddleware(maven_frontend.frontend_web.run(debug=True),{'/webservice': maven_backend.backend.run(host='0.0.0.0',
+ #                                                                    port=8088,
+  #                                                                   debug=True)})
