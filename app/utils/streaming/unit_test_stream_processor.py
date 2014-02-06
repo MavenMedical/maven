@@ -15,6 +15,7 @@
 ##############################################################################
 
 import pickle
+import maven_config as MC
 import app.utils.streaming.stream_processor as SP
 
 teststreamname = 'test stream'
@@ -26,6 +27,8 @@ MavenConfig = {
         'writerconfig':'Testing'
         }
     }
+
+MC.MavenConfig=MavenConfig
 
 SP.MavenConfig=MavenConfig
 

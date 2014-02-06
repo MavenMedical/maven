@@ -12,6 +12,7 @@
 ##############################################################################
 
 import pickle
+import maven_config as MC
 
 class StreamProcessor():
 
@@ -42,18 +43,17 @@ class StreamProcessor():
     
     # Check the config file to determine what we are listening on/writing to
     def __init__(self, configname):
-        global MavenConfig
         try:
             self.configname = configname
             # make "listener" point to the correct listener
-            if(not configname in MavenConfig):
+            if(not configname in MC.MavenConfig):
                 raise Exception(configname+" is not in the MavenConfig map.")
             else:
                 try:
-                    readertype = MavenConfig[configname]['readertype']
-                    readerconfig = MavenConfig[configname]['readerconfig']
-                    writertype = MavenConfig[configname]['writertype']
-                    writerconfig = MavenConfig[configname]['writerconfig']
+                    readertype = MC.MavenConfig[configname]['readertype']
+                    readerconfig = MC.MavenConfig[configname]['readerconfig']
+                    writertype = MC.MavenConfig[configname]['writertype']
+                    writerconfig = MC.MavenConfig[configname]['writerconfig']
                 except Exception:
                     raise Exception(configname +" did not have sufficient parameters.")    
             if(readertype == 'RabbitMQ'):
