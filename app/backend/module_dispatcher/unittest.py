@@ -14,14 +14,38 @@ __author__='Yuki Uchino'
 #************************
 #LAST MODIFIED FOR JIRA ISSUE: MAV-1
 #*************************************************************************
+import asyncio
+from app.utils.streaming.servers import DispatchServer as listener
+#import app.backend.module_webservice.receiver as receiver
+
+def main():
+
+    loop = asyncio.get_event_loop()
+    loop2 = asyncio.get_event_loop()
+    coro_listen = loop.create_connection(listener, '127.0.0.1', 8888)
+    coro_emit = loop2.create_connection(SendFakeData, '127.0.0.1', 8888)
+    loop.run_until_complete(coro_listen)
+    loop2.run_until_complete(coro_emit)
 
 
-import asyncio, os
+    try:
+        loop.run_forever()
+        loop2.run_forever()
+        #loop.run_forever(coro_listen)
+        for i in range(0, 3):
+            loop.run_until_complete(coro_emit)
+    except KeyboardInterrupt:
+        print("exit")
+    finally:
+        coro_listen.close()
+        loop.close()
 
-class EchoClient(asyncio.Protocol):
+
+class SendFakeData():
     message = 'This is the message. It will be echoed.'
 
     def connection_made(self, transport):
+        asyncio.sleep(5)
         transport.write(self.message.encode())
         print('data sent: {}'.format(self.message))
 
@@ -32,8 +56,6 @@ class EchoClient(asyncio.Protocol):
         print('server closed the connection')
         asyncio.get_event_loop().stop()
 
-loop = asyncio.get_event_loop()
-coro = loop.create_connection(EchoClient, '127.0.0.1', 8888)
-loop.run_until_complete(coro)
-loop.run_forever()
-loop.close()
+
+if __name__ == '__main__':
+    main()

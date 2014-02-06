@@ -15,7 +15,7 @@ __author__='Yuki Uchino'
 #LAST MODIFIED FOR JIRA ISSUE: MAV-1
 #*************************************************************************
 
-import amqp, asyncio
+import amqp
 
 conn = amqp.Connection('localhost')
 chan = conn.channel()
@@ -28,12 +28,13 @@ def cBack(msg):
     incoming_message = msg.body.decode()
     print("Received a message!: " + incoming_message)
 
+
 chan.basic_consume(queue='dispatcherQueue', no_ack=False, callback=cBack)
 
 while True:
     chan.wait()
 
-chan.basic_cancel("TestTag")
+#chan.basic_cancel("TestTag")
 
 chan.close()
 conn.close()

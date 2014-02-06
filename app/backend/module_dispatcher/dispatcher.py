@@ -15,37 +15,23 @@ __author__='Yuki Uchino'
 #LAST MODIFIED FOR JIRA ISSUE: MAV-1
 #*************************************************************************
 
-import amqp, asyncio
+import asyncio
+#import app.configs.config as MAVEN_CONFIG
+from app.utils.streaming.servers import DispatchServer as server
 
-class DispatchServer(asyncio.Protocol):
-    def connection_made(self, transport):
-        peername = transport.get_extra_info('peername')
-        print('connection from {}'.format(peername))
-        self.transport = transport
-
-    def data_received(self, data):
-        print('data received: {}'.format(data.decode()))
-        self.transport.write(data)
-        send_rabbit_message(self, data)
-        self.transport.close()
-
-#Set Up Communications with RabbitMQ Server
-rabbitConnection = amqp.Connection('localhost')
-dispatchChannel = rabbitConnection.channel()
-
+###
 #Start and configure the asynchronous event-driven loop
+###
 loop = asyncio.get_event_loop()
-coro = loop.create_server(DispatchServer, '127.0.0.1', 8888)
+coro = loop.create_server(server, '127.0.0.1', 8888)
 server = loop.run_until_complete(coro)
 
+###
 #Just a statement for the console so you know it's running
+#Again, anywhere we have print statements to confirm stuff is running are
+#likely candidates for being logged by an upstream logger
+###
 print('serving on {}'.format(server.sockets[0].getsockname()))
-
-
-def send_rabbit_message(self, data):
-    message = amqp.Message(data)
-    dispatchChannel.basic_publish(message, exchange="mavenExchange", routing_key='incoming')
-    yield from asyncio.sleep(30)
 
 try:
     loop.run_forever()
@@ -53,8 +39,7 @@ except KeyboardInterrupt:
     print("exit")
 
 finally:
-    dispatchChannel.close()
-    rabbitConnection.close()
     server.close()
     loop.close()
+
 
