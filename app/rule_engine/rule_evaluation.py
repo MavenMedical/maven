@@ -16,13 +16,6 @@
 
 from databaseUtils import databaseConnect
 
-class OrderObject(orderParameters):
-	self.d = {}
-	self.d[orderType] = orderParameters[0]
-	self.d[CPT] = orderParameters[1]
-	self.d[age] = orderParameters[2]
-	self.d[snomedIds] = orderParameters[3]
-	self.d[dept] = orderParamters[4]
 
 
 class EvaluateOrder():
