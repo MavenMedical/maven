@@ -38,7 +38,7 @@ class StreamProcessor():
     # write_raw and write_object are to be called (by a reader typically) and will write to the configured object
     # write_raw is assigned in the __init__ function, write_object is here
     def write_object(self,obj):
-        bytes=pickle.dumps(obj)
+        bytes = pickle.dumps(obj)
         self.write_raw(bytes)
     
     # Check the config file to determine what we are listening on/writing to

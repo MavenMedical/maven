@@ -30,10 +30,6 @@ CSRF_SESSION_KEY = "secret"
 SECRET_KEY = "secret"
 
 
-<<<<<<< HEAD:app/config.py
-
-
-=======
 global MavenConfig
 MavenConfig = {
     'NoSuchExamplePackage': {
@@ -44,4 +40,3 @@ MavenConfig = {
         'OtherParam':23
         }
     }
->>>>>>> f25a51e64f40f107b3e88ccf041ac9639ef8fea0:app/configs/devel_config.py

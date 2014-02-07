@@ -18,7 +18,13 @@ __author__='Yuki Uchino'
 import amqp, asyncio
 #import app.configs.config as MAVEN_CONFIG
 
-class DispatchServer(asyncio.Protocol):
+class ListeningServer(asyncio.Protocol):
+    ###
+    #TODO - Proper instantiation method for this very important object
+    def __init__(self):
+        print('Started')
+        pass
+
     def connection_made(self, transport):
         #TODO
         #will likely want to replace this print function with a logging function
@@ -45,7 +51,7 @@ class DispatchServer(asyncio.Protocol):
         self.transport.close()
 
 
-class MessageServer(asyncio.Protocol):
+class EmittingServer(asyncio.Protocol):
     def connection_made(self, transport):
         peername = transport.get_extra_info('peername')
         print('connection from {}'.format(peername))
@@ -64,8 +70,8 @@ class MessageServer(asyncio.Protocol):
 def send_rabbit_message(self, data, connection, channel):
     message = amqp.Message(data)
     channel.basic_publish(message,
-                                  exchange="mavenExchange",
-                                  routing_key='incoming')
+                          exchange="mavenExchange",
+                          routing_key='incoming')
     channel.close()
     connection.close()
 
