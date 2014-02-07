@@ -26,4 +26,4 @@ class OrderObject():
 		self.d[dept] = orderParameters[4]
 
 	def __str__(self):
-		return ', '.join(['{}->{}'.format(k,v) for k,v in self.d.items()])
+		return ', '.join(sorted(['{}->{}'.format(k,v) for k,v in self.d.items()]))

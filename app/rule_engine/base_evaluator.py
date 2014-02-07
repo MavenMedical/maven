@@ -38,7 +38,7 @@ class TestEvaluator(BaseEvaluator):
         pass
 
     def evaluate_object(self,obj):
-        evaluator_response(self,obj,canned_response)
+        self.evaluator_response(obj,self.canned_response)
         
     def write_object(self,obj):
         print(obj)
