@@ -14,19 +14,38 @@ __author__='Yuki Uchino'
 #************************
 #LAST MODIFIED FOR JIRA ISSUE: MAV-1
 #*************************************************************************
-from werkzeug.wsgi import DispatcherMiddleware
+import backend as maven_backend
+import frontend_web as maven_frontend
+from backend.module_dispatcher import dispatcher as dispatcher
+from multiprocessing import Process
 from werkzeug.contrib.fixers import ProxyFix
 
 
-import backend as maven_backend
-import frontend_web as maven_frontend
+#app = maven_backend.backend.run(host='0.0.0.0', port=8087, debug=True)
+def main():
+    #p1 = Process(target=startBackEnd())
+    #p2 = Process(target=startFrontEnd())
+    p3 = Process(target=startDispatchListener())
 
-#application = maven.backend.run(host='0.0.0.0', port=8087, debug=True)
-#application = maven_backend.backend.run(debug=True)
+    #p1.start()
+    #p2.start()
+    p3.start()
 
-application = maven_frontend.frontend_web.run(debug=True)
+def startFrontEnd():
+    app = maven_frontend.frontend_web
+    app.wsgi_app = ProxyFix(app.wsgi)
+    app.run(host='127.0.0.1', port=8087, debug=True)
+
+def startBackEnd():
+    app = maven_backend.backend
+    app.wsgi_app = ProxyFix(app.wsgi_app)
+    app.run(host='127.0.0.1', port=8088, debug=True)
+
+def startDispatchListener():
+    dispatcher.startServer()
 
 
-#application = DispatcherMiddleware(maven_frontend.frontend_web.run(debug=True),{'/webservice': maven_backend.backend.run(host='0.0.0.0',
- #                                                                    port=8088,
-  #                                                                   debug=True)})
+
+
+if __name__ == '__main__':
+    main()
