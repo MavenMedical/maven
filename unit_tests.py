@@ -20,30 +20,27 @@ import re
 import traceback
 import difflib
 
+
 def find_files(directory,pattern):
     for root, dirnames, filenames in os.walk(directory):
         for filename in fnmatch.filter(filenames, pattern):
             yield os.path.join(root, filename)
 
-for f in find_files('.','unit_test_*.py'):
-    mod=re.sub('/','.',f[2:-3])
+for f in find_files('.', 'unit_test_*.py'):
+    mod = re.sub('/', '.', f[2:-3])
     print(f)
     try:
-        test=importlib.import_module(mod,)
+        test = importlib.import_module(mod,)
         #print("result: "+test.result+"R")
         try:
-            with open(re.sub('py$','output',f)) as golden:
-                gold=golden.read().strip()
+            with open(re.sub('py$', 'output', f)) as golden:
+                gold = golden.read().strip()
                 #print("gold: "+gold+"G")
-                diff=difflib.unified_diff(gold.splitlines(1), test.result.splitlines(1))
-                d=''.join(diff )
-                if(not d==''):
+                diff = difflib.unified_diff(gold.splitlines(True), test.result.splitlines(True))
+                d = ''.join(diff)
+                if not d == '':
                     print(d)
-        except Exception:
+        except FileNotFoundError:
             pass
     except Exception:
         print(traceback.format_exc())
-
-
-
-    

@@ -12,11 +12,13 @@
 ##############################################################################
 
 import pickle
-from maven_config import MavenConfig
+import maven_config as MC
 
 
 def hack_print(x):
     print(x)
+readertype_param = "readertype"
+writertype_param = "writertype"
 
 
 class StreamProcessor():
@@ -35,10 +37,21 @@ class StreamProcessor():
 
     def read_object(self, obj):
         return
-    
+
+    # The program should be able to wake-up on a time event (and not just when data arrives).
+    # That functionality will be abstracted away here.
+    def timed_wake(self):
+        self.max_sleep(1000)
+
     ################################
     # Fields *not* to be overwritten
     ################################
+
+    # for use with timed_wake, max time until wake-up in seconds
+    def max_sleep(self, t):
+        pass
+        # Unimplimented
+
 
     # write_raw and write_object are to be called (by a reader typically) and will write to the configured object
     # write_raw is assigned in the __init__ function, write_object is here
@@ -52,14 +65,14 @@ class StreamProcessor():
         try:
             self.configname = configname
             # make "listener" point to the correct listener
-            if not configname in MavenConfig:
+            if not configname in MC.MavenConfig:
                 raise Exception(configname+" is not in the MavenConfig map.")
             else:
                 try:
-                    readertype = MavenConfig[configname]['readertype']
-                    #readerconfig = MC.MavenConfig[configname]['readerconfig']
-                    writertype = MavenConfig[configname]['writertype']
-                    #writerconfig = MC.MavenConfig[configname]['writerconfig']
+                    readertype = MC.MavenConfig[configname][readertype_param]
+                    #readerconfig = MC.MC.MavenConfig[configname]['readerconfig']
+                    writertype = MC.MavenConfig[configname][writertype_param]
+                    #writerconfig = MC.MC.MavenConfig[configname]['writerconfig']
                 except Exception:
                     raise Exception(configname + " did not have sufficient parameters.")
             if readertype == 'RabbitMQ':
@@ -86,7 +99,6 @@ class StreamProcessor():
             print("Exception in "+self.configname)
             raise e
         
-
     def rabbit_listener(self, blah):
         # listens to rabbitMQ messages and calls readRaw
         self.read_raw(blah)
