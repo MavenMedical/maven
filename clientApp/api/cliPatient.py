@@ -42,7 +42,7 @@ def EpicParse(self, xmlDemog, xmlProbList, xmlEnc, xmlOrd, config):
         self.lastName = obf.hash(root.findall(".//LastName")[0].text)
         self.patientId = obf.hash(root.findall(".//NationalIdentifier")[0].text)
         self.gender = root.findall(".//Gender")[0].text
-        bdate = datetime.strptime(root.findall(".//DateOfBirth")[0].text,config.dateFormat)
+        bdate = datetime.strptime(root.findall(".//DateOfBirth")[0].text, config.dateFormat)
         self.birthMonth = (bdate.year*100)+bdate.month
 
         root = etree.fromstring(xmlProbList)
@@ -52,7 +52,7 @@ def EpicParse(self, xmlDemog, xmlProbList, xmlEnc, xmlOrd, config):
         self.Encounter = cliEncounter.cliEncounter(xmlEnc, xmlOrd, config)
 
     except:
-        raise Exception("cliPatient: Could not parse the initial xml input.")
+        raise #Exception("cliPatient: Could not parse the initial xml input.")
 
 
 

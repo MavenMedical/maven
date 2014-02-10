@@ -19,8 +19,9 @@ class obfuscator:
 
     cfg = cliConfig.CliConfig
 
-    def __init__(self,config):
+    def __init__(self, config):
         self.cfg = config
 
     def hash(self, inString):
-        return hashlib.sha224(inString + self.cfg.sharedSecret).hexdigest()
+        inString = inString.encode('utf-8') + self.cfg.sharedSecret.encode('utf-8')
+        return hashlib.sha224(inString).hexdigest()

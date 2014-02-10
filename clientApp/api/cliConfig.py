@@ -1,6 +1,6 @@
 
 __author__ = 'dave'
-import ConfigParser
+import configparser
 
 class CliConfig:
     """*************************************************************************
@@ -25,7 +25,7 @@ class CliConfig:
     EMR=""
 
     def __init__(self):
-        cfg = ConfigParser.ConfigParser()
+        cfg = configparser.RawConfigParser()
         cfg.read("/var/maven/clientApp/config/maven.config")
         self.customerId = cfg.get("customer", "id")
         self.db = cfg.get("database", "db")
