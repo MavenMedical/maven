@@ -16,7 +16,7 @@
 
 from databaseUtils import databaseConnect
 import app.rule_engine.base_evaluator as BE
-import app.rule_engine.order_object as OO
+import app.rule_engine.order_response_object as RO
 
 global logging
 logging = True
@@ -41,7 +41,7 @@ class EvaluateOrder(BE.BaseEvaluator):
                 self.response_messages.append(evalResult)
         #Super class method
         self.evaluator_response(obj, self.response_messages)
-        return self.response_messages
+        return RO.OrderResponseObject(1,1,self.response_messages)
 
     def write_object(self,obj):
         #Overriding write object for now just print out the response messages
