@@ -32,7 +32,7 @@ class cliEncounter:
 
 def EpicParse(self,xmlContact,xmlOrders,config):
     # obf=obfuscator(config)  # If you wanted to hash something, simply uncomment this
-    import xml.etree.ElementTree as etree
+    import xml.etree.cElementTree as etree
     try:
         root = etree.fromstring(xmlContact)
         self.contactDateTime = datetime.strptime(root.findall(".//DateTime")[0].text, config.dateFormat)

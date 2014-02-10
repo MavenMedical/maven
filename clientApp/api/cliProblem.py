@@ -28,7 +28,7 @@ class cliProblem:
             EpicParse(self, probstring, config)
 
 def EpicParse(self, xmlIn, config):
-    import xml.etree.ElementTree as etree
+    import xml.etree.cElementTree as etree
     try:
         root = etree.fromstring(xmlIn)
         dxid = root.findall(".//DiagnosisIDs/IDType")

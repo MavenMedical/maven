@@ -33,7 +33,7 @@ class cliPatient:
 
 def EpicParse(self, xmlDemog, xmlProbList, xmlEnc, xmlOrd, config):
     obf=obfuscator(config)
-    import xml.etree.ElementTree as etree
+    import xml.etree.cElementTree as etree
     try:
         root = etree.fromstring(xmlDemog)
         self.zipcode = root.findall(".//Zip")[0].text
