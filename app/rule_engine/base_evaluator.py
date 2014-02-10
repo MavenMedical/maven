@@ -11,6 +11,9 @@
 ##############################################################################
 class BaseEvaluator():
     
+    def __init__(self):
+        pass
+
     # this class should be overridden
     # parameter is from app.rule_engine.order_object
     def evaluate_object(self,obj):
@@ -35,7 +38,7 @@ class TestEvaluator(BaseEvaluator):
 
     def __init__(self):
         # there are no databases or rule lists to access, so this is easy
-        pass
+        BaseEvaluator.__init__(self)
 
     def evaluate_object(self,obj):
         self.evaluator_response(obj,self.canned_response)

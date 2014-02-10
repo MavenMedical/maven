@@ -10,20 +10,23 @@
 #  Last Modified: 
 ##############################################################################
 
-orderType = "orderType"
-CPT="CPT"
-age="age"
-snomedIds="snomedIds"
-dept="dept"
+order_type = "orderType"
+CPT = "CPT"
+age = "age"
+snomed_ids = "snomedIds"
+dept = "dept"
+
 
 class OrderObject():
-	def __init__(self,orderParameters):
-		self.d = {}
-		self.d[orderType] = orderParameters[0]
-		self.d[CPT] = orderParameters[1]
-		self.d[age] = orderParameters[2]
-		self.d[snomedIds] = orderParameters[3]
-		self.d[dept] = orderParameters[4]
 
-	def __str__(self):
-		return ', '.join(sorted(['{}->{}'.format(k,v) for k,v in self.d.items()]))
+    def __init__(self, order_parameters):
+        self.d = {
+            order_type: order_parameters[0],
+            CPT: order_parameters[1],
+            age: order_parameters[2],
+            snomed_ids: order_parameters[3],
+            dept: order_parameters[4]
+        }
+
+    def __str__(self):
+        return ', '.join(sorted(['{}->{}'.format(k, v) for k, v in self.d.items()]))
