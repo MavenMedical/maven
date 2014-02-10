@@ -1,5 +1,6 @@
 __author__ = 'yuki'
 
+
 # Statement for enabling the development environment
 DEBUG = True
 
