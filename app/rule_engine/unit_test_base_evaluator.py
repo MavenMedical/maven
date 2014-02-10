@@ -27,7 +27,7 @@ te.write_object = write_object
 
 te.evaluate_object("test string")
 te.evaluate_object(1)
-te.evaluate_object(OO.OrderObject([6, 7, 8, 9, 10, 11, 12]))
+te.evaluate_object(OO.OrderObject("object id",[6, 7, 8, 9, 10, 11, 12]))
 result = result.strip()
 
 if __name__ == '__main__':

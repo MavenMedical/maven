@@ -22,10 +22,10 @@ teststreamname = 'test stream'
 MavenConfig = {
     teststreamname:
     {
-        'readertype': 'Testing',
-        'readerconfig': 'Testing',
-        'writertype': 'Testing',
-        'writerconfig': 'Testing'
+        SP.readertype_param: 'Testing',
+        #'readerconfig': 'Testing',
+        SP.writertype_param: 'Testing',
+        #'writerconfig': 'Testing'
     }
 }
 

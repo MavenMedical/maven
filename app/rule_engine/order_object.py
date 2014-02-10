@@ -19,7 +19,8 @@ dept = "dept"
 
 class OrderObject():
 
-    def __init__(self, order_parameters):
+    def __init__(self, order_id, order_parameters):
+        self.order_id = order_id
         self.d = {
             order_type: order_parameters[0],
             CPT: order_parameters[1],
