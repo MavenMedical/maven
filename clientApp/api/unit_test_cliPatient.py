@@ -11,9 +11,9 @@ encstring="<Contact><DateTime>2009-04-20T07:54:48</DateTime><DepartmentAbbreviat
 ordstring="<Orders>    <Order>          <ProcedureCode>85025</ProcedureCode>          <CodeType>CPT</CodeType>          <ExpectedDate>2011-01-01T00:00:00</ExpectedDate>          <ExpiredDate></ExpiredDate>          <Name>CBC with Automated Diff</Name>          <Type>Lab</Type>   </Order></Orders>"
 
 pat = cliPatient.cliPatient(patstring, probstring, encstring, ordstring, config)
-print pat.gender
-print pat.problemList[0].dateNoted
-print pat.problemList[0].diagnosis.snomedConcepts
-print pat.birthMonth
-print pat.Encounter.depName
-print pat.Encounter.orders[0].procName
+print(pat.gender)
+print(pat.problemList[0].dateNoted)
+print(pat.problemList[0].diagnosis.snomedConcepts)
+print(pat.birthMonth)
+print(pat.Encounter.depName)
+print(pat.Encounter.orders[0].procName)
