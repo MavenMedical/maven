@@ -17,19 +17,27 @@ __author__='Yuki Uchino'
 import backend as maven_backend
 import frontend_web as maven_frontend
 from backend.module_dispatcher import dispatcher as dispatcher
-from multiprocessing import Process
 from werkzeug.contrib.fixers import ProxyFix
+from concurrent.futures import ProcessPoolExecutor
+#from multiprocessing import Process
 
 
-#app = maven_backend.backend.run(host='0.0.0.0', port=8087, debug=True)
+
 def main():
+
+    with ProcessPoolExecutor(max_workers=2) as executor:
+        executor.submit(startDispatchListener())
+        executor.submit(startBackEnd())
+
+    ###
+    #Attempt #1 at running Maven's various applications as seperate Processes
     #p1 = Process(target=startBackEnd())
     #p2 = Process(target=startFrontEnd())
-    p3 = Process(target=startDispatchListener())
+    #p3 = Process(target=startDispatchListener())
 
     #p1.start()
     #p2.start()
-    p3.start()
+    #p3.start()
 
 def startFrontEnd():
     app = maven_frontend.frontend_web
@@ -43,8 +51,6 @@ def startBackEnd():
 
 def startDispatchListener():
     dispatcher.startServer()
-
-
 
 
 if __name__ == '__main__':

@@ -5,10 +5,10 @@
 #AUTHOR:
 __author__='Yuki Uchino'
 #************************
-#DESCRIPTION:   This python file runs the backend application. It uses the 'config.py' file
+#DESCRIPTION:   This file creates a an asynchronous listening server for incoming messages.
 #
 #************************
-#ASSUMES:       Configuration settings in 'config.py'
+#ASSUMES:
 #************************
 #SIDE EFFECTS:
 #************************

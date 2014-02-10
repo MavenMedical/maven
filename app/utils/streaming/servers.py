@@ -42,14 +42,8 @@ class ListeningServer(asyncio.Protocol):
         #TODO - will likely want to replace this print function with a logging function
         print('data received: {}'.format(data.decode()))
 
-        ###
-        #TODO - will likely want to send a confirmation-of-receipt message
-        self.transport.write(data)
-
         #send_rabbit_message(self, data)
         asyncio.Task(send_rabbit_message(self, data, rabbit_connection, dispatch_channel))
-        self.transport.close()
-
 
 class EmittingServer(asyncio.Protocol):
     def connection_made(self, transport):
@@ -57,14 +51,20 @@ class EmittingServer(asyncio.Protocol):
         print('connection from {}'.format(peername))
         self.transport = transport
 
+
     def data_received(self, data):
         #TODO
         #will likely want to replace this print function with a logging function
         print('data received: {}'.format(data.decode()))
         self.transport.write(data)
-        #send_rabbit_message(self, data)
         asyncio.Task(send_rabbit_message(self, data))
         self.transport.close()
+
+
+@asyncio.coroutine
+def send_data(self, data):
+    self.transport.write(data)
+
 
 @asyncio.coroutine
 def send_rabbit_message(self, data, connection, channel):
