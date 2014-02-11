@@ -170,15 +170,20 @@ COMMENT ON SCHEMA "logging"
 
 CREATE TABLE "logging".alert
 (
-  encounter_id character varying(20) NOT NULL,
-  pat_id character varying(20) NOT NULL,
-  userid character varying(20) NOT NULL,
-  provider character varying(50),
-  dep character varying(50),
+  encounter_id character varying(128) NOT NULL,
+  pat_id character varying(128) NOT NULL,
+  prov_id character varying(128) NOT NULL,
+  provider character varying(128),
+  dep character varying(128),
   encounter_date timestamp without time zone NOT NULL,
   alert_date timestamp without time zone NOT NULL,
-  orderable character varying(50),encounter_id character varying(20) NOT NULL,
-  outcome character varying(50)
+  orderable character varying(128),
+  encounter_id character varying(128) NOT NULL,
+  outcome character varying(128),
+  alert_title character varying(128),
+  alert_msg character varying(300),
+  action character varying(128),
+  saving integer
 )
 WITH (
   OIDS=FALSE

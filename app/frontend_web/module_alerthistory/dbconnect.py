@@ -14,7 +14,7 @@ __author__='Asmaa AlJuhani'
 #************************
 #ASSUMES:
 # DB Config in maven configration file (currently on app.frontend_web.dbconfig.py)
-# In this version, it requires to pass the Alerts level (ex: provider, department, admin) as parameter
+# We are getting the context as parameters in the URL
 #************************
 #SIDE EFFECTS:
 #************************
@@ -49,24 +49,48 @@ class DB:
         return self.conn.execute(sql , id=pid).fetchall()
 
 
-    def get_pat_alerts(self, pat_id , prov, dep):
+    def get_pat_alerts(self, pat_id ):
         """
         return patient alerts given pat_id , prov, dep
         """
-        sql = text('SELECT * FROM alert WHERE pat_id = :id and prov= :provider and dep= :department')
-        return self.conn.execute(sql, id=pat_id, provider=prov, department=dep ).fetchall()
+        #sql = text('SELECT * FROM alert WHERE pat_id = :id and prov= :provider and dep= :department')
+        #return self.conn.execute(sql, id=pat_id, provider=prov, department=dep ).fetchall()
+        sql = text('SELECT * FROM alert WHERE pat_id = :id')
+        return self.conn.execute(sql, id=pat_id).fetchall()
+
+    def get_prov_alerts(self,prov):
+        """
+        return a provider alerts given prov_id
+        """
+        sql = text('SELECT * FROM alert WHERE prov_id = :provider')
+        return self.conn.execute(sql, provider=prov).fetchall()
 
 
-    def get_providers_alert(self,dep):
+    def get_dep_alerts(self,dep):
         """
         return all providers' alerts given a department
         """
         sql = text('SELECT * FROM alert WHERE dep= :department')
         return self.conn.execute(sql, department=dep ).fetchall()
 
-    def get_alerts(self):
+    def get_all_alerts(self):
         """
-        return all alerts
+        return all alerts, can be used for administrative level
         """
-        sql = text('SELECT * FROM medorder')
+        sql = text('SELECT * FROM alert')
         return self.conn.execute(sql).fetchall()
+
+
+    def get_alerts(self, args):
+        """
+        return alerts depending on the given args
+        """
+        if 'pat' in args:
+            return self.get_pat_alerts(args['pat'])
+        elif 'prov' in args:
+            return self.get_prov_alerts(args['prov'])
+        elif 'dep' in args:
+            return self.get_dep_alerts(args['dep'])
+        elif 'admin' in args:
+            return self.get_all_alerts()
+

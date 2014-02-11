@@ -12,6 +12,7 @@ __author__='Asmaa AlJuhani'
 # When using the SQLAlchemy ORM, the public API for transaction control is via the Session object
 #************************
 #ASSUMES:
+#We are getting the context as parameters in the URL
 #************************
 #SIDE EFFECTS:
 #************************
@@ -67,20 +68,15 @@ def signin():
 
 
 
-@web.route('/')
+@web.route('/', methods=['GET', 'POST'])
 def showData():
 
     dbconnect = DB()
     dbconnect.connect()
 
-    pat_id = '3DCFD67E22124CD975E94D7B4A1688EC'
-    prov = ''
-    dep = ''
+    args = request.args
 
-    pat = dbconnect.get_patient(pat_id)[0]
+    alert = dbconnect.get_alerts(args)
 
-    alert = dbconnect.get_alerts()
-
-    return render_template("alerthistory/index.html",
-                           pat_info = pat,
+    return render_template("alerthistory/retrieve_alerts.html",
                            alerts = alert)
