@@ -3,7 +3,7 @@
 #
 #************************
 #AUTHOR:
-__author__='Asmaa'
+__author__='Asmaa AlJuhani'
 #************************
 #DESCRIPTION:
 #
@@ -13,7 +13,7 @@ __author__='Asmaa'
 #************************
 #SIDE EFFECTS:
 #************************
-#LAST MODIFIED FOR JIRA ISSUE: MAV-1
+#LAST MODIFIED FOR JIRA ISSUE: MAV-20
 #*************************************************************************
 
 # Import Form and RecaptchaField (optional)

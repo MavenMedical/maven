@@ -1,4 +1,5 @@
-__author__ = 'yuki'
+__author__ = 'Asmaa Aljuhani'
+
 
 
 # Statement for enabling the development environment
@@ -9,8 +10,19 @@ import os
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 # Define the database - we are working with
-# SQLite for this example
-SQLALCHEMY_DATABASE_URI = 'postgresql://maven:temporary@localhost/maven'
+#Database URIs form
+# dialect+driver://username:password@host:port/database
+#Define database information
+USER = 'maven'
+PASSWORD = 'temporary'
+#HOST:PORT
+HOST = 'localhost'
+PORT = '5432'
+#DATABASE NAME
+DATABASE = 'maven'
+
+#DB URI
+SQLALCHEMY_DATABASE_URI = 'postgresql://' + USER +':'+ PASSWORD +'@'+ HOST +':'+ PORT + '/' + DATABASE
 DATABASE_CONNECT_OPTIONS = {}
 
 # Application threads. A common general assumption is
