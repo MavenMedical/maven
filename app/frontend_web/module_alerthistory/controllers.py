@@ -3,17 +3,19 @@
 #
 #************************
 #AUTHOR:
-__author__='Asmaa'
+__author__='Asmaa AlJuhani'
 #************************
 #DESCRIPTION:
 #
 #
+#NOTES:
+# When using the SQLAlchemy ORM, the public API for transaction control is via the Session object
 #************************
 #ASSUMES:
 #************************
 #SIDE EFFECTS:
 #************************
-#LAST MODIFIED FOR JIRA ISSUE: MAV-1
+#LAST MODIFIED FOR JIRA ISSUE: MAV-20
 #*************************************************************************
 
 # Import flask dependencies
@@ -24,15 +26,19 @@ from flask import Blueprint, request, render_template, \
 from werkzeug.security import check_password_hash, generate_password_hash
 
 # Import the temp backend database object from the main app module
-from frontend_web import db
+from app.frontend_web import db
 
 # Import module forms for testing
-from frontend_web.module_alerthistory.forms import LoginForm
+from app.frontend_web.module_alerthistory.forms import LoginForm
 
-# Import module models (User)
-from frontend_web.module_alerthistory.models import User
+# Import all models
+from app.frontend_web.module_alerthistory.models import *
 
-# Define the blueprint: 'webservice', set its url prefix: app.url/webservice
+
+#import DB class
+from app.frontend_web.module_alerthistory.dbconnect import *
+
+# Define the blueprint: 'webservice', set its url prefix: app.url/web
 web = Blueprint('web', __name__, url_prefix='/web')
 
 # Set the route and accepted methods
@@ -58,3 +64,23 @@ def signin():
         flash('Wrong email or password', 'error-message')
 
     return render_template("alerthistory/retrieve_alerts.html", form=form)
+
+
+
+@web.route('/')
+def showData():
+
+    dbconnect = DB()
+    dbconnect.connect()
+
+    pat_id = '3DCFD67E22124CD975E94D7B4A1688EC'
+    prov = ''
+    dep = ''
+
+    pat = dbconnect.get_patient(pat_id)[0]
+
+    alert = dbconnect.get_alerts()
+
+    return render_template("alerthistory/index.html",
+                           pat_info = pat,
+                           alerts = alert)
