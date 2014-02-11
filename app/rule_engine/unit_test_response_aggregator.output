@@ -1,0 +1,15 @@
+wake #1, nothing ready yet
+wake #2, message ready to send
+[1, '(1,1)']
+wake #3, nothing ready
+wake #4, nothing ready
+wake #5, key 2 ready too send
+[2, '(2,2)\n(2,3)\n(2,4)']
+wake #6, key 1 rejected because it was already sent
+wake #7, keys 3-6 sending at once
+[3, '(3,3)']
+[4, '(4,3)']
+[5, '(5,3)']
+[6, '(6,3)']
+wake #8, key 1 getting through again because it's expiration expired
+[1, '(1,3)']

@@ -1,3 +1,4 @@
+chmod 777 .
 su postgres -c 'psql -f createDb.sql'
 mkfifo termData
 gunzip < terminologySchema.data.gz > termData &

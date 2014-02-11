@@ -18,7 +18,13 @@ __author__='Yuki Uchino'
 import amqp, asyncio
 #import app.configs.config as MAVEN_CONFIG
 
-class DispatchServer(asyncio.Protocol):
+class ListeningServer(asyncio.Protocol):
+    ###
+    #TODO - Proper instantiation method for this very important object
+    def __init__(self):
+        print('Started')
+        pass
+
     def connection_made(self, transport):
         #TODO
         #will likely want to replace this print function with a logging function
@@ -36,36 +42,36 @@ class DispatchServer(asyncio.Protocol):
         #TODO - will likely want to replace this print function with a logging function
         print('data received: {}'.format(data.decode()))
 
-        ###
-        #TODO - will likely want to send a confirmation-of-receipt message
-        self.transport.write(data)
-
         #send_rabbit_message(self, data)
         asyncio.Task(send_rabbit_message(self, data, rabbit_connection, dispatch_channel))
-        self.transport.close()
 
-
-class MessageServer(asyncio.Protocol):
+class EmittingServer(asyncio.Protocol):
     def connection_made(self, transport):
         peername = transport.get_extra_info('peername')
         print('connection from {}'.format(peername))
         self.transport = transport
+
 
     def data_received(self, data):
         #TODO
         #will likely want to replace this print function with a logging function
         print('data received: {}'.format(data.decode()))
         self.transport.write(data)
-        #send_rabbit_message(self, data)
         asyncio.Task(send_rabbit_message(self, data))
         self.transport.close()
+
+
+@asyncio.coroutine
+def send_data(self, data):
+    self.transport.write(data)
+
 
 @asyncio.coroutine
 def send_rabbit_message(self, data, connection, channel):
     message = amqp.Message(data)
     channel.basic_publish(message,
-                                  exchange="mavenExchange",
-                                  routing_key='incoming')
+                          exchange="mavenExchange",
+                          routing_key='incoming')
     channel.close()
     connection.close()
 

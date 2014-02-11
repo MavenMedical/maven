@@ -15,7 +15,7 @@ __author__='Yuki Uchino'
 #LAST MODIFIED FOR JIRA ISSUE: MAV-1
 #*************************************************************************
 
-import amqp
+import amqp, asyncio
 
 conn = amqp.Connection('localhost')
 chan = conn.channel()
@@ -25,6 +25,7 @@ chan.exchange_declare(exchange="mavenExchange", type="direct")
 chan.queue_bind(queue="dispatcherQueue", exchange="mavenExchange", routing_key="incoming")
 
 def cBack(msg):
+    asyncio.sleep(3)
     incoming_message = msg.body.decode()
     print("Received a message!: " + incoming_message)
 
