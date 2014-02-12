@@ -33,3 +33,4 @@ class LoginForm(Form):
                 Required(message='Forgot your email address?')])
     password = PasswordField('Password', [
                 Required(message='Must provide a password. ;-)')])
+

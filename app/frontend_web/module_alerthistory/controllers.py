@@ -78,5 +78,5 @@ def showData():
 
     alert = dbconnect.get_alerts(args)
 
-    return render_template("alerthistory/retrieve_alerts.html",
+    return render_template("alerthistory/alerthistory.html",
                            alerts = alert)

@@ -19,7 +19,7 @@ PASSWORD = 'temporary'
 HOST = 'localhost'
 PORT = '5432'
 #DATABASE NAME
-DATABASE = 'maven'
+DATABASE = 'testdata'
 
 #DB URI
 SQLALCHEMY_DATABASE_URI = 'postgresql://' + USER +':'+ PASSWORD +'@'+ HOST +':'+ PORT + '/' + DATABASE
