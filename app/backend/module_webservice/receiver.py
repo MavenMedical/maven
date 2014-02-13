@@ -20,9 +20,9 @@ import amqp, asyncio
 conn = amqp.Connection('localhost')
 chan = conn.channel()
 
-chan.queue_declare(queue="dispatcherQueue")
-chan.exchange_declare(exchange="mavenExchange", type="direct")
-chan.queue_bind(queue="dispatcherQueue", exchange="mavenExchange", routing_key="incoming")
+chan.queue_declare(queue="incoming_work_queue")
+chan.exchange_declare(exchange="maven_exchange", type="direct")
+chan.queue_bind(queue="incoming_work_queue", exchange="maven_exchange", routing_key="incoming")
 
 def cBack(msg):
     asyncio.sleep(3)
@@ -30,12 +30,11 @@ def cBack(msg):
     print("Received a message!: " + incoming_message)
 
 
-chan.basic_consume(queue='dispatcherQueue', no_ack=False, callback=cBack)
+
+chan.basic_consume(queue='incoming_work_queue', no_ack=False, callback=cBack)
 
 while True:
     chan.wait()
-
-#chan.basic_cancel("TestTag")
 
 chan.close()
 conn.close()
