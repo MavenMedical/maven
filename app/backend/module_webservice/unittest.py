@@ -15,49 +15,20 @@ __author__='Yuki Uchino'
 #LAST MODIFIED FOR JIRA ISSUE: MAV-1
 #*************************************************************************
 import asyncio
-from app.utils.streaming.servers import DispatchServer as listener
+#from app.backend.data_router import Receiver
 #import app.backend.module_webservice.receiver as receiver
 
 
-
-loop = asyncio.get_event_loop()
-
-coro = loop.create_server(listener, '127.0.0.1', 8888)
-server = loop.run_until_complete(coro)
-###
-#Just a statement for the console so you know it's running
-#Again, anywhere we have print statements to confirm stuff is running are
-#likely candidates for being logged by an upstream logger
-###
-print('serving on {}'.format(server.sockets[0].getsockname()))
-
-
-@asyncio.coroutine
-def delayed_print():
-    asyncio.sleep(5)
-    print('Hello hello')
-
-try:
-    loop.run_until_complete(delayed_print())
-    loop.run_forever()
-except KeyboardInterrupt:
-    print("exit")
-
-finally:
-    server.close()
-    loop.close()
-
-
-
-
-
-class SendFakeData(asyncio.Protocol):
-    message = 'This is the message. It will be echoed.'
+class EchoClient(asyncio.Protocol):
+    message = 'HALLO TOM'
+    message2 = 'This is the message. It will be echoed2'
+    message3 = 'This is the message. It will be echoed3'
 
     def connection_made(self, transport):
-        #asyncio.sleep(5)
         transport.write(self.message.encode())
-        print('data sent: {}'.format(self.message))
+        #transport.write(self.message2.encode())
+        #transport.write(self.message3.encode())
+        #print('data sent: {}'.format(self.message))
 
     def data_received(self, data):
         print('data received: {}'.format(data.decode()))
@@ -65,3 +36,9 @@ class SendFakeData(asyncio.Protocol):
     def connection_lost(self, exc):
         print('server closed the connection')
         asyncio.get_event_loop().stop()
+
+loop = asyncio.get_event_loop()
+coro = loop.create_connection(EchoClient, '127.0.0.1', 7888)
+loop.run_until_complete(coro)
+#loop.run_forever()
+loop.close()
