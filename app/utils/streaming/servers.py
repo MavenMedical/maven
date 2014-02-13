@@ -45,6 +45,13 @@ class ListeningServer(asyncio.Protocol):
         #send_rabbit_message(self, data)
         asyncio.Task(send_rabbit_message(self, data, rabbit_connection, dispatch_channel))
 
+    @asyncio.coroutine
+    def send_rabbit_message(self, data, exchange, channel, routing_key):
+        message = amqp.Message(data)
+        channel.basic_publish(message,
+                              exchange=exchange,
+                              routing_key=routing_key)
+
 class EmittingServer(asyncio.Protocol):
     def connection_made(self, transport):
         peername = transport.get_extra_info('peername')
@@ -67,11 +74,10 @@ def send_data(self, data):
 
 
 @asyncio.coroutine
-def send_rabbit_message(self, data, connection, channel):
+def send_rabbit_message(data, exchange, channel, routing_key):
     message = amqp.Message(data)
     channel.basic_publish(message,
-                          exchange="mavenExchange",
-                          routing_key='incoming')
-    channel.close()
-    connection.close()
+                          exchange=exchange,
+                          routing_key=routing_key)
+
 

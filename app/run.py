@@ -22,53 +22,44 @@ from app.backend.module_webservice.data_router import MavenWebservicesServer
 
 #from app.backend.data_router import Emitter as emitter
 from werkzeug.contrib.fixers import ProxyFix
-<<<<<<< HEAD
 from concurrent.futures import ProcessPoolExecutor
-=======
 #from concurrent.futures import ProcessPoolExecutor
->>>>>>> yukidev
 from multiprocessing import Process
+from app.backend.module_webservice.data_router import MavenWebservicesServer as services
 
 
 
 def main():
 
     #with ProcessPoolExecutor(max_workers=2) as executor:
-<<<<<<< HEAD
+
         #executor.submit(startDispatchListener())
         #executor.submit(startBackEnd())
-=======
+
         #executor.submit(start_dispatch_listener())
         #executor.submit(start_backend())
->>>>>>> yukidev
-
     ###
     #Attempt #1 at running Maven's various applications as seperate Processes
     #p1 = Process(target=startBackEnd())
-<<<<<<< HEAD
-    p2 = Process(target=startFrontEnd())
-    #p3 = Process(target=startDispatchListener())
+    #p2 = Process(target=startFrontEnd())
+    #p3 = Process(target=start_webservices())
 
     #p1.start()
-    p2.start()
+    #p2.start()
     #p3.start()
-=======
-    p2 = Process(target=startFrontEnd())
+    #p2 = Process(target=startFrontEnd())
 
-    #listening_loop = asyncio.get_event_loop()
-    #print(listening_loop)
-    #emitting_loop = asyncio.new_event_loop()
-    #print(emitting_loop)
-    #p3 = Process(target=start_webservices(MavenWebservicesServer(), listening_loop, emitting_loop))
+    listening_loop = asyncio.get_event_loop()
+    emitting_loop = asyncio.new_event_loop()
+    p3 = Process(target=start_webservices(MavenWebservicesServer(), listening_loop, emitting_loop))
 
    # with ThreadPoolExecutor as executor:
     #    executor.submit(MavenWebservicesServer())
      #   executor.submit(Emitter())
 
     #p1.start()
-    p2.start()
-    #3.start()
->>>>>>> yukidev
+    #p2.start()
+    p3.start()
 
 
 
@@ -84,7 +75,6 @@ def start_backend():
     app.run(host='127.0.0.1', port=8088, debug=True)
 
 def start_webservices(services, listening_loop, emitting_loop):
-    #transport_manager = {}
     services.start_servers(listening_loop, emitting_loop)
     listening_loop.close()
     emitting_loop.close()
