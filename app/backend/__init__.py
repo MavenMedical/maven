@@ -19,6 +19,7 @@ __author__='Yuki Uchino'
 from flask import Flask, render_template
 from flask.ext.sqlalchemy import SQLAlchemy
 from configs import devel_config as config
+from werkzeug.contrib.fixers import ProxyFix
 
 # Define the WSGI application object that will handle the backend webservice
 backend = Flask(__name__)

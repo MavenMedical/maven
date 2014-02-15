@@ -33,10 +33,10 @@ from backend.module_webservice.forms import LoginForm
 from backend.module_webservice.models import User
 
 # Define the blueprint: 'webservice', set its url prefix: app.url/webservice
-webservice = Blueprint('webservice', __name__, url_prefix='/webservice')
+webservice = Blueprint('webservices', __name__, url_prefix='/')
 
 # Set the route and accepted methods
-@webservice.route('/signin/', methods=['GET', 'POST'])
+@webservice.route('/', methods=['GET', 'POST'])
 def signin():
 
     # If sign in form is submitted

@@ -17,19 +17,20 @@ __author__='Yuki Uchino'
 import asyncio
 
 import backend as maven_backend
-import frontend_web as maven_frontend
-from app.backend.module_webservice.data_router import MavenWebservicesServer
-
+#import frontend_web as maven_frontend
+#from app.backend.module_webservice.data_router import MavenWebservicesServer
 #from app.backend.data_router import Emitter as emitter
 from werkzeug.contrib.fixers import ProxyFix
-from concurrent.futures import ProcessPoolExecutor
+#from concurrent.futures import ProcessPoolExecutor
 #from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import Process
-from app.backend.module_webservice.data_router import MavenWebservicesServer as services
+#from app.backend.module_webservice.data_router import MavenWebservicesServer as services
 
 
 
-def main():
+app = maven_backend.backend
+app.wsgi_app = ProxyFix(app.wsgi_app)
+#app.run(host='127.0.0.1', port=8088, debug=True)
 
     #with ProcessPoolExecutor(max_workers=2) as executor:
 
@@ -40,8 +41,8 @@ def main():
         #executor.submit(start_backend())
     ###
     #Attempt #1 at running Maven's various applications as seperate Processes
-    #p1 = Process(target=startBackEnd())
-    #p2 = Process(target=startFrontEnd())
+    #p1 = Process(target=start_backend())
+    #p2 = Process(target=start_frontend())
     #p3 = Process(target=start_webservices())
 
     #p1.start()
@@ -49,9 +50,9 @@ def main():
     #p3.start()
     #p2 = Process(target=startFrontEnd())
 
-    listening_loop = asyncio.get_event_loop()
-    emitting_loop = asyncio.new_event_loop()
-    p3 = Process(target=start_webservices(MavenWebservicesServer(), listening_loop, emitting_loop))
+    #listening_loop = asyncio.get_event_loop()
+    #emitting_loop = asyncio.new_event_loop()
+    #p3 = Process(target=start_webservices(MavenWebservicesServer(), listening_loop, emitting_loop))
 
    # with ThreadPoolExecutor as executor:
     #    executor.submit(MavenWebservicesServer())
@@ -59,14 +60,16 @@ def main():
 
     #p1.start()
     #p2.start()
-    p3.start()
+    #p3.start()
 
 
 
-def start_frontend():
-    app = maven_frontend.frontend_web
-    app.wsgi_app = ProxyFix(app.wsgi_app)
-    app.run(host='127.0.0.1', port=8087, debug=True)
+
+
+#def start_frontend():
+    #app = maven_frontend.frontend_web
+    #app.wsgi_app = ProxyFix(app.wsgi_app)
+    #app.run(host='127.0.0.1', port=8087, debug=True)
 
 
 def start_backend():
@@ -80,5 +83,5 @@ def start_webservices(services, listening_loop, emitting_loop):
     emitting_loop.close()
 
 
-if __name__ == '__main__':
-    main()
+#if __name__ == '__main__':
+    #main()
