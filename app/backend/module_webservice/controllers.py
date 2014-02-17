@@ -24,13 +24,13 @@ from flask import Blueprint, request, render_template, \
 from werkzeug.security import check_password_hash, generate_password_hash
 
 # Import the temp backend database object from the main app module
-from backend import db
+from app.backend import db
 
 # Import module forms for testing
-from backend.module_webservice.forms import LoginForm
+from app.backend.module_webservice.forms import LoginForm
 
 # Import module models (User)
-from backend.module_webservice.models import User
+from app.backend.module_webservice.models import User
 
 # Define the blueprint: 'webservice', set its url prefix: app.url/webservice
 webservice = Blueprint('webservices', __name__, url_prefix='/')

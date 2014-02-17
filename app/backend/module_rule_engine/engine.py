@@ -8,9 +8,9 @@
 # The order itself. This method returns a map of key value pairs from the matching rule {ruleName: "<name>:, ruleDescription: "<description>", details: "<details>"}
 # ASSUMES:
 # SIDE EFFECTS: None
-# LAST MODIFIED FOR JIRA ISSUE: MAV-40 Wednesday February 12th
+# LAST MODIFIED FOR JIRA ISSUE: MAV-40 Monday February 17th
 #*************************************************************************
-
+#TODO: After the database utils have been created, we should be able to assign match variables based on key value pairs of a match not by array order
 class RuleEngine():
 
     def __init__(self,cursor,Logger):
@@ -57,61 +57,53 @@ class RuleEngine():
 
         details = match[8]
 
-        onlyInDept = []
-        for dept in match[9].split(','):
-            onlyInDept.append(dept)
+        #onlyInDept = []
+        #for dept in match[9].split(','):
+        #    onlyInDept.append(dept)
+        onlyInDept = match[9].split(',')
+        notInDept = match[10].split(',')
 
-        notInDept = []
-        for dept in match[10].split(','):
-            notInDept.append(dept)
 
         #Dictionary of rule key value pairs to return as a message (keys: rule name, rule description, rule details)
         ruleMatch = {}
 
-        #Check proc or med for correct evaluation path - right now we wil only support proc
-        if order['orderType']=='proc':
-            #Each check will return true if the rule is possibly a match to the order parameters
-            #If a check ever returns false we know that the rule does not apply to the order and we can stop
-            #Checking the other parameters and move on to the next possible rule match
+        #Each check will return true if the rule is possibly a match to the order parameters
+        #If a check ever returns false we know that the rule does not apply to the order and we can stop
+        #Checking the other parameters and move on to the next possible rule match
 
-            #Immediately throw out all matches that are not of the same order type
-            if ruleOrderType != order['orderType']:
-                self.Logger.log("Not a match -> Fail Order type check")
-                return None
+        #Immediately throw out all matches that are not of the same order type
+        if ruleOrderType != order['orderType']:
+            self.Logger.log("Not a match -> Fail Order type check")
+            return None
 
-            self.Logger.log("Order Type: Procedure, we support this")
+        self.Logger.log("Order Type: Procedure, we support this")
 
-            if (self.check_age(minAge,maxAge,order['age']) == False):
-                self.Logger.log("Not a match -> FailAge check")
-                return None
+        if (self.check_age(minAge,maxAge,order['age']) == False):
+            self.Logger.log("Not a match -> FailAge check")
+            return None
 
-            if (self.check_inclusion_dx(withDx,order['snomedIds']) == False):
-                self.Logger.log("Not a match -> Fail snomedID inclusion")
-                return None
+        if (self.check_inclusion_dx(withDx,order['snomedIds']) == False):
+            self.Logger.log("Not a match -> Fail snomedID inclusion")
+            return None
 
-            if (self.check_exclusion_dx(withoutDx,order['snomedIds'])== False):
-                self.Logger.log("Not a match -> Fail snomedID exclusion")
-                return None
+        if (self.check_exclusion_dx(withoutDx,order['snomedIds'])== False):
+            self.Logger.log("Not a match -> Fail snomedID exclusion")
+            return None
 
-            if (self.check_inclusion_dept(onlyInDept,order['dept']) == False):
-                self.Logger.log("Not a match -> Fail dept inclusion check")
-                return None
+        if (self.check_inclusion_dept(onlyInDept,order['dept']) == False):
+            self.Logger.log("Not a match -> Fail dept inclusion check")
+            return None
 
-            if (self.check_exclusion_dept(notInDept,order['dept']) == False):
-                self.Logger.log("Not a match -> Fail dept exclusion check")
-                return None
+        if (self.check_exclusion_dept(notInDept,order['dept']) == False):
+            self.Logger.log("Not a match -> Fail dept exclusion check")
+            return None
 
-            # Once we make it to here all the checks have passed and we have found a rule match, we need to send back a message
-            self.Logger.log("This Order Is A Match")
-            ruleMatch['ruleName']=ruleName
-            ruleMatch['ruleDescription'] = ruleDescription
-            ruleMatch['details'] = details
-            return ruleMatch
-
-        elif order['orderType'] == 'med':
-            raise Exception("Currently, the rules engine does not support evaluations for medications")
-        else:
-            raise Exception("The order type must be a procedure (proc) or medication (med)")
+        # Once we make it to here all the checks have passed and we have found a rule match, we need to send back a message
+        self.Logger.log("This Order Is A Match")
+        ruleMatch['ruleName']=ruleName
+        ruleMatch['ruleDescription'] = ruleDescription
+        ruleMatch['details'] = details
+        return ruleMatch
 
     def check_age(self,minAge,maxAge,orderAge):
         #check that the age is in correct range, if it is not throw out the rule
@@ -153,8 +145,6 @@ class RuleEngine():
 
     def check_inclusion_dept(self,onlyInDept,orderDept):
         #check the department inclusion list, if any of the departments on the inclusion equal to the order dept, return true, if not throw out the rule
-        print("ONLY IN :",onlyInDept)
-        print("ORDER dept:", orderDept)
         match = False
         if (len(onlyInDept) == 1 and onlyInDept[0] == ''):
             match = True
