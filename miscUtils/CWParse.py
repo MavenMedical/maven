@@ -41,10 +41,10 @@ def writeHTML(QSets):
     for curSet in QSets:
         f.write('<th colspan = 3><h1>{0}</th>\n'.format(curSet.Name))
         for q in curSet.List:
-                f.write('<tr><td>{0}</td><td rowspan ="2" width = "150"><input type="radio" form="primary" name="Perform{1}" value="1">Yes'.format(q.Name, q.ID))
-                f.write('<br><input type="radio" form="primary" name="Perform{0}" value="0">No</td><td width = "100" rowspan ="2">'.format(q.ID))
-                f.write('<center><input type="radio" form="primary" name="Difficulty{0}" value="Easy">Easy<br><input type="radio" form="primary" name="Difficulty{0}"'.format(q.ID))
-                f.write('value="Medium">Medium<br><input type="radio" form="primary" name="Difficulty{0}" value="Hard">Hard</center></td></tr>'.format(q.ID))
+                f.write('<tr><td>{0}</td><td rowspan ="2" width = "150"><input type="radio" onclick = "enable({1})" form="primary" name="Perform{1}" value="1">Yes'.format(q.Name, q.ID))
+                f.write('<br><input type="radio" onclick = "disable({0})" form="primary" name="Perform{0}" value="0">No</td><td width = "100" rowspan ="2">'.format(q.ID))
+                f.write('<center><input type="radio" form="primary" name="Difficulty{0}" value="Easy" onclick ="submit()" disabled>Easy<br><input type="radio" form="primary" name="Difficulty{0}"'.format(q.ID))
+                f.write('value="Medium" onclick ="submit()" disabled >Medium<br><input type="radio" form="primary" name="Difficulty{0}" value="Hard" onclick ="submit()" disabled>Hard</center></td></tr>'.format(q.ID))
                 f.write('<tr><td><button id = "contentButton{0}" form="primary" type="button" onclick="showContent({0})">Show Details </button><br>'.format(q.ID))
                 f.write('<output id="Content{0}"></output></td></tr>\n'.format(q.ID))
     f.write('</table>\n')
