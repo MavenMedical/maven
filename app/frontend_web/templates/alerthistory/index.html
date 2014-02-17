@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title> Maven </title>
+    <!-- CSS file -->
+    <link rel="stylesheet" type="text/css" href="../../static/bootstrap/css/bootstrap.css">
+</head>
+<body>
+
+
+<nav class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="#">Maven</a>
+
+            <p class="navbar-text ">
+                <a href="#" class="navbar-link">Me</a> |
+                <a href="#" class="navbar-link">Hospital</a> |
+                <a href="#" class="navbar-link">Organization</a>
+            </p>
+        </div>
+    </div>
+</nav>
+
+<!-- div for main body-->
+<div class="container">
+    <div class="row">
+        <!-- left side menu -->
+        <div class="col-md-4">
+            <div class="panel panel-default">
+                <div class="panel-heading">Episodes</div>
+                <div class="panel-body">
+                    <ul class="nav nav-pills nav-stacked">
+                        <li>
+                            <a href="#">
+                                12/12/2012
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                01/14/2013
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                02/03/2014
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- main content -->
+        <div class="container">
+            <div class="col-md-8">
+                <!-- Patient info -->
+                 <div class="panel panel-default">
+                    <div class="panel-heading">Patient Info</div>
+                    <div class="panel-body">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-2">
+                                    {{ pat_info.patname }}
+                                </div>
+                                <div class="col-md-2">
+                                    {{ pat_info.sex }}
+                                </div>
+                                <div class="col-md-2">
+                                    {{ pat_info.birth_month }}
+                                </div>
+                                <div class="col-md-2">
+                                   {{ arg }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- cost information -->
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    Historic Utilization :
+                                </div>
+                                <div class="col-md-2">
+                                    $95,342
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    Year to date :
+                                </div>
+                                <div class="col-md-2">
+                                    $60,700
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Alerts -->
+
+                <div class="row">
+                    <!-- graph -->
+                    <div class="col-md-6">
+                        <div class="panel panel-default">
+                            <div class="panel-body">
+                                <div id="detailed_chart"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- list -->
+                    <div class="col-md-6">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">Maven Alerts</div>
+                            <div class="panel-body">
+                                <ul class="nav nav-pills nav-stacked">
+                                    <li>
+                                        <a href="#">
+                                            <span class="badge pull-right">$20</span>
+                                            Alert1
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="#">
+                                            <span class="badge pull-right">$120</span>
+                                            Alert2
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="#">
+                                            <span class="badge pull-right">$200</span>
+                                            Alert3
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+</div>
+
+<!-- JS files -->
+<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+<script src="static/bootstrap/js/bootstrap.js"></script>
+
+</body>
+</html>

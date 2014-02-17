@@ -18,10 +18,13 @@ __author__='Asmaa'
 
 from flask import Flask, render_template
 from flask.ext.sqlalchemy import SQLAlchemy
+import os
 
+#Specify the path for templates
+tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 
 # Define the WSGI application object that will handle the frontend webservice
-frontend_web = Flask(__name__)
+frontend_web = Flask(__name__ , template_folder=tmpl_dir)
 
 # Configurations
 frontend_web.config.from_object('dbconfig')
@@ -38,7 +41,7 @@ def not_found(error):
 #**************************************************************************
 # IMPORT AND REGISTER THE BLUEPRINTS FOR NEW FRONTEND MODULE BELOW
 #**************************************************************************
-from frontend_web.module_alerthistory.controllers import web as web_module
+from app.frontend_web.module_alerthistory.controllers import web as web_module
 
 frontend_web.register_blueprint(web_module)
 

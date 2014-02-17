@@ -1,0 +1,64 @@
+{% extends "alerthistory/retrieve_alerts.html" %}
+{% block alert_content %}
+
+<!-- list -->
+<div id="alert_summary">
+<div class="col-md-8">
+    <div class="panel panel-default" >
+        <div class="panel-heading">Maven Alerts</div>
+        <div class="panel-body">
+            <ul class="list-group">
+                {% for a in alerts[:5] %}
+                <li class="list-group-item">
+
+                    <span class="badge pull-right">${{ a.saving }}</span>
+                    {{ a.alert_title }}
+
+                </li>
+                {% endfor %}
+            </ul>
+            <button type="button" class="btn btn-link" id="more"> more >></button>
+
+            <script>
+                var alert_details = document.getElementById('more');
+                alert_details.addEventListener('click', function (event) {
+                    document.getElementById('alert_summary').style.display = 'none';
+                    document.getElementById('details_alert').style.visibility = 'visible';
+                });
+            </script>
+
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- detailed list -->
+<div id="details_alert" style="visibility: hidden">
+<div class="col-md-10">
+    <div class="panel panel-default" >
+        <div class="panel-heading">
+            Maven Alert
+        </div>
+       <table class="table table-striped">
+           <tr>
+               <th>Alert</th>
+               <th>Date</th>
+               <th>Doctor</th>
+               <th>Action</th>
+               <th>Savings</th>
+           </tr>
+           {% for a in alerts %}
+           <tr>
+               <td>{{ a.alert_msg }}</td>
+               <td>{{ a.encounter_date }} </td>
+               <td>{{ a.provider }} </td>
+               <td>{{ a.action }}</td>
+               <td>${{ a.saving }}</td>
+           </tr>
+           {% endfor %}
+       </table>
+    </div>
+</div>
+            </div>
+
+{% endblock %}

@@ -17,7 +17,7 @@ __author__='Yuki Uchino'
 #*************************************************************************
 
 # Import the database object (db) from the backend application module
-from backend import db
+from app.backend import db
 
 # Define a base model for other database tables to inherit
 class Base(db.Model):

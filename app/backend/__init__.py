@@ -18,13 +18,14 @@ __author__='Yuki Uchino'
 
 from flask import Flask, render_template
 from flask.ext.sqlalchemy import SQLAlchemy
-
+from app.configs import devel_config as config
+from werkzeug.contrib.fixers import ProxyFix
 
 # Define the WSGI application object that will handle the backend webservice
 backend = Flask(__name__)
 
 # Configurations
-backend.config.from_object('config')
+backend.config.from_object(config)
 
 # Define the database object which is imported
 # by modules and controllers
@@ -38,8 +39,7 @@ def not_found(error):
 #**************************************************************************
 # IMPORT AND REGISTER THE BLUEPRINTS FOR NEW BACKEND MODULE BELOW
 #**************************************************************************
-from backend.module_webservice.controllers import webservice as webservice_module
-
+from app.backend.module_webservice.controllers import webservice as webservice_module
 backend.register_blueprint(webservice_module)
 
 #For testing purposes, using SQLAlchemy to create a sqlite3 database file

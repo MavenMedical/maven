@@ -1,50 +1,34 @@
-{% macro render_field(field, placeholder=None) %}
-{% if field.errors %}
-<div>
-{% elif field.flags.error %}
-<div>
-{% else %}
-<div>
-{% endif %}
-    {% set css_class = 'form-control ' + kwargs.pop('class', '') %}
-    {{ field(class=css_class, placeholder=placeholder, **kwargs) }}
-</div>
-{% endmacro %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title> Maven </title>
+    <!-- CSS file -->
+    <link rel="stylesheet" type="text/css" href="../../static/bootstrap/css/bootstrap.css">
+</head>
+<body>
 
-<div>
-  <div>
-    <legend>Sign in</legend>
-    {% with errors = get_flashed_messages(category_filter=["error"]) %}
-    {% if errors %}
-    <div>
-    {% for error in errors %}
-    {{ error }}<br>
-    {% endfor %}
-    </div>
-    {% endif %}
-    {% endwith %}
+<nav class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="#">Maven</a>
 
-    {% if form.errors %}
-    <div>
-    {% for field, error in form.errors.items() %}
-    {% for e in error %}
-    {{ e }}<br>
-    {% endfor %}
-    {% endfor %}
+
+        </div>
     </div>
-    {% endif %}
-    <form method="POST" action="" accept-charset="UTF-8" role="form">
-      {{ form.csrf_token }}
-      {{ render_field(form.email, placeholder="Your Email Address",
-                                  autofocus="") }}
-      {{ render_field(form.password, placeholder="Password") }}
-      <div>
-      <label>
-        <input type="checkbox" name="remember" value="1"> Remember Me
-      </label>
-      <a role="button" href="">Forgot your password?</a><span class="clearfix"></span>
-      </div>
-      <button type="submit" name="submit">Sign in</button>
-    </form>
-  </div>
+</nav>
+
+
+<!-- div for main body-->
+<div class="container">
+{% block alert_content %}
+{% endblock %}
 </div>
+
+
+<!-- JS files -->
+<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+<script src="static/bootstrap/js/bootstrap.js"></script>
+
+</body>
+</html>
