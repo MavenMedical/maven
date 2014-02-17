@@ -9,3 +9,5 @@ sudo openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.
 sudo emacs example_ssl.conf
 sudo cp /home/devel/nginx/ssl/server.crt .
 sudo cp /home/devel/nginx/ssl/server.key .
+openssl req -newkey rsa:2048 -new -nodes -keyout client_key.pem -out client_csr.pem
+openssl x509 -req -days 365 -in client_csr.pem -CA server.crt -CAkey server.key -set_serial 01 -out client.pem
