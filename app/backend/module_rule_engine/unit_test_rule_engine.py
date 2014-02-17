@@ -124,37 +124,6 @@ class TestRulesEngineDatabase(unittest.TestCase):
         self.assertEqual(False, self.RE.check_exclusion_dept(['ABC','DEF','GHI'],'GHI'))
 
 
-    #This section of tests test the order evaluator which sends rules and orders to the rule engine
-
-    def testRuleEngineOrderType(self):
-        #This tests that the correct logic gets followed for each order type -> procedures get evaluated, medications and other types throw errors
-        print("\nTest Engine -> Order Type")
-        global cursor, conn
-        self.clear()
-
-        #Rule Name, Rule Description, Order Type, CPT Code, Min Age, Max Age, Inclusion ID(s), Exclusion ID(s), Details, Inclusion Dept, Exlusion Dept
-        insertQuery1 = "INSERT INTO ruleTest.rules VALUES ('Rule 1','Description 1','proc',12345,0,200,'11111111','01111111','Details1','dept1','dept2');"
-        insertQuery2 = "INSERT INTO ruleTest.rules VALUES ('Rule 2','Description 2','med',12345,0,200,'11111111','01111111','Details2','dept1','dept2');"
-        cursor.execute(insertQuery1)
-        cursor.execute(insertQuery2)
-        conn.commit()
-        order = OrderObject(1,['proc',12345,10,[11111111],'dept1'])
-
-        #Check that we get the correct evaluation for the above order
-        evalResult = self.OE.evaluate_object(order).text()
-        self.assertEqual(1,len(evalResult))
-        self.assertEqual('Rule 1',evalResult[0]['ruleName'])
-        self.assertEqual('Description 1',evalResult[0]['ruleDescription'])
-        self.assertEqual('Details1',evalResult[0]['details'])
-
-        #Check that we can not evaluate any order type besides procedures
-        order = OrderObject(1,['med',12345,10,[11111111],'dept1'])
-        with self.assertRaises(Exception):
-            self.OE.evaluate_object(order)
-        order = OrderObject(1,['abc',12345,10,[11111111],'dept1'])
-        with self.assertRaises(Exception):
-            self.OE.evaluate_object(order)
-
 
     def testRuleEngineAge(self):
         #This tests that the correct logic gets followed for different ages

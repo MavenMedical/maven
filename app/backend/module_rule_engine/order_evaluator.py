@@ -7,7 +7,7 @@
 # Then return the matching orders in a response object
 # ASSUMES: There is a table in the database called ruleTest.rules with columns specified in /mave/app/schema/createDb.sql
 # SIDE EFFECTS: None, queries in this file should never update the database
-# LAST MODIFIED FOR JIRA ISSUE: MAV-40 Monday February 17th
+# LAST MODIFIED FOR JIRA ISSUE: MAV-40 Monday February th
 #*************************************************************************
 #TODO add support for medications, currently we check rules by CPT codes which only allows us to check procedures
 import app.backend.module_rule_engine.base_evaluator as BE
