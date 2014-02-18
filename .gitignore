@@ -2,12 +2,16 @@
 # initial version copied from help.github.com/articles/ignoring-files
 
 ###################
-# autosave files
-*~
-[#]*[#]
+# maven environment specific
 __pycache__
 .*
 .idea/
+app/configs/app.db
+
+###################
+# autosave files
+*~
+[#]*[#]
 
 ###################
 # default .gitignore rules below here
