@@ -17,6 +17,7 @@
 import pickle
 import maven_config as MC
 import app.utils.streaming.stream_processor as SP
+from maven_logging import PRINT
 
 teststreamname = 'test stream'
 MavenConfig = {
@@ -45,24 +46,13 @@ class ConcatenateStreamProcessor(SP.StreamProcessor):
 
 sp = ConcatenateStreamProcessor(teststreamname)
 
-if __name__ == '__main__':
-    def unpickle_writer(obj):
-        print(pickle.loads(obj))
-else:
-    output_buffer = ''
 
-    def unpickle_writer(obj):
-        global output_buffer
-        output_buffer += str(pickle.loads(obj))+"\n"
-        
+def unpickle_writer(obj):
+    PRINT(pickle.loads(obj))
+
 sp.write_raw = unpickle_writer
 
 sp.read_object('foo')
 sp.read_object('bar')
 for x in range(10):
     sp.read_object(x)
-
-try:
-    result = output_buffer.strip()
-except NameError:
-    pass
