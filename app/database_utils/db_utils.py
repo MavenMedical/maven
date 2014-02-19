@@ -14,18 +14,21 @@
 #                 EX: query_database("SELECT KEY1,KEY2,KEY3 FROM TABLE;",['KEY1','KEY2',"KEY3'])
 #           After you are done querying and do not need the connection:
 #           4. Destroy the cursor -> destroy_cursor()
-#           5. Disconnect from the database -> disconnect()
+#           5. Disconnect from the database -> disconnect() Note:
 #
 #           Note: this class mandates that there is only ever one active cursor because they are not
 #                 thread safe.
 #
 # Side Effects:
-#  Last Modified: FOR JIRA ISSUE: MAV-70 Monday February 17th
+#  Last Modified: FOR JIRA ISSUE: MAV-70 Wednesday February 19th
 #####################################################################################################
 
-import psycopg2
+import psycopg2, asyncio
 from app.database_utils.dbconfig import CONNECTION_STRING
 
+#TODO currently all of these calls are blocking
+#TODO use asyncio to make non-blocking calls to db that return a future
+#TODO Refactor asyncio calls on Monday February 24th with Yuki
 
 class DatabaseUtility():
 
@@ -71,8 +74,35 @@ class DatabaseUtility():
         else:
             raise RuntimeError("You are not connected to the database, and therefore can not destroy a cursor")
 
-    #This method gets called when we want to select from the database and return values
-    def query_database_select(self,query,queryMap=None):
+
+    #Blocking read from the database
+    def query_database_read_blocking(self,query,queryMap=None):
+        loop = asyncio.get_event_loop()
+        future = asyncio.Future()
+        asyncio.Task(self.__query_database_read(future,query,queryMap))
+        loop.run_until_complete(future)
+        return (future.result())
+
+    #Non Blocking read from the database
+    def query_database_read_non_blocking(self,query,queryMap=None):
+        #TODO implement this method
+        return
+
+    #Blocking write to the database
+    def query_database_write_blocking(self,query):
+        loop = asyncio.get_event_loop()
+        future = asyncio.Future()
+        asyncio.Task(self.__query_database_write(future,query))
+        loop.run_until_complete(future)
+
+    #Non Blocking write to the database
+    def query_database_write_non_blocking(self,query):
+        #TODO implement this method
+        return
+
+    #This private method gets called when we want to select from the database and return values
+    @asyncio.coroutine
+    def __query_database_read(self,future,query,queryMap=None):
         #queryDb has two options, one is a normal query where the results will be returned in a list
         #The other option is to call a query with a predefined mapping array so that we can
         #create a response object that maps names with results
@@ -87,7 +117,6 @@ class DatabaseUtility():
         singleResult = {}
 
         self.cursor.execute(query)
-
         self.connection.commit()
 
         for res in self.cursor:
@@ -102,10 +131,12 @@ class DatabaseUtility():
                     i+=1
                 results.append(singleResult)
 
-        return results
+        future.set_result(results)
 
-    #This method gets called when we want to execute a query with no return values (INSERT, DELETE, UPDATE)
-    def query_database_no_return(self,query):
+
+    #This private method gets called when we want to execute a query with no return values (INSERT, DELETE, UPDATE)
+    @asyncio.coroutine
+    def __query_database_write(self,future, query):
 
         if (self.connection == None):
             raise RuntimeError("You are not connected to the database, try calling connect()")
@@ -115,6 +146,7 @@ class DatabaseUtility():
 
         self.cursor.execute(query)
         self.connection.commit()
+        future.set_result('Future is done!')
 
     #This method allows us to generate a list of columns we would like to retrieve from a select query map (defined in dbconfig)
     #All this is really doing is generating a string that is a list of the column names we want to retrieve.
