@@ -7,9 +7,9 @@
 # Then return the matching orders in a response object
 # ASSUMES: There is a table in the database called ruleTest.rules with columns specified in /mave/app/schema/createDb.sql
 # SIDE EFFECTS: None, queries in this file should never update the database
-# LAST MODIFIED FOR JIRA ISSUE: MAV-40 Wednesday February 12th
+# LAST MODIFIED FOR JIRA ISSUE: MAV-40 Monday February th
 #*************************************************************************
-
+#TODO add support for medications, currently we check rules by CPT codes which only allows us to check procedures
 import app.backend.module_rule_engine.base_evaluator as BE
 import app.backend.module_rule_engine.order_response_object as RO
 from app.backend.module_rule_engine.databaseUtils import database_connect, query_database
@@ -36,10 +36,9 @@ class OrderEvaluator(BE.BaseEvaluator):
             if (eval_result != None):
                 #If the result of the evaluation is a match, add the rule to the response message
                 response_messages.append(eval_result)
-        #Super class method TODO: figure out if this class shold overide the evaluator_respones method and pass response out from there instead of here
         self.evaluator_response(obj, response_messages)
-        #Todo: figure out correct response object parameters
-        return RO.OrderResponseObject(1,1,response_messages)
+        #TODO: use the cost priority instead of 1
+        return RO.OrderResponseObject(obj.order_id,1,response_messages)
 
     def find_matching_rules(self,CPTCode):
         #Query Database to find all rules that are related to the order's CPT Code

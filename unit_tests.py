@@ -20,15 +20,26 @@ import re
 import traceback
 import difflib
 
+import maven_config
+import maven_logging
+from sys import exit
+maven_logging.DEBUG = maven_logging.results_var_log
+maven_logging.WARN = maven_logging.results_var_log
+maven_logging.INFO = maven_logging.results_var_log
+maven_logging.ERROR = maven_logging.results_var_log
+maven_logging.PRINT = maven_logging.results_var_log_no_label
 
-def find_files(directory,pattern):
+
+def find_files(directory, pattern):
     for root, dirnames, filenames in os.walk(directory):
         for filename in fnmatch.filter(filenames, pattern):
             yield os.path.join(root, filename)
 
+passing = True
 for f in find_files('.', 'unit_test_*.py'):
     mod = re.sub('/', '.', f[2:-3])
     print(f)
+    maven_logging.clear_results()
     try:
         test = importlib.import_module(mod,)
         #print("result: "+test.result+"R")
@@ -36,11 +47,18 @@ for f in find_files('.', 'unit_test_*.py'):
             with open(re.sub('py$', 'output', f)) as golden:
                 gold = golden.read().strip()
                 #print("gold: "+gold+"G")
-                diff = difflib.unified_diff(gold.splitlines(True), test.result.splitlines(True))
+                diff = difflib.unified_diff(gold.splitlines(True), maven_logging.get_results().splitlines(True))
                 d = ''.join(diff)
                 if not d == '':
                     print(d)
+                    passing = False
         except FileNotFoundError:
             pass
     except Exception:
-        print(traceback.format_exc())
+        print('\n'.join(traceback.format_exc().split('\n')[14:]))
+        passing = False
+
+if passing:
+    exit(0)
+else:
+    exit(-1)

@@ -17,6 +17,7 @@ import app.backend.module_rule_engine.response_aggregator as RA
 import time
 import maven_config as MC
 import pickle
+from maven_logging import PRINT
 
 #class ResponseAggregator(SP.StreamProcessor):
 #    def __init__(self, configname):
@@ -37,32 +38,25 @@ MavenConfig = {
 }
 MC.MavenConfig = MavenConfig
 
-if __name__ == '__main__':
-    def unpickle_writer(obj):
-        print(pickle.loads(obj))
-else:
-    output_buffer = ''
 
-    def unpickle_writer(obj):
-        global output_buffer
-        output_buffer += str(pickle.loads(obj))+"\n"
+def unpickle_writer(obj):
+    PRINT(pickle.loads(obj))
 
 count = 0
-def wake(sleep_time,s):
-    global count, output_buffer
-    count = count + 1
+
+
+def wake(sleep_time, s):
+    global count
+    count += 1
     time.sleep(sleep_time)
-    if __name__ == '__main__':
-        print("wake #%d, %s" % (count, s))
-    else:
-        output_buffer += "wake #" + str(count) + ", " + s + "\n"
+    PRINT("wake #%d, %s" % (count, s))
     ra.timed_wake()
 
 ra = RA.ResponseAggregator(ra_test)
 ra.write_raw = unpickle_writer
 ra.read_object(ORO.OrderResponseObject(1, 1, "(1,1)"))
-wake(0,'nothing ready yet')
-wake(.02,'message ready to send')
+wake(0, 'nothing ready yet')
+wake(.02, 'message ready to send')
 ra.read_object(ORO.OrderResponseObject(2, 2, "(2,2)"))
 wake(0, 'nothing ready')
 ra.read_object(ORO.OrderResponseObject(2, 4, "(2,4)"))
@@ -79,4 +73,3 @@ wake(.02, "keys 3-6 sending at once")
 ra.read_object(ORO.OrderResponseObject(1, 3, "(1,3)"))
 wake(.02, "key 1 getting through again because it's expiration expired")
 
-result = output_buffer.strip()
