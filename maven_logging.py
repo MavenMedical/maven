@@ -11,11 +11,18 @@
 ##############################################################################
 
 import inspect
-
+import time
 
 def _not_implemented(x):
     raise NotImplementedError("This type of logging was not defined in the config file")
 
+
+def stdout_log_with_time(x):
+    curframe = inspect.currentframe()
+    calframe = inspect.getouterframes(curframe, 2)
+    called_as = calframe[1][4][1]
+    called_as = called_as[:(called_as.index('('))]
+    print("%s %f: %s" % (called_as, time.time(),x))
 
 def stdout_log(x):
     curframe = inspect.currentframe()
@@ -29,7 +36,7 @@ def stdout_log_no_label(x):
     print(x)
 
 
-def no_logging():
+def no_logging(x):
     pass
 
 _results = ""
