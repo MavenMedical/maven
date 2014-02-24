@@ -6,22 +6,19 @@ import traceback
 import maven_logging as ML
 ML.DEBUG=ML.stdout_log_with_time
 
-con_id = 0
-cur_id = 0
-
-
 class SocketReadyFuture(asyncio.Future):
-    final read = True, write = False
+    read = True
+    write = False
 
-    def __init__(self,is_reader, fileno, loop):
+    def __init__(self, is_reader, fileno, loop):
         asyncio.Future.__init__(self)
         self.is_reader = is_reader
         self.loop = loop
         self.fileno = fileno
         if(is_reader):
-            loop.add_reader(fileno, wake_future, self)
+            loop.add_reader(fileno, SocketReadyFuture.wake_future, self)
         else:
-            loop.add_writer(fileno, wake_future, self)
+            loop.add_writer(fileno, SocketReadyFuture.wake_future, self)
 
     def wake_future(self):
         if(self.is_reader):
@@ -31,183 +28,155 @@ class SocketReadyFuture(asyncio.Future):
         self.set_result(None)
 
 
-#def wake_future(fut):
-#    print("in wake_future() %d" % fut.fileno)
-#    try:
-#        fut.loop.remove_reader(fut.fileno)
-#    except Exception:
-#        pass
-#    try:
-#        fut.loop.remove_writer(fut.fileno)
-#    except Exception:
-#        pass
-#    sys.stdout.flush()
-#    #if(not fut.done()):
-#    fut.set_result(None)
-#    print("set the future's results")
-#2A    print(fut)
+class ConnectionPool():
+
+    class ConnectionGuard():
+
+        def __init__(self, conn):
+            self.conn = conn
+        
+        @asyncio.coroutine
+        def __enter__(self, conn):
+            
+            
 
 
-class Connection():
+    MAX_CONNECTIONS = 8
+    MIN_CONNECTIONS = 4
 
-    def __init__(self):
-        global con_id
-        print("in constructor")
-        con_id += 1
-        self.cursors = {}
+    def __init__(self, name, loop):
+        ML.DEBUG("in ConnectionPool.__init__")
+        self.ready = []
+        self.in_use = set()
+        self.loop = loop
+        self.mog_cursor = None
+        self.pending = self.MIN_CONNECTIONS
+        [asyncio.Task(self._new_connection(),loop=loop) for x in range(self.MIN_CONNECTIONS)]
+        #loop.run_until_complete(asyncio.wait(pending))
+        ML.DEBUG("starting multiple connections")
+        self.connection_sem = asyncio.Semaphore(0,loop=loop)
+        
+        
+    @asyncio.coroutine
+    def _new_connection(self):
+        if(len(self.ready) + len(self.in_use) + self.pending <= self.MAX_CONNECTIONS):
+            connection = psycopg2.connect(CONNECTION_STRING, async=1)
+            yield from self.wait(connection)
+            ML.DEBUG("allocated a new connection")
+            self.ready.append(connection)
+            self.connection_sem.release()
+        self.pending -= 1
+        
 
     @asyncio.coroutine
-    def connect(self, loop):
-        self.loop=loop
-        ML.DEBUG("about to connect #%d" % con_id)
-        #sys.stdout.flush()
-        self.connection = psycopg2.connect(CONNECTION_STRING, async=1)
-        ML.DEBUG("connected #%d" % con_id)
-        yield from self.wait()
-
-
+    def _get_connection(self):
+        ML.DEBUG("in ConnectionPool._get_connection")
+        yield from self.connection_sem.acquire()
+        connection = self.ready.pop()
+        self.in_use.add(connection)
+        ML.DEBUG("reused a connection")
+        return connection
+        
     @asyncio.coroutine
-    def wait(self):
-        #print("in self.wait()")
+    def wait(self, connection):
+        #ML.DEBUG("in ConnectionPool.wait")
         try:
             while True:
-                state = self.connection.poll()
-                print("state is %d" % state)
-                sys.stdout.flush()
+                state = connection.poll()
                 if state == psycopg2.extensions.POLL_OK:
-                #print("breaking write away")
                     break
                 elif state == psycopg2.extensions.POLL_WRITE:
-                #print("process write")
-                    fut = asyncio.Future()
-                    fut.loop = self.loop
-                    fut.fileno =self.connection.fileno()
-                    print("created future")
-                    self.loop.add_writer(self.connection.fileno(),wake_future,fut)
-                    #sem=asyncio.Semaphore()
-                    #self.loop.add_writer(self.connection.fileno(),wake_sem,sem)
-                    print("yielding")
-                    sys.stdout.flush()
-                    if not fut.done():
-                        yield from fut
-                    #yield from asyncio.wait_for(fut)
-                    print("disappear")
-                    sys.stdout.flush()
-                #self.loop.remove_writer(self.connection.fileno())
+                    yield from SocketReadyFuture(SocketReadyFuture.write, connection.fileno(), self.loop)
                 elif state == psycopg2.extensions.POLL_READ:
-                    fut = asyncio.Future()
-                    fut.loop = self.loop
-                    fut.fileno =self.connection.fileno()
-                    self.loop.add_reader(self.connection.fileno(),wake_future,fut)
-                    print("yielding")
-                    sys.stdout.flush()
-                    if not fut.done():
-                        yield from fut
-                #self.loop.remove_reader(self.connection.fileno())
-                    print("disappear")
-                sys.stdout.flush()
+                    yield from SocketReadyFuture(SocketReadyFuture.read, connection.fileno(), self.loop)
             else:
-                print("error")
                 raise psycopg2.OperationalError("poll() returned %s" % state)
         except Exception:
-            print("ERROR HERE")
+            print(">>>>>>>>>>>>>>>>ERROR HERE<<<<<<<<<<<<<<<<<")
             traceback.print_exc(file=sys.stdout)
             sys.stdout.flush()
-        print("end of the run-on function")
-
-
-    def get_cursor(self):
-        global cur_id
-        print("get_cursor")
-        cur_id += 1
-        ML.DEBUG("creating cursor #%d" % cur_id)
-        cur = self.connection.cursor()
-        ML.DEBUG("created cursor #%d" % cur_id)
-        self.cursors[cur]=cur_id
-        return cur
+            #yield from err
 
     @asyncio.coroutine
-    def execute(self, cur, str, extra=None):
-        ML.DEBUG('about to execute %s on %d' % (str.split(' ', 1)[0], self.cursors[cur]))
+    def execute(self, str, extra=None):
+        ML.DEBUG('about to execute %s' % (str.split(' ', 1)[0]))
+        conn = yield from self._get_connection()
+        cur = conn.cursor()
+        #ML.DEBUG("got a cursor")
         if extra:
             cur.execute(str,extra)
         else:
             cur.execute(str)
-        yield from self.wait()
-        ML.DEBUG('executed on %d' % self.cursors[cur])
+        #ML.DEBUG("finished call to cursor.execute()")
+        result = yield from self.wait(conn)
+        self.ready.append(conn)
+        self.in_use.remove(conn)
+        ML.DEBUG("finish execution")
+        return cur
+
+    def execute_and_close(self, str, extra=None):
+        cur = yield from self.execute(str,extra)
+        cur.close()
 
     def iterate_and_print(self,cur):
-        ML.DEBUG("about to iterate for cursor %d" % self.cursors[cur])
+        ML.DEBUG("about to iterate for cursor %s" % str(cur))
         for x in cur:
-#            ML.DEBUG("an iteration for cursor %d" % self.cursors[cur])
-            #ML.PRINT("value is " + str(x))
+#            ML.DEBUG("an iteration for cursor %s" % str(cur))
             pass
-        ML.DEBUG("done iterating %d" % self.cursors[cur])
+        ML.DEBUG("done iterating %s" % str(cur))
+        
+    def close(self):
+        for conn in self.ready:
+            conn.close()
+        for conn in self.in_use:
+            conn.close()
 
+    @asyncio.coroutine
+    def mogrify_cursor(self):
+        if self.mog_cursor == None:
+            conn = yield from self._get_connection()
+            self.mog_cursor = conn.cursor()
+            self.ready.append(conn)
+            self.in_use.remove(conn)
+        print("returning mogrify cursor %s" % str(self.mog_cursor))
+        return self.mog_cursor
 
 @asyncio.coroutine
-def db_main(loop):
-    print("conn - Connection()")
-    conn = Connection()
-    #print(1.5)
-    print(conn)
-    sys.stdout.flush()
-    cc=conn.connect(loop)
-    print(cc)
-    sys.stdout.flush()
-
-    yield from cc
-    print(2)
-    print(str(conn))
-    print(3)
-    sys.stdout.flush()
-    cur = conn.get_cursor()
-    sys.stdout.flush()
-    print(cur)
+def db_main(loop, id, conn):
     try: 
-        print(3)
-        yield from conn.execute(cur,'drop table TomTest')
+        yield from conn.execute_and_close('drop table TomTest'+id)
     except psycopg2.ProgrammingError:
         pass
-    yield from conn.execute(cur,'create table TomTest (id serial PRIMARY KEY, num integer, data varchar);')
-    
+    yield from conn.execute_and_close('create table TomTest'+id+' (id serial PRIMARY KEY, num integer, data varchar);')
     rows=[]
-    #for i in range(10):
-    #    rows.append((i, 'string %d' % i))
-    #args_str = b','.join(cur.mogrify("%s", (x, )) for x in rows)
-    #conn.execute(cur,"INSERT INTO tomtest (num, data) VALUES "+args_str.decode("utf-8"))
-    #conn.execute(cur,'select * from TomTest')
-    #conn.iterate_and_print(cur)
     for i in range(100000):
         rows.append((i, 'string %d' % i))
-    args_str = b','.join(cur.mogrify("%s", (x, )) for x in rows)
-    yield from conn.execute(cur,"INSERT INTO tomtest (num, data) VALUES "+args_str.decode("utf-8"))
-    yield from conn.execute(cur,'select * from TomTest')
+    mog_cursor = yield from conn.mogrify_cursor()
+    args_str = b','.join(mog_cursor.mogrify("%s", (x, )) for x in rows)
+    yield from conn.execute_and_close("INSERT INTO tomtest"+id+" (num, data) VALUES "+args_str.decode("utf-8"))
+    cur = yield from conn.execute('select * from TomTest'+id)
     conn.iterate_and_print(cur)
     cur.close()
-    print("current is closed")
 
 @asyncio.coroutine
-def process(loop, f, id):
-    for x in range(2):
+def process(loop,  id, conn):
+    for x in range(1):
         print("hello from %s" % id)
-        yield from db_main(loop)
+        yield from db_main(loop, id, conn)
         print("%s sleeping" % id)
         yield from asyncio.sleep(.5)
         print("%s woke up" % id)
-    f.count -=1
-    if f.count == 0:
-        f.set_result(None)
 
 
 def async_main():
     loop = asyncio.get_event_loop()
     print(loop)
-    f = asyncio.Future()
-    tasks = [asyncio.Task(x) for x in [process(loop,f,'p1'),process(loop,f,'p2')]]
-    f.count = len(tasks)
+    conn = ConnectionPool('test conn pool', loop)
+
+    tasks = [asyncio.Task(process(loop,x,conn)) for x in ['p1','p2']]
+    #tasks = [asyncio.Task(x) for x in [process(loop,f,'p1')]]
     print("Starting loop")
-    loop.run_until_complete(f)
+    loop.run_until_complete(asyncio.wait(tasks))
 
 async_main()
 
