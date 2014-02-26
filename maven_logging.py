@@ -69,9 +69,11 @@ def database_log(x):
     raise NotImplementedError("No database logging capability is implemented")
 
 
+
+
 PRINT = stdout_log_no_label
 DEBUG = no_logging
 INFO = no_logging
 WARN = no_logging
-ERROR = no_logging
+ERROR = stdout_log
 

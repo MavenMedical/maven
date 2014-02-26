@@ -1,14 +1,29 @@
-####################################################################################################
+###################################################################################################################################
 #  Copyright (c) 2014 - Maven Medical
 #
 #  Description: database connection and query utilities
-#  Author: Tom DuBois
+#  Author: Tom DuBois, Aidan Fowler
 #  Description: Database connection pool utility, provides execute() and close() methods
 #               There are two subclasses - asynchronous and single threaded
 #
+# Asynchronous:    1. Initialize class AsyncConnectionPool(config name, loop)
+#                  2. Single Query (read) execute_single(query, extra parameters, future=None) Do not set the future if
+#                     you are doing a single query, returns cursor
+#                  3. Single Query (write) execute_and_close_single(query,extra parameters) This will close the cursor
+#                     after querying, returns None
+#                  4. Multiple Queries (read or write) execute_multiple(query, extra parameters, close) close is a boolean
+#                     that determines if we want to close the cursor and not return results
+#
+# Single Threaded: 1. Initialize class SingleThreadedConnection(config name)
+#                  2. Single Query (select) execute(query,extra parameters=None), returns the cursor, need to close later
+#                  3. Single Query (non-select) execute_and_close(query,extra parameters=None) returns None, closes cursor
+#
+# MappingUtilities 1. select_rows_from_map(queryMap) takes in a list of column names, returns a string for easier query formatting
+#                  2. generate_result_object takes in a cursor and list of column names and creates a mapping from name to result
+#
 # Side Effects:
-#  Last Modified: FOR JIRA ISSUE: MAV-70 Wednesday February 19th
-#####################################################################################################
+#  Last Modified: FOR JIRA ISSUE: MAV-70 Wednesday February 26th
+####################################################################################################################################
 
 import psycopg2
 import asyncio
@@ -19,7 +34,7 @@ import maven_config as MC
 
 class AsyncConnectionPool():
     """ ConnectionPool subclass supporting parallelism using asyncio and yield from
-    Note that execute, execute_no_result, and mogrify_cursor must be called using 'yield from'
+    Note that execute_single, execute_single_no_result, execute_multiple and mogrify_cursor must be called using 'yield from'
     as they are coroutines and not functions.  Every function above them in the call stack must
     also be called with 'yield from' as well.  If your program hangs and you don't know why, that's why
 
@@ -55,24 +70,27 @@ class AsyncConnectionPool():
         # create MIN_CONNECTIONS tasks, each of which will establish a connection to prime the ready queue
         self.pending = self.MIN_CONNECTIONS
         [asyncio.Task(self._new_connection(), loop=loop) for _ in range(self.MIN_CONNECTIONS)]
-        ML.DEBUG('starting %d connections' % self.pending)
+        ML.DEBUG('Starting %d connections' % self.pending)
 
     # noinspection PyArgumentList
     @asyncio.coroutine
-    def execute(self, cmd, extra=None):
-        """ Execute a SQL command on a ready connection, returning the cursor associated with it.
+    def execute_single(self, cmd, extra=None, future=None):
+        """ Execute a single SQL command on a ready connection, returning the cursor associated with it.
         This cursor must be explicitly closed after use
 
         This function might block, and so it is a coroutine and must be called with 'yield from'
         :param cmd: The sql command to send to the database
         :param extra: any extra arguments to the database
+        :param future: a future to hold the result if we are calling form multiple_queries otherwise None
         """
-
-        ML.DEBUG('about to execute %s' % (cmd.split(' ', 1)[0]))
+        ML.DEBUG('About to execute %s' % (cmd.split(' ', 1)[0]))
         conn = yield from self._get_connection()  # get a connection, blocking if necessary
+        if conn == None:
+            ML.ERROR("Error establishing a connection with database")
+            raise RuntimeError("You do not have a valid connection to the database")
         try:
             cur = conn.cursor()
-            #ML.DEBUG("got a cursor")
+            ML.DEBUG("got a cursor")
             # Send the command to the database
             if extra:
                 cur.execute(cmd, extra)
@@ -81,18 +99,78 @@ class AsyncConnectionPool():
 
             # wait for a result from the database
             yield from self._wait(conn)
-            ML.DEBUG("finish execution")
+            ML.DEBUG("Finish execution")
             # the cursor is an iterator through the results, return it
+            if future != None:
+                ML.DEBUG("Setting future for one of multiple queries")
+                future.set_result(cur)
             return cur
+        except psycopg2.ProgrammingError as e:
+            ML.ERROR("Error Querying Database: %s" % e)
+            raise RuntimeError("There was an error querying the database")
         finally:
             self._release_connection(conn)  # put the connection back on the queue
 
-    def execute_and_close(self, cmd, extra=None):
+    @asyncio.coroutine
+    def execute_multiple(self,cmds,extras=None, close=None):
+        """Execute multiple SQL commands on ready connections, returning the cursors associated with each query.
+        The cursors must be explicitly closed after use
+        This function might block, so it is a coroutine and must be called with 'yield from'
+        :param cmds the list of sql commands to send to the database
+        :param extra any extra arguments to the database
+        :param close- a boolean (or nothing) that determines if we will close the cursors after the queries or return
+        the list of cursors (True-> close the cursors, return None, !True -> return the cursors)
+        """
+        tasks = []
+        futures = []
+        cursors = []
+
+        if extras != None:
+            if len(cmds)!=len(extras):
+                ML.ERROR("The length of the commands list is not equal to the length of the extras list")
+                raise Exception("The length of the commands list is not equal to the length of the extras list")
+
+        for x in range(len(cmds)):
+            future = asyncio.Future()
+            if (extras != None):
+                tasks.append(asyncio.Task(self.execute_single(cmds[x],extras[x],future)))
+            elif (extras == None):
+                tasks.append(asyncio.Task(self.execute_single(cmds[x],None,future)))
+            futures.append(future)
+
+        ML.DEBUG("Sending multiple tasks to event loop and waiting until they all finish")
+        yield from asyncio.wait(tasks)
+        ML.DEBUG("All tasks finished and futures set")
+        for f in futures:
+            if (f.done() == False):
+                ML.ERROR("We are trying to get the result of a future that has not completed")
+                raise RuntimeError("We can not get the result of a future that has not completed")
+            else:
+                cursors.append(f.result())
+
+        if close != None:
+            if close == True:
+                ML.DEBUG("Closing cursors, user set close parameter to True")
+                for c in cursors:
+                    c.close()
+                return None
+            else:
+                ML.DEBUG("Returning cursors, user set close parameter != True")
+                return cursors
+        else:
+            ML.DEBUG("Returning cursors, user did not set a close parameter")
+            return cursors
+
+    def execute_and_close_single(self, cmd, extra=None):
         """ Works the same as execute, only closes the cursor afterward - for statements other than SELECT
         :param cmd: The sql command to send to the database
         :param extra: any extra arguments to the database
         """
-        cur = yield from self.execute(cmd, extra)
+        ML.DEBUG("Executing query and closing cursor")
+        cur = yield from self.execute_single(cmd, extra)
+        if cur == None:
+            ML.ERROR("The cursor returned from the query is null")
+            raise RuntimeError("The cursor returned from the query is null and cannot be closed")
         cur.close()
 
     def close(self):
@@ -122,20 +200,26 @@ class AsyncConnectionPool():
         """ Helper function which gets a ready connection from the queue, or suspends until one is available
         The semaphore MUST always make self.ready's size
         """
-        #ML.DEBUG("in ConnectionPool._get_connection")
+
+        ML.DEBUG("In ConnectionPool._get_connection")
         # consume one of the connections if available, block otherwise
         yield from self.connection_sem.acquire()
+
+        if (len(self.ready)<1):
+            ML.ERROR("There are no available connections")
+            raise RuntimeError("There are no available connections")
+
         connection = self.ready.pop()
         self.in_use.add(connection)
 
-        ML.DEBUG("reused a connection: (%d, %d, %d)" % (len(self.ready), len(self.in_use), self.pending))
+        ML.DEBUG("Reused a connection: (%d, %d, %d)" % (len(self.ready), len(self.in_use), self.pending))
 
         # create a new_connection task if the ready queue (+ pending) is empty and there is headroom
         active = self.pending + len(self.ready) + len(self.in_use)
         if len(self.ready) + self.pending < 1 and active < self.MAX_CONNECTIONS:
             asyncio.Task(self._new_connection(), loop=self.loop)
             self.pending += 1
-            ML.DEBUG("launching a new connection task: (%d, %d, %d)"
+            ML.DEBUG("Launching a new connection task: (%d, %d, %d)"
                      % (len(self.ready), len(self.in_use), self.pending))
         return connection
 
@@ -143,6 +227,7 @@ class AsyncConnectionPool():
         """ Clean up when done with a connection, and wake up any waiting coroutines
         :param connection: a psycopg2, async connection
         """
+        ML.DEBUG("Releasing Connection")
         self.in_use.remove(connection)
         self.ready.append(connection)
         self.connection_sem.release()
@@ -156,7 +241,7 @@ class AsyncConnectionPool():
             # make the connection with async=1, and wait for it to be ready
             connection = psycopg2.connect(self.CONNECTION_STRING, async=1)
             yield from self._wait(connection)
-            ML.DEBUG("allocated a new connection")
+            ML.DEBUG("Allocated a new connection")
 
             # add it to the ready queue, and wake up any waiting coroutine
             self.ready.append(connection)
@@ -171,7 +256,7 @@ class AsyncConnectionPool():
         connection's file descriptor, letting other coroutines run until it's ready.
         :param connection: a psycopg2, async connection
         """
-        #ML.DEBUG("in ConnectionPool.wait")
+        ML.DEBUG("In ConnectionPool.wait")
         while True:
             state = connection.poll()
             if state == psycopg2.extensions.POLL_OK:
@@ -210,3 +295,83 @@ class AsyncConnectionPool():
             else:
                 self.loop.remove_writer(self.fileno)
             self.set_result(None)
+
+class SingleThreadedConnection():
+    """ Blocking Database Connection Utility. If you don't need asynchronous database access use
+    execute(queryText,extras parameters=None) or execute_and_close(queryText, extra parameters=None)
+    After you are done querying (execute only), the cursor must be manually closed
+    """
+    CONFIG_CONNECTION_STRING = 'connection string'
+
+    def __init__(self,name):
+
+        self.name = name
+        self.CONNECTION_STRING = MC.MavenConfig[name][self.CONFIG_CONNECTION_STRING]
+        self.connection = psycopg2.connect(self.CONNECTION_STRING)
+        ML.DEBUG("Initialized single threaded connection to the database")
+
+    def execute(self,query,extras=None):
+        """This will query the database with or without extra parameters and return the cursor
+        The cursor will need to be manually closed afterward
+        """
+
+        if self.connection == None:
+            ML.ERROR("You cannot execute a query without being connected to the database")
+            raise Exception("You are not connected to the database, check your connection string and try initialize class again")
+
+        cursor = self.connection.cursor()
+
+        results = []
+
+        if extras:
+            cursor.execute(query,extras)
+        else:
+            cursor.execute(query)
+        self.connection.commit()
+        return cursor
+
+    def execute_and_close(self, query, extras=None):
+        """This private method gets called when we want to execute a query with no return values (INSERT, DELETE, UPDATE)
+        There is no need to close the cursor after doing a write query, it is closed before returning None"""
+
+        if (self.connection == None):
+            raise RuntimeError("You are not connected to the database, check your connection string and try initialize class again")
+
+        cursor = self.connection.cursor()
+        if extras:
+            cursor.execute(query,extras)
+        else:
+            cursor.execute(query)
+        self.connection.commit()
+        cursor.close()
+        return None
+
+
+class MappingUtilites():
+    """Utilities to make writing queries easier and to generate objects based on query results and column-name map"""
+
+    def select_rows_from_map(self,queryMap):
+        """This method allows us to generate a list of columns we would like to retrieve from a select query map
+        All this is really doing is generating a string that is a list of the column names we want to retrieve.
+        Example: if we have defined our result map as EXAMPLE_MAP = ["col1","col2","col3"], this method returns "col1,col2,col3"
+        And we can run query: execute_read("SELECT %s FROM Table" % select_rows_from_map(EXAMPLE_MAP))
+        """
+        params = ""
+        for x in range (len(queryMap)):
+            params= params+queryMap[x]+","
+        return params[:-1]
+
+    def generate_result_object(self,cursor,queryMap):
+        """This method allows us to create an object based on the results of a query (stored in a cursor) and a mapping
+        to column names, the mapping is a list of column names in strings: EXAMPLE_MAP = ["col1","col2","col3"]" if
+        the cursor holds res1,res2,res3, this method will generate an object [{'col1':res1,'col2':res2,'col3:res3}]
+        """
+        results =[]
+        for res in cursor:
+            singleResult = {}
+            i=0
+            for value in res:
+                singleResult[queryMap[i]] = str(value)
+                i+=1
+            results.append(singleResult)
+        return results
