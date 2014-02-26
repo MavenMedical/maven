@@ -14,24 +14,22 @@
 #  Last Modified:
 ##############################################################################
 
-import pickle
+import asyncio
 import maven_config as MC
 import app.utils.streaming.stream_processor as SP
-from maven_logging import PRINT
 
 teststreamname = 'test stream'
 MavenConfig = {
     teststreamname:
     {
-        SP.readertype_param: 'Testing',
-        #'readerconfig': 'Testing',
-        SP.writertype_param: 'Testing',
-        #'writerconfig': 'Testing'
+        SP.CONFIG_READERTYPE: SP.CONFIGVALUE_EXPLICIT,
+        SP.CONFIG_READERNAME: "Test Reader",
+        SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_EXPLICIT,
+        SP.CONFIG_WRITERNAME: "Test Writer",
     }
 }
 
 MC.MavenConfig = MavenConfig
-
 
 class ConcatenateStreamProcessor(SP.StreamProcessor):
     
@@ -39,20 +37,16 @@ class ConcatenateStreamProcessor(SP.StreamProcessor):
         SP.StreamProcessor.__init__(self, configname)
         self.master_list = ['', '', '', '', '']
         
+    @asyncio.coroutine
     def read_object(self, obj):
         self.master_list.append(obj)
         self.master_list.pop(0)
         self.write_object(self.master_list)
 
 sp = ConcatenateStreamProcessor(teststreamname)
+sender = sp.schedule(asyncio.get_event_loop())
 
-
-def unpickle_writer(obj):
-    PRINT(pickle.loads(obj))
-
-sp.write_raw = unpickle_writer
-
-sp.read_object('foo')
-sp.read_object('bar')
+sender.send_data('foo')
+sender.send_data('bar')
 for x in range(10):
-    sp.read_object(x)
+    sender.send_data(x)
