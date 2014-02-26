@@ -12,6 +12,12 @@
 ##############################################################################
 
 import asyncio
+import pickle 
+import amqp
+import traceback
+import socket
+import queue
+import concurrent.futures
 import maven_config as MC
 import maven_logging as ML
 
@@ -28,7 +34,14 @@ CONFIGVALUE_THREADEDRABBIT = "threaded ampq"
 CONFIGVALUE_ASYNCIOSOCKET = "asyncio socket"
 CONFIGVALUE_EXPLICIT = "explicit"
 CONFIGVALUE_IDENTITYPARSER = "identity"
+CONFIGVALUE_UNPICKLEPARSER = "unpickle"
+CONFIGVALUE_UNPICKLESTREAMPARSER = "unpicklestream"
 
+CONFIG_HOST = "host"
+CONFIG_PORT = "port"
+CONFIG_QUEUE = "queue"
+CONFIG_EXCHANGE = "exchange"
+CONFIG_KEY = "key"
 
 class StreamProcessor():
     """ This is a basic stream processor class.  It implements several different stream protocols so that
@@ -72,6 +85,8 @@ class StreamProcessor():
         if not configname:
             raise MC.InvalidConfig("Stream parser needs a config entry")
         self.stream_processor_init = True
+        self.object_queue = queue.Queue()
+
         try:
             self.configname = configname
             # make "listener" point to the correct listener
@@ -90,7 +105,7 @@ class StreamProcessor():
                 raise MC.InvalidConfig(configname + " did not have sufficient parameters.")
 
             try:
-                self.parser_factory = lambda loop: lambda: _parser_map[parsertype](parsername, self.read_object, loop)
+                self.parser_factory = lambda loop: lambda: _parser_map[parsertype](parsername, self._read_object, self.object_queue.put, loop)
             except KeyError:
                 raise MC.InvalidConfig("Invalid parser type for "+configname+": "+parsertype)
 
@@ -123,12 +138,26 @@ class StreamProcessor():
         """ write_object is used by the stream processing logic to send a message to the configured next step.
         :param obj: the object to write on the output channel
         """
+        #print("writing " +str(obj)+" to "+str(self.writer))
         self.writer.write_object(obj)
 
+    def close(self):
+        self.reader.close()
+        self.writer.close()
 
+    @asyncio.coroutine
+    def _read_object(self):
+        obj = self.object_queue.get_nowait()
+        if obj:
+            yield from self.read_object(obj)
+
+#############################
+# Network Readers
+#############################
 class SocketReader():
     
     def __init__(self, configname, parser_factory_factory):
+        #print("in socket reader()")
         self.parser_factory_factory = parser_factory_factory
         self.configname = configname
         if not configname in MC.MavenConfig:
@@ -136,54 +165,85 @@ class SocketReader():
         config = MC.MavenConfig[configname]
         try:
             # get real parameters here
-            self.host = config[CONFIG_READERHOST]
-            self.port = config[CONFIG_READERPORT]
+            self.host = config.get(CONFIG_HOST,None)
+            self.port = config[CONFIG_PORT]
         except KeyError as e:
             raise MC.InvalidConfig("SocketReader "+configname+" missing parameter: "+e.args[0])
         
     def schedule(self, loop):
         self.loop = loop
-        return loop.create_server(parser_factory_factory(loop), self.host, self.port)
+        self.server = asyncio.Task(loop.create_server(self.parser_factory_factory(loop), 
+                                                      host=self.host, port=self.port), loop=loop)
+        return self.server
+
+    def close(self):
+        self.server.cancel()
+        
 
 class RabbitReader():
     def __init__(self, configname, parser_factory_factory):
         self.parser_factory_factory = parser_factory_factory
         self.configname = configname
+        self.rabbit_listener_thread_pool=None
         if not configname in MC.MavenConfig:
             raise MC.InvalidConfig("some real error")
         config = MC.MavenConfig[configname]
         try:
             # get real parameters here
-            self.host = config[CONFIG_READERHOST]
-            self.queue = config[CONFIG_READERQUEUE]
-            self.exchange = config[CONFIG_READEREXCHANGE]
-            self.incoming_key = config[CONFIG_READERKEY]
+            self.host = config[CONFIG_HOST]
+            self.queue = config[CONFIG_QUEUE]
+            self.exchange = config[CONFIG_EXCHANGE]
+            self.incoming_key = config[CONFIG_KEY]
         except KeyError as e:
             raise MC.InvalidConfig("RabbitReader "+configname+" missing parameter: "+e.args[0])
+        #ML.DEBUG("Created a RabbitReader")
 
     def schedule(self, loop):
         if not self.rabbit_listener_thread_pool:
-            self.rabbit_listener_thread_pool = asyncio.ThreadPoolExecutor(max_workers=1)
-
-        self.conn = amqp.Connection(self.host)
-        self.chan = conn.channel()
+            self.rabbit_listener_pool = concurrent.futures.ThreadPoolExecutor(max_workers=2)
+        #ML.DEBUG("created a thread pool: "+str(self.rabbit_listener_pool))
         
-        chan.queue_declare(queue=self.queue)  # incoming_work_queue
-        chan.exchange_declare(exchange=self.exchange, type="direct")
-        chan.queue_bind(queue=self.queue, exchange=self.exchange, 
+        self.conn = amqp.Connection(self.host)
+        self.chan = self.conn.channel()
+        
+        self.chan.queue_declare(queue=self.queue)  # incoming_work_queue
+        self.chan.exchange_declare(exchange=self.exchange, type="direct")
+        self.chan.queue_bind(queue=self.queue, exchange=self.exchange, 
                         routing_key=self.incoming_key)
         
         self.parser_factory = self.parser_factory_factory(loop)
-        return loop.run_in_executor(self.rabbit_listener_thread_pool, chan.basic_consume, 
-                                    queue=self.queue, no_ack=False, callback=self.data_received)
+        self.chan.basic_consume(queue=self.queue, no_ack=False, 
+                                callback=self.data_received)
+            
+        
+        ret = loop.run_in_executor(self.rabbit_listener_pool,
+                                   self._consume_wrapper)
+        return ret
+
+    def _consume_wrapper(self):
+        while self.conn.is_alive:
+            #ML.DEBUG("waiting on channel")
+            self.chan.wait()
 
     def data_received(self, msg):
-        parser = self.parser_factory()
-        parser.connection_made(None)
-        parser.data_received(msg)
-        parser.eof_received()
-        parser.connection_lost(None)
+        #ML.DEBUG("received a message from rabbit: "+str(msg.body))
+        try:
+            parser = self.parser_factory()
+            parser.connection_made(None)
+            parser.data_received(msg.body)
+            parser.eof_received()
+            parser.connection_lost(None)
+        except Exception as e:
+            ML.DEBUG("CAUGHT EXCEPTION" + e.args[0])
 
+    def close(self):
+        #self.chan.basic_cancel(self.queue,nowait=True)
+        #self.chan.close()
+        try:
+            self.conn.close()
+        except IOError:
+            pass
+        self.rabbit_listener_pool.shutdown(wait=False)
 
 class ExplicitReader():
     
@@ -197,46 +257,157 @@ class ExplicitReader():
         return self
 
     def send_data(self,data):
+        #ML.DEBUG("got an explicit message:" + str(data))
         parser = self.parser_factory()
         parser.connection_made(None)
         parser.data_received(data)
         parser.eof_received()
         parser.connection_lost(None)
         tasks = asyncio.Task.all_tasks()
-        if tasks:
+        if tasks and not self.loop.is_running():
             self.loop.run_until_complete(asyncio.wait(tasks))
 
-import pickle 
+    def close(self):
+        pass
 
-class IdentityParser(asyncio.Protocol):
-    def __init__(self, configname, read_fn, loop):
+
+#############################
+# message (stream) parsers
+#############################
+class MappingParser(asyncio.Protocol):
+    def __init__(self, configname, read_fn, enqueue_fn, map_fn, loop):
         self.configname = configname
         self.read_fn = read_fn
         self.loop = loop
+        self.map_fn = map_fn
+        self.enqueue_fn = enqueue_fn
 
     def connection_made(self, transport):
         pass
 
     def data_received(self, data):
-        asyncio.Task(self.read_fn(data), loop=self.loop)
-        #self.loop.call_soon_threadsafe(self.read_fn,data)
+        #ML.DEBUG("parser got: " +str(data))
+        self.enqueue_fn(self.map_fn(data))
+        coro = self.read_fn()
+        self.loop.call_soon_threadsafe(MappingParser.create_task,coro,self.loop)
+
+    def create_task(coro, loop):
+        asyncio.Task(coro,loop=loop)
+        
+
+class IdentityParser(MappingParser):
+    def __init__(self, configname, read_fn, enqueue_fn, loop):
+        MappingParser.__init__(self, configname, read_fn, enqueue_fn, lambda x: x, loop)
+
+class UnPickleParser(MappingParser):
+    def __init__(self, configname, read_fn, enqueue_fn, loop):
+        MappingParser.__init__(self, configname, read_fn, enqueue_fn, pickle.loads, loop)
+
+import pickletools
+def pickle_stream(buf):
+    ret = []
+    try:
+        while True:
+            g=pickletools.genops(buf)
+            for x in g:
+                l=x[2]
+            ret.append(pickle.loads(buf[:l+1]))
+            buf = buf[(l+1):]
+    finally:
+        return (ret, buf)    
+
+class UnPickleStreamParser(MappingParser):
+    def __init__(self, configname, read_fn, enqueue_fn, loop):
+        MappingParser.__init__(self, configname, read_fn, enqueue_fn, lambda x: x, loop)
+        self.buf = b''
+
+    def data_received(self,data):
+        try:
+            self.buf = self.buf + data
+            s=len(self.buf)
+            ret, self.buf = pickle_stream(self.buf)
+            lr=0
+            for obj in ret:
+                self.enqueue_fn(self.map_fn(obj))
+                lr += 1
+                coro = self.read_fn()
+                self.loop.call_soon_threadsafe(MappingParser.create_task,coro,self.loop)
+            #print("%s in data_recv, buf was %d, is %d, %d objects" % (str(data), s, len(self.buf), lr))
+        except Exception:
+            print("EXCEPTION")
+            traceback.print_exc()
+
+        
+
+#############################
+# Network Writers
+#############################
 
 class SocketWriter():
-    def __init__(self):
-        raise NotImplemented
+    def __init__(self, configname):
+        self.configname = configname
+        if not configname in MC.MavenConfig:
+            raise MC.InvalidConfig("some real error")
+        config = MC.MavenConfig[configname]
+        try:
+            # get real parameters here
+            self.host = config[CONFIG_HOST]
+            self.port = config[CONFIG_PORT]
+        except KeyError as e:
+            raise MC.InvalidConfig("SocketReader "+configname+" missing parameter: "+e.args[0])        
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.connect((self.host, self.port))
+        self.socket.setblocking(False)
+        
+    def write_object(self, obj):
+        self.socket.sendall(obj)
+
+    def close(self):
+        self.socket.close()
 
 class RabbitWriter():
-    def __init__(self):
-        raise NotImplemented
+    def __init__(self, configname):
+        self.configname = configname
+        if not configname in MC.MavenConfig:
+            raise MC.InvalidConfig("some real error")
+        config = MC.MavenConfig[configname]
+        try:
+            # get real parameters here
+            self.host = config[CONFIG_HOST]
+            self.exchange = config[CONFIG_EXCHANGE]
+            self.incoming_key = config[CONFIG_KEY]
+        except KeyError as e:
+            raise MC.InvalidConfig("SocketReader "+configname+" missing parameter: "+e.args[0])
+        try:
+            self.conn = amqp.Connection(self.host)
+            self.chan = self.conn.channel()
+        except:
+            traceback.print_exc()
+            raise
 
+    def write_object(self, obj):
+        #ML.DEBUG("rabbit writing obj: "+str(obj))
+        message = amqp.Message(pickle.dumps(obj))
+        self.chan.basic_publish(message, exchange=self.exchange, 
+                                routing_key=self.incoming_key)
+
+    def close(self):
+        self.chan.close()
+        self.conn.close()
 
 class ExplicitWriter():
     def __init__(self, configname):
         self.configname = configname
+        self.count=0
 
     def write_object(self, obj):
         ML.PRINT(str(obj))
+        #self.count += 1
+        #if self.count % 1000 == 0:
+        #    print("received %d" % self.count)
 
+    def close(self):
+        pass
 
 #  Mapping from reader types in the config file to the classes that handle them
 _reader_map = {
@@ -254,5 +425,7 @@ _writer_map = {
 
 #  Mapping from parser types in the config file to the classes that handle them
 _parser_map = {
-    CONFIGVALUE_IDENTITYPARSER:IdentityParser
+    CONFIGVALUE_IDENTITYPARSER:IdentityParser,
+    CONFIGVALUE_UNPICKLEPARSER:UnPickleParser,
+    CONFIGVALUE_UNPICKLESTREAMPARSER:UnPickleStreamParser,
 }
