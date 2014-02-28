@@ -81,7 +81,7 @@ MavenConfig = {
     {
         SP.CONFIG_READERTYPE: SP.CONFIGVALUE_THREADEDRABBIT,
         SP.CONFIG_READERNAME: trippletestmiddlename+".Test Reader",
-        SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOSOCKET,
+        SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOCLIENTSOCKET,
         SP.CONFIG_WRITERNAME: trippletestmiddlename+".Test Writer",
     },
     trippletestmiddlename+".Test Reader":
@@ -98,7 +98,7 @@ MavenConfig = {
     },
     trippletestconsumername:
     {
-        SP.CONFIG_READERTYPE: SP.CONFIGVALUE_ASYNCIOSOCKET,
+        SP.CONFIG_READERTYPE: SP.CONFIGVALUE_ASYNCIOSERVERSOCKET,
         SP.CONFIG_READERNAME: trippletestconsumername+".Test Reader",
         SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_EXPLICIT,
         SP.CONFIG_WRITERNAME: trippletestconsumername+".Test Writer",
@@ -122,7 +122,7 @@ class ConcatenateStreamProcessor(SP.StreamProcessor):
         self.master_list = ['', '', '', '', '']
         
     @asyncio.coroutine
-    def read_object(self, obj):
+    def read_object(self, obj, key):
         self.master_list.append(obj)
         self.master_list.pop(0)
         self.write_object(self.master_list)
@@ -132,7 +132,7 @@ class IdentityStreamProcessor(SP.StreamProcessor):
         SP.StreamProcessor.__init__(self, configname)
 
     @asyncio.coroutine
-    def read_object(self, obj):
+    def read_object(self, obj, key):
         self.write_object(obj)
 
 def single_test():
@@ -177,15 +177,14 @@ def rabbit_test():
 def tripple_test():
     loop = asyncio.get_event_loop()
     sp_consumer = IdentityStreamProcessor(trippletestconsumername)
-    receiver = sp_consumer.schedule(loop)
-
-    #print(asyncio.Task.all_tasks())
-    loop.run_until_complete(asyncio.sleep(.1))
     sp_middle = IdentityStreamProcessor(trippletestmiddlename)
     sp_producer = ConcatenateStreamProcessor(trippletestproducername)
 
-    middle = sp_middle.schedule(loop)
+    sp_consumer.schedule(loop)
+    loop.run_until_complete(asyncio.sleep(.1))
+    sp_middle.schedule(loop)
     sender = sp_producer.schedule(loop)
+    #loop.run_until_complete(asyncio.sleep(.1))
 
     sender.send_data('foo')
     sender.send_data('bar')
@@ -193,7 +192,7 @@ def tripple_test():
         #for y in range(1000):
         sender.send_data(x)
         #print("sent %d" % (1000*(x+1)))
-    loop.run_until_complete(asyncio.sleep(.03))
+    loop.run_until_complete(asyncio.sleep(.1))
         
     tasks = asyncio.Task.all_tasks(loop)
     while len(tasks) > 1:
