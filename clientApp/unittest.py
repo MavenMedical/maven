@@ -19,7 +19,7 @@ class FakeMessageFromEpic(asyncio.Protocol):
 
 
 loop = asyncio.get_event_loop()
-msg_coro = loop.create_connection(FakeMessageFromEpic, '127.0.0.1', 7777)
+msg_coro = loop.create_connection(FakeMessageFromEpic, '127.0.0.1', 12345)
 loop.run_until_complete(msg_coro)
 loop.run_forever()
 loop.close()

@@ -1,6 +1,5 @@
 #*************************************************************************
 #Copyright (c) 2014 - Maven Medical
-#
 #************************
 #AUTHOR:
 __author__='Yuki Uchino'
@@ -10,11 +9,6 @@ __author__='Yuki Uchino'
 #               data, this Receiver does NOT send to RabbitMQ but rather puts the message into a queue to be
 #               processed locally on the hospital client server.
 #
-#
-#
-#
-#
-#
 #************************
 #ASSUMES:
 #************************
@@ -22,61 +16,128 @@ __author__='Yuki Uchino'
 #************************
 #LAST MODIFIED FOR JIRA ISSUE: MAV-65
 #*************************************************************************
-import asyncio
-from app.utils.streaming import servers
+import app.utils.streaming.stream_processor as SP
 from xml.etree import ElementTree as ET
+import maven_config as MC
+import maven_logging as ML
+import asyncio
+import uuid
+import argparse
 
 
-class Server:
-    def __init__(self):
-        self.server = None
-        self.clients = {}
+outgoingtomavenmessagehandler = 'client consumer socket'
+incomingfrommavenmessagehandler = 'client producer socket'
 
-    def start(self, loop, host, port):
-        coro = loop.create_server(Receiver, host, port)
-        self.server = loop.run_until_complete(coro)
 
-class Receiver(servers.ListeningServer):
-    """
-    This class inherits from the app/utils/streaming/servers.py ListeningServer object.
 
-    It overrides the __init__.py constructor in order to specify the local queue handling of messages.
+MavenConfig = {
+    outgoingtomavenmessagehandler:
+    {
+        SP.CONFIG_READERTYPE: SP.CONFIGVALUE_ASYNCIOSERVERSOCKET,
+        SP.CONFIG_READERNAME: outgoingtomavenmessagehandler+".Reader",
+        SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOCLIENTSOCKET,
+        SP.CONFIG_WRITERNAME: outgoingtomavenmessagehandler+".Writer",
+        SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_IDENTITYPARSER
+    },
+    outgoingtomavenmessagehandler+".Reader":
+    {
+        SP.CONFIG_HOST:'127.0.0.1',
+        SP.CONFIG_PORT:12345
+    },
 
-    It also overrides the "data_received" method which is crucial to the proper functioning of this
-    object.
-    """
-    def __init__(self):
-        self.name = 'client_receiver'
-        self.clients = {}
+    outgoingtomavenmessagehandler+".Writer":
+    {
+        SP.CONFIG_HOST:'127.0.0.1',
+        SP.CONFIG_PORT:7888
+    },
+    
+    incomingfrommavenmessagehandler:
+    {
+        SP.CONFIG_READERTYPE: SP.CONFIGVALUE_ASYNCIOSERVERSOCKET,
+        SP.CONFIG_READERNAME: incomingfrommavenmessagehandler+".Reader",
+        SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOCLIENTSOCKET,
+        SP.CONFIG_WRITERNAME: incomingfrommavenmessagehandler+".Writer",
+        SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_IDENTITYPARSER
+    },
+    incomingfrommavenmessagehandler+".Reader":
+    {
+        SP.CONFIG_HOST:'127.0.0.1',
+        SP.CONFIG_PORT:12346
+    },
 
-    def data_received(self, data):
-        asyncio.Task(self.evaluate_message(data))
+    incomingfrommavenmessagehandler+".Writer":
+    {
+        SP.CONFIG_HOST:'127.0.0.1',
+        SP.CONFIG_PORT:7888
+    },
+
+}
+MC.MavenConfig = MavenConfig
+
+ARGS = argparse.ArgumentParser(description='Maven Client Receiver Configs.')
+ARGS.add_argument(
+    '--emr', action='store', dest='emr',
+    default='Epic', help='EMR Name')
+args = ARGS.parse_args()
+
+
+class OutgoingToMavenMessageHandler(SP.StreamProcessor):
+
+    def __init__(self, configname):
+        SP.StreamProcessor.__init__(self, configname)
+        self.master_list = ['', '', '', '', '']
+        self.object_manager = []
 
     @asyncio.coroutine
-    def evaluate_message(self, msg):
-        message = msg.decode()
+    def read_object(self, obj, key):
+        yield from self.route_object(obj, key)
+
+
+    @asyncio.coroutine
+    def route_object(self, obj, key):
+        message = obj.decode()
         message_root = ET.fromstring(message)
-        message_type = self.get_message_type(message_root.tag)
+        emr_namespace = "urn:" + args.emr
+        if emr_namespace in message_root.tag:
+            self.write_object(obj)
 
-        if message_type == 'outgoing':
-            print('This is an outgoing message from Epic')
-            asyncio.Task(self.send_outgoing_message(message.encode()))
 
-    def get_message_type(self, str):
-        if "urn:Epic" in str:
-            return 'outgoing'
-        elif "urn:Maven" in str:
-            return 'incoming'
+class IncomingFromMavenMessageHandler(SP.StreamProcessor):
 
-    @asyncio.coroutine
-    def send_outgoing_message(self, msg):
-        reader, writer = yield from asyncio.open_connection(host='127.0.0.1', port=7888)
-        writer.write(msg)
-        writer.close()
+    def __init__(self, configname):
+        SP.StreamProcessor.__init__(self, configname)
+        self.master_list = ['', '', '', '', '']
+        self.object_manager = []
 
     @asyncio.coroutine
-    def send_to_emr(self, msg):
-        print('Saving moolah!')
+    def read_object(self, obj, key):
+        yield from self.route_object(obj)
 
-    def connection_lost(self, exc):
-        print('Client closed connection')
+
+    @asyncio.coroutine
+    def route_object(self, obj):
+        message = obj.decode()
+        message_root = ET.fromstring(message)
+        emr_namespace = "urn:" + args.emr
+        if emr_namespace in message_root.tag:
+            self.write_object(obj)
+
+
+def main():
+    loop = asyncio.get_event_loop()
+    sp_consumer = OutgoingToMavenMessageHandler(outgoingtomavenmessagehandler)
+    sp_producer = IncomingFromMavenMessageHandler(incomingfrommavenmessagehandler)
+    reader = sp_consumer.schedule(loop)
+    emr_writer = sp_producer.schedule(loop)
+
+    try:
+        loop.run_forever()
+    except KeyboardInterrupt:
+        sp_consumer.close()
+        sp_producer.close()
+        loop.close()
+
+
+if __name__ == '__main__':
+    main()
+

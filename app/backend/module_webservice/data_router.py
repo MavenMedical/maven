@@ -14,111 +14,135 @@ __author__='Yuki Uchino'
 #************************
 #LAST MODIFIED FOR JIRA ISSUE: MAV-1
 #*************************************************************************
-
+import app.utils.streaming.stream_processor as SP
+from xml.etree import ElementTree as ET
+import maven_config as MC
+import maven_logging as ML
 import asyncio
-import amqp
-#import app.configs.config as MAVEN_CONFIG
-from app.utils.streaming import servers
-from concurrent.futures import ThreadPoolExecutor
-#from app.backend.emitter import Emitter as emitter
-#from app.backend.emitter import RabbitReceiver as rr
-
-transport_manager = {}
-
-class MavenWebservicesServer():
-
-    def __init__(self):
-        pass
-
-    def start_servers(self, listening_loop, emitting_loop):
-        rabbit_listener_thread_pool = ThreadPoolExecutor(max_workers=4)
-        listening_coroutine = listening_loop.create_server(Receiver, '127.0.0.1', 7888)
-
-        try:
-            emitting_loop.run_in_executor(rabbit_listener_thread_pool, Emitter, emitting_loop, transport_manager)
-            listening_server = listening_loop.run_until_complete(listening_coroutine)
-            print('serving on {}'.format(listening_server.sockets[0].getsockname()))
-
-            listening_loop.run_forever()
-            emitting_loop.run_forever()
-
-        except KeyboardInterrupt:
-            print("exit")
-
-        finally:
-            emitting_loop.close()
-            listening_coroutine.close()
-            listening_loop.close()
+import uuid
+import argparse
 
 
-class Receiver(servers.ListeningServer):
+outgoingmessagehandler = 'responder socket'
+incomingmessagehandler = 'receiver socket'
 
-    def __init__(self):
-        self.name = 'data_receiver'
-        ###
-        #Set-Up Rabbit Connections for this instance of the WebservicesDataServer Class/Object
-        self.rabbit_connection = amqp.Connection('localhost')
-        self.rabbit_channel = self.rabbit_connection.channel()
-        self.rabbit_exchange = "maven_exchange"
-        self.rabbit_incoming_key = 'incoming'
 
-    ###
-    #This method is IMPORTANT b/c it overrides the default data_received method as defined in the
-    # the Listening Server Class/Object that was imported from app/utils/streaming/servers.py
 
-    def data_received(self, data):
-        transport_manager['go'] = self.transport
-        asyncio.Task(self.send_rabbit_message(data,
-                                              self.rabbit_exchange,
-                                              self.rabbit_channel,
-                                              self.rabbit_incoming_key))
+MavenConfig = {
+    outgoingmessagehandler:
+    {
+        SP.CONFIG_READERTYPE: SP.CONFIGVALUE_THREADEDRABBIT,
+        SP.CONFIG_READERNAME: outgoingmessagehandler+".Reader",
+        SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOCLIENTSOCKET,
+        SP.CONFIG_WRITERNAME: outgoingmessagehandler+".Writer",
+        SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_UNPICKLEPARSER
+    },
+    outgoingmessagehandler+".Reader":
+    {
+        SP.CONFIG_HOST:'localhost',
+        SP.CONFIG_QUEUE:'incoming_work_queue',
+        SP.CONFIG_EXCHANGE:'maven_exchange',
+        SP.CONFIG_KEY:'incoming'
+    },
 
-class Emitter():
+    outgoingmessagehandler+".Writer":
+    {
+        SP.CONFIG_HOST:'127.0.0.1',
+        SP.CONFIG_PORT:7888
+    },
 
-    def __init__(self, loop=None, transport_manager=None):
-        print('Emitter().py has initialized')
-        self.msg = ''
-        self.loop = loop
-        self.transport_manager = transport_manager
-        self.conn = amqp.Connection('localhost')
-        self.chan = self.conn.channel()
-        self.chan.queue_declare(queue="incoming_work_queue")
-        self.chan.exchange_declare(exchange="maven_exchange", type="direct")
-        self.chan.queue_bind(queue="incoming_work_queue", exchange="maven_exchange", routing_key="incoming")
-        self.chan.basic_consume(queue='incoming_work_queue', no_ack=True, callback=self.amqp_call_back)
+    incomingmessagehandler:
+    {
+        SP.CONFIG_READERTYPE: SP.CONFIGVALUE_ASYNCIOSERVERSOCKET,
+        SP.CONFIG_READERNAME: incomingmessagehandler+".Reader",
+        SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_THREADEDRABBIT,
+        SP.CONFIG_WRITERNAME: incomingmessagehandler+".Writer",
+        SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_IDENTITYPARSER
+    },
+    incomingmessagehandler+".Reader":
+    {
+        SP.CONFIG_HOST:'127.0.0.1',
+        SP.CONFIG_PORT:8808
+    },
 
-        self.run()
+    incomingmessagehandler+".Writer":
+    {
+        SP.CONFIG_HOST:'localhost',
+        SP.CONFIG_QUEUE:'incoming_work_queue',
+        SP.CONFIG_EXCHANGE:'maven_exchange',
+        SP.CONFIG_KEY:'incoming'
+    },
+}
+MC.MavenConfig = MavenConfig
 
-    def run(self):
-        self.chan.basic_consume(queue='incoming_work_queue', no_ack=True, callback=self.amqp_call_back)
-        while True:
-            self.chan.wait()
+ARGS = argparse.ArgumentParser(description='Maven Client Receiver Configs.')
+ARGS.add_argument(
+    '--emr', action='store', dest='emr',
+    default='Epic', help='EMR Name')
+args = ARGS.parse_args()
 
-        self.chan.close()
-        self.conn.close()
 
-    def amqp_call_back(self, msg):
-        self.msg = msg
-        incoming_message = msg.body.decode()
-        asyncio.set_event_loop(self.loop)
-        ################
-        future = asyncio.Future()
-        asyncio.Task(self.gather_data(future))
-        self.loop.run_until_complete(future)
+class OutgoingMessageHandler(SP.StreamProcessor):
+
+    def __init__(self, configname):
+        SP.StreamProcessor.__init__(self, configname)
+        self.master_list = ['', '', '', '', '']
+        self.object_manager = []
 
     @asyncio.coroutine
-    def gather_data(self, future):
-        destination = self.transport_manager['go'].get_extra_info('peername')
-        host = destination[0]
-        port = 8111 #destination[1]
-        message = self.msg
-        yield from self.send_data(future, host, port, message)
+    def read_object(self, obj, key):
+        #self.write_object(obj.encode())
+        yield from self.route_object(obj, key)
 
     @asyncio.coroutine
-    def send_data(self, future, host, port, message):
-        reader, writer = yield from asyncio.open_connection(host=host, port=port)
-        writer.write(message.body)
-        writer.close()
+    def route_object(self, obj, key):
+        message = obj
+        message_root = ET.fromstring(message)
+        emr_namespace = "urn:" + args.emr
+        if emr_namespace in message_root.tag:
+            self.write_object(obj.encode(), key)
 
-        future.set_result('Done')
 
+class IncomingMessageHandler(SP.StreamProcessor):
+
+    def __init__(self, configname):
+        SP.StreamProcessor.__init__(self, configname)
+        self.master_list = ['', '', '', '', '']
+        self.object_manager = []
+
+    @asyncio.coroutine
+    def read_object(self, obj, key):
+        yield from self.route_object(obj, key)
+
+    @asyncio.coroutine
+    def route_object(self, obj, key):
+        orders = []
+        message = obj.decode()
+        message_root = ET.fromstring(message)
+        emr_namespace = "urn:" + args.emr
+        NS = message_root.tag.split("}")[0].strip("{")
+        if emr_namespace in NS:
+            orders_array = message_root.find("{%s}Charges" %NS)
+            for order in orders_array.findall("{%s}Charge" %NS):
+                    order_id = order.find("{%s}ID" %NS)
+                    print(order_id.text)
+            self.write_object(obj.decode())
+
+
+def main():
+    loop = asyncio.get_event_loop()
+    sp_producer = OutgoingMessageHandler(outgoingmessagehandler)
+    sp_consumer = IncomingMessageHandler(incomingmessagehandler)
+    reader = sp_consumer.schedule(loop)
+    emitter = sp_producer.schedule(loop)
+
+    try:
+        loop.run_forever()
+    except KeyboardInterrupt:
+        sp_consumer.close()
+        sp_producer.close()
+        loop.close()
+
+
+if __name__ == '__main__':
+    main()
