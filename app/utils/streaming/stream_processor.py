@@ -168,6 +168,14 @@ class StreamProcessor():
     # versions too
     ################################
 
+    @asyncio.coroutine
+    def wake_up_alarm(self):
+        while not self.closed:
+            yield from asyncio.sleep(self.wakeup)
+            yield from self.timed_wake()
+
+    
+
     def schedule(self, loop):
         """ schedule starts the networking, registering queues, creating sockets, etc
 
@@ -176,12 +184,8 @@ class StreamProcessor():
         self.loop=loop
         self.closed=False
         if self.wakeup:
-            @asyncio.coroutine
-            def wake_up_alarm():
-                while not self.closed:
-                    yield from asyncio.sleep(self.wakeup)
-                    yield from self.timed_wake()
-            asyncio.Task(wake_up_alarm(),loop)
+            self.next_sleep = None
+            asyncio.Task(self.wake_up_alarm(),loop=loop)
         for w in self.writers.values():
             w.schedule(loop)
         return self.reader.schedule(loop)

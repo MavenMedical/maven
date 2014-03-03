@@ -18,6 +18,7 @@ import time
 import maven_config as MC
 import pickle
 from maven_logging import PRINT
+import asyncio
 
 #class ResponseAggregator(SP.StreamProcessor):
 #    def __init__(self, configname):
@@ -30,46 +31,50 @@ ra_test = "response aggregator test"
 MavenConfig = {
     ra_test:
     {
-        SP.readertype_param: "Testing",
-        SP.writertype_param: "Testing",
-        RA.response_hold_time_param: .01,
-        RA.expiration_memory_param: 4
+        SP.CONFIG_READERTYPE: SP.CONFIGVALUE_EXPLICIT,
+        SP.CONFIG_READERNAME: ra_test+".Test Reader",
+        SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_EXPLICIT,
+        SP.CONFIG_WRITERNAME: ra_test+".Test Writer",
+        RA.CONFIG_RESPONSE_HOLD_TIME: .01,
+        RA.CONFIG_EXPIRATION_MEMORY: 4,
+        SP.CONFIG_WAKESECONDS: .01,
     }
 }
 MC.MavenConfig = MavenConfig
 
 
-def unpickle_writer(obj):
-    PRINT(pickle.loads(obj))
 
 count = 0
-
+loop=asyncio.get_event_loop()
 
 def wake(sleep_time, s):
     global count
     count += 1
     time.sleep(sleep_time)
     PRINT("wake #%d, %s" % (count, s))
-    ra.timed_wake()
+    loop.run_until_complete(asyncio.sleep(.03))
+
+def task(coro):
+    asyncio.Task(coro,loop=loop)
 
 ra = RA.ResponseAggregator(ra_test)
-ra.write_raw = unpickle_writer
-ra.read_object(ORO.OrderResponseObject(1, 1, "(1,1)"))
+ra.schedule(loop)
+task(ra.read_object(ORO.OrderResponseObject(1, 1, "(1,1)"), None))
 wake(0, 'nothing ready yet')
 wake(.02, 'message ready to send')
-ra.read_object(ORO.OrderResponseObject(2, 2, "(2,2)"))
+task(ra.read_object(ORO.OrderResponseObject(2, 2, "(2,2)"),None)
 wake(0, 'nothing ready')
-ra.read_object(ORO.OrderResponseObject(2, 4, "(2,4)"))
+task(ra.read_object(ORO.OrderResponseObject(2, 4, "(2,4)"),None)
 wake(0, 'nothing ready')
-ra.read_object(ORO.OrderResponseObject(2, 3, "(2,3)"))
+task(ra.read_object(ORO.OrderResponseObject(2, 3, "(2,3)"),None)
 wake(.02, "key 2 ready too send")
-ra.read_object(ORO.OrderResponseObject(1, 2, "(1,2)"))
+task(ra.read_object(ORO.OrderResponseObject(1, 2, "(1,2)"),None)
 wake(.02, "key 1 rejected because it was already sent")
-ra.read_object(ORO.OrderResponseObject(3, 3, "(3,3)"))
-ra.read_object(ORO.OrderResponseObject(4, 3, "(4,3)"))
-ra.read_object(ORO.OrderResponseObject(5, 3, "(5,3)"))
-ra.read_object(ORO.OrderResponseObject(6, 3, "(6,3)"))
+task(ra.read_object(ORO.OrderResponseObject(3, 3, "(3,3)"),None)
+task(ra.read_object(ORO.OrderResponseObject(4, 3, "(4,3)"),None)
+task(ra.read_object(ORO.OrderResponseObject(5, 3, "(5,3)"),None)
+task(ra.read_object(ORO.OrderResponseObject(6, 3, "(6,3)"),None)
 wake(.02, "keys 3-6 sending at once")
-ra.read_object(ORO.OrderResponseObject(1, 3, "(1,3)"))
+task(ra.read_object(ORO.OrderResponseObject(1, 3, "(1,3)"),None)
 wake(.02, "key 1 getting through again because it's expiration expired")
 

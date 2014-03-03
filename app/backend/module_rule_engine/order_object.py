@@ -19,8 +19,9 @@ dept = "dept"
 
 class OrderObject():
 
-    def __init__(self, order_id, order_parameters):
+    def __init__(self, order_id, response_key, order_parameters):
         self.order_id = order_id
+        self.response_key = response_key
         if (type(order_parameters[0]) != str):
             raise TypeError("The order type parameter must be a string")
         if (type(order_parameters[1]) != int):
