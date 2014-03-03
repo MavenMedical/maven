@@ -18,31 +18,53 @@ import asyncio
 import maven_config as MC
 import app.utils.streaming.stream_processor as SP
 
-explicitteststreamname = 'test stream explicit'
 rabbittestproducername = 'test producer rabbit'
 rabbittestconsumername = 'test consumer rabbit'
 trippletestproducername = 'test producer socket'
 trippletestconsumername = 'test consumer socket'
 trippletestmiddlename = 'test middle socket'
 
+
+explicitteststreamname1 = 'test stream explicit1'
+explicitteststreamname2 = 'test stream explicit2'
+
+
 MavenConfig = {
-    explicitteststreamname:
+    explicitteststreamname1:
     {
         SP.CONFIG_READERTYPE: SP.CONFIGVALUE_ASYNCIOSERVERSOCKET,
-        SP.CONFIG_READERNAME: explicitteststreamname+".Test Reader",
-        SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOSOCKETREPLY,
-        SP.CONFIG_WRITERNAME: explicitteststreamname+".Test Writer",
+        SP.CONFIG_READERNAME: explicitteststreamname1+".Test Reader",
+        SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOCLIENTSOCKET,
+        SP.CONFIG_WRITERNAME: explicitteststreamname1+".Test Writer",
         SP.CONFIG_WRITERDYNAMICKEY:1
     },
-    explicitteststreamname+".Test Reader":
+    explicitteststreamname1+".Test Reader":
     {
         SP.CONFIG_HOST:'127.0.0.1',
         SP.CONFIG_PORT:12345,
     },
-    explicitteststreamname+".Test Writer":
+    explicitteststreamname1+".Test Writer":
     {
         SP.CONFIG_HOST:'127.0.0.1',
         SP.CONFIG_PORT:12346,
+    },
+    explicitteststreamname2:
+    {
+        SP.CONFIG_READERTYPE: SP.CONFIGVALUE_ASYNCIOSERVERSOCKET,
+        SP.CONFIG_READERNAME: explicitteststreamname2+".Test Reader",
+        SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOSOCKETREPLY,
+        SP.CONFIG_WRITERNAME: explicitteststreamname2+".Test Writer",
+        SP.CONFIG_WRITERDYNAMICKEY:1,
+        SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_UNPICKLESTREAMPARSER,
+        SP.CONFIG_PARSERNAME: explicitteststreamname2+".Parser",
+    },
+    explicitteststreamname2+".Test Reader":
+    {
+        SP.CONFIG_HOST:'127.0.0.1',
+        SP.CONFIG_PORT:12346,
+    },
+    explicitteststreamname2+".Test Writer":
+    {
         SP.CONFIG_WRITERKEY:1,
     },
 }
@@ -50,7 +72,7 @@ MavenConfig = {
 MC.MavenConfig = MavenConfig
 import pickle
 
-class ConcatenateStreamProcessor(SP.StreamProcessor):
+class ConcatenateStreamProcessor1(SP.StreamProcessor):
     
     def __init__(self, configname):
         SP.StreamProcessor.__init__(self, configname)
@@ -60,12 +82,25 @@ class ConcatenateStreamProcessor(SP.StreamProcessor):
     def read_object(self, obj, key):
         self.master_list.append(obj)
         self.master_list.pop(0)
-        self.write_object(bytes(str(self.master_list),'utf-8'), key)
+        print([self.configname, self.master_list, key])
+        self.write_object(pickle.dumps([self.master_list,key]))
+
+class ConcatenateStreamProcessor2(SP.StreamProcessor):
+    
+    def __init__(self, configname):
+        SP.StreamProcessor.__init__(self, configname)
+
+    @asyncio.coroutine
+    def read_object(self, obj, key):
+        print([self.configname, obj, key])
+        self.write_object(bytes(str(obj[0]),'utf-8'), obj[1])
 
 def single_test():
-    sp = ConcatenateStreamProcessor(explicitteststreamname)
+    sp1 = ConcatenateStreamProcessor1(explicitteststreamname1)
+    sp2 = ConcatenateStreamProcessor2(explicitteststreamname2)
     loop = asyncio.get_event_loop()
-    sender = sp.schedule(loop)
+    sp2.schedule(loop)
+    sender = sp1.schedule(loop)
     
     #sender.send_data('foo')
     #sender.send_data('bar')

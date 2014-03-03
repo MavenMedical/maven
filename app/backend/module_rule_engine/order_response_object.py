@@ -15,8 +15,9 @@ import app.backend.module_rule_engine.order_object as OO
 
 class OrderResponseObject():
 
-    def __init__(self, oid, response_priority, response_string):
+    def __init__(self, oid, response_key, response_priority, response_string):
         self.oid = oid
+        self.response_key = response_key
         self.response_string = response_string
         self.response_priority = response_priority
         self.hold_time = float("inf")

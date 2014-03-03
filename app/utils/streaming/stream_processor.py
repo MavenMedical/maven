@@ -46,6 +46,10 @@ CONFIG_QUEUE = "queue"
 CONFIG_EXCHANGE = "exchange"
 CONFIG_KEY = "key"
 
+global _global_writers
+
+_global_writers = {}
+
 class StreamProcessor():
     """ This is a basic stream processor class.  It implements several different stream protocols so that
     developers only have to worry about the logic of their programs, not how they communicate.
@@ -197,20 +201,28 @@ class StreamProcessor():
         try:
             w = self.writers[writer_key]
         except KeyError:
-            w = self.writers[None]
+            try:
+                w = _global_writers[writer_key]
+            except KeyError:
+                w = self.writers[None]
         w.write_object(obj)
 
     def _register_writer(self, transport):
         if self.dynamic_writer:
-            w=self.writers[self.dynamic_writer]._register_new(transport)
-            self.writers[w.writer_key]=w
+            global _global_writers
+            if self.dynamic_writer in self.writers:
+                w=self.writers[self.dynamic_writer]._register_new(transport)
+            else:
+                w=_global_writers[self.dynamic_writer]._register_new(transport)
+            _global_writers[w.writer_key]=w
             return w.writer_key
         else:
             return None
 
     def _unregister_writer(self, key):
         if self.dynamic_writer:
-            self.writers.pop(key).close()
+            global _global_writers
+            _global_writers.pop(key).close()
 
     def close(self):
         """ closes the stream processor's reader and writer
@@ -246,6 +258,7 @@ class _SocketServerReader():
         # start a listening server which creates a new instance of the parser for each connection
         self.server = asyncio.Task(loop.create_server(self.parser_factory_factory(loop), 
                                                       host=self.host, port=self.port), loop=loop)
+        loop.run_until_complete(asyncio.sleep(.01))
         return self.server
 
     def close(self):
@@ -497,7 +510,8 @@ class _SocketReplyWriter(_BaseWriter):
             self.writer_key = "socket:%d" % socket.fileno()
         else:
             _BaseWriter.__init__(self, configname)
-            
+            global _global_writers
+            _global_writers[self.writer_key] = self
 
     def schedule(self, loop):
         pass
