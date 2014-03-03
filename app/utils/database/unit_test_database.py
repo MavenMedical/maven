@@ -12,7 +12,7 @@
 #####################################################################################################
 
 import asyncio
-from app.database_utils.database import AsyncConnectionPool,SingleThreadedConnection, MappingUtilites
+from app.utils.database.database import AsyncConnectionPool,SingleThreadedConnection, MappingUtilites
 import maven_config as MC
 import unittest
 
