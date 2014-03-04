@@ -9,6 +9,7 @@
 #  Side Effects: None
 #  Last Modified: Monday February 10th - Aidan
 ##############################################################################
+import uuid
 
 order_type = "orderType"
 CPT = "CPT"
@@ -17,11 +18,22 @@ snomed_ids = "snomedIds"
 dept = "dept"
 
 
+class OrderBasket():
+    def __init__(self, key=None, id=None):
+        self.key = key
+        self.id = id
+        self.orders = []
+
+        if self.id is None:
+            self.id = uuid.uuid1()
+
+    def add_order(self, oo):
+        self.orders.append(oo)
+
+
 class OrderObject():
 
-    def __init__(self, order_id, response_key, order_parameters):
-        self.order_id = order_id
-        self.response_key = response_key
+    def __init__(self, order_parameters):
         if (type(order_parameters[0]) != str):
             raise TypeError("The order type parameter must be a string")
         if (type(order_parameters[1]) != int):

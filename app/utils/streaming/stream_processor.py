@@ -158,6 +158,8 @@ class StreamProcessor():
                 for writername in writernames:
                     w = _writer_map[writertype](writername)
                     self.writers[w.writer_key] = w
+                    if self.has_dynamic_writer and w.writer_key == self.dynamic_writer:
+                        _global_writers[w.writer_key] = w
             except KeyError:
                 raise MC.InvalidConfig("Invalid writer type for "+configname+": "+writertype)
 
@@ -216,10 +218,7 @@ class StreamProcessor():
     def _register_writer(self, transport):
         if self.has_dynamic_writer:
             global _global_writers
-            if self.dynamic_writer in self.writers:
-                w=self.writers[self.dynamic_writer]._register_new(transport)
-            else:
-                w=_global_writers[self.dynamic_writer]._register_new(transport)
+            w=_global_writers[self.dynamic_writer]._register_new(transport)
             if w:
                 _global_writers[w.writer_key]=w
                 return w.writer_key
@@ -506,7 +505,7 @@ class _BaseWriter():
             else:
                 self.writer_key = None
 
-    def _register_new(self, key, obj):
+    def _register_new(self, obj):
         raise Exception("Cannot register a dynamic writer for obj " + str(type(self)))
 
 class _SocketClientWriter(_BaseWriter):

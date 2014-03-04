@@ -115,7 +115,6 @@ def main(loop):
             SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_THREADEDRABBIT,
             SP.CONFIG_WRITERNAME: incomingtomavenmessagehandler+".Writer",
             SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_UNPICKLEPARSER,
-            #SP.CONFIG_WRITERDYNAMICKEY:1
         },
         incomingtomavenmessagehandler+".Reader":
         {

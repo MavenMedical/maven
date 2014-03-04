@@ -80,9 +80,10 @@ def main(loop):
         {
             SP.CONFIG_READERTYPE: SP.CONFIGVALUE_ASYNCIOSERVERSOCKET,
             SP.CONFIG_READERNAME: outgoingtomavenmessagehandler+".Reader",
-            SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOCLIENTSOCKET,
+            SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOSOCKETQUERY,
             SP.CONFIG_WRITERNAME: outgoingtomavenmessagehandler+".Writer",
-            SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_IDENTITYPARSER
+            SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_IDENTITYPARSER,
+            SP.CONFIG_WRITERDYNAMICKEY:1,
         },
         outgoingtomavenmessagehandler+".Reader":
         {
@@ -92,16 +93,17 @@ def main(loop):
 
         outgoingtomavenmessagehandler+".Writer":
         {
-            SP.CONFIG_WRITERKEY:None
+            SP.CONFIG_WRITERKEY:1
         },
 
         incomingfrommavenmessagehandler:
         {
             SP.CONFIG_READERTYPE: SP.CONFIGVALUE_ASYNCIOSOCKETQUERY,
             SP.CONFIG_READERNAME: incomingfrommavenmessagehandler+".Reader",
-            SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOSOCKETREPLY,
+            SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOCLIENTSOCKET,
             SP.CONFIG_WRITERNAME: incomingfrommavenmessagehandler+".Writer",
-            SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_IDENTITYPARSER
+            SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_IDENTITYPARSER,
+            SP.CONFIG_WRITERDYNAMICKEY:1,
         },
         incomingfrommavenmessagehandler+".Reader":
         {
@@ -121,6 +123,7 @@ def main(loop):
 
     sp_consumer = OutgoingToMavenMessageHandler(outgoingtomavenmessagehandler)
     sp_producer = IncomingFromMavenMessageHandler(incomingfrommavenmessagehandler)
+
     reader = sp_consumer.schedule(loop)
     emr_writer = sp_producer.schedule(loop)
 
