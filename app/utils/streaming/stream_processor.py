@@ -43,6 +43,7 @@ CONFIG_HOST = "host"
 CONFIG_PORT = "port"
 CONFIG_WRITERKEY = "writer key"
 CONFIG_WRITERDYNAMICKEY = "dynamic writer key"
+CONFIG_DEFAULTWRITEKEY = "default writer key"
 CONFIG_QUEUE = "queue"
 CONFIG_EXCHANGE = "exchange"
 CONFIG_KEY = "key"
@@ -116,6 +117,7 @@ class StreamProcessor():
                 readername = config.get(CONFIG_READERNAME,None)
                 writertype = config[CONFIG_WRITERTYPE]
                 writernames = config.get(CONFIG_WRITERNAME, None)
+                self.default_write_key = config.get(CONFIG_DEFAULTWRITEKEY, None)
                 try:
                     self.dynamic_writer = config[CONFIG_WRITERDYNAMICKEY]
                     self.has_dynamic_writer = True
@@ -158,8 +160,6 @@ class StreamProcessor():
                 for writername in writernames:
                     w = _writer_map[writertype](writername)
                     self.writers[w.writer_key] = w
-                    if self.has_dynamic_writer and w.writer_key == self.dynamic_writer:
-                        _global_writers[w.writer_key] = w
             except KeyError:
                 raise MC.InvalidConfig("Invalid writer type for "+configname+": "+writertype)
 
@@ -206,6 +206,8 @@ class StreamProcessor():
         """ write_object is used by the stream processing logic to send a message to the configured next step.
         :param obj: the object to write on the output channel
         """
+        if not writer_key:
+            writer_key = self.default_write_key
         try:
             w = self.writers[writer_key]
         except KeyError:
@@ -222,6 +224,8 @@ class StreamProcessor():
             if w:
                 _global_writers[w.writer_key]=w
                 return w.writer_key
+            else:
+                return _global_writers[self.dynamic_writer].writer_key
         return None
 
     def _unregister_writer(self, key):
@@ -540,27 +544,36 @@ class _SocketReplyWriter(_BaseWriter):
             self.writer_key = "socket:%d" % socket.fileno()
         else:
             _BaseWriter.__init__(self, configname)
-            global _global_writers
-            _global_writers[self.writer_key] = self
+            self.socket = None
+        #self.last_writer = None
+        global _global_writers
+        _global_writers[self.writer_key] = self
 
     def schedule(self, loop):
         pass
 
     def write_object(self, obj):
         if not self.socket:
+            #if not self.last_writer:
             raise Exception("SocketReplyWriter needs a socket to reply on!")
-        self.socket.sendall(obj)
+            #else:
+            #    self.last_writer.write_object(obj)
+        else:
+            self.socket.sendall(obj)
         
     def close(self):
         pass
 
     def _register_new(self, obj):
-        return _SocketReplyWriter(self.configname, obj.get_extra_info('socket'))
+        self.last_writer = _SocketReplyWriter(self.configname, obj.get_extra_info('socket'))
+        return self.last_writer
 
 class _SocketQueryWriter(_BaseWriter):
     def __init__(self, configname, socket=None):
         _BaseWriter.__init__(self, configname)
         self.socket = None
+        global _global_writers
+        _global_writers[self.writer_key] = self
 
     def schedule(self, loop):
         pass
