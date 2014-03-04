@@ -1,4 +1,5 @@
 import asyncio
+import pickle
 
 class EchoServer(asyncio.Protocol):
     def connection_made(self, transport):
@@ -7,13 +8,13 @@ class EchoServer(asyncio.Protocol):
         self.transport = transport
 
     def data_received(self, data):
-        print('data received: {}'.format(data.decode()))
+        print('data received: {}'.str(pickle.loads(data)))
 
         # close the socket
         self.transport.close()
 
 loop = asyncio.get_event_loop()
-coro = loop.create_server(EchoServer, '127.0.0.1', 8111)
+coro = loop.create_server(EchoServer, '127.0.0.1', 12347)
 server = loop.run_until_complete(coro)
 print('serving on {}'.format(server.sockets[0].getsockname()))
 

@@ -25,54 +25,7 @@ import uuid
 import argparse
 
 
-outgoingtomavenmessagehandler = 'client consumer socket'
-incomingfrommavenmessagehandler = 'client producer socket'
 
-
-
-MavenConfig = {
-    outgoingtomavenmessagehandler:
-    {
-        SP.CONFIG_READERTYPE: SP.CONFIGVALUE_ASYNCIOSERVERSOCKET,
-        SP.CONFIG_READERNAME: outgoingtomavenmessagehandler+".Reader",
-        SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOCLIENTSOCKET,
-        SP.CONFIG_WRITERNAME: outgoingtomavenmessagehandler+".Writer",
-        SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_IDENTITYPARSER
-    },
-    outgoingtomavenmessagehandler+".Reader":
-    {
-        SP.CONFIG_HOST:'127.0.0.1',
-        SP.CONFIG_PORT:12345
-    },
-
-    outgoingtomavenmessagehandler+".Writer":
-    {
-        SP.CONFIG_HOST:'127.0.0.1',
-        SP.CONFIG_PORT:7888
-    },
-    
-    incomingfrommavenmessagehandler:
-    {
-        SP.CONFIG_READERTYPE: SP.CONFIGVALUE_ASYNCIOSERVERSOCKET,
-        SP.CONFIG_READERNAME: incomingfrommavenmessagehandler+".Reader",
-        SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOCLIENTSOCKET,
-        SP.CONFIG_WRITERNAME: incomingfrommavenmessagehandler+".Writer",
-        SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_IDENTITYPARSER
-    },
-    incomingfrommavenmessagehandler+".Reader":
-    {
-        SP.CONFIG_HOST:'127.0.0.1',
-        SP.CONFIG_PORT:12346
-    },
-
-    incomingfrommavenmessagehandler+".Writer":
-    {
-        SP.CONFIG_HOST:'127.0.0.1',
-        SP.CONFIG_PORT:7888
-    },
-
-}
-MC.MavenConfig = MavenConfig
 
 ARGS = argparse.ArgumentParser(description='Maven Client Receiver Configs.')
 ARGS.add_argument(
@@ -85,21 +38,14 @@ class OutgoingToMavenMessageHandler(SP.StreamProcessor):
 
     def __init__(self, configname):
         SP.StreamProcessor.__init__(self, configname)
-        self.master_list = ['', '', '', '', '']
-        self.object_manager = []
 
     @asyncio.coroutine
     def read_object(self, obj, key):
-        yield from self.route_object(obj, key)
-
-
-    @asyncio.coroutine
-    def route_object(self, obj, key):
         message = obj.decode()
         message_root = ET.fromstring(message)
         emr_namespace = "urn:" + args.emr
         if emr_namespace in message_root.tag:
-            self.write_object(obj)
+            self.write_object([obj, key])
 
 
 class IncomingFromMavenMessageHandler(SP.StreamProcessor):
@@ -123,8 +69,56 @@ class IncomingFromMavenMessageHandler(SP.StreamProcessor):
             self.write_object(obj)
 
 
-def main():
-    loop = asyncio.get_event_loop()
+def main(loop):
+    outgoingtomavenmessagehandler = 'client consumer socket'
+    incomingfrommavenmessagehandler = 'client producer socket'
+
+
+
+    MavenConfig = {
+        outgoingtomavenmessagehandler:
+        {
+            SP.CONFIG_READERTYPE: SP.CONFIGVALUE_ASYNCIOSERVERSOCKET,
+            SP.CONFIG_READERNAME: outgoingtomavenmessagehandler+".Reader",
+            SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOCLIENTSOCKET,
+            SP.CONFIG_WRITERNAME: outgoingtomavenmessagehandler+".Writer",
+            SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_IDENTITYPARSER
+        },
+        outgoingtomavenmessagehandler+".Reader":
+        {
+            SP.CONFIG_HOST:'127.0.0.1',
+            SP.CONFIG_PORT:12345
+        },
+
+        outgoingtomavenmessagehandler+".Writer":
+        {
+            SP.CONFIG_WRITERKEY:None
+        },
+
+        incomingfrommavenmessagehandler:
+        {
+            SP.CONFIG_READERTYPE: SP.CONFIGVALUE_ASYNCIOSOCKETQUERY,
+            SP.CONFIG_READERNAME: incomingfrommavenmessagehandler+".Reader",
+            SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOSOCKETREPLY,
+            SP.CONFIG_WRITERNAME: incomingfrommavenmessagehandler+".Writer",
+            SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_IDENTITYPARSER
+        },
+        incomingfrommavenmessagehandler+".Reader":
+        {
+            SP.CONFIG_HOST:'127.0.0.1',
+            SP.CONFIG_PORT:8088
+        },
+
+        incomingfrommavenmessagehandler+".Writer":
+        {
+            SP.CONFIG_HOST:'127.0.0.1',
+            SP.CONFIG_PORT:12347
+        },
+
+    }
+    MC.MavenConfig = MavenConfig
+
+
     sp_consumer = OutgoingToMavenMessageHandler(outgoingtomavenmessagehandler)
     sp_producer = IncomingFromMavenMessageHandler(incomingfrommavenmessagehandler)
     reader = sp_consumer.schedule(loop)
@@ -132,6 +126,7 @@ def main():
 
     try:
         loop.run_forever()
+
     except KeyboardInterrupt:
         sp_consumer.close()
         sp_producer.close()
@@ -139,5 +134,6 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    loop = asyncio.get_event_loop()
+    main(loop)
 

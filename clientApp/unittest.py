@@ -17,6 +17,9 @@ class FakeMessageFromEpic(asyncio.Protocol):
         print('server closed the connection')
         asyncio.get_event_loop().stop()
 
+    def data_received(self, data):
+        print(data)
+
 
 loop = asyncio.get_event_loop()
 msg_coro = loop.create_connection(FakeMessageFromEpic, '127.0.0.1', 12345)

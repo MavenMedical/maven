@@ -21,59 +21,11 @@ import maven_logging as ML
 import asyncio
 import uuid
 import argparse
-
-
-outgoingmessagehandler = 'responder socket'
-incomingmessagehandler = 'receiver socket'
+from app.backend.module_rule_engine import order_object as OO
+import pickle
 
 
 
-MavenConfig = {
-    outgoingmessagehandler:
-    {
-        SP.CONFIG_READERTYPE: SP.CONFIGVALUE_THREADEDRABBIT,
-        SP.CONFIG_READERNAME: outgoingmessagehandler+".Reader",
-        SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOCLIENTSOCKET,
-        SP.CONFIG_WRITERNAME: outgoingmessagehandler+".Writer",
-        SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_UNPICKLEPARSER
-    },
-    outgoingmessagehandler+".Reader":
-    {
-        SP.CONFIG_HOST:'localhost',
-        SP.CONFIG_QUEUE:'incoming_work_queue',
-        SP.CONFIG_EXCHANGE:'maven_exchange',
-        SP.CONFIG_KEY:'incoming'
-    },
-
-    outgoingmessagehandler+".Writer":
-    {
-        SP.CONFIG_HOST:'127.0.0.1',
-        SP.CONFIG_PORT:7888
-    },
-
-    incomingmessagehandler:
-    {
-        SP.CONFIG_READERTYPE: SP.CONFIGVALUE_ASYNCIOSERVERSOCKET,
-        SP.CONFIG_READERNAME: incomingmessagehandler+".Reader",
-        SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_THREADEDRABBIT,
-        SP.CONFIG_WRITERNAME: incomingmessagehandler+".Writer",
-        SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_IDENTITYPARSER
-    },
-    incomingmessagehandler+".Reader":
-    {
-        SP.CONFIG_HOST:'127.0.0.1',
-        SP.CONFIG_PORT:8808
-    },
-
-    incomingmessagehandler+".Writer":
-    {
-        SP.CONFIG_HOST:'localhost',
-        SP.CONFIG_QUEUE:'incoming_work_queue',
-        SP.CONFIG_EXCHANGE:'maven_exchange',
-        SP.CONFIG_KEY:'incoming'
-    },
-}
-MC.MavenConfig = MavenConfig
 
 ARGS = argparse.ArgumentParser(description='Maven Client Receiver Configs.')
 ARGS.add_argument(
@@ -90,17 +42,16 @@ class OutgoingMessageHandler(SP.StreamProcessor):
         self.object_manager = []
 
     @asyncio.coroutine
-    def read_object(self, obj, key):
-        #self.write_object(obj.encode())
-        yield from self.route_object(obj, key)
+    def read_object(self, obj, _):
+        yield from self.route_object(obj)
 
     @asyncio.coroutine
-    def route_object(self, obj, key):
+    def route_object(self, obj):
         message = obj
         message_root = ET.fromstring(message)
         emr_namespace = "urn:" + args.emr
         if emr_namespace in message_root.tag:
-            self.write_object(obj.encode(), key)
+            self.write_object(obj)
 
 
 class IncomingMessageHandler(SP.StreamProcessor):
@@ -111,28 +62,82 @@ class IncomingMessageHandler(SP.StreamProcessor):
         self.object_manager = []
 
     @asyncio.coroutine
-    def read_object(self, obj, key):
-        yield from self.route_object(obj, key)
-
-    @asyncio.coroutine
-    def route_object(self, obj, key):
+    def read_object(self, obj, _):
         orders = []
-        message = obj.decode()
+        message = obj[0].decode()
         message_root = ET.fromstring(message)
         emr_namespace = "urn:" + args.emr
         NS = message_root.tag.split("}")[0].strip("{")
         if emr_namespace in NS:
             orders_array = message_root.find("{%s}Charges" %NS)
+            orders_basket = OO.OrderBasket(key=obj[1])
             for order in orders_array.findall("{%s}Charge" %NS):
-                    order_id = order.find("{%s}ID" %NS)
-                    print(order_id.text)
-            self.write_object(obj.decode())
+                order_id = order.find("{%s}ID" %NS).text
+                order_params = [str(order_id), 15545, 342, [4,3], '4']
+                orders_basket.add_order(OO.OrderObject(order_params))
+            self.write_object(pickle.dumps(orders_basket))
 
 
-def main():
-    loop = asyncio.get_event_loop()
-    sp_producer = OutgoingMessageHandler(outgoingmessagehandler)
-    sp_consumer = IncomingMessageHandler(incomingmessagehandler)
+def main(loop):
+
+    outgoingtohospitalsmessagehandler = 'responder socket'
+    incomingtomavenmessagehandler = 'receiver socket'
+
+
+
+    MavenConfig = {
+        outgoingtohospitalsmessagehandler:
+        {
+            SP.CONFIG_READERTYPE: SP.CONFIGVALUE_THREADEDRABBIT,
+            SP.CONFIG_READERNAME: outgoingtohospitalsmessagehandler+".Reader",
+            SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOSOCKETREPLY,
+            SP.CONFIG_WRITERNAME: outgoingtohospitalsmessagehandler+".Writer",
+            SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_UNPICKLEPARSER,
+            SP.CONFIG_WRITERDYNAMICKEY:1,
+        },
+        outgoingtohospitalsmessagehandler+".Reader":
+        {
+            SP.CONFIG_HOST:'localhost',
+            SP.CONFIG_QUEUE:'incoming_work_queue',
+            SP.CONFIG_EXCHANGE:'maven_exchange',
+            SP.CONFIG_KEY:'incoming'
+        },
+
+        outgoingtohospitalsmessagehandler+".Writer":
+        {
+            SP.CONFIG_WRITERKEY:1
+        },
+
+        incomingtomavenmessagehandler:
+        {
+            SP.CONFIG_READERTYPE: SP.CONFIGVALUE_ASYNCIOSERVERSOCKET,
+            SP.CONFIG_READERNAME: incomingtomavenmessagehandler+".Reader",
+            SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_THREADEDRABBIT,
+            SP.CONFIG_WRITERNAME: incomingtomavenmessagehandler+".Writer",
+            SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_UNPICKLEPARSER,
+            #SP.CONFIG_WRITERDYNAMICKEY:1
+        },
+        incomingtomavenmessagehandler+".Reader":
+        {
+            SP.CONFIG_HOST:'127.0.0.1',
+            SP.CONFIG_PORT:8088
+        },
+
+        incomingtomavenmessagehandler+".Writer":
+        {
+            SP.CONFIG_HOST:'localhost',
+            SP.CONFIG_QUEUE:'incoming_work_queue',
+            SP.CONFIG_EXCHANGE:'maven_exchange',
+            SP.CONFIG_KEY:'incoming'
+        },
+    }
+    MC.MavenConfig = MavenConfig
+
+
+    #loop = asyncio.get_event_loop()
+    sp_consumer = IncomingMessageHandler(incomingtomavenmessagehandler)
+    sp_producer = OutgoingMessageHandler(outgoingtohospitalsmessagehandler)
+
     reader = sp_consumer.schedule(loop)
     emitter = sp_producer.schedule(loop)
 
@@ -145,4 +150,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    loop = asyncio.get_event_loop()
+    main(loop)
