@@ -33,6 +33,7 @@ CONFIGVALUE_THREADEDRABBIT = "threaded ampq"
 CONFIGVALUE_ASYNCIOSERVERSOCKET = "asyncio server socket"
 CONFIGVALUE_ASYNCIOCLIENTSOCKET = "asyncio client socket"
 CONFIGVALUE_ASYNCIOSOCKETREPLY = "asyncio server socket reply"
+CONFIGVALUE_ASYNCIOSOCKETQUERY = "asyncio client socket query"
 CONFIGVALUE_EXPLICIT = "explicit"
 CONFIGVALUE_IDENTITYPARSER = "identity"
 CONFIGVALUE_UNPICKLEPARSER = "unpickle"
@@ -64,7 +65,7 @@ class StreamProcessor():
     
     @asyncio.coroutine
     def read_object(self, obj, key):
-        """ This is the entry coroutine5B into the processing logic and must be overridden.
+        """ This is the entry coroutine into the processing logic and must be overridden.
         When a complete message is received, it is decoded into an object, and this coroutine is scheduled
         Note that if a connection breaks, or at object does not parse correctly, this does not get called.
 
@@ -111,11 +112,15 @@ class StreamProcessor():
             config = MC.MavenConfig[configname]
 
             try:
-                readertype = config[CONFIG_READERTYPE]
+                readertype = config.get(CONFIG_READERTYPE, None)
                 readername = config.get(CONFIG_READERNAME,None)
                 writertype = config[CONFIG_WRITERTYPE]
                 writernames = config.get(CONFIG_WRITERNAME, None)
-                self.dynamic_writer = config.get(CONFIG_WRITERDYNAMICKEY, None)
+                try:
+                    self.dynamic_writer = config[CONFIG_WRITERDYNAMICKEY]
+                    self.has_dynamic_writer = True
+                except KeyError:
+                    self.has_dynamic_writer = False
                 if not type(writernames) is list:
                     writernames=[writernames]
                 parsertype = config.get(CONFIG_PARSERTYPE,CONFIGVALUE_IDENTITYPARSER)
@@ -136,6 +141,7 @@ class StreamProcessor():
                     lambda loop: lambda: _parser_map[parsertype](parsername, self.read_object, 
                                                                  loop, (self._register_writer,
                                                                         self._unregister_writer))
+
             except KeyError:
                 raise MC.InvalidConfig("Invalid parser type for "+configname+": "+parsertype)
 
@@ -208,19 +214,19 @@ class StreamProcessor():
         w.write_object(obj)
 
     def _register_writer(self, transport):
-        if self.dynamic_writer:
+        if self.has_dynamic_writer:
             global _global_writers
             if self.dynamic_writer in self.writers:
                 w=self.writers[self.dynamic_writer]._register_new(transport)
             else:
                 w=_global_writers[self.dynamic_writer]._register_new(transport)
-            _global_writers[w.writer_key]=w
-            return w.writer_key
-        else:
-            return None
+            if w:
+                _global_writers[w.writer_key]=w
+                return w.writer_key
+        return None
 
     def _unregister_writer(self, key):
-        if self.dynamic_writer:
+        if self.has_dynamic_writer:
             global _global_writers
             _global_writers.pop(key).close()
 
@@ -264,6 +270,31 @@ class _SocketServerReader():
     def close(self):
         self.server.cancel()
 
+class _SocketQueryReader():        
+    def __init__(self, configname, parser_factory_factory):
+        self.parser_factory_factory = parser_factory_factory
+        self.configname = configname
+        if not configname in MC.MavenConfig:
+            raise MC.InvalidConfig("some real error")
+        config = MC.MavenConfig[configname]
+        # get real parameters here, throwing errors if necessary ones are missing
+        try:
+            self.host = config.get(CONFIG_HOST,None)
+            self.port = config[CONFIG_PORT]
+        except KeyError as e:
+            raise MC.InvalidConfig("SocketReader "+configname+" missing parameter: "+e.args[0])
+
+    def schedule(self, loop):
+        self.loop = loop
+        # start a listening server which creates a new instance of the parser for each connection
+        self.server = asyncio.Task(loop.create_connection(self.parser_factory_factory(loop), 
+                                                      host=self.host, port=self.port), loop=loop)
+        loop.run_until_complete(asyncio.sleep(.01))
+        return self.server
+
+    def close(self):
+        self.server.cancel()
+        
 
 class _RabbitReader():
     ### Starts a server to read data from RabbitMQ and pass it to the stream processor
@@ -526,6 +557,26 @@ class _SocketReplyWriter(_BaseWriter):
 
     def _register_new(self, obj):
         return _SocketReplyWriter(self.configname, obj.get_extra_info('socket'))
+
+class _SocketQueryWriter(_BaseWriter):
+    def __init__(self, configname, socket=None):
+        _BaseWriter.__init__(self, configname)
+        self.socket = None
+
+    def schedule(self, loop):
+        pass
+
+    def write_object(self, obj):
+        if not self.socket:
+            raise Exception("SocketReplyWriter needs a socket to reply on!")
+        self.socket.sendall(obj)
+        
+    def close(self):
+        pass
+
+    def _register_new(self, obj):
+        self.socket = obj.get_extra_info('socket')
+        return None
         
 
 class _RabbitWriter(_BaseWriter):
@@ -580,6 +631,7 @@ _reader_map = {
     CONFIGVALUE_THREADEDRABBIT:_RabbitReader,
     CONFIGVALUE_ASYNCIOSERVERSOCKET:_SocketServerReader,
     CONFIGVALUE_EXPLICIT:_ExplicitReader,
+    CONFIGVALUE_ASYNCIOSOCKETQUERY:_SocketQueryReader,
 }
 
 #  Mapping from writer types in the config file to the classes that handle them
@@ -588,6 +640,7 @@ _writer_map = {
     CONFIGVALUE_ASYNCIOCLIENTSOCKET:_SocketClientWriter,
     CONFIGVALUE_EXPLICIT:_ExplicitWriter,
     CONFIGVALUE_ASYNCIOSOCKETREPLY:_SocketReplyWriter,
+    CONFIGVALUE_ASYNCIOSOCKETQUERY:_SocketQueryWriter,
 }
 
 #  Mapping from parser types in the config file to the classes that handle them
