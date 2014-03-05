@@ -115,12 +115,17 @@ function generateChartData() {
 
             sum = sum + randcost;
         }
-
+        var col;
+        if(i == 30 -1 )
+        {col= colorArray[2];}
+        else
+        {col= colorArray[0];}
 
         dr_total_spending.push({
             date: newDate,
             spend: sum,
-            subdata: dr_cost_bd
+            subdata: dr_cost_bd,
+            color: col
         })
         dr_cost_bd = [];
 
@@ -150,12 +155,14 @@ function generateChartData() {
         encs_cost.push({
             date: newDate,
             encounter_cost: count,
-            subdata: pat_cost_bd
-
+            subdata: pat_cost_bd,
+            color: col
         });
 
         pat_cost_bd = [];
     }
+
+
 
 
 }
@@ -163,13 +170,15 @@ function showdashboard() {
     console.log("Dashboard Chart");
     //dashboard charts
     draw_serial_chart("column", "total-spend", dr_total_spending, "date", "spend", "cost-bd", "cat", "cost");
+    draw_pie_chart("cost-bd", dr_total_spending[29]["subdata"], "cat","cost");
+
 }
 
 function showpatient() {
     console.log("Patient Chart");
     //Patient charts
-    draw_serial_chart("step", "encounters_chart", encs_cost, "date", "encounter_cost", "pat-cost-bd", "cat", "cost");
-
+    draw_serial_chart("column", "encounters_chart", encs_cost, "date", "encounter_cost", "pat-cost-bd", "cat", "cost");
+    draw_pie_chart("pat-cost-bd", encs_cost[29]["subdata"],"cat", "cost" );
 }
 
 function showencounter() {
@@ -209,6 +218,7 @@ function draw_serial_chart(chart_type, div, data, cat, value, subdiv, subcat, su
     console.log(data);
     var chart = AmCharts.makeChart(div, {
         "type": "serial",
+        "dataDateFormat": "YYYY-MM-DD",
         "colors": colorArray,
         "pathToImages": "js/amcharts/images/",
         "dataProvider": data,
@@ -222,13 +232,14 @@ function draw_serial_chart(chart_type, div, data, cat, value, subdiv, subcat, su
         "graphs": [
             {
                 "id": "g1",
-             "balloonText": "[[category]]<br /><b><span style='font-size:14px;'>$[[value]]</span></b></br> Click to see the cost breakdown",
-                "bullet": "round",
+             "balloonText": "[[category]]<br /><b><span style='font-size:14px;'>$[[value]]</span></b>",
+                //"bullet": "round",
                 //"bulletBorderAlpha": 1,
                 //"bulletColor":"#FFFFFF",
-                "hideBulletsCount": 30,
+                //"hideBulletsCount": 30,
                 // "title": "red line",
                 "valueField": value,
+                "colorField":"color",
                 //"useLineColorForBulletBorder":true,
                 "fillAlphas": .8,
                 "fillColorsField": "fill",
@@ -256,6 +267,9 @@ function draw_serial_chart(chart_type, div, data, cat, value, subdiv, subcat, su
 
     });
 
+
+
+
     chart.addListener("rendered", function (event) {
         chart.zoomToIndexes(data.length - 40, data.length - 1);
     });
@@ -268,8 +282,9 @@ function draw_serial_chart(chart_type, div, data, cat, value, subdiv, subcat, su
             // event.chart.dataProvider = event.item.dataContext.subdata;
             if (chart_type == "column") // changing colors with step doesn't show the right thing
             {
+                dr_total_spending[29]["color"] = colorArray[0];
+                encs_cost[29]["color"] = colorArray[0];
                 event.item.dataContext.fill = colorArray[2];
-                console.log(event.item.bulletGraphics);//.bullet.bulletColor = colorArray[1];
                 event.chart.validateData();
                 event.item.dataContext.fill = colorArray[0];
             }
@@ -280,6 +295,8 @@ function draw_serial_chart(chart_type, div, data, cat, value, subdiv, subcat, su
 
         }
     });
+
+
 
 }
 
@@ -293,7 +310,11 @@ function draw_orders_bd_chart() {
         "dataProvider": encounter.orderables,
         "titleField": "order",
         "valueField": "cost",
-        "labelRadius": 5
+        "labelRadius": 5,
+
+        "radius": "22%",
+        "innerRadius": "50%",
+        "labelText": "[[title]]"
     });
 
 

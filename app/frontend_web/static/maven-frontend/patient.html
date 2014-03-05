@@ -35,7 +35,7 @@
     </ul>
     <ul class="nav hidden-xs" id="lg-menu">
         <li>
-            <a href="dashboard.html"><i class="glyphicon glyphicon-home"></i> Dashboard</a>
+            <a href="home.html"><i class="glyphicon glyphicon-home"></i> Home</a>
         </li>
         <li>
             <a href="alerts.html"><i class="glyphicon glyphicon-flag"></i> Alerts</a>
@@ -50,7 +50,7 @@
     <!-- tiny only nav-->
     <ul class="nav visible-xs" id="xs-menu">
         <li>
-            <a href="dashboard.html" class="text-center"><i class="glyphicon glyphicon-home"></i></a>
+            <a href="home.html" class="text-center"><i class="glyphicon glyphicon-home"></i></a>
         </li>
         <li>
             <a href="alerts.html" class="text-center"><i class="glyphicon glyphicon-flag"></i></a>
@@ -80,7 +80,8 @@
     <nav class="collapse navbar-collapse" role="navigation">
         <ul class="nav navbar-nav navbar-right">
             <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="glyphicon glyphicon-user"></i>
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i
+                        class="glyphicon glyphicon-user"></i>
                     Dr.Smith <span class="caret"></span></a>
                 <ul class="dropdown-menu">
                     <li>
@@ -102,76 +103,59 @@
             </div>
         </form>
     </nav>
+    <!-- Patient Header -->
+    <div class="sub-header">
+        <div class="row">
+            <div class="col-sm-3">
+                <div class="content">
+                    <h4>
+                        Jordon Severt <span style="font-size: 15px"> (Male)</span>
+                    </h4>
+                    05/03/1987
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="content">
+                    <h5>
+                        <span class="blue">Allergies</span>
+                    </h5>
+                    Penicillins, Nuts, Cats
+                </div>
+
+            </div>
+            <div class="col-sm-3">
+                <div class="content">
+                    <h5>
+                        <span class="blue">Problem List</span>
+                    </h5>
+                    Asthma, Cholera
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="content">
+
+                        <h5>
+                            <span class="blue">Last Encounter</span>
+                        </h5>
+
+                        <a href="encounter.html"> 5 days </a>
+
+
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+    <!-- /Patient Header -->
 </div>
+<div class="pads"></div>
+
 <!-- /top nav -->
+
 <div class="padding">
 <div class="full col-sm-9">
-<!-- Charts -->
-<div class="row">
-    <!-- main col left -->
-    <div class="col-sm-6">
-        <div class="panel panel-default">
 
-            <div class="panel-body">
-                <h3 class="panel-title">
-                    Patient Info
-                </h3>
-                <table class="table  table-hover">
-                    <tbody>
-                    <tr>
-                        <td style="border: none;">
-                            <span class="blue">Patient:</span> Jordon Severt
-                        </td>
-                        <td style="border: none;">
-                            <span class="blue">Gender:</span> Male
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="border: none;">
-                            <span class="blue">DOB:</span> 05/03/1987
-                        </td>
-                        <td style="border: none;">
-                            <span class="blue">Age:</span> 26
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    <!-- main col right -->
-    <div class="col-sm-6">
-        <div class="panel panel-default">
-
-            <div class="panel-body">
-                <h3 class="panel-title">
-                    Patient's Active Problem List
-                </h3>
-                <table class="table  table-hover">
-                    <tbody>
-                    <tr>
-                        <td>
-                            02/02/2014
-                        </td>
-                        <td>
-                            Asthma
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            05/08/2013
-                        </td>
-                        <td>
-                            Cholera
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-<!--/row-->
 <!-- row-->
 <div class="row">
     <!-- main col left -->
@@ -246,125 +230,126 @@
                 </h3>
 
                 <div class="panel-body">
-        <div class="panel-group" id="accordion2">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <a data-toggle="collapse" data-parent="#accordion2" href="#collapse2-1">
-                        <h4 class="sub-sub-panel panel-title">
-                            <div class="row">
-                                <div class="col-sm-4">
-                                    Avoid NSAIDS
-                                </div>
-                                <div class="col-sm-3">
-                                    12/15/2013
-                                </div>
-                                <div class="col-sm-3">
-                                    Ignored
-                                </div>
-                                <div class="col-sm-2">
-                                    $168
-                                </div>
+                    <div class="panel-group" id="accordion2">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <a data-toggle="collapse" data-parent="#accordion2" href="#collapse2-1">
+                                    <h4 class="sub-sub-panel panel-title">
+                                        <div class="row">
+                                            <div class="col-sm-4">
+                                                Avoid NSAIDS
+                                            </div>
+                                            <div class="col-sm-3">
+                                                12/15/2013
+                                            </div>
+                                            <div class="col-sm-3">
+                                                Ignored
+                                            </div>
+                                            <div class="col-sm-2">
+                                                $168
+                                            </div>
 
+                                        </div>
+                                    </h4>
+                                </a>
                             </div>
-                        </h4>
-                    </a>
-                </div>
-                <div id="collapse2-1" class="panel-collapse collapse in">
-                    <div class="panel-body">
-                        <div class="row">
-                            <div class="col-sm-10">
-                                Avoid nonsteroidal anti-inflammatory drugs (NSAIDS) in indeviduals with hypertension
-                                or heart failure or CKD of all causes, including diabetes. <a
-                                    href="#">An-Online.org</a>
+                            <div id="collapse2-1" class="panel-collapse collapse in">
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-sm-10">
+                                            Avoid nonsteroidal anti-inflammatory drugs (NSAIDS) in indeviduals with
+                                            hypertension
+                                            or heart failure or CKD of all causes, including diabetes. <a
+                                                href="#">An-Online.org</a>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <a href="encounter.html" class="btn btn-default active" role="button"><i
+                                                    class="glyphicon glyphicon-share-alt"></i> Check this Encounter</a>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col-sm-2">
-                                <a href="encounter.html" class="btn btn-default active" role="button"><i
-                                        class="glyphicon glyphicon-share-alt"></i> Check this Encounter</a>
+                        </div>
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <a data-toggle="collapse" data-parent="#accordion2" href="#collapse2-2">
+                                    <h4 class="sub-sub-panel panel-title">
+                                        <div class="row">
+                                            <div class="col-sm-4">
+                                                Routine ECG
+                                            </div>
+                                            <div class="col-sm-3">
+                                                12/14/2013
+                                            </div>
+                                            <div class="col-sm-3">
+                                                Followed
+                                            </div>
+                                            <div class="col-sm-2">
+                                                $1125
+                                            </div>
+                                        </div>
+                                    </h4>
+                                </a>
+                            </div>
+                            <div id="collapse2-2" class="panel-collapse collapse">
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-sm-10">
+                                            Don't perform echocardiography as routine follow-up for mild,
+                                            asymptomatic native valve disease in adult patient with no change
+                                            in signs or symptoms.<a href="#">Asnc.org</a>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <a href="encounter.html" class="btn btn-default active" role="button"><i
+                                                    class="glyphicon glyphicon-share-alt"></i> Check this Encounter</a>
+                                        </div>
+
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <a data-toggle="collapse" data-parent="#accordion2" href="#collapse2-3">
+                                    <h4 class="sub-sub-panel panel-title">
+                                        <div class="row">
+                                            <div class="col-sm-4">
+                                                Stress Cardiac Imaging
+                                            </div>
+                                            <div class="col-sm-3">
+                                                12/13/2013
+                                            </div>
+                                            <div class="col-sm-3">
+                                                Followed
+                                            </div>
+                                            <div class="col-sm-2">
+                                                $220
+                                            </div>
+
+                                        </div>
+                                    </h4>
+                                </a>
+                            </div>
+                            <div id="collapse2-3" class="panel-collapse collapse">
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-sm-10">
+                                            Don't perform stress cardiac imaging or coronary angiography in patients
+                                            without cardiac symptoms unless high-risk markers are present.
+                                            <a href="#">Asnc.org</a>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <a href="encounter.html" class="btn btn-default active" role="button"><i
+                                                    class="glyphicon glyphicon-share-alt"></i> Check this Encounter</a>
+                                        </div>
+
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <a data-toggle="collapse" data-parent="#accordion2" href="#collapse2-2">
-                        <h4 class="sub-sub-panel panel-title">
-                            <div class="row">
-                                <div class="col-sm-4">
-                                    Routine ECG
-                                </div>
-                                <div class="col-sm-3">
-                                    12/14/2013
-                                </div>
-                                <div class="col-sm-3">
-                                    Followed
-                                </div>
-                                <div class="col-sm-2">
-                                    $1125
-                                </div>
-                            </div>
-                        </h4>
-                    </a>
-                </div>
-                <div id="collapse2-2" class="panel-collapse collapse">
-                    <div class="panel-body">
-                        <div class="row">
-                            <div class="col-sm-10">
-                                Don't perform echocardiography as routine follow-up for mild,
-                                asymptomatic native valve disease in adult patient with no change
-                                in signs or symptoms.<a href="#">Asnc.org</a>
-                            </div>
-                            <div class="col-sm-2">
-                                <a href="encounter.html" class="btn btn-default active" role="button"><i
-                                        class="glyphicon glyphicon-share-alt"></i> Check this Encounter</a>
-                            </div>
-
-
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <a data-toggle="collapse" data-parent="#accordion2" href="#collapse2-3">
-                        <h4 class="sub-sub-panel panel-title">
-                            <div class="row">
-                                <div class="col-sm-4">
-                                    Stress Cardiac Imaging
-                                </div>
-                                <div class="col-sm-3">
-                                    12/13/2013
-                                </div>
-                                <div class="col-sm-3">
-                                    Followed
-                                </div>
-                                <div class="col-sm-2">
-                                    $220
-                                </div>
-
-                            </div>
-                        </h4>
-                    </a>
-                </div>
-                <div id="collapse2-3" class="panel-collapse collapse">
-                    <div class="panel-body">
-                        <div class="row">
-                            <div class="col-sm-10">
-                                Don't perform stress cardiac imaging or coronary angiography in patients
-                                without cardiac symptoms unless high-risk markers are present.
-                                <a href="#">Asnc.org</a>
-                            </div>
-                            <div class="col-sm-2">
-                                <a href="encounter.html" class="btn btn-default active" role="button"><i
-                                        class="glyphicon glyphicon-share-alt"></i> Check this Encounter</a>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
             </div>
         </div>
