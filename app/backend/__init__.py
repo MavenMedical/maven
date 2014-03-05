@@ -39,8 +39,8 @@ def not_found(error):
 #**************************************************************************
 # IMPORT AND REGISTER THE BLUEPRINTS FOR NEW BACKEND MODULE BELOW
 #**************************************************************************
-from app.backend.module_webservice.controllers import webservice as webservice_module
-backend.register_blueprint(webservice_module)
+#from app.backend.module_webservice.controllers import webservice as webservice_module
+#backend.register_blueprint(webservice_module)
 
 #For testing purposes, using SQLAlchemy to create a sqlite3 database file
-db.create_all()
+#db.create_all()

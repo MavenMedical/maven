@@ -126,9 +126,9 @@ def main(loop):
         incomingtomavenmessagehandler+".Writer":
         {
             SP.CONFIG_HOST:'localhost',
-            SP.CONFIG_QUEUE:'incoming_work_queue',
+            SP.CONFIG_QUEUE:'incoming_cost_evaluator_work_queue',
             SP.CONFIG_EXCHANGE:'maven_exchange',
-            SP.CONFIG_KEY:'incoming'
+            SP.CONFIG_KEY:'incomingcost'
         },
     }
     MC.MavenConfig = MavenConfig
