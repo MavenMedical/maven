@@ -21,21 +21,25 @@ import backend as maven_backend
 #from app.backend.module_webservice.data_router import MavenWebservicesServer
 #from app.backend.data_router import Emitter as emitter
 from werkzeug.contrib.fixers import ProxyFix
-#from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
 #from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import Process
+from app.backend.module_webservice import data_router as DR
+from clientApp.module_webservice import client_server as CS
 #from app.backend.module_webservice.data_router import MavenWebservicesServer as services
 
 
 
 app = maven_backend.backend
 app.wsgi_app = ProxyFix(app.wsgi_app)
+
+def main():
 #app.run(host='127.0.0.1', port=8088, debug=True)
 
-    #with ProcessPoolExecutor(max_workers=2) as executor:
+    with ProcessPoolExecutor(max_workers=2) as executor:
 
-        #executor.submit(startDispatchListener())
-        #executor.submit(startBackEnd())
+        executor.submit(start_webservice2())
+        executor.submit(start_webservice())
 
         #executor.submit(start_dispatch_listener())
         #executor.submit(start_backend())
@@ -44,6 +48,8 @@ app.wsgi_app = ProxyFix(app.wsgi_app)
     #p1 = Process(target=start_backend())
     #p2 = Process(target=start_frontend())
     #p3 = Process(target=start_webservices())
+    #p4 = Process(target=start_webservice2())
+    #p5 = Process(target=start_webservice())
 
     #p1.start()
     #p2.start()
@@ -61,6 +67,8 @@ app.wsgi_app = ProxyFix(app.wsgi_app)
     #p1.start()
     #p2.start()
     #p3.start()
+    #p4.start()
+    #p5.start()
 
 
 
@@ -83,5 +91,15 @@ def start_webservices(services, listening_loop, emitting_loop):
     emitting_loop.close()
 
 
-#if __name__ == '__main__':
-    #main()
+def start_webservice():
+    loop = asyncio.new_event_loop()
+    CS.main(loop)
+
+
+def start_webservice2():
+    loop = asyncio.get_event_loop()
+    DR.main(loop)
+
+
+if __name__ == '__main__':
+    main()

@@ -62,15 +62,15 @@ class IncomingMessageHandler(SP.StreamProcessor):
         self.object_manager = []
 
     @asyncio.coroutine
-    def read_object(self, obj, _):
+    def read_object(self, obj, key):
         orders = []
-        message = obj[0].decode()
+        message = obj.decode()
         message_root = ET.fromstring(message)
         emr_namespace = "urn:" + args.emr
         NS = message_root.tag.split("}")[0].strip("{")
         if emr_namespace in NS:
             orders_array = message_root.find("{%s}Charges" %NS)
-            orders_basket = OO.OrderBasket(key=obj[1])
+            orders_basket = OO.OrderBasket(key=key)
             for order in orders_array.findall("{%s}Charge" %NS):
                 order_id = order.find("{%s}ID" %NS).text
                 order_params = [str(order_id), 15545, 342, [4,3], '4']
@@ -93,7 +93,7 @@ def main(loop):
             SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOSOCKETREPLY,
             SP.CONFIG_WRITERNAME: outgoingtohospitalsmessagehandler+".Writer",
             SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_UNPICKLEPARSER,
-            SP.CONFIG_WRITERDYNAMICKEY:1,
+
         },
         outgoingtohospitalsmessagehandler+".Reader":
         {
@@ -115,6 +115,7 @@ def main(loop):
             SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_THREADEDRABBIT,
             SP.CONFIG_WRITERNAME: incomingtomavenmessagehandler+".Writer",
             SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_UNPICKLEPARSER,
+            SP.CONFIG_WRITERDYNAMICKEY:1,
         },
         incomingtomavenmessagehandler+".Reader":
         {

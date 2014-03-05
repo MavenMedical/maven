@@ -23,8 +23,7 @@ import maven_logging as ML
 import asyncio
 import uuid
 import argparse
-
-
+import pickle
 
 
 ARGS = argparse.ArgumentParser(description='Maven Client Receiver Configs.')
@@ -40,12 +39,13 @@ class OutgoingToMavenMessageHandler(SP.StreamProcessor):
         SP.StreamProcessor.__init__(self, configname)
 
     @asyncio.coroutine
-    def read_object(self, obj, key):
+    def read_object(self, obj, _):
         message = obj.decode()
         message_root = ET.fromstring(message)
         emr_namespace = "urn:" + args.emr
         if emr_namespace in message_root.tag:
-            self.write_object([obj, key])
+            self.write_object(pickle.dumps(obj))
+            #self.write_object(obj)
 
 
 class IncomingFromMavenMessageHandler(SP.StreamProcessor):
@@ -83,7 +83,7 @@ def main(loop):
             SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOSOCKETQUERY,
             SP.CONFIG_WRITERNAME: outgoingtomavenmessagehandler+".Writer",
             SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_IDENTITYPARSER,
-            SP.CONFIG_WRITERDYNAMICKEY:1,
+            SP.CONFIG_DEFAULTWRITEKEY:1,
         },
         outgoingtomavenmessagehandler+".Reader":
         {
