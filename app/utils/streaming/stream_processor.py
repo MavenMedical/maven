@@ -217,6 +217,16 @@ class StreamProcessor():
                 w = self.writers[None]
         w.write_object(obj)
 
+    @asyncio.coroutine
+    def write_object(self, obj, host, port):
+        print(str((host, port)))
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        yield from self.loop.sock_connect(s, (host, port))
+        s.setblocking(False)
+        s.sendall(obj)
+        s.close()
+
+
     def _register_writer(self, transport):
         if self.has_dynamic_writer:
             global _global_writers
@@ -511,6 +521,9 @@ class _BaseWriter():
 
     def _register_new(self, obj):
         raise Exception("Cannot register a dynamic writer for obj " + str(type(self)))
+
+    def write_object(self, obj, host, port):
+        raise NotImplemented()
 
 class _SocketClientWriter(_BaseWriter):
     # Connects to a remote server over a socket to write its data
