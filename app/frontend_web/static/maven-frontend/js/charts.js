@@ -2,9 +2,12 @@
  * Created by devel on 2/25/14.
  */
 
+
+
 var colorArray = ["#0188BB", "#4C2694", "#79B32D", "#FF8500", "#00587A" ]
 //Palette URL: http://colorschemedesigner.com/#3q62mWSE5w0w0
 
+//public variables and data arrays
 var pateint = {
     "name": "John Smith",
     "sex": "Male",
@@ -33,8 +36,29 @@ var encounter = {
     ]
 };
 
-
+// variable to hold which slide in pie chart was selected
+var selected;
 var category = new Array("Medication", "Labs", "Procedures", "RJS Nursing", "Immunization/Injection");
+var sub_med;
+var sub_lab = new Array("Blood", "Glucose", "CBC");
+var sub_proc;
+var sub_nurs;
+var sub_immun;
+
+var lab_data = [
+    {
+        "cat": "Blood",
+        "cost": 50
+    },
+    {
+        "cat": "Glucose",
+        "cost": 30
+    },
+    {
+        "cat": "CBC",
+        "cost": 20
+    }
+];
 
 // dashboard charts
 var dr_cost_bd = [];
@@ -96,30 +120,37 @@ function generateChartData() {
     firstDate.setDate(firstDate.getDate() - 30);
     firstDate.setHours(0, 0, 0, 0);
 
-    for (var i = 0; i < 30; i++) {
+    var days = 360;
+
+    for (var i = 0; i < days; i++) {
         var newDate = new Date(firstDate);
         newDate.setDate(newDate.getDate() + i);
 
 
         var sum = 0;
 
-        //loop to generate data for soat breakdown
+        //loop to generate data for cost breakdown
         var randcost = 0;
         for (var j = 0; j < category.length; j++) {
             randcost = Math.round(Math.random() * 1000);
             dr_cost_bd.push({
                 date: newDate,
                 cat: category[j],
-                cost: randcost
+                sub: category[j] == "Labs" ? lab_data : null,
+                cost: randcost,
+                id: j,
+                    color: colorArray[j]
             });
 
             sum = sum + randcost;
         }
         var col;
-        if(i == 30 -1 )
-        {col= colorArray[2];}
-        else
-        {col= colorArray[0];}
+        if (i == days - 1) {
+            col = colorArray[2];
+        }
+        else {
+            col = colorArray[0];
+        }
 
         dr_total_spending.push({
             date: newDate,
@@ -135,42 +166,78 @@ function generateChartData() {
             alerts: Math.floor((Math.random() * 10) + 1)
         });
 
+        // H : (1) in hospital , (0) out
+        var H;
 
-        //Encounters for patients
-        var count = 0;
-
-        //loop to generate data for soat breakdown
-        var rcost = 0;
-        for (var j = 0; j < Math.floor((Math.random() * category.length) + 1); j++) {
-            rcost = Math.round(Math.random() * 1000)
-            pat_cost_bd.push({
-                date: newDate,
-                cat: category[j],
-                cost: rcost
-            });
-
-            count = count + rcost;
+        if (Math.floor(Math.random() * 2) == 1) {
+            if (Math.floor(Math.random() * 3) > 0) {
+                H = 1;
+            }
+            else {
+                H = 0;
+            }
+        }
+        else {
+            if (Math.floor(Math.random() * 3) > 2) {
+                H = 1;
+            }
+            else {
+                H = 0;
+            }
         }
 
-        encs_cost.push({
-            date: newDate,
-            encounter_cost: count,
-            subdata: pat_cost_bd,
-            color: col
-        });
+
+        if (H == 1) {
+            //Encounters for patients
+            var count = 0;
+
+            //loop to generate data for soat breakdown
+            var rcost = 0;
+            for (var j = 0; j < Math.floor((Math.random() * category.length) + 1); j++) {
+                rcost = Math.round(Math.random() * 1000);
+                pat_cost_bd.push({
+                    date: newDate,
+                    cat: category[j],
+                    sub: category[j] == "Labs" ? lab_data : null,
+                    cost: rcost,
+                    id: j,
+                    color: colorArray[j]
+                });
+
+                count = count + rcost;
+            }
+
+
+            encs_cost.push({
+                date: newDate,
+                encounter_cost: count,
+                subdata: pat_cost_bd,
+                color: col
+            });
+        }
 
         pat_cost_bd = [];
     }
 
 
-
-
 }
+
+// functions to get Random Normal Distribution
+function rnd_snd() {
+    return (Math.random() * 2 - 1) + (Math.random() * 2 - 1) + (Math.random() * 2 - 1);
+}
+
+function rnd(mean, stdev) {
+    return Math.round(rnd_snd() * stdev + mean);
+}
+
+
 function showdashboard() {
     console.log("Dashboard Chart");
     //dashboard charts
-    draw_serial_chart("column", "total-spend", dr_total_spending, "date", "spend", "cost-bd", "cat", "cost");
-    draw_pie_chart("cost-bd", dr_total_spending[29]["subdata"], "cat","cost");
+     draw_stock_chart("total-spend", dr_total_spending, "date", "spend", "cost-bd", "cat", "cost");
+   // draw_serial_chart("column", "total-spend", dr_total_spending, "date", "spend", "cost-bd", "cat", "cost");
+    draw_pie_chart("cost-bd", dr_total_spending[29]["subdata"], "cat", "cost");
 
 }
 
@@ -178,7 +245,7 @@ function showpatient() {
     console.log("Patient Chart");
     //Patient charts
     draw_serial_chart("column", "encounters_chart", encs_cost, "date", "encounter_cost", "pat-cost-bd", "cat", "cost");
-    draw_pie_chart("pat-cost-bd", encs_cost[29]["subdata"],"cat", "cost" );
+    // draw_pie_chart("pat-cost-bd", encs_cost[29]["subdata"], "cat", "cost");
 }
 
 function showencounter() {
@@ -188,7 +255,7 @@ function showencounter() {
 
 function showalert() {
     alerts_chart();
-alerts_action();
+    alerts_action();
 }
 AmCharts.ready(function () {
 
@@ -196,20 +263,126 @@ AmCharts.ready(function () {
 
 
 function draw_pie_chart(div, data, title, value) {
-    AmCharts.makeChart(div, {
+    var chart = AmCharts.makeChart(div, {
         "type": "pie",
-        "colors": colorArray,
+        //"colors": colorArray,
         "dataProvider": data,
         "titleField": title,
         "valueField": value,
         "labelRadius": 5,
+        "colorField":"color",
+        "pulledField":"pulled",
 
         "radius": "22%",
         "innerRadius": "50%",
         "labelText": "[[title]]"
     });
+
+    chart.addListener("clickSlice", function (event) {
+        if (event.dataItem.dataContext.id != undefined) {
+            selected = event.dataItem.dataContext.id;
+
+        }
+        else {
+            selected = undefined;
+        }
+
+        chart.dataProvider = redraw_pie_chart(chart.dataProvider);
+         chart.validateData();
+    });
 }
 
+//redraw pie chart
+function redraw_pie_chart(data){
+    var chartData = [];
+    for (var i = 0; i < data.length ; i++){
+        if (i == selected){
+            for (var j = 0; j < data[i].sub.length; j++)
+            {
+            chartData.push({
+                     cat: data[i].sub[j].cat,
+                    cost: data[i].sub[j].cost,
+                    pulled: true,
+                color: data[i].color
+            })
+        }
+        }
+        else
+        {
+            chartData.push(data[i]);
+        }
+    }
+
+    return chartData;
+
+}
+function draw_stock_chart(div, data, cat, value, subdiv, subcat, subval){
+    var chart = AmCharts.makeChart(div,{
+        "type":"stock",
+        "dataDateFormat": "YYYY-MM-DD",
+        "colors": colorArray,
+        "pathToImages": "js/amcharts/images/",
+
+       "dataSets":[{
+            "title": "Jordon Severt",
+           "fieldMappings": [{
+               "fromField": value,
+               "toField": "value"
+           }],
+           "dataProvider":data,
+           "categoryField":cat
+        }],
+        "panels": [{
+            "showCategoryAxis":false,
+            "title":"Value",
+
+            "stockGraphs": [{
+                "id": "g1",
+                "type":"column",
+                "valueField":"value",
+                "comparable":true,
+                fillAlphas: 1,
+                "CompareField": "value",
+                "balloonText": "[[title]]:<b>[[value]]</b>",
+                "compareGraphBalloonText":"[[title]]:<b>[[value]]</b>"
+            }],
+
+            "stockLegend":{
+                "periodValueTextComparing":"[[percents.value.close]]%",
+                "periodValueTextRegular": "[[value.close]]"
+            }
+        }],
+        "chartScrollbarSettings": {
+            graph: "g1"
+        },
+
+        "chartCursorSettings": {
+            "valueBalloonsEnabled": true
+        },
+
+        periodSelector: {
+
+		periods: [{
+			period: "MM",
+			selected: true,
+			count: 1,
+			label: "1 month"
+		}, {
+			period: "YYYY",
+			count: 1,
+			label: "1 year"
+		}, {
+			period: "YTD",
+			label: "YTD"
+		}, {
+			period: "MAX",
+			label: "MAX"
+		}]
+	},
+
+    });
+
+}
 // THis function takes parameters for 2 charts
 // Main chart : div (div tag to hold the chart), data (json object that has subdata for the second chart),
 //              cat (cateogry) , value (value)
@@ -232,14 +405,14 @@ function draw_serial_chart(chart_type, div, data, cat, value, subdiv, subcat, su
         "graphs": [
             {
                 "id": "g1",
-             "balloonText": "[[category]]<br /><b><span style='font-size:14px;'>$[[value]]</span></b>",
+                "balloonText": "[[category]]<br /><b><span style='font-size:14px;'>$[[value]]</span></b>",
                 //"bullet": "round",
                 //"bulletBorderAlpha": 1,
                 //"bulletColor":"#FFFFFF",
                 //"hideBulletsCount": 30,
                 // "title": "red line",
                 "valueField": value,
-                "colorField":"color",
+                "colorField": "color",
                 //"useLineColorForBulletBorder":true,
                 "fillAlphas": .8,
                 "fillColorsField": "fill",
@@ -268,8 +441,6 @@ function draw_serial_chart(chart_type, div, data, cat, value, subdiv, subcat, su
     });
 
 
-
-
     chart.addListener("rendered", function (event) {
         chart.zoomToIndexes(data.length - 40, data.length - 1);
     });
@@ -283,7 +454,7 @@ function draw_serial_chart(chart_type, div, data, cat, value, subdiv, subcat, su
             if (chart_type == "column") // changing colors with step doesn't show the right thing
             {
                 dr_total_spending[29]["color"] = colorArray[0];
-                encs_cost[29]["color"] = colorArray[0];
+                //encs_cost[29]["color"] = colorArray[0];
                 event.item.dataContext.fill = colorArray[2];
                 event.chart.validateData();
                 event.item.dataContext.fill = colorArray[0];
@@ -295,7 +466,6 @@ function draw_serial_chart(chart_type, div, data, cat, value, subdiv, subcat, su
 
         }
     });
-
 
 
 }
@@ -384,42 +554,47 @@ function alerts_chart() {
 
     var chart = new AmCharts.makeChart("num_of_alerts", {
         "type": "serial",
-        "theme":"none",
+        "theme": "none",
         "dataProvider": alerts_num,
-        "categoryField":"date",
-        "autoMargins":false,
-        "marginLeft":0,
+        "categoryField": "date",
+        "autoMargins": false,
+        "marginLeft": 0,
         "marginRight": 5,
-        "marginTop":0,
-        "marginBottom":0,
+        "marginTop": 0,
+        "marginBottom": 0,
 
-        "graphs" :[
+        "graphs": [
             {
                 "valueField": "alerts",
-                "bulletField" : "bullet",
-                "showBalloon":false,
+                "bulletField": "bullet",
+                "showBalloon": false,
                 "lineColor": colorArray[0],
                 "fillAlphas": 0.8
-            }],
-        "valueAxes": [{
-            "gridAlpha":0,
-            "axisAlpha":0,
-            "startOnAxis":true
-        }]
+            }
+        ],
+        "valueAxes": [
+            {
+                "gridAlpha": 0,
+                "axisAlpha": 0,
+                "startOnAxis": true
+            }
+        ]
 
 
     });
 }
 
 
-function alerts_action(){
-     // percent chart
+function alerts_action() {
+    // percent chart
     var chart = new AmCharts.AmSerialChart(AmCharts.themes.none);
-    chart.dataProvider = [{
-        x: 1,
-        y1: 80,
-        y2: 20
-    }];
+    chart.dataProvider = [
+        {
+            x: 1,
+            y1: 80,
+            y2: 20
+        }
+    ];
     chart.categoryField = "x";
     chart.rotate = true;
     chart.autoMargins = false;
