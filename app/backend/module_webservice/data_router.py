@@ -14,7 +14,7 @@ __author__='Yuki Uchino'
 #************************
 #LAST MODIFIED FOR JIRA ISSUE: MAV-1
 #*************************************************************************
-import app.utils.streaming.stream_processor as SP
+from app.utils.streaming import stream_processor as SP
 from xml.etree import ElementTree as ET
 import maven_config as MC
 import maven_logging as ML
@@ -43,7 +43,9 @@ class OutgoingMessageHandler(SP.StreamProcessor):
 
     @asyncio.coroutine
     def read_object(self, obj, _):
-        yield from self.route_object(obj)
+        unpickled_obj = pickle.loads(obj, encoding="ASCII", errors="strict")
+        self.write_object('$564.23'.encode(), writer_key=unpickled_obj.key)
+        #yield from self.route_object(obj)
 
     @asyncio.coroutine
     def route_object(self, obj):
@@ -63,7 +65,6 @@ class IncomingMessageHandler(SP.StreamProcessor):
 
     @asyncio.coroutine
     def read_object(self, obj, key):
-        orders = []
         message = obj.decode()
         message_root = ET.fromstring(message)
         emr_namespace = "urn:" + args.emr
@@ -75,14 +76,13 @@ class IncomingMessageHandler(SP.StreamProcessor):
                 order_id = order.find("{%s}ID" %NS).text
                 order_params = [str(order_id), 15545, 342, [4,3], '4']
                 orders_basket.add_order(OO.OrderObject(order_params))
-            self.write_object(pickle.dumps(orders_basket))
+            self.write_object(orders_basket)
 
 
 def main(loop):
 
     outgoingtohospitalsmessagehandler = 'responder socket'
     incomingtomavenmessagehandler = 'receiver socket'
-
 
 
     MavenConfig = {
@@ -98,9 +98,10 @@ def main(loop):
         outgoingtohospitalsmessagehandler+".Reader":
         {
             SP.CONFIG_HOST:'localhost',
-            SP.CONFIG_QUEUE:'incoming_work_queue',
+            SP.CONFIG_QUEUE:'aggregator_work_queue',
             SP.CONFIG_EXCHANGE:'maven_exchange',
-            SP.CONFIG_KEY:'incoming'
+            SP.CONFIG_KEY:'aggregate',
+            #SP.CONFIG_WRITERKEY:'aggregate',
         },
 
         outgoingtohospitalsmessagehandler+".Writer":

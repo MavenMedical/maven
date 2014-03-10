@@ -57,23 +57,13 @@ class IncomingFromMavenMessageHandler(SP.StreamProcessor):
 
     @asyncio.coroutine
     def read_object(self, obj, key):
-        yield from self.route_object(obj)
-
-
-    @asyncio.coroutine
-    def route_object(self, obj):
-        message = obj.decode()
-        message_root = ET.fromstring(message)
-        emr_namespace = "urn:" + args.emr
-        if emr_namespace in message_root.tag:
-            self.write_object(obj)
+        self.write_object(obj)
+        ML.PRINT('Message was successfully sent around the Maven Cloud loop!')
 
 
 def main(loop):
     outgoingtomavenmessagehandler = 'client consumer socket'
     incomingfrommavenmessagehandler = 'client producer socket'
-
-
 
     MavenConfig = {
         outgoingtomavenmessagehandler:
@@ -119,7 +109,6 @@ def main(loop):
 
     }
     MC.MavenConfig = MavenConfig
-
 
     sp_consumer = OutgoingToMavenMessageHandler(outgoingtomavenmessagehandler)
     sp_producer = IncomingFromMavenMessageHandler(incomingfrommavenmessagehandler)
