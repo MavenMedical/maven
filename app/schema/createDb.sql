@@ -271,7 +271,7 @@ CREATE INDEX ixprovider
 
 CREATE TABLE department
 (
-  department_id numeric(18,0) PRIMARY KEY,
+  department_id numeric(18,0) NOT NULL,
   dep_name character varying(100),
   specialty character varying(50),
   location character varying(100),
@@ -330,7 +330,7 @@ CREATE INDEX ixdiagnosispk
 
 CREATE TABLE encounter
 (
-  csn character varying(100) PRIMARY KEY,
+  csn character varying(100) NOT NULL,
   pat_id character varying(100),
   enc_type character varying(254),
   contact_date date,
@@ -496,7 +496,7 @@ CREATE INDEX ixprocpk
 
 CREATE TABLE medication
 (
-  medication_id numeric(18,0) PRIMARY KEY,
+  medication_id numeric(18,0) NOT NULL,
   customer_id numeric(18,0),
   name character varying(255),
   generic_name character varying(200),
@@ -582,7 +582,7 @@ CREATE INDEX ixmedorderpatid
 
 CREATE TABLE patient
 (
-  pat_id character varying(100) PRIMARY KEY,
+  pat_id character varying(100) NOT NULL,
   customer_id numeric(18,0),
   birth_month character varying(6),
   sex character varying(254),
@@ -693,7 +693,7 @@ CREATE INDEX ixprocorderpatid
 
 CREATE TABLE provider
 (
-  prov_id character varying(18) PRIMARY KEY,
+  prov_id character varying(18) NOT NULL,
   customer_id numeric(18,0),
   prov_name character varying(100),
   specialty character varying(254),
