@@ -202,23 +202,26 @@ class StreamProcessor():
             w.schedule(loop)
         return self.reader.schedule(loop)
 
-    def write_object(self, obj, writer_key = None):
+    def write_object(self, obj, writer_key = None, port = None):
         """ write_object is used by the stream processing logic to send a message to the configured next step.
         :param obj: the object to write on the output channel
         """
-        if not writer_key:
-            writer_key = self.default_write_key
-        try:
-            w = self.writers[writer_key]
-        except KeyError:
+        if not port:
+            if not writer_key:
+                writer_key = self.default_write_key
             try:
-                w = _global_writers[writer_key]
+                w = self.writers[writer_key]
             except KeyError:
-                w = self.writers[None]
-        w.write_object(obj)
+                try:
+                    w = _global_writers[writer_key]
+                except KeyError:
+                    w = self.writers[None]
+            w.write_object(obj)
+        else:
+            return self.write_object_direct(obj, writer_key, port)
 
     @asyncio.coroutine
-    def write_object(self, obj, host, port):
+    def write_object_direct(self, obj, host, port):
         print(str((host, port)))
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         yield from self.loop.sock_connect(s, (host, port))
