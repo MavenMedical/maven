@@ -20,6 +20,7 @@ import app.utils.streaming.stream_processor as SP
 from http_parser.parser import HttpParser
 import json
 import traceback
+import re
 
 CONFIGVALUE_HTTPPARSER = 'http parser'
 
@@ -72,18 +73,20 @@ def wrap_response(response_type, text, extra_header_list=None):
 
 class _HTTPStreamParser(SP.MappingParser):
 
+    starting_re = re.compile(b"(GET|POST|OPTIONS|DELETE|PUT|HEAD)")
+
     def __init__(self, configname, read_fn, loop, register_fn):
         SP.MappingParser.__init__(self, configname, read_fn, lambda x: x, loop, register_fn)
         self.p = HttpParser()
         self.body = []
 
     def data_received(self, data):
-        #splits = data.split(b'HTTP', maxsplit=1)
-        #for sp in [splits[0]] + [b'HTTP'+x for x in splits[1:]]:
-        for sp in [data]:
+        splits = _HTTPStreamParser.starting_re.split(data)
+        
+        for sp in filter(None,splits):
             #print("SP: "+str(sp))
             self.p.execute(sp, len(sp))
-
+            
             if self.p.is_partial_body():
                 self.body.append(self.p.recv_body())
 
@@ -99,7 +102,7 @@ class HTTPProcessor(SP.StreamProcessor):
     @asyncio.coroutine
     def read_object(self, obj, key):
         ret = wrap_response(UNAVAILABLE_RESPONSE, b'')
-        self.write_object(ret, key)
+        self.write_object(ret, writer_key = key)
 
     def __init__(self, configname):
         """ Initialize the StreamProcessor superclass, getting all of the IO and helper functions from 
@@ -205,7 +208,7 @@ class BackboneService(HTTPProcessor):
             traceback.print_exc()
             ret = wrap_response(UNAVAILABLE_RESPONSE, b'')
 
-        self.write_object(ret, key)
+        SP.StreamProcessor.write_object(self, ret, key)
 
 #  Mapping from parser types in the config file to the classes that handle them
 
@@ -217,7 +220,7 @@ if __name__ == '__main__':
             "httpserver":
                 {
                     SP.CONFIG_HOST: 'localhost',
-                    SP.CONFIG_PORT: 1234,
+                    SP.CONFIG_PORT: 8087,
                 },
         }
     hp = BackboneService('httpserver')

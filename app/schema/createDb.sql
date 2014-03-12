@@ -153,32 +153,58 @@ begin
 end;
 $$;
 
--- Schema: logging
+-- Table: customer
 
--- DROP SCHEMA "logging";
+-- DROP TABLE customer;
 
-CREATE SCHEMA "logging"
-  AUTHORIZATION maven;
-
-COMMENT ON SCHEMA "logging"
-  IS 'This schema is to track/log every time an alert is fired and the content in which it was fired';
-
-
--- Table: "logging".alerts
-
---DROP TABLE "logging".alerts;
-
-CREATE TABLE "logging".alert
+CREATE TABLE customer
 (
-  encounter_id character varying(128) NOT NULL,
-  pat_id character varying(128) NOT NULL,
-  prov_id character varying(128) NOT NULL,
-  provider character varying(128),
-  dep character varying(128),
+  customer_id numeric(18,0) PRIMARY KEY,
+  name character(255) NOT NULL,
+  abbr character varying(22),
+  license_type numeric(9,0),
+  license_exp date
+);
+ALTER TABLE public.customer OWNER TO maven;
+
+-- Index: ixcustomer
+
+-- DROP INDEX ixcustomer;
+
+CREATE INDEX ixcustomer
+  ON public.customer
+  USING btree
+  (customer_id);
+
+
+-- Table: costmap
+
+-- DROP TABLE costmap;
+
+CREATE TABLE costmap
+(
+  costmap_id serial PRIMARY KEY,
+  customer_id numeric(18,0),
+  code_type character varying(100)
+)
+with (
+OIDS=FALSE
+);
+
+
+
+CREATE TABLE alerts
+(
+  alert_id serial PRIMARY KEY,
+  customer_id numeric(18,0),
+  encounter_id character varying(100) NOT NULL,
+  pat_id character varying(100) NOT NULL,
+  prov_id character varying(18) NOT NULL,
+  prov_name character varying(100),
+  dep numeric(18,0),
   encounter_date timestamp without time zone NOT NULL,
   alert_date timestamp without time zone NOT NULL,
   orderable character varying(128),
-  encounter_id character varying(128) NOT NULL,
   outcome character varying(128),
   alert_title character varying(128),
   alert_msg character varying(300),
@@ -188,24 +214,34 @@ CREATE TABLE "logging".alert
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE "logging".alerts
+ALTER TABLE public.alerts
   OWNER TO maven;
 
--- Index: "logging".ixdepartment
+-- Index: public.ixalert
+
+-- DROP INDEX ixalert;
+
+CREATE INDEX ixalert
+  ON public.alerts
+  USING btree
+  (alert_id);
+
+
+-- Index: public.ixdepartment
 
 -- DROP INDEX ixdepartment;
 
 CREATE INDEX ixdepartment
-  ON "logging".alerts
+  ON public.alerts
   USING btree
-  (dep COLLATE pg_catalog."default");
+  (dep, customer_id);
 
--- Index: "logging".ixencounter_date
+-- Index: public.ixencounter_date
 
--- DROP INDEX "logging".ixencounter_date;
+-- DROP INDEX public.ixencounter_date;
 
 CREATE INDEX ixencounter_date
-  ON "logging".alerts
+  ON public.alerts
   USING btree
   (encounter_date);
 
@@ -214,35 +250,38 @@ CREATE INDEX ixencounter_date
 -- DROP INDEX ixpatient;
 
 CREATE INDEX ixpatient
-  ON "logging".alerts
+  ON public.alerts
   USING btree
-  (pid COLLATE pg_catalog."default");
+  (pat_id, customer_id);
 
 -- Index: "logging".ixuser
 
 -- DROP INDEX ixuser;
 
-CREATE INDEX ixuser
-  ON "logging".alerts
+CREATE INDEX ixprovider
+  ON public.alerts
   USING btree
-  (userid COLLATE pg_catalog."default");
+  (prov_id, customer_id);
+
+
 
 -- Table: department
 
 -- DROP TABLE department;
 
-CREATE TABLE "logging".department
+CREATE TABLE department
 (
   department_id numeric(18,0) NOT NULL,
   dep_name character varying(100),
   specialty character varying(50),
   location character varying(100),
-  CONSTRAINT department_pkey PRIMARY KEY (department_id)
+  customer_id numeric(18,0)
+
 )
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE "logging".department
+ALTER TABLE public.department
   OWNER TO maven;
 
 -- Index: ixdeppk
@@ -250,15 +289,15 @@ ALTER TABLE "logging".department
 -- DROP INDEX ixdeppk;
 
 CREATE INDEX ixdeppk
-  ON "logging".department
+  ON public.department
   USING btree
-  (department_id);
+  (department_id, customer_id);
 
 -- Table: diagnosis
 
 -- DROP TABLE diagnosis;
 
-CREATE TABLE "logging".diagnosis
+CREATE TABLE diagnosis
 (
   dx_id numeric(18,0),
   current_icd9_list character varying(254),
@@ -266,12 +305,13 @@ CREATE TABLE "logging".diagnosis
   dx_name character varying(200),
   dx_imo_id character varying(254),
   imo_term_id character varying(30),
-  concept_id character varying(254)
+  concept_id character varying(254),
+  customer_id numeric(18,0)
 )
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE "logging".diagnosis
+ALTER TABLE public.diagnosis
   OWNER TO maven;
 
 -- Index: ixdiagnosispk
@@ -279,30 +319,32 @@ ALTER TABLE "logging".diagnosis
 -- DROP INDEX ixdiagnosispk;
 
 CREATE INDEX ixdiagnosispk
-  ON "logging".diagnosis
+  ON public.diagnosis
   USING btree
-  (dx_id);
+  (dx_id, customer_id);
+
 
 -- Table: encounter
 
 -- DROP TABLE encounter;
 
-CREATE TABLE "logging".encounter
+CREATE TABLE encounter
 (
-  pat_id character varying(100),
   csn character varying(100) NOT NULL,
+  pat_id character varying(100),
   enc_type character varying(254),
   contact_date date,
   visit_prov_id character varying(18),
+  bill_prov_id character varying(18),
   department_id numeric(18,0),
   hosp_admsn_time date,
   hosp_disch_time date,
-  CONSTRAINT encounter_pkey PRIMARY KEY (csn)
+  customer_id numeric(18,0)
 )
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE "logging".encounter
+ALTER TABLE public.encounter
   OWNER TO maven;
 
 -- Index: ixencounterpatid
@@ -310,27 +352,46 @@ ALTER TABLE "logging".encounter
 -- DROP INDEX ixencounterpatid;
 
 CREATE INDEX ixencounterpatid
-  ON "logging".encounter
+  ON public.encounter
   USING btree
-  (pat_id COLLATE pg_catalog."default");
+  (pat_id, customer_id);
+
+-- Index: ixencounterprovid
+
+-- DROP INDEX ixencounterprovid
+
+CREATE INDEX ixencounterprovid
+  ON public.encounter
+  USING btree
+  (visit_prov_id, customer_id);
+
+-- Index: ixencounterbillprovid
+
+-- DROP INDEX ixencounterbillprovid
+
+CREATE INDEX ixencounterbillprovid
+  ON public.encounter
+  USING btree
+  (bill_prov_id, customer_id);
 
 -- Table: encounterdx
 
 -- DROP TABLE encounterdx;
 
-CREATE TABLE "logging".encounterdx
+CREATE TABLE encounterdx
 (
   pat_id character varying(100),
   csn character varying(100),
   dx_id numeric(18,0),
   annotation character varying(200),
   primary_dx_yn character varying(1),
-  dx_chronic_yn character varying(1)
+  dx_chronic_yn character varying(1),
+  customer_id numeric(18,0)
 )
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE "logging".encounterdx
+ALTER TABLE public.encounterdx
   OWNER TO maven;
 
 -- Index: ixencounterdxcsndx
@@ -338,19 +399,20 @@ ALTER TABLE "logging".encounterdx
 -- DROP INDEX ixencounterdxcsndx;
 
 CREATE INDEX ixencounterdxcsndx
-  ON "logging".encounterdx
+  ON public.encounterdx
   USING btree
-  (csn COLLATE pg_catalog."default", dx_id);
+  (csn, dx_id, customer_id);
 
 -- Table: labresult
 
 -- DROP TABLE labresult;
 
-CREATE TABLE "logging".labresult
+CREATE TABLE labresult
 (
   orderid numeric(18,0),
   pat_id character varying(100),
   csn character varying(100),
+  customer_id numeric(18,0),
   result_time date,
   component_id numeric(18,0),
   result character varying(254),
@@ -367,7 +429,7 @@ CREATE TABLE "logging".labresult
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE "logging".labresult
+ALTER TABLE public.labresult
   OWNER TO maven;
 
 -- Index: ixlabcomponentid
@@ -375,48 +437,48 @@ ALTER TABLE "logging".labresult
 -- DROP INDEX ixlabcomponentid;
 
 CREATE INDEX ixlabcomponentid
-  ON "logging".labresult
+  ON public.labresult
   USING btree
-  (component_id);
+  (component_id, customer_id);
 
 -- Index: ixlabcsn
 
 -- DROP INDEX ixlabcsn;
 
 CREATE INDEX ixlabcsn
-  ON labresult
+  ON public.labresult
   USING btree
-  (csn COLLATE pg_catalog."default");
+  (csn, customer_id);
 
 -- Index: ixlabpatid
 
 -- DROP INDEX ixlabpatid;
 
 CREATE INDEX ixlabpatid
-  ON "logging".labresult
+  ON public.labresult
   USING btree
-  (pat_id COLLATE pg_catalog."default");
+  (pat_id, customer_id);
 
 -- Table: medicalprocedure
 
 -- DROP TABLE medicalprocedure;
 
-CREATE TABLE "logging".medicalprocedure
+CREATE TABLE medicalprocedure
 (
   proc_id numeric(18,0) NOT NULL,
+  customer_id numeric(18,0),
   proc_name character varying(100),
   cpt_code character varying(20),
   base_charge character varying(254),
   rvu_work_compon numeric(12,2),
   rvu_overhd_compon numeric(12,2),
   rvu_malprac_compon numeric(12,2),
-  rvu_total_no_mod numeric(12,2),
-  CONSTRAINT medicalprocedure_pkey PRIMARY KEY (proc_id)
-)
+  rvu_total_no_mod numeric(12,2)
+  )
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE "logging".medicalprocedure
+ALTER TABLE public.medicalprocedure
   OWNER TO maven;
 
 -- Index: ixprocpk
@@ -424,17 +486,18 @@ ALTER TABLE "logging".medicalprocedure
 -- DROP INDEX ixprocpk;
 
 CREATE INDEX ixprocpk
-  ON "logging".medicalprocedure
+  ON public.medicalprocedure
   USING btree
-  (proc_id);
+  (proc_id, customer_id);
 
 -- Table: medication
 
  -- DROP TABLE medication;
 
-CREATE TABLE "logging".medication
+CREATE TABLE medication
 (
   medication_id numeric(18,0) NOT NULL,
+  customer_id numeric(18,0),
   name character varying(255),
   generic_name character varying(200),
   cost character varying(254),
@@ -445,13 +508,12 @@ CREATE TABLE "logging".medication
   thera_class character varying(254),
   pharm_class character varying(254),
   pharm_subclass character varying(254),
-  simple_generic character varying(254),
-  CONSTRAINT medication_pkey PRIMARY KEY (medication_id)
+  simple_generic character varying(254)
 )
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE "logging".medication
+ALTER TABLE public.medication
   OWNER TO maven;
 
 -- Index: ixmedpk
@@ -459,19 +521,20 @@ ALTER TABLE "logging".medication
 --  DROP INDEX ixmedpk;
 
 CREATE INDEX ixmedpk
-  ON "logging".medication
+  ON public.medication
   USING btree
-  (medication_id);
+  (medication_id, customer_id);
 
 -- Table: medorder
 
 -- DROP TABLE medorder;
 
-CREATE TABLE "logging".medorder
+CREATE TABLE medorder
 (
   orderid numeric(18,0),
   pat_id character varying(100),
   csn character varying(100),
+  customer_id numeric(18,0),
   ordering_date date,
   ordering_time date,
   order_type character varying(10),
@@ -483,7 +546,7 @@ CREATE TABLE "logging".medorder
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE "logging".medorder
+ALTER TABLE public.medorder
   OWNER TO maven;
 
 -- Index: ixmedordercsn
@@ -491,25 +554,25 @@ ALTER TABLE "logging".medorder
 --  DROP INDEX ixmedordercsn;
 
 CREATE INDEX ixmedordercsn
-  ON "logging".medorder
+  ON public.medorder
   USING btree
-  (csn COLLATE pg_catalog."default");
+  (csn, customer_id);
 
 -- Index: ixmedorderordid
 
 --  DROP INDEX ixmedorderordid;
 
 CREATE INDEX ixmedorderordid
-  ON "logging".medorder
+  ON public.medorder
   USING btree
-  (orderid);
+  (orderid, customer_id);
 
 -- Index: ixmedorderpatid
 
 --  DROP INDEX ixmedorderpatid;
 
 CREATE INDEX ixmedorderpatid
-  ON "logging".medorder
+  ON public.medorder
   USING btree
   (pat_id COLLATE pg_catalog."default");
 
@@ -517,20 +580,20 @@ CREATE INDEX ixmedorderpatid
 
 -- DROP TABLE patient;
 
-CREATE TABLE "logging".patient
+CREATE TABLE patient
 (
   pat_id character varying(100) NOT NULL,
+  customer_id numeric(18,0),
   birth_month character varying(6),
   sex character varying(254),
   mrn character varying(100),
   patname character varying(100),
-  cur_pcp_prov_id character varying(18),
-  CONSTRAINT patient_pkey PRIMARY KEY (pat_id)
+  cur_pcp_prov_id character varying(18)
 )
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE "logging".patient
+ALTER TABLE public.patient
   OWNER TO maven;
 
 -- Index: ixpatpk
@@ -538,18 +601,19 @@ ALTER TABLE "logging".patient
 -- DROP INDEX ixpatpk;
 
 CREATE INDEX ixpatpk
-  ON "logging".patient
+  ON public.patient
   USING btree
-  (pat_id COLLATE pg_catalog."default");
+  (pat_id, customer_id);
 
 -- Table: problemlist
 
 --  DROP TABLE problemlist;
 
-CREATE TABLE "logging".problemlist
+CREATE TABLE problemlist
 (
   pat_id character varying(100),
   dx_id numeric(18,0),
+  customer_id numeric(18,0),
   noted_date date,
   resolved_date date,
   date_of_entry date,
@@ -559,7 +623,7 @@ CREATE TABLE "logging".problemlist
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE "logging".problemlist
+ALTER TABLE public.problemlist
   OWNER TO maven;
 
 -- Index: isproblostpatdx
@@ -567,19 +631,20 @@ ALTER TABLE "logging".problemlist
 -- DROP INDEX isproblostpatdx;
 
 CREATE INDEX isproblostpatdx
-  ON "logging".problemlist
+  ON public.problemlist
   USING btree
-  (pat_id COLLATE pg_catalog."default", dx_id);
+  (pat_id, dx_id, customer_id);
 
 -- Table: procedureorder
 
 -- DROP TABLE procedureorder;
 
-CREATE TABLE "logging".procedureorder
+CREATE TABLE procedureorder
 (
   orderid numeric(18,0),
   pat_id character varying(100),
   csn character varying(100),
+  customer_id numeric(18,0),
   ordering_date date,
   ordering_time date,
   order_type character varying(254),
@@ -591,7 +656,7 @@ CREATE TABLE "logging".procedureorder
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE "logging".procedureorder
+ALTER TABLE public.procedureorder
   OWNER TO maven;
 
 -- Index: ixprocordercsn
@@ -599,44 +664,45 @@ ALTER TABLE "logging".procedureorder
 --  DROP INDEX ixprocordercsn;
 
 CREATE INDEX ixprocordercsn
-  ON "logging".procedureorder
+  ON public.procedureorder
   USING btree
-  (csn COLLATE pg_catalog."default");
+  (csn, customer_id);
 
 -- Index: ixprocorderordid
 
 -- DROP INDEX ixprocorderordid;
 
 CREATE INDEX ixprocorderordid
-  ON "logging".procedureorder
+  ON public.procedureorder
   USING btree
-  (orderid);
+  (orderid, customer_id);
 
 -- Index: ixprocorderpatid
 
 -- DROP INDEX ixprocorderpatid;
 
 CREATE INDEX ixprocorderpatid
-  ON "logging".procedureorder
+  ON public.procedureorder
   USING btree
-  (pat_id COLLATE pg_catalog."default");
+  (pat_id, customer_id);
+
 
 -- Table: provider
 
 -- DROP TABLE provider;
 
-CREATE TABLE "logging".provider
+CREATE TABLE provider
 (
   prov_id character varying(18) NOT NULL,
+  customer_id numeric(18,0),
   prov_name character varying(100),
   specialty character varying(254),
-  specialty2 character varying(254),
-  CONSTRAINT provider_pkey PRIMARY KEY (prov_id)
-)
+  specialty2 character varying(254)
+  )
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE "logging".provider
+ALTER TABLE public.provider
   OWNER TO maven;
 
 -- Index: ixprovpk
@@ -644,12 +710,115 @@ ALTER TABLE "logging".provider
 -- DROP INDEX ixprovpk;
 
 CREATE INDEX ixprovpk
-  ON "logging".provider
+  ON public.provider
   USING btree
-  (prov_id COLLATE pg_catalog."default");
+  (prov_id , customer_id);
 
 
+-- Table: ucl
 
+-- DROP TABLE ucl;
+
+CREATE TABLE ucl
+(
+  ucl_id character varying(100),
+  customer_id numeric(18,0),
+  post_date timestamp,
+  svcs_date timestamp,
+  pat_id character varying(100),
+  encounter_id character varying(100),
+  order_id numeric(18,0),
+  proc_id numeric(18,0),
+  med_id numeric(18,0),
+  bill_prov_id character varying(18),
+  svcs_prov_id character varying(18),
+  charge_amt numeric(12,2),
+  cost_amt numeric(12,2),
+  quantity numeric(9),
+  department_id numeric(18,0),
+  billing_code character varying(25),
+  code_type character varying(25)
+)
+WITH (
+    OIDS=FALSE
+);
+
+-- Index: ixuclpk
+
+-- DROP INDEX: ixuclpk
+
+CREATE INDEX ixuclpk
+  on public.ucl
+  USING btree
+  (ucl_id, customer_id);
+
+-- Index: ixbillcode
+
+-- DROP INDEX: ixbillcode
+
+CREATE INDEX ixbillcode
+  on public.ucl
+  USING btree
+  (billing_code, customer_id);
+
+-- Index: ixprocedure
+
+-- DROP INDEX: ixprocedure
+
+CREATE INDEX ixprocedure
+  on public.ucl
+  USING btree
+  (proc_id, customer_id);
+
+-- Index: ixmedication
+
+-- DROP INDEX: ixmedication
+
+CREATE INDEX ixmedication
+  on public.ucl
+  USING btree
+  (med_id, customer_id);
+
+
+-- Table: adt
+
+-- DROP TABLE: adt
+
+CREATE TABLE adt
+(
+  event_id character varying(100),
+  customer_id numeric(18,0),
+  pat_id character varying(100),
+  encounter_id character varying(100),
+  prov_id character varying(18),
+  event_type character varying(25),
+  event_time timestamp,
+  dep_id numeric(18,0),
+  room_id character varying(25)
+)
+with (
+ OIDS=FALSE
+);
+
+-- Index: ixadtevent
+
+-- DROP INDEX: ixadtevent
+
+CREATE INDEX ixadtevent
+  on public.adt
+  USING btree
+  (event_id, customer_id);
+
+-- Index: ixadtpatient
+
+-- DROP INDEX: ixadtpatient
+
+CREATE INDEX ixadtpatient
+  on public.adt
+  USING btree
+  (pat_id, customer_id);
+
+  
 create schema ruleTest authorization maven;
 -- Table: ruleTest.rules
 
