@@ -7,15 +7,15 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
-    'text!templates/widget/alert.html'
-], function ($, _, Backbone, alertTemplate) {
+    'text!templates/chart/dailycost.html'
+], function ($, _, Backbone, dailycostTemplate) {
 
-    var Alert = Backbone.View.extend({
-        el: $('.alert'),
+    var DailyCost = Backbone.View.extend({
+        el: $('.dailycost'),
         render: function () {
-            var template = _.template(alertTemplate, {});
-            $('.alert').append(template);
+            var template = _.template(dailycostTemplate, {});
+            $('.dailycost').append(template);
         }
     });
-    return Alert;
+    return DailyCost;
 });

@@ -10,7 +10,7 @@ define([
     //views
     'views/sidemenu',
     'views/topnav',
-    
+
     'views/home',
     'views/patient',
     'views/episode',

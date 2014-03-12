@@ -8,14 +8,18 @@ define([
   'backbone',    // lib/backbone/backbone
 
     //views
-    //'views/widget/patientList',
-    //'views/chart/spending',
-    //'views/chart/costbd',
+    'views/widget/patInfo',
+    'views/widget/utilization',
+    'views/widget/saving',
+    'views/widget/alert',
+
+    'views/chart/spending',
+    'views/chart/costbd',
 
   // Using the Require.js text! plugin, we are loaded raw text
   // which will be used as our views primary template
     'text!templates/patient.html'
-], function($, _, Backbone, patientTemplate){
+], function($, _, Backbone, PatInfo, Utilization, Saving, Alert, Spending, CostBD, patientTemplate){
 
     var PatientView = Backbone.View.extend({
         el: $('.page'),
@@ -27,6 +31,23 @@ define([
            this.$el.html(template);
 
             //widgets
+            var patinfo = new PatInfo;
+            patinfo.render();
+
+            var util = new Utilization;
+            util.render();
+
+            var saving = new Saving;
+            saving.render();
+
+            var spending = new Spending;
+            spending.render();
+
+            var costbd = new CostBD;
+            costbd.render();
+
+            var alert = new Alert;
+            alert.render();
 
         }
     });
