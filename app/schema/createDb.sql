@@ -184,13 +184,34 @@ CREATE INDEX ixcustomer
 CREATE TABLE costmap
 (
   costmap_id serial PRIMARY KEY,
+  dep_id numeric(18,0),
   customer_id numeric(18,0),
-  code_type character varying(100)
+  billing_code character varying(25),
+  code_type character varying(25),
+  cost_amt numeric(12,2),
+  cost_type character varying(25)
 )
 with (
 OIDS=FALSE
 );
 
+-- Index: ixcostmap
+
+-- DROP INDEX: ixcostmap
+
+CREATE INDEX ixcostmap
+  on public.costmap
+  USING btree
+  (costmap_id);
+
+-- Index: ixcostmapbillcode
+
+-- DROP INDEX: ixcostmapbillcode
+
+CREATE INDEX ixcostmapbillcode
+  on public.costmap
+  USING btree
+  (billing_code, customer_id);
 
 
 CREATE TABLE alerts
@@ -259,7 +280,7 @@ CREATE INDEX ixpatient
 -- DROP INDEX ixuser;
 
 CREATE INDEX ixprovider
-  ON public.alerts
+  ON public.alertsn
   USING btree
   (prov_id, customer_id);
 
