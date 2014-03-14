@@ -48,7 +48,7 @@ class AsyncConnectionPool():
     CONFIG_CONNECTION_STRING = 'connection string'
 
     # noinspection PyArgumentList
-    def __init__(self, name, loop):
+    def __init__(self, name, loop = None):
         """ Initialize the AsyncConnectionPool
         :param name: The instance's name (for pulling configuration information out of MC.MavenConfig
         :param loop: The event loop.
@@ -60,7 +60,6 @@ class AsyncConnectionPool():
         self.connection_sem = asyncio.Semaphore(0, loop=loop)
 
         self.in_use = set()  # the set of in use database connections
-        self.loop = loop  # the event loop
         self.mog_cursor = None  # keep a cursor around since mogrify isn't static for some reason
 
         self.MIN_CONNECTIONS = MC.MavenConfig[name][self.CONFIG_MIN_CONNECTIONS]
@@ -69,6 +68,11 @@ class AsyncConnectionPool():
 
         # create MIN_CONNECTIONS tasks, each of which will establish a connection to prime the ready queue
         self.pending = self.MIN_CONNECTIONS
+        if loop:
+            self.schedule(loop)
+
+    def schedule(self, loop):
+        self.loop=loop
         [asyncio.Task(self._new_connection(), loop=loop) for _ in range(self.MIN_CONNECTIONS)]
         ML.DEBUG('Starting %d connections' % self.pending)
 
