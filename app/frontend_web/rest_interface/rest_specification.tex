@@ -1,0 +1,48 @@
+\documentclass[12pt]{article}
+\usepackage[margin=1 in]{geometry}
+\newcommand\cut[1]{}
+\newcommand\tbs{\textbackslash}
+
+\begin{document}
+
+\section{Introduction and Conventions}
+
+Here are a few principles that I try to stick to when designing the web services:
+\begin{itemize}
+\item \textbf{Most of our web services will be paired:} get a list of items, and get details about a specific item.  Examples include (patient|alert|orderable) (list|details) or daily cost/cost breakdown.  The list service will return just enough information to show a table of things in the UI.  The details service will be envoked whenever a detail is clicked.  
+
+\item \textbf{Contexts determine the scope of what is returned:} Rather than pass in enough detail in the url to uniquely determine what should be returned, we let the query string define the scope.  This way adding new features does not change our core web service API, and allows for easy extensibility.  For example, the user will always be part of the context.  Optionally, a provider (list), patient (list), diagnosis (list), date (range) can be given.  The returned results will be the intersection of what a user is authorized to see, and what their context specifies.
+
+\item \textbf{List operations should make detail operations faster:} List services do broad select (with join) statements to pull be potentially lots of data.  The also validate that the user is authorized to see everything it sends back.  Details services will make queries for specific key values and return them, however they still need to 
+
+Where possible, the list operation will return some kind of a key with each entry, the key will speed up the response for the detail operation.  
+
+\section{High level patient information}
+
+\subsection{Get a list of this context's patients}
+\textbf{/patients} or \textbf{/patients/{\textbackslash}d+--{\textbackslash}d+}
+
+This is the default method for getting lists of patients.  It will return all patients in the current context as a list (in some default ordering), or the sublist of elements in the range provided.
+
+The results will be a list of patients, where each patient is a dictionary of attributes:\\
+\begin{itemize}
+\item id: the patient primary key
+\item key: a key showing how this patient is linked to the current user (for fast authorization checking on later queries
+\item name: the name - we have to figure out how to adjust this to avoid PHI for HIPAA.
+\item gender: Male|Female
+\item DOB: either actual DOB or (to avoid PHI) just MM/YYYY
+\item diagnosis: primary diagnosis
+\item cost: some notion of cost (optional)
+\end{itemize}
+
+\subsection{Get more details for a specific patient}
+\textbf{/patient_details/({\tbs}d+}
+
+This method will get most detailed information about a specific patient (potentially much more than on a patient list), suitable for the header of the patient specific page (though it can also be used if a patient in the list is clicked-on).
+
+It requires a primary key into the patient database.  If possible it should have (but does not require) a key indicating how the current user is linked to the patient (for database optimization when checking authorization).
+
+
+
+\end{document}
+
