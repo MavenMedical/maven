@@ -142,7 +142,7 @@ class StreamProcessor():
                 self.parser_factory_factory = \
                     lambda loop: lambda: _parser_map[parsertype](parsername, self.read_object, 
                                                                  loop, (self._register_writer,
-                                                                        self._unregister_writer))
+                                                                        self.unregister_writer))
 
             except KeyError:
                 raise MC.InvalidConfig("Invalid parser type for "+configname+": "+parsertype)
@@ -222,7 +222,7 @@ class StreamProcessor():
 
     @asyncio.coroutine
     def write_object_direct(self, obj, host, port):
-        print(str((host, port)))
+        ML.DEBUG(str((host, port)))
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         yield from self.loop.sock_connect(s, (host, port))
         s.setblocking(False)
@@ -241,10 +241,16 @@ class StreamProcessor():
                 return _global_writers[self.dynamic_writer].writer_key
         return None
 
-    def _unregister_writer(self, key):
+    def unregister_writer(self, key):
         if self.has_dynamic_writer:
             global _global_writers
-            _global_writers.pop(key).close()
+            try:
+                ML.DEBUG("removing "+str(key)+" from "+str(_global_writers))
+                _global_writers.pop(key).close()
+            except KeyError:
+                pass
+        else:
+            ML.DEBUG('no dynamic')
 
     def close(self):
         """ closes the stream processor's reader and writer
@@ -441,6 +447,7 @@ class MappingParser(asyncio.Protocol):
 
     def connection_made(self, transport):
         if self.register_fn:
+            self.transport = transport
             self.registered_key = self.register_fn(transport)
 
     def data_received(self, data):
@@ -450,6 +457,7 @@ class MappingParser(asyncio.Protocol):
         self.loop.call_soon_threadsafe(MappingParser.create_task,coro,self.loop)
 
     def connection_lost(self, _):
+        ML.DEBUG("connection lost")
         self.unregister_fn(self.registered_key)
 
     def create_task(coro, loop):
@@ -554,34 +562,45 @@ class _SocketClientWriter(_BaseWriter):
 
 
 class _SocketReplyWriter(_BaseWriter):
-    def __init__(self, configname, socket=None):
-        if socket:
-            self.socket = socket
-            self.writer_key = "socket:%d" % socket.fileno()
+
+    counter = 1
+
+    def __init__(self, configname, transport=None):
+        if transport:
+            self.transport = transport
+            self.writer_key = "writer:"+str(_SocketReplyWriter.counter)
+            _SocketReplyWriter.counter += 1
         else:
             _BaseWriter.__init__(self, configname)
-            self.socket = None
+            self.transport = None
         #self.last_writer = None
         global _global_writers
         _global_writers[self.writer_key] = self
+        ML.DEBUG('reply writer created: ' + str(self.writer_key))
 
     def schedule(self, loop):
+        ML.DEBUG('scheduled reply writer')
         pass
 
     def write_object(self, obj):
-        if not self.socket:
+        ML.DEBUG(('writing object %s: ' % self.writer_key)+str(obj))
+        if not self.transport:
             #if not self.last_writer:
             raise Exception("SocketReplyWriter needs a socket to reply on!")
             #else:
             #    self.last_writer.write_object(obj)
         else:
-            self.socket.sendall(obj)
+            self.transport.write(obj)
         
     def close(self):
-        pass
+        ML.DEBUG('closing writer')
+        if self.transport:
+            self.transport.write_eof()
+            self.transport.close()
+            self.transport = None
 
     def _register_new(self, obj):
-        self.last_writer = _SocketReplyWriter(self.configname, obj.get_extra_info('socket'))
+        self.last_writer = _SocketReplyWriter(self.configname, obj)
         return self.last_writer
 
 class _SocketQueryWriter(_BaseWriter):

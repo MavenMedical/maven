@@ -199,7 +199,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         user = context[CONTEXT_USER]
         patient_id = context[CONTEXT_PATIENTLIST]
         auth_key = context[CONTEXT_KEY]
-        if not auth_key == auth_check:
+        if not auth_key == _authorization_key((user, patient_id)):
             raise HTTP.IncompleteRequest('%s has not been authorized to view patient %d.' % (user, patient_id))
         patient_dict = dict(patients[patient_id])
         if patient_id in patient_extras:

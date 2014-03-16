@@ -67,7 +67,7 @@ ERROR_RESPONSE = b'HTTP/1.0 500 Internal Server Error'
 DEFAULT_HEADERS = \
     [
         b'Content-Type: application/json',
-        b'Connection: Keep-Alive',
+        b'Connection: close',
     ]
     # text/plain
 
@@ -110,6 +110,7 @@ class _HTTPStreamParser(SP.MappingParser):
         :param register_fn: when a new socket is opened, register a writer for it here
         """
         SP.MappingParser.__init__(self, configname, read_fn, lambda x: x, loop, register_fn)
+        ML.DEBUG("created a new http parser")
         self.p = HttpParser()
         self.body = []
 
@@ -118,6 +119,8 @@ class _HTTPStreamParser(SP.MappingParser):
         see http://docs.python.org/3.4/library/asyncio-protocol.html for info on asyncio protocols
         :params data: the bytes received over the socket
         """
+
+        ML.DEBUG("RECV: " + str(data))
         
         # split the data on potential http request boundaries
         splits = _HTTPStreamParser._starting_re.split(data)
@@ -137,6 +140,10 @@ class _HTTPStreamParser(SP.MappingParser):
                 self.loop.call_soon_threadsafe(SP.MappingParser.create_task, coro, self.loop)
                 self.p = HttpParser()
                 self.body = []
+
+    def eof_received(self):
+        ML.DEBUG("EOF")
+        pass#self.unregister_fn(self.registered_key)
 
 class IncompleteRequest(Exception):
     pass
@@ -254,8 +261,14 @@ class HTTPProcessor(SP.StreamProcessor):
 
         try:
             self.write_object(ret, writer_key = key)  # send the response
+            ML.DEBUG("done writing")
+            if headers.get_headers().get('Connection','').upper()=='CLOSE':
+                self.unregister_writer(key)
+                ML.DEBUG("unregistering")
+            else:
+                ML.DEBUG(headers.get('Connection'))
         except:
-            ML.WARNING("connection to %s failed before write happened" % key)
+            ML.WARN("connection to %s failed before write happened" % key)
 
     def add_handler(self, methods, regexpstring, fn):
         """ add_handler registers a handler method for this class
