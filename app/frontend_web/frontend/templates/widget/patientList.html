@@ -5,76 +5,28 @@
         </h3>
         <table class="table table-condensed table-hover">
             <tbody>
-            <tr class="active">
+            <% _.each(patients, function(patient){ %>
+            <tr>
                 <td>
-                    <a href="patient.html">
-                        Jordon Severt
+                    <a href="#/patient/<%= patient.id %>">
+                        <%= patient.get("name") %>
                     </a>
                 </td>
                 <td>
-                    Male
+                    <%= patient.get("gender") %>
                 </td>
                 <td>
-                    05/03/1987
+                    <%= patient.get("DOB") %>
                 </td>
                 <td>
-                    Asthma
+                    <%= patient.get("diagnosis") %>
                 </td>
                 <td>
-                    $1200
+                    <%= patient.get("cost") %>
                 </td>
             </tr>
-            <tr>
-                <td>
-                    Adaline Malachi
-                </td>
-                <td>
-                    Female
-                </td>
-                <td>
-                    03/06/1986
-                </td>
-                <td>
-                    Coccidiosis
-                </td>
-                <td>
-                    $850
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    Jefferson Lariviere
-                </td>
-                <td>
-                    Male
-                </td>
-                <td>
-                    08/03/1999
-                </td>
-                <td>
-                    Food poisoning
-                </td>
-                <td>
-                    $200
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    Beulah Gay
-                </td>
-                <td>
-                    Female
-                </td>
-                <td>
-                    11/07/1935
-                </td>
-                <td>
-                    Giardiasis
-                </td>
-                <td>
-                    $400
-                </td>
-            </tr>
+            <% }); %>
+
             </tbody>
         </table>
     </div>

@@ -3,12 +3,12 @@
  */
 
 define([
-  'jquery',     // lib/jquery/jquery
-  'underscore', // lib/underscore/underscore
-  'backbone',    // lib/backbone/backbone
+    'jquery',     // lib/jquery/jquery
+    'underscore', // lib/underscore/underscore
+    'backbone',    // lib/backbone/backbone
 
     //views
-     'views/widget/patInfo',
+    'views/widget/patInfo',
     'views/widget/utilization',
     'views/widget/saving',
     'views/widget/orderable',
@@ -17,21 +17,21 @@ define([
     'views/chart/costbd',
 
 
-  // Using the Require.js text! plugin, we are loaded raw text
-  // which will be used as our views primary template
+    // Using the Require.js text! plugin, we are loaded raw text
+    // which will be used as our views primary template
     'text!templates/episode.html'
-], function($, _, Backbone, PatInfo, Utilization, Saving, Orderable, DailyCost, CostBD, episodeTemplate){
+], function ($, _, Backbone, PatInfo, Utilization, Saving, Orderable, DailyCost, CostBD, episodeTemplate) {
 
     var EpisodeView = Backbone.View.extend({
         el: $('.page'),
-        render: function(){
+        render: function () {
             $('.nav li').removeClass('active');
-            $('.nav li a[href="'+window.location.hash+'"]').parent().addClass('active');
+            $('.nav li a[href="' + window.location.hash + '"]').parent().addClass('active');
 
-           var template = _.template(episodeTemplate, {});
-           this.$el.html(template);
+            var template = _.template(episodeTemplate, {});
+            this.$el.html(template);
 
-             //widgets
+            //widgets
             var patinfo = new PatInfo;
             patinfo.render();
 

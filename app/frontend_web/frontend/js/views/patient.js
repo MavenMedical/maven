@@ -3,9 +3,11 @@
  */
 
 define([
-  'jquery',     // lib/jquery/jquery
-  'underscore', // lib/underscore/underscore
-  'backbone',    // lib/backbone/backbone
+    'jquery',     // lib/jquery/jquery
+    'underscore', // lib/underscore/underscore
+    'backbone',    // lib/backbone/backbone
+    //models
+    'models/patientModel',
 
     //views
     'views/widget/patInfo',
@@ -16,38 +18,36 @@ define([
     'views/chart/spending',
     'views/chart/costbd',
 
-  // Using the Require.js text! plugin, we are loaded raw text
-  // which will be used as our views primary template
+    // Using the Require.js text! plugin, we are loaded raw text
+    // which will be used as our views primary template
     'text!templates/patient.html'
-], function($, _, Backbone, PatInfo, Utilization, Saving, Alert, Spending, CostBD, patientTemplate){
+], function ($, _, Backbone, PatientModel, PatInfo, Utilization, Saving, Alert, Spending, CostBD, patientTemplate) {
 
     var PatientView = Backbone.View.extend({
         el: $('.page'),
-        render: function(){
-            $('.nav li').removeClass('active');
-            $('.nav li a[href="'+window.location.hash+'"]').parent().addClass('active');
+        render: function (patid) {
 
-           var template = _.template(patientTemplate, {});
-           this.$el.html(template);
+            var template = _.template(patientTemplate, {});
+            this.$el.html(template);
 
             //widgets
             var patinfo = new PatInfo;
-            patinfo.render();
+            patinfo.render(patid);
 
             var util = new Utilization;
-            util.render();
+            util.render(patid);
 
             var saving = new Saving;
-            saving.render();
+            saving.render(patid);
 
             var spending = new Spending;
-            spending.render();
+            spending.render(patid);
 
             var costbd = new CostBD;
-            costbd.render();
+            costbd.render(patid);
 
             var alert = new Alert;
-            alert.render();
+            alert.render(patid);
 
         }
     });

@@ -139,7 +139,7 @@ function generateChartData() {
                 sub: category[j] == "Labs" ? lab_data : null,
                 cost: randcost,
                 id: j,
-                    color: colorArray[j]
+                color: colorArray[j]
             });
 
             sum = sum + randcost;
@@ -235,8 +235,8 @@ function rnd(mean, stdev) {
 function showdashboard() {
     console.log("Dashboard Chart");
     //dashboard charts
-     draw_stock_chart("total-spend", dr_total_spending, "date", "spend", "cost-bd", "cat", "cost");
-   // draw_serial_chart("column", "total-spend", dr_total_spending, "date", "spend", "cost-bd", "cat", "cost");
+    draw_stock_chart("total-spend", dr_total_spending, "date", "spend", "cost-bd", "cat", "cost");
+    // draw_serial_chart("column", "total-spend", dr_total_spending, "date", "spend", "cost-bd", "cat", "cost");
     draw_pie_chart("cost-bd", dr_total_spending[29]["subdata"], "cat", "cost");
 
 }
@@ -270,8 +270,8 @@ function draw_pie_chart(div, data, title, value) {
         "titleField": title,
         "valueField": value,
         "labelRadius": 5,
-        "colorField":"color",
-        "pulledField":"pulled",
+        "colorField": "color",
+        "pulledField": "pulled",
 
         "radius": "22%",
         "innerRadius": "50%",
@@ -288,27 +288,25 @@ function draw_pie_chart(div, data, title, value) {
         }
 
         chart.dataProvider = redraw_pie_chart(chart.dataProvider);
-         chart.validateData();
+        chart.validateData();
     });
 }
 
 //redraw pie chart
-function redraw_pie_chart(data){
+function redraw_pie_chart(data) {
     var chartData = [];
-    for (var i = 0; i < data.length ; i++){
-        if (i == selected){
-            for (var j = 0; j < data[i].sub.length; j++)
-            {
-            chartData.push({
-                     cat: data[i].sub[j].cat,
+    for (var i = 0; i < data.length; i++) {
+        if (i == selected) {
+            for (var j = 0; j < data[i].sub.length; j++) {
+                chartData.push({
+                    cat: data[i].sub[j].cat,
                     cost: data[i].sub[j].cost,
                     pulled: true,
-                color: data[i].color
-            })
+                    color: data[i].color
+                })
+            }
         }
-        }
-        else
-        {
+        else {
             chartData.push(data[i]);
         }
     }
@@ -316,42 +314,50 @@ function redraw_pie_chart(data){
     return chartData;
 
 }
-function draw_stock_chart(div, data, cat, value, subdiv, subcat, subval){
-    var chart = AmCharts.makeChart(div,{
-        "type":"stock",
+function draw_stock_chart(div, data, cat, value, subdiv, subcat, subval) {
+    var chart = AmCharts.makeChart(div, {
+        "type": "stock",
         "dataDateFormat": "YYYY-MM-DD",
         "colors": colorArray,
         "pathToImages": "js/amcharts/images/",
 
-       "dataSets":[{
-            "title": "Jordon Severt",
-           "fieldMappings": [{
-               "fromField": value,
-               "toField": "value"
-           }],
-           "dataProvider":data,
-           "categoryField":cat
-        }],
-        "panels": [{
-            "showCategoryAxis":false,
-            "title":"Value",
-
-            "stockGraphs": [{
-                "id": "g1",
-                "type":"column",
-                "valueField":"value",
-                "comparable":true,
-                fillAlphas: 1,
-                "CompareField": "value",
-                "balloonText": "[[title]]:<b>[[value]]</b>",
-                "compareGraphBalloonText":"[[title]]:<b>[[value]]</b>"
-            }],
-
-            "stockLegend":{
-                "periodValueTextComparing":"[[percents.value.close]]%",
-                "periodValueTextRegular": "[[value.close]]"
+        "dataSets": [
+            {
+                "title": "Jordon Severt",
+                "fieldMappings": [
+                    {
+                        "fromField": value,
+                        "toField": "value"
+                    }
+                ],
+                "dataProvider": data,
+                "categoryField": cat
             }
-        }],
+        ],
+        "panels": [
+            {
+                "showCategoryAxis": false,
+                "title": "Value",
+
+                "stockGraphs": [
+                    {
+                        "id": "g1",
+                        "type": "column",
+                        "valueField": "value",
+                        "comparable": true,
+                        fillAlphas: 1,
+                        "CompareField": "value",
+                        "balloonText": "[[title]]:<b>[[value]]</b>",
+                        "compareGraphBalloonText": "[[title]]:<b>[[value]]</b>"
+                    }
+                ],
+
+                "stockLegend": {
+                    "periodValueTextComparing": "[[percents.value.close]]%",
+                    "periodValueTextRegular": "[[value.close]]"
+                }
+            }
+        ],
         "chartScrollbarSettings": {
             graph: "g1"
         },
@@ -362,23 +368,28 @@ function draw_stock_chart(div, data, cat, value, subdiv, subcat, subval){
 
         periodSelector: {
 
-		periods: [{
-			period: "MM",
-			selected: true,
-			count: 1,
-			label: "1 month"
-		}, {
-			period: "YYYY",
-			count: 1,
-			label: "1 year"
-		}, {
-			period: "YTD",
-			label: "YTD"
-		}, {
-			period: "MAX",
-			label: "MAX"
-		}]
-	},
+            periods: [
+                {
+                    period: "MM",
+                    selected: true,
+                    count: 1,
+                    label: "1 month"
+                },
+                {
+                    period: "YYYY",
+                    count: 1,
+                    label: "1 year"
+                },
+                {
+                    period: "YTD",
+                    label: "YTD"
+                },
+                {
+                    period: "MAX",
+                    label: "MAX"
+                }
+            ]
+        },
 
     });
 

@@ -8,8 +8,6 @@ require.config({
         jquery: 'libs/jquery/jquery-min',
         underscore: 'libs/underscore/underscore',
         backbone: 'libs/backbone/backbone',
-        amcharts: 'libs/amchart/amcharts',
-        stockamcharts: 'libs/amchart/amstockcharts',
         templates: '../templates'
     }
 });
@@ -17,8 +15,8 @@ require.config({
 require([
     //Load our app module and pass it to our definition function
     'app',
-], function(App){
+], function (App) {
     // The "app" dependency is passed in as "App"
-  // Again, the other dependencies passed in are not "AMD" therefore don't pass a parameter to this function
-  App.initialize();
+    // Again, the other dependencies passed in are not "AMD" therefore don't pass a parameter to this function
+    App.initialize();
 });

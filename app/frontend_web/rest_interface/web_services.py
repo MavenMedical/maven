@@ -174,6 +174,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
     @asyncio.coroutine
     def get_patients(self, _header, _body, qs, matches, _key):
+        print("HI")
         global patients
         context = restrict_context(qs, 
                                    FrontendWebService.patients_required_contexts,
@@ -183,6 +184,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
         patient_list = [copy_and_append(v, (CONTEXT_KEY,_authorization_key((user, v['id'])))) 
                         for v in patients.values()][start:stop]
+        print(patient_list)
         return (HTTP.OK_RESPONSE, json.dumps(patient_list), None)
 
     patient_required_contexts = [CONTEXT_USER,CONTEXT_KEY,CONTEXT_PATIENTLIST]
