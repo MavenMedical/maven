@@ -208,6 +208,8 @@ class Order(Resource):
 
         if detail is None:
             self.detail = []
+        else:
+            self.detail = detail
 
         if when is None:
             self.when = []
@@ -325,6 +327,27 @@ class Location(Resource):
         self.partOf = partOf
         self.mode = mode
 
+
+class Composition(Resource):
+
+    def __init__(self, date=None, type=None, cclass=None,
+                 title=None, status=None, confidentiality=None,
+                 subject=None, author=None, custodian=None, encounter=None,
+                 section=None, event=None):
+        Resource.__init__(self)
+        self.date = date
+        self.type = type
+        self.cclass = cclass
+        self.title = title
+        self.status = status
+        self.confidentiality = confidentiality
+        self.subject = subject
+        self.author = author
+        self.custodian = custodian
+        self.event = event
+
+        if section is None:
+            self.section = []
 
 
 
