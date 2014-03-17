@@ -21,9 +21,12 @@ from xml.etree import ElementTree as ET
 import maven_config as MC
 import maven_logging as ML
 import asyncio
+import json
 import uuid
 import argparse
 import pickle
+from clientApp.module_webservice.emr_parser import EpicParser as EP
+import clientApp.api.api as api
 
 
 ARGS = argparse.ArgumentParser(description='Maven Client Receiver Configs.')
@@ -43,9 +46,11 @@ class OutgoingToMavenMessageHandler(SP.StreamProcessor):
         message = obj.decode()
         message_root = ET.fromstring(message)
         emr_namespace = "urn:" + args.emr
-        if emr_namespace in message_root.tag:
+        if "PatientDemographics" in message_root.tag:
+            patient = EP.parse_demographics(message)
+            patient_json = json.dumps(patient, default=api.jdefault)
             self.write_object(pickle.dumps(obj))
-            #self.write_object(obj)
+
 
 
 class IncomingFromMavenMessageHandler(SP.StreamProcessor):
