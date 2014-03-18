@@ -25,7 +25,7 @@ import json
 import uuid
 import argparse
 import pickle
-from clientApp.module_webservice.emr_parser import EpicParser as EP
+from clientApp.module_webservice.emr_parser import EpicParser
 import clientApp.api.api as api
 
 
@@ -40,17 +40,32 @@ class OutgoingToMavenMessageHandler(SP.StreamProcessor):
 
     def __init__(self, configname):
         SP.StreamProcessor.__init__(self, configname)
+        self.emr_parser = EpicParser()
 
     @asyncio.coroutine
     def read_object(self, obj, _):
         message = obj.decode()
-        message_root = ET.fromstring(message)
-        emr_namespace = "urn:" + args.emr
-        if "PatientDemographics" in message_root.tag:
-            patient = EP.parse_demographics(message)
-            patient_json = json.dumps(patient, default=api.jdefault)
-            self.write_object(pickle.dumps(obj))
+        composition = yield from self.create_composition(message)
+        self.write_object(json.dumps(composition, default=api.jdefault).encode())
 
+    @asyncio.coroutine
+    def create_composition(self, message):
+        message_root = ET.fromstring(message)
+        composition = api.Composition(type="CostEvaluator")
+
+        if "PatientDemographics" in message_root.tag:
+            composition.subject = self.emr_parser.parse_demographics(message)
+
+        elif "Contact" in message_root.tag:
+            composition.section.append(api.Section(title="Encounter", content=self.emr_parser.parse_encounter(message_root)))
+
+        elif "ProblemsResult" in message_root.tag:
+            composition.section.append(api.Section(title="Problem List", content=self.emr_parser.parse_problem_list(xml_prob_list=message_root)))
+
+        elif "Orders" in message_root.tag:
+            composition.section.append(api.Section(title="Encounter Orders", content=self.emr_parser.parse_orders(message)))
+
+        return composition
 
 
 class IncomingFromMavenMessageHandler(SP.StreamProcessor):

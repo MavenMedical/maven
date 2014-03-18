@@ -5,12 +5,15 @@ from enum import Enum
 
 class Resource():
 
-    def __init__(self, customer_id=None, name_space=None, identifier=None):
+    def __init__(self, customer_id=None, name_space=None, identifier=None, text=None):
         self.customer_id = customer_id
         self.name_space = name_space
         self.id = uuid.uuid1()
         self.version_id = 1
         self.last_modified_date = datetime.datetime.now()
+
+        if text is None:
+            self.text = ""
 
         if identifier is None:
             self.identifier = []
@@ -45,7 +48,7 @@ class Resource():
         :param assigner:
         """
         identifier_use = 'official'
-        identifier_label = 'maven-resource'
+        identifier_label = 'Internal'
         identifier_system = 'maven'
 
         self.identifier.append(Identifier(use=identifier_use,
@@ -57,6 +60,11 @@ class Resource():
 
 
 class Patient(Resource):
+    """
+    :param name: List of HumanName objects
+    :param identifier: List of Identifier() objects
+    :param birthDate:
+    """
 
     def __init__(self, name=None, identifier=None, birthDate=None, gender=None, address=None, problem_list=None):
         Resource.__init__(self, identifier=identifier)
@@ -95,8 +103,6 @@ class Patient(Resource):
         self.careProvider.append(orgclinician)
 
     def add_name(self, given, family, use=None, text=None, prefix=None, suffix=None, period=None):
-        last_name = family
-        first_name = given
         self.name.append(HumanName(use=use,
                                    text=text,
                                    family=family,
@@ -104,6 +110,12 @@ class Patient(Resource):
                                    prefix=prefix,
                                    suffix=suffix,
                                    period=period))
+
+    def get_name(self):
+        """
+        Returns patient name in format "lastname, firstname"
+        """
+        return self.name[0].family[0] + ", " + self.name[0].given[0]
 
     def get_birth_month(self):
         return self.birthDate.strftime('%m')
@@ -197,14 +209,15 @@ class Procedure(Resource):
 
 class Order(Resource):
 
-    def __init__(self, patient=None, practitioner=None, detail=None, when=None):
-        Resource.__init__(self)
+    def __init__(self, patient=None, practitioner=None, detail=None, when=None, totalCost=None, text=None):
+        Resource.__init__(self, text=text)
         self.date = datetime.datetime.now()
         self.subject = patient
         self.patient = patient
         self.source = practitioner
         self.practitioner = practitioner
         self.target = None
+        self.totalCost = totalCost
 
         if detail is None:
             self.detail = []
@@ -276,6 +289,7 @@ class List(Resource):
         self.subject = subject
         self.source = source
         self.date = date
+
         self.ordered = ordered
         self.mode = mode
         self.emptyReason = emptyReason
@@ -335,7 +349,8 @@ class Composition(Resource):
                  subject=None, author=None, custodian=None, encounter=None,
                  section=None, event=None):
         Resource.__init__(self)
-        self.date = date
+        if date is None:
+            self.date = datetime.datetime.now()
         self.type = type
         self.cclass = cclass
         self.title = title
@@ -456,9 +471,18 @@ class Schedule():
         self.frequency = frequency
 
 
+class Section():
+
+    def __init__(self, title=None, code=None, subject=None, content=None):
+        self.title = title
+        self.code = code
+        self.subject = subject
+        self.content = content
+
+
 def jdefault(o):
     if isinstance(o, datetime.datetime):
-        return datetime.datetime
+        return datetime.datetime.isoformat(o)
     else:
-        if hasattr(o, '__dict__'):
+        if hasattr(o, '__dict__') and o is not None:
             return o.__dict__

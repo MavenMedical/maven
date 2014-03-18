@@ -5,10 +5,11 @@ class FakeMessageFromEpic(asyncio.Protocol):
 
     def connection_made(self, transport):
         self.transport = transport
-        file = open('/home/devel/yukidev/maven/clientApp/module_webservice/GetEncounterCharges_Response.xml')
-        message = file.read().encode()
-        file.close()
-        self.transport.write(message)
+        #file = open('/home/devel/yukidev/maven/clientApp/module_webservice/GetEncounterCharges_Response.xml')
+        #message = file.read().encode()
+        #file.close()
+        message = "<Orders>    <Order>          <ProcedureCode>1234567</ProcedureCode>          <CodeType>CPT</CodeType>          <ExpectedDate>2011-01-01T00:00:00</ExpectedDate>          <ExpiredDate></ExpiredDate>          <Name>CBC with Automated Diff</Name>          <Type>Lab</Type>   </Order></Orders>"
+        self.transport.write(message.encode())
         self.transport.close()
 
 

@@ -21,8 +21,10 @@ import maven_logging as ML
 import asyncio
 import uuid
 import argparse
+import json
 from app.backend.module_rule_engine import order_object as OO
 import pickle
+import clientApp.api.api as api
 
 
 
@@ -65,18 +67,14 @@ class IncomingMessageHandler(SP.StreamProcessor):
 
     @asyncio.coroutine
     def read_object(self, obj, key):
-        message = obj.decode()
-        message_root = ET.fromstring(message)
-        emr_namespace = "urn:" + args.emr
-        NS = message_root.tag.split("}")[0].strip("{")
-        if emr_namespace in NS:
-            orders_array = message_root.find("{%s}Charges" %NS)
-            orders_basket = OO.OrderBasket(key=key)
-            for order in orders_array.findall("{%s}Charge" %NS):
-                order_id = order.find("{%s}ID" %NS).text
-                order_params = [str(order_id), 15545, 342, [4,3], '4']
-                orders_basket.add_order(OO.OrderObject(order_params))
-            self.write_object(orders_basket)
+        yield from self.route_object(obj=obj, key=key)
+
+
+    @asyncio.coroutine
+    def route_object(self, obj, key):
+        json_composition = json.loads(obj.decode())
+        if json_composition['type'] == "CostEvaluator":
+            self.write_object(obj, writer_key="CostEval")
 
 
 def main(loop):
@@ -114,8 +112,8 @@ def main(loop):
             SP.CONFIG_READERTYPE: SP.CONFIGVALUE_ASYNCIOSERVERSOCKET,
             SP.CONFIG_READERNAME: incomingtomavenmessagehandler+".Reader",
             SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_THREADEDRABBIT,
-            SP.CONFIG_WRITERNAME: incomingtomavenmessagehandler+".Writer",
-            SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_UNPICKLEPARSER,
+            SP.CONFIG_WRITERNAME: [incomingtomavenmessagehandler+".Writer", incomingtomavenmessagehandler+".Writer_CostEval"],
+            SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_IDENTITYPARSER,
             SP.CONFIG_WRITERDYNAMICKEY:1,
         },
         incomingtomavenmessagehandler+".Reader":
@@ -130,6 +128,14 @@ def main(loop):
             SP.CONFIG_QUEUE:'incoming_cost_evaluator_work_queue',
             SP.CONFIG_EXCHANGE:'maven_exchange',
             SP.CONFIG_KEY:'incomingcost'
+        },
+        incomingtomavenmessagehandler+".Writer_CostEval":
+        {
+            SP.CONFIG_HOST:'localhost',
+            SP.CONFIG_QUEUE:'incoming_cost_evaluator_work_queue',
+            SP.CONFIG_EXCHANGE:'maven_exchange',
+            SP.CONFIG_KEY:'incomingcosteval',
+            SP.CONFIG_WRITERKEY:'CostEval'
         },
     }
     MC.MavenConfig = MavenConfig
