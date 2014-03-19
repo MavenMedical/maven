@@ -1,6 +1,8 @@
 import uuid
 import datetime
 from enum import Enum
+from app.utils.database.database import AsyncConnectionPool,SingleThreadedConnection, MappingUtilites
+import dateutil.parser
 
 
 class Resource():
@@ -18,7 +20,7 @@ class Resource():
         if identifier is None:
             self.identifier = []
 
-    def add_identifier(self, use, label, system, value, period, assigner):
+    def add_identifier(self, use=None, label=None, system=None, value=None, period=None, assigner=None):
         """
         This method is used to add an identifier to the list of identifiers associated with this resource
 
@@ -194,7 +196,8 @@ class Encounter(Resource):
 class Procedure(Resource):
 
     def __init__(self, patient=None, encounter=None, period=None,
-                 performer=None, followUp=None, type=None):
+                 performer=None, followUp=None, type=None,
+                 name=None):
         Resource.__init__(self)
         self.subject = patient
         self.patient = patient
@@ -205,6 +208,7 @@ class Procedure(Resource):
         self.followUp = followUp
         self.notes = ""
         self.performer = performer
+        self.name = name
 
 
 class Order(Resource):
@@ -329,7 +333,7 @@ class Location(Resource):
 
     def __init__(self, name=None, description=None, type=None,
                  telecom=None, address=None, managingOrganization=None,
-                 status=None, partOf=None, mode=None):
+                 status=None, partOf=None, mode=None, customer_id=None):
         Resource.__init__(self)
         self.name = name
         self.description = description
@@ -340,6 +344,7 @@ class Location(Resource):
         self.status = status
         self.partOf = partOf
         self.mode = mode
+        self.customer_id = customer_id
 
 
 class Composition(Resource):
@@ -360,11 +365,130 @@ class Composition(Resource):
         self.author = author
         self.custodian = custodian
         self.event = event
+        self.encounter = encounter
 
         if section is None:
             self.section = []
 
+    def create_composition_from_json(self, json_composition):
 
+        composition = Composition()
+
+        if json_composition['subject'] is not None:
+            composition.subject = self.create_patient_from_json(json_composition['subject'])
+
+        if json_composition['encounter'] is not None:
+            composition.encounter = self.create_encounter_from_json(json_composition['encounter'])
+
+        for sec in json_composition['section']:
+            if sec['title'] == "Encounter Orders":
+                composition.section.append(Section(title="Encounter Orders", content=self.create_orders_from_json(sec['content'])))
+
+            if sec['title'] == "Problem List":
+                composition.section.append(Section(title="Problem List", content=self.create_problem_list_from_json(sec['content'])))
+
+        return composition
+
+    def create_patient_from_json(self, json_patient):
+        """
+        This method takes a json_patient object and converts the json string dictionary
+        into a FHIR-compliant Patient Object from this clinical API library
+
+        :param json_patient: A json string representation of a patient, most likely the "subject"
+                             parameter from a composition object.
+        """
+        patient = Patient()
+
+        if json_patient['gender'] is not None:
+            patient.gender = json_patient['gender']
+
+        if json_patient['birthDate'] is not None:
+            patient.birthDate = dateutil.parser.parse(json_patient['birthDate'])
+
+        if len(json_patient['name']) > 0:
+            for name in json_patient['name']:
+                patient.add_name(given=[name['given'][0]], family=[name['family'][0]])
+
+        if len(json_patient['identifier']) > 0:
+            for id in json_patient['identifier']:
+                patient.add_identifier(label=id['label'], system=id['system'], value=id['value'])
+        return patient
+
+    def create_encounter_from_json(self, json_encounter):
+        encounter = Encounter()
+        encounter.last_modified_date = dateutil.parser.parse(json_encounter['last_modified_date'])
+
+        if json_encounter['period'] is not None:
+            encounter.period = Period(start=json_encounter['period']['start'], end=json_encounter['period']['end'])
+
+        if json_encounter['department'] is not None:
+            encounter.department = Location(name=json_encounter['department']['name'],
+                                            customer_id=json_encounter['department']['customer_id'])
+            for id in json_encounter['department']['identifier']:
+                encounter.department.identifier.append(Identifier(label=id['label'], system=id['system'], value=id['value']))
+
+        if json_encounter['encounter_class'] is not None:
+            encounter.encounter_class = json_encounter['encounter_class']
+
+        if json_encounter['type'] != "null":
+            encounter.type = json_encounter['type']
+        return encounter
+
+    def create_orders_from_json(self, json_orders):
+        orders_list = []
+        for ord in json_orders:
+            order = Order()
+
+            #A FHIR order actually contains a list of DETAILS where the list of procedures,
+            # medications, and supply items are stored.
+            for deet in ord['detail']:
+                if deet['type'] == "Lab" or "Procedure":
+                    procedure = Procedure(name=deet['name'])
+
+                    for id in deet['identifier']:
+                        procedure.add_identifier(label=id['label'], system=id['system'], value=id['value'])
+
+                    order.detail.append(procedure)
+
+            orders_list.append(order)
+
+        return orders_list
+
+    def create_problem_list_from_json(self, json_problem_list):
+        problem_list = []
+
+        for prob in json_problem_list:
+            condition = Condition()
+            condition.isChronic = prob['isChronic']
+            condition.isPrinciple = prob['isPrinciple']
+            condition.encounter = prob['encounter']
+            condition.isHospital = prob['isHospital']
+            condition.isPOA = prob['isPOA']
+            condition.customer_id = prob['customer_id']
+            for id in prob['identifier']:
+                condition.identifier.append(Identifier(label=id['label'], system=id['system'], value=id['value']))
+
+            problem_list.append(condition)
+
+        return problem_list
+
+    def get_encounter_orders(self):
+        orders_list = []
+
+        for sec in self.section:
+            if sec.title == "Encounter Orders":
+                for ord in sec.content:
+                    orders_list.append(ord)
+        return orders_list
+
+    def get_proc_supply_details(self, order):
+        proc_supply_list = []
+        for detail in order.detail:
+            if detail.type == "Lab" or "Procedure":
+                for id in detail.identifier:
+                    if id.system == "clientEMR" and id.label == "Internal":
+                        proc_supply_list.append([id.value, detail.name])
+        return proc_supply_list
 
 
 #####
@@ -428,7 +552,6 @@ class HumanName():
         else:
             self.given = given
 
-
         if prefix is None:
             self.prefix = []
 
@@ -483,6 +606,11 @@ class Section():
 def jdefault(o):
     if isinstance(o, datetime.datetime):
         return datetime.datetime.isoformat(o)
+    elif hasattr(o, 'hex'):
+        return o.hex
     else:
         if hasattr(o, '__dict__') and o is not None:
             return o.__dict__
+
+
+

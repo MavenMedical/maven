@@ -25,8 +25,8 @@ import maven_config as MC
 import asyncio
 import json
 import pickle
-
-
+import clientApp.api.api as api
+import maven_logging as ML
 
 
 class CostEvaluator(SP.StreamProcessor):
@@ -37,40 +37,33 @@ class CostEvaluator(SP.StreamProcessor):
 
     @asyncio.coroutine
     def read_object(self, obj, _):
-        composition = json.loads(obj.decode())
-        ord_id_list = []
-        for sec in composition['section']:
-            if sec['title'] == "Encounter Orders":
-                for ord in sec['content']:
-                    for id in ord['identifier']:
-                        if id['label'] == "CPT":
-                            ord_id_list.append(id.value)
-                yield from self.evaluate_orders(ord_id_list, composition)
-        #self.write_object(obj, writer_key='aggregate')
-        #self.write_object(obj, writer_key='logging')
-        print("h")
 
-    @asyncio.coroutine
-    def evaluate_orders(self, ord_id_list, composition):
-        conn = AsyncConnectionPool('test conn pool', self.loop)
-        orders_cost_summary = []
+        json_composition = json.loads(obj.decode())
+        composition = api.Composition().create_composition_from_json(json_composition)
+        self.evaluate_orders(composition)
+        ML.PRINT(json.dumps(composition, default=api.jdefault, indent=4))
+        self.write_object(json.dumps(composition, default=api.jdefault).encode(), writer_key='aggregate')
 
-        for sec in composition['section']:
-            if sec['title'] == "Encounter Orders":
-                total_cost = 0.00
-                for order in sec['content']:
-                    cur = yield from conn.execute_single("select costmap.cost_amt, costmap.billing_code from costmap")
-                    for result in cur:
-                        order['totalCost'] = float(result[0])
+    def evaluate_orders(self, composition):
+        conn = SingleThreadedConnection('test conn pool')
+        orders_cost_query = []
+        total_cost = 0.00
 
-                        for id in order['detail'][0]['identifier']:
-                            if id['label'] == "name":
-                                orders_cost_summary.append({str(id.value): str(result[0])})
-                        total_cost += float(result[0])
-                    print(order)
-                print(total_cost)
-            composition.section.append(orders_cost_summary)
-        return composition
+        orders = composition.get_encounter_orders()
+        for order in orders:
+            order_details = composition.get_proc_supply_details(order)
+
+            for detail in order_details:
+                orders_cost_query.append([detail[0], detail[1]])
+
+        for order in orders_cost_query:
+            cur = conn.execute("select cost_amt from costmap where billing_code='%s'" % order[0])
+            for result in cur:
+                order.append(float(result[0]))
+                total_cost += float(result[0])
+
+        orders_cost_query.append(["n/a", "Total Cost", total_cost])
+        composition.section.append(api.Section(title="Encounter Cost Breakdown", content=orders_cost_query))
 
 
 def run_cost_evaluator():

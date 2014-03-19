@@ -46,6 +46,7 @@ class OutgoingToMavenMessageHandler(SP.StreamProcessor):
     def read_object(self, obj, _):
         message = obj.decode()
         composition = yield from self.create_composition(message)
+        #ML.PRINT(json.dumps(composition, default=api.jdefault, indent=4))
         self.write_object(json.dumps(composition, default=api.jdefault).encode())
 
     @asyncio.coroutine
