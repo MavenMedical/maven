@@ -25,29 +25,30 @@ define([
 
     var PatientView = Backbone.View.extend({
         el: $('.page'),
-        render: function (patid) {
+        render: function (context) {
+             $('.nav li').removeClass('active');
+            $('.nav li a[href="' + window.location.hash + '"]').parent().addClass('active');
 
             var template = _.template(patientTemplate, {});
             this.$el.html(template);
 
             //widgets
-            var patinfo = new PatInfo;
-            patinfo.render(patid);
+            var patinfo = new PatInfo(context);
+
 
             var util = new Utilization;
-            util.render(patid);
+            util.render();
 
             var saving = new Saving;
-            saving.render(patid);
+            saving.render();
 
-            var spending = new Spending;
-            spending.render(patid);
+            var spending = new Spending(context);
 
             var costbd = new CostBD;
-            costbd.render(patid);
+            costbd.render();
 
             var alert = new Alert;
-            alert.render(patid);
+            alert.render();
 
         }
     });

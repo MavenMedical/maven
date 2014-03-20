@@ -19,3 +19,4 @@ define([
     });
     return DailyCost;
 });
+//Chart codes are in the template file dailycost.html

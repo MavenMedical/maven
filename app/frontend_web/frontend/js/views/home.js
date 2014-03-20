@@ -33,9 +33,7 @@ define([
             this.$el.html(template);
 
             //widgets
-            var patientcollection = new PatientCollection();
-
-            var patientlistview = new PatientList({collection: patientcollection});
+            var patientlistview = new PatientList;
             patientlistview.render();
 
             var spending = new Spending;

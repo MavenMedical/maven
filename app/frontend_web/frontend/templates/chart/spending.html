@@ -7,3 +7,57 @@
         <div id="total-spend" class="chart-col-6"></div>
     </div>
 </div>
+
+<script>
+    var chart = AmCharts.makeChart("total-spend", {
+        "type": "serial",
+        "dataDateFormat": "YYYY-MM-DD",
+        "colors": colorArray,
+        "pathToImages": "js/amcharts/images/",
+        "dataProvider": data,
+        "valueAxes": [
+            {
+                "axisAlpha": 1,
+                "dashLength": 1,
+                "position": "left"
+            }
+        ],
+        "graphs": [
+            {
+                "id": "g1",
+                "balloonText": "[[category]]<br /><b><span style='font-size:14px;'>$[[value]]</span></b>",
+                //"bullet": "round",
+                //"bulletBorderAlpha": 1,
+                //"bulletColor":"#FFFFFF",
+                //"hideBulletsCount": 30,
+                // "title": "red line",
+                "valueField": value,
+                "colorField": "color",
+                //"useLineColorForBulletBorder":true,
+                "fillAlphas": .8,
+                "fillColorsField": "fill",
+                "inside": true,
+                "type": chart_type
+            }
+        ],
+        "chartScrollbar": {
+            "autoGridCount": true,
+            "graph": "g1",
+            "scrollbarHeight": 40
+        },
+
+        "chartCursor": {
+            "cursorPosition": "mouse",
+            "cursorColor": colorArray[3]
+        },
+        "categoryField": cat,
+        "categoryAxis": {
+            "parseDates": true,
+            "axisColor": "#DADADA",
+            "dashLength": 1,
+            "minorGridEnabled": true
+        }
+
+    });
+
+</script>

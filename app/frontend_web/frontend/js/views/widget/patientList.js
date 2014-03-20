@@ -23,14 +23,10 @@ define([
         el: $('.patientlist'),
 
         render: function () {
-            console.log("render in patient List ");
             var patients = new PatientCollection();
-             console.log("render in patient List after creating collection");
 
             patients.fetch({
                 success: function (patients) {
-                    console.log("fetch patient collection success");
-                    console.log(patients);
                     var template = _.template(patientListTemplate, {patients: patients.models});
                     this.$('.patientlist').append(template);
                 },

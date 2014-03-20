@@ -8,7 +8,7 @@
             <% _.each(patients, function(patient){ %>
             <tr>
                 <td>
-                    <a href="#/patient/<%= patient.id %>">
+                    <a href='#/patient/<%= patient.id %>/details/<%= patient.get("key") %>'>
                         <%= patient.get("name") %>
                     </a>
                 </td>

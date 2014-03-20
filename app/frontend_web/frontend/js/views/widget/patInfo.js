@@ -8,35 +8,33 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
 
+    //Model
+    'models/patientModel',
+
     'text!templates/widget/patInfo.html'
-], function ($, _, Backbone, patInfoTemplate) {
+], function ($, _, Backbone, PatientModel, patInfoTemplate) {
 
     var PatInfo = Backbone.View.extend({
         el: $('.patientinfo'),
-        render: function (patid) {
+        initialize: function(context){
+            _.bindAll(this, 'render');
+            this.render(context);
+        },
+        render: function (context) {
 
-            $('.nav li').removeClass('active');
-            $('.nav li a[href="' + window.location.hash + '"]').parent().addClass('active');
+            var pat = new PatientModel;
+            console.log(context);
 
-            var pat = new PatientModel();
-            console.log(pat);
-            /*
             pat.fetch({
                 success: function (pat) {
-                    console.log("fetch patient collection success");
+                    console.log("fetch patient model success");
                     console.log(pat);
-                    var template = _.template(patientTemplate, {patient:pat});
-                    this.$el.html(template);
+                    var template = _.template(patInfoTemplate, {patient:pat});
+                    this.$('.patientinfo').html(template);
                 },
-                data: $.param({ user: 'tom', patient: patid})
+                data: $.param({ user: 'tom', key: context['key'], patients: context['id']})
             });
-            */
 
-
-
-            var template = _.template(patInfoTemplate, {});
-            $('.patientinfo').empty();
-            $('.patientinfo').append(template);
         }
     });
     return PatInfo;

@@ -174,7 +174,6 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
     @asyncio.coroutine
     def get_patients(self, _header, _body, qs, matches, _key):
-        print("HI")
         global patients
         context = restrict_context(qs, 
                                    FrontendWebService.patients_required_contexts,

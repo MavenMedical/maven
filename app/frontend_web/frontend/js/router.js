@@ -7,6 +7,8 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone,
 
+     'currentContext',
+
     //views
     'views/sidemenu',
     'views/topnav',
@@ -15,11 +17,11 @@ define([
     'views/patient',
     'views/episode',
     'views/alerts'
-], function ($, _, Backbone, SideMenu, TopNav, HomeView, PatientView, EpisodeView, AlertsView) {
+], function ($, _, Backbone,currentContext, SideMenu, TopNav, HomeView, PatientView, EpisodeView, AlertsView) {
     var AppRouter = Backbone.Router.extend({
         routes: {
             "": 'showHome',
-            "patient/:id": 'showPatient',
+            "patient/:id/details/:key": 'showPatient',
             "alerts": 'showAlerts',
             "episode": 'showEpisode',
 
@@ -29,12 +31,15 @@ define([
     });
 
 
+
     var initialize = function () {
         //ajaxPrefilter
         $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
             options.url = 'services' + options.url;
         });
 
+        var context = currentContext;
+        console.log(context);
 
         var app_router = new AppRouter;
 
@@ -49,9 +54,11 @@ define([
             var homeView = new HomeView;
             homeView.render();
         });
-        app_router.on('route:showPatient', function (patid) {
+
+        app_router.on('route:showPatient', function (patid , patkey) {
+
             var patientView = new PatientView;
-            patientView.render({id:patid});
+            patientView.render({id:patid, key:patkey});
 
         });
         app_router.on('route:showAlerts', function () {
