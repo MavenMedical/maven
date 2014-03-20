@@ -25,7 +25,7 @@ import json
 import uuid
 import argparse
 import pickle
-from clientApp.module_webservice.emr_parser import EpicParser
+from clientApp.module_webservice.emr_parser import VistaParser
 import clientApp.api.api as api
 
 
@@ -40,7 +40,7 @@ class OutgoingToMavenMessageHandler(SP.StreamProcessor):
 
     def __init__(self, configname):
         SP.StreamProcessor.__init__(self, configname)
-        self.emr_parser = EpicParser()
+
 
     @asyncio.coroutine
     def read_object(self, obj, _):
@@ -51,21 +51,8 @@ class OutgoingToMavenMessageHandler(SP.StreamProcessor):
 
     @asyncio.coroutine
     def create_composition(self, message):
-        message_root = ET.fromstring(message)
-        composition = api.Composition(type="CostEvaluator")
-
-        if "PatientDemographics" in message_root.tag:
-            composition.subject = self.emr_parser.parse_demographics(message)
-
-        elif "Contact" in message_root.tag:
-            composition.section.append(api.Section(title="Encounter", content=self.emr_parser.parse_encounter(message_root)))
-
-        elif "ProblemsResult" in message_root.tag:
-            composition.section.append(api.Section(title="Problem List", content=self.emr_parser.parse_problem_list(xml_prob_list=message_root)))
-
-        elif "Orders" in message_root.tag:
-            composition.section.append(api.Section(title="Encounter Orders", content=self.emr_parser.parse_orders(message)))
-
+        #message_root = ET.fromstring(message)
+        composition = VistaParser().create_composition(message)
         return composition
 
 
