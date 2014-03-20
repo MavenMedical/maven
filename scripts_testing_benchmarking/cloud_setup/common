@@ -1,0 +1,11 @@
+# kernel-headers kernel-uek for yum update
+# fuse-libs fuse fuse-devel lvm2 for truecrupt
+# pcre-devel zlib-devel openssl-devel for python
+sudo yum install elinks screen git man emacs wget kernel-headers kernel-uek fuse-libs fuse-devel fuse lvm2
+
+
+#truecrypt
+wget http://www.truecrypt.org/download/truecrypt-7.1a-linux-console-x64.tar.gz
+
+tar -xvzf truecrypt-7.1a-linux-console-x64.tar.gz
+sudo ./truecrypt-7.1a-setup-console-x64

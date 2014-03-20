@@ -1,0 +1,32 @@
+sudo yum install kernel-headers kernel-uek
+
+sudo yum update
+
+sudo yum install postgresql-server
+
+sudo yum install elinks screen git man emacs wget fuse-libs lvm2 openssl-devel fuse fuse-devel
+
+
+#truecrypt
+wget http://www.truecrypt.org/download/truecrypt-7.1a-linux-console-x64.tar.gz
+
+tar -xvzf truecrypt-7.1a-linux-console-x64.tar.gz
+sudo ./truecrypt-7.1a-setup-console-x64
+
+sudo truecrypt -t -c /dev/sdc                                                                                                                                                                                                       # enter choices 1, 1, 2, 5, then a good password (feel free to choose "temporary" if in a dev environment)
+
+# mount encrypted partition and initialize the database
+#switch to root user
+sudo su
+truecrypt -t -k "" --protect-hidden=no /dev/sdc ~postgres
+cd ~postgres
+chown postgres .
+chgrp postgres .
+su postgres
+initdb -D `pwd`/data -A password -W  # prompts for a password
+exit # exit postgres
+setenforce 0  # hack because selinux is stopping access of user postgres to it's own files for some reason
+service postgresql start
+exit # exit root
+
+

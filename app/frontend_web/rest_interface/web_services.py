@@ -53,7 +53,7 @@ def _authorization_key(data):
     global _TEMPORARY_SECRET
     sha = _TEMPORARY_SECRET.copy()
     sha.update(pickle.dumps(data))
-    return base64.b64encode(sha.digest())[:32].decode()
+    return base64.b64encode(sha.digest())[:32].decode().replace('/','_').replace('+','-')
     
 
 patients = {
