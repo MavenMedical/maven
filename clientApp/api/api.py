@@ -352,7 +352,7 @@ class Composition(Resource):
     def __init__(self, date=None, type=None, cclass=None,
                  title=None, status=None, confidentiality=None,
                  subject=None, author=None, custodian=None, encounter=None,
-                 section=None, event=None):
+                 section=None, event=None, maven_route_key=None):
         Resource.__init__(self)
         if date is None:
             self.date = datetime.datetime.now()
@@ -366,6 +366,7 @@ class Composition(Resource):
         self.custodian = custodian
         self.event = event
         self.encounter = encounter
+        self.maven_route_key = maven_route_key
 
         if section is None:
             self.section = []

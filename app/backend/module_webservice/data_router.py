@@ -45,8 +45,8 @@ class OutgoingMessageHandler(SP.StreamProcessor):
 
     @asyncio.coroutine
     def read_object(self, obj, _):
-        unpickled_obj = pickle.loads(obj, encoding="ASCII", errors="strict")
-        self.write_object('$564.23'.encode(), writer_key=unpickled_obj.key)
+        json_composition = json.dumps(obj, default=api.jdefault, indent=4).encode()
+        self.write_object(json_composition, writer_key=obj.maven_route_key)
         #yield from self.route_object(obj)
 
     @asyncio.coroutine
@@ -74,7 +74,9 @@ class IncomingMessageHandler(SP.StreamProcessor):
     def route_object(self, obj, key):
         json_composition = json.loads(obj.decode())
         if json_composition['type'] == "CostEvaluator":
-            self.write_object(obj, writer_key="CostEval")
+            composition = api.Composition().create_composition_from_json(json_composition)
+            composition.maven_route_key = key
+            self.write_object(composition, writer_key="CostEval")
 
 
 def main(loop):

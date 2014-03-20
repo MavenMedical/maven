@@ -648,7 +648,7 @@ class _RabbitWriter(_BaseWriter):
 
     def write_object(self, obj):
         #ML.DEBUG("rabbit writing obj: "+str(obj))
-        message = amqp.Message(obj)
+        message = amqp.Message(pickle.dumps(obj))
         self.chan.basic_publish(message, exchange=self.exchange, 
                                 routing_key=self.incoming_key)
 

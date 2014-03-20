@@ -37,12 +37,10 @@ class CostEvaluator(SP.StreamProcessor):
 
     @asyncio.coroutine
     def read_object(self, obj, _):
-
-        json_composition = json.loads(obj.decode())
-        composition = api.Composition().create_composition_from_json(json_composition)
+        composition = pickle.loads(obj)
         self.evaluate_orders(composition)
         ML.PRINT(json.dumps(composition, default=api.jdefault, indent=4))
-        self.write_object(json.dumps(composition, default=api.jdefault).encode(), writer_key='aggregate')
+        self.write_object(composition, writer_key='aggregate')
 
     def evaluate_orders(self, composition):
         conn = SingleThreadedConnection('test conn pool')
