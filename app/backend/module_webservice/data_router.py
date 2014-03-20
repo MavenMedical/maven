@@ -36,6 +36,26 @@ ARGS.add_argument(
 args = ARGS.parse_args()
 
 
+class IncomingMessageHandler(SP.StreamProcessor):
+
+    def __init__(self, configname):
+        SP.StreamProcessor.__init__(self, configname)
+        self.master_list = ['', '', '', '', '']
+        self.object_manager = []
+
+    @asyncio.coroutine
+    def read_object(self, obj, key):
+        yield from self.route_object(obj=obj, key=key)
+
+    @asyncio.coroutine
+    def route_object(self, obj, key):
+        json_composition = json.loads(obj.decode())
+        if json_composition['type'] == "CostEvaluator":
+            composition = api.Composition().create_composition_from_json(json_composition)
+            composition.maven_route_key = key
+            self.write_object(composition, writer_key="CostEval")
+
+
 class OutgoingMessageHandler(SP.StreamProcessor):
 
     def __init__(self, configname):
@@ -58,27 +78,6 @@ class OutgoingMessageHandler(SP.StreamProcessor):
             self.write_object(obj)
 
 
-class IncomingMessageHandler(SP.StreamProcessor):
-
-    def __init__(self, configname):
-        SP.StreamProcessor.__init__(self, configname)
-        self.master_list = ['', '', '', '', '']
-        self.object_manager = []
-
-    @asyncio.coroutine
-    def read_object(self, obj, key):
-        yield from self.route_object(obj=obj, key=key)
-
-
-    @asyncio.coroutine
-    def route_object(self, obj, key):
-        json_composition = json.loads(obj.decode())
-        if json_composition['type'] == "CostEvaluator":
-            composition = api.Composition().create_composition_from_json(json_composition)
-            composition.maven_route_key = key
-            self.write_object(composition, writer_key="CostEval")
-
-
 def main(loop):
 
     outgoingtohospitalsmessagehandler = 'responder socket'
@@ -86,29 +85,6 @@ def main(loop):
 
 
     MavenConfig = {
-        outgoingtohospitalsmessagehandler:
-        {
-            SP.CONFIG_READERTYPE: SP.CONFIGVALUE_THREADEDRABBIT,
-            SP.CONFIG_READERNAME: outgoingtohospitalsmessagehandler+".Reader",
-            SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOSOCKETREPLY,
-            SP.CONFIG_WRITERNAME: outgoingtohospitalsmessagehandler+".Writer",
-            SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_UNPICKLEPARSER,
-
-        },
-        outgoingtohospitalsmessagehandler+".Reader":
-        {
-            SP.CONFIG_HOST:'localhost',
-            SP.CONFIG_QUEUE:'aggregator_work_queue',
-            SP.CONFIG_EXCHANGE:'maven_exchange',
-            SP.CONFIG_KEY:'aggregate',
-            #SP.CONFIG_WRITERKEY:'aggregate',
-        },
-
-        outgoingtohospitalsmessagehandler+".Writer":
-        {
-            SP.CONFIG_WRITERKEY:1
-        },
-
         incomingtomavenmessagehandler:
         {
             SP.CONFIG_READERTYPE: SP.CONFIGVALUE_ASYNCIOSERVERSOCKET,
@@ -139,11 +115,32 @@ def main(loop):
             SP.CONFIG_KEY:'incomingcosteval',
             SP.CONFIG_WRITERKEY:'CostEval'
         },
+        outgoingtohospitalsmessagehandler:
+        {
+            SP.CONFIG_READERTYPE: SP.CONFIGVALUE_THREADEDRABBIT,
+            SP.CONFIG_READERNAME: outgoingtohospitalsmessagehandler+".Reader",
+            SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOSOCKETREPLY,
+            SP.CONFIG_WRITERNAME: outgoingtohospitalsmessagehandler+".Writer",
+            SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_UNPICKLEPARSER,
+
+        },
+        outgoingtohospitalsmessagehandler+".Reader":
+        {
+            SP.CONFIG_HOST:'localhost',
+            SP.CONFIG_QUEUE:'aggregator_work_queue',
+            SP.CONFIG_EXCHANGE:'maven_exchange',
+            SP.CONFIG_KEY:'aggregate',
+            #SP.CONFIG_WRITERKEY:'aggregate',
+        },
+
+        outgoingtohospitalsmessagehandler+".Writer":
+        {
+            SP.CONFIG_WRITERKEY:1
+        },
+
     }
     MC.MavenConfig = MavenConfig
 
-
-    #loop = asyncio.get_event_loop()
     sp_consumer = IncomingMessageHandler(incomingtomavenmessagehandler)
     sp_producer = OutgoingMessageHandler(outgoingtohospitalsmessagehandler)
 

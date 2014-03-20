@@ -443,8 +443,8 @@ class Composition(Resource):
             #A FHIR order actually contains a list of DETAILS where the list of procedures,
             # medications, and supply items are stored.
             for deet in ord['detail']:
-                if deet['type'] == "Lab" or "Procedure":
-                    procedure = Procedure(name=deet['name'])
+                if deet['type'] == "Lab" or "Procedure" or "PROC":
+                    procedure = Procedure(name=deet['name'], type=deet['type'])
 
                     for id in deet['identifier']:
                         procedure.add_identifier(label=id['label'], system=id['system'], value=id['value'])
@@ -485,7 +485,7 @@ class Composition(Resource):
     def get_proc_supply_details(self, order):
         proc_supply_list = []
         for detail in order.detail:
-            if detail.type == "Lab" or "Procedure":
+            if detail.type == "Lab" or "Procedure" or "PROC":
                 for id in detail.identifier:
                     if id.system == "clientEMR" and id.label == "Internal":
                         proc_supply_list.append([id.value, detail.name])
@@ -576,7 +576,7 @@ class Accomodation():
 
 class Address():
 
-    def __init__(self, use=None, text=None, line=None, city=None, state=None, zip=None, country=None, period=None):
+    def __init__(self, use=None, text=None, line=None, city=None, state=None, zip=None, country=None, period=None, county=None):
         self.use = use
         self.text = text
         if line is None:
@@ -586,6 +586,7 @@ class Address():
         self.zip = zip
         self.country = country
         self.period = period
+        self.county = county
 
 
 class Schedule():

@@ -5,10 +5,10 @@ class FakeMessageFromEpic(asyncio.Protocol):
 
     def connection_made(self, transport):
         self.transport = transport
-        #file = open('/home/devel/yukidev/maven/clientApp/module_webservice/GetEncounterCharges_Response.xml')
-        #message = file.read().encode()
-        #file.close()
-        message = "<Orders>    <Order>          <ProcedureCode>2345678</ProcedureCode>          <CodeType>Internal</CodeType>          <ExpectedDate>2011-01-01T00:00:00</ExpectedDate>          <ExpiredDate></ExpiredDate>          <Name>CBC with Automated Diff</Name>          <Type>Lab</Type>   </Order><Order>          <ProcedureCode>1234567</ProcedureCode>          <CodeType>Internal</CodeType>          <ExpectedDate>2011-01-01T00:00:00</ExpectedDate>          <ExpiredDate></ExpiredDate>          <Name>CBC with Automated Diff</Name>          <Type>Lab</Type>   </Order></Orders>"
+        file = open('/home/devel/yukidev/maven/clientApp/fake_data/VistA_Encounter.xml')
+        message = file.read()
+        file.close()
+        #message = "<Orders>    <Order>          <ProcedureCode>2345678</ProcedureCode>          <CodeType>Internal</CodeType>          <ExpectedDate>2011-01-01T00:00:00</ExpectedDate>          <ExpiredDate></ExpiredDate>          <Name>CBC with Automated Diff</Name>          <Type>Lab</Type>   </Order><Order>          <ProcedureCode>1234567</ProcedureCode>          <CodeType>Internal</CodeType>          <ExpectedDate>2011-01-01T00:00:00</ExpectedDate>          <ExpiredDate></ExpiredDate>          <Name>CBC with Automated Diff</Name>          <Type>Lab</Type>   </Order></Orders>"
         self.transport.write(message.encode())
         self.transport.close()
 
@@ -19,6 +19,9 @@ class FakeMessageFromEpic(asyncio.Protocol):
 
     def data_received(self, data):
         print(data)
+
+
+
 
 
 loop = asyncio.get_event_loop()
