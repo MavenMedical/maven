@@ -28,13 +28,13 @@ define([
         render: function (context) {
              $('.nav li').removeClass('active');
             $('.nav li a[href="' + window.location.hash + '"]').parent().addClass('active');
-
+            console.log("patient"+context);
             var template = _.template(patientTemplate, {});
             this.$el.html(template);
 
             //widgets
             var patinfo = new PatInfo(context);
-
+            console.log("after patinfo"+context);
 
             var util = new Utilization;
             util.render();
