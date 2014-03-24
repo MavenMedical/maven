@@ -12,9 +12,20 @@ define([
 
     var Orderable = Backbone.View.extend({
         el: $('.orderable'),
+        initialize: function(){
+            _.bindAll(this, 'render', 'eventHandeler');
+            this.render();
+        },
+        events: {
+          'click .a[data-toggle="collapse"]' : 'eventHandeler'
+        },
+        eventHandeler: function(){
+          console.log("event fired");
+        },
         render: function () {
-            var template = _.template(orderableTemplate, {});
-            $('.orderable').append(template);
+            console.log("render orderables");
+           // console.log(this.el);
+            this.el.append(_.template(orderableTemplate, {}));
         }
     });
     return Orderable;

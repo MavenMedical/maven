@@ -1,6 +1,11 @@
-/**
- * Created by Asmaa Aljuhani on 3/11/14.
- */
+/***************************************************************************
+ * Copyright (c) 2014 - Maven Medical
+ * AUTHOR: 'Asmaa Aljuhani'
+ * DESCRIPTION: This Javascript file has the main router functions that calls
+ *               all other views.
+ * PREREQUISITE: libraries should be predefine in main.js
+ * LAST MODIFIED FOR JIRA ISSUE: MAV-98
+ **************************************************************************/
 
 define([
     'jquery',     // lib/jquery/jquery
@@ -23,7 +28,7 @@ define([
             "": 'showHome',
             "patient/:id/details/:key": 'showPatient',
             "alerts": 'showAlerts',
-            "episode": 'showEpisode',
+            "episode/:id/details/:key": 'showEpisode',
 
             //default
             '*action': 'defaultAction'
@@ -65,9 +70,10 @@ define([
             var alertsView = new AlertsView;
             alertsView.render();
         });
-        app_router.on('route:showEpisode', function () {
-            var episodeView = new EpisodeView;
-            episodeView.render();
+        app_router.on('route:showEpisode', function (patid, patkey) {
+            var episodeView = new EpisodeView({id:patid, key:patkey});
+
+
         });
         app_router.on('defaultAction', function (actions) {
             console.log('No route:', actions);

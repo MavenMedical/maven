@@ -16,6 +16,7 @@ define([
     var Spending = Backbone.View.extend({
         el: $('.spending'),
         initialize: function (context) {
+            console.log(context);
             _.bindAll(this, 'render');
             this.render(context);
         },

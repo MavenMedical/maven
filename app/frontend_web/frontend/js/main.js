@@ -1,6 +1,10 @@
-/**
- * Created by Asmaa Aljuhani on 3/11/14.
- */
+/***************************************************************************
+ * Copyright (c) 2014 - Maven Medical
+ * AUTHOR: 'Asmaa Aljuhani'
+ * DESCRIPTION: This Javascript file holds all libraries that will be used
+ *              by the MVC and Initialize the frontend App.
+ * LAST MODIFIED FOR JIRA ISSUE: MAV-98
+ **************************************************************************/
 
 // Require.js allows us to configure shortcut alias
 require.config({

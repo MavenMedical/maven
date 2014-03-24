@@ -11,7 +11,7 @@ __author__='Tom DuBois'
 #************************
 #*************************************************************************
 
-import app.utils.database.database as DB
+from app.utils.database.database import AsyncConnectionPool
 import app.utils.streaming.stream_processor as SP
 import app.utils.streaming.http_responder as HTTP
 import asyncio
@@ -143,7 +143,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
     def __init__(self, configname):
         HTTP.HTTPProcessor.__init__(self,configname)
         try:
-            pass  #db_configname = self.config[CONFIG_DATABASE]
+            db_configname = self.config[CONFIG_DATABASE]
         except KeyError:
             raise MC.InvalidConfig('some real error')
 
@@ -153,7 +153,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
         self.add_handler(['GET'], '/total_savings', self.get_total_savings)
         self.add_handler(['GET'], '/spending', self.get_daily_spending)
         self.add_handler(['GET'], '/spending_details', self.get_spending_details)
-        #self.db = DB.AsyncConnectionPool(db_configname)
+        self.db = AsyncConnectionPool(db_configname)
+
 
         self.add_handler(['GET'], '/alerts(?:/(\d+)-(\d+)?)?', self.get_alerts)
         self.add_handler(['GET'], '/alert_details', self.get_alert_details)
@@ -162,7 +163,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
     def schedule(self, loop):
         HTTP.HTTPProcessor.schedule(self, loop)
-        #self.db.schedule(loop)
+        self.db.schedule(loop)
 
 
     @asyncio.coroutine
@@ -175,11 +176,20 @@ class FrontendWebService(HTTP.HTTPProcessor):
     @asyncio.coroutine
     def get_patients(self, _header, _body, qs, matches, _key):
         global patients
+
         context = restrict_context(qs, 
                                    FrontendWebService.patients_required_contexts,
                                    FrontendWebService.patients_available_contexts)
         user = context[CONTEXT_USER]
         (start, stop) = _get_range(matches, len(patients))
+
+        patient_cursor = yield from self.db.execute_single('select patname, sex, birth_month from patient')
+        print("patient cursor ")
+
+        pat =[]
+        for r in patient_cursor:
+            pat.append(r)
+            print(r)
 
         patient_list = [copy_and_append(v, (CONTEXT_KEY,_authorization_key((user, v['id'])))) 
                         for v in patients.values()][start:stop]
@@ -283,7 +293,14 @@ if __name__ == '__main__':
                 {
                     SP.CONFIG_HOST: 'localhost',
                     SP.CONFIG_PORT: 8087,
+                    CONFIG_DATABASE: "test conn pool",
                 },
+            'test conn pool': {
+                AsyncConnectionPool.CONFIG_CONNECTION_STRING:
+                ("dbname=%s user=%s password=%s host=%s port=%s" % ('maven', 'maven', 'temporary', 'localhost', '5432')),
+                AsyncConnectionPool.CONFIG_MIN_CONNECTIONS: 4,
+                AsyncConnectionPool.CONFIG_MAX_CONNECTIONS: 8
+            }
         }
     hp = FrontendWebService('httpserver')
     event_loop = asyncio.get_event_loop()

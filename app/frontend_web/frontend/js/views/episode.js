@@ -1,6 +1,11 @@
-/**
- * Created by Asmaa Aljuhani on 3/11/14.
- */
+/***************************************************************************
+ * Copyright (c) 2014 - Maven Medical
+ * AUTHOR: 'Asmaa Aljuhani'
+ * DESCRIPTION: This is the Episode view were all widgets that are needed to
+ *              be in the episode page are rendered here.
+ * PREREQUISITE: libraries should be predefine in main.js
+ * LAST MODIFIED FOR JIRA ISSUE: MAV-98
+ **************************************************************************/
 
 define([
     'jquery',     // lib/jquery/jquery
@@ -24,16 +29,20 @@ define([
 
     var EpisodeView = Backbone.View.extend({
         el: $('.page'),
+        initialize: function(context){
+            _.bindAll(this, 'render');
+            this.context = context;
+            this.render();
+        },
         render: function () {
             $('.nav li').removeClass('active');
             $('.nav li a[href="' + window.location.hash + '"]').parent().addClass('active');
-
+            console.log(this.context);
             var template = _.template(episodeTemplate, {});
             this.$el.html(template);
 
             //widgets
-            var patinfo = new PatInfo;
-            patinfo.render();
+            var patinfo = new PatInfo(this.context);
 
             var util = new Utilization;
             util.render();
@@ -42,7 +51,6 @@ define([
             saving.render();
 
             var orderable = new Orderable;
-            orderable.render();
 
             var dailycost = new DailyCost;
             dailycost.render();
