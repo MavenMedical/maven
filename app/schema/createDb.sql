@@ -862,5 +862,64 @@ CREATE TABLE ruleTest.rules
 ALTER TABLE ruleTest.rules
   OWNER TO maven;
 
+CREATE OR REPLACE FUNCTION upsert_patient(pat_id1 character varying(100), customer_id1 numeric(18,0),
+  birth_month1 character varying(6), sex1 character varying(254),
+  mrn1 character varying(100), patname1 character varying(100),
+  cur_pcp_prov_id1 character varying(18))
+  RETURNS VOID AS
+$$
+BEGIN
+  LOOP
+    UPDATE patient SET birth_month = birth_month1, sex = sex1, mrn = mrn1,
+      patname = patname1, cur_pcp_prov_id = cur_pcp_prov_id1 WHERE pat_id = pat_id1 AND customer_id = customer_id1;
+    IF found THEN
+      RETURN;
+    END IF;
+    BEGIN
+      INSERT INTO patient(pat_id, customer_id, birth_month, sex, mrn, patname, cur_pcp_prov_id)
+        VALUES (pat_id1, customer_id1, birth_month1, sex1, mrn1, patname1, cur_pcp_prov_id1);
+      RETURN;
+    EXCEPTION WHEN unique_violation THEN
+    END;
+  END LOOP;
+END;
+$$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION upsert_patient(character varying(100), numeric(18,0), character varying(6),
+character varying(254), character varying(100), character varying(100), character varying(18))
+  OWNER TO maven;
+
+
+CREATE OR REPLACE FUNCTION upsert_encounter(csn1 character varying(100), pat_id1 character varying(100),
+  enc_type1 character varying(254), contact_date1 date,
+  visit_prov_id1 character varying(18), bill_prov_id1 character varying(18), department_id1 numeric(18,0),
+  hosp_admsn_time1 date, hosp_disch_time1 date, customer_id1 numeric(18,0))
+  RETURNS VOID AS
+$$
+BEGIN
+  LOOP
+    UPDATE encounter SET pat_id = pat_id1, enc_type = enc_type1, contact_date = contact_date1,
+      visit_prov_id = visit_prov_id1, bill_prov_id = bill_prov_id1, department_id = department_id1,
+      hosp_admsn_time = hosp_admsn_time1, hosp_disch_time = hosp_disch_time1 WHERE csn = csn1 AND customer_id = customer_id1;
+    IF found THEN
+      RETURN;
+    END IF;
+    BEGIN
+      INSERT INTO encounter(csn, pat_id, enc_type, contact_date, visit_prov_id, bill_prov_id, department_id, hosp_admsn_time, hosp_disch_time, customer_id)
+        VALUES (csn1, pat_id1, enc_type1, contact_date1, visit_prov_id1, bill_prov_id1, department_id1, hosp_admsn_time1, hosp_disch_time1, customer_id1);
+      RETURN;
+    EXCEPTION WHEN unique_violation THEN
+    END;
+  END LOOP;
+END;
+$$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION upsert_encounter(character varying(100), character varying(100), character varying(254),
+date, character varying(18), character varying(18), numeric(18,0), date, date, numeric(18,0))
+  OWNER TO maven;
+
+
 INSERT INTO ruleTest.rules VALUES ('Test rule name','This is the test rule description','proc',12345,0,200,'12345678,9012345,67890123,1222222,56789876','90324023984,43987523,309753492785,53425243235','These are the details for the test rule','test only in department','test not in department'); 
 INSERT INTO ruleTest.rules VALUES ('Test rule name 1','This is the test rule description 1','proc',12345,0,200,'22345678,0012345,77890123,2222222,66789876','00324023984,33987523,009753492785,33425243235','These are the details for the test rule1','test only in department1','test not in department1');

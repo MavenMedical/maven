@@ -7,7 +7,7 @@ import dateutil.parser
 
 class Resource():
 
-    def __init__(self, customer_id=None, name_space=None, identifier=None, text=None):
+    def __init__(self, customer_id=None, name_space=None, identifier=None, text=None, resourceType=None):
         self.customer_id = customer_id
         self.name_space = name_space
         self.id = uuid.uuid1()
@@ -19,6 +19,7 @@ class Resource():
 
         if identifier is None:
             self.identifier = []
+        self.resourceType = resourceType
 
     def add_identifier(self, use=None, label=None, system=None, value=None, period=None, assigner=None):
         """
@@ -72,6 +73,7 @@ class Patient(Resource):
         Resource.__init__(self, identifier=identifier)
         if name is None:
             self.name = []
+        self.resourceType = "Patient"
         self.telecom = []
         self.gender = gender
         self.birthDate = birthDate
@@ -104,6 +106,10 @@ class Patient(Resource):
     def add_careProvider(self, orgclinician):
         self.careProvider.append(orgclinician)
 
+    def get_current_pcp(self):
+        #TODO add for loop to look up current pcp
+        return "304923812"
+
     def add_name(self, given, family, use=None, text=None, prefix=None, suffix=None, period=None):
         self.name.append(HumanName(use=use,
                                    text=text,
@@ -125,6 +131,16 @@ class Patient(Resource):
     def set_birth_date(self, datetime):
         self.birthDate = datetime
 
+    def get_pat_id(self):
+        for id in self.identifier:
+            if id.label == "CID" and id.system == "clientEMR":
+                return id.value
+
+    def get_mrn(self):
+        return "b59145f2b2d411e398360800275923d2"
+        #for id in self.identifier:
+            #if id.label == "MRN" and id.system == "clientEMR":
+                #return id.value
 
 class Practitioner(Resource):
 
@@ -192,12 +208,17 @@ class Encounter(Resource):
     def get_discharge_date(self):
         return self.period.end
 
+    def get_csn(self):
+        for id in self.identifier:
+            if id.system == "clientEMR" and id.label == "Internal":
+                return id.value
+
 
 class Procedure(Resource):
 
     def __init__(self, patient=None, encounter=None, period=None,
                  performer=None, followUp=None, type=None,
-                 name=None):
+                 name=None, cost=None):
         Resource.__init__(self)
         self.subject = patient
         self.patient = patient
@@ -209,13 +230,14 @@ class Procedure(Resource):
         self.notes = ""
         self.performer = performer
         self.name = name
+        self.cost = cost
 
 
 class Order(Resource):
 
-    def __init__(self, patient=None, practitioner=None, detail=None, when=None, totalCost=None, text=None):
+    def __init__(self, date=None, patient=None, practitioner=None, detail=None, when=None, totalCost=None, text=None):
         Resource.__init__(self, text=text)
-        self.date = datetime.datetime.now()
+        self.date = date
         self.subject = patient
         self.patient = patient
         self.source = practitioner
@@ -375,6 +397,9 @@ class Composition(Resource):
 
         composition = Composition()
 
+        if json_composition['customer_id'] is not None:
+            composition.customer_id = int(json_composition['customer_id'])
+
         if json_composition['subject'] is not None:
             composition.subject = self.create_patient_from_json(json_composition['subject'])
 
@@ -425,8 +450,10 @@ class Composition(Resource):
         if json_encounter['department'] is not None:
             encounter.department = Location(name=json_encounter['department']['name'],
                                             customer_id=json_encounter['department']['customer_id'])
-            for id in json_encounter['department']['identifier']:
-                encounter.department.identifier.append(Identifier(label=id['label'], system=id['system'], value=id['value']))
+
+        if json_encounter['identifier'] is not None:
+            for id in json_encounter['identifier']:
+                encounter.identifier.append(Identifier(label=id['label'], system=id['system'], value=id['value']))
 
         if json_encounter['encounter_class'] is not None:
             encounter.encounter_class = json_encounter['encounter_class']

@@ -67,7 +67,6 @@ class OutgoingMessageHandler(SP.StreamProcessor):
     def read_object(self, obj, _):
         json_composition = json.dumps(obj, default=api.jdefault, indent=4).encode()
         self.write_object(json_composition, writer_key=obj.maven_route_key)
-        #yield from self.route_object(obj)
 
     @asyncio.coroutine
     def route_object(self, obj):

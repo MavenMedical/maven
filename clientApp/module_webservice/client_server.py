@@ -17,14 +17,11 @@ __author__='Yuki Uchino'
 #LAST MODIFIED FOR JIRA ISSUE: MAV-65
 #*************************************************************************
 import app.utils.streaming.stream_processor as SP
-from xml.etree import ElementTree as ET
 import maven_config as MC
 import maven_logging as ML
 import asyncio
 import json
-import uuid
 import argparse
-import pickle
 from clientApp.module_webservice.emr_parser import VistaParser
 import clientApp.api.api as api
 

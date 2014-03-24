@@ -192,9 +192,15 @@ class VistaParser():
     def create_composition(self, xml_enc):
         composition = api.Composition(type="CostEvaluator")
         enc_root = ET.fromstring(xml_enc)
+        composition.customer_id = 2
 
         for child in enc_root:
-            if "PatientDemographics" in child.tag:
+            if "EncID" in child.tag:
+                composition.encounter = api.Encounter()
+                composition.encounter.identifier.append(api.Identifier(system="clientEMR",
+                                                                       label="Internal",
+                                                                       value=child.text))
+            elif "PatientDemographics" in child.tag:
                 composition.subject = self.parse_demographics(child)
 
             elif "Orders" in child.tag:
@@ -223,7 +229,10 @@ class VistaParser():
             firstName = xml_root.findall(".//FirstName")[0].text
             lastName = xml_root.findall(".//LastName")[0].text
             nationalIdentifier = xml_root.findall(".//NationalIdentifier")[0].text
-            patientId = xml_root.findall(".//NationalIdentifier")[0].text
+            patientSSN = xml_root.findall(".//NationalIdentifier")[0].text
+
+            patientID = xml_root.findall(".//PatientID")[0].text
+            patientIDType = xml_root.findall(".//PatientIDType")[0].text
 
         except:
             raise Exception('Error parsing XML demographics')
@@ -233,7 +242,8 @@ class VistaParser():
             patient = api.Patient()
             patient.add_name(given=[firstName], family=[lastName])
             patient.add_maven_identifier(value=uuid.uuid1())
-            patient.identifier.append(api.Identifier(system='NationalIdentifier', value=patientId))
+            patient.identifier.append(api.Identifier(system='NationalIdentifier', value=patientSSN))
+            patient.identifier.append(api.Identifier(system='clientEMR', label=patientIDType, value=patientID))
             patient.address.append(api.Address(zip=zipcode, city=city,
                                            country=country, county=county,
                                            state=state, line=[street]))
@@ -241,8 +251,9 @@ class VistaParser():
             patient.gender = gender
             patient.maritalStatus = maritalStatus
 
+
         except:
-            raise Exception('Error constructing patient from API and data')
+            raise Exception('Error constructing FHIR patient from API and data')
 
         return patient
 
@@ -253,11 +264,17 @@ class VistaParser():
                 ord_name = ord.findall(".//Name")[0].text
                 ord_code = ord.findall(".//ProcedureCode")[0].text
                 ord_code_type = ord.findall(".//CodeType")[0].text
+                if ord_code_type is None:
+                    ord_code_type = "Internal"
                 ord_type = ord.findall(".//Type")[0].text
+                datetime = ord.findall(".//OrderingDate")[0].text.replace('@', ' ')
+                ord_datetime = dateutil.parser.parse(datetime)
+
 
                 procedure = api.Procedure()
                 procedure.type = ord_type
                 procedure.name = ord_name
+                procedure.date = ord_datetime
                 procedure.identifier.append(api.Identifier(system="clientEMR", label=ord_code_type, value=ord_code))
                 encounter_orders.append(api.Order(detail=[procedure], text=ord_name))
         except:
