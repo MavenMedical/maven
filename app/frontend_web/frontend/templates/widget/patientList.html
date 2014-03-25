@@ -6,6 +6,7 @@
         <table class="table table-condensed table-hover">
             <tbody>
             <% _.each(patients, function(patient){ %>
+            <div>
             <tr>
                 <td>
                     <a href='#/patient/<%= patient.id %>/details/<%= patient.get("key") %>'>
@@ -25,6 +26,7 @@
                     <%= patient.get("cost") %>
                 </td>
             </tr>
+                </div>
             <% }); %>
 
             </tbody>

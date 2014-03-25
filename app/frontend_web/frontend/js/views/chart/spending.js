@@ -7,32 +7,29 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
+    'currentContext',
     //model
     'models/chartsModels/spendingModel',
 
     'text!templates/chart/spending.html'
-], function ($, _, Backbone, SpendingModel, spendingTemplate) {
+], function ($, _, Backbone, currentContext, SpendingModel, spendingTemplate) {
 
     var Spending = Backbone.View.extend({
-        el: $('.spending'),
-        initialize: function (context) {
-            console.log(context);
+        el: '.spending',
+        template: _.template(spendingTemplate),
+        initialize: function () {
             _.bindAll(this, 'render');
-            this.render(context);
+            this.spend = new SpendingModel;
+            this.render();
         },
-        render: function (context) {
-            var spend = new SpendingModel;
-
-            spend.fetch({
+        render: function () {
+          var that = this;
+            this.spend.fetch({
                 success: function (spend) {
-                    console.log("fetch spending model success");
-                    var template = _.template(spendingTemplate, {spending: spend});
-                    this.$('.spending').html(template);
+                    that.$el.html(that.template({spending: spend}));
                 },
-                data: $.param({user: 'tom', key: context['key'], patients: context['id']})
+                data: $.param(currentContext)
             });
-
-
         }
     });
     return Spending;

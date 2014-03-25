@@ -8,31 +8,31 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
 
+    'currentContext',
+
     //Model
     'models/patientModel',
 
     'text!templates/widget/patInfo.html'
-], function ($, _, Backbone, PatientModel, patInfoTemplate) {
+], function ($, _, Backbone, currentContext,  PatientModel, patInfoTemplate) {
 
     var PatInfo = Backbone.View.extend({
-        el: $('.patientinfo'),
-        initialize: function(context){
+        el: '.patientinfo',
+        template: _.template(patInfoTemplate),
+        initialize: function(){
             _.bindAll(this, 'render');
-            this.render(context);
+            this.pat = new PatientModel;
+            this.render();
         },
-        render: function (context) {
+        render: function () {
+            console.log(currentContext);
+            var that = this;
 
-            var pat = new PatientModel;
-            console.log(context);
-
-            pat.fetch({
+            this.pat.fetch({
                 success: function (pat) {
-                    console.log("fetch patient model success");
-                    console.log(pat);
-                    var template = _.template(patInfoTemplate, {patient:pat});
-                    this.$('.patientinfo').html(template);
+                    that.$el.html(that.template({patient:pat}));
                 },
-                data: $.param({ user: 'tom', key: context['key'], patients: context['id']})
+                data: $.param(currentContext)
             });
 
         }

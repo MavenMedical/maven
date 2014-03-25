@@ -28,35 +28,28 @@ define([
 ], function ($, _, Backbone, PatInfo, Utilization, Saving, Orderable, DailyCost, CostBD, episodeTemplate) {
 
     var EpisodeView = Backbone.View.extend({
-        el: $('.page'),
-        initialize: function(context){
+        el: '.page',
+        template: _.template(episodeTemplate),
+        initialize: function(){
             _.bindAll(this, 'render');
-            this.context = context;
             this.render();
         },
         render: function () {
             $('.nav li').removeClass('active');
             $('.nav li a[href="' + window.location.hash + '"]').parent().addClass('active');
-            console.log(this.context);
-            var template = _.template(episodeTemplate, {});
-            this.$el.html(template);
+
+            this.$el.html(this.template);
+
+            console.log('test');
 
             //widgets
-            var patinfo = new PatInfo(this.context);
+            this.patinfo = new PatInfo;
+            this.util = new Utilization;
+            this.saving = new Saving;
+            this.orderable = new Orderable;
+            this.dailycost = new DailyCost;
+            this.costbd = new CostBD;
 
-            var util = new Utilization;
-            util.render();
-
-            var saving = new Saving;
-            saving.render();
-
-            var orderable = new Orderable;
-
-            var dailycost = new DailyCost;
-            dailycost.render();
-
-            var costbd = new CostBD;
-            costbd.render();
 
         }
     });

@@ -11,10 +11,14 @@ define([
 ], function ($, _, Backbone, dailycostTemplate) {
 
     var DailyCost = Backbone.View.extend({
-        el: $('.dailycost'),
+        el: '.dailycost',
+        template: _.template(dailycostTemplate),
+        initialize:function(){
+            _.bindAll(this,'render');
+            this.render();
+        },
         render: function () {
-            var template = _.template(dailycostTemplate, {});
-            $('.dailycost').append(template);
+            this.$el.html(this.template);
         }
     });
     return DailyCost;

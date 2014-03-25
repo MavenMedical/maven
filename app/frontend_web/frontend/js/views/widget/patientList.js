@@ -8,6 +8,7 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
 
+    'currentContext',
 
     //Model
     'models/patientModel',
@@ -17,20 +18,35 @@ define([
 
     //Template
     'text!templates/widget/patientList.html'
-], function ($, _, Backbone, PatientModel, PatientCollection, patientListTemplate) {
+], function ($, _, Backbone, currentContext,  PatientModel, PatientCollection, patientListTemplate) {
+
 
     var PatientList = Backbone.View.extend({
-        el: $('.patientlist'),
+        el: '.patientlist',
+        template: _.template(patientListTemplate),
+        initialize: function(){
+            _.bindAll(this , 'render', 'click');
+            this.patients = new PatientCollection();
+            this.render();
 
-        render: function () {
-            var patients = new PatientCollection();
+        },
+        events: {
+          'click tr': 'click'
+        },
+        click: function(e){
+          //console.log($(e.target));
+           // console.log($(e.target).text());
+            console.log($(e.target.item));
+        },
+        render: function(){
+            console.log(currentContext);
+            var that = this;
 
-            patients.fetch({
-                success: function (patients) {
-                    var template = _.template(patientListTemplate, {patients: patients.models});
-                    this.$('.patientlist').append(template);
-                },
-                data: $.param({ user: 'tom'})
+            this.patients.fetch({
+               success: function(patients){
+                   that.$el.html(that.template({patients:patients.models}));
+               } ,
+                data: $.param(currentContext)
             });
 
         }

@@ -43,9 +43,6 @@ define([
             options.url = 'services' + options.url;
         });
 
-        var context = currentContext;
-        console.log(context);
-
         var app_router = new AppRouter;
 
         // render side menu and topnav for all pages
@@ -56,11 +53,18 @@ define([
 
         app_router.on('route:showHome', function () {
             // Call render on the module we loaded in via the dependency array
+
+            //update current context page
+            currentContext.page = 'home';
+
             var homeView = new HomeView;
-            homeView.render();
+
         });
 
         app_router.on('route:showPatient', function (patid , patkey) {
+
+            //update current context page
+            currentContext.page = 'patient';
 
             var patientView = new PatientView;
             patientView.render({id:patid, key:patkey});
@@ -71,7 +75,12 @@ define([
             alertsView.render();
         });
         app_router.on('route:showEpisode', function (patid, patkey) {
-            var episodeView = new EpisodeView({id:patid, key:patkey});
+
+
+             //update current context page
+            currentContext.page = 'episode';
+
+            var episodeView = new EpisodeView;
 
 
         });

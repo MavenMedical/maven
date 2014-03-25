@@ -22,7 +22,6 @@ define([
         render: function () {
             $('.nav li').removeClass('active');
             $('.nav li a[href="' + window.location.hash + '"]').parent().addClass('active');
-
             $('.patientinfo').empty();
 
             var template = _.template(alertTemplate, {});

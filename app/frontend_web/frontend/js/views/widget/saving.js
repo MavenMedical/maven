@@ -11,10 +11,14 @@ define([
 ], function ($, _, Backbone, savingTemplate) {
 
     var Saving = Backbone.View.extend({
-        el: $('.saving'),
+        el: '.saving',
+        template: _.template(savingTemplate),
+        initialize: function(){
+            _.bindAll(this, 'render');
+            this.render();
+        },
         render: function () {
-            var template = _.template(savingTemplate, {});
-            $('.saving').append(template);
+          this.$el.html(this.template);
         }
     });
     return Saving;

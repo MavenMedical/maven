@@ -11,10 +11,14 @@ define([
 ], function ($, _, Backbone, utilizationTemplate) {
 
     var Utilization = Backbone.View.extend({
-        el: $('.utilization'),
+        el: '.utilization',
+        template: _.template(utilizationTemplate),
+        initialize: function(){
+            _.bindAll(this,'render');
+            this.render();
+        },
         render: function () {
-            var template = _.template(utilizationTemplate, {});
-            $('.utilization').append(template);
+            this.$el.html(this.template);
         }
     });
     return Utilization;

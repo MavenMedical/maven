@@ -7,25 +7,48 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
+
+    'currentContext',
+
+     //Model
+    'models/patientModel',
+
+    //Collection
+    'collections/patients',
+
     'text!templates/widget/orderable.html'
-], function ($, _, Backbone, orderableTemplate) {
+], function ($, _, Backbone, currentContext, PatientModel, PatientCollection, orderableTemplate) {
 
     var Orderable = Backbone.View.extend({
-        el: $('.orderable'),
-        initialize: function(){
-            _.bindAll(this, 'render', 'eventHandeler');
+        el: '.orderable',
+        template: _.template(orderableTemplate),
+
+        initialize: function () {
+            console.log("ini orderable");
+            _.bindAll(this, 'render', 'click');
+            this.patients = new PatientCollection();
             this.render();
         },
+
         events: {
-          'click .a[data-toggle="collapse"]' : 'eventHandeler'
+            'click': 'click'
         },
-        eventHandeler: function(){
-          console.log("event fired");
+
+        click: function (e) {
+            console.log($(e.target));
         },
+
         render: function () {
             console.log("render orderables");
-           // console.log(this.el);
-            this.el.append(_.template(orderableTemplate, {}));
+
+             var that = this;
+
+            this.patients.fetch({
+               success: function(patients){
+                   that.$el.html(that.template({patients:patients.models}));
+               } ,
+                data: $.param(currentContext)
+            });
         }
     });
     return Orderable;
