@@ -45,6 +45,9 @@ class CostEvaluator(SP.StreamProcessor):
         self.write_object(composition, writer_key='aggregate')
 
     def evaluate_orders(self, composition):
+        """
+
+        """
 
         encounter_cost_breakdown = []
         total_cost = 0.00
@@ -77,6 +80,7 @@ class CostEvaluator(SP.StreamProcessor):
             patname = composition.subject.get_name()
             cur_pcp_prov_id = composition.subject.get_current_pcp()
 
+
             cur = self.conn.execute("SELECT upsert_patient('%s', %s, '%s', '%s', '%s', '%s', '%s')" %
                                    (pat_id, customer_id, birth_month, sex, mrn, patname, cur_pcp_prov_id))
         except:
@@ -89,6 +93,15 @@ class CostEvaluator(SP.StreamProcessor):
 
         except:
             raise Exception("Error parsing encounter data into database")
+
+        try:
+            json_composition = json.dumps(composition, default=api.jdefault)
+            ML.PRINT(json_composition)
+            cur = self.conn.execute("INSERT INTO composition (patient_id, encounter_id, customer_id, comp_body) VALUES ('%s', '%s', %s, ('%s'))" % (pat_id, encID, customer_id, json_composition))
+
+        except:
+            raise Exception("Error storing JSON composition")
+
 
 def run_cost_evaluator():
 

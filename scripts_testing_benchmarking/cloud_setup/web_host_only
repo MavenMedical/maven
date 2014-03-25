@@ -49,3 +49,12 @@ chmod g+rx `pwd`
 sudo service nginx start
 
 sudo usermod -G <user> -a nginx
+
+cd
+# for rabbit
+sudo yum install erlang
+wget https://www.rabbitmq.com/releases/rabbitmq-server/v3.2.4/rabbitmq-server-3.2.4-1.noarch.rpm
+sudo yum install rabbitmq-server-3.2.4-1.noarch.rpm
+sudo service rabbitmq-server start
+sudo chkconfig rabbitmq-server on
+

@@ -1,6 +1,9 @@
 <Encounter>
+    <EncID>987987987</EncID>
 
    <GetPatientDemographicsResult>
+       <PatientID>1235412</PatientID>
+       <PatientIDType>CID</PatientIDType>
 
       <Address>
 
@@ -26,9 +29,9 @@
 
       <Name>
 
-         <FirstName>TEST ONE</FirstName>
+         <FirstName>Cat</FirstName>
 
-         <LastName>ZZ PATIENT</LastName>
+         <LastName>Woman</LastName>
 
          <MaidenName />
 
@@ -56,15 +59,16 @@
 
       <Order>
 
-         <ProcedureCode>1234567</ProcedureCode>
+         <ProcedureCode>1</ProcedureCode>
 
          <CodeType />
 
          <ExpectedDate>JUL 27, 2005@11:52:24</ExpectedDate>
+          <OrderingDate>JUL 27, 2005@11:52:24</OrderingDate>
 
          <ExpiredDate />
 
-         <Name>HEMOGLOBIN A1C</Name>
+         <Name>Vibramycin 100mg capsule (count 14)</Name>
 
          <Type>PROC</Type>
 
@@ -72,15 +76,16 @@
 
       <Order>
 
-         <ProcedureCode>1234567</ProcedureCode>
+         <ProcedureCode>2</ProcedureCode>
 
          <CodeType />
 
          <ExpectedDate>JUL 27, 2005@17:20:22</ExpectedDate>
+          <OrderingDate>JUL 27, 2005@17:20:22</OrderingDate>
 
          <ExpiredDate />
 
-         <Name>LDL-CHOL CALCULATION</Name>
+         <Name>Doxycycline 100mg capsule (count 14)</Name>
 
          <Type>PROC</Type>
 
@@ -88,15 +93,16 @@
 
       <Order>
 
-         <ProcedureCode>2345678</ProcedureCode>
+         <ProcedureCode>3</ProcedureCode>
 
          <CodeType />
 
          <ExpectedDate>JUL 27, 2005@17:22:55</ExpectedDate>
+         <OrderingDate>JUL 27, 2005@17:22:55</OrderingDate>
 
          <ExpiredDate />
 
-         <Name>LDL CHOLESTEROL</Name>
+         <Name>CT Head w/o Contrast</Name>
 
          <Type>PROC</Type>
 
@@ -104,15 +110,16 @@
 
       <Order>
 
-         <ProcedureCode>2345678</ProcedureCode>
+         <ProcedureCode>4</ProcedureCode>
 
          <CodeType />
 
          <ExpectedDate>JUL 27, 2005@17:25:35</ExpectedDate>
+          <OrderingDate>JUL 27, 2005@17:25:35</OrderingDate>
 
          <ExpiredDate />
 
-         <Name>HDL</Name>
+         <Name>Immunoglobulin Assay</Name>
 
          <Type>PROC</Type>
 
@@ -125,6 +132,7 @@
          <CodeType />
 
          <ExpectedDate>JUL 27, 2005@17:25:39</ExpectedDate>
+          <OrderingDate>JUL 27, 2005@17:25:39</OrderingDate>
 
          <ExpiredDate />
 
@@ -141,22 +149,7 @@
          <CodeType />
 
          <ExpectedDate>JUL 27, 2005@17:25:39</ExpectedDate>
-
-         <ExpiredDate />
-
-         <Name>LDL-CHOL CALCULATION</Name>
-
-         <Type>PROC</Type>
-
-      </Order>
-
-      <Order>
-
-         <ProcedureCode>2345678</ProcedureCode>
-
-         <CodeType />
-
-         <ExpectedDate>JUL 27, 2005@17:25:39</ExpectedDate>
+          <OrderingDate>JUL 27, 2005@17:25:39</OrderingDate>
 
          <ExpiredDate />
 

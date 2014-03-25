@@ -285,6 +285,25 @@ CREATE INDEX ixprovider
   (prov_id, customer_id);
 
 
+-- Table: composition
+
+-- DROP TABLE composition;
+
+CREATE TABLE composition
+(
+  comp_id serial NOT NULL,
+  patient_id character varying(100),
+  customer_id numeric(18,0),
+  comp_body json,
+  encounter_id character varying(100),
+  CONSTRAINT composition_pkey PRIMARY KEY (comp_id)
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE composition
+  OWNER TO maven;
+
 
 -- Table: department
 
