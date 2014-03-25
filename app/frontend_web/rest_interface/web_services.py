@@ -56,16 +56,40 @@ def _authorization_key(data):
     return base64.b64encode(sha.digest())[:32].decode().replace('/','_').replace('+','-')
     
 
-patients = {
-    1: {'id':1, 'name':'Jordon Severt', 'gender':'Male', 'DOB':'05/03/1987', 'diagnosis':'Asthma'},
-    2: {'id':2, 'name':'Adaline Malachi', 'gender':'Female', 'DOB':'03/06/1986', 'diagnosis':'Coccidiosis'},
-    3: {'id':3, 'name':'Jefferson Lariviere', 'gender':'Male', 'DOB':'08/03/1999',  'diagnosis':'Food poisoning'},
-    4: {'id':4, 'name':'Beulah Gay', 'gender':'Female', 'DOB':'11/07/1935', 'diagnosis':'Giardiasis'},
+patients_list = {
+    1: {'id':1, 'name':'Batman', 'gender':'Male', 'DOB':'05/03/1987', 'diagnosis':'Asthma'},
+    2: {'id':2, 'name':'Wonder Woman', 'gender':'Female', 'DOB':'03/06/1986', 'diagnosis':'Coccidiosis'},
+    3: {'id':3, 'name':'Superman', 'gender':'Male', 'DOB':'08/03/1999',  'diagnosis':'Food poisoning'},
+    4: {'id':4, 'name':'Storm', 'gender':'Female', 'DOB':'11/07/1935', 'diagnosis':'Giardiasis'},
 } 
 
 patient_extras = {
     1: {'Allergies': ['Penicillins','Nuts','Cats'], 'Problem List':['Asthma','Cholera']},
 }
+
+order_list = {
+    1: [{'name':'Echocardiogram','date':'1/1/2014','result':'','cost':1200},
+        {'name':'Immunoglobulin','date':'3/24/3014','result':'Normal','cost':100},
+        ],
+}
+
+alert_types = {
+    1: {'name':'Avoid NSAIDS', 'cost':168, 'html':'<b>Avoid nonsteroidal anti-inflammatory drugs (NSAIDS)</b> in indeviduals with hypertension or heart failure or CKD of all causes, including diabetes.'},
+    2: {'name':'Placeholder', 'cost':0, 'html':'Placeholder alert to be replaced by something real.  Consult <a href="www.google.com">google</a> for more information.'},
+    3: {'name':'Placeholder', 'cost':0, 'html':'Placeholder alert to be replaced by something real.  Consult <a href="www.google.com">google</a> for more information.'},
+    4: {'name':'Placeholder', 'cost':0, 'html':'Placeholder alert to be replaced by something real.  Consult <a href="www.google.com">google</a> for more information.'},
+    5: {'name':'Placeholder', 'cost':0, 'html':'Placeholder alert to be replaced by something real.  Consult <a href="www.google.com">google</a> for more information.'},
+}
+
+alert_list = [
+    {'id':1, 'patient':1, 'type':1, 'date':'12/15/2013', 'followed':''},
+    {'id':2, 'patient':1, 'type':2, 'date':'12/16/2013', 'followed':''},
+    {'id':3, 'patient':2, 'type':1, 'date':'12/17/2013', 'followed':''},
+    {'id':4, 'patient':2, 'type':3, 'date':'12/18/2013', 'followed':''},
+    {'id':5, 'patient':3, 'type':2, 'date':'12/19/2013', 'followed':''},
+    {'id':6, 'patient':3, 'type':3, 'date':'12/20/2013', 'followed':''},
+    {'id':7, 'patient':4, 'type':4, 'date':'12/21/2013', 'followed':''},
+]
 
 def min_zero_normal(u,s):
     ret = int(random.normalvariate(u,s))
@@ -104,6 +128,8 @@ patient_spending = {
     3: create_spend(200,.05,.8),
     4: create_spend(100,.1,.5),
 }
+
+
 
 def copy_and_append(m, kv):
     return dict(itertools.chain(m.items(),[kv]))
@@ -153,17 +179,17 @@ class FrontendWebService(HTTP.HTTPProcessor):
         self.add_handler(['GET'], '/total_savings', self.get_total_savings)
         self.add_handler(['GET'], '/spending', self.get_daily_spending)
         self.add_handler(['GET'], '/spending_details', self.get_spending_details)
-        self.db = AsyncConnectionPool(db_configname)
+        #self.db = AsyncConnectionPool(db_configname)
 
 
         self.add_handler(['GET'], '/alerts(?:/(\d+)-(\d+)?)?', self.get_alerts)
-        self.add_handler(['GET'], '/alert_details', self.get_alert_details)
+#        self.add_handler(['GET'], '/alert_details', self.get_alert_details)
         self.add_handler(['GET'], '/orders(?:/(\d+)-(\d+)?)?', self.get_orders)
-        self.add_handler(['GET'], '/order_details', self.get_order_details)
+#        self.add_handler(['GET'], '/order_details', self.get_order_details)
 
     def schedule(self, loop):
         HTTP.HTTPProcessor.schedule(self, loop)
-        self.db.schedule(loop)
+        #self.db.schedule(loop)
 
 
     @asyncio.coroutine
@@ -175,24 +201,24 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
     @asyncio.coroutine
     def get_patients(self, _header, _body, qs, matches, _key):
-        global patients
+        global patients_list
 
         context = restrict_context(qs, 
                                    FrontendWebService.patients_required_contexts,
                                    FrontendWebService.patients_available_contexts)
         user = context[CONTEXT_USER]
-        (start, stop) = _get_range(matches, len(patients))
+        (start, stop) = _get_range(matches, len(patients_list))
 
-        patient_cursor = yield from self.db.execute_single('select patname, sex, birth_month from patient')
-        print("patient cursor ")
+        #patient_cursor = yield from self.db.execute_single('select patname, sex, birth_month from patient')
+        #print("patient cursor ")
 
-        pat =[]
-        for r in patient_cursor:
-            pat.append(r)
-            print(r)
+        #pat =[]
+        #for r in patient_cursor:
+        #    pat.append(r)
+        #    print(r)
 
         patient_list = [copy_and_append(v, (CONTEXT_KEY,_authorization_key((user, v['id'])))) 
-                        for v in patients.values()][start:stop]
+                        for v in patients_list.values()][start:stop]
         print(patient_list)
         return (HTTP.OK_RESPONSE, json.dumps(patient_list), None)
 
@@ -201,7 +227,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
     @asyncio.coroutine
     def get_patient_details(self, _header, _body, qs, matches, _key):
-        global patients
+        global patients_list
         context = restrict_context(qs, 
                                    FrontendWebService.patient_required_contexts,
                                    FrontendWebService.patient_available_contexts)
@@ -210,7 +236,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         auth_key = context[CONTEXT_KEY]
         if not auth_key == _authorization_key((user, patient_id)):
             raise HTTP.IncompleteRequest('%s has not been authorized to view patient %d.' % (user, patient_id))
-        patient_dict = dict(patients[patient_id])
+        patient_dict = dict(patients_list[patient_id])
         if patient_id in patient_extras:
             patient_dict.update(patient_extras[patient_id])
         return (HTTP.OK_RESPONSE, json.dumps(patient_dict), None)
@@ -267,17 +293,54 @@ class FrontendWebService(HTTP.HTTPProcessor):
         return (HTTP.OK_RESPONSE, json.dumps(spend), None)
 
     #self.add_handler(['GET'], '/alerts(?:/(\d+)-(\d+)?)?', self.get_stub)
+    
+    alerts_required_contexts = [CONTEXT_USER, CONTEXT_PATIENTLIST]
+    alerts_available_contexts = {CONTEXT_USER:str, CONTEXT_PATIENTLIST:list}
+    
+    @asyncio.coroutine
     def get_alerts(self, _header, _body, qs, _matches, _key):
-        return (HTTP.OK_RESPONSE, b'', None)
+        global alert_list
+        global alert_types
+        context = restrict_context(qs, 
+                                   FrontendWebService.alerts_required_contexts,
+                                   FrontendWebService.alerts_available_contexts)
+        user = context[CONTEXT_USER]
+        patient_ids = list(map(int,context[CONTEXT_PATIENTLIST]))
+        #auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
+        
+        response_list = [dict(itertools.chain(l.items(),alert_types[l['type']].items())) for l in filter(lambda s: s['patient'] in patient_ids, alert_list)]
+        
+        return (HTTP.OK_RESPONSE, json.dumps(response_list), None)
 
 
     #self.add_handler(['GET'], '/alert_details', self.get_stub)
     def get_alert_details(self, _header, _body, qs, _matches, _key):
         return (HTTP.OK_RESPONSE, b'', None)
 
+    orders_required_contexts = [CONTEXT_USER, CONTEXT_PATIENTLIST]
+    orders_available_contexts = {CONTEXT_USER:str, CONTEXT_PATIENTLIST:list}
+
     #self.add_handler(['GET'], '/orders(?:/(\d+)-(\d+)?)?', self.get_stub)
+    @asyncio.coroutine
     def get_orders(self, _header, _body, qs, _matches, _key):
-        return (HTTP.OK_RESPONSE, b'', None)
+        global order_list
+        context = restrict_context(qs, 
+                                   FrontendWebService.orders_required_contexts,
+                                   FrontendWebService.orders_available_contexts)
+        user = context[CONTEXT_USER]
+        patient_ids = list(map(int,context[CONTEXT_PATIENTLIST]))
+        #auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
+        
+        order_dict = {}
+        for patient_id in set(patient_ids).intersection(order_list.keys()):
+            try:
+                #if _authorization_key((user, patient_id)) == auth_keys[patient_id]:
+                order_dict[patient_id]=order_list[patient_id]
+            except TypeError:
+                pass
+
+        return (HTTP.OK_RESPONSE, json.dumps(order_dict), None)
+
 
     #self.add_handler(['GET'], '/order_details', self.get_stub)
     def get_order_details(self, _header, _body, qs, _matches, _key):
