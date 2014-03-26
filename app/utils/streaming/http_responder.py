@@ -289,6 +289,90 @@ class HTTPProcessor(SP.StreamProcessor):
         #print(re.match(regexp,b'GET /users/1 HTTP/1.0'))
 
 
+class HTTPReader(SP.StreamProcessor):
+    """ HTTPProcessor extends stream_processor.StreamProcessor with a web server
+    It can create many kinds of web servers, but the motivation is RESTful web services
+
+    As written, when a client connects, a coroutine is schedule to handle the request and respond 
+    immediately.  Without much effort it could be re-configured to bundle the request, send it to
+    another machine for processing, and pair the reply back with the original socket when it comes back.
+    """
+
+    def __init__(self, configname):
+        """ Initialize the StreamProcessor superclass, getting all of the IO and helper functions from 
+        the MavenConfig structure.  It creates the StreamProcess, but does not yet make network connections.
+
+        :param configname: the name of the instance to pull config parameters
+        """
+
+        # read the config parameters
+        try:
+            self.config = MC.MavenConfig[configname]
+            self.host = self.config.get(SP.CONFIG_HOST, None)
+            self.port = self.config[SP.CONFIG_PORT]
+        except KeyError:
+            raise MC.InvalidConfig(configname + " did not have sufficient parameters.")            
+        
+        # the web service only needs host and port parameters, but stream processor needs
+        # more detailed information.  create detailed configuration parameters here
+        self.config.update(
+            {
+                SP.CONFIG_PARSERTYPE: CONFIGVALUE_HTTPPARSER,
+            })
+
+        # initialize the base StreamProcessor with this new configuration pameters
+        SP.StreamProcessor.__init__(self, configname)
+
+class HTTPWriter(SP.StreamProcessor):
+    
+    def __init__(self, configname):
+        SP.StreamProcessor.__init__(self, configname)
+
+    @asyncio.coroutine
+    def read_object(self, obj, key):
+        """ read_object takes an http request and a writer key, determines which handler should process 
+        request, invokes that handler, and responds with its output.
+        
+        It should handle catch-all errors, string sanitization, authentication, etc., so that the handler
+        functions only worry about the business logic.
+
+        :param obj: 
+        :param key: 
+        """        
+        
+        ret = None
+        try:
+            (response, body, extras, k) = yield from format_response(obj, key)
+            if resp == OK_RESPONSE and not body: # use No Content when called for
+                resp = NOCONTENT_RESPONSE
+            ret=wrap_response(resp, body, extras)
+
+        except KeyError:  # key error means an object isn't found
+            ret = wrap_response(NOTFOUND_RESPONSE, b'')
+        except ValueError:
+            ret = wrap_response(BAD_RESPONSE, b'')
+        except IncompleteRequest as e :  # key error means an object isn't found
+            ret = wrap_response(BAD_RESPONSE, bytes(str(e),'utf-8'))
+        except:  # handle general errors gracefully
+            traceback.print_exc()
+            ret = wrap_response(ERROR_RESPONSE, b'')
+
+        if not ret:  # if there are no matches, respond
+            ret = wrap_response(UNAVAILABLE_RESPONSE, b'')
+
+        try:
+            self.write_object(ret, writer_key = k)  # send the response
+            ML.DEBUG("done writing")
+            if headers.get_headers().get('Connection','').upper()=='CLOSE':
+                self.unregister_writer(k)
+                ML.DEBUG("unregistering")
+            else:
+                ML.DEBUG(headers.get('Connection'))
+        except:
+            ML.WARN("connection to %s failed before write happened" % k)
+    
+
+
 class BackboneService(HTTPProcessor):
     """ BackboneService is a subclass of HTTPProcessor which interacts with the backbone.js turorial available 
     from git clone https://github.com/thomasdavis/backbonetutorials.git
