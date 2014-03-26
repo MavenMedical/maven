@@ -26,7 +26,7 @@ define([
     var AppRouter = Backbone.Router.extend({
         routes: {
             "": 'showHome',
-            "patient/:id/details/:key": 'showPatient',
+            "patient": 'showPatient',
             "alerts": 'showAlerts',
             "episode/:id/details/:key": 'showEpisode',
 
@@ -67,7 +67,7 @@ define([
             currentContext.page = 'patient';
 
             var patientView = new PatientView;
-            patientView.render({id:patid, key:patkey});
+            patientView.render();
 
         });
         app_router.on('route:showAlerts', function () {

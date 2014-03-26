@@ -143,7 +143,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
     def __init__(self, configname):
         HTTP.HTTPProcessor.__init__(self,configname)
         try:
-            db_configname = self.config[CONFIG_DATABASE]
+            pass #db_configname = self.config[CONFIG_DATABASE]
         except KeyError:
             raise MC.InvalidConfig('some real error')
 
@@ -153,7 +153,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         self.add_handler(['GET'], '/total_savings', self.get_total_savings)
         self.add_handler(['GET'], '/spending', self.get_daily_spending)
         self.add_handler(['GET'], '/spending_details', self.get_spending_details)
-        self.db = AsyncConnectionPool(db_configname)
+        #self.db = AsyncConnectionPool(db_configname)
 
 
         self.add_handler(['GET'], '/alerts(?:/(\d+)-(\d+)?)?', self.get_alerts)
@@ -163,7 +163,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
     def schedule(self, loop):
         HTTP.HTTPProcessor.schedule(self, loop)
-        self.db.schedule(loop)
+        #self.db.schedule(loop)
 
 
     @asyncio.coroutine
@@ -183,15 +183,15 @@ class FrontendWebService(HTTP.HTTPProcessor):
         user = context[CONTEXT_USER]
         (start, stop) = _get_range(matches, len(patients))
 
-        patient_cursor = yield from self.db.execute_single('select patname, sex, birth_month from patient')
+        '''patient_cursor = yield from self.db.execute_single('select patname, sex, birth_month from patient')
         print("patient cursor ")
 
         pat =[]
         for r in patient_cursor:
             pat.append(r)
-            print(r)
+            print(r)'''
 
-        patient_list = [copy_and_append(v, (CONTEXT_KEY,_authorization_key((user, v['id'])))) 
+        patient_list = [copy_and_append(v, (CONTEXT_KEY,_authorization_key((user, v['id']))))
                         for v in patients.values()][start:stop]
         print(patient_list)
         return (HTTP.OK_RESPONSE, json.dumps(patient_list), None)
@@ -293,7 +293,7 @@ if __name__ == '__main__':
                 {
                     SP.CONFIG_HOST: 'localhost',
                     SP.CONFIG_PORT: 8087,
-                    CONFIG_DATABASE: "test conn pool",
+                    #CONFIG_DATABASE: "test conn pool",
                 },
             'test conn pool': {
                 AsyncConnectionPool.CONFIG_CONNECTION_STRING:

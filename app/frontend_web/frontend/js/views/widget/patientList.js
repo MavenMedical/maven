@@ -10,6 +10,9 @@ define([
 
     'currentContext',
 
+    //sub view
+    '../singleRow/patientRow',
+
     //Model
     'models/patientModel',
 
@@ -18,38 +21,31 @@ define([
 
     //Template
     'text!templates/widget/patientList.html'
-], function ($, _, Backbone, currentContext,  PatientModel, PatientCollection, patientListTemplate) {
+], function ($, _, Backbone, currentContext, patientRow,  PatientModel, PatientCollection, patientListTemplate) {
+        var PatientList = Backbone.View.extend({
+            el: '.patientlist',
+            template: _.template(patientListTemplate),
 
+            initialize: function(){
+                console.log("patient list ini");
+                _.bindAll(this, 'render', 'addPatient');
+                this.patients = new PatientCollection;
+                this.patients.bind('add', this.addPatient, this);
+                this.patients.fetch({data:$.param(currentContext)});
+                this.render();
+            },
+            render: function(){
+                console.log('patient list render');
+                this.$el.html(this.template);
+            },
+            addPatient: function(pat){
+                var patientrow = new patientRow({
+                    model: pat
+                });
+                $('.table').append(patientrow.render().el);
+            }
+        });
 
-    var PatientList = Backbone.View.extend({
-        el: '.patientlist',
-        template: _.template(patientListTemplate),
-        initialize: function(){
-            _.bindAll(this , 'render', 'click');
-            this.patients = new PatientCollection();
-            this.render();
-
-        },
-        events: {
-          'click tr': 'click'
-        },
-        click: function(e){
-          //console.log($(e.target));
-           // console.log($(e.target).text());
-            console.log($(e.target.item));
-        },
-        render: function(){
-            console.log(currentContext);
-            var that = this;
-
-            this.patients.fetch({
-               success: function(patients){
-                   that.$el.html(that.template({patients:patients.models}));
-               } ,
-                data: $.param(currentContext)
-            });
-
-        }
-    });
     return PatientList;
+
 });
