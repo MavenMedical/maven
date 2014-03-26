@@ -7,14 +7,23 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
+    'collections/alerts',
     'text!templates/widget/alert.html'
-], function ($, _, Backbone, alertTemplate) {
+	], function ($, _, Backbone, AlertCollection, alertTemplate) {
 
     var Alert = Backbone.View.extend({
-        el: $('.alert'),
+        el: $('.alertlist'),
         render: function () {
-            var template = _.template(alertTemplate, {});
-            $('.alert').append(template);
+		var alertCollection = new AlertCollection();
+
+		alertCollection.fetch({
+			success: function(alerts) {
+			    var template = _.template(alertTemplate, {alerts: alerts.models});
+			    this.$('.alertlist').append(template);
+			    //this.$('.alertlist').append("OTHER TEXT");
+			},
+			    data: $.param({user:'tom'})
+			    });
         }
     });
     return Alert;
