@@ -90,6 +90,7 @@ class CostEvaluator(SP.StreamProcessor):
             encID = composition.encounter.get_csn()
 
             cur = self.conn.execute("SELECT upsert_encounter('%s', '%s', 'Emergency', '2014-03-24', '129850393', '32209837', 1235234, '2014-03-24T08:45:23', NULL, '%s')" % (encID, pat_id, customer_id))
+            cur.close()
 
         except:
             raise Exception("Error parsing encounter data into database")
@@ -98,9 +99,31 @@ class CostEvaluator(SP.StreamProcessor):
             json_composition = json.dumps(composition, default=api.jdefault)
             ML.PRINT(json_composition)
             cur = self.conn.execute("INSERT INTO composition (patient_id, encounter_id, customer_id, comp_body) VALUES ('%s', '%s', %s, ('%s'))" % (pat_id, encID, customer_id, json_composition))
+            cur.close()
 
         except:
             raise Exception("Error storing JSON composition")
+
+        try:
+            problem_list = composition.get_encounter_problem_list()
+            for problem in problem_list:
+                dx_ID = problem.get_problem_ID().value
+                print(dx_ID)
+                cur = self.conn.execute("SELECT upsert_encounterdx('%s', '%s', '%s', NULL, NULL, NULL, %s)" % (pat_id, encID, dx_ID, customer_id))
+
+        except:
+            raise Exception("Error parsing encounter problem list")
+
+        try:
+            orders = composition.get_encounter_orders()
+            for order in orders:
+                print(order.detail[0].name)
+                cur = self.conn.execute("INSERT INTO mavenorder(pat_id, customer_id, encounter_id, order_name, order_type, proc_code, code_type, order_cost) VALUES('%s', %s,'%s','%s','%s', '%s', '%s', %s)" % (pat_id, composition.customer_id, encID, order.detail[0].name, order.detail[0].type, order.detail[0].identifier[0].value, "maven", float(order.totalCost)))
+
+        except:
+            raise Exception("Error parsing encounter orders")
+
+
 
 
 def run_cost_evaluator():

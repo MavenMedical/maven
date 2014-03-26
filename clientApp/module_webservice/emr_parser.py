@@ -305,7 +305,7 @@ class VistaParser():
                 #self.diagnosis = cliDiagnosis.cliDiagnosis(idtp.findall(".//ID")[0].text, config)
 
             elif "icd" in id.findall(".//Type")[0].text.lower():
-                prob.identifier.append(api.Identifier(label=id.findall(".//Type")[0].text, system="clientEMR", value=id.findall(".//ID")[0].text))
+                prob.identifier.append(api.Identifier(label="ICD", system="clientEMR", value=id.findall(".//ID")[0].text))
 
         prob.date_asserted = dateutil.parser.parse(xml_root.findall(".//NotedDate")[0].text)
 

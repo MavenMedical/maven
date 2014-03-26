@@ -420,9 +420,10 @@ CREATE INDEX ixencounterbillprovid
 
 CREATE TABLE encounterdx
 (
+  encdx serial PRIMARY KEY,
   pat_id character varying(100),
   csn character varying(100),
-  dx_id numeric(18,0),
+  dx_id character varying(36),
   annotation character varying(200),
   primary_dx_yn character varying(1),
   dx_chronic_yn character varying(1),
@@ -431,7 +432,7 @@ CREATE TABLE encounterdx
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE public.encounterdx
+ALTER TABLE encounterdx
   OWNER TO maven;
 
 -- Index: ixencounterdxcsndx
@@ -441,7 +442,7 @@ ALTER TABLE public.encounterdx
 CREATE INDEX ixencounterdxcsndx
   ON public.encounterdx
   USING btree
-  (csn, dx_id, customer_id);
+  (csn, customer_id);
 
 -- Table: labresult
 
@@ -937,6 +938,37 @@ $$
   COST 100;
 ALTER FUNCTION upsert_encounter(character varying(100), character varying(100), character varying(254),
 date, character varying(18), character varying(18), numeric(18,0), date, date, numeric(18,0))
+  OWNER TO maven;
+
+CREATE OR REPLACE FUNCTION upsert_encounterdx(pat_id1 character varying(100),
+  csn1 character varying(100),
+  dx_id1 character varying(36),
+  annotation1 character varying(200),
+  primary_dx_yn1 character varying(1),
+  dx_chronic_yn1 character varying(1),
+  customer_id1 numeric(18,0))
+  RETURNS VOID AS
+$$
+BEGIN
+  LOOP
+    UPDATE encounterdx SET pat_id=pat_id1, csn=csn1, annotation=annotation1, primary_dx_yn=primary_dx_yn1, dx_chronic_yn=dx_chronic_yn1,
+       customer_id=customer_id1 WHERE csn = csn1 AND customer_id = customer_id1 AND dx_id=dx_id1;
+    IF found THEN
+      RETURN;
+    END IF;
+    BEGIN
+      INSERT INTO encounterdx(pat_id, csn, dx_id, annotation, primary_dx_yn, dx_chronic_yn,
+            customer_id)
+        VALUES (pat_id1, csn1, dx_id1, annotation1, primary_dx_yn1, dx_chronic_yn1, customer_id1);
+      RETURN;
+    EXCEPTION WHEN unique_violation THEN
+    END;
+  END LOOP;
+END;
+$$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION upsert_encounterdx(character varying(100), character varying(100), character varying(36), character varying(200), character varying(1), character varying(1), numeric(18,0))
   OWNER TO maven;
 
 
