@@ -6,6 +6,7 @@
 package tcppopups;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -32,7 +33,9 @@ import javax.swing.JWindow;
  * @author Dave
  */
 public class TcpPopups {
-
+    public static int wide=450;
+    public static int highOne=150;
+    public static int highTwo=75;
     /**
      * @param args the command line arguments
      */
@@ -52,20 +55,25 @@ public class TcpPopups {
                 sb.append(tmp);
             }
             clientSentence=sb.toString();
-            //System.out.println(clientSentence.length());
-            clientSentence=msgBuilder.getNotification(clientSentence, 0);
-            notify2("Header", clientSentence, false);
+            System.out.println(clientSentence);
+            String costAlert=msgBuilder.getNotification(clientSentence, 0);
+            String alternatives=msgBuilder.getAlternatives(clientSentence);
+            notify("Header", costAlert, true);
+            if(alternatives!=""){
+                System.out.println(alternatives);
+                notify2("Header",alternatives, true);
+            }
             clientSentence="";
         }
     }
 
-    public static void notify2(String text, String body, final Boolean fade) throws Exception {
-        int wide=400;
-        int high=100;
+    public static void notify(String text, String body, final Boolean fade) throws Exception {
+        //int wide=450;
+        //int high=150;
         //System.out.println(body);
         //System.out.println(body.length());
         JEditorPane jep = new JEditorPane("text/html", body);
-        jep.setSize(wide, high);
+        jep.setSize(wide, highOne);
         jep.setEditable(false);
         jep.setOpaque(false);
         jep.addHyperlinkListener(new HyperlinkListener() {
@@ -75,17 +83,10 @@ public class TcpPopups {
                 }
             }
         });  
-        
-        //JLabel heading=new JLabel("");
-        //java.net.URL imgUrl = TcpPopups.class.getResource("maven_32.gif");
-        //ImageIcon ico=new ImageIcon(imgUrl);
-        //heading.setIcon(ico);
-        //heading.setOpaque(false);
-        
         final JWindow f = new JWindow();
         //f.getContentPane().add(heading,BorderLayout.WEST);
         f.getContentPane().add(jep, BorderLayout.CENTER);
-        f.setSize(wide, high);
+        f.setSize(wide, highOne);
         f.setAlwaysOnTop(true);
         Dimension scrSize = Toolkit.getDefaultToolkit().getScreenSize();// size of the screen
         Insets toolHeight = Toolkit.getDefaultToolkit().getScreenInsets(f.getGraphicsConfiguration());// height of the task bar
@@ -96,13 +97,68 @@ public class TcpPopups {
             @Override
             public void run() {
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(1500);
                     float tl = 1;
                     if (fade) {
                         while (tl > 0.20f) {
                             tl -= .01;
-                            Thread.sleep(70); // time after which pop up will be disappeared.
+                            Thread.sleep(120); // time after which pop up will be disappeared.
                             f.setOpacity(tl);
+                            f.setVisible(true);
+                        }
+                    } else {
+                        Thread.sleep(5000);
+                    }
+                    f.dispose();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        ;
+    }
+
+    .start();
+
+    }
+    public static void notify2(String text, String body, final Boolean fade) throws Exception {
+        //int wide=450;
+        //int high=150;
+        //System.out.println(body);
+        //System.out.println(body.length());
+        JEditorPane jep = new JEditorPane("text/html", body);
+        jep.setSize(wide, highTwo);
+        jep.setEditable(false);
+        jep.setOpaque(false);
+        jep.addHyperlinkListener(new HyperlinkListener() {
+            public void hyperlinkUpdate(HyperlinkEvent hle) {
+                if (HyperlinkEvent.EventType.ACTIVATED.equals(hle.getEventType())) {
+                    launch(hle.getURL().toString());
+                }
+            }
+        });  
+        final JWindow f = new JWindow();
+        //f.getContentPane().add(heading,BorderLayout.WEST);
+        f.setBackground(Color.WHITE);
+        f.getContentPane().add(jep, BorderLayout.CENTER);
+        f.setSize(wide, highTwo);
+        f.setAlwaysOnTop(true);
+        Dimension scrSize = Toolkit.getDefaultToolkit().getScreenSize();// size of the screen
+        Insets toolHeight = Toolkit.getDefaultToolkit().getScreenInsets(f.getGraphicsConfiguration());// height of the task bar
+        f.setLocation(scrSize.width - f.getWidth(), scrSize.height - toolHeight.bottom - f.getHeight()-highOne);
+        //f.setUndecorated();
+        f.setVisible(true);
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(1500);
+                    float tl = 1;
+                    if (fade) {
+                        while (tl > 0.20f) {
+                            tl -= .01;
+                            Thread.sleep(120); // time after which pop up will be disappeared.
+                            f.setOpacity(tl);
+                            f.setBackground(Color.WHITE);
                             f.setVisible(true);
                         }
                     } else {
@@ -139,57 +195,4 @@ public class TcpPopups {
         }
     }
 
-    public static void notify(String header, String body, final Boolean fade) {
-        final JFrame frame = new JFrame();
-        frame.setSize(300, 80);
-        frame.setUndecorated(true);
-        frame.setAlwaysOnTop(true);
-        frame.setLayout(new GridBagLayout());
-        Dimension scrSize = Toolkit.getDefaultToolkit().getScreenSize();// size of the screen
-        Insets toolHeight = Toolkit.getDefaultToolkit().getScreenInsets(frame.getGraphicsConfiguration());// height of the task bar
-        frame.setLocation(scrSize.width - frame.getWidth(), scrSize.height - toolHeight.bottom - frame.getHeight());
-        GridBagConstraints constraints = new GridBagConstraints();
-        constraints.gridx = 0;
-        constraints.gridy = 0;
-        constraints.weightx = 0f;
-        constraints.weighty = 0f;
-        constraints.fill = GridBagConstraints.NONE;
-        constraints.anchor = GridBagConstraints.NORTH;
-        constraints.gridx = 0;
-        constraints.gridy++;
-        constraints.weightx = 1.0f;
-        constraints.weighty = 1.0f;
-        constraints.insets = new Insets(5, 5, 5, 5);
-        constraints.fill = GridBagConstraints.BOTH;
-        JLabel messageLabel = new JLabel("<HTML>" + body); //('<HtMl>'+message);
-        frame.add(messageLabel, constraints);
-        //frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.setVisible(true);
-        new Thread() {
-            @Override
-            public void run() {
-                try {
-                    float tl = 1;
-                    if (fade) {
-                        while (tl > 0.20f) {
-                            tl -= .01;
-                            Thread.sleep(70); // time after which pop up will be disappeared.
-                            frame.setOpacity(tl);
-                            frame.setVisible(true);
-                        }
-                    } else {
-                        Thread.sleep(5000);
-                    }
-                    frame.dispose();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        ;
-    }
-
-.start();
-
-    }
-    
 }
