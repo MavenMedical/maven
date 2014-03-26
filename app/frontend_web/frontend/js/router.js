@@ -28,7 +28,7 @@ define([
             "": 'showHome',
             "patient": 'showPatient',
             "alerts": 'showAlerts',
-            "episode/:id/details/:key": 'showEpisode',
+            "episode": 'showEpisode',
 
             //default
             '*action': 'defaultAction'

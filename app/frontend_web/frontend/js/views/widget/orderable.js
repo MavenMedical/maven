@@ -10,14 +10,17 @@ define([
 
     'currentContext',
 
+    //sub view
+    '../singleRow/orderRow',
+
      //Model
-    'models/patientModel',
+    'models/orderModel',
 
     //Collection
-    'collections/patients',
+    'collections/orders',
 
     'text!templates/widget/orderable.html'
-], function ($, _, Backbone, currentContext, PatientModel, PatientCollection, orderableTemplate) {
+], function ($, _, Backbone, currentContext, orderRow, OrderModel, OrderCollection, orderableTemplate) {
 
     var Orderable = Backbone.View.extend({
         el: '.orderable',
@@ -25,30 +28,23 @@ define([
 
         initialize: function () {
             console.log("ini orderable");
-            _.bindAll(this, 'render', 'click');
-            this.patients = new PatientCollection();
+            _.bindAll(this, 'render', 'addOrder');
+            this.orders = new OrderCollection();
+            this.orders.bind('add', this.addOrder , this);
+            this.orders.fetch({data:$.param(currentContext)});
             this.render();
         },
-
-        events: {
-            'click': 'click'
-        },
-
-        click: function (e) {
-            console.log($(e.target));
-        },
-
         render: function () {
             console.log("render orderables");
-
-             var that = this;
-
-            this.patients.fetch({
-               success: function(patients){
-                   that.$el.html(that.template({patients:patients.models}));
-               } ,
-                data: $.param(currentContext)
+            this.$el.html(this.template);
+        },
+        addOrder: function(ord){
+            console.log(ord);
+            var orderrow = new orderRow({
+              model: ord
             });
+           //console.log(orderrow.render().el);
+            $('#accordion').append(orderrow.render().el);
         }
     });
     return Orderable;

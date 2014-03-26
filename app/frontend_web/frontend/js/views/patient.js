@@ -33,7 +33,7 @@ define([
             this.$el.html(template);
 
             //widgets
-            var patinfo = new PatInfo();
+            var patinfo = new PatInfo;
 
 
             var util = new Utilization;
@@ -42,13 +42,12 @@ define([
             var saving = new Saving;
             saving.render();
 
-            var spending = new Spending();
+            var spending = new Spending;
 
             var costbd = new CostBD;
             costbd.render();
 
             var alert = new Alert;
-            alert.render();
 
         }
     });

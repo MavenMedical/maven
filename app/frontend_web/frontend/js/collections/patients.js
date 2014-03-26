@@ -14,7 +14,7 @@ define([
     model: PatientModel,
 
     initialize: function(){
-        console.log("collection");
+        console.log("patient collection");
           }
 
   });

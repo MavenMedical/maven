@@ -12,7 +12,9 @@ define([
         url: '/orders',
       model: OrderModel,
 
-    initialize: function(){}
+    initialize: function(){
+         console.log("order collection");
+    }
 
   });
 

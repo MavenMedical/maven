@@ -35,8 +35,8 @@ git checkout DEV
 
 cd
 # for nginx
-wget http://nginx.org/packages/rhel/6/x86_64/RPMS/nginx-1.4.7-1.el6.ngx.x86_64.rpm
-sudo rpm -i nginx-1.4.7-1.el6.ngx.x86_64.rpm 
+sudo yum install nginx
+
 openssl genrsa -des3 -out server.key 2048
 openssl req -new -key server.key -out server.csr
 cp server.key server.key.org
@@ -49,12 +49,3 @@ chmod g+rx `pwd`
 sudo service nginx start
 
 sudo usermod -G <user> -a nginx
-
-cd
-# for rabbit
-sudo yum install erlang
-wget https://www.rabbitmq.com/releases/rabbitmq-server/v3.2.4/rabbitmq-server-3.2.4-1.noarch.rpm
-sudo yum install rabbitmq-server-3.2.4-1.noarch.rpm
-sudo service rabbitmq-server start
-sudo chkconfig rabbitmq-server on
-

@@ -12,7 +12,9 @@ define([
       url: '/alerts',
     model: AlertModel,
 
-    initialize: function(){}
+    initialize: function(){
+        console.log("Alert Collection");
+    }
 
   });
 
