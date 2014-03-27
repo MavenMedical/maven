@@ -418,6 +418,9 @@ class Composition(Resource):
             if sec['title'] == "Problem List":
                 composition.section.append(Section(title="Problem List", content=self.create_problem_list_from_json(sec['content'])))
 
+            if sec['title'] == "Encounter Cost Breakdown":
+                composition.section.append(Section(title="Encounter Cost Breakdown", content=sec['content']))
+
         return composition
 
     def create_patient_from_json(self, json_patient):

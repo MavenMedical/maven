@@ -44,15 +44,23 @@ class IncomingMessageHandler(SP.StreamProcessor):
         self.object_manager = []
 
     @asyncio.coroutine
-    def read_object(self, obj, key):
-        yield from self.route_object(obj=obj, key=key)
-
-    @asyncio.coroutine
-    def route_object(self, obj, key):
-        json_composition = json.loads(obj.decode())
+    def read_object(self, obj, key2):
+        obj_list = json.loads(obj.decode())
+        json_composition = obj_list[0]
+        key1 = obj_list[1]
         if json_composition['type'] == "CostEvaluator":
             composition = api.Composition().create_composition_from_json(json_composition)
-            composition.maven_route_key = key
+            composition.maven_route_key = [key2, key2]
+            self.write_object(composition, writer_key="CostEval")
+
+    @asyncio.coroutine
+    def route_object(self, obj, key2):
+        obj_list = json.loads(obj.decode())
+        json_composition = obj_list[0]
+        key1 = obj_list[1]
+        if json_composition['type'] == "CostEvaluator":
+            composition = api.Composition().create_composition_from_json(json_composition)
+            composition.maven_route_key = [key1, key2]
             self.write_object(composition, writer_key="CostEval")
 
 
@@ -60,13 +68,11 @@ class OutgoingMessageHandler(SP.StreamProcessor):
 
     def __init__(self, configname):
         SP.StreamProcessor.__init__(self, configname)
-        self.master_list = ['', '', '', '', '']
-        self.object_manager = []
 
     @asyncio.coroutine
     def read_object(self, obj, _):
-        json_composition = json.dumps(obj, default=api.jdefault, indent=4).encode()
-        self.write_object(json_composition, writer_key=obj.maven_route_key)
+        #json_composition = json.dumps(obj, default=api.jdefault, indent=4).encode()
+        self.write_object(pickle.dumps(obj), writer_key=obj.maven_route_key[1])
 
     @asyncio.coroutine
     def route_object(self, obj):

@@ -128,7 +128,11 @@ class _HTTPStreamParser(SP.MappingParser):
         # for each non-empty split, parse it
         for sp in filter(None,splits):
             #print("SP: "+str(sp))
-            self.p.execute(sp, len(sp))  # parse the chunk of bytes
+            base=0
+            while base < len(sp):
+                c = self.p.execute(sp[base:], len(sp[base:]))  # parse the chunk of bytes
+                l = len(sp[base:])
+                base=base+c
             
             # if it contains part of the request's body, process that
             if self.p.is_partial_body():
@@ -308,8 +312,8 @@ class HTTPReader(SP.StreamProcessor):
         # read the config parameters
         try:
             self.config = MC.MavenConfig[configname]
-            self.host = self.config.get(SP.CONFIG_HOST, None)
-            self.port = self.config[SP.CONFIG_PORT]
+            #self.host = self.config.get(SP.CONFIG_HOST, None)
+            #self.port = self.config[SP.CONFIG_PORT]
         except KeyError:
             raise MC.InvalidConfig(configname + " did not have sufficient parameters.")            
         
@@ -342,10 +346,10 @@ class HTTPWriter(SP.StreamProcessor):
         
         ret = None
         try:
-            (response, body, extras, k) = yield from format_response(obj, key)
-            if resp == OK_RESPONSE and not body: # use No Content when called for
+            (response, body, extras, k) = yield from self.format_response(obj, key)
+            if response == OK_RESPONSE and not body: # use No Content when called for
                 resp = NOCONTENT_RESPONSE
-            ret=wrap_response(resp, body, extras)
+            ret=wrap_response(response, body, extras)
 
         except KeyError:  # key error means an object isn't found
             ret = wrap_response(NOTFOUND_RESPONSE, b'')

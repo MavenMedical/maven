@@ -27,6 +27,7 @@ import json
 import pickle
 import clientApp.api.api as api
 import maven_logging as ML
+import datetime
 
 
 class CostEvaluator(SP.StreamProcessor):
@@ -40,7 +41,7 @@ class CostEvaluator(SP.StreamProcessor):
     def read_object(self, obj, _):
         composition = pickle.loads(obj)
         self.evaluate_orders(composition)
-        ML.PRINT(json.dumps(composition, default=api.jdefault, indent=4))
+        #ML.PRINT(json.dumps(composition, default=api.jdefault, indent=4))
         self.write_to_db(composition)
         self.write_object(composition, writer_key='aggregate')
 
@@ -66,7 +67,7 @@ class CostEvaluator(SP.StreamProcessor):
 
             total_cost += order.totalCost
 
-        encounter_cost_breakdown.append(["n/a", "Total Cost", total_cost])
+        #encounter_cost_breakdown.append(["n/a", "Total Cost", total_cost])
         composition.section.append(api.Section(title="Encounter Cost Breakdown", content=encounter_cost_breakdown))
 
     def write_to_db(self, composition):
@@ -97,7 +98,6 @@ class CostEvaluator(SP.StreamProcessor):
 
         try:
             json_composition = json.dumps(composition, default=api.jdefault)
-            ML.PRINT(json_composition)
             cur = self.conn.execute("INSERT INTO composition (patient_id, encounter_id, customer_id, comp_body) VALUES ('%s', '%s', %s, ('%s'))" % (pat_id, encID, customer_id, json_composition))
             cur.close()
 
@@ -108,17 +108,16 @@ class CostEvaluator(SP.StreamProcessor):
             problem_list = composition.get_encounter_problem_list()
             for problem in problem_list:
                 dx_ID = problem.get_problem_ID().value
-                print(dx_ID)
                 cur = self.conn.execute("SELECT upsert_encounterdx('%s', '%s', '%s', NULL, NULL, NULL, %s)" % (pat_id, encID, dx_ID, customer_id))
 
         except:
             raise Exception("Error parsing encounter problem list")
 
         try:
+            now = datetime.datetime.now()
             orders = composition.get_encounter_orders()
             for order in orders:
-                print(order.detail[0].name)
-                cur = self.conn.execute("INSERT INTO mavenorder(pat_id, customer_id, encounter_id, order_name, order_type, proc_code, code_type, order_cost) VALUES('%s', %s,'%s','%s','%s', '%s', '%s', %s)" % (pat_id, composition.customer_id, encID, order.detail[0].name, order.detail[0].type, order.detail[0].identifier[0].value, "maven", float(order.totalCost)))
+                cur = self.conn.execute("INSERT INTO mavenorder(pat_id, customer_id, encounter_id, order_name, order_type, proc_code, code_type, order_cost, datetime) VALUES('%s', %s,'%s','%s','%s', '%s', '%s', %s, '%s')" % (pat_id, composition.customer_id, encID, order.detail[0].name, order.detail[0].type, order.detail[0].identifier[0].value, "maven", float(order.totalCost), now))
 
         except:
             raise Exception("Error parsing encounter orders")

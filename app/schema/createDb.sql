@@ -500,6 +500,41 @@ CREATE INDEX ixlabpatid
   USING btree
   (pat_id, customer_id);
 
+
+-- Table: mavenorder
+
+-- DROP TABLE mavenorder;
+
+CREATE TABLE mavenorder
+(
+  orderid serial NOT NULL,
+  pat_id character varying(100),
+  customer_id numeric(18,0),
+  encounter_id character varying(100),
+  order_name character varying(255),
+  order_type character varying(36),
+  proc_code character varying(36),
+  code_type character varying(36),
+  order_cost numeric(13,2),
+  datetime timestamp without time zone,
+  CONSTRAINT mavenorder_pkey PRIMARY KEY (orderid)
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE mavenorder
+  OWNER TO maven;
+
+-- Index: ixmavenorder
+
+-- DROP INDEX ixmavenorder;
+
+CREATE INDEX ixmavenorder
+  ON public.mavenorder
+  USING btree
+  (encounter_id, customer_id);
+
+
 -- Table: medicalprocedure
 
 -- DROP TABLE medicalprocedure;
