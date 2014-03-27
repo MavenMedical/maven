@@ -17,6 +17,7 @@ __author__='Yuki Uchino'
 #LAST MODIFIED FOR JIRA ISSUE: MAV-65
 #*************************************************************************
 import app.utils.streaming.stream_processor as SP
+import app.utils.streaming.http_responder as HR
 import maven_config as MC
 import maven_logging as ML
 import asyncio
@@ -24,6 +25,7 @@ import json
 import argparse
 from clientApp.module_webservice.emr_parser import VistaParser
 import clientApp.api.api as api
+import pickle
 
 
 ARGS = argparse.ArgumentParser(description='Maven Client Receiver Configs.')
@@ -33,18 +35,25 @@ ARGS.add_argument(
 args = ARGS.parse_args()
 
 
-class OutgoingToMavenMessageHandler(SP.StreamProcessor):
+class OutgoingToMavenMessageHandler(HR.HTTPReader):
 
-    def __init__(self, configname):
-        SP.StreamProcessor.__init__(self, configname)
-
+    def __init__(self, configname, wk):
+        HR.HTTPReader.__init__(self, configname)
+        self.wk = wk
 
     @asyncio.coroutine
-    def read_object(self, obj, _):
-        message = obj.decode()
+    def read_object(self, obj, key):
+        """
+
+        param: obj is list of headers, body
+        param: key is key
+        """
+        header = obj[0]
+        body = obj[1]
+        message = body.decode()
         composition = yield from self.create_composition(message)
-        #ML.PRINT(json.dumps(composition, default=api.jdefault, indent=4))
-        self.write_object(json.dumps(composition, default=api.jdefault).encode())
+        ML.PRINT(json.dumps(json.dumps([composition, key], default=api.jdefault)))
+        self.write_object(json.dumps([composition, key], default=api.jdefault).encode(), self.wk)
 
     @asyncio.coroutine
     def create_composition(self, message):
@@ -53,20 +62,41 @@ class OutgoingToMavenMessageHandler(SP.StreamProcessor):
         return composition
 
 
-class IncomingFromMavenMessageHandler(SP.StreamProcessor):
+class IncomingFromMavenMessageHandler(HR.HTTPWriter):
 
-    def __init__(self, configname):
-        SP.StreamProcessor.__init__(self, configname)
-        self.master_list = ['', '', '', '', '']
-        self.object_manager = []
+    def __init__(self, configname, wk):
+        HR.HTTPWriter.__init__(self, configname)
+        self.wk = wk
 
     @asyncio.coroutine
-    def read_object(self, obj, key):
-        self.write_object(obj)
+    def format_response(self, obj, _):
+        #json_composition = json.loads(obj.decode())
+        #composition = api.Composition().create_composition_from_json(json_composition)
+        composition = pickle.loads(obj)
+        #print(json.dumps(composition, default=api.jdefault, indent=4))
+        notification_body = yield from self.generate_notification_html(composition)
+        ML.DEBUG("NOTIFY HTML BODY: " + notification_body)
         ML.PRINT('Message was successfully sent around the Maven Cloud loop!')
+        return (HR.OK_RESPONSE, notification_body, [], composition.maven_route_key[0])
 
+
+    @asyncio.coroutine
+    def generate_notification_html(self, composition):
+        notification_body = ""
+        notification_content = ""
+        total_cost = 0.0
+        for sec in composition.section:
+            if sec.title == "Encounter Cost Breakdown":
+                for cost in sec.content:
+                    total_cost += cost[1]
+                    notification_content += ("%s: $%s<br>" % (cost[0], cost[1]))
+                print(total_cost)
+
+        notification_body = ("<html><body bgcolor=#FFFFFF style='font-family: Arial; color: #444; word-spacing: normal; text-align: left; letter-spacing: 0; font-size: 104%%;'><table><col width=32px><col width=30%%><col width=10%%><col width=60%%><tr><td valign='top'><img src={{IMGLOGO}} /></td><td valign='top'><a href='http://mavenmedical.net'><b>Encounter Cost Alert</b></a><br/>This Encounter Costs<br/>$%s</td><td></td><td valign='top' style='font-family: Arial; color: #444; word-spacing: normal; text-align: left; letter-spacing: 0; font-size: 104%%;'>%s</td></body></html>" % (str(total_cost), notification_content))
+        return notification_body
 
 def main(loop):
+    ML.DEBUG = ML.stdout_log
     outgoingtomavenmessagehandler = 'client consumer socket'
     incomingfrommavenmessagehandler = 'client producer socket'
 
@@ -77,8 +107,8 @@ def main(loop):
             SP.CONFIG_READERNAME: outgoingtomavenmessagehandler+".Reader",
             SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOSOCKETQUERY,
             SP.CONFIG_WRITERNAME: outgoingtomavenmessagehandler+".Writer",
-            SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_IDENTITYPARSER,
-            SP.CONFIG_DEFAULTWRITEKEY:1,
+            #SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_IDENTITYPARSER,
+            SP.CONFIG_WRITERDYNAMICKEY:1,
         },
         outgoingtomavenmessagehandler+".Reader":
         {
@@ -88,17 +118,17 @@ def main(loop):
 
         outgoingtomavenmessagehandler+".Writer":
         {
-            SP.CONFIG_WRITERKEY:1
+            SP.CONFIG_WRITERKEY:2
         },
 
         incomingfrommavenmessagehandler:
         {
             SP.CONFIG_READERTYPE: SP.CONFIGVALUE_ASYNCIOSOCKETQUERY,
             SP.CONFIG_READERNAME: incomingfrommavenmessagehandler+".Reader",
-            SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOCLIENTSOCKET,
+            SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOSOCKETREPLY,
             SP.CONFIG_WRITERNAME: incomingfrommavenmessagehandler+".Writer",
             SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_IDENTITYPARSER,
-            SP.CONFIG_WRITERDYNAMICKEY:1,
+            SP.CONFIG_WRITERDYNAMICKEY:2,
         },
         incomingfrommavenmessagehandler+".Reader":
         {
@@ -108,15 +138,16 @@ def main(loop):
 
         incomingfrommavenmessagehandler+".Writer":
         {
-            SP.CONFIG_HOST:'127.0.0.1',
-            SP.CONFIG_PORT:12347
+            #SP.CONFIG_HOST:'127.0.0.1',
+            #SP.CONFIG_PORT:12345,
+            SP.CONFIG_WRITERDYNAMICKEY:1,
         },
 
     }
     MC.MavenConfig = MavenConfig
 
-    sp_consumer = OutgoingToMavenMessageHandler(outgoingtomavenmessagehandler)
-    sp_producer = IncomingFromMavenMessageHandler(incomingfrommavenmessagehandler)
+    sp_consumer = OutgoingToMavenMessageHandler(outgoingtomavenmessagehandler, 2)
+    sp_producer = IncomingFromMavenMessageHandler(incomingfrommavenmessagehandler, "writer:2")
 
     reader = sp_consumer.schedule(loop)
     emr_writer = sp_producer.schedule(loop)
