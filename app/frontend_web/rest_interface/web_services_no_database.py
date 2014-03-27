@@ -68,8 +68,8 @@ patient_extras = {
 }
 
 order_list = {
-    1: [{'name':'Echocardiogram','date':'1/1/2014','result':'','cost':1200},
-        {'name':'Immunoglobulin','date':'3/24/3014','result':'Normal','cost':100},
+    1: [{'title':'Echocardiogram', 'order':'Followup ECG', 'reason':'Mitral regurgitation', 'evidence':'Don\'t test', 'date':'1/1/2014', 'result':'','cost':1200 , 'ecost': 0},
+        {'title':'Immunoglobulin','order':'place holder', 'reason':'klsdf jlkwec', 'evidence':'jmdljxs', 'date':'1/24/2014', 'result':'','cost':130 , 'ecost': 0},
         ],
 }
 
@@ -341,8 +341,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
                 order_dict[patient_id]=order_list[patient_id]
             except TypeError:
                 pass
-
-        return (HTTP.OK_RESPONSE, json.dumps(order_dict), None)
+        print(order_dict)
+        return (HTTP.OK_RESPONSE, json.dumps(order_dict[1]), None)
 
 
     #self.add_handler(['GET'], '/order_details', self.get_stub)

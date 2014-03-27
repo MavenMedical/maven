@@ -21,14 +21,16 @@ define([
     'views/home',
     'views/patient',
     'views/episode',
-    'views/alerts'
-], function ($, _, Backbone,currentContext, SideMenu, TopNav, HomeView, PatientView, EpisodeView, AlertsView) {
+    'views/alerts',
+    'views/evidence'
+], function ($, _, Backbone,currentContext, SideMenu, TopNav, HomeView, PatientView, EpisodeView, AlertsView, EvidenceView) {
     var AppRouter = Backbone.Router.extend({
         routes: {
             "": 'showHome',
             "patient": 'showPatient',
             "alerts": 'showAlerts',
             "episode": 'showEpisode',
+            "evidence": 'showEvidence',
 
             //default
             '*action': 'defaultAction'
@@ -61,7 +63,7 @@ define([
 
         });
 
-        app_router.on('route:showPatient', function (patid , patkey) {
+        app_router.on('route:showPatient', function () {
 
             //update current context page
             currentContext.page = 'patient';
@@ -74,13 +76,24 @@ define([
             var alertsView = new AlertsView;
             alertsView.render();
         });
-        app_router.on('route:showEpisode', function (patid, patkey) {
+        app_router.on('route:showEpisode', function () {
 
 
              //update current context page
             currentContext.page = 'episode';
 
             var episodeView = new EpisodeView;
+
+
+        });
+        app_router.on('route:showEvidence', function () {
+
+            console.log("evid router");
+             //update current context page
+            currentContext.page = 'evidence';
+
+            var evidenceView = new EvidenceView;
+            evidenceView.render();
 
 
         });

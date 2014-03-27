@@ -21,20 +21,15 @@ define([
         tagName: 'div',
         template: _.template(orderRowTemplate),
         events:{
-            'click': 'handleClick'
+            'click .panel-heading': 'handleClick'
         },
         render: function(){
-            //console.log(this.model[0].toJSON());
+            console.log(this.model.toJSON());
             $(this.el).append(this.template(this.model.toJSON()));
             return this;
         },
-        handleClick: function(){
-            console.log(this.model.get("title"));
-            //update context
-           // currentContext.key = this.model.get("key");
-           // currentContext.patients = this.model.get("id");
-
-
+        handleClick: function(e){
+             $('#'+this.model.get('title')).toggleClass("in");
         }
 
     });

@@ -29,13 +29,9 @@ define([
             return this;
         },
         handleClick: function(){
-            console.log(this.model.get("title"));
-            //update context
-            currentContext.key = this.model.get("key");
-            currentContext.patients = this.model.get("id");
 
-
-        }
+            $('#collapse'+this.model.get('patient')+'-'+this.model.get('id')).toggleClass("in");
+                    }
 
     });
 

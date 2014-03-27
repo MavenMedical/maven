@@ -257,7 +257,14 @@ h1, h2, h3 {
 .panel-default .panel-heading {
     background-color: #efefef;
     color: #004059;
+
 }
+
+.panel-heading:hover{
+    background-color: #64BCDD;
+    cursor: pointer;
+}
+
 
 .content {
     padding-left: 5px;
