@@ -1,4 +1,4 @@
-+^OR(100,sub=:,0) -name=NEWORD -command=S -xecute="J OrdTrig^xMAVEN(sub,$J)"
++^OR(100,sub=:,3) -name=NEWORD -command=S -xecute="J OrdTrig^xMAVEN(sub,$J)"
 +^OR(100,sub=:,8,"C") -name=ORDDISC -command=K -xecute="J OrdTrig^xMAVEN(sub,$J)"
 +^OR(100,sub=:) -name=ORDKILL -command=ZK -xecute="J OrdTrig^xMAVEN(sub,$J)"
 +^XUSEC(0,pk=:,0) -name=XUSECIX -command=S -xecute="S:pk'=""ALDEV"" ^xMAVEN($J)=pk"
