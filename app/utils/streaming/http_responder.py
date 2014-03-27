@@ -147,7 +147,7 @@ class _HTTPStreamParser(SP.MappingParser):
 
     def eof_received(self):
         ML.DEBUG("EOF")
-        pass#self.unregister_fn(self.registered_key)
+        return True
 
 class IncompleteRequest(Exception):
     pass

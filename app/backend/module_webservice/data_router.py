@@ -50,7 +50,7 @@ class IncomingMessageHandler(SP.StreamProcessor):
         key1 = obj_list[1]
         if json_composition['type'] == "CostEvaluator":
             composition = api.Composition().create_composition_from_json(json_composition)
-            composition.maven_route_key = [key2, key2]
+            composition.maven_route_key = [key1, key2]
             self.write_object(composition, writer_key="CostEval")
 
     @asyncio.coroutine
@@ -102,7 +102,7 @@ def main(loop):
         incomingtomavenmessagehandler+".Reader":
         {
             SP.CONFIG_HOST:'127.0.0.1',
-            SP.CONFIG_PORT:8088
+            SP.CONFIG_PORT:8090
         },
 
         incomingtomavenmessagehandler+".Writer":

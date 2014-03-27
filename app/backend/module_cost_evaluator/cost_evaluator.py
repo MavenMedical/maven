@@ -90,7 +90,7 @@ class CostEvaluator(SP.StreamProcessor):
         try:
             encID = composition.encounter.get_csn()
 
-            cur = self.conn.execute("SELECT upsert_encounter('%s', '%s', 'Emergency', '2014-03-24', '129850393', '32209837', 1235234, '2014-03-24T08:45:23', NULL, '%s')" % (encID, pat_id, customer_id))
+            cur = self.conn.execute("SELECT upsert_encounter('%s', '%s', 'Emergency', '2014-03-24', 'JHU1093124', '32209837', 1235234, '2014-03-24T08:45:23', NULL, '%s')" % (encID, pat_id, customer_id))
             cur.close()
 
         except:
@@ -165,7 +165,7 @@ def run_cost_evaluator():
         },
         'CostEvalConnection': {
             SingleThreadedConnection.CONFIG_CONNECTION_STRING:
-            ("dbname=%s user=%s password=%s host=%s port=%s" % ('maven', 'maven', 'temporary', 'localhost', '5432')),
+            ("dbname=%s user=%s password=%s host=%s port=%s" % ('maven', 'maven', 'temporary', '172.31.24.199', '5432')),
             #AsyncConnectionPool.CONFIG_MIN_CONNECTIONS: 2,
             #AsyncConnectionPool.CONFIG_MAX_CONNECTIONS: 4
         },

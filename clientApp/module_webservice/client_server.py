@@ -48,6 +48,7 @@ class OutgoingToMavenMessageHandler(HR.HTTPReader):
         param: obj is list of headers, body
         param: key is key
         """
+        print("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>KEY = "+str(key)+"\n")
         header = obj[0]
         body = obj[1]
         message = body.decode()
@@ -64,19 +65,19 @@ class OutgoingToMavenMessageHandler(HR.HTTPReader):
 
 class IncomingFromMavenMessageHandler(HR.HTTPWriter):
 
-    def __init__(self, configname, wk):
+    def __init__(self, configname):
         HR.HTTPWriter.__init__(self, configname)
-        self.wk = wk
 
     @asyncio.coroutine
     def format_response(self, obj, _):
         #json_composition = json.loads(obj.decode())
         #composition = api.Composition().create_composition_from_json(json_composition)
         composition = pickle.loads(obj)
-        #print(json.dumps(composition, default=api.jdefault, indent=4))
+        
+        ML.DEBUG(json.dumps(composition, default=api.jdefault, indent=4))
         notification_body = yield from self.generate_notification_html(composition)
         ML.DEBUG("NOTIFY HTML BODY: " + notification_body)
-        ML.PRINT('Message was successfully sent around the Maven Cloud loop!')
+        ML.PRINT('Message was successfully sent around the Maven Cloud loop!' + str(composition.maven_route_key))
         return (HR.OK_RESPONSE, notification_body, [], composition.maven_route_key[0])
 
 
@@ -113,7 +114,7 @@ def main(loop):
         outgoingtomavenmessagehandler+".Reader":
         {
             SP.CONFIG_HOST:'127.0.0.1',
-            SP.CONFIG_PORT:12345
+            SP.CONFIG_PORT:8088
         },
 
         outgoingtomavenmessagehandler+".Writer":
@@ -133,21 +134,21 @@ def main(loop):
         incomingfrommavenmessagehandler+".Reader":
         {
             SP.CONFIG_HOST:'127.0.0.1',
-            SP.CONFIG_PORT:8088
+            SP.CONFIG_PORT:8090
         },
 
         incomingfrommavenmessagehandler+".Writer":
         {
             #SP.CONFIG_HOST:'127.0.0.1',
             #SP.CONFIG_PORT:12345,
-            SP.CONFIG_WRITERDYNAMICKEY:1,
+            SP.CONFIG_WRITERKEY:1,
         },
 
     }
     MC.MavenConfig = MavenConfig
 
     sp_consumer = OutgoingToMavenMessageHandler(outgoingtomavenmessagehandler, 2)
-    sp_producer = IncomingFromMavenMessageHandler(incomingfrommavenmessagehandler, "writer:2")
+    sp_producer = IncomingFromMavenMessageHandler(incomingfrommavenmessagehandler)
 
     reader = sp_consumer.schedule(loop)
     emr_writer = sp_producer.schedule(loop)

@@ -230,9 +230,11 @@ class VistaParser():
             lastName = xml_root.findall(".//LastName")[0].text
             nationalIdentifier = xml_root.findall(".//NationalIdentifier")[0].text
             patientSSN = xml_root.findall(".//NationalIdentifier")[0].text
-
-            patientID = xml_root.findall(".//PatientID")[0].text
-            patientIDType = xml_root.findall(".//PatientIDType")[0].text
+            
+            if (len(xml_root.findall(".//PatientID")) > 0):
+                patientID = xml_root.findall(".//PatientID")[0].text
+            if (len(xml_root.findall(".//PatientIDType")) > 0):
+                patientIDType = xml_root.findall(".//PatientIDType")[0].text
 
         except:
             raise Exception('Error parsing XML demographics')
@@ -332,7 +334,7 @@ class VistaParser():
 
 
 if __name__ == '__main__':
-    file = open('/home/devel/yukidev/maven/clientApp/fake_data/VistA_Encounter.xml')
+    file = open('/home/ec2-user/maven/clientApp/fake_data/VistA_Encounter.xml')
     r = file.read()
     file.close()
     VistaParser().create_composition(r)
