@@ -5,28 +5,6 @@
         </h3>
         <table class="table table-condensed table-hover">
             <tbody>
-            <% _.each(patients, function(patient){ %>
-            <tr>
-                <td>
-                    <a href='#/patient/<%= patient.id %>/details/<%= patient.get("key") %>'>
-                        <%= patient.get("name") %>
-                    </a>
-                </td>
-                <td>
-                    <%= patient.get("gender") %>
-                </td>
-                <td>
-                    <%= patient.get("DOB") %>
-                </td>
-                <td>
-                    <%= patient.get("diagnosis") %>
-                </td>
-                <td>
-                    <%= patient.get("cost") %>
-                </td>
-            </tr>
-            <% }); %>
-
             </tbody>
         </table>
     </div>

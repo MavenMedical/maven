@@ -1,24 +1,43 @@
-/**
- * Created by Asmaa Aljuhani on 3/14/14.
- */
+/***************************************************************************
+ * Copyright (c) 2014 - Maven Medical
+ * AUTHOR: 'Asmaa Aljuhani'
+ * DESCRIPTION: This Javascript file is for context that will be used within
+ *              the application.
+ *              This file needed to be called in all other modules.
+ * PREREQUISITE: libraries should be predefine in main.js
+ * LAST MODIFIED FOR JIRA ISSUE: MAV-98
+ **************************************************************************/
 
 define([
-    // These are path alias that we configured in our main.js
-    'jquery',     // lib/jquery/jquery
-    'underscore', // lib/underscore/underscore
-    'backbone',    // lib/backbone/backbone
 
 ], function () {
-    var currentContext = {
-        user: 'tom',
-        patient: null,
-        provider: null,
-        encounter: null,
-        department: null
-    };
+
+    var currentContext = (function () {
+        var context = {};
+        context.page = null;
+        context.user = 'tom';
+        context.patients = '1';
+        context.key = 'YHxOpzEI6rnRTKCCxLrtA7lMi4muhAC3';
+        context.provider = null;
+        context.encounter = null;
+        context.department = null;
+
+        return context;
+    }());
+
     return currentContext;
-    // What we return here will be used by other modules
+
 });
+
+
+
+
+
+
+
+
+
+
 
 
 

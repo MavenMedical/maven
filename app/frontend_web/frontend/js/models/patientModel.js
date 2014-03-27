@@ -10,7 +10,7 @@ define([
     var PatientModel = Backbone.Model.extend({
         urlRoot: '/patient_details',
         defaults: {
-            name: "Jordon Severt",
+            name: "Batman",
             gender: "Male",
             DOB: "05/03/1987",
             dx: "Asthma",

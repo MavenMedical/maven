@@ -350,6 +350,11 @@ class Condition(Resource):
         self.isPOA = isPOA
         self.isPrinciple = isPrinciple
 
+    def get_problem_ID(self):
+        for id in self.identifier:
+            if id.label == "ICD":
+                return id
+
 
 class Location(Resource):
 
@@ -412,6 +417,9 @@ class Composition(Resource):
 
             if sec['title'] == "Problem List":
                 composition.section.append(Section(title="Problem List", content=self.create_problem_list_from_json(sec['content'])))
+
+            if sec['title'] == "Encounter Cost Breakdown":
+                composition.section.append(Section(title="Encounter Cost Breakdown", content=sec['content']))
 
         return composition
 
@@ -517,6 +525,17 @@ class Composition(Resource):
                     if id.system == "clientEMR" and id.label == "Internal":
                         proc_supply_list.append([id.value, detail.name])
         return proc_supply_list
+
+    def get_encounter_problem_list(self):
+        problem_list = []
+
+        for sec in self.section:
+            if sec.title == "Problem List":
+                for problem in sec.content:
+                    problem_list.append(problem)
+
+        return problem_list
+
 
 
 #####

@@ -8,15 +8,8 @@ define([
 ], function (_, Backbone) {
 
     var AlertModel = Backbone.Model.extend({
-        urlRoot: '/alert_details',
-        defaults: {
-            title : "Avoid NSAIDS",
-            date: "12/15/2013",
-            action: "Ignored",
-            cost: "$168",
-            details: "Avoid nonsteroidal anti-inflammatory drugs (NSAIDS) in indeviduals with hypertension or heart failure or CKD of all causes, including diabetes.",
-            link: "An-Online.org"
-        }
+       // urlRoot: '/alert_details'
+
     });
 
     return AlertModel;

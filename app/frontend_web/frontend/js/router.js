@@ -21,14 +21,16 @@ define([
     'views/home',
     'views/patient',
     'views/episode',
-    'views/alerts'
-], function ($, _, Backbone,currentContext, SideMenu, TopNav, HomeView, PatientView, EpisodeView, AlertsView) {
+    'views/alerts',
+    'views/widget/evidence'
+], function ($, _, Backbone,currentContext, SideMenu, TopNav, HomeView, PatientView, EpisodeView, AlertsView, EvidenceView) {
     var AppRouter = Backbone.Router.extend({
         routes: {
             "": 'showHome',
-            "patient/:id/details/:key": 'showPatient',
+            "patient": 'showPatient',
             "alerts": 'showAlerts',
-            "episode/:id/details/:key": 'showEpisode',
+            "episode": 'showEpisode',
+            "evidence": 'showEvidence',
 
             //default
             '*action': 'defaultAction'
@@ -43,9 +45,6 @@ define([
             options.url = 'services' + options.url;
         });
 
-        var context = currentContext;
-        console.log(context);
-
         var app_router = new AppRouter;
 
         // render side menu and topnav for all pages
@@ -56,22 +55,45 @@ define([
 
         app_router.on('route:showHome', function () {
             // Call render on the module we loaded in via the dependency array
+
+            //update current context page
+            currentContext.page = 'home';
+
             var homeView = new HomeView;
-            homeView.render();
+
         });
 
-        app_router.on('route:showPatient', function (patid , patkey) {
+        app_router.on('route:showPatient', function () {
+
+            //update current context page
+            currentContext.page = 'patient';
 
             var patientView = new PatientView;
-            patientView.render({id:patid, key:patkey});
+            patientView.render();
 
         });
         app_router.on('route:showAlerts', function () {
             var alertsView = new AlertsView;
             alertsView.render();
         });
-        app_router.on('route:showEpisode', function (patid, patkey) {
-            var episodeView = new EpisodeView({id:patid, key:patkey});
+        app_router.on('route:showEpisode', function () {
+
+
+             //update current context page
+            currentContext.page = 'episode';
+
+            var episodeView = new EpisodeView;
+
+
+        });
+        app_router.on('route:showEvidence', function () {
+
+            console.log("evid router");
+             //update current context page
+            //currentContext.page = 'evidence';
+
+           // var evidenceView = new EvidenceView;
+           // evidenceView.render();
 
 
         });

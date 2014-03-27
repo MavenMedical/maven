@@ -10,16 +10,22 @@ define([
 
     'text!templates/chart/costbd.html'
 ], function ($, _, Backbone, costbdTemplate) {
-    console.log("cost BD");
+
     var CostBD = Backbone.View.extend({
-        el: $('.costbd'),
+        el: '.costbd',
+        template: _.template(costbdTemplate),
+        initialize: function(){
+            _.bindAll(this, 'render', 'click');
+            this.render();
+        },
         events:{
-          //'clickSlice': console.log("cost bd")
+            'click': 'click'
+        },
+        click:function(){
+          console.log('clicked');
         },
         render: function () {
-
-            var template = _.template(costbdTemplate, {});
-            $('.costbd').append(template);
+            this.$el.html(this.template);
         }
     });
     return CostBD;

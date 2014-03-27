@@ -323,7 +323,7 @@ function draw_stock_chart(div, data, cat, value, subdiv, subcat, subval) {
 
         "dataSets": [
             {
-                "title": "Jordon Severt",
+                "title": "Batman",
                 "fieldMappings": [
                     {
                         "fromField": value,
