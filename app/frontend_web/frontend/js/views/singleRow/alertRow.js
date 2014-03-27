@@ -13,25 +13,32 @@ define([
 
     'currentContext',
 
+     'views/widget/evidence',
+
     //Template
     'text!templates/singleRow/alertRow.html'
 
-], function ($, _, Backbone, currentContext, alertRowTemplate) {
+], function ($, _, Backbone, currentContext, Evidence, alertRowTemplate) {
     var alertRow = Backbone.View.extend({
         tagName: 'div',
         template: _.template(alertRowTemplate),
         events:{
-            'click': 'handleClick'
+            'click .panel-heading': 'handleClick',
+            'click .label': 'showEvidence'
         },
         render: function(){
             console.log(this.model.toJSON());
             $(this.el).html(this.template(this.model.toJSON()));
             return this;
         },
+        showEvidence:function(){
+            console.log("show evidence");
+            this.evidence = new Evidence;
+        },
         handleClick: function(){
 
             $('#collapse'+this.model.get('patient')+'-'+this.model.get('id')).toggleClass("in");
-                    }
+        }
 
     });
 

@@ -20,12 +20,13 @@ define([
 
     'views/chart/dailycost',
     'views/chart/costbd',
+    'views/widget/alert',
 
 
     // Using the Require.js text! plugin, we are loaded raw text
     // which will be used as our views primary template
     'text!templates/episode.html'
-], function ($, _, Backbone, PatInfo, Utilization, Saving, Orderable, DailyCost, CostBD, episodeTemplate) {
+], function ($, _, Backbone, PatInfo, Utilization, Saving, Orderable, DailyCost, CostBD, Alert, episodeTemplate) {
 
     var EpisodeView = Backbone.View.extend({
         el: '.page',
@@ -49,6 +50,7 @@ define([
             this.orderable = new Orderable;
             this.dailycost = new DailyCost;
             this.costbd = new CostBD;
+            this.alert = new Alert;
 
 
         }
