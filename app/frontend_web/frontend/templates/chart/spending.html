@@ -1,7 +1,7 @@
 <div class="panel panel-default">
     <div class="panel-body">
         <h3 class="panel-title">
-            Dr.Smith's Total Spends for <span class="blue">William Shakespeare</span>
+            Dr.Smith's Total Spends for <span class="blue"> William Shakespeare</span>
         </h3>
 
         <div id="total-spend" class="chart-col-6"></div>
@@ -9,12 +9,42 @@
 </div>
 
 <script>
+    var colorArray = ["#0188BB", "#4C2694", "#79B32D", "#FF8500", "#00587A" ]
+    //Palette URL: http://colorschemedesigner.com/#3q62mWSE5w0w0
+
+    /*****************************************
+
+     Temporary code
+     ****************************************/
+    var category = new Array("Medication", "Labs", "Procedures", "RJS Nursing", "Immunization/Injection");
+
+    var encs_cost = [];
+
+    var firstDate = new Date();
+    firstDate.setDate(firstDate.getDate() - 30);
+    firstDate.setHours(0, 0, 0, 0);
+
+    var days = 30;
+
+    for (var i = 0; i < days; i++) {
+        var newDate = new Date(firstDate);
+        newDate.setDate(newDate.getDate() + i);
+
+        encs_cost.push({
+            date: newDate,
+            encounter_cost: Math.floor((Math.random() * 100) + 1)
+        });
+    }
+
+    console.log('chart');
+    console.log(encs_cost);
+
     var chart = AmCharts.makeChart("total-spend", {
         "type": "serial",
         "dataDateFormat": "YYYY-MM-DD",
         "colors": colorArray,
         "pathToImages": "js/amcharts/images/",
-        "dataProvider": "<%= spending %>",
+        "dataProvider": encs_cost,
         "valueAxes": [
             {
                 "axisAlpha": 1,
@@ -31,13 +61,12 @@
                 //"bulletColor":"#FFFFFF",
                 //"hideBulletsCount": 30,
                 // "title": "red line",
-                "valueField": value,
-                "colorField": "color",
+                "valueField": 'encounter_cost',
                 //"useLineColorForBulletBorder":true,
                 "fillAlphas": .8,
                 "fillColorsField": "fill",
                 "inside": true,
-                "type": chart_type
+                "type": "column"
             }
         ],
         "chartScrollbar": {
@@ -50,7 +79,7 @@
             "cursorPosition": "mouse",
             "cursorColor": colorArray[3]
         },
-        "categoryField": cat,
+        "categoryField": 'date',
         "categoryAxis": {
             "parseDates": true,
             "axisColor": "#DADADA",

@@ -211,7 +211,6 @@ function generateChartData() {
             encs_cost.push({
                 date: newDate,
                 encounter_cost: count,
-                subdata: pat_cost_bd,
                 color: col
             });
         }

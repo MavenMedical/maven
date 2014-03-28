@@ -7,7 +7,7 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
 
-
+    'currentContext',
 
     //views
     'views/widget/patientList',
@@ -17,7 +17,7 @@ define([
     // Using the Require.js text! plugin, we are loaded raw text
     // which will be used as our views primary template
     'text!templates/home.html'
-], function ($, _, Backbone,PatientList, Spending, CostBD, homeTemplate ) {
+], function ($, _, Backbone, currentContext, PatientList, Spending, CostBD, homeTemplate ) {
 
     var HomeView = Backbone.View.extend({
         el: '.page',
@@ -36,8 +36,8 @@ define([
             //widgets
             console.log('home render widgets');
             this.patientlistview = new PatientList;
-            //console.log(patientlistview.patients);
-            //$('.patientlist').append(patientlistview.render().el);
+            console.log('home widgets');
+            console.log(currentContext.patients);
             this.spending = new Spending;
             this.costbd = new CostBD;
 

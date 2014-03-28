@@ -23,6 +23,8 @@ define([
             this.render();
         },
         render: function () {
+            console.log('spending');
+            console.log(currentContext.patients);
           var that = this;
             this.spend.fetch({
                 success: function (spend) {

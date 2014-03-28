@@ -24,7 +24,7 @@ define([
 		       var that = this;
 		       this.utilization.fetch({
 			       success: function (util) {
-				   that.$el.html(that.template({utilization:util}));
+				   that.$el.html(that.template({utilization:util , page: currentContext.page}));
 			       },
 				   data: $.param(currentContext)
 				   });

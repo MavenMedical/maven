@@ -1,7 +1,11 @@
 <div class="panel panel-default">
     <div class="panel-body">
         <h3 class="panel-title">
-            Dr.Smith's Cost Breakdown <span id="date"></span>
+            <% if(page == 'episode') { %>
+            Encounter Cost Breakdown
+            <% } else { %>
+            Cost Breakdown
+            <% } %>
         </h3>
 
         <div id="cost-bd" class="chart-col-6"></div>
@@ -9,32 +13,36 @@
 </div>
 
 <script>
+    var colorArray = ["#0188BB", "#4C2694", "#79B32D", "#FF8500", "#00587A" ]
+    //Palette URL: http://colorschemedesigner.com/#3q62mWSE5w0w0
+
     var chart = AmCharts.makeChart("cost-bd", {
         "type": "pie",
-        //"colors": colorArray,
+        "colors": colorArray,
+
         "dataProvider": [
             {
-                "year": 2005,
-                "income": 23.5
+                "order": "ECG",
+                "cost": "1200"
             },
             {
-                "year": 2006,
-                "income": 26.2
+                "order": "CBC",
+                "cost": "38"
             },
             {
-                "year": 2007,
-                "income": 30.1
+                "order": "CRP",
+                "cost": "47"
             }
         ],
-        "titleField": "year",
-        "valueField": "income",
+        "titleField": "order",
+        "valueField": "cost",
         "labelRadius": 5,
-        "colorField": "color",
-        "pulledField": "pulled",
 
-        "radius": "22%",
-        "innerRadius": "50%",
-        "labelText": "[[title]]"
+        "radius": "30%",
+        "innerRadius": "60%",
+        "labelText": "[[title]]: $[[value]]"
+        //"balloonText": "Expenses in [[title]]:<b>$[[value]]</b>"
     });
+
 
 </script>
