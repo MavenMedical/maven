@@ -64,9 +64,9 @@ class OutgoingToMavenMessageHandler(HR.HTTPReader):
 
 class IncomingFromMavenMessageHandler(HR.HTTPWriter):
 
-    def __init__(self, configname, wk):
+    def __init__(self, configname):
         HR.HTTPWriter.__init__(self, configname)
-        self.wk = wk
+        #self.wk = wk
 
     @asyncio.coroutine
     def format_response(self, obj, _):
@@ -118,7 +118,7 @@ def main(loop):
 
         outgoingtomavenmessagehandler+".Writer":
         {
-            SP.CONFIG_WRITERKEY:2
+            SP.CONFIG_WRITERKEY:1
         },
 
         incomingfrommavenmessagehandler:
@@ -128,7 +128,7 @@ def main(loop):
             SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOSOCKETREPLY,
             SP.CONFIG_WRITERNAME: incomingfrommavenmessagehandler+".Writer",
             SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_IDENTITYPARSER,
-            SP.CONFIG_WRITERDYNAMICKEY:2,
+            #SP.CONFIG_WRITERDYNAMICKEY:2,
         },
         incomingfrommavenmessagehandler+".Reader":
         {
@@ -138,16 +138,16 @@ def main(loop):
 
         incomingfrommavenmessagehandler+".Writer":
         {
-            #SP.CONFIG_HOST:'127.0.0.1',
-            #SP.CONFIG_PORT:12345,
-            SP.CONFIG_WRITERDYNAMICKEY:1,
+            SP.CONFIG_HOST:'127.0.0.1',
+            SP.CONFIG_PORT:12347,
+            #SP.CONFIG_WRITERDYNAMICKEY:1,
         },
 
     }
     MC.MavenConfig = MavenConfig
 
     sp_consumer = OutgoingToMavenMessageHandler(outgoingtomavenmessagehandler, 2)
-    sp_producer = IncomingFromMavenMessageHandler(incomingfrommavenmessagehandler, "writer:2")
+    sp_producer = IncomingFromMavenMessageHandler(incomingfrommavenmessagehandler)
 
     reader = sp_consumer.schedule(loop)
     emr_writer = sp_producer.schedule(loop)

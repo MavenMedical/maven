@@ -522,7 +522,7 @@ class Composition(Resource):
         for detail in order.detail:
             if detail.type == "Lab" or "Procedure" or "PROC":
                 for id in detail.identifier:
-                    if id.system == "clientEMR" and id.label == "Internal":
+                    if id.system == "clientEMR" and id.label == "Internal" or id.label == "maven" or id.label == "CPT4":
                         proc_supply_list.append([id.value, detail.name])
         return proc_supply_list
 
