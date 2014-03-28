@@ -9,7 +9,7 @@ var colorArray = ["#0188BB", "#4C2694", "#79B32D", "#FF8500", "#00587A" ]
 
 //public variables and data arrays
 var pateint = {
-    "name": "John Smith",
+    "name": "John Huxtable",
     "sex": "Male",
     "DOB": "08/05/1987",
     "problemlist": ["Asthma without status asthmaticus", "Unspecified asthma", "Bronchitis, not specified as acute or chronic",
