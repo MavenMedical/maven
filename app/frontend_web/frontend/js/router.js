@@ -23,7 +23,7 @@ define([
     'views/episode',
     'views/alerts',
     'views/widget/evidence'
-], function ($, _, Backbone,currentContext, SideMenu, TopNav, HomeView, PatientView, EpisodeView, AlertsView, EvidenceView) {
+], function ($, _, Backbone,currentContext, SideMenu, TopNav, HomeView, PatientView, EpisodeView, AlertsView, Evidence) {
     var AppRouter = Backbone.Router.extend({
         routes: {
             "": 'showHome',
@@ -90,7 +90,14 @@ define([
 
             console.log("evid router");
              //update current context page
-            //currentContext.page = 'evidence';
+            currentContext.page = 'evidence';
+            currentContext.alert = '1';
+            currentContext.patient = '1';
+
+             var episodeView = new EpisodeView;
+
+            var evidence = new Evidence;
+            $('#evidence-'+currentContext.alert).modal();
 
            // var evidenceView = new EvidenceView;
            // evidenceView.render();

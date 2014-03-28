@@ -31,7 +31,7 @@ define([
                 _.bindAll(this, 'render', 'addPatient');
                 this.patients = new PatientCollection;
                 this.patients.bind('add', this.addPatient, this);
-                this.patients.fetch({data:$.param(currentContext)});
+                this.patients.fetch({ data:$.param(currentContext)});
                 this.render();
             },
             render: function(){
