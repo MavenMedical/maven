@@ -12,6 +12,7 @@ __author__='Tom DuBois'
 #*************************************************************************
 
 from app.utils.database.database import AsyncConnectionPool
+from app.utils.database.database import MappingUtilites as DBMapUtils
 import app.utils.streaming.stream_processor as SP
 import app.utils.streaming.http_responder as HTTP
 import asyncio
@@ -24,6 +25,7 @@ from Crypto.Hash import SHA256
 import base64
 import itertools
 import traceback
+import psycopg2.extras
 
 CONFIG_DATABASE = 'database'
 
@@ -35,6 +37,7 @@ CONTEXT_PATIENTLIST = 'patients'
 CONTEXT_DEPARTMENT = 'department'
 CONTEXT_CATEGORY = 'category'
 CONTEXT_KEY = 'key'
+CONTEXT_ENCOUNTER = 'encounter'
 
 
 # When the user creates a list of something, every element in that list is checked to make 
@@ -179,7 +182,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         self.add_handler(['GET'], '/total_savings', self.get_total_savings)
         self.add_handler(['GET'], '/spending', self.get_daily_spending)
         self.add_handler(['GET'], '/spending_details', self.get_spending_details)
-        #self.db = AsyncConnectionPool(db_configname)
+        self.db = AsyncConnectionPool(db_configname)
 
 
         self.add_handler(['GET'], '/alerts(?:/(\d+)-(\d+)?)?', self.get_alerts)
@@ -189,7 +192,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
     def schedule(self, loop):
         HTTP.HTTPProcessor.schedule(self, loop)
-        #self.db.schedule(loop)
+        self.db.schedule(loop)
 
 
     @asyncio.coroutine
@@ -197,17 +200,60 @@ class FrontendWebService(HTTP.HTTPProcessor):
         return (HTTP.OK_RESPONSE, b'', None)
 
     patients_required_contexts = [CONTEXT_USER]
-    patients_available_contexts = {CONTEXT_USER:str}
+    patients_available_contexts = {CONTEXT_USER:str, 'customer_id': int, CONTEXT_ENCOUNTER: str}
 
     @asyncio.coroutine
     def get_patients(self, _header, _body, qs, matches, _key):
-        global patients_list
 
-        context = restrict_context(qs, 
+
+        # {1: {'id':1, 'name':'Batman', 'gender':'Male', 'DOB':'05/03/1987', 'diagnosis':'Asthma'},}
+        #Need to return LIST OF MAP OBJECTS [id, key, diagnosis, name, gender, DOB]
+        ### TODO - SQL query
+        # SELECT FROM encounter join patient
+        # WHERE visit_prov_id = user
+        # (potential) GROUP
+        ### TODO - Remove hardcoded user context and replace with values from production authentication module
+        qs['user'] = ['JHU1093124']
+        qs['customer_id'] = [1]
+        qs['encounter'] = ['987987917']
+
+        context = restrict_context(qs,
                                    FrontendWebService.patients_required_contexts,
                                    FrontendWebService.patients_available_contexts)
         user = context[CONTEXT_USER]
+        encounter = context[CONTEXT_ENCOUNTER]
         (start, stop) = _get_range(matches, len(patients_list))
+
+
+        try:
+            column_map = ["encounter.csn",
+                          "encounter.contact_date",
+                          "patient.patname",
+                          "encounter.pat_id",
+                          "patient.birthdate",
+                          "patient.sex"]
+
+            columns = DBMapUtils().select_rows_from_map(column_map)
+            cur = yield from self.db.execute_single("SELECT DISTINCT %s"
+                                           " from patient JOIN encounter"
+                                           " on (patient.pat_id = encounter.pat_id and encounter.customer_id = %s)"
+                                           " WHERE encounter.visit_prov_id = '%s' AND encounter.customer_id = %s;" % (columns, context['customer_id'], context['user'], context['customer_id']))
+            results = []
+            for x in cur:
+                results.append({'id': x[0], 'name': x[2], 'gender': x[5], 'DOB': str(x[4]), 'diagnosis': 'Sinusitis', 'key': _authorization_key((user, x[0]))})
+                ML.DEBUG(json.dumps(results))
+        except:
+            raise Exception('Error in front end webservices get_patients() call to database')
+
+
+        ### TODO - SQL query
+        # SELECT FROM encounterdx join encounter
+        # WHERE visit_prov_id = user
+        # (potential) GROUP
+        ###
+        global patients_list
+
+
 
         #patient_cursor = yield from self.db.execute_single('select patname, sex, birth_month from patient')
         #print("patient cursor ")
@@ -219,7 +265,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
         patient_list = [copy_and_append(v, (CONTEXT_KEY,_authorization_key((user, v['id'])))) 
                         for v in patients_list.values()][start:stop]
-        print(patient_list)
+        ML.DEBUG(json.dumps(patient_list))
+
         return (HTTP.OK_RESPONSE, json.dumps(patient_list), None)
 
     patient_required_contexts = [CONTEXT_USER,CONTEXT_KEY,CONTEXT_PATIENTLIST]
@@ -227,6 +274,10 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
     @asyncio.coroutine
     def get_patient_details(self, _header, _body, qs, matches, _key):
+        """
+        This method returns Patient Details which include the data in the header of the Encounter Page
+            i.e. Allergies Problem List, Last Encounter, others.
+        """
         global patients_list
         context = restrict_context(qs, 
                                    FrontendWebService.patient_required_contexts,
@@ -279,6 +330,10 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
     @asyncio.coroutine
     def get_spending_details(self, _header, _body, qs, _matches, _key):
+        qs['user'] = 'JHU1093124'
+        qs['customer_id'] = 1
+        qs['encounter'] = '987987917'
+
         global patient_spending
         context = restrict_context(qs, 
                                    FrontendWebService.spending_required_contexts,
@@ -326,6 +381,11 @@ class FrontendWebService(HTTP.HTTPProcessor):
     #self.add_handler(['GET'], '/orders(?:/(\d+)-(\d+)?)?', self.get_stub)
     @asyncio.coroutine
     def get_orders(self, _header, _body, qs, _matches, _key):
+        ### TODO - Remove hardcoded user context and replace with values from production authentication module
+        qs['user'] = 'JHU1093124'
+        qs['customer_id'] = 1
+        qs['encounter'] = '987987917'
+
         global order_list
         context = restrict_context(qs, 
                                    FrontendWebService.orders_required_contexts,
@@ -335,6 +395,26 @@ class FrontendWebService(HTTP.HTTPProcessor):
         #auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
         
         order_dict = {}
+
+        try:
+            column_map = ["mavenorder.order_name",
+                        "mavenorder.datetime",
+                        "mavenorder.active",
+                        "mavenorder.order_cost"]
+
+            columns = DBMapUtils().select_rows_from_map(column_map)
+            cur = yield from self.db.execute_single("SELECT %s"
+                                           " from mavenorder"
+                                           " WHERE mavenorder.encounter_id = '%s' AND encounter.customer_id = %s;" % (columns, qs['encounter'], qs['customer_id']))
+            results = []
+            for x in cur:
+                results.append(x)
+                ML.DEBUG(x)
+
+        except:
+            raise Exception("Error querying encounter orders from the database")
+
+
         for patient_id in set(patient_ids).intersection(order_list.keys()):
             try:
                 #if _authorization_key((user, patient_id)) == auth_keys[patient_id]:
@@ -359,9 +439,9 @@ if __name__ == '__main__':
                 {
                     SP.CONFIG_HOST: 'localhost',
                     SP.CONFIG_PORT: 8087,
-                    CONFIG_DATABASE: "test conn pool",
+                    CONFIG_DATABASE: "webservices conn pool",
                 },
-            'test conn pool': {
+            'webservices conn pool': {
                 AsyncConnectionPool.CONFIG_CONNECTION_STRING:
                 ("dbname=%s user=%s password=%s host=%s port=%s" % ('maven', 'maven', 'temporary', 'localhost', '5432')),
                 AsyncConnectionPool.CONFIG_MIN_CONNECTIONS: 4,
