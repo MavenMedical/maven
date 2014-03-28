@@ -517,6 +517,7 @@ CREATE TABLE mavenorder
   code_type character varying(36),
   order_cost numeric(13,2),
   datetime timestamp without time zone,
+  active boolean,
   CONSTRAINT mavenorder_pkey PRIMARY KEY (orderid)
 )
 WITH (
@@ -661,6 +662,7 @@ CREATE TABLE patient
   pat_id character varying(100) NOT NULL,
   customer_id numeric(18,0),
   birth_month character varying(6),
+  birthdate date,
   sex character varying(254),
   mrn character varying(100),
   patname character varying(100),
@@ -920,19 +922,19 @@ ALTER TABLE ruleTest.rules
 CREATE OR REPLACE FUNCTION upsert_patient(pat_id1 character varying(100), customer_id1 numeric(18,0),
   birth_month1 character varying(6), sex1 character varying(254),
   mrn1 character varying(100), patname1 character varying(100),
-  cur_pcp_prov_id1 character varying(18))
+  cur_pcp_prov_id1 character varying(18), birthdate1 date)
   RETURNS VOID AS
 $$
 BEGIN
   LOOP
     UPDATE patient SET birth_month = birth_month1, sex = sex1, mrn = mrn1,
-      patname = patname1, cur_pcp_prov_id = cur_pcp_prov_id1 WHERE pat_id = pat_id1 AND customer_id = customer_id1;
+      patname = patname1, cur_pcp_prov_id = cur_pcp_prov_id1, birthdate = birthdate1 WHERE pat_id = pat_id1 AND customer_id = customer_id1;
     IF found THEN
       RETURN;
     END IF;
     BEGIN
-      INSERT INTO patient(pat_id, customer_id, birth_month, sex, mrn, patname, cur_pcp_prov_id)
-        VALUES (pat_id1, customer_id1, birth_month1, sex1, mrn1, patname1, cur_pcp_prov_id1);
+      INSERT INTO patient(pat_id, customer_id, birth_month, sex, mrn, patname, cur_pcp_prov_id, birthdate)
+        VALUES (pat_id1, customer_id1, birth_month1, sex1, mrn1, patname1, cur_pcp_prov_id1, birthdate1);
       RETURN;
     EXCEPTION WHEN unique_violation THEN
     END;
@@ -943,6 +945,57 @@ $$
   COST 100;
 ALTER FUNCTION upsert_patient(character varying(100), numeric(18,0), character varying(6),
 character varying(254), character varying(100), character varying(100), character varying(18))
+  OWNER TO maven;
+
+CREATE OR REPLACE FUNCTION upsert_enc_order(pat_id1 character varying(100),
+  customer_id1 numeric(18,0),
+  encounter_id1 character varying(100),
+  order_name1 character varying(255),
+  order_type1 character varying(36),
+  proc_code1 character varying(36),
+  code_type1 character varying(36),
+  order_cost1 numeric(13,2),
+  datetime1 timestamp without time zone,
+  active1 boolean)
+  RETURNS VOID AS
+$$
+BEGIN
+  LOOP
+    UPDATE mavenorder SET pat_id =pat_id1,
+    customer_id = customer_id1,
+    encounter_id = encounter_id1,
+    order_name = order_name1,
+    order_type = order_type1,
+    proc_code = proc_code1,
+    code_type = code_type1,
+    order_cost = order_cost1,
+    datetime = datetime1,
+    active = active1
+    WHERE encounter_id = encounter_id1 and customer_id = customer_id1 and pat_id = pat_id1 and proc_code = proc_code1;
+    IF found THEN
+      RETURN;
+    END IF;
+    BEGIN
+      INSERT INTO mavenorder(pat_id, customer_id, encouter_id, order_name, order_type, proc_code, code_type, order_cost, datetime, active)
+        VALUES (pat_id1, customer_id1, encouter_id1, order_name1, order_type1, proc_code1, code_type1, order_cost1, datetime1, active1);
+      RETURN;
+    EXCEPTION WHEN unique_violation THEN
+    END;
+  END LOOP;
+END;
+$$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION upsert_enc_order(pat_id character varying(100),
+  customer_id numeric(18,0),
+  encounter_id character varying(100),
+  order_name character varying(255),
+  order_type character varying(36),
+  proc_code character varying(36),
+  code_type character varying(36),
+  order_cost numeric(13,2),
+  datetime timestamp without time zone,
+  active boolean)
   OWNER TO maven;
 
 

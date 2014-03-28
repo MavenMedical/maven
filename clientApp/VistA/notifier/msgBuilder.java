@@ -32,19 +32,46 @@ public class msgBuilder {
             "color: #9F6000;"+
             "background-color: #FEEFB3;";
             //"background-image: url('"+imgUrl+"');";
-        if (encounter.contains("Vibramycin"))
+        if (encounter.contains("CT SINUS"))
         {
             rtn="<html><body><div style=\""+style+"\"><table><tr><td><img src='"+imgUrl+"' /></td></td>"
-                    +"<td><b>Generic Alternatives to Vibramicin ($94.03):</b><br/>"
-                    +"&nbsp&nbsp&nbsp Doxycycline 50mg x2 ($7.90)<br/>"
-                    +"&nbsp&nbsp&nbsp Doxycycline 100mg ($13.70)</td>"
+                    +"<td><b>Choosing Wisely&reg;:</b> Sinus CT ($807) - Acute Sinusitis:<br/>"
+                    +"<table><tr><td width=10px></td><td>Most acute rhinoinusitis resolves without treatment in two weeks "
+                    +"and generally does not require a CT.</td></tr><tr><td></td><td align=right><a href=\"#\">See the Evidence</a></td></tr></table></td>"
                 + "</tr></table></div></body></html>";
         
         }
+        else if (encounter.contains("IMMUNOGLOB"))
+        {
+            rtn="<html><body><div style=\""+style+"\"><table><tr><td><img src='"+imgUrl+"' /></td></td>"
+                    +"<td><b>Recent Immunoglobulin Results (3/26/14):</b><br/>"
+                    +"&nbsp&nbsp&nbsp IgG: 710 &nbsp&nbsp&nbsp IgM: 95 <br/>"
+                    +"&nbsp&nbsp&nbsp IgA: 190 &nbsp&nbsp&nbsp IgE: 7</td>"
+                + "</tr></table></div></body></html>";
+        
+        }
+        else if (encounter.contains("CEFIXIME"))
+        {
+            rtn="<html><body><div style=\""+style+"\"><table><tr><td><img src='"+imgUrl+"' /></td></td>"
+                    +"<td><b>Cefiximie is $543.73</b> Gen-3 Cephalosporin Alternatives:<br/>"
+                    +"&nbsp&nbsp&nbsp Cefdinir ($21.90)<br/>"
+                    +"&nbsp&nbsp&nbsp Cefpodoxime ($93.70)</td>"
+                + "</tr></table></div></body></html>";
+        
+        }
+        
         return rtn;
     }
-    
     public static String getNotification(String encounter, int alertLevel) throws Exception
+    {
+        //System.out.println(encounter);
+        java.net.URL logoURL = TcpPopups.class.getResource("maven_32.jpg");
+        String rtn="";
+        rtn=MavenWebClient.post(encounter);
+        rtn=rtn.replace("{{IMGLOGO}}",logoURL.toString());
+        return rtn;
+    }
+    public static String getNotification_Local(String encounter, int alertLevel) throws Exception
     {
         //System.out.println(encounter);
         String rtn="";
