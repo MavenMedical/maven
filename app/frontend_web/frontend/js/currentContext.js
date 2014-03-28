@@ -21,6 +21,7 @@ define([
         context.provider = null;
         context.encounter = null;
         context.department = null;
+        context.alert = null;
 
         return context;
     }());

@@ -7,3 +7,39 @@
         <div id="daily_cost" class="chart-col-6"></div>
     </div>
 </div>
+
+<script>
+     var chart = AmCharts.makeChart("daily_cost", {
+        "type": "serial",
+        "colors": colorArray,
+        "dataDateFormat": "YYYY-MM-DD",
+        "dataProvider": [
+            {
+                "date": "2014-03-31",
+                "cost": 380
+            }
+        ],
+        "categoryField": "date",
+        "rotate": true,
+
+        "categoryAxis": {
+            "gridPosition": "start",
+            "axisColor": "#DADADA"
+        },
+        "valueAxes": [
+            {
+                "axisAlpha": 0.2
+            }
+        ],
+        "graphs": [
+            {
+                "type": "column",
+                "valueField": "cost",
+                "lineAlpha": 0,
+                "fillColors": colorArray[0],
+                "fillAlphas": 0.8,
+                "balloonText": "Expenses in [[category]]:<b>$[[value]]</b>"
+            }
+        ]
+    });
+</script>

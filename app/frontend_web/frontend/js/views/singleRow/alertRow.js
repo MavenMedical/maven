@@ -11,20 +11,21 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
 
+
     'currentContext',
 
-     'views/widget/evidence',
+    'views/widget/evidence',
 
     //Template
     'text!templates/singleRow/alertRow.html'
 
-], function ($, _, Backbone, currentContext, Evidence, alertRowTemplate) {
+], function ($, _, Backbone, currentContext,Evidence, alertRowTemplate) {
     var alertRow = Backbone.View.extend({
         tagName: 'div',
         template: _.template(alertRowTemplate),
         events:{
             'click .panel-heading': 'handleClick',
-            'click .label': 'showEvidence'
+            'click .spans': 'showEvidence'
         },
         render: function(){
             console.log(this.model.toJSON());
@@ -33,10 +34,17 @@ define([
         },
         showEvidence:function(){
             console.log("show evidence");
-            this.evidence = new Evidence;
+            /*this.evidence = new Evidesnce;
+            $('#Modal').modal({
+                keyboard: false
+            });*/
+           console.log('#evidence'+currentContext.alert);
+            //jQuery.noConflict();
+            $('#evidence'+currentContext.alert).modal();
         },
         handleClick: function(){
-
+            currentContext.alert = this.model.get('id');
+            this.evidence = new Evidence;
             $('#collapse'+this.model.get('patient')+'-'+this.model.get('id')).toggleClass("in");
         }
 

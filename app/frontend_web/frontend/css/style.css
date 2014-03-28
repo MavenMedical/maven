@@ -265,6 +265,10 @@ h1, h2, h3 {
     cursor: pointer;
 }
 
+.label:hover{
+    cursor: pointer;
+}
+
 
 .content {
     padding-left: 5px;
