@@ -5,11 +5,10 @@
  */
 package tcppopups;
 
+import java.awt.AWTException;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Toolkit;
 import java.io.BufferedReader;
@@ -17,15 +16,22 @@ import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 import javax.swing.JEditorPane;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import java.awt.Desktop;
+import java.awt.Menu;
+import java.awt.MenuItem;
+import java.awt.PopupMenu;
+import java.awt.SystemTray;
+import java.awt.TrayIcon;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import javax.swing.ImageIcon;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.swing.JWindow;
 
 /**
@@ -40,6 +46,7 @@ public class TcpPopups {
     public static int fadeInterval=140;
     
     public static int activeMessages=0;
+    public static String lastMessage="";
     /**
      * @param args the command line arguments
      */
@@ -47,7 +54,7 @@ public class TcpPopups {
         String clientSentence;
         String capitalizedSentence;
         ServerSocket welcomeSocket = new ServerSocket(9090);
-
+        prepSysTray();
         while (true) {
             Socket connectionSocket = welcomeSocket.accept();
             BufferedReader inFromClient
@@ -63,8 +70,52 @@ public class TcpPopups {
             clientSentence="";
         }
     }
+    
+    
+    public static ActionListener performReplay = new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+            try {
+                handleNewMessage(lastMessage);
+            } catch (Exception ex) {
+                Logger.getLogger(TcpPopups.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    };
+    
+    public static void prepSysTray() throws Exception
+    {
+        if (!SystemTray.isSupported()) {
+            System.out.println("SystemTray is not supported");
+            return;
+        }
+        final PopupMenu popup = new PopupMenu();
+        final TrayIcon trayIcon =new TrayIcon(ImageIO.read(TcpPopups.class.getResource("maven_16.png")));
+        final SystemTray tray = SystemTray.getSystemTray();
+       
+        // Create a pop-up menu components
+        MenuItem replayMenu = new MenuItem("Replay Previous Message");
+        replayMenu.addActionListener(performReplay); 
+        MenuItem exitItem = new MenuItem("Exit");
+       
+        //Add components to pop-up menu
+        popup.add(replayMenu);
+        popup.addSeparator();;
+        popup.addSeparator();
+       
+        popup.add(exitItem);
+       
+        trayIcon.setPopupMenu(popup);
+       
+        try {
+            tray.add(trayIcon);
+        } catch (AWTException e) {
+            System.out.println("TrayIcon could not be added.");
+        }
+    }
+    
     public static void handleNewMessage(String msg) throws Exception
     {
+        lastMessage=msg;
          /////////////////////DEMO Fudge////////////////////////////////////
             msg=demoFudge.fudgeProcCodes(msg);
             ///////////////////////////////////////////////////////////////////
@@ -84,6 +135,7 @@ public class TcpPopups {
         //System.out.println(body);
         //System.out.println(body.length());
         activeMessages+=1;
+        
         JEditorPane jep = new JEditorPane("text/html", body);
         jep.setSize(wide, highOne);
         jep.setEditable(false);
