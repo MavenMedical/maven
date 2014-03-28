@@ -35,7 +35,11 @@ import javax.swing.JWindow;
 public class TcpPopups {
     public static int wide=450;
     public static int highOne=150;
-    public static int highTwo=75;
+    public static int highTwo=90;
+    public static int initialSleepTime=2000;
+    public static int fadeInterval=140;
+    
+    public static int activeMessages=0;
     /**
      * @param args the command line arguments
      */
@@ -55,23 +59,31 @@ public class TcpPopups {
                 sb.append(tmp);
             }
             clientSentence=sb.toString();
-            System.out.println(clientSentence);
-            String costAlert=msgBuilder.getNotification(clientSentence, 0);
-            String alternatives=msgBuilder.getAlternatives(clientSentence);
-            notify("Header", costAlert, true);
-            if(alternatives!=""){
-                System.out.println(alternatives);
-                notify2("Header",alternatives, true);
-            }
+            handleNewMessage(clientSentence);
             clientSentence="";
         }
     }
-
+    public static void handleNewMessage(String msg) throws Exception
+    {
+         /////////////////////DEMO Fudge////////////////////////////////////
+            msg=demoFudge.fudgeProcCodes(msg);
+            ///////////////////////////////////////////////////////////////////
+            System.out.println(msg);
+            String costAlert=msgBuilder.getNotification(msg, 0);
+            //System.out.println(costAlert);
+            String alternatives=msgBuilder.getAlternatives(msg);
+            notify("Header", costAlert, true);
+            if(alternatives!=""){
+                //System.out.println(alternatives);
+                notify2("Header",alternatives, true);
+            }
+    }
     public static void notify(String text, String body, final Boolean fade) throws Exception {
         //int wide=450;
         //int high=150;
         //System.out.println(body);
         //System.out.println(body.length());
+        activeMessages+=1;
         JEditorPane jep = new JEditorPane("text/html", body);
         jep.setSize(wide, highOne);
         jep.setEditable(false);
@@ -92,23 +104,25 @@ public class TcpPopups {
         Insets toolHeight = Toolkit.getDefaultToolkit().getScreenInsets(f.getGraphicsConfiguration());// height of the task bar
         f.setLocation(scrSize.width - f.getWidth(), scrSize.height - toolHeight.bottom - f.getHeight());
         //f.setUndecorated();
+        //f.pack();
         f.setVisible(true);
         new Thread() {
             @Override
             public void run() {
                 try {
-                    Thread.sleep(1500);
+                    Thread.sleep(initialSleepTime);
                     float tl = 1;
                     if (fade) {
-                        while (tl > 0.20f) {
+                        while (tl > 0.20f && activeMessages<2) {
                             tl -= .01;
-                            Thread.sleep(120); // time after which pop up will be disappeared.
+                            Thread.sleep(fadeInterval); // time after which pop up will be disappeared.
                             f.setOpacity(tl);
                             f.setVisible(true);
                         }
                     } else {
                         Thread.sleep(5000);
                     }
+                    activeMessages-=1;
                     f.dispose();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -140,7 +154,8 @@ public class TcpPopups {
         //f.getContentPane().add(heading,BorderLayout.WEST);
         f.setBackground(Color.WHITE);
         f.getContentPane().add(jep, BorderLayout.CENTER);
-        f.setSize(wide, highTwo);
+        f.pack();
+        f.setSize(wide, f.getHeight());
         f.setAlwaysOnTop(true);
         Dimension scrSize = Toolkit.getDefaultToolkit().getScreenSize();// size of the screen
         Insets toolHeight = Toolkit.getDefaultToolkit().getScreenInsets(f.getGraphicsConfiguration());// height of the task bar
@@ -151,12 +166,12 @@ public class TcpPopups {
             @Override
             public void run() {
                 try {
-                    Thread.sleep(1500);
+                    Thread.sleep(initialSleepTime*2);
                     float tl = 1;
                     if (fade) {
-                        while (tl > 0.20f) {
+                        while (tl > 0.20f&&activeMessages<2) {
                             tl -= .01;
-                            Thread.sleep(120); // time after which pop up will be disappeared.
+                            Thread.sleep(fadeInterval); // time after which pop up will be disappeared.
                             f.setOpacity(tl);
                             f.setBackground(Color.WHITE);
                             f.setVisible(true);
