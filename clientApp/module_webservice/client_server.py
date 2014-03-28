@@ -48,7 +48,6 @@ class OutgoingToMavenMessageHandler(HR.HTTPReader):
         param: obj is list of headers, body
         param: key is key
         """
-        print("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>KEY = "+str(key)+"\n")
         header = obj[0]
         body = obj[1]
         message = body.decode()
