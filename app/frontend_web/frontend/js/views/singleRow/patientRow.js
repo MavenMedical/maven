@@ -24,17 +24,17 @@ define([
             'click': 'handleClick'
         },
         render: function(){
+            //add patient ids to currentContext patient array
+            //currentContext.patients = currentContext.patients.concat((this.model.toJSON().id));
+            console.log(currentContext);
             $(this.el).html(this.template(this.model.toJSON()));
             return this;
         },
         handleClick: function(){
-            console.log(this.model.get("name"));
             //update context
             currentContext.key = this.model.get("key");
             currentContext.patients = this.model.get("id");
 	    currentContext.patient_name = this.model.get("name");
-
-
         }
 
     });

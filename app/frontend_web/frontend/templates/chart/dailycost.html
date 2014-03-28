@@ -1,7 +1,11 @@
 <div class="panel panel-default">
     <div class="panel-body">
         <h3 class="panel-title">
-            Cost By Day
+            <% if(page == 'episode') { %>
+            Saving for this Encounter
+            <% } else { %>
+                Utilization
+            <% } %>
         </h3>
 
         <div id="daily_cost" class="chart-col-6"></div>
@@ -9,37 +13,58 @@
 </div>
 
 <script>
-     var chart = AmCharts.makeChart("daily_cost", {
-        "type": "serial",
-        "colors": colorArray,
-        "dataDateFormat": "YYYY-MM-DD",
-        "dataProvider": [
+     var colorArray = ["#0188BB", "#4C2694", "#79B32D", "#FF8500", "#00587A" ]
+    //Palette URL: http://colorschemedesigner.com/#3q62mWSE5w0w0
+var chart = AmCharts.makeChart("daily_cost", {
+    "colors": colorArray,
+    "type": "serial",
+    "dataProvider": [
             {
-                "date": "2014-03-31",
-                "cost": 380
+                "order": "ECG",
+                "cost": "1200",
+                "saving": "1200"
+            },
+            {
+                "order": "CBC",
+                "cost": "38",
+                "saving": "0"
+            },
+            {
+                "order": "CRP",
+                "cost": "47",
+                "saving": "0"
             }
         ],
-        "categoryField": "date",
-        "rotate": true,
+    "valueAxes": [{
+        "unit": "$",
+        "unitPosition": "left",
+        "position": "left"
+        //"title": "Ptintial Saving"
+    }],
+    "startDuration": 1,
+    "graphs": [{
+        "balloonText": "Cost for [[category]]: <b>$[[value]]</b>",
+        "fillAlphas": 0.4,
+        "lineAlpha": 0.2,
+        "title": "cost",
+        "type": "column",
+        "valueField": "cost"
+    }, {
+        "balloonText": "Potential Saving for [[category]]: <b>$[[value]]</b>",
+         "fillColors": colorArray[2],
+        "fillAlphas": 0.9,
+        "lineAlpha": 0.2,
+        "title": "saving",
+        "type": "column",
+        "clustered":false,
+        "columnWidth":0.5,
+        "valueField": "saving"
+    }],
+    "plotAreaFillAlphas": 0.1,
+    "categoryField": "order",
+    "categoryAxis": {
+    "gridPosition": "start"
+    }
+});
 
-        "categoryAxis": {
-            "gridPosition": "start",
-            "axisColor": "#DADADA"
-        },
-        "valueAxes": [
-            {
-                "axisAlpha": 0.2
-            }
-        ],
-        "graphs": [
-            {
-                "type": "column",
-                "valueField": "cost",
-                "lineAlpha": 0,
-                "fillColors": colorArray[0],
-                "fillAlphas": 0.8,
-                "balloonText": "Expenses in [[category]]:<b>$[[value]]</b>"
-            }
-        ]
-    });
 </script>

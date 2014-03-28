@@ -27,7 +27,6 @@ define([
             template: _.template(patientListTemplate),
 
             initialize: function(){
-                console.log("patient list ini");
                 _.bindAll(this, 'render', 'addPatient');
                 this.patients = new PatientCollection;
                 this.patients.bind('add', this.addPatient, this);
@@ -35,7 +34,6 @@ define([
                 this.render();
             },
             render: function(){
-                console.log('patient list render');
                 this.$el.html(this.template);
             },
             addPatient: function(pat){

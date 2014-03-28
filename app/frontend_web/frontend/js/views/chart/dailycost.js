@@ -7,8 +7,9 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
+    'currentContext',
     'text!templates/chart/dailycost.html'
-], function ($, _, Backbone, dailycostTemplate) {
+], function ($, _, Backbone, currentContext, dailycostTemplate) {
 
     var DailyCost = Backbone.View.extend({
         el: '.dailycost',
@@ -18,7 +19,7 @@ define([
             this.render();
         },
         render: function () {
-            this.$el.html(this.template);
+            this.$el.html(this.template({ page: currentContext.page}));
         }
     });
     return DailyCost;

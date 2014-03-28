@@ -16,9 +16,9 @@ define([
         var context = {};
         context.page = null;
         context.user = 'tom';
-        context.patients = '1';
+        context.patients = '1&2&3&4';
 	context.patient_name = '';
-        context.key = 'YHxOpzEI6rnRTKCCxLrtA7lMi4muhAC3';
+        context.key = '1U6BAcMeDWIN5_MyUd971tUU8jUk3F_R';
         context.provider = null;
         context.encounter = null;
         context.department = null;

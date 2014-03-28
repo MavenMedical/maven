@@ -30,14 +30,12 @@ define([
             "patient": 'showPatient',
             "alerts": 'showAlerts',
             "episode": 'showEpisode',
-            "evidence": 'showEvidence',
+            "episode/:id/patient/:id/evi/:id": 'showEvidence',
 
             //default
             '*action': 'defaultAction'
         }
     });
-
-
 
     var initialize = function () {
         //ajaxPrefilter
@@ -86,22 +84,18 @@ define([
 
 
         });
-        app_router.on('route:showEvidence', function () {
+        app_router.on('route:showEvidence', function (enc , pat , evi) {
 
-            console.log("evid router");
              //update current context page
             currentContext.page = 'evidence';
-            currentContext.alert = '1';
-            currentContext.patient = '1';
+            currentContext.alert = evi;
+            currentContext.encounter = enc;
+            currentContext.patient = pat;
 
              var episodeView = new EpisodeView;
 
             var evidence = new Evidence;
             $('#evidence-'+currentContext.alert).modal();
-
-           // var evidenceView = new EvidenceView;
-           // evidenceView.render();
-
 
         });
         app_router.on('defaultAction', function (actions) {

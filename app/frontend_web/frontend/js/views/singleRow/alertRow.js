@@ -33,11 +33,6 @@ define([
             return this;
         },
         showEvidence:function(){
-            console.log("show evidence");
-            /*this.evidence = new Evidesnce;
-            $('#Modal').modal({
-                keyboard: false
-            });*/
            console.log('#evidence'+currentContext.alert);
             //jQuery.noConflict();
             $('#evidence'+currentContext.alert).modal();

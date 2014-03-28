@@ -2,7 +2,11 @@
 
     <div class="panel-body">
         <h3 class="panel-title">
-            <%= page %>asmaa Historical Utilization
+           <% if(page == 'episode') { %>
+            Utilization for this Encounter
+            <% } else { %>
+                Utilization
+            <% } %>
         </h3>
 
         <div class="row">

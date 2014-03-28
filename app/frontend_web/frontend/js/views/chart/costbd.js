@@ -7,9 +7,10 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
+    'currentContext',
 
     'text!templates/chart/costbd.html'
-], function ($, _, Backbone, costbdTemplate) {
+], function ($, _, Backbone, currentContext, costbdTemplate) {
 
     var CostBD = Backbone.View.extend({
         el: '.costbd',
@@ -25,7 +26,7 @@ define([
           console.log('clicked');
         },
         render: function () {
-            this.$el.html(this.template);
+            this.$el.html(this.template({page: currentContext.page}));
         }
     });
     return CostBD;

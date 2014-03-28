@@ -427,7 +427,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
             except TypeError:
                 pass
         print(order_dict)
-        return (HTTP.OK_RESPONSE, json.dumps(order_dict[1]), None)
+        return (HTTP.OK_RESPONSE, json.dumps(order_dict['1']), None)
 
 
     #self.add_handler(['GET'], '/order_details', self.get_stub)
