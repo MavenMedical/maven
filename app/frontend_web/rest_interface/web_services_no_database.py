@@ -57,24 +57,24 @@ def _authorization_key(data):
     
 
 patients_list = {
-    1: {'id':1, 'name':'Batman', 'gender':'Male', 'DOB':'05/03/1987', 'diagnosis':'Asthma'},
-    2: {'id':2, 'name':'Wonder Woman', 'gender':'Female', 'DOB':'03/06/1986', 'diagnosis':'Coccidiosis'},
-    3: {'id':3, 'name':'Superman', 'gender':'Male', 'DOB':'08/03/1999',  'diagnosis':'Food poisoning'},
-    4: {'id':4, 'name':'Storm', 'gender':'Female', 'DOB':'11/07/1935', 'diagnosis':'Giardiasis'},
+    '1': {'id':'1', 'name':'Batman', 'gender':'Male', 'DOB':'05/03/1987', 'diagnosis':'Asthma'},
+    '2': {'id':'2', 'name':'Wonder Woman', 'gender':'Female', 'DOB':'03/06/1986', 'diagnosis':'Coccidiosis'},
+    '3': {'id':'3', 'name':'Superman', 'gender':'Male', 'DOB':'08/03/1999',  'diagnosis':'Food poisoning'},
+    '4': {'id':'4', 'name':'Storm', 'gender':'Female', 'DOB':'11/07/1935', 'diagnosis':'Giardiasis'},
 } 
 
 patient_extras = {
-    1: {'Allergies': ['Penicillins','Nuts','Cats'], 'Problem List':['Asthma','Cholera']},
+    '1': {'Allergies': ['Penicillins','Nuts','Cats'], 'Problem List':['Asthma','Cholera']},
 }
 
 order_list = {
-    1: [{'title':'Echocardiogram', 'order':'Followup ECG', 'reason':'Mitral regurgitation', 'evidence':'Don\'t test', 'date':'1/1/2014', 'result':'','cost':1200 , 'ecost': 0},
+    '1': [{'title':'Echocardiogram', 'order':'Followup ECG', 'reason':'Mitral regurgitation', 'evidence':'Don\'t test', 'date':'1/1/2014', 'result':'','cost':1200 , 'ecost': 0},
         {'title':'Immunoglobulin','order':'place holder', 'reason':'klsdf jlkwec', 'evidence':'jmdljxs', 'date':'1/24/2014', 'result':'','cost':130 , 'ecost': 0},
         ],
 }
 
 alert_types = {
-    1: {'name':'Avoid NSAIDS', 'cost':168, 'html':'<b>Avoid nonsteroidal anti-inflammatory drugs (NSAIDS)</b> in indeviduals with hypertension or heart failure or CKD of all causes, including diabetes.'},
+    1: {'name':'Avoid NSAIDS', 'cost':168, 'html':'<b>Avoid nonsteroidal anti-inflammatory drugs (NSAIDS)</b> in individuals with hypertension or heart failure or CKD of all causes, including diabetes.'},
     2: {'name':'Placeholder', 'cost':0, 'html':'Placeholder alert to be replaced by something real.  Consult <a href="www.google.com">google</a> for more information.'},
     3: {'name':'Placeholder', 'cost':0, 'html':'Placeholder alert to be replaced by something real.  Consult <a href="www.google.com">google</a> for more information.'},
     4: {'name':'Placeholder', 'cost':0, 'html':'Placeholder alert to be replaced by something real.  Consult <a href="www.google.com">google</a> for more information.'},
@@ -82,13 +82,13 @@ alert_types = {
 }
 
 alert_list = [
-    {'id':1, 'patient':1, 'type':1, 'date':'12/15/2013', 'action':''},
-    {'id':2, 'patient':1, 'type':2, 'date':'12/16/2013', 'action':''},
-    {'id':3, 'patient':2, 'type':1, 'date':'12/17/2013', 'action':''},
-    {'id':4, 'patient':2, 'type':3, 'date':'12/18/2013', 'action':''},
-    {'id':5, 'patient':3, 'type':2, 'date':'12/19/2013', 'action':''},
-    {'id':6, 'patient':3, 'type':3, 'date':'12/20/2013', 'action':''},
-    {'id':7, 'patient':4, 'type':4, 'date':'12/21/2013', 'action':''},
+    {'id':1, 'patient':'1', 'type':1, 'date':'12/15/2013', 'action':''},
+    {'id':2, 'patient':'1', 'type':2, 'date':'12/16/2013', 'action':''},
+    {'id':3, 'patient':'2', 'type':1, 'date':'12/17/2013', 'action':''},
+    {'id':4, 'patient':'2', 'type':3, 'date':'12/18/2013', 'action':''},
+    {'id':5, 'patient':'3', 'type':2, 'date':'12/19/2013', 'action':''},
+    {'id':6, 'patient':'3', 'type':3, 'date':'12/20/2013', 'action':''},
+    {'id':7, 'patient':'4', 'type':4, 'date':'12/21/2013', 'action':''},
 ]
 
 def min_zero_normal(u,s):
@@ -123,10 +123,10 @@ def create_spend(days, prob_fall_ill, prob_stay_ill):
     return history
 
 patient_spending = {
-    1: create_spend(100, .1,.5),
-    2: create_spend(100,.2,.3),
-    3: create_spend(200,.05,.8),
-    4: create_spend(100,.1,.5),
+    '1': create_spend(100, .1,.5),
+    '2': create_spend(100,.2,.3),
+    '3': create_spend(200,.05,.8),
+    '4': create_spend(100,.1,.5),
 }
 
 
@@ -222,7 +222,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         return (HTTP.OK_RESPONSE, json.dumps(patient_list), None)
 
     patient_required_contexts = [CONTEXT_USER,CONTEXT_KEY,CONTEXT_PATIENTLIST]
-    patient_available_contexts = {CONTEXT_USER:str,CONTEXT_KEY:str,CONTEXT_PATIENTLIST:int}
+    patient_available_contexts = {CONTEXT_USER:str,CONTEXT_KEY:str,CONTEXT_PATIENTLIST:str}
 
     @asyncio.coroutine
     def get_patient_details(self, _header, _body, qs, matches, _key):
@@ -260,7 +260,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                    FrontendWebService.daily_required_contexts,
                                    FrontendWebService.daily_available_contexts)
         user = context[CONTEXT_USER]
-        patient_ids = list(map(int,context[CONTEXT_PATIENTLIST]))
+        patient_ids = context[CONTEXT_PATIENTLIST]
         auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
         
         patient_dict = {}
@@ -276,7 +276,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         return (HTTP.OK_RESPONSE, json.dumps(patient_dict), None)
 
     spending_required_contexts = [CONTEXT_USER,CONTEXT_PATIENTLIST,CONTEXT_DATE]
-    spending_available_contexts = {CONTEXT_USER:str,CONTEXT_PATIENTLIST:int,CONTEXT_DATE:int}
+    spending_available_contexts = {CONTEXT_USER:str,CONTEXT_PATIENTLIST:str,CONTEXT_DATE:int}
 
     @asyncio.coroutine
     def get_spending_details(self, _header, _body, qs, _matches, _key):
@@ -307,7 +307,11 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                    FrontendWebService.alerts_available_contexts)
         user = context[CONTEXT_USER]
         if CONTEXT_PATIENTLIST in context:
-            patient_ids = list(map(int,context[CONTEXT_PATIENTLIST]))
+            patient_ids = context[CONTEXT_PATIENTLIST]
+            print(patient_ids)
+            print(alert_list)
+            print(list(filter(lambda s: s['patient'] in patient_ids, alert_list)))
+            print()
             response_list = [dict(itertools.chain(l.items(),alert_types[l['type']].items())) for l in filter(lambda s: s['patient'] in patient_ids, alert_list)]
         else:
             response_list = [dict(itertools.chain(l.items(),alert_types[l['type']].items())) for l in alert_list]
@@ -332,7 +336,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                    FrontendWebService.orders_required_contexts,
                                    FrontendWebService.orders_available_contexts)
         user = context[CONTEXT_USER]
-        patient_ids = list(map(int,context[CONTEXT_PATIENTLIST]))
+        patient_ids = context[CONTEXT_PATIENTLIST]
         #auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
         
         order_dict = {}
