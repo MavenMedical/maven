@@ -76,6 +76,7 @@ class CostEvaluator(SP.StreamProcessor):
             pat_id = composition.subject.get_pat_id()
             customer_id = composition.customer_id
             birth_month = composition.subject.get_birth_month()
+            birth_date = composition.subject.birthDate
             sex = composition.subject.gender
             mrn = composition.subject.get_mrn()
             patname = composition.subject.get_name()
