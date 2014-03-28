@@ -1,6 +1,6 @@
-OrdTrig(ordid,job)
+OrdTrig(ordid,job,del)
     n ip,hostname,program,patid,patname,problist,ordstatus,host,port,tmp,ptid
-    n ordstring,patstring,sendstring
+    n ordstring,patstring,sendstring,prov,dt,encid
     d IXORD(ordid) ;first index the order
     ;w "Starting",!
     s host="localhost",port="9090"
@@ -10,14 +10,20 @@ OrdTrig(ordid,job)
     q:$l(ip)<7 ;close out if there is no ip address to deal with
     s hostname=$p(tmp,"^",10),program=$p(tmp,"^",12)
     s ordstring=$$ALLORD(ordid)
-    s ptid=$p($$GET1^DIQ(100,ordid,.02,"I"),";",1)
+    s ptid=$o(^xMAVEN("ORIX","OPPD",ordid,""))
+    w ordstring
+    ;;;;;;;;;;;;;;;;;;The next lines are only a placeholder for the encounter id
+    s prov=$o(^xMAVEN("ORIX","OPPD",ordid,ptid,"")),dt=$o(^xMAVEN("ORIX","OPPD",ordid,ptid,prov,""))
+    s encid=ptid_"|"_prov_"|"_dt
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    d:del CleanDeleted(ordid,ptid,prov,dt)
     s patstring=$$PAT(ptid)
-    s sendstring="<Encounter>"_patstring_" "_ordstring_" "_$$PROBS(ptid)_"</Encounter>"
+    s sendstring="<Encounter><EncID>"_encid_"</EncID>"_patstring_" "_ordstring_" "_$$PROBS(ptid)_"</Encounter>"
     ;w patstring,!
     ;w ordstring,!
     ;w "Sendstring: "_sendstring
     ;w sendstring
-    d SocketMsg(sendstring,ip,port)
+    d SocketMsg(sendstring,program,port)
     q
 ORD(ordid)
     n rtn,code,codetyp,dt,nm,ordtype
@@ -29,9 +35,10 @@ ORD(ordid)
     s dt=$$GET1^DIQ(100,ordid,4),nm=$$GET1^DIQ(101.43,ordble,.01)
     s ordtype="PROC"
     s:codetyp["CPT" ordtype="PROC"
-    s rtn="<Order><ProcedureCode>{CODE}</ProcedureCode><CodeType>{CodeType}</CodeType><ExpectedDate>{EXPECTDATE}</ExpectedDate><ExpiredDate></ExpiredDate><Name>{NAME}</Name><Type>{ORDTYPE}</Type></Order>"
+    s rtn="<Order><ProcedureCode>{CODE}</ProcedureCode><CodeType>{CodeType}</CodeType><ExpectedDate>{EXPECTDATE}</ExpectedDate><OrderingDate>{EXPECTDATE}</OrderingDate><ExpiredDate></ExpiredDate><Name>{NAME}</Name><Type>{ORDTYPE}</Type></Order>"
     s rtn=$$replace(rtn,"{CODE}",$$encode(code))
     s rtn=$$replace(rtn,"{CodeType}",$$encode(codetyp))
+	;note, currently the ordering date and the expected date are the same (ordering date)
     s rtn=$$replace(rtn,"{EXPECTDATE}",dt)
     s rtn=$$replace(rtn,"{NAME}",$$encode(nm))
     s rtn=$$replace(rtn,"{ORDTYPE}",$$encode(ordtype))
@@ -47,6 +54,14 @@ ALLORD(ordid)
     . q:$$GET1^DIQ(100,curid,5)["DISCON" ;quit if it's been discontinued
     . s rtn=rtn_$$ORD(curid) ;add the order string to the return package
     q "<Orders>"_rtn_"</Orders>"
+OrdKillTrig(ordid,job)
+    h .5
+    d OrdTrig(ordid,job,1)
+    q
+CleanDeleted(ordid,ptid,prov,dt)
+        k ^xMAVEN("ORIX","OPPD",ordid)
+        k ^xMAVEN("ORIX","PPD",ptid,prov,dt,ordid)
+        q
 IXORD(ordid)
     n ptid,prov,dt
     ;index the order so we can come back to it later with a prov/pat/day combo
@@ -62,7 +77,7 @@ replace(a,str1,str2) ;
     s fnd=0 f  s fnd=$f(a,str1,fnd) q:'fnd  s $e(a,fnd-$l(str1),fnd-1)=str2
     q a
 encode(str)
-	q $$replace($$replace($$replace($$replace($$replace(str,"&","&amp;"),"<","&lt;"),">","&gt;"),"""","&qot;"),"'","&apos;")
+        q $$replace($$replace($$replace($$replace($$replace(str,"&","&amp;"),"<","&lt;"),">","&gt;"),"""","&qot;"),"'","&apos;")
 SocketMsg(msg,host,port) ;;;
     n %ZNTimeS
     s %ZNTimeS=5 ;timeout seconds
@@ -84,7 +99,7 @@ PAT(ptid)
     s:resphone phones=phones_"<Phone><Number>"_resphone_"</Number><Type>Home Phone</Type></Phone>"
     s:workphone phones=phones_"<Phone><Number>"_workphone_"</Number><Type>Work Phone</Type></Phone>"
     s:$d(^DPT(ptid,.02,0)) primracce=$p(^DIC(10,$p(^DPT(ptid,.02,0),"^",3),0),"^",1)
-    s rtn="<GetPatientDemographicsResult><Address><City>{CITY}</City><Country>{COUNTRY}</Country><County>{COUNTY}</County><State>{STATE}</State><Street>{STREET}</Street><Zip>{ZIP}</Zip></Address><DateOfBirth>{DOB}</DateOfBirth><Gender>{SEX}</Gender><MaritalStatus>{MARITAL}</MaritalStatus><Name><FirstName>{FNAME}</FirstName><LastName>{LNAME}</LastName><MaidenName></MaidenName><MiddleName></MiddleName><Nickname></Nickname><Suffix></Suffix><Title></Title></Name><NationalIdentifier>{SSN}</NationalIdentifier><Phones>{PHONES}</Phones><Race>{RACE}</Race><Religion></Religion></GetPatientDemographicsResult>"
+    s rtn="<GetPatientDemographicsResult><PatientID>"_ptid_"</PatientID><PatientIDType>internal</PatientIDType><Address><City>{CITY}</City><Country>{COUNTRY}</Country><County>{COUNTY}</County><State>{STATE}</State><Street>{STREET}</Street><Zip>{ZIP}</Zip></Address><DateOfBirth>{DOB}</DateOfBirth><Gender>{SEX}</Gender><MaritalStatus>{MARITAL}</MaritalStatus><Name><FirstName>{FNAME}</FirstName><LastName>{LNAME}</LastName><MaidenName></MaidenName><MiddleName></MiddleName><Nickname></Nickname><Suffix></Suffix><Title></Title></Name><NationalIdentifier>{SSN}</NationalIdentifier><Phones>{PHONES}</Phones><Race>{RACE}</Race><Religion></Religion></GetPatientDemographicsResult>"
     s rtn=$$replace(rtn,"{CITY}",$$encode(city))
     s rtn=$$replace(rtn,"{COUNTRY}",$$encode(country))
     s rtn=$$replace(rtn,"{COUNTY}",$$encode(county))
@@ -133,5 +148,4 @@ PROBS(ptid)
     . n DXOUT
     s rtn="<GetActiveProblemsResult><ErrorCode></ErrorCode><Problems>"_probstring_"</Problems></GetActiveProblemsResult>"
     q rtn
-
 
