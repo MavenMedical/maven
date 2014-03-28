@@ -176,7 +176,6 @@ class FrontendWebService(HTTP.HTTPProcessor):
         self.add_handler(['GET'], '/patients(?:/(\d+)-(\d+)?)?', self.get_patients)
         self.add_handler(['GET'], '/patient_details', self.get_patient_details)
         self.add_handler(['GET'], '/total_spend', self.get_total_spend)
-        self.add_handler(['GET'], '/total_savings', self.get_total_savings)
         self.add_handler(['GET'], '/spending', self.get_daily_spending)
         self.add_handler(['GET'], '/spending_details', self.get_spending_details)
         #self.db = AsyncConnectionPool(db_configname)
@@ -241,13 +240,15 @@ class FrontendWebService(HTTP.HTTPProcessor):
             patient_dict.update(patient_extras[patient_id])
         return (HTTP.OK_RESPONSE, json.dumps(patient_dict), None)
 
-    @asyncio.coroutine
-    def get_total_spend(self, _header, _body, _qs, _matches, _key):
-        return (HTTP.OK_RESPONSE, json.dumps(95100), None)
+
+    totals_required_contexts = [CONTEXT_USER,CONTEXT_KEY,CONTEXT_PATIENTLIST]
+    totals_available_contexts = {CONTEXT_USER:str,CONTEXT_KEY:list,CONTEXT_PATIENTLIST:list}
 
     @asyncio.coroutine
-    def get_total_savings(self, _header, _body, _qs, _matches, _key):
-        return (HTTP.OK_RESPONSE, json.dumps(10700), None)
+    def get_total_spend(self, _header, _body, _qs, _matches, _key):
+        ret = {'spending':85100, 'savings':1000}
+        return (HTTP.OK_RESPONSE, json.dumps(ret), None)
+
 
     daily_required_contexts = [CONTEXT_USER,CONTEXT_KEY,CONTEXT_PATIENTLIST]
     daily_available_contexts = {CONTEXT_USER:str,CONTEXT_KEY:list,CONTEXT_PATIENTLIST:list}
