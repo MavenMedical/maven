@@ -32,6 +32,7 @@ define([
             //update context
             currentContext.key = this.model.get("key");
             currentContext.patients = this.model.get("id");
+	    currentContext.patient_name = this.model.get("name");
 
 
         }

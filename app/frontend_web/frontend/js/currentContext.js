@@ -17,6 +17,7 @@ define([
         context.page = null;
         context.user = 'tom';
         context.patients = '1';
+	context.patient_name = '';
         context.key = 'YHxOpzEI6rnRTKCCxLrtA7lMi4muhAC3';
         context.provider = null;
         context.encounter = null;
