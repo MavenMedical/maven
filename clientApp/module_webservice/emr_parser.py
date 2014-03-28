@@ -230,9 +230,13 @@ class VistaParser():
             lastName = xml_root.findall(".//LastName")[0].text
             nationalIdentifier = xml_root.findall(".//NationalIdentifier")[0].text
             patientSSN = xml_root.findall(".//NationalIdentifier")[0].text
-            
+
+
+            patientID = None
             if (len(xml_root.findall(".//PatientID")) > 0):
                 patientID = xml_root.findall(".//PatientID")[0].text
+
+            patientIDType = None
             if (len(xml_root.findall(".//PatientIDType")) > 0):
                 patientIDType = xml_root.findall(".//PatientIDType")[0].text
 
@@ -245,14 +249,14 @@ class VistaParser():
             patient.add_name(given=[firstName], family=[lastName])
             patient.add_maven_identifier(value=uuid.uuid1())
             patient.identifier.append(api.Identifier(system='NationalIdentifier', value=patientSSN))
-            patient.identifier.append(api.Identifier(system='clientEMR', label=patientIDType, value=patientID))
+            if patientID is not None and patientIDType is not None:
+                patient.identifier.append(api.Identifier(system='clientEMR', label=patientIDType, value=patientID))
             patient.address.append(api.Address(zip=zipcode, city=city,
                                            country=country, county=county,
                                            state=state, line=[street]))
             patient.birthDate = birthDate
             patient.gender = gender
             patient.maritalStatus = maritalStatus
-
 
         except:
             raise Exception('Error constructing FHIR patient from API and data')
@@ -334,7 +338,7 @@ class VistaParser():
 
 
 if __name__ == '__main__':
-    file = open('/home/ec2-user/maven/clientApp/fake_data/VistA_Encounter.xml')
+    file = open('/home/devel/yukidev/maven/clientApp/fake_data/dave_test_encounter.xml')
     r = file.read()
     file.close()
     VistaParser().create_composition(r)

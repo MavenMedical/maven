@@ -3,36 +3,30 @@
         <a data-toggle="collapse" data-parent="#accordion">
             <h4 class="sub-panel panel-title">
 
-                <b><%= title %></b>
-
-                <span class="badge alertbadge"><%= cost %></span>
+                <b><%= name %></b>
+                <%= date %>
+                <%= result %>
+                <span class="badge alertbadge">$<%= cost %></span>
             </h4>
         </a>
     </div>
-    <div id='<%= title %>' class="panel-collapse collapse">
+    <div id='<%= name %>' class="panel-collapse expand">
         <div class="panel-body">
             <div class="row">
                 <div class="col-sm-6">
                     <span class="blue">You Ordered:</span>
                 </div>
                 <div class="col-sm-6">
-                    <%= order %> (<%= cost %>)
+                    <%= name %> (<%= date %>)
                 </div>
-            </div>
-            <div class="row">
                 <div class="col-sm-6">
                     <span class="blue">Because:</span>
                 </div>
                 <div class="col-sm-6">
-                    <%= reason %>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-sm-6">
-                    <span class="blue">Evidence Suggests:</span>
+                    <%= cost %>
                 </div>
                 <div class="col-sm-6">
-                    <%= evidence %> (<%= ecost %>)
+                    (<%= result %>)
                 </div>
             </div>
         </div>
