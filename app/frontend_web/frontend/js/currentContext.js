@@ -15,11 +15,11 @@ define([
     var currentContext = (function () {
         var context = {};
         context.page = null;
-        context.user = 'tom';
-        context.patients = '1&2&3&4';
+        context.user = 'JHU1093124';
+        context.patients = '1&2&3&4&';
         context.key = '1U6BAcMeDWIN5_MyUd971tUU8jUk3F_R';
         context.provider = null;
-        context.encounter = null;
+        context.encounter = '9|76|3140325';
         context.department = null;
         context.alert = null;
 

@@ -280,7 +280,7 @@ CREATE INDEX ixpatient
 -- DROP INDEX ixuser;
 
 CREATE INDEX ixprovider
-  ON public.alertsn
+  ON public.alerts
   USING btree
   (prov_id, customer_id);
 
@@ -944,7 +944,7 @@ $$
   LANGUAGE plpgsql VOLATILE
   COST 100;
 ALTER FUNCTION upsert_patient(character varying(100), numeric(18,0), character varying(6),
-character varying(254), character varying(100), character varying(100), character varying(18))
+character varying(254), character varying(100), character varying(100), character varying(18), date)
   OWNER TO maven;
 
 CREATE OR REPLACE FUNCTION upsert_enc_order(pat_id1 character varying(100),

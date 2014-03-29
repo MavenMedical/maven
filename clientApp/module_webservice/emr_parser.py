@@ -192,7 +192,7 @@ class VistaParser():
     def create_composition(self, xml_enc):
         composition = api.Composition(type="CostEvaluator")
         enc_root = ET.fromstring(xml_enc)
-        composition.customer_id = 2
+        composition.customer_id = 1
 
         for child in enc_root:
             if "EncID" in child.tag:

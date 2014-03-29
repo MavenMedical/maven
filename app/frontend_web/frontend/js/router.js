@@ -29,8 +29,10 @@ define([
             "": 'showHome',
             "patient": 'showPatient',
             "alerts": 'showAlerts',
-            "episode": 'showEpisode',
-            "episode/:id/patient/:id/evi/:id": 'showEvidence',
+	    //  "episode": 'showEpisode',
+            "episode": 'showEpisode2',
+            "episode/:id/patient/:id": 'showEpisode',
+	    "episode/:id/patient/:id/evi/:id": 'showEvidence',
 
             //default
             '*action': 'defaultAction'
@@ -74,10 +76,23 @@ define([
             var alertsView = new AlertsView;
             alertsView.render();
         });
-        app_router.on('route:showEpisode', function () {
+        app_router.on('route:showEpisode', function (enc, pat) {
 
 
              //update current context page
+		currentContext.encounter = enc;
+		currentContext.patients  = pat;
+            currentContext.page = 'episode';
+
+            var episodeView = new EpisodeView;
+
+
+        });
+        app_router.on('route:showEpisode2', function () {
+
+
+             //update current context page
+		currentContext.encounter = '';
             currentContext.page = 'episode';
 
             var episodeView = new EpisodeView;
