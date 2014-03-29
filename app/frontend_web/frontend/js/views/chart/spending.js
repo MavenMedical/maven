@@ -28,7 +28,10 @@ define([
           var that = this;
             this.spend.fetch({
                 success: function (spend) {
-                    that.$el.html(that.template({spending: spend}));
+			patient_name = currentContext.patient_name;
+			if(!patient_name) {patient_name = 'All Patients';}
+			
+			that.$el.html(that.template({spending: spend, pat_name:patient_name}));
                 },
                 data: $.param(currentContext)
             });
