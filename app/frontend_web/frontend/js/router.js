@@ -102,7 +102,7 @@ define([
         app_router.on('route:showEvidence', function (enc , pat , evi) {
 
              //update current context page
-            currentContext.page = 'evidence';
+            currentContext.page = 'episode';
             currentContext.alert = evi;
             currentContext.encounter = enc;
             currentContext.patient = pat;

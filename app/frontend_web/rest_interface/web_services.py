@@ -242,7 +242,11 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                            " WHERE encounter.visit_prov_id = '%s' AND encounter.customer_id = %s;" % (columns, context['customer_id'], context['user'], context['customer_id']))
             results = []
             for x in cur:
-                results.append({'id': x[3], 'name': prettify(x[2], type="name"), 'gender': prettify(x[5], type="sex"), 'DOB': str(x[4]), 'diagnosis': 'Sinusitis', 'key': _authorization_key((user, x[3]))})
+                if x[5][0]=='F':
+                    cost = 1335
+                else:
+                    cost = 1200
+                results.append({'id': x[3], 'name': prettify(x[2], type="name"), 'gender': prettify(x[5], type="sex"), 'DOB': str(x[4]), 'diagnosis': 'Sinusitis', 'key': _authorization_key((user, x[3])), 'cost':cost})
                 ML.DEBUG(json.dumps(results))
         except:
             raise Exception('Error in front end webservices get_patients() call to database')
