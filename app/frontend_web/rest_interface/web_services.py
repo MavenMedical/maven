@@ -468,7 +468,7 @@ if __name__ == '__main__':
                 },
             'webservices conn pool': {
                 AsyncConnectionPool.CONFIG_CONNECTION_STRING:
-                ("dbname=%s user=%s password=%s host=%s port=%s" % ('maven', 'maven', 'temporary', '172.31.24.199', '5432')),
+                ("dbname=%s user=%s password=%s host=%s port=%s" % ('maven', 'maven', 'temporary', MC.dbhost, '5432')),
                 AsyncConnectionPool.CONFIG_MIN_CONNECTIONS: 4,
                 AsyncConnectionPool.CONFIG_MAX_CONNECTIONS: 8
             }
