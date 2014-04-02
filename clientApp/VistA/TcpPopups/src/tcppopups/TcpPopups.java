@@ -42,8 +42,8 @@ public class TcpPopups {
     public static int wide=450;
     public static int highOne=150;
     public static int highTwo=90;
-    public static int initialSleepTime=2000;
-    public static int fadeInterval=140;
+    public static int initialSleepTime=5000;
+    public static int fadeInterval=150;
     
     public static int activeMessages=0;
     public static String lastMessage="";
@@ -98,11 +98,11 @@ public class TcpPopups {
         MenuItem exitItem = new MenuItem("Exit");
        
         //Add components to pop-up menu
-        popup.add(replayMenu);
+        popup.add(exitItem);
         popup.addSeparator();;
         popup.addSeparator();
-       
-        popup.add(exitItem);
+        popup.add(replayMenu);
+        
        
         trayIcon.setPopupMenu(popup);
        
@@ -165,7 +165,8 @@ public class TcpPopups {
                     Thread.sleep(initialSleepTime);
                     float tl = 1;
                     if (fade) {
-                        while (tl > 0.20f && activeMessages<2) {
+                        //System.out.println(activeMessages);
+                        while (tl > 0.20f && activeMessages<2 ) {
                             tl -= .01;
                             Thread.sleep(fadeInterval); // time after which pop up will be disappeared.
                             f.setOpacity(tl);
@@ -174,7 +175,9 @@ public class TcpPopups {
                     } else {
                         Thread.sleep(5000);
                     }
+                    
                     activeMessages-=1;
+                    Thread.sleep(fadeInterval);
                     f.dispose();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -218,10 +221,10 @@ public class TcpPopups {
             @Override
             public void run() {
                 try {
-                    Thread.sleep(initialSleepTime*2);
+                    Thread.sleep(initialSleepTime);
                     float tl = 1;
                     if (fade) {
-                        while (tl > 0.20f&&activeMessages<2) {
+                        while (tl > 0.20f && activeMessages<2 ) {
                             tl -= .01;
                             Thread.sleep(fadeInterval); // time after which pop up will be disappeared.
                             f.setOpacity(tl);

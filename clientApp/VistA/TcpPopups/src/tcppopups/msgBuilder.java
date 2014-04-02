@@ -23,6 +23,8 @@ public class msgBuilder {
     public static String getAlternatives(String encounter) throws Exception
     {
         String rtn="";
+        String encId=encounter.split("EncID")[1].replace(">", "").replaceAll("</", "").replace("|","%7C");
+        String ptId=encounter.split("PatientID")[1].replace(">", "").replaceAll("</", "");
         java.net.URL imgUrl = TcpPopups.class.getResource("info.png");
         String style="border: 1px solid;" +
             //"margin: 10px 0px;" +
@@ -37,7 +39,8 @@ public class msgBuilder {
             rtn="<html><body><div style=\""+style+"\"><table><tr><td><img src='"+imgUrl+"' /></td></td>"
                     +"<td><b>Choosing Wisely&reg;:</b> Sinus CT ($807) - Acute Sinusitis:<br/>"
                     +"<table><tr><td width=10px></td><td>Most acute rhinoinusitis resolves without treatment in two weeks "
-                    +"and generally does not require a CT.</td></tr><tr><td></td><td align=right><a href=\"#\">See the Evidence</a></td></tr></table></td>"
+                    +"and generally does not require a CT.</td></tr><tr><td></td><td align=right><a href=\"http://demo.mavenmedical.net/#/episode/"
+                    +encId+"/patient/"+ptId+"/evi/1\">See the Evidence</a></td></tr></table></td>"
                 + "</tr></table></div></body></html>";
         
         }
@@ -69,6 +72,11 @@ public class msgBuilder {
         String rtn="";
         rtn=MavenWebClient.post(encounter);
         rtn=rtn.replace("{{IMGLOGO}}",logoURL.toString());
+        rtn=rtn.replace("ACETAMINOPHEN","Acetaminophen");
+        rtn=rtn.replace("MG TAB","mg Tab");
+        rtn=rtn.replace("IMMUNOGLOBULINS","Immunoglobulins");
+        rtn=rtn.replace("CEFIXIME TAB","Cefixime Tab");
+        rtn=rtn.replace("CT SINUS COMPLETE W/O CONTRAST","CT Sinus Complete w/o Contrast");
         return rtn;
     }
     public static String getNotification_Local(String encounter, int alertLevel) throws Exception
