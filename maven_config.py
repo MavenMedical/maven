@@ -13,7 +13,7 @@
 
 MavenConfig={}
 
-dbhost = localhost
+dbhost = 'localhost'
 
 class InvalidConfig(Exception):
     pass
