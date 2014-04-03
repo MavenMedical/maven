@@ -30,11 +30,12 @@ define([
                 _.bindAll(this, 'render', 'addPatient');
                 this.patients = new PatientCollection;
                 this.patients.bind('add', this.addPatient, this);
-                this.patients.fetch({ data:$.param(currentContext)});
+                this.patients.fetch({ data:$.param(currentContext.toJSON())});
                 this.render();
             },
             render: function(){
                 this.$el.html(this.template);
+                 return this;
             },
             addPatient: function(pat){
                 var patientrow = new patientRow({

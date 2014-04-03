@@ -29,12 +29,13 @@ define([
             _.bindAll(this, 'render', 'addAlert');
             this.alerts = new AlertCollection;
             this.alerts.bind('add', this.addAlert, this);
-            this.alerts.fetch({data: $.param(currentContext)});
+            this.alerts.fetch({data: $.param(currentContext.toJSON())});
             this.render();
         },
         render: function () {
 		    console.log('alert render');
             this.$el.html(this.template);
+
         },
         addAlert: function (alrt){
             console.log("add alert");

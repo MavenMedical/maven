@@ -33,9 +33,9 @@ define([
             return this;
         },
         showEvidence:function(){
-           console.log('#evidence'+currentContext.alert);
+           console.log('#evidence'+currentContext.get('alert'));
             //jQuery.noConflict();
-            $('#evidence'+currentContext.alert).modal();
+            $('#evidence'+currentContext.get('alert')).modal();
         },
         handleClick: function(){
             currentContext.alert = this.model.get('id');

@@ -24,10 +24,11 @@ define([
 		       var that = this;
 		       this.utilization.fetch({
 			       success: function (util) {
-				   that.$el.html(that.template({utilization:util, page: currentContext.page}));
+				   that.$el.html(that.template({utilization:util, page: currentContext.get('page')}));
 			       },
-				   data: $.param(currentContext)
+				   data: $.param(currentContext.toJSON())
 				   });
+                return this;
 		   }
 	       });
 	   return Saving;

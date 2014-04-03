@@ -26,7 +26,8 @@ define([
           console.log('clicked');
         },
         render: function () {
-            this.$el.html(this.template({page: currentContext.page}));
+            this.$el.html(this.template({page: currentContext.get('page')}));
+            return this;
         }
     });
     return CostBD;

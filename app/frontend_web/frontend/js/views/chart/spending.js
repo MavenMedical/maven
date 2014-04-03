@@ -30,8 +30,9 @@ define([
                 success: function (spend) {
                     that.$el.html(that.template({spending: spend}));
                 },
-                data: $.param(currentContext)
+                data: $.param(currentContext.toJSON())
             });
+            return this;
         }
     });
     return Spending;

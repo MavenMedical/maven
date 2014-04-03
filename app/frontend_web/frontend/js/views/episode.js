@@ -52,7 +52,7 @@ define([
             this.costbd = new CostBD;
             this.alert = new Alert;
 
-
+            return this;
         }
     });
 

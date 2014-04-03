@@ -31,12 +31,13 @@ define([
             _.bindAll(this, 'render', 'addOrder');
             this.orders = new OrderCollection();
             this.orders.bind('add', this.addOrder , this);
-            this.orders.fetch({data:$.param(currentContext)});
+            this.orders.fetch({data:$.param(currentContext.toJSON())});
             this.render();
         },
         render: function () {
             console.log("render");
             this.$el.html(this.template);
+             return this;
         },
         addOrder: function(ord){
              console.log("add order");

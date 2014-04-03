@@ -33,22 +33,14 @@ define([
             this.$el.html(template);
 
             //widgets
-            var patinfo = new PatInfo;
+            this.patinfo = new PatInfo;
+            this.util = new Utilization;
+            this.saving = new Saving;
+            this.spending = new Spending;
+            this.costbd = new CostBD;
+            this.alert = new Alert;
 
-
-            var util = new Utilization;
-            util.render();
-
-            var saving = new Saving;
-            saving.render();
-
-            var spending = new Spending;
-
-            var costbd = new CostBD;
-            costbd.render();
-
-            var alert = new Alert;
-
+            return this;
         }
     });
 

@@ -19,7 +19,8 @@ define([
             this.render();
         },
         render: function () {
-            this.$el.html(this.template({ page: currentContext.page}));
+            this.$el.html(this.template({ page: currentContext.get('page')}));
+            return this;
         }
     });
     return DailyCost;

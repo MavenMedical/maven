@@ -35,12 +35,12 @@ define([
 
             //widgets
             console.log('home render widgets');
-            this.patientlistview = new PatientList;
+            this.patientlist = new PatientList;
             console.log('home widgets');
-            console.log(currentContext.patients);
+            console.log(currentContext.get('patients'));
             this.spending = new Spending;
             this.costbd = new CostBD;
-
+            return this;
         }
     });
 

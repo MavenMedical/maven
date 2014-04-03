@@ -13,7 +13,7 @@ define([
     // Using the Require.js text! plugin, we are loaded raw text
     // which will be used as our views primary template
     'text!templates/alerts.html'
-	], function ($, _, Backbone, AlertList, alertTemplate) {
+	], function ($, _, Backbone, Alert, alertTemplate) {
 
     var AlertsView = Backbone.View.extend({
         el: $('.page'),
@@ -26,9 +26,8 @@ define([
             this.$el.html(template);
 
             //widgets
-            var alertlistview = new AlertList;
-            alertlistview.render();
-
+            this.alertlist = new Alert;
+            return this;
         }
     });
 

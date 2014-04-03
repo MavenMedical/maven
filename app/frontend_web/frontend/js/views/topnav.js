@@ -15,6 +15,7 @@ define([
         render: function () {
             var template = _.template(topnavTemplate, {});
             this.$el.html(template);
+            return this;
         }
     });
     return TopNav;

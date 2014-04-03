@@ -25,15 +25,14 @@ define([
             this.render();
         },
         render: function () {
-            console.log(currentContext);
             var that = this;
-
             this.pat.fetch({
                 success: function (pat) {
                     that.$el.html(that.template({patient:pat}));
                 },
-                data: $.param(currentContext)
+                data: $.param(currentContext.toJSON())
             });
+             return this;
 
         }
     });

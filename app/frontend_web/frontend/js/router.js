@@ -12,7 +12,8 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone,
 
-     'currentContext',
+    'currentContext',
+    'eventhub',
 
     //views
     'views/sidemenu',
@@ -23,89 +24,77 @@ define([
     'views/episode',
     'views/alerts',
     'views/widget/evidence'
-], function ($, _, Backbone,currentContext, SideMenu, TopNav, HomeView, PatientView, EpisodeView, AlertsView, Evidence) {
+], function ($, _, Backbone, currentContext, eventHub,  SideMenu, TopNav, HomeView, PatientView, EpisodeView, AlertsView, Evidence) {
     var AppRouter = Backbone.Router.extend({
         routes: {
             "": 'showHome',
             "patient": 'showPatient',
             "alerts": 'showAlerts',
             "episode": 'showEpisode',
+            "episode/:id/patient/:id": 'episodeIDs',
             "episode/:id/patient/:id/evi/:id": 'showEvidence',
 
             //default
             '*action': 'defaultAction'
-        }
-    });
-
-    var initialize = function () {
-        //ajaxPrefilter
-        $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
-            options.url = 'services' + options.url;
-        });
-
-        var app_router = new AppRouter;
-
-        // render side menu and topnav for all pages
-        var sidemenu = new SideMenu;
-        sidemenu.render();
-        var topnav = new TopNav;
-        topnav.render();
-
-        app_router.on('route:showHome', function () {
-            // Call render on the module we loaded in via the dependency array
-
+        },
+        showHome: function () {
+            currentContext.set({page:'home'});
+            var homeView = new HomeView
+        },
+        showPatient: function () {
+             console.log("show pat");
             //update current context page
-            currentContext.page = 'home';
-
-            var homeView = new HomeView;
-
-        });
-
-        app_router.on('route:showPatient', function () {
-
-            //update current context page
-            currentContext.page = 'patient';
+            currentContext.set({page:'patient'});
 
             var patientView = new PatientView;
             patientView.render();
-
-        });
-        app_router.on('route:showAlerts', function () {
+        },
+        showAlerts: function () {
+             console.log("show alert");
             var alertsView = new AlertsView;
             alertsView.render();
-        });
-        app_router.on('route:showEpisode', function () {
-
-
-             //update current context page
+        },
+        episodeIDs: function(enc, pat){
+             console.log("epi id");
+            currentContext.encounter = enc;
+            currentContext.patient = pat;
+            this.showEpisode()
+        },
+        showEpisode: function () {
+            console.log(" Episode func");
+            //update current context page
             currentContext.page = 'episode';
-
             var episodeView = new EpisodeView;
 
-
-        });
-        app_router.on('route:showEvidence', function (enc , pat , evi) {
-
-             //update current context page
-            currentContext.page = 'evidence';
+        },
+        showEvidence: function (enc, pat, evi) {
+            //update current context page
             currentContext.alert = evi;
             currentContext.encounter = enc;
             currentContext.patient = pat;
 
-             var episodeView = new EpisodeView;
+            var episodeView = new EpisodeView;
 
             var evidence = new Evidence;
-            $('#evidence-'+currentContext.alert).modal();
+            $('#evidence-' + currentContext.alert).modal();
+        },
+        defaultAction: function (action) {
+            console.log('No route:', action);
+        },
+        initialize: function () {
+            //ajaxPrefilter
+            $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
+                options.url = 'services' + options.url;
+            });
+            // render side menu and topnav for all pages
+            var sidemenu = new SideMenu;
+            sidemenu.render();
+            var topnav = new TopNav;
+            topnav.render();
 
-        });
-        app_router.on('defaultAction', function (actions) {
-            console.log('No route:', actions);
-        });
+            Backbone.history.start();
+        }
+    });
 
-        Backbone.history.start();
-    };
-
-    return {
-        initialize: initialize
-    };
+    return AppRouter
 });
