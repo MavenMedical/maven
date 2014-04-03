@@ -76,15 +76,15 @@ class CostEvaluator(SP.StreamProcessor):
             pat_id = composition.subject.get_pat_id()
             customer_id = composition.customer_id
             birth_month = composition.subject.get_birth_month()
-            birth_date = composition.subject.birthDate
+            birth_date = str(composition.subject.birthDate)
             sex = composition.subject.gender
             mrn = composition.subject.get_mrn()
             patname = composition.subject.get_name()
             cur_pcp_prov_id = composition.subject.get_current_pcp()
 
 
-            cur = self.conn.execute("SELECT upsert_patient('%s', %s, '%s', '%s', '%s', '%s', '%s')" %
-                                   (pat_id, customer_id, birth_month, sex, mrn, patname, cur_pcp_prov_id))
+            cur = self.conn.execute("SELECT upsert_patient('%s', %s, '%s', '%s', '%s', '%s', '%s', '%s')" %
+                                   (pat_id, customer_id, birth_month, sex, mrn, patname, cur_pcp_prov_id, birth_date))
         except:
             raise Exception("Error inserting patient data into database")
 
@@ -166,7 +166,7 @@ def run_cost_evaluator():
         },
         'CostEvalConnection': {
             SingleThreadedConnection.CONFIG_CONNECTION_STRING:
-            ("dbname=%s user=%s password=%s host=%s port=%s" % ('maven', 'maven', 'temporary', '172.31.24.199', '5432')),
+            ("dbname=%s user=%s password=%s host=%s port=%s" % ('maven', 'maven', 'temporary', MC.dbhost, '5432')),
             #AsyncConnectionPool.CONFIG_MIN_CONNECTIONS: 2,
             #AsyncConnectionPool.CONFIG_MAX_CONNECTIONS: 4
         },

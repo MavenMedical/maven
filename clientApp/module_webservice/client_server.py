@@ -26,6 +26,7 @@ import argparse
 from clientApp.module_webservice.emr_parser import VistaParser
 import clientApp.api.api as api
 import pickle
+import urllib
 
 
 ARGS = argparse.ArgumentParser(description='Maven Client Receiver Configs.')
@@ -85,6 +86,8 @@ class IncomingFromMavenMessageHandler(HR.HTTPWriter):
         notification_body = ""
         notification_content = ""
         total_cost = 0.0
+
+        csn = urllib.parse.quote(composition.encounter.get_csn())
         for sec in composition.section:
             if sec.title == "Encounter Cost Breakdown":
                 for cost in sec.content:
@@ -92,7 +95,7 @@ class IncomingFromMavenMessageHandler(HR.HTTPWriter):
                     notification_content += ("%s: $%s<br>" % (cost[0], cost[1]))
                 print(total_cost)
 
-        notification_body = ("<html><body bgcolor=#FFFFFF style='font-family: Arial; color: #444; word-spacing: normal; text-align: left; letter-spacing: 0; font-size: 104%%;'><table><col width=32px><col width=30%%><col width=10%%><col width=60%%><tr><td valign='top'><img src={{IMGLOGO}} /></td><td valign='top'><a href='http://mavenmedical.net'><b>Encounter Cost Alert</b></a><br/>This Encounter Costs<br/>$%s</td><td></td><td valign='top' style='font-family: Arial; color: #444; word-spacing: normal; text-align: left; letter-spacing: 0; font-size: 104%%;'>%s</td></body></html>" % (str(total_cost), notification_content))
+        notification_body = ("<html><body bgcolor=#FFFFFF style='font-family: Arial; color: #444; word-spacing: normal; text-align: left; letter-spacing: 0; font-size: 104%%;'><table><col width=32px><col width=30%%><col width=10%%><col width=60%%><tr><td valign='top'><img src={{IMGLOGO}} /></td><td valign='top'><a href='http://demo.mavenmedical.net/#/episode/%s/patient/1235412'><b>Encounter Cost Alert</b></a><br/>This Encounter Costs<br/>$%s</td><td></td><td valign='top' style='font-family: Arial; color: #444; word-spacing: normal; text-align: left; letter-spacing: 0; font-size: 104%%;'>%s</td></body></html>" % (csn,round(total_cost,2), notification_content))
         return notification_body
 
 def main(loop):

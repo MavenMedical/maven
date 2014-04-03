@@ -1,0 +1,19 @@
+
+# initial setup
+# note that the f1-micro instance is too small to do a yum update, so we create from g1-small
+gcutil addinstance frontend-prototype --tags=web --machine_type=g1-small --image=centos-6 --zone=us-central1-a
+gcutil ssh frontend-prototype
+gcutil push frontend-prototype .bashrc .
+gcutil listinstances
+ssh tom@`gcutil listinstances | grep frontend-small | awk  '{print $10;}'`
+
+gcutil deleteinstance frontend-prototype
+
+
+gcutil addinstance database-prototype --tags=database --zone="us-central1-a" --machine_type="g1-small" --disk="database-prototype,deviceName=database-prototype,mode=READ_WRITE,boot" --disk="test-data,deviceName=test-data,mode=READ_WRITE"
+
+
+
+
+
+

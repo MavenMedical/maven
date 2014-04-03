@@ -1,0 +1,37 @@
+#truecrypt
+#truecrypt
+wget http://www.truecrypt.org/download/truecrypt-7.1a-linux-console-x64.tar.gz
+
+tar -xvzf truecrypt-7.1a-linux-console-x64.tar.gz
+sudo ./truecrypt-7.1a-setup-console-x64
+
+sudo truecrypt -t -c /dev/sdc                                                                                       
+# enter choices 1, 1, 2, 5, then a good password (feel free to choose "temporary" if in a dev environment)
+
+sudo yum install postgresql-server9.3 -y 
+
+# mount encrypted partition and initialize the database
+#switch to root user
+sudo su
+truecrypt -t -k "" --protect-hidden=no /dev/sdc ~postgres
+cd ~postgres
+chown postgres .
+chgrp postgres .
+setenforce 0
+echo 'PATH=/usr/pgsql-9.3/bin:${PATH}' >> .bashrc
+su postgres
+initdb -D `pwd`/9.3/data -A password -W  # prompts for a password
+cd 9.3/data
+sed -i.bak -e "s/#listen_addresses = 'localhost'/listen_addresses = '\*'/" \
+    -e 's/max_connections = 100/max_connections = 200/' postgresql.conf
+
+echo "host   all    postgres          10.240.0.0/16   password
+host   maven  maven             10.240.0.0/16   password" >> pg_hba.conf
+
+exit # exit postgres
+service postgresql start
+exit # exit root
+
+#Note - on google, EBS storage of a truecrypt encrypted partition passed the closest I can get to a "disk pull plug" test.  A single pass doesn't prove much - only that the system isn't horribly broken.  It was also getting around 120 writes/second (compared to amazon's 80).  The writes/second matches what happened without truecrypt, so I don't think encryption costs us anything.
+
+

@@ -23,9 +23,8 @@ INSERT INTO medicalprocedure(
 
 
 INSERT INTO patient(
-            pat_id, customer_id, birth_month, sex, mrn, patname, cur_pcp_prov_id)
-    VALUES ('1296573026', 2, '06', 'Male', '157662', 'Aardvark, Adam', '');
-
+            pat_id, customer_id, birthdate, sex, mrn, patname, cur_pcp_prov_id)
+    VALUES ('1296573026', 2, '1982-10-02', 'Male', '157662', 'Aardvark, Adam', '');
 
 INSERT INTO procedureorder(
             orderid, pat_id, csn, customer_id, ordering_date, ordering_time,

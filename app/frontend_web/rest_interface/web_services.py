@@ -26,6 +26,8 @@ import base64
 import itertools
 import traceback
 import psycopg2.extras
+import datetime
+import dateutil.parser as prsr
 
 CONFIG_DATABASE = 'database'
 
@@ -61,7 +63,7 @@ def _authorization_key(data):
 
 
 patient_extras = {
-    '1235412': {'Allergies': ['Penicillins','Nuts','Cats'], 'Problem List':['Asthma','Cholera']},
+    '9': {'Allergies': ['Penicillins'], 'Problem List':['Sinusitis', 'Asthma']},
 }
 
 order_list = {
@@ -126,6 +128,19 @@ patient_spending = {
     '4': create_spend(100,.1,.5),
 }
 
+def prettify(s, type=None):
+    if type == "name":
+        name = s.split(",")
+        return (str.title(name[0]) + ", " + str.title(name[1]))
+
+    elif type == "sex":
+        return str.title(s)
+    
+    elif type == "date":
+        print(s)
+        #prsr = dateutil.parser()
+        d = prsr.parse(s)
+        return (d.strftime("%A, %B %d, %Y"))
 
 
 def copy_and_append(m, kv):
@@ -227,7 +242,11 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                            " WHERE encounter.visit_prov_id = '%s' AND encounter.customer_id = %s;" % (columns, context['customer_id'], context['user'], context['customer_id']))
             results = []
             for x in cur:
-                results.append({'id': x[3], 'name': x[2], 'gender': x[5], 'DOB': str(x[4]), 'diagnosis': 'Sinusitis', 'key': _authorization_key((user, x[3]))})
+                if x[5][0]=='F':
+                    cost = 1335
+                else:
+                    cost = 1200
+                results.append({'id': x[3], 'name': prettify(x[2], type="name"), 'gender': prettify(x[5], type="sex"), 'DOB': str(x[4]), 'diagnosis': 'Sinusitis', 'key': _authorization_key((user, x[3])), 'cost':cost})
                 ML.DEBUG(json.dumps(results))
         except:
             raise Exception('Error in front end webservices get_patients() call to database')
@@ -236,7 +255,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         return (HTTP.OK_RESPONSE, json.dumps(results), None)
 
     patient_required_contexts = [CONTEXT_USER,CONTEXT_KEY,CONTEXT_PATIENTLIST]
-    patient_available_contexts = {CONTEXT_USER:str,CONTEXT_KEY:str,CONTEXT_PATIENTLIST:str, CONTEXT_CUSTOMERID:int}
+    patient_available_contexts = {CONTEXT_USER:str,CONTEXT_KEY:str,CONTEXT_PATIENTLIST:str, CONTEXT_CUSTOMERID:int, CONTEXT_ENCOUNTER:str}
 
     @asyncio.coroutine
     def get_patient_details(self, _header, _body, qs, matches, _key):
@@ -246,7 +265,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         """
         qs['user'] = ['JHU1093124']
         qs['customer_id'] = [1]
-        qs['encounter'] = ['987987917']
+        qs['encounter'] = ['5|76|3140325']
 
         context = restrict_context(qs,
                                    FrontendWebService.patient_required_contexts,
@@ -255,8 +274,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
         patient_id = context[CONTEXT_PATIENTLIST]
         auth_key = context[CONTEXT_KEY]
         customer = context[CONTEXT_CUSTOMERID]
-        if not auth_key == _authorization_key((user, patient_id)):
-            raise HTTP.IncompleteRequest('%s has not been authorized to view patient %s.' % (user, patient_id))
+        #if not auth_key == _authorization_key((user, patient_id)):
+         #   raise HTTP.IncompleteRequest('%s has not been authorized to view patient %s.' % (user, patient_id))
 
         try:
             column_map = ["patient.pat_id",
@@ -269,7 +288,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                            " from patient"
                                            " WHERE patient.pat_id = '%s' AND patient.customer_id = %s;" % (columns, patient_id, customer))
             x = next(cur)
-            results = {'id': x[0], 'name': x[1], 'gender': x[3], 'DOB': str(x[2]), 'diagnosis': 'Sinusitis', 'key': _authorization_key((user, x[0]))}
+            results = {'id': x[0], 'name': prettify(x[1], type="name"), 'gender': prettify(x[3], type="sex"), 'DOB': str(x[2]), 'diagnosis': 'Sinusitis', 'key': _authorization_key((user, x[0]))}
             ML.DEBUG(json.dumps(results))
         except:
             raise Exception('Error in front end webservices get_patients() call to database')
@@ -285,7 +304,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
     @asyncio.coroutine
     def get_total_spend(self, _header, _body, _qs, _matches, _key):
-        ret = {'spending':85100, 'savings':1000}
+        ret = {'spending':1355, 'savings':16}
         return (HTTP.OK_RESPONSE, json.dumps(ret), None)
 
 
@@ -396,7 +415,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         ### TODO - Remove hardcoded user context and replace with values from production authentication module
         qs['user'] = ['JHU1093124']
         qs['customer_id'] = [1]
-        qs['encounter'] = ['987987917']
+        qs['encounter'] = ['9|76|3140328']
 
         global order_list
         context = restrict_context(qs,
@@ -404,6 +423,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                    FrontendWebService.orders_available_contexts)
         user = context[CONTEXT_USER]
         patient_ids = context[CONTEXT_PATIENTLIST]
+        #encounter = context[CONTEXT_ENCOUNTER]
         #auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
 
         order_dict = {}
@@ -427,7 +447,6 @@ class FrontendWebService(HTTP.HTTPProcessor):
             raise Exception("Error querying encounter orders from the database")
 
 
-
         return (HTTP.OK_RESPONSE, json.dumps(results), None)
 
 
@@ -449,7 +468,7 @@ if __name__ == '__main__':
                 },
             'webservices conn pool': {
                 AsyncConnectionPool.CONFIG_CONNECTION_STRING:
-                ("dbname=%s user=%s password=%s host=%s port=%s" % ('maven', 'maven', 'temporary', 'localhost', '5432')),
+                ("dbname=%s user=%s password=%s host=%s port=%s" % ('maven', 'maven', 'temporary', MC.dbhost, '5432')),
                 AsyncConnectionPool.CONFIG_MIN_CONNECTIONS: 4,
                 AsyncConnectionPool.CONFIG_MAX_CONNECTIONS: 8
             }
