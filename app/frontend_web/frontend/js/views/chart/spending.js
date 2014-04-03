@@ -24,14 +24,15 @@ define([
         },
         render: function () {
             console.log('spending');
-            console.log(currentContext.patients);
-          var that = this;
+            var that = this;
             this.spend.fetch({
                 success: function (spend) {
-			patient_name = currentContext.patient_name;
-			if(!patient_name) {patient_name = 'All Patients';}
-			
-			that.$el.html(that.template({spending: spend, pat_name:patient_name}));
+                    patient_name = currentContext.get('patient_name');
+                    if (!patient_name) {
+                        patient_name = 'All Patients';
+                    }
+
+                    that.$el.html(that.template({spending: spend, pat_name: patient_name}));
                 },
                 data: $.param(currentContext.toJSON())
             });

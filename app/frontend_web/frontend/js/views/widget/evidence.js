@@ -21,7 +21,6 @@ define([
             this.render();
         },
         render: function () {
-             console.log("evidence render");
             this.$el.append(this.template({alert: currentContext.get('alert')}));
              return this;
         }

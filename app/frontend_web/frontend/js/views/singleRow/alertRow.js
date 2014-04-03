@@ -38,7 +38,7 @@ define([
             $('#evidence'+currentContext.get('alert')).modal();
         },
         handleClick: function(){
-            currentContext.alert = this.model.get('id');
+            currentContext.set({alert : this.model.get('id')});
             this.evidence = new Evidence;
             $('#collapse'+this.model.get('patient')+'-'+this.model.get('id')).toggleClass("in");
         }
