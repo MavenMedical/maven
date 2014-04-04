@@ -10,9 +10,8 @@ define([
     'currentContext',
     //model
     'models/chartsModels/spendingModel',
-
     'text!templates/chart/spending.html'
-], function ($, _, Backbone, currentContext, SpendingModel, spendingTemplate) {
+	], function ($, _, Backbone, currentContext, SpendingModel, spendingTemplate) {
 
     var Spending = Backbone.View.extend({
         el: '.spending',
@@ -32,7 +31,8 @@ define([
                         patient_name = 'All Patients';
                     }
 
-                    that.$el.html(that.template({spending: spend, pat_name: patient_name}));
+                    that.$el.html(that.template({spending: spend, pat_name: patient_name,
+				    display:currentContext.get('display')}));
                 },
                 data: $.param(currentContext.toJSON())
             });

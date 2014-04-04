@@ -15,18 +15,29 @@ define([
 ], function ($, _, Backbone) {
 
     var Context = Backbone.Model.extend({
+	urlRoot: '/services/login',
         defaults: {
             page: null,
-            user: 'tom',
-            patients: '1&2&3&4',
-            key: '1U6BAcMeDWIN5_MyUd971tUU8jUk3F_R',
+            user: 'JHU1093124',
+	    userAuth: '',
+	    display: 'Dr. XYZ',
+            patients: '',
+            patientAuth: '',
             provider: null,
             encounter: null,
             department: null,
             alert: null
         },
         initialize: function () {
-        }
+		this.fetch({
+			success: function (res) {
+			    console.log(res);
+			},
+			data: JSON.stringify({user:'JHU1093124', password:'notapassword'}),
+			type: 'POST'
+		    });
+		
+	    }
 
     });
     return Context;

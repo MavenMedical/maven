@@ -28,6 +28,7 @@ import traceback
 import psycopg2.extras
 import datetime
 import dateutil.parser as prsr
+import time
 
 CONFIG_DATABASE = 'database'
 
@@ -38,10 +39,11 @@ CONTEXT_DATERANGE = 'daterange'
 CONTEXT_PATIENTLIST = 'patients'
 CONTEXT_DEPARTMENT = 'department'
 CONTEXT_CATEGORY = 'category'
-CONTEXT_KEY = 'key'
+CONTEXT_KEY = 'userAuth'
 CONTEXT_ENCOUNTER = 'encounter'
 CONTEXT_CUSTOMERID = 'customer_id'
 
+LOGIN_TIMEOUT = 60 * 60 # 1 hour
 
 # When the user creates a list of something, every element in that list is checked to make
 # sure the user is authorized to see it.  If we later get details on that object,
@@ -55,40 +57,21 @@ CONTEXT_CUSTOMERID = 'customer_id'
 _TEMPORARY_SECRET = SHA256.new()
 _TEMPORARY_SECRET.update(b'123')  #"""bytes([random.randint(0,255) for _ in range(128)]))
 
+def bytestostring(b):
+    return base64.b64encode(b).decode().replace('/','_').replace('+','-').replace('=','.')
+
+def stringtobytes(s):
+    return base64.b64decode(s.replace('_','/').replace('-','+').replace('.','='))
+
 def _authorization_key(data):
     global _TEMPORARY_SECRET
     sha = _TEMPORARY_SECRET.copy()
     sha.update(pickle.dumps(data))
-    return base64.b64encode(sha.digest())[:32].decode().replace('/','_').replace('+','-')
-
+    return bytestostring(sha.digest())[:32]
 
 patient_extras = {
     '9': {'Allergies': ['Penicillins'], 'Problem List':['Sinusitis', 'Asthma']},
 }
-
-order_list = {
-    '1': [{'title':'Echocardiogram', 'order':'Followup ECG', 'reason':'Mitral regurgitation', 'evidence':'Don\'t test', 'date':'1/1/2014', 'result':'','cost':1200 , 'ecost': 0},
-        {'title':'Immunoglobulin','order':'place holder', 'reason':'klsdf jlkwec', 'evidence':'jmdljxs', 'date':'1/24/2014', 'result':'','cost':130 , 'ecost': 0},
-        ],
-}
-
-alert_types = {
-    1: {'name':'Avoid NSAIDS', 'cost':168, 'html':'<b>Avoid nonsteroidal anti-inflammatory drugs (NSAIDS)</b> in individuals with hypertension or heart failure or CKD of all causes, including diabetes.'},
-    2: {'name':'Placeholder', 'cost':0, 'html':'Placeholder alert to be replaced by something real.  Consult <a href="www.google.com">google</a> for more information.'},
-    3: {'name':'Placeholder', 'cost':0, 'html':'Placeholder alert to be replaced by something real.  Consult <a href="www.google.com">google</a> for more information.'},
-    4: {'name':'Placeholder', 'cost':0, 'html':'Placeholder alert to be replaced by something real.  Consult <a href="www.google.com">google</a> for more information.'},
-    5: {'name':'Placeholder', 'cost':0, 'html':'Placeholder alert to be replaced by something real.  Consult <a href="www.google.com">google</a> for more information.'},
-}
-
-alert_list = [
-    {'id':1, 'patient':'1235412', 'type':1, 'date':'12/15/2013', 'action':''},
-    {'id':2, 'patient':'1', 'type':2, 'date':'12/16/2013', 'action':''},
-    {'id':3, 'patient':'2', 'type':1, 'date':'12/17/2013', 'action':''},
-    {'id':4, 'patient':'2', 'type':3, 'date':'12/18/2013', 'action':''},
-    {'id':5, 'patient':'3', 'type':2, 'date':'12/19/2013', 'action':''},
-    {'id':6, 'patient':'3', 'type':3, 'date':'12/20/2013', 'action':''},
-    {'id':7, 'patient':'4', 'type':4, 'date':'12/21/2013', 'action':''},
-]
 
 def min_zero_normal(u,s):
     ret = int(random.normalvariate(u,s))
@@ -103,6 +86,7 @@ def spending():
         'Procedures':min_zero_normal(500,300),
         'Room':min_zero_normal(500,50),
         }
+
 
 encounter = 0
 
@@ -161,6 +145,27 @@ def restrict_context(qs, required, available):
         raise HTTP.IncompleteRequest('Request is incomplete.  Required arguments are: '+', '.join(required)+".\n")
     # not implemented yet - making sure optional parameters are the right type
 
+    if 'user' in required:
+        t = time.time()
+        if not CONTEXT_KEY in qs:
+            raise HTTP.UnauthorizedRequest('User is not logged in.')
+        auth = qs[CONTEXT_KEY][0]
+        if len(auth)<8:
+            raise HTTP.UnautorizedRequest('User is not logged in.') # this is an invalid auth key - hacking?
+        auth_time = auth[:8]
+        auth_key = auth[8:]
+        # make sure the user's auth key is valid
+        print(auth_key)
+        print( _authorization_key((qs['user'][0], auth_time)))
+        print(auth_time)
+        print(qs['user'][0])
+        if auth_key != _authorization_key((qs['user'][0], auth_time)):
+            raise HTTP.UnautorizedRequest('User is not logged in.') # this is an invalid auth key - hacking?
+        # make sure the user's auth key is timely 
+        t=int.from_bytes(stringtobytes(auth_time),'big')
+        if t < time.time():
+            raise HTTP.UnautorizedRequest("User's login has timed out.")
+
     context = {}
     for k, v in qs.items():
         if k in available:
@@ -185,18 +190,15 @@ class FrontendWebService(HTTP.HTTPProcessor):
         except KeyError:
             raise MC.InvalidConfig('some real error')
 
+        self.add_handler(['POST'], '/login', self.post_login)
         self.add_handler(['GET'], '/patients(?:/(\d+)-(\d+)?)?', self.get_patients)
         self.add_handler(['GET'], '/patient_details', self.get_patient_details)
         self.add_handler(['GET'], '/total_spend', self.get_total_spend)
         self.add_handler(['GET'], '/spending', self.get_daily_spending)
         self.add_handler(['GET'], '/spending_details', self.get_spending_details)
-        self.db = AsyncConnectionPool(db_configname)
-
-
         self.add_handler(['GET'], '/alerts(?:/(\d+)-(\d+)?)?', self.get_alerts)
-#        self.add_handler(['GET'], '/alert_details', self.get_alert_details)
         self.add_handler(['GET'], '/orders(?:/(\d+)-(\d+)?)?', self.get_orders)
-#        self.add_handler(['GET'], '/order_details', self.get_order_details)
+        self.db = AsyncConnectionPool(db_configname)
 
     def schedule(self, loop):
         HTTP.HTTPProcessor.schedule(self, loop)
@@ -207,6 +209,20 @@ class FrontendWebService(HTTP.HTTPProcessor):
     def get_stub(self, _header, _body, _qs, _matches, _key):
         return (HTTP.OK_RESPONSE, b'', None)
 
+    @asyncio.coroutine
+    def post_login(self, _header, body, _qs, _matches, _key):
+        info = json.loads(body.decode('utf-8'))
+        if (not 'user' in info) or (not 'password' in info):
+            return (HTTP.BAD_RESPONSE, b'', None)
+        else:
+            user = info['user']
+            t = int(time.time() + LOGIN_TIMEOUT)
+            t= bytestostring(t.to_bytes(4,'big'))
+            print(t)
+            print(user)
+            user_auth = ''.join([t,_authorization_key((user, t))])
+            return (HTTP.OK_RESPONSE,json.dumps({CONTEXT_KEY:user_auth, 'display':'Dr. Huxtable'}), None)
+
     patients_required_contexts = [CONTEXT_USER]
     patients_available_contexts = {CONTEXT_USER:str, 'customer_id': int, CONTEXT_ENCOUNTER: str}
 
@@ -216,7 +232,6 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
         # {1: {'id':1, 'name':'Batman', 'gender':'Male', 'DOB':'05/03/1987', 'diagnosis':'Asthma'},}
         ### TODO - Remove hardcoded user context and replace with values from production authentication module
-        qs['user'] = ['JHU1093124']
         qs['customer_id'] = [1]
         qs['encounter'] = ['987987917']
 
@@ -263,7 +278,6 @@ class FrontendWebService(HTTP.HTTPProcessor):
         This method returns Patient Details which include the data in the header of the Encounter Page
             i.e. Allergies Problem List, Last Encounter, others.
         """
-        qs['user'] = ['JHU1093124']
         qs['customer_id'] = [1]
         qs['encounter'] = ['5|76|3140325']
 
@@ -299,7 +313,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         return (HTTP.OK_RESPONSE, json.dumps(results), None)
 
 
-    totals_required_contexts = [CONTEXT_USER,CONTEXT_KEY,CONTEXT_PATIENTLIST]
+    totals_required_contexts = [CONTEXT_USER,CONTEXT_KEY]
     totals_available_contexts = {CONTEXT_USER:str,CONTEXT_KEY:list,CONTEXT_PATIENTLIST:list}
 
     @asyncio.coroutine
@@ -308,7 +322,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         return (HTTP.OK_RESPONSE, json.dumps(ret), None)
 
 
-    daily_required_contexts = [CONTEXT_USER,CONTEXT_KEY,CONTEXT_PATIENTLIST]
+    daily_required_contexts = [CONTEXT_USER,CONTEXT_KEY]
     daily_available_contexts = {CONTEXT_USER:str,CONTEXT_KEY:list,CONTEXT_PATIENTLIST:list}
 
     @asyncio.coroutine
@@ -318,18 +332,19 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                    FrontendWebService.daily_required_contexts,
                                    FrontendWebService.daily_available_contexts)
         user = context[CONTEXT_USER]
-        patient_ids = context[CONTEXT_PATIENTLIST]
-        auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
-
         patient_dict = {}
-        for patient_id in set(patient_ids).intersection(patient_spending.keys()):
-            try:
-                if _authorization_key((user, patient_id)) == auth_keys[patient_id]:
-                    patient_dict[patient_id]=dict([(k,sum(map(lambda x: x if type(x) is int else 0,
-                                                              v.values())))
-                                                   for k,v in patient_spending[patient_id].items()])
-            except TypeError:
-                pass
+        if CONTEXT_PATIENTLIST in context:
+            patient_ids = context[CONTEXT_PATIENTLIST]
+            auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
+            
+            for patient_id in set(patient_ids).intersection(patient_spending.keys()):
+                try:
+                    if _authorization_key((user, patient_id)) == auth_keys[patient_id]:
+                        patient_dict[patient_id]=dict([(k,sum(map(lambda x: x if type(x) is int else 0,
+                                                                  v.values())))
+                                                       for k,v in patient_spending[patient_id].items()])
+                except TypeError:
+                    pass
 
         return (HTTP.OK_RESPONSE, json.dumps(patient_dict), None)
 
@@ -338,7 +353,6 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
     @asyncio.coroutine
     def get_spending_details(self, _header, _body, qs, _matches, _key):
-        qs['user'] = ['JHU1093124']
         qs['customer_id'] = [1]
         qs['encounter'] = ['987987917']
 
@@ -362,10 +376,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
     @asyncio.coroutine
     def get_alerts(self, _header, _body, qs, _matches, _key):
-        global alert_list
-        global alert_types
 
-        qs['user'] = ['JHU1093124']
         qs['customer_id'] = [1]
         qs['encounter'] = ['987987917']
 
@@ -413,11 +424,9 @@ class FrontendWebService(HTTP.HTTPProcessor):
     @asyncio.coroutine
     def get_orders(self, _header, _body, qs, _matches, _key):
         ### TODO - Remove hardcoded user context and replace with values from production authentication module
-        qs['user'] = ['JHU1093124']
         qs['customer_id'] = [1]
         qs['encounter'] = ['9|76|3140328']
 
-        global order_list
         context = restrict_context(qs,
                                    FrontendWebService.orders_required_contexts,
                                    FrontendWebService.orders_available_contexts)

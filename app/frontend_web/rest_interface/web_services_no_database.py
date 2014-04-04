@@ -23,8 +23,7 @@ from Crypto.Hash import SHA256
 import base64
 import itertools
 import traceback
-
-CONFIG_DATABASE = 'database'
+import time
 
 CONTEXT_USER = 'user'
 CONTEXT_PROVIDER = 'provider'
@@ -33,8 +32,9 @@ CONTEXT_DATERANGE = 'daterange'
 CONTEXT_PATIENTLIST = 'patients'
 CONTEXT_DEPARTMENT = 'department'
 CONTEXT_CATEGORY = 'category'
-CONTEXT_KEY = 'key'
+CONTEXT_KEY = 'userAuth'
 
+LOGIN_TIMEOUT = 60 * 60 # 1 hour
 
 # When the user creates a list of something, every element in that list is checked to make 
 # sure the user is authorized to see it.  If we later get details on that object,
@@ -48,11 +48,17 @@ CONTEXT_KEY = 'key'
 _TEMPORARY_SECRET = SHA256.new()
 _TEMPORARY_SECRET.update(b'123')  #"""bytes([random.randint(0,255) for _ in range(128)]))
 
+def bytestostring(b):
+    return base64.b64encode(b).decode().replace('/','_').replace('+','-').replace('=','.')
+
+def stringtobytes(s):
+    return base64.b64decode(s.replace('_','/').replace('-','+').replace('.','='))
+
 def _authorization_key(data):
     global _TEMPORARY_SECRET
     sha = _TEMPORARY_SECRET.copy()
     sha.update(pickle.dumps(data))
-    return base64.b64encode(sha.digest())[:32].decode().replace('/','_').replace('+','-')
+    return bytestostring(sha.digest())[:32]
     
 
 patients_list = {
@@ -148,6 +154,23 @@ def restrict_context(qs, required, available):
         raise HTTP.IncompleteRequest('Request is incomplete.  Required arguments are: '+', '.join(required)+".\n")
     # not implemented yet - making sure optional parameters are the right type
     
+    if 'user' in required:
+        t = time.time()
+        if not CONTEXT_KEY in qs:
+            raise HTTP.UnauthorizedRequest('User is not logged in.')
+        auth = qs[CONTEXT_KEY][0]
+        if len(auth)<8:
+            raise HTTP.UnautorizedRequest('User is not logged in.') # this is an invalid auth key - hacking?
+        auth_time = auth[:8]
+        auth_key = auth[8:]
+        # make sure the user's auth key is valid
+        if auth_key != _authorization_key((qs['user'][0], auth_time)):
+            raise HTTP.UnautorizedRequest('User is not logged in.') # this is an invalid auth key - hacking?
+        # make sure the user's auth key is timely 
+        t=int.from_bytes(stringtobytes(auth_time),'big')
+        if t < time.time():
+            raise HTTP.UnautorizedRequest("User's login has timed out.")
+
     context = {}
     for k, v in qs.items():
         if k in available:
@@ -167,18 +190,13 @@ class FrontendWebService(HTTP.HTTPProcessor):
     
     def __init__(self, configname):
         HTTP.HTTPProcessor.__init__(self,configname)
-        try:
-            db_configname = self.config[CONFIG_DATABASE]
-        except KeyError:
-            raise MC.InvalidConfig('some real error')
 
+        self.add_handler(['POST'], '/login', self.post_login)
         self.add_handler(['GET'], '/patients(?:/(\d+)-(\d+)?)?', self.get_patients)
         self.add_handler(['GET'], '/patient_details', self.get_patient_details)
         self.add_handler(['GET'], '/total_spend', self.get_total_spend)
         self.add_handler(['GET'], '/spending', self.get_daily_spending)
         self.add_handler(['GET'], '/spending_details', self.get_spending_details)
-
-
         self.add_handler(['GET'], '/alerts(?:/(\d+)-(\d+)?)?', self.get_alerts)
 #        self.add_handler(['GET'], '/alert_details', self.get_alert_details)
         self.add_handler(['GET'], '/orders(?:/(\d+)-(\d+)?)?', self.get_orders)
@@ -191,6 +209,19 @@ class FrontendWebService(HTTP.HTTPProcessor):
     @asyncio.coroutine
     def get_stub(self, _header, _body, _qs, _matches, _key):
         return (HTTP.OK_RESPONSE, b'', None)
+
+    @asyncio.coroutine
+    def post_login(self, _header, body, _qs, _matches, _key):
+        info = json.loads(body.decode('utf-8'))
+        if (not 'user' in info) or (not 'password' in info):
+            return (HTTP.BAD_RESPONSE, b'', None)
+        else:
+            user = info['user']
+            t = int(time.time() + LOGIN_TIMEOUT)
+            t= bytestostring(t.to_bytes(4,'big'))
+            user_auth = ''.join([t,_authorization_key((user, t))])
+            return (HTTP.OK_RESPONSE,json.dumps({CONTEXT_KEY:user_auth, 'display':'Dr. Huxtable'}), None)
+#            return (HTTP.OK_RESPONSE,json.dumps({CONTEXT_KEY:'abc', 'display':'Dr. Huxtable'}), None)
 
     patients_required_contexts = [CONTEXT_USER]
     patients_available_contexts = {CONTEXT_USER:str}
@@ -230,8 +261,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
         return (HTTP.OK_RESPONSE, json.dumps(patient_dict), None)
 
 
-    totals_required_contexts = [CONTEXT_USER,CONTEXT_KEY,CONTEXT_PATIENTLIST]
-    totals_available_contexts = {CONTEXT_USER:str,CONTEXT_KEY:list,CONTEXT_PATIENTLIST:list}
+    totals_required_contexts = [CONTEXT_USER,CONTEXT_KEY]
+    totals_available_contexts = {CONTEXT_USER:str,CONTEXT_KEY:list}
 
     @asyncio.coroutine
     def get_total_spend(self, _header, _body, _qs, _matches, _key):

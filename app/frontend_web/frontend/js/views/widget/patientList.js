@@ -24,7 +24,6 @@ define([
 ], function ($, _, Backbone, currentContext, patientRow,  PatientModel, PatientCollection, patientListTemplate) {
         var PatientList = Backbone.View.extend({
             el: '.patientlist',
-            template: _.template(patientListTemplate),
 
             initialize: function(){
                 _.bindAll(this, 'render', 'addPatient');
@@ -34,8 +33,10 @@ define([
                 this.render();
             },
             render: function(){
-                this.$el.html(this.template);
-                 return this;
+		    var template= _.template(patientListTemplate, {display: currentContext.get('display')});
+
+		    this.$el.html(template);
+		    return this;
             },
             addPatient: function(pat){
                 var patientrow = new patientRow({
