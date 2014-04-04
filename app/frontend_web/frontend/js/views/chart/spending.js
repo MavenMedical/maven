@@ -26,12 +26,12 @@ define([
             var that = this;
             this.spend.fetch({
                 success: function (spend) {
-                    patient_name = currentContext.get('patient_name');
-                    if (!patient_name) {
-                        patient_name = 'All Patients';
+                    patientName = currentContext.get('patientName');
+                    if (!patientName) {
+                        patientName = 'All Patients';
                     }
 
-                    that.$el.html(that.template({spending: spend, pat_name: patient_name,
+                    that.$el.html(that.template({spending: spend, patientName: patientName,
 				    display:currentContext.get('display')}));
                 },
                 data: $.param(currentContext.toJSON())

@@ -34,6 +34,7 @@ define([
             //update context
             currentContext.set({key : this.model.get("key")});
             currentContext.set({patients : this.model.get("id")});
+	    currentContext.set({patientName : this.model.get("name")});
         }
 
     });

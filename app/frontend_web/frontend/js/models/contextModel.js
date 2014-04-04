@@ -23,6 +23,7 @@ define([
 	    display: 'Dr. XYZ',
             patients: '',
             patientAuth: '',
+	    patientName:'',
             provider: null,
             encounter: null,
             department: null,
