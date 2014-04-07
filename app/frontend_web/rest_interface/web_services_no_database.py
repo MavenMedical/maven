@@ -13,14 +13,12 @@ __author__='Tom DuBois'
 
 import app.utils.streaming.stream_processor as SP
 import app.utils.streaming.http_responder as HTTP
+import app.utils.crypto.authorization_key as AK
 import asyncio
 import json
 import random
-import pickle;
 import maven_logging as ML
 import maven_config as MC
-from Crypto.Hash import SHA256
-import base64
 import itertools
 import traceback
 import time
@@ -35,31 +33,7 @@ CONTEXT_CATEGORY = 'category'
 CONTEXT_KEY = 'userAuth'
 
 LOGIN_TIMEOUT = 60 * 60 # 1 hour
-
-# When the user creates a list of something, every element in that list is checked to make 
-# sure the user is authorized to see it.  If we later get details on that object,
-# we do not want an extra database query or join just to verify the authorization.
-# With the initial list, we will provide a key which will act as proof of authorization.
-# This key will be a hash of a secret shared by all of our servers (possibly related to our site's
-# private ssl cert), the userid, and the primary key of the returned object.
-# When asking for details, if we can recreate the hash (and the user is authenticated), the user's 
-# authorization is confirmed.  
-# For now this is random, so it will not work between servers and is intentionally broken.
-_TEMPORARY_SECRET = SHA256.new()
-_TEMPORARY_SECRET.update(b'123')  #"""bytes([random.randint(0,255) for _ in range(128)]))
-
-def bytestostring(b):
-    return base64.b64encode(b).decode().replace('/','_').replace('+','-').replace('=','.')
-
-def stringtobytes(s):
-    return base64.b64decode(s.replace('_','/').replace('-','+').replace('.','='))
-
-def _authorization_key(data):
-    global _TEMPORARY_SECRET
-    sha = _TEMPORARY_SECRET.copy()
-    sha.update(pickle.dumps(data))
-    return bytestostring(sha.digest())[:32]
-    
+AUTH_LENGTH = 10 # ok for this fake data - not for real
 
 patients_list = {
     '1': {'id':'1', 'name':'Batman', 'gender':'Male', 'DOB':'05/03/1987', 'diagnosis':'Asthma'},
@@ -154,22 +128,12 @@ def restrict_context(qs, required, available):
         raise HTTP.IncompleteRequest('Request is incomplete.  Required arguments are: '+', '.join(required)+".\n")
     # not implemented yet - making sure optional parameters are the right type
     
-    if 'user' in required:
-        t = time.time()
-        if not CONTEXT_KEY in qs:
-            raise HTTP.UnauthorizedRequest('User is not logged in.')
-        auth = qs[CONTEXT_KEY][0]
-        if len(auth)<8:
-            raise HTTP.UnautorizedRequest('User is not logged in.') # this is an invalid auth key - hacking?
-        auth_time = auth[:8]
-        auth_key = auth[8:]
-        # make sure the user's auth key is valid
-        if auth_key != _authorization_key((qs['user'][0], auth_time)):
-            raise HTTP.UnautorizedRequest('User is not logged in.') # this is an invalid auth key - hacking?
-        # make sure the user's auth key is timely 
-        t=int.from_bytes(stringtobytes(auth_time),'big')
-        if t < time.time():
-            raise HTTP.UnautorizedRequest("User's login has timed out.")
+    if not CONTEXT_KEY in qs:
+        raise HTTP.UnauthorizedRequest('User is not logged in.')
+    try:
+        AK.check_authorization(qs['user'][0], qs[CONTEXT_KEY][0], AUTH_LENGTH)
+    except AK.UnauthorizedException as ue:
+        raise HTTP.UnauthorizatedRequest(str(ue))
 
     context = {}
     for k, v in qs.items():
@@ -217,9 +181,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
             return (HTTP.BAD_RESPONSE, b'', None)
         else:
             user = info['user']
-            t = int(time.time() + LOGIN_TIMEOUT)
-            t= bytestostring(t.to_bytes(4,'big'))
-            user_auth = ''.join([t,_authorization_key((user, t))])
+            user_auth = AK.authorization_key(user,AUTH_LENGTH, LOGIN_TIMEOUT)
             return (HTTP.OK_RESPONSE,json.dumps({CONTEXT_KEY:user_auth, 'display':'Dr. Huxtable'}), None)
 #            return (HTTP.OK_RESPONSE,json.dumps({CONTEXT_KEY:'abc', 'display':'Dr. Huxtable'}), None)
 
@@ -236,7 +198,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         user = context[CONTEXT_USER]
         (start, stop) = _get_range(matches, len(patients_list))
 
-        patient_list = [copy_and_append(v, (CONTEXT_KEY,_authorization_key((user, v['id'])))) 
+        patient_list = [copy_and_append(v, (CONTEXT_KEY,AK.authorization_key((user, v['id']),AUTH_LENGTH))) 
                         for v in patients_list.values()][start:stop]
         print(patient_list)
         return (HTTP.OK_RESPONSE, json.dumps(patient_list), None)
@@ -252,9 +214,9 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                    FrontendWebService.patient_available_contexts)
         user = context[CONTEXT_USER]
         patient_id = context[CONTEXT_PATIENTLIST]
-        auth_key = context[CONTEXT_KEY]
-        if not auth_key == _authorization_key((user, patient_id)):
-            raise HTTP.IncompleteRequest('%s has not been authorized to view patient %d.' % (user, patient_id))
+        #auth_key = context[CONTEXT_KEY]
+        #if not auth_key == _authorization_key((user, patient_id)):
+        #    raise HTTP.IncompleteRequest('%s has not been authorized to view patient %d.' % (user, patient_id))
         patient_dict = dict(patients_list[patient_id])
         if patient_id in patient_extras:
             patient_dict.update(patient_extras[patient_id])
@@ -281,8 +243,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                    FrontendWebService.daily_available_contexts)
         user = context[CONTEXT_USER]
         patient_ids = context.get(CONTEXT_PATIENTLIST,None)
-        if patient_ids:
-            auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
+        #if patient_ids:
+        #    auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
             # validate keys here
         
         patient_dict = {}
