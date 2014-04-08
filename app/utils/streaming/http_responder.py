@@ -110,7 +110,7 @@ class _HTTPStreamParser(SP.MappingParser):
         :param register_fn: when a new socket is opened, register a writer for it here
         """
         SP.MappingParser.__init__(self, configname, read_fn, lambda x: x, loop, register_fn)
-        ML.DEBUG("created a new http parser")
+        #ML.DEBUG("created a new http parser")
         self.p = HttpParser()
         self.body = []
 

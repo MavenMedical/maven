@@ -11,11 +11,11 @@
 define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
-    'backbone'    // lib/backbone/backbone
-], function ($, _, Backbone) {
+    'backbone',    // lib/backbone/backbone
+	], function ($, _, Backbone) {
 
     var Context = Backbone.Model.extend({
-	urlRoot: '/services/login',
+	urlRoot: '/login',
         defaults: {
             page: null,
             user: 'JHU1093124',
@@ -29,21 +29,25 @@ define([
             department: null,
             alert: null
         },
-        initialize: function () {
-		this.fetch({
-			success: function (res) {
-			    console.log(res);
-			},
-			data: JSON.stringify({user:'JHU1093124', password:'notapassword'}),
-			type: 'POST'
-		    });
-		
+        setUser: function (user, pw, route) {
+		if (this.user != user || !this.userAuth) {
+		    this.set('user', user);
+		    //alert('setting user');
+		    this.fetch({
+			    success: function (res) {
+				Backbone.history.loadUrl(route);
+			    },
+				data: JSON.stringify({user:user, password:pw}),
+				type: 'POST'
+				});
+		}
 	    }
+	
+	});
 
-    });
     return Context;
 });
-
+//'JHU1093124
 
 
 

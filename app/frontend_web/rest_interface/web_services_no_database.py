@@ -181,9 +181,12 @@ class FrontendWebService(HTTP.HTTPProcessor):
             return (HTTP.BAD_RESPONSE, b'', None)
         else:
             user = info['user']
-            user_auth = AK.authorization_key(user,AUTH_LENGTH, LOGIN_TIMEOUT)
-            return (HTTP.OK_RESPONSE,json.dumps({CONTEXT_KEY:user_auth, 'display':'Dr. Huxtable'}), None)
-#            return (HTTP.OK_RESPONSE,json.dumps({CONTEXT_KEY:'abc', 'display':'Dr. Huxtable'}), None)
+            try:
+                AK.check_authorization(user, info['password'], AUTH_LENGTH)
+                return (HTTP.OK_RESPONSE, json.dumps({'display':'Dr. Huxtable'}), None)
+            except:
+                user_auth = AK.authorization_key(user,AUTH_LENGTH, LOGIN_TIMEOUT)
+                return (HTTP.OK_RESPONSE,json.dumps({CONTEXT_KEY:user_auth, 'display':'Dr. Huxtable'}), None)
 
     patients_required_contexts = [CONTEXT_USER]
     patients_available_contexts = {CONTEXT_USER:str}
