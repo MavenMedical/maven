@@ -439,8 +439,10 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                            " from mavenorder"
                                            " WHERE mavenorder.encounter_id = '%s' AND mavenorder.customer_id = %s;" % (columns, context['encounter'], context['customer_id']))
             results = []
+            y = 0
             for x in cur:
-                results.append({'name': x[0], 'date': str(x[1]), 'result': "Active", 'cost': int(x[3])})
+                results.append({'id': y, 'name': x[0], 'date': str(x[1]), 'result': "Active", 'cost': int(x[3])})
+                y += 1
                 ML.DEBUG(x)
 
         except:

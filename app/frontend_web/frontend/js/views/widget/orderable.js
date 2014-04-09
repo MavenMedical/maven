@@ -35,13 +35,10 @@ define([
             this.render();
         },
         render: function () {
-            console.log("render");
             this.$el.html(this.template);
              return this;
         },
         addOrder: function(ord){
-             console.log("add order");
-           // console.log(ord);
             var orderrow = new orderRow({
               model: ord
             });

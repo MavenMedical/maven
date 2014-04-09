@@ -24,12 +24,11 @@ define([
             'click .panel-heading': 'handleClick'
         },
         render: function(){
-            console.log(this.model.toJSON());
             $(this.el).append(this.template(this.model.toJSON()));
             return this;
         },
         handleClick: function(e){
-             $('#'+this.model.get('title')).toggleClass("in");
+             $('#'+this.model.get('id')).toggleClass("in");
         }
 
     });

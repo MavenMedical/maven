@@ -12,11 +12,12 @@ define([
     'backbone',    // lib/backbone/backbone
 
     'currentContext',
+    'eventhub',
 
     //Template
     'text!templates/singleRow/patientRow.html'
 
-], function ($, _, Backbone, currentContext, patRowTemplate) {
+], function ($, _, Backbone, currentContext, eventHub, patRowTemplate) {
     var patientRow = Backbone.View.extend({
         tagName: 'tr',
         template: _.template(patRowTemplate),
@@ -34,6 +35,11 @@ define([
             //update context
             currentContext.set({key : this.model.get("key")});
             currentContext.set({patients : this.model.get("id")});
+            console.log('I am here at patient row');
+            eventHub.events.trigger('select:patient', 'test');
+            //eventHub.events.on('selected:patient', console.log('patient selected') );
+
+
         }
 
     });

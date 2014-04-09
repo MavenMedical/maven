@@ -17,6 +17,8 @@ define([
 ], function ($, _, Backbone,Hub) {
     var eventHub = new Hub();
 
+    eventHub.events.on('selected:patient', console.log('patient selected and I am in the hub') );
+
     /*
     This is a sample code of how you can trigger an event
     and how to listen to it.
