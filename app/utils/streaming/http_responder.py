@@ -110,7 +110,7 @@ class _HTTPStreamParser(SP.MappingParser):
         :param register_fn: when a new socket is opened, register a writer for it here
         """
         SP.MappingParser.__init__(self, configname, read_fn, lambda x: x, loop, register_fn)
-        ML.DEBUG("created a new http parser")
+        #ML.DEBUG("created a new http parser")
         self.p = HttpParser()
         self.body = []
 
@@ -146,12 +146,14 @@ class _HTTPStreamParser(SP.MappingParser):
                 self.body = []
 
     def eof_received(self):
-        ML.DEBUG("EOF")
+        #ML.DEBUG("EOF")
         return True
 
 class IncompleteRequest(Exception):
     pass
 
+class UnauthorizedRequest(Exception):
+    pass
 
 class HTTPProcessor(SP.StreamProcessor):
     """ HTTPProcessor extends stream_processor.StreamProcessor with a web server
@@ -227,14 +229,14 @@ class HTTPProcessor(SP.StreamProcessor):
         headers = obj[0]
         body = obj[1]
         #ML.DEBUG("errno: %s" % headers.get_errno())
-        ML.DEBUG("header: %s" % headers.get_headers())
-        ML.DEBUG("method: %s" % headers.get_method())
+        #ML.DEBUG("header: %s" % headers.get_headers())
+        #ML.DEBUG("method: %s" % headers.get_method())
         ML.DEBUG("path: %s" % headers.get_path())
         #ML.DEBUG("status: %s" % headers.get_status_code())
-        ML.DEBUG("body: %s" % body)
+        #ML.DEBUG("body: %s" % body)
         req_line = headers.get_method()+' '+headers.get_path()
         query_string = urllib.parse.parse_qs(headers.get_query_string())
-        ML.DEBUG("query: %s" % str(query_string))
+        #ML.DEBUG("query: %s" % str(query_string))
         #print(req_line)
         ret = None
         try:
@@ -253,9 +255,12 @@ class HTTPProcessor(SP.StreamProcessor):
         except KeyError:  # key error means an object isn't found
             ret = wrap_response(NOTFOUND_RESPONSE, b'')
         except ValueError:
+            traceback.print_exc()
             ret = wrap_response(BAD_RESPONSE, b'')
         except IncompleteRequest as e :  # key error means an object isn't found
-            ret = wrap_response(BAD_RESPONSE, bytes(str(e),'utf-8'))
+            ret = wrap_response(BAD_RESPONSE, b'')
+        except UnauthorizedRequest as e :
+            ret = wrap_response(UNAUTHORIZED_RESPONSE, b'')
         except:  # handle general errors gracefully
             traceback.print_exc()
             ret = wrap_response(ERROR_RESPONSE, b'')
@@ -265,12 +270,13 @@ class HTTPProcessor(SP.StreamProcessor):
 
         try:
             self.write_object(ret, writer_key = key)  # send the response
-            ML.DEBUG("done writing")
+            #ML.DEBUG("done writing")
             if headers.get_headers().get('Connection','').upper()=='CLOSE':
                 self.unregister_writer(key)
-                ML.DEBUG("unregistering")
+                #ML.DEBUG("unregistering")
             else:
-                ML.DEBUG(headers.get('Connection'))
+                pass
+                #ML.DEBUG(headers.get('Connection'))
         except:
             ML.WARN("connection to %s failed before write happened" % key)
 
@@ -366,12 +372,13 @@ class HTTPWriter(SP.StreamProcessor):
 
         try:
             self.write_object(ret, writer_key = k)  # send the response
-            ML.DEBUG("done writing")
+            #ML.DEBUG("done writing")
             if headers.get_headers().get('Connection','').upper()=='CLOSE':
                 self.unregister_writer(k)
-                ML.DEBUG("unregistering")
+                #ML.DEBUG("unregistering")
             else:
-                ML.DEBUG(headers.get('Connection'))
+                #ML.DEBUG(headers.get('Connection'))
+                pass
         except:
             ML.WARN("connection to %s failed before write happened" % k)
     

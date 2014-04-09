@@ -11,27 +11,43 @@
 define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
-    'backbone'    // lib/backbone/backbone
-], function ($, _, Backbone) {
+    'backbone',    // lib/backbone/backbone
+	], function ($, _, Backbone) {
 
     var Context = Backbone.Model.extend({
+	urlRoot: '/login',
         defaults: {
             page: null,
-            user: 'tom',
-            patients: '1&2&3&4',
-            key: '1U6BAcMeDWIN5_MyUd971tUU8jUk3F_R',
+            user: 'JHU1093124',
+	    userAuth: '',
+	    display: 'Dr. XYZ',
+            patients: '',
+            patientAuth: '',
+	    patientName:'',
             provider: null,
             encounter: null,
             department: null,
             alert: null
         },
-        initialize: function () {
-        }
+        setUser: function (user, pw, route) {
+		if (this.user != user || !this.userAuth) {
+		    this.set('user', user);
+		    //alert('setting user');
+		    this.fetch({
+			    success: function (res) {
+				Backbone.history.loadUrl(route);
+			    },
+				data: JSON.stringify({user:user, password:pw}),
+				type: 'POST'
+				});
+		}
+	    }
+	
+	});
 
-    });
     return Context;
 });
-
+//'JHU1093124
 
 
 

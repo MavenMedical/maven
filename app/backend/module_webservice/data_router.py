@@ -25,8 +25,7 @@ import json
 from app.backend.module_rule_engine import order_object as OO
 import pickle
 import clientApp.api.api as api
-
-
+import app.utils.crypto.authorization_key as AK
 
 
 ARGS = argparse.ArgumentParser(description='Maven Client Receiver Configs.')
@@ -72,6 +71,8 @@ class OutgoingMessageHandler(SP.StreamProcessor):
     @asyncio.coroutine
     def read_object(self, obj, _):
         #json_composition = json.dumps(obj, default=api.jdefault, indent=4).encode()
+        obj.user = 'JHU1093124'
+        obj.userAuth = AK.authorization_key(obj.user, 44, 60*60)
         self.write_object(pickle.dumps(obj), writer_key=obj.maven_route_key[1])
 
     @asyncio.coroutine

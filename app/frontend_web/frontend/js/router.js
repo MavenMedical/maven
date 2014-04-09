@@ -25,58 +25,83 @@ define([
     'views/alerts',
     'views/widget/evidence'
 ], function ($, _, Backbone, currentContext, eventHub,  SideMenu, TopNav, HomeView, PatientView, EpisodeView, AlertsView, Evidence) {
+
+    var CheckLogin = function() {
+	if (!currentContext.get('user') || !currentContext.get('userAuth')) {
+	    currentContext.setUser('JHU1093124', 'notarealpassword', Backbone.history.fragment);  // hack for now
+	    return false;
+	}
+	return true;
+    };
+
+
     var AppRouter = Backbone.Router.extend({
         routes: {
             "": 'showHome',
             "patient": 'showPatient',
             "alerts": 'showAlerts',
             "episode": 'showEpisode',
-            "episode/:id/patient/:id": 'episodeIDs',
-            "episode/:id/patient/:id/evi/:id": 'showEvidence',
+            "episode/:id/patient/:id(/login/:user/:userAuth)": 'episodeIDs',
+            "episode/:id/patient/:id/evi/:id(/login/:user/:userAuth)": 'showEvidence',
 
             //default
             '*action': 'defaultAction'
         },
         showHome: function () {
-            currentContext.set({page:'home'});
-            var homeView = new HomeView
+		//alert('showing home');
+		if (CheckLogin()) {
+		    currentContext.set({page:'home'});
+		    var homeView = new HomeView
+		}
         },
         showPatient: function () {
-             console.log("show pat");
-            //update current context page
-            currentContext.set({page:'patient'});
-
-            var patientView = new PatientView;
-            patientView.render();
+		if (CheckLogin()) {
+		    console.log("show pat");
+		    //update current context page
+		    currentContext.set({page:'patient'});
+		    
+		    var patientView = new PatientView;
+		    patientView.render();
+		}
         },
         showAlerts: function () {
-             console.log("show alert");
-            var alertsView = new AlertsView;
-            alertsView.render();
+		if (CheckLogin()) {
+		    console.log("show alert");
+		    var alertsView = new AlertsView;
+		    alertsView.render();
+		};
         },
-        episodeIDs: function(enc, pat){
+        episodeIDs: function(enc, pat, user, userAuth){
              console.log("epi id");
-            currentContext.encounter = enc;
-            currentContext.patient = pat;
-            this.showEpisode()
+	     currentContext.set({encounter:enc,patients:pat});
+	     if(user && user != currentContext.get('user')) {
+		 currentContext.setUser(user,userAuth, Backbone.history.fragment);
+	     } else {
+		 this.showEpisode()
+	     }
         },
         showEpisode: function () {
-            console.log(" Episode func");
-            //update current context page
-            currentContext.page = 'episode';
-            var episodeView = new EpisodeView;
+		if(CheckLogin()) {
+		    console.log(" Episode func");
+		    //update current context page
+		    currentContext.set({page:'episode'});
+		    var episodeView = new EpisodeView;
+		};
 
         },
-        showEvidence: function (enc, pat, evi) {
+        showEvidence: function (enc, pat, evi, user, userAuth) {
             //update current context page
-            currentContext.alert = evi;
-            currentContext.encounter = enc;
-            currentContext.patient = pat;
-
-            var episodeView = new EpisodeView;
-
-            var evidence = new Evidence;
-            $('#evidence-' + currentContext.alert).modal();
+		currentContext.set({alert:evi,encounter:enc,patients:pat});
+		if(user && user != currentContext.get('user')) {
+		currentContext.setUser(user,userAuth, Backbone.history.fragment);
+	    } else {
+		if(CheckLogin()) {
+		    var episodeView = new EpisodeView;
+		    
+		    var evidence = new Evidence;
+		    $('#evidence-' + currentContext.get('alert')).modal();
+		}
+	    }
         },
         defaultAction: function (action) {
             console.log('No route:', action);
@@ -92,9 +117,8 @@ define([
             var topnav = new TopNav;
             topnav.render();
 
-            Backbone.history.start();
         }
     });
 
-    return AppRouter
+    return new AppRouter;
 });
