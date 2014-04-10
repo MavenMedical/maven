@@ -10,7 +10,19 @@ CREATE DATABASE maven
 
 \c maven
 
-create language plpgsql;
+--
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner:
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner:
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
 
 create schema terminology authorization maven;
 -- Table: terminology.codemap
@@ -153,65 +165,45 @@ begin
 end;
 $$;
 
--- Table: customer
+-- Table: adt
 
--- DROP TABLE customer;
+-- DROP TABLE: adt
 
-CREATE TABLE customer
+CREATE TABLE adt
 (
-  customer_id numeric(18,0) PRIMARY KEY,
-  name character(255) NOT NULL,
-  abbr character varying(22),
-  license_type numeric(9,0),
-  license_exp date
-);
-ALTER TABLE public.customer OWNER TO maven;
-
--- Index: ixcustomer
-
--- DROP INDEX ixcustomer;
-
-CREATE INDEX ixcustomer
-  ON public.customer
-  USING btree
-  (customer_id);
-
-
--- Table: costmap
-
--- DROP TABLE costmap;
-
-CREATE TABLE costmap
-(
-  costmap_id serial PRIMARY KEY,
-  dep_id numeric(18,0),
+  event_id character varying(100),
   customer_id numeric(18,0),
-  billing_code character varying(25),
-  code_type character varying(25),
-  cost_amt numeric(12,2),
-  cost_type character varying(25)
+  pat_id character varying(100),
+  encounter_id character varying(100),
+  prov_id character varying(18),
+  event_type character varying(25),
+  event_time timestamp,
+  dep_id numeric(18,0),
+  room_id character varying(25)
 )
 with (
-OIDS=FALSE
+ OIDS=FALSE
 );
 
--- Index: ixcostmap
+-- Index: ixadtevent
 
--- DROP INDEX: ixcostmap
+-- DROP INDEX: ixadtevent
 
-CREATE INDEX ixcostmap
-  on public.costmap
+CREATE INDEX ixadtevent
+  on public.adt
   USING btree
-  (costmap_id);
+  (event_id, customer_id);
 
--- Index: ixcostmapbillcode
+-- Index: ixadtpatient
 
--- DROP INDEX: ixcostmapbillcode
+-- DROP INDEX: ixadtpatient
 
-CREATE INDEX ixcostmapbillcode
-  on public.costmap
+CREATE INDEX ixadtpatient
+  on public.adt
   USING btree
-  (billing_code, customer_id);
+  (pat_id, customer_id);
+
+ALTER TABLE public.adt OWNER TO maven;
 
 
 CREATE TABLE alerts
@@ -238,10 +230,29 @@ WITH (
 ALTER TABLE public.alerts
   OWNER TO maven;
 
+--
+-- Name: alerts_alert_id_seq; Type: SEQUENCE; Schema: public; Owner: maven
+--
+
+CREATE SEQUENCE alerts_alert_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.alerts_alert_id_seq OWNER TO maven;
+
+--
+-- Name: alerts_alert_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: maven
+--
+
+ALTER SEQUENCE alerts_alert_id_seq OWNED BY alerts.alert_id;
+
 -- Index: public.ixalert
 
 -- DROP INDEX ixalert;
-
 CREATE INDEX ixalert
   ON public.alerts
   USING btree
@@ -251,7 +262,6 @@ CREATE INDEX ixalert
 -- Index: public.ixdepartment
 
 -- DROP INDEX ixdepartment;
-
 CREATE INDEX ixdepartment
   ON public.alerts
   USING btree
@@ -260,7 +270,6 @@ CREATE INDEX ixdepartment
 -- Index: public.ixencounter_date
 
 -- DROP INDEX public.ixencounter_date;
-
 CREATE INDEX ixencounter_date
   ON public.alerts
   USING btree
@@ -269,7 +278,6 @@ CREATE INDEX ixencounter_date
 -- Index: "logging".ixpatient
 
 -- DROP INDEX ixpatient;
-
 CREATE INDEX ixpatient
   ON public.alerts
   USING btree
@@ -278,7 +286,6 @@ CREATE INDEX ixpatient
 -- Index: "logging".ixuser
 
 -- DROP INDEX ixuser;
-
 CREATE INDEX ixprovider
   ON public.alerts
   USING btree
@@ -301,8 +308,113 @@ CREATE TABLE composition
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE composition
+ALTER TABLE public.composition
   OWNER TO maven;
+
+--
+-- Name: composition_comp_id_seq; Type: SEQUENCE; Schema: public; Owner: maven
+--
+
+CREATE SEQUENCE composition_comp_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.composition_comp_id_seq OWNER TO maven;
+
+--
+-- Name: composition_comp_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: maven
+--
+
+ALTER SEQUENCE composition_comp_id_seq OWNED BY composition.comp_id;
+
+
+-- Table: costmap
+
+-- DROP TABLE costmap;
+
+CREATE TABLE costmap
+(
+  costmap_id serial PRIMARY KEY,
+  dep_id numeric(18,0),
+  customer_id numeric(18,0),
+  billing_code character varying(25),
+  code_type character varying(25),
+  cost_amt numeric(12,2),
+  cost_type character varying(25)
+)
+with (
+OIDS=FALSE
+);
+ALTER TABLE public.costmap OWNER TO maven;
+
+
+--
+-- Name: costmap_costmap_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE costmap_costmap_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.costmap_costmap_id_seq OWNER TO maven;
+
+--
+-- Name: costmap_costmap_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE costmap_costmap_id_seq OWNED BY costmap.costmap_id;
+
+-- Index: ixcostmap
+
+-- DROP INDEX: ixcostmap
+
+CREATE INDEX ixcostmap
+  on public.costmap
+  USING btree
+  (costmap_id);
+
+-- Index: ixcostmapbillcode
+
+-- DROP INDEX: ixcostmapbillcode
+
+CREATE INDEX ixcostmapbillcode
+  on public.costmap
+  USING btree
+  (billing_code, customer_id);
+
+
+
+-- Table: customer
+
+-- DROP TABLE customer;
+
+CREATE TABLE customer
+(
+  customer_id numeric(18,0) PRIMARY KEY,
+  name character(255) NOT NULL,
+  abbr character varying(22),
+  license_type numeric(9,0),
+  license_exp date
+);
+ALTER TABLE public.customer OWNER TO maven;
+
+-- Index: ixcustomer
+
+-- DROP INDEX ixcustomer;
+
+CREATE INDEX ixcustomer
+  ON public.customer
+  USING btree
+  (customer_id);
+
 
 
 -- Table: department
@@ -312,10 +424,10 @@ ALTER TABLE composition
 CREATE TABLE department
 (
   department_id numeric(18,0) NOT NULL,
+  customer_id numeric(18,0),
   dep_name character varying(100),
   specialty character varying(50),
-  location character varying(100),
-  customer_id numeric(18,0)
+  location character varying(100)
 
 )
 WITH (
@@ -340,13 +452,14 @@ CREATE INDEX ixdeppk
 CREATE TABLE diagnosis
 (
   dx_id numeric(18,0),
+  customer_id numeric(18,0),
   current_icd9_list character varying(254),
   current_icd10_list character varying(254),
   dx_name character varying(200),
   dx_imo_id character varying(254),
   imo_term_id character varying(30),
-  concept_id character varying(254),
-  customer_id numeric(18,0)
+  concept_id character varying(254)
+
 )
 WITH (
   OIDS=FALSE
@@ -371,6 +484,7 @@ CREATE INDEX ixdiagnosispk
 CREATE TABLE encounter
 (
   csn character varying(100) NOT NULL,
+  customer_id numeric(18,0),
   pat_id character varying(100),
   enc_type character varying(254),
   contact_date date,
@@ -378,8 +492,8 @@ CREATE TABLE encounter
   bill_prov_id character varying(18),
   department_id numeric(18,0),
   hosp_admsn_time date,
-  hosp_disch_time date,
-  customer_id numeric(18,0)
+  hosp_disch_time date
+
 )
 WITH (
   OIDS=FALSE
@@ -422,18 +536,41 @@ CREATE TABLE encounterdx
 (
   encdx serial PRIMARY KEY,
   pat_id character varying(100),
+  customer_id numeric(18,0),
   csn character varying(100),
   dx_id character varying(36),
   annotation character varying(200),
   primary_dx_yn character varying(1),
-  dx_chronic_yn character varying(1),
-  customer_id numeric(18,0)
+  dx_chronic_yn character varying(1)
+
 )
 WITH (
   OIDS=FALSE
 );
 ALTER TABLE encounterdx
   OWNER TO maven;
+
+
+--
+-- Name: encounterdx_encdx_seq; Type: SEQUENCE; Schema: public; Owner: maven
+--
+
+CREATE SEQUENCE encounterdx_encdx_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.encounterdx_encdx_seq OWNER TO maven;
+
+--
+-- Name: encounterdx_encdx_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: maven
+--
+
+ALTER SEQUENCE encounterdx_encdx_seq OWNED BY encounterdx.encdx;
+
 
 -- Index: ixencounterdxcsndx
 
@@ -793,6 +930,55 @@ CREATE INDEX ixprovpk
   (prov_id , customer_id);
 
 
+-- Table: sleuth_evidence
+
+-- DROP TABLE: sleuth_evidence
+
+
+CREATE TABLE sleuth_evidence
+(
+  evidence_id serial,
+  customer_id numeric(18,0),
+  sleuth_rule integer,
+  short_name character varying(25),
+  name character varying(100),
+  description character varying,
+  source character varying(100),
+  source_url character varying(255)
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE public.sleuth_evidence
+  OWNER TO maven;
+
+
+-- Table: sleuth_rule
+
+-- DROP TABLE sleuth_rule
+
+CREATE TABLE sleuth_rule
+(
+  rule_id serial,
+  customer_id numeric(18,0),
+  cpt_trigger character varying(100),
+  client_order_code character varying(100),
+  dep_id numeric(18,0),
+  name character varying(100),
+  description character varying(255),
+  rule_details json
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE public.sleuth_rule
+  OWNER TO maven;
+
+-- Index: idxsleuthrule
+
+-- DROP INDEX: ixsleuthrule
+
+
 -- Table: ucl
 
 -- DROP TABLE ucl;
@@ -857,44 +1043,6 @@ CREATE INDEX ixmedication
   USING btree
   (med_id, customer_id);
 
-
--- Table: adt
-
--- DROP TABLE: adt
-
-CREATE TABLE adt
-(
-  event_id character varying(100),
-  customer_id numeric(18,0),
-  pat_id character varying(100),
-  encounter_id character varying(100),
-  prov_id character varying(18),
-  event_type character varying(25),
-  event_time timestamp,
-  dep_id numeric(18,0),
-  room_id character varying(25)
-)
-with (
- OIDS=FALSE
-);
-
--- Index: ixadtevent
-
--- DROP INDEX: ixadtevent
-
-CREATE INDEX ixadtevent
-  on public.adt
-  USING btree
-  (event_id, customer_id);
-
--- Index: ixadtpatient
-
--- DROP INDEX: ixadtpatient
-
-CREATE INDEX ixadtpatient
-  on public.adt
-  USING btree
-  (pat_id, customer_id);
 
   
 create schema ruleTest authorization maven;

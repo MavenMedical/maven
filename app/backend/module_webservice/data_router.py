@@ -52,16 +52,6 @@ class IncomingMessageHandler(SP.StreamProcessor):
             composition.maven_route_key = [key1, key2]
             self.write_object(composition, writer_key="CostEval")
 
-    @asyncio.coroutine
-    def route_object(self, obj, key2):
-        obj_list = json.loads(obj.decode())
-        json_composition = obj_list[0]
-        key1 = obj_list[1]
-        if json_composition['type'] == "CostEvaluator":
-            composition = api.Composition().create_composition_from_json(json_composition)
-            composition.maven_route_key = [key1, key2]
-            self.write_object(composition, writer_key="CostEval")
-
 
 class OutgoingMessageHandler(SP.StreamProcessor):
 
@@ -74,14 +64,6 @@ class OutgoingMessageHandler(SP.StreamProcessor):
         obj.user = 'JHU1093124'
         obj.userAuth = AK.authorization_key(obj.user, 44, 60*60)
         self.write_object(pickle.dumps(obj), writer_key=obj.maven_route_key[1])
-
-    @asyncio.coroutine
-    def route_object(self, obj):
-        message = obj
-        message_root = ET.fromstring(message)
-        emr_namespace = "urn:" + args.emr
-        if emr_namespace in message_root.tag:
-            self.write_object(obj)
 
 
 def main(loop):

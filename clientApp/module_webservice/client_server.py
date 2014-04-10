@@ -45,7 +45,6 @@ class OutgoingToMavenMessageHandler(HR.HTTPReader):
     @asyncio.coroutine
     def read_object(self, obj, key):
         """
-
         param: obj is list of headers, body
         param: key is key
         """
@@ -58,7 +57,6 @@ class OutgoingToMavenMessageHandler(HR.HTTPReader):
 
     @asyncio.coroutine
     def create_composition(self, message):
-        #message_root = ET.fromstring(message)
         composition = VistaParser().create_composition(message)
         return composition
 
@@ -77,7 +75,7 @@ class IncomingFromMavenMessageHandler(HR.HTTPWriter):
         ML.DEBUG(json.dumps(composition, default=api.jdefault, indent=4))
         notification_body = yield from self.generate_notification_html(composition)
         ML.DEBUG("NOTIFY HTML BODY: " + notification_body)
-        ML.PRINT('Message was successfully sent around the Maven Cloud loop!' + str(composition.maven_route_key))
+        ML.DEBUG('Message was successfully sent around the Maven Cloud loop!' + str(composition.maven_route_key))
         return (HR.OK_RESPONSE, notification_body, [], composition.maven_route_key[0])
 
 

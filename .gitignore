@@ -5,7 +5,7 @@
 # maven environment specific
 __pycache__
 .*
-.idea/
+.idea/*
 app/configs/app.db
 
 ###################

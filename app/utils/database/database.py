@@ -27,7 +27,6 @@
 
 import psycopg2
 import asyncio
-
 import maven_logging as ML
 import maven_config as MC
 

@@ -22,9 +22,7 @@ import maven_config as MC
 import json
 import clientApp.api.api as api
 import uuid
-import io
 import dateutil.parser
-import asyncio
 
 
 class EpicParser():
@@ -258,7 +256,7 @@ class VistaParser():
             patient.maritalStatus = maritalStatus
 
         except:
-            raise Exception('Error constructing FHIR patient from API and data')
+            raise Exception('Error constructing FHIR patient from VistA XML data')
 
         return patient
 
@@ -266,6 +264,7 @@ class VistaParser():
         try:
             encounter_orders = []
             for ord in xml_root.findall(".//Order"):
+                ord_id = ord.findall(".//ID")[0].text
                 ord_name = ord.findall(".//Name")[0].text
                 ord_code = ord.findall(".//ProcedureCode")[0].text
                 ord_code_type = ord.findall(".//CodeType")[0].text
@@ -331,9 +330,6 @@ class VistaParser():
             prob.isPrincipal = True
 
         return prob
-
-
-
 
 
 if __name__ == '__main__':
