@@ -7,11 +7,7 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
 
-    //Model
-    'models/patientModel',
-
-    //Collection
-    'collections/patients',
+    'currentContext',
 
     //views
     'views/widget/patientList',
@@ -21,28 +17,30 @@ define([
     // Using the Require.js text! plugin, we are loaded raw text
     // which will be used as our views primary template
     'text!templates/home.html'
-], function ($, _, Backbone, PatientModel, PatientCollection, PatientList, Spending, CostBD, homeTemplate) {
+], function ($, _, Backbone, currentContext, PatientList, Spending, CostBD, homeTemplate ) {
 
     var HomeView = Backbone.View.extend({
-        el: $('.page'),
+        el: '.page',
+        template: _.template(homeTemplate),
+        initialize: function(){
+            _.bindAll(this, 'render');
+            this.render();
+        },
         render: function () {
             $('.nav li').removeClass('active');
             $('.nav li a[href="' + window.location.hash + '"]').parent().addClass('active');
+            $('.patientinfo').empty();
 
-            var template = _.template(homeTemplate, {});
-            this.$el.html(template);
+            this.$el.html(this.template);
 
             //widgets
-            var patientcollection = new PatientCollection();
-
-            var patientlistview = new PatientList({collection: patientcollection});
-            patientlistview.render();
-
-            var spending = new Spending;
-           spending.render();
-
-            var costbd = new CostBD;
-            costbd.render();
+            console.log('home render widgets');
+            this.patientlist = new PatientList;
+            console.log('home widgets');
+            console.log(currentContext.get('patients'));
+            this.spending = new Spending;
+            this.costbd = new CostBD;
+            return this;
         }
     });
 

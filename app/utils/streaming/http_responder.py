@@ -110,7 +110,7 @@ class _HTTPStreamParser(SP.MappingParser):
         :param register_fn: when a new socket is opened, register a writer for it here
         """
         SP.MappingParser.__init__(self, configname, read_fn, lambda x: x, loop, register_fn)
-        ML.DEBUG("created a new http parser")
+        #ML.DEBUG("created a new http parser")
         self.p = HttpParser()
         self.body = []
 
@@ -128,7 +128,11 @@ class _HTTPStreamParser(SP.MappingParser):
         # for each non-empty split, parse it
         for sp in filter(None,splits):
             #print("SP: "+str(sp))
-            self.p.execute(sp, len(sp))  # parse the chunk of bytes
+            base=0
+            while base < len(sp):
+                c = self.p.execute(sp[base:], len(sp[base:]))  # parse the chunk of bytes
+                l = len(sp[base:])
+                base=base+c
             
             # if it contains part of the request's body, process that
             if self.p.is_partial_body():
@@ -142,12 +146,14 @@ class _HTTPStreamParser(SP.MappingParser):
                 self.body = []
 
     def eof_received(self):
-        ML.DEBUG("EOF")
-        pass#self.unregister_fn(self.registered_key)
+        #ML.DEBUG("EOF")
+        return True
 
 class IncompleteRequest(Exception):
     pass
 
+class UnauthorizedRequest(Exception):
+    pass
 
 class HTTPProcessor(SP.StreamProcessor):
     """ HTTPProcessor extends stream_processor.StreamProcessor with a web server
@@ -223,14 +229,14 @@ class HTTPProcessor(SP.StreamProcessor):
         headers = obj[0]
         body = obj[1]
         #ML.DEBUG("errno: %s" % headers.get_errno())
-        ML.DEBUG("header: %s" % headers.get_headers())
-        ML.DEBUG("method: %s" % headers.get_method())
+        #ML.DEBUG("header: %s" % headers.get_headers())
+        #ML.DEBUG("method: %s" % headers.get_method())
         ML.DEBUG("path: %s" % headers.get_path())
         #ML.DEBUG("status: %s" % headers.get_status_code())
-        ML.DEBUG("body: %s" % body)
+        #ML.DEBUG("body: %s" % body)
         req_line = headers.get_method()+' '+headers.get_path()
         query_string = urllib.parse.parse_qs(headers.get_query_string())
-        ML.DEBUG("query: %s" % str(query_string))
+        #ML.DEBUG("query: %s" % str(query_string))
         #print(req_line)
         ret = None
         try:
@@ -249,9 +255,12 @@ class HTTPProcessor(SP.StreamProcessor):
         except KeyError:  # key error means an object isn't found
             ret = wrap_response(NOTFOUND_RESPONSE, b'')
         except ValueError:
+            traceback.print_exc()
             ret = wrap_response(BAD_RESPONSE, b'')
         except IncompleteRequest as e :  # key error means an object isn't found
-            ret = wrap_response(BAD_RESPONSE, bytes(str(e),'utf-8'))
+            ret = wrap_response(BAD_RESPONSE, b'')
+        except UnauthorizedRequest as e :
+            ret = wrap_response(UNAUTHORIZED_RESPONSE, b'')
         except:  # handle general errors gracefully
             traceback.print_exc()
             ret = wrap_response(ERROR_RESPONSE, b'')
@@ -261,12 +270,13 @@ class HTTPProcessor(SP.StreamProcessor):
 
         try:
             self.write_object(ret, writer_key = key)  # send the response
-            ML.DEBUG("done writing")
+            #ML.DEBUG("done writing")
             if headers.get_headers().get('Connection','').upper()=='CLOSE':
                 self.unregister_writer(key)
-                ML.DEBUG("unregistering")
+                #ML.DEBUG("unregistering")
             else:
-                ML.DEBUG(headers.get('Connection'))
+                pass
+                #ML.DEBUG(headers.get('Connection'))
         except:
             ML.WARN("connection to %s failed before write happened" % key)
 
@@ -287,6 +297,91 @@ class HTTPProcessor(SP.StreamProcessor):
         self.handlers.append((re.compile(regexp), fn))
         #print(regexp)
         #print(re.match(regexp,b'GET /users/1 HTTP/1.0'))
+
+
+class HTTPReader(SP.StreamProcessor):
+    """ HTTPProcessor extends stream_processor.StreamProcessor with a web server
+    It can create many kinds of web servers, but the motivation is RESTful web services
+
+    As written, when a client connects, a coroutine is schedule to handle the request and respond 
+    immediately.  Without much effort it could be re-configured to bundle the request, send it to
+    another machine for processing, and pair the reply back with the original socket when it comes back.
+    """
+
+    def __init__(self, configname):
+        """ Initialize the StreamProcessor superclass, getting all of the IO and helper functions from 
+        the MavenConfig structure.  It creates the StreamProcess, but does not yet make network connections.
+
+        :param configname: the name of the instance to pull config parameters
+        """
+
+        # read the config parameters
+        try:
+            self.config = MC.MavenConfig[configname]
+            #self.host = self.config.get(SP.CONFIG_HOST, None)
+            #self.port = self.config[SP.CONFIG_PORT]
+        except KeyError:
+            raise MC.InvalidConfig(configname + " did not have sufficient parameters.")            
+        
+        # the web service only needs host and port parameters, but stream processor needs
+        # more detailed information.  create detailed configuration parameters here
+        self.config.update(
+            {
+                SP.CONFIG_PARSERTYPE: CONFIGVALUE_HTTPPARSER,
+            })
+
+        # initialize the base StreamProcessor with this new configuration pameters
+        SP.StreamProcessor.__init__(self, configname)
+
+class HTTPWriter(SP.StreamProcessor):
+    
+    def __init__(self, configname):
+        SP.StreamProcessor.__init__(self, configname)
+
+    @asyncio.coroutine
+    def read_object(self, obj, key):
+        """ read_object takes an http request and a writer key, determines which handler should process 
+        request, invokes that handler, and responds with its output.
+        
+        It should handle catch-all errors, string sanitization, authentication, etc., so that the handler
+        functions only worry about the business logic.
+
+        :param obj: 
+        :param key: 
+        """        
+        
+        ret = None
+        try:
+            (response, body, extras, k) = yield from self.format_response(obj, key)
+            if response == OK_RESPONSE and not body: # use No Content when called for
+                resp = NOCONTENT_RESPONSE
+            ret=wrap_response(response, body, extras)
+
+        except KeyError:  # key error means an object isn't found
+            ret = wrap_response(NOTFOUND_RESPONSE, b'')
+        except ValueError:
+            ret = wrap_response(BAD_RESPONSE, b'')
+        except IncompleteRequest as e :  # key error means an object isn't found
+            ret = wrap_response(BAD_RESPONSE, bytes(str(e),'utf-8'))
+        except:  # handle general errors gracefully
+            traceback.print_exc()
+            ret = wrap_response(ERROR_RESPONSE, b'')
+
+        if not ret:  # if there are no matches, respond
+            ret = wrap_response(UNAVAILABLE_RESPONSE, b'')
+
+        try:
+            self.write_object(ret, writer_key = k)  # send the response
+            #ML.DEBUG("done writing")
+            if headers.get_headers().get('Connection','').upper()=='CLOSE':
+                self.unregister_writer(k)
+                #ML.DEBUG("unregistering")
+            else:
+                #ML.DEBUG(headers.get('Connection'))
+                pass
+        except:
+            ML.WARN("connection to %s failed before write happened" % k)
+    
 
 
 class BackboneService(HTTPProcessor):

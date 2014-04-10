@@ -1,11 +1,11 @@
 import uuid
 import datetime
-from enum import Enum
+import dateutil.parser
 
 
 class Resource():
 
-    def __init__(self, customer_id=None, name_space=None, identifier=None, text=None):
+    def __init__(self, customer_id=None, name_space=None, identifier=None, text=None, resourceType=None):
         self.customer_id = customer_id
         self.name_space = name_space
         self.id = uuid.uuid1()
@@ -17,8 +17,9 @@ class Resource():
 
         if identifier is None:
             self.identifier = []
+        self.resourceType = resourceType
 
-    def add_identifier(self, use, label, system, value, period, assigner):
+    def add_identifier(self, use=None, label=None, system=None, value=None, period=None, assigner=None):
         """
         This method is used to add an identifier to the list of identifiers associated with this resource
 
@@ -59,6 +60,169 @@ class Resource():
                                           assigner=assigner))
 
 
+class Composition(Resource):
+
+    def __init__(self, date=None, type=None, cclass=None,
+                 title=None, status=None, confidentiality=None,
+                 subject=None, author=None, custodian=None, encounter=None,
+                 section=None, event=None, maven_route_key=None):
+        Resource.__init__(self)
+        if date is None:
+            self.date = datetime.datetime.now()
+        self.type = type
+        self.cclass = cclass
+        self.title = title
+        self.status = status
+        self.confidentiality = confidentiality
+        self.subject = subject
+        self.author = author
+        self.custodian = custodian
+        self.event = event
+        self.encounter = encounter
+        self.maven_route_key = maven_route_key
+
+        if section is None:
+            self.section = []
+
+    def create_composition_from_json(self, json_composition):
+
+        composition = Composition()
+
+        if json_composition['customer_id'] is not None:
+            composition.customer_id = int(json_composition['customer_id'])
+
+        if json_composition['subject'] is not None:
+            composition.subject = self.create_patient_from_json(json_composition['subject'])
+
+        if json_composition['encounter'] is not None:
+            composition.encounter = self.create_encounter_from_json(json_composition['encounter'])
+
+        for sec in json_composition['section']:
+            if sec['title'] == "Encounter Orders":
+                composition.section.append(Section(title="Encounter Orders", content=self.create_orders_from_json(sec['content'])))
+
+            if sec['title'] == "Problem List":
+                composition.section.append(Section(title="Problem List", content=self.create_problem_list_from_json(sec['content'])))
+
+            if sec['title'] == "Encounter Cost Breakdown":
+                composition.section.append(Section(title="Encounter Cost Breakdown", content=sec['content']))
+
+        return composition
+
+    def create_patient_from_json(self, json_patient):
+        """
+        This method takes a json_patient object and converts the json string dictionary
+        into a FHIR-compliant Patient Object from this clinical API library
+
+        :param json_patient: A json string representation of a patient, most likely the "subject"
+                             parameter from a composition object.
+        """
+        patient = Patient()
+
+        if json_patient['gender'] is not None:
+            patient.gender = json_patient['gender']
+
+        if json_patient['birthDate'] is not None:
+            patient.birthDate = dateutil.parser.parse(json_patient['birthDate'])
+
+        if len(json_patient['name']) > 0:
+            for name in json_patient['name']:
+                patient.add_name(given=[name['given'][0]], family=[name['family'][0]])
+
+        if len(json_patient['identifier']) > 0:
+            for id in json_patient['identifier']:
+                patient.add_identifier(label=id['label'], system=id['system'], value=id['value'])
+        return patient
+
+    def create_encounter_from_json(self, json_encounter):
+        encounter = Encounter()
+        encounter.last_modified_date = dateutil.parser.parse(json_encounter['last_modified_date'])
+
+        if json_encounter['period'] is not None:
+            encounter.period = Period(start=json_encounter['period']['start'], end=json_encounter['period']['end'])
+
+        if json_encounter['department'] is not None:
+            encounter.department = Location(name=json_encounter['department']['name'],
+                                            customer_id=json_encounter['department']['customer_id'])
+
+        if json_encounter['identifier'] is not None:
+            for id in json_encounter['identifier']:
+                encounter.identifier.append(Identifier(label=id['label'], system=id['system'], value=id['value']))
+
+        if json_encounter['encounter_class'] is not None:
+            encounter.encounter_class = json_encounter['encounter_class']
+
+        if json_encounter['type'] != "null":
+            encounter.type = json_encounter['type']
+        return encounter
+
+    def create_orders_from_json(self, json_orders):
+        orders_list = []
+        for ord in json_orders:
+            order = Order()
+
+            #A FHIR order actually contains a list of DETAILS where the list of procedures,
+            # medications, and supply items are stored.
+            for deet in ord['detail']:
+                if deet['type'] == "Lab" or "Procedure" or "PROC":
+                    procedure = Procedure(name=deet['name'], type=deet['type'])
+
+                    for id in deet['identifier']:
+                        procedure.add_identifier(label=id['label'], system=id['system'], value=id['value'])
+
+                    order.detail.append(procedure)
+
+            orders_list.append(order)
+
+        return orders_list
+
+    def create_problem_list_from_json(self, json_problem_list):
+        problem_list = []
+
+        for prob in json_problem_list:
+            condition = Condition()
+            condition.isChronic = prob['isChronic']
+            condition.isPrinciple = prob['isPrinciple']
+            condition.encounter = prob['encounter']
+            condition.isHospital = prob['isHospital']
+            condition.isPOA = prob['isPOA']
+            condition.customer_id = prob['customer_id']
+            for id in prob['identifier']:
+                condition.identifier.append(Identifier(label=id['label'], system=id['system'], value=id['value']))
+
+            problem_list.append(condition)
+
+        return problem_list
+
+    def get_encounter_orders(self):
+        orders_list = []
+
+        for sec in self.section:
+            if sec.title == "Encounter Orders":
+                for ord in sec.content:
+                    orders_list.append(ord)
+        return orders_list
+
+    def get_proc_supply_details(self, order):
+        proc_supply_list = []
+        for detail in order.detail:
+            if detail.type == "Lab" or "Procedure" or "PROC":
+                for id in detail.identifier:
+                    if id.system == "clientEMR" and id.label == "Internal" or id.label == "maven" or id.label == "CPT4":
+                        proc_supply_list.append([id.value, detail.name])
+        return proc_supply_list
+
+    def get_encounter_problem_list(self):
+        problem_list = []
+
+        for sec in self.section:
+            if sec.title == "Problem List":
+                for problem in sec.content:
+                    problem_list.append(problem)
+
+        return problem_list
+
+
 class Patient(Resource):
     """
     :param name: List of HumanName objects
@@ -70,6 +234,7 @@ class Patient(Resource):
         Resource.__init__(self, identifier=identifier)
         if name is None:
             self.name = []
+        self.resourceType = "Patient"
         self.telecom = []
         self.gender = gender
         self.birthDate = birthDate
@@ -102,6 +267,10 @@ class Patient(Resource):
     def add_careProvider(self, orgclinician):
         self.careProvider.append(orgclinician)
 
+    def get_current_pcp(self):
+        #TODO add for loop to look up current pcp
+        return "304923812"
+
     def add_name(self, given, family, use=None, text=None, prefix=None, suffix=None, period=None):
         self.name.append(HumanName(use=use,
                                    text=text,
@@ -123,6 +292,16 @@ class Patient(Resource):
     def set_birth_date(self, datetime):
         self.birthDate = datetime
 
+    def get_pat_id(self):
+        for id in self.identifier:
+            if id.label == "internal" and id.system == "clientEMR":
+                return id.value
+
+    def get_mrn(self):
+        return "b59145f2b2d411e398360800275923d2"
+        #for id in self.identifier:
+            #if id.label == "MRN" and id.system == "clientEMR":
+                #return id.value
 
 class Practitioner(Resource):
 
@@ -148,7 +327,7 @@ class Organization(Resource):
 
     def __init__(self, type=None):
         Resource.__init__(self)
-        OrganizationType = Enum('prov', 'dept', 'icu', 'team', 'fed', 'ins', 'edu', 'reli', 'pharm')
+        #OrganizationType = enumerate('prov', 'dept', 'icu', 'team', 'fed', 'ins', 'edu', 'reli', 'pharm')
         self.type = type
         self.type = []
         self.telecom = []
@@ -190,11 +369,17 @@ class Encounter(Resource):
     def get_discharge_date(self):
         return self.period.end
 
+    def get_csn(self):
+        for id in self.identifier:
+            if id.system == "clientEMR" and id.label == "Internal":
+                return id.value
+
 
 class Procedure(Resource):
 
     def __init__(self, patient=None, encounter=None, period=None,
-                 performer=None, followUp=None, type=None):
+                 performer=None, followUp=None, type=None,
+                 name=None, cost=None):
         Resource.__init__(self)
         self.subject = patient
         self.patient = patient
@@ -205,13 +390,15 @@ class Procedure(Resource):
         self.followUp = followUp
         self.notes = ""
         self.performer = performer
+        self.name = name
+        self.cost = cost
 
 
 class Order(Resource):
 
-    def __init__(self, patient=None, practitioner=None, detail=None, when=None, totalCost=None, text=None):
+    def __init__(self, date=None, patient=None, practitioner=None, detail=None, when=None, totalCost=None, text=None):
         Resource.__init__(self, text=text)
-        self.date = datetime.datetime.now()
+        self.date = date
         self.subject = patient
         self.patient = patient
         self.source = practitioner
@@ -324,12 +511,17 @@ class Condition(Resource):
         self.isPOA = isPOA
         self.isPrinciple = isPrinciple
 
+    def get_problem_ID(self):
+        for id in self.identifier:
+            if id.label == "ICD":
+                return id
+
 
 class Location(Resource):
 
     def __init__(self, name=None, description=None, type=None,
                  telecom=None, address=None, managingOrganization=None,
-                 status=None, partOf=None, mode=None):
+                 status=None, partOf=None, mode=None, customer_id=None):
         Resource.__init__(self)
         self.name = name
         self.description = description
@@ -340,31 +532,25 @@ class Location(Resource):
         self.status = status
         self.partOf = partOf
         self.mode = mode
+        self.customer_id = customer_id
 
 
-class Composition(Resource):
+class SecurityEvent(Resource):
 
-    def __init__(self, date=None, type=None, cclass=None,
-                 title=None, status=None, confidentiality=None,
-                 subject=None, author=None, custodian=None, encounter=None,
-                 section=None, event=None):
+    def __init__(self, source, participant, object=None, type=None, subtype=None, action=None, dateTime=None, outcome=None,
+                 outcomeDesc=None):
         Resource.__init__(self)
-        if date is None:
-            self.date = datetime.datetime.now()
+        self.source = source
+        if participant is None:
+            self.participant = []
+        if object is None:
+            self.object = []
         self.type = type
-        self.cclass = cclass
-        self.title = title
-        self.status = status
-        self.confidentiality = confidentiality
-        self.subject = subject
-        self.author = author
-        self.custodian = custodian
-        self.event = event
-
-        if section is None:
-            self.section = []
-
-
+        self.subtype = subtype
+        self.action = action
+        self.dateTime = dateTime
+        self.outcome = outcome
+        self.outcomeDesc = outcomeDesc
 
 
 #####
@@ -428,7 +614,6 @@ class HumanName():
         else:
             self.given = given
 
-
         if prefix is None:
             self.prefix = []
 
@@ -452,7 +637,7 @@ class Accomodation():
 
 class Address():
 
-    def __init__(self, use=None, text=None, line=None, city=None, state=None, zip=None, country=None, period=None):
+    def __init__(self, use=None, text=None, line=None, city=None, state=None, zip=None, country=None, period=None, county=None):
         self.use = use
         self.text = text
         if line is None:
@@ -462,17 +647,16 @@ class Address():
         self.zip = zip
         self.country = country
         self.period = period
+        self.county = county
 
 
 class Schedule():
-
     def __init__(self, event=None, frequency=1):
         self.event = event
         self.frequency = frequency
 
 
 class Section():
-
     def __init__(self, title=None, code=None, subject=None, content=None):
         self.title = title
         self.code = code
@@ -480,9 +664,65 @@ class Section():
         self.content = content
 
 
+class Event():
+    def __init__(self, type=None, subtype=None, action=None, dateTime=None, outcome=None, outcomeDesc=None):
+        self.type = type
+        self.subtype = subtype
+        self.action = action
+        self.dateTime = dateTime
+        self.outcome = outcome
+        self.outcomeDesc = outcomeDesc
+
+
+class Participant():
+    def __init__(self, role=None, reference=None, userId=None, altId=None, name=None, requestor=False, media=None, network=None):
+        self.role = role
+        self.reference = reference
+        self.userId = userId
+        self.altId = altId
+        self.name = name
+        self.requestor = requestor
+        self.media = media
+        self.network = network
+
+
+class Object():
+    def __init__(self, identifier=None, reference=None, type=None, role=None, lifecycle=None,
+                 sensitivity=None, name=None, description=None, query=None, detail=None):
+        self.identifier = identifier
+        self.reference = reference
+        self.type = type
+        self.role = role
+        self.lifecycle = lifecycle
+        self.sensitivity = sensitivity
+        self.name = name
+        self.description = description
+        self.query = query
+        if detail is None:
+            self.detail = []
+
+
+class Source():
+    def __init__(self, site=None, identifier=None, type=None):
+        self.site = site
+        self.identifier = identifier
+        self.type = type
+
+
+class Network():
+    def __init__(self, identifier=None, type=None):
+        self.identifier = identifier
+        self.type = type
+
+
 def jdefault(o):
     if isinstance(o, datetime.datetime):
         return datetime.datetime.isoformat(o)
+    elif hasattr(o, 'hex'):
+        return o.hex
     else:
         if hasattr(o, '__dict__') and o is not None:
             return o.__dict__
+
+
+

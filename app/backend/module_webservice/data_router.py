@@ -25,8 +25,7 @@ import json
 from app.backend.module_rule_engine import order_object as OO
 import pickle
 import clientApp.api.api as api
-
-
+import app.utils.crypto.authorization_key as AK
 
 
 ARGS = argparse.ArgumentParser(description='Maven Client Receiver Configs.')
@@ -34,28 +33,6 @@ ARGS.add_argument(
     '--emr', action='store', dest='emr',
     default='Epic', help='EMR Name')
 args = ARGS.parse_args()
-
-
-class OutgoingMessageHandler(SP.StreamProcessor):
-
-    def __init__(self, configname):
-        SP.StreamProcessor.__init__(self, configname)
-        self.master_list = ['', '', '', '', '']
-        self.object_manager = []
-
-    @asyncio.coroutine
-    def read_object(self, obj, _):
-        unpickled_obj = pickle.loads(obj, encoding="ASCII", errors="strict")
-        self.write_object('$564.23'.encode(), writer_key=unpickled_obj.key)
-        #yield from self.route_object(obj)
-
-    @asyncio.coroutine
-    def route_object(self, obj):
-        message = obj
-        message_root = ET.fromstring(message)
-        emr_namespace = "urn:" + args.emr
-        if emr_namespace in message_root.tag:
-            self.write_object(obj)
 
 
 class IncomingMessageHandler(SP.StreamProcessor):
@@ -66,15 +43,27 @@ class IncomingMessageHandler(SP.StreamProcessor):
         self.object_manager = []
 
     @asyncio.coroutine
-    def read_object(self, obj, key):
-        yield from self.route_object(obj=obj, key=key)
+    def read_object(self, obj, key2):
+        obj_list = json.loads(obj.decode())
+        json_composition = obj_list[0]
+        key1 = obj_list[1]
+        if json_composition['type'] == "CostEvaluator":
+            composition = api.Composition().create_composition_from_json(json_composition)
+            composition.maven_route_key = [key1, key2]
+            self.write_object(composition, writer_key="CostEval")
 
+
+class OutgoingMessageHandler(SP.StreamProcessor):
+
+    def __init__(self, configname):
+        SP.StreamProcessor.__init__(self, configname)
 
     @asyncio.coroutine
-    def route_object(self, obj, key):
-        json_composition = json.loads(obj.decode())
-        if json_composition['type'] == "CostEvaluator":
-            self.write_object(obj, writer_key="CostEval")
+    def read_object(self, obj, _):
+        #json_composition = json.dumps(obj, default=api.jdefault, indent=4).encode()
+        obj.user = 'JHU1093124'
+        obj.userAuth = AK.authorization_key(obj.user, 44, 60*60)
+        self.write_object(pickle.dumps(obj), writer_key=obj.maven_route_key[1])
 
 
 def main(loop):
@@ -84,6 +73,36 @@ def main(loop):
 
 
     MavenConfig = {
+        incomingtomavenmessagehandler:
+        {
+            SP.CONFIG_READERTYPE: SP.CONFIGVALUE_ASYNCIOSERVERSOCKET,
+            SP.CONFIG_READERNAME: incomingtomavenmessagehandler+".Reader",
+            SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_THREADEDRABBIT,
+            SP.CONFIG_WRITERNAME: [incomingtomavenmessagehandler+".Writer", incomingtomavenmessagehandler+".Writer_CostEval"],
+            SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_IDENTITYPARSER,
+            SP.CONFIG_WRITERDYNAMICKEY:1,
+        },
+        incomingtomavenmessagehandler+".Reader":
+        {
+            SP.CONFIG_HOST:'127.0.0.1',
+            SP.CONFIG_PORT:8090
+        },
+
+        incomingtomavenmessagehandler+".Writer":
+        {
+            SP.CONFIG_HOST:'localhost',
+            SP.CONFIG_QUEUE:'incoming_cost_evaluator_work_queue',
+            SP.CONFIG_EXCHANGE:'maven_exchange',
+            SP.CONFIG_KEY:'incomingcost'
+        },
+        incomingtomavenmessagehandler+".Writer_CostEval":
+        {
+            SP.CONFIG_HOST:'localhost',
+            SP.CONFIG_QUEUE:'incoming_cost_evaluator_work_queue',
+            SP.CONFIG_EXCHANGE:'maven_exchange',
+            SP.CONFIG_KEY:'incomingcosteval',
+            SP.CONFIG_WRITERKEY:'CostEval'
+        },
         outgoingtohospitalsmessagehandler:
         {
             SP.CONFIG_READERTYPE: SP.CONFIGVALUE_THREADEDRABBIT,
@@ -107,41 +126,9 @@ def main(loop):
             SP.CONFIG_WRITERKEY:1
         },
 
-        incomingtomavenmessagehandler:
-        {
-            SP.CONFIG_READERTYPE: SP.CONFIGVALUE_ASYNCIOSERVERSOCKET,
-            SP.CONFIG_READERNAME: incomingtomavenmessagehandler+".Reader",
-            SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_THREADEDRABBIT,
-            SP.CONFIG_WRITERNAME: [incomingtomavenmessagehandler+".Writer", incomingtomavenmessagehandler+".Writer_CostEval"],
-            SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_IDENTITYPARSER,
-            SP.CONFIG_WRITERDYNAMICKEY:1,
-        },
-        incomingtomavenmessagehandler+".Reader":
-        {
-            SP.CONFIG_HOST:'127.0.0.1',
-            SP.CONFIG_PORT:8088
-        },
-
-        incomingtomavenmessagehandler+".Writer":
-        {
-            SP.CONFIG_HOST:'localhost',
-            SP.CONFIG_QUEUE:'incoming_cost_evaluator_work_queue',
-            SP.CONFIG_EXCHANGE:'maven_exchange',
-            SP.CONFIG_KEY:'incomingcost'
-        },
-        incomingtomavenmessagehandler+".Writer_CostEval":
-        {
-            SP.CONFIG_HOST:'localhost',
-            SP.CONFIG_QUEUE:'incoming_cost_evaluator_work_queue',
-            SP.CONFIG_EXCHANGE:'maven_exchange',
-            SP.CONFIG_KEY:'incomingcosteval',
-            SP.CONFIG_WRITERKEY:'CostEval'
-        },
     }
     MC.MavenConfig = MavenConfig
 
-
-    #loop = asyncio.get_event_loop()
     sp_consumer = IncomingMessageHandler(incomingtomavenmessagehandler)
     sp_producer = OutgoingMessageHandler(outgoingtohospitalsmessagehandler)
 

@@ -8,15 +8,8 @@ define([
 ], function (_, Backbone) {
 
     var OrderModel = Backbone.Model.extend({
-        urlRoot: '/order_details',
-        defaults: {
-            title : "Echocardiogram",
-            order: "Followup ECG",
-            cost: "$1200",
-            reason: "Mitral regurgitation",
-            evidence: "Don't test",
-            ecost: "$0"
-        }
+        //urlRoot: '/order_details'
+
     });
 
     return OrderModel;

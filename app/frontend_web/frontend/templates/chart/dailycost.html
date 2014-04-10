@@ -1,9 +1,71 @@
 <div class="panel panel-default">
     <div class="panel-body">
         <h3 class="panel-title">
-            Cost By Day
+            <% if(page == 'episode') { %>
+            Saving for this Encounter
+            <% } else { %>
+                Utilization
+            <% } %>
         </h3>
 
         <div id="daily_cost" class="chart-col-6"></div>
     </div>
 </div>
+
+<script>
+     var colorArray = ["#0188BB", "#4C2694", "#79B32D", "#FF8500", "#00587A" ]
+    //Palette URL: http://colorschemedesigner.com/#3q62mWSE5w0w0
+var chart = AmCharts.makeChart("daily_cost", {
+    "colors": colorArray,
+    "type": "serial",
+    "dataProvider": [
+            {
+                "order": "CT Head",
+                "cost": "807",
+                "saving": "0"
+            },
+            {
+                "order": "Cefixime",
+                "cost": "543",
+                "saving": "0"
+            },
+            {
+                "order": "Acetaminophen",
+                "cost": "4",
+                "saving": "0"
+            }
+            
+        ],
+    "valueAxes": [{
+        "unit": "$",
+        "unitPosition": "left",
+        "position": "left"
+        //"title": "Ptintial Saving"
+    }],
+    "startDuration": 1,
+    "graphs": [{
+        "balloonText": "Cost for [[category]]: <b>$[[value]]</b>",
+        "fillAlphas": 0.4,
+        "lineAlpha": 0.2,
+        "title": "cost",
+        "type": "column",
+        "valueField": "cost"
+    }, {
+        "balloonText": "Potential Saving for [[category]]: <b>$[[value]]</b>",
+         "fillColors": colorArray[2],
+        "fillAlphas": 0.9,
+        "lineAlpha": 0.2,
+        "title": "saving",
+        "type": "column",
+        "clustered":false,
+        "columnWidth":0.5,
+        "valueField": "saving"
+    }],
+    "plotAreaFillAlphas": 0.1,
+    "categoryField": "order",
+    "categoryAxis": {
+    "gridPosition": "start"
+    }
+});
+
+</script>

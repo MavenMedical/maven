@@ -1,11 +1,19 @@
-/**
- * Created by Asmaa Aljuhani on 3/11/14.
- */
+/***************************************************************************
+ * Copyright (c) 2014 - Maven Medical
+ * AUTHOR: 'Asmaa Aljuhani'
+ * DESCRIPTION: This Javascript file has the main router functions that calls
+ *               all other views.
+ * PREREQUISITE: libraries should be predefine in main.js
+ * LAST MODIFIED FOR JIRA ISSUE: MAV-98
+ **************************************************************************/
 
 define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone,
+
+    'currentContext',
+    'eventhub',
 
     //views
     'views/sidemenu',
@@ -14,62 +22,103 @@ define([
     'views/home',
     'views/patient',
     'views/episode',
-    'views/alerts'
-], function ($, _, Backbone, SideMenu, TopNav, HomeView, PatientView, EpisodeView, AlertsView) {
+    'views/alerts',
+    'views/widget/evidence'
+], function ($, _, Backbone, currentContext, eventHub,  SideMenu, TopNav, HomeView, PatientView, EpisodeView, AlertsView, Evidence) {
+
+    var CheckLogin = function() {
+	if (!currentContext.get('user') || !currentContext.get('userAuth')) {
+	    currentContext.setUser('JHU1093124', 'notarealpassword', Backbone.history.fragment);  // hack for now
+	    return false;
+	}
+	return true;
+    };
+
+
     var AppRouter = Backbone.Router.extend({
         routes: {
             "": 'showHome',
-            "patient/:id": 'showPatient',
+            "patient": 'showPatient',
             "alerts": 'showAlerts',
             "episode": 'showEpisode',
+            "episode/:id/patient/:id(/login/:user/:userAuth)": 'episodeIDs',
+            "episode/:id/patient/:id/evi/:id(/login/:user/:userAuth)": 'showEvidence',
 
             //default
             '*action': 'defaultAction'
+        },
+        showHome: function () {
+		//alert('showing home');
+		if (CheckLogin()) {
+		    currentContext.set({page:'home'});
+		    var homeView = new HomeView
+		}
+        },
+        showPatient: function () {
+		if (CheckLogin()) {
+		    console.log("show pat");
+		    //update current context page
+		    currentContext.set({page:'patient'});
+		    
+		    var patientView = new PatientView;
+		    patientView.render();
+		}
+        },
+        showAlerts: function () {
+		if (CheckLogin()) {
+		    console.log("show alert");
+		    var alertsView = new AlertsView;
+		    alertsView.render();
+		};
+        },
+        episodeIDs: function(enc, pat, user, userAuth){
+             console.log("epi id");
+	     currentContext.set({encounter:enc,patients:pat});
+	     if(user && user != currentContext.get('user')) {
+		 currentContext.setUser(user,userAuth, Backbone.history.fragment);
+	     } else {
+		 this.showEpisode()
+	     }
+        },
+        showEpisode: function () {
+		if(CheckLogin()) {
+		    console.log(" Episode func");
+		    //update current context page
+		    currentContext.set({page:'episode'});
+		    var episodeView = new EpisodeView;
+		};
+
+        },
+        showEvidence: function (enc, pat, evi, user, userAuth) {
+            //update current context page
+		currentContext.set({alert:evi,encounter:enc,patients:pat});
+		if(user && user != currentContext.get('user')) {
+		currentContext.setUser(user,userAuth, Backbone.history.fragment);
+	    } else {
+		if(CheckLogin()) {
+		    var episodeView = new EpisodeView;
+		    
+		    var evidence = new Evidence;
+		    $('#evidence-' + currentContext.get('alert')).modal();
+		}
+	    }
+        },
+        defaultAction: function (action) {
+            console.log('No route:', action);
+        },
+        initialize: function () {
+            //ajaxPrefilter
+            $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
+                options.url = 'services' + options.url;
+            });
+            // render side menu and topnav for all pages
+            var sidemenu = new SideMenu;
+            sidemenu.render();
+            var topnav = new TopNav;
+            topnav.render();
+
         }
     });
 
-
-    var initialize = function () {
-        //ajaxPrefilter
-        $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
-            options.url = 'services' + options.url;
-        });
-
-
-        var app_router = new AppRouter;
-
-        // render side menu and topnav for all pages
-        var sidemenu = new SideMenu;
-        sidemenu.render();
-        var topnav = new TopNav;
-        topnav.render();
-
-        app_router.on('route:showHome', function () {
-            // Call render on the module we loaded in via the dependency array
-            var homeView = new HomeView;
-            homeView.render();
-        });
-        app_router.on('route:showPatient', function (patid) {
-            var patientView = new PatientView;
-            patientView.render({id:patid});
-
-        });
-        app_router.on('route:showAlerts', function () {
-            var alertsView = new AlertsView;
-            alertsView.render();
-        });
-        app_router.on('route:showEpisode', function () {
-            var episodeView = new EpisodeView;
-            episodeView.render();
-        });
-        app_router.on('defaultAction', function (actions) {
-            console.log('No route:', actions);
-        });
-
-        Backbone.history.start();
-    };
-
-    return {
-        initialize: initialize
-    };
+    return new AppRouter;
 });

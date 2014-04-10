@@ -7,15 +7,22 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
+    'currentContext',
     'text!templates/chart/dailycost.html'
-], function ($, _, Backbone, dailycostTemplate) {
+], function ($, _, Backbone, currentContext, dailycostTemplate) {
 
     var DailyCost = Backbone.View.extend({
-        el: $('.dailycost'),
+        el: '.dailycost',
+        template: _.template(dailycostTemplate),
+        initialize:function(){
+            _.bindAll(this,'render');
+            this.render();
+        },
         render: function () {
-            var template = _.template(dailycostTemplate, {});
-            $('.dailycost').append(template);
+            this.$el.html(this.template({ page: currentContext.get('page')}));
+            return this;
         }
     });
     return DailyCost;
 });
+//Chart codes are in the template file dailycost.html

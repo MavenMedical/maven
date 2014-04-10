@@ -13,6 +13,9 @@
 
 MavenConfig={}
 
+dbhost = 'localhost'
+http_addr = 'http://localhost'
+
 class InvalidConfig(Exception):
     pass
 

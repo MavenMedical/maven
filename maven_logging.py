@@ -10,7 +10,7 @@
 #  Last Modified:
 ##############################################################################
 
-import inspect
+import traceback
 import time
 
 def _not_implemented(x):
@@ -18,17 +18,13 @@ def _not_implemented(x):
 
 
 def stdout_log_with_time(x):
-    curframe = inspect.currentframe()
-    calframe = inspect.getouterframes(curframe, 2)
-    called_as = calframe[1][4][1]
-    called_as = called_as[:(called_as.index('('))]
+    called_as = traceback.extract_stack()[-2]
+    called_as = str((called_as[0].split('/')[-1], called_as[1], called_as[2]))
     print("%s %f: %s" % (called_as, time.time(),x))
 
 def stdout_log(x):
-    curframe = inspect.currentframe()
-    calframe = inspect.getouterframes(curframe, 2)
-    called_as = calframe[1][4][1]
-    called_as = called_as[:(called_as.index('('))]
+    called_as = traceback.extract_stack()[-2]
+    called_as = str((called_as[0].split('/')[-1], called_as[1], called_as[2]))
     print("%s: %s" % (called_as, x))
 
 
@@ -44,10 +40,8 @@ _results = ""
 
 def results_var_log(x):
     global _results
-    curframe = inspect.currentframe()
-    calframe = inspect.getouterframes(curframe, 2)
-    called_as = calframe[1][4][1]
-    called_as = called_as[:(called_as.index('('))]
+    called_as = traceback.extract_stack()[-2]
+    called_as = str((called_as[0].split('/')[-1], called_as[1], called_as[2]))
     _results += "%s: %s\n" % (called_as, x)
 
 

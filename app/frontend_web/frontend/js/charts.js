@@ -1,5 +1,7 @@
 /**
  * Created by devel on 2/25/14.
+ *
+ * This is not in use
  */
 
 
@@ -9,7 +11,7 @@ var colorArray = ["#0188BB", "#4C2694", "#79B32D", "#FF8500", "#00587A" ]
 
 //public variables and data arrays
 var pateint = {
-    "name": "John Smith",
+    "name": "John Huxtable",
     "sex": "Male",
     "DOB": "08/05/1987",
     "problemlist": ["Asthma without status asthmaticus", "Unspecified asthma", "Bronchitis, not specified as acute or chronic",
@@ -211,7 +213,6 @@ function generateChartData() {
             encs_cost.push({
                 date: newDate,
                 encounter_cost: count,
-                subdata: pat_cost_bd,
                 color: col
             });
         }
@@ -323,7 +324,7 @@ function draw_stock_chart(div, data, cat, value, subdiv, subcat, subval) {
 
         "dataSets": [
             {
-                "title": "Jordon Severt",
+                "title": "Batman",
                 "fieldMappings": [
                     {
                         "fromField": value,

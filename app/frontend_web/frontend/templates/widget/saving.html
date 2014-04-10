@@ -1,9 +1,12 @@
 <div class="panel panel-default">
     <div class="panel-body">
         <h3 class="panel-title">
-            Savings For 2013
+            <% if(page == 'episode') { %>
+            You Saved
+            <% } else { %>
+                Savings
+            <% } %>
         </h3>
-
-        <div class="col-sm-6 number"><b>$60,700</b></div>
+        <div class="col-sm-6 number"><b>$<%= utilization.get("savings") %></b></div>
     </div>
 </div>

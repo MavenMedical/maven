@@ -245,12 +245,12 @@ class StreamProcessor():
         if self.has_dynamic_writer:
             global _global_writers
             try:
-                ML.DEBUG("removing "+str(key)+" from "+str(_global_writers))
+                #ML.DEBUG("removing "+str(key)+" from "+str(_global_writers))
                 _global_writers.pop(key).close()
             except KeyError:
                 pass
-        else:
-            ML.DEBUG('no dynamic')
+            #else:
+            #ML.DEBUG('no dynamic')
 
     def close(self):
         """ closes the stream processor's reader and writer
@@ -457,7 +457,7 @@ class MappingParser(asyncio.Protocol):
         self.loop.call_soon_threadsafe(MappingParser.create_task,coro,self.loop)
 
     def connection_lost(self, _):
-        ML.DEBUG("connection lost")
+        #ML.DEBUG("connection lost")
         self.unregister_fn(self.registered_key)
 
     def create_task(coro, loop):
@@ -576,10 +576,10 @@ class _SocketReplyWriter(_BaseWriter):
         #self.last_writer = None
         global _global_writers
         _global_writers[self.writer_key] = self
-        ML.DEBUG('reply writer created: ' + str(self.writer_key))
+        #ML.DEBUG('reply writer created: ' + str(self.writer_key))
 
     def schedule(self, loop):
-        ML.DEBUG('scheduled reply writer')
+        #ML.DEBUG('scheduled reply writer')
         pass
 
     def write_object(self, obj):
@@ -593,7 +593,7 @@ class _SocketReplyWriter(_BaseWriter):
             self.transport.write(obj)
         
     def close(self):
-        ML.DEBUG('closing writer')
+        #ML.DEBUG('closing writer')
         if self.transport:
             self.transport.write_eof()
             self.transport.close()
@@ -648,7 +648,7 @@ class _RabbitWriter(_BaseWriter):
 
     def write_object(self, obj):
         #ML.DEBUG("rabbit writing obj: "+str(obj))
-        message = amqp.Message(obj)
+        message = amqp.Message(pickle.dumps(obj))
         self.chan.basic_publish(message, exchange=self.exchange, 
                                 routing_key=self.incoming_key)
 

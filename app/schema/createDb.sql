@@ -10,7 +10,19 @@ CREATE DATABASE maven
 
 \c maven
 
-create language plpgsql;
+--
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner:
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner:
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
 
 create schema terminology authorization maven;
 -- Table: terminology.codemap
@@ -153,65 +165,45 @@ begin
 end;
 $$;
 
--- Table: customer
+-- Table: adt
 
--- DROP TABLE customer;
+-- DROP TABLE: adt
 
-CREATE TABLE customer
+CREATE TABLE adt
 (
-  customer_id numeric(18,0) PRIMARY KEY,
-  name character(255) NOT NULL,
-  abbr character varying(22),
-  license_type numeric(9,0),
-  license_exp date
-);
-ALTER TABLE public.customer OWNER TO maven;
-
--- Index: ixcustomer
-
--- DROP INDEX ixcustomer;
-
-CREATE INDEX ixcustomer
-  ON public.customer
-  USING btree
-  (customer_id);
-
-
--- Table: costmap
-
--- DROP TABLE costmap;
-
-CREATE TABLE costmap
-(
-  costmap_id serial PRIMARY KEY,
-  dep_id numeric(18,0),
+  event_id character varying(100),
   customer_id numeric(18,0),
-  billing_code character varying(25),
-  code_type character varying(25),
-  cost_amt numeric(12,2),
-  cost_type character varying(25)
+  pat_id character varying(100),
+  encounter_id character varying(100),
+  prov_id character varying(18),
+  event_type character varying(25),
+  event_time timestamp,
+  dep_id numeric(18,0),
+  room_id character varying(25)
 )
 with (
-OIDS=FALSE
+ OIDS=FALSE
 );
 
--- Index: ixcostmap
+-- Index: ixadtevent
 
--- DROP INDEX: ixcostmap
+-- DROP INDEX: ixadtevent
 
-CREATE INDEX ixcostmap
-  on public.costmap
+CREATE INDEX ixadtevent
+  on public.adt
   USING btree
-  (costmap_id);
+  (event_id, customer_id);
 
--- Index: ixcostmapbillcode
+-- Index: ixadtpatient
 
--- DROP INDEX: ixcostmapbillcode
+-- DROP INDEX: ixadtpatient
 
-CREATE INDEX ixcostmapbillcode
-  on public.costmap
+CREATE INDEX ixadtpatient
+  on public.adt
   USING btree
-  (billing_code, customer_id);
+  (pat_id, customer_id);
+
+ALTER TABLE public.adt OWNER TO maven;
 
 
 CREATE TABLE alerts
@@ -238,10 +230,29 @@ WITH (
 ALTER TABLE public.alerts
   OWNER TO maven;
 
+--
+-- Name: alerts_alert_id_seq; Type: SEQUENCE; Schema: public; Owner: maven
+--
+
+CREATE SEQUENCE alerts_alert_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.alerts_alert_id_seq OWNER TO maven;
+
+--
+-- Name: alerts_alert_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: maven
+--
+
+ALTER SEQUENCE alerts_alert_id_seq OWNED BY alerts.alert_id;
+
 -- Index: public.ixalert
 
 -- DROP INDEX ixalert;
-
 CREATE INDEX ixalert
   ON public.alerts
   USING btree
@@ -251,7 +262,6 @@ CREATE INDEX ixalert
 -- Index: public.ixdepartment
 
 -- DROP INDEX ixdepartment;
-
 CREATE INDEX ixdepartment
   ON public.alerts
   USING btree
@@ -260,7 +270,6 @@ CREATE INDEX ixdepartment
 -- Index: public.ixencounter_date
 
 -- DROP INDEX public.ixencounter_date;
-
 CREATE INDEX ixencounter_date
   ON public.alerts
   USING btree
@@ -269,7 +278,6 @@ CREATE INDEX ixencounter_date
 -- Index: "logging".ixpatient
 
 -- DROP INDEX ixpatient;
-
 CREATE INDEX ixpatient
   ON public.alerts
   USING btree
@@ -278,11 +286,134 @@ CREATE INDEX ixpatient
 -- Index: "logging".ixuser
 
 -- DROP INDEX ixuser;
-
 CREATE INDEX ixprovider
-  ON public.alertsn
+  ON public.alerts
   USING btree
   (prov_id, customer_id);
+
+
+-- Table: composition
+
+-- DROP TABLE composition;
+
+CREATE TABLE composition
+(
+  comp_id serial NOT NULL,
+  patient_id character varying(100),
+  customer_id numeric(18,0),
+  comp_body json,
+  encounter_id character varying(100),
+  CONSTRAINT composition_pkey PRIMARY KEY (comp_id)
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE public.composition
+  OWNER TO maven;
+
+--
+-- Name: composition_comp_id_seq; Type: SEQUENCE; Schema: public; Owner: maven
+--
+
+CREATE SEQUENCE composition_comp_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.composition_comp_id_seq OWNER TO maven;
+
+--
+-- Name: composition_comp_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: maven
+--
+
+ALTER SEQUENCE composition_comp_id_seq OWNED BY composition.comp_id;
+
+
+-- Table: costmap
+
+-- DROP TABLE costmap;
+
+CREATE TABLE costmap
+(
+  costmap_id serial PRIMARY KEY,
+  dep_id numeric(18,0),
+  customer_id numeric(18,0),
+  billing_code character varying(25),
+  code_type character varying(25),
+  cost_amt numeric(12,2),
+  cost_type character varying(25)
+)
+with (
+OIDS=FALSE
+);
+ALTER TABLE public.costmap OWNER TO maven;
+
+
+--
+-- Name: costmap_costmap_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE costmap_costmap_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.costmap_costmap_id_seq OWNER TO maven;
+
+--
+-- Name: costmap_costmap_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE costmap_costmap_id_seq OWNED BY costmap.costmap_id;
+
+-- Index: ixcostmap
+
+-- DROP INDEX: ixcostmap
+
+CREATE INDEX ixcostmap
+  on public.costmap
+  USING btree
+  (costmap_id);
+
+-- Index: ixcostmapbillcode
+
+-- DROP INDEX: ixcostmapbillcode
+
+CREATE INDEX ixcostmapbillcode
+  on public.costmap
+  USING btree
+  (billing_code, customer_id);
+
+
+
+-- Table: customer
+
+-- DROP TABLE customer;
+
+CREATE TABLE customer
+(
+  customer_id numeric(18,0) PRIMARY KEY,
+  name character(255) NOT NULL,
+  abbr character varying(22),
+  license_type numeric(9,0),
+  license_exp date
+);
+ALTER TABLE public.customer OWNER TO maven;
+
+-- Index: ixcustomer
+
+-- DROP INDEX ixcustomer;
+
+CREATE INDEX ixcustomer
+  ON public.customer
+  USING btree
+  (customer_id);
 
 
 
@@ -293,10 +424,10 @@ CREATE INDEX ixprovider
 CREATE TABLE department
 (
   department_id numeric(18,0) NOT NULL,
+  customer_id numeric(18,0),
   dep_name character varying(100),
   specialty character varying(50),
-  location character varying(100),
-  customer_id numeric(18,0)
+  location character varying(100)
 
 )
 WITH (
@@ -321,13 +452,14 @@ CREATE INDEX ixdeppk
 CREATE TABLE diagnosis
 (
   dx_id numeric(18,0),
+  customer_id numeric(18,0),
   current_icd9_list character varying(254),
   current_icd10_list character varying(254),
   dx_name character varying(200),
   dx_imo_id character varying(254),
   imo_term_id character varying(30),
-  concept_id character varying(254),
-  customer_id numeric(18,0)
+  concept_id character varying(254)
+
 )
 WITH (
   OIDS=FALSE
@@ -352,6 +484,7 @@ CREATE INDEX ixdiagnosispk
 CREATE TABLE encounter
 (
   csn character varying(100) NOT NULL,
+  customer_id numeric(18,0),
   pat_id character varying(100),
   enc_type character varying(254),
   contact_date date,
@@ -359,8 +492,8 @@ CREATE TABLE encounter
   bill_prov_id character varying(18),
   department_id numeric(18,0),
   hosp_admsn_time date,
-  hosp_disch_time date,
-  customer_id numeric(18,0)
+  hosp_disch_time date
+
 )
 WITH (
   OIDS=FALSE
@@ -401,19 +534,43 @@ CREATE INDEX ixencounterbillprovid
 
 CREATE TABLE encounterdx
 (
+  encdx serial PRIMARY KEY,
   pat_id character varying(100),
+  customer_id numeric(18,0),
   csn character varying(100),
-  dx_id numeric(18,0),
+  dx_id character varying(36),
   annotation character varying(200),
   primary_dx_yn character varying(1),
-  dx_chronic_yn character varying(1),
-  customer_id numeric(18,0)
+  dx_chronic_yn character varying(1)
+
 )
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE public.encounterdx
+ALTER TABLE encounterdx
   OWNER TO maven;
+
+
+--
+-- Name: encounterdx_encdx_seq; Type: SEQUENCE; Schema: public; Owner: maven
+--
+
+CREATE SEQUENCE encounterdx_encdx_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.encounterdx_encdx_seq OWNER TO maven;
+
+--
+-- Name: encounterdx_encdx_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: maven
+--
+
+ALTER SEQUENCE encounterdx_encdx_seq OWNED BY encounterdx.encdx;
+
 
 -- Index: ixencounterdxcsndx
 
@@ -422,7 +579,7 @@ ALTER TABLE public.encounterdx
 CREATE INDEX ixencounterdxcsndx
   ON public.encounterdx
   USING btree
-  (csn, dx_id, customer_id);
+  (csn, customer_id);
 
 -- Table: labresult
 
@@ -479,6 +636,42 @@ CREATE INDEX ixlabpatid
   ON public.labresult
   USING btree
   (pat_id, customer_id);
+
+
+-- Table: mavenorder
+
+-- DROP TABLE mavenorder;
+
+CREATE TABLE mavenorder
+(
+  orderid serial NOT NULL,
+  pat_id character varying(100),
+  customer_id numeric(18,0),
+  encounter_id character varying(100),
+  order_name character varying(255),
+  order_type character varying(36),
+  proc_code character varying(36),
+  code_type character varying(36),
+  order_cost numeric(13,2),
+  datetime timestamp without time zone,
+  active boolean,
+  CONSTRAINT mavenorder_pkey PRIMARY KEY (orderid)
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE mavenorder
+  OWNER TO maven;
+
+-- Index: ixmavenorder
+
+-- DROP INDEX ixmavenorder;
+
+CREATE INDEX ixmavenorder
+  ON public.mavenorder
+  USING btree
+  (encounter_id, customer_id);
+
 
 -- Table: medicalprocedure
 
@@ -606,6 +799,7 @@ CREATE TABLE patient
   pat_id character varying(100) NOT NULL,
   customer_id numeric(18,0),
   birth_month character varying(6),
+  birthdate date,
   sex character varying(254),
   mrn character varying(100),
   patname character varying(100),
@@ -736,6 +930,55 @@ CREATE INDEX ixprovpk
   (prov_id , customer_id);
 
 
+-- Table: sleuth_evidence
+
+-- DROP TABLE: sleuth_evidence
+
+
+CREATE TABLE sleuth_evidence
+(
+  evidence_id serial,
+  customer_id numeric(18,0),
+  sleuth_rule integer,
+  short_name character varying(25),
+  name character varying(100),
+  description character varying,
+  source character varying(100),
+  source_url character varying(255)
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE public.sleuth_evidence
+  OWNER TO maven;
+
+
+-- Table: sleuth_rule
+
+-- DROP TABLE sleuth_rule
+
+CREATE TABLE sleuth_rule
+(
+  rule_id serial,
+  customer_id numeric(18,0),
+  cpt_trigger character varying(100),
+  client_order_code character varying(100),
+  dep_id numeric(18,0),
+  name character varying(100),
+  description character varying(255),
+  rule_details json
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE public.sleuth_rule
+  OWNER TO maven;
+
+-- Index: idxsleuthrule
+
+-- DROP INDEX: ixsleuthrule
+
+
 -- Table: ucl
 
 -- DROP TABLE ucl;
@@ -801,44 +1044,6 @@ CREATE INDEX ixmedication
   (med_id, customer_id);
 
 
--- Table: adt
-
--- DROP TABLE: adt
-
-CREATE TABLE adt
-(
-  event_id character varying(100),
-  customer_id numeric(18,0),
-  pat_id character varying(100),
-  encounter_id character varying(100),
-  prov_id character varying(18),
-  event_type character varying(25),
-  event_time timestamp,
-  dep_id numeric(18,0),
-  room_id character varying(25)
-)
-with (
- OIDS=FALSE
-);
-
--- Index: ixadtevent
-
--- DROP INDEX: ixadtevent
-
-CREATE INDEX ixadtevent
-  on public.adt
-  USING btree
-  (event_id, customer_id);
-
--- Index: ixadtpatient
-
--- DROP INDEX: ixadtpatient
-
-CREATE INDEX ixadtpatient
-  on public.adt
-  USING btree
-  (pat_id, customer_id);
-
   
 create schema ruleTest authorization maven;
 -- Table: ruleTest.rules
@@ -861,6 +1066,147 @@ CREATE TABLE ruleTest.rules
 );
 ALTER TABLE ruleTest.rules
   OWNER TO maven;
+
+CREATE OR REPLACE FUNCTION upsert_patient(pat_id1 character varying(100), customer_id1 numeric(18,0),
+  birth_month1 character varying(6), sex1 character varying(254),
+  mrn1 character varying(100), patname1 character varying(100),
+  cur_pcp_prov_id1 character varying(18), birthdate1 date)
+  RETURNS VOID AS
+$$
+BEGIN
+  LOOP
+    UPDATE patient SET birth_month = birth_month1, sex = sex1, mrn = mrn1,
+      patname = patname1, cur_pcp_prov_id = cur_pcp_prov_id1, birthdate = birthdate1 WHERE pat_id = pat_id1 AND customer_id = customer_id1;
+    IF found THEN
+      RETURN;
+    END IF;
+    BEGIN
+      INSERT INTO patient(pat_id, customer_id, birth_month, sex, mrn, patname, cur_pcp_prov_id, birthdate)
+        VALUES (pat_id1, customer_id1, birth_month1, sex1, mrn1, patname1, cur_pcp_prov_id1, birthdate1);
+      RETURN;
+    EXCEPTION WHEN unique_violation THEN
+    END;
+  END LOOP;
+END;
+$$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION upsert_patient(character varying(100), numeric(18,0), character varying(6),
+character varying(254), character varying(100), character varying(100), character varying(18), date)
+  OWNER TO maven;
+
+CREATE OR REPLACE FUNCTION upsert_enc_order(pat_id1 character varying(100),
+  customer_id1 numeric(18,0),
+  encounter_id1 character varying(100),
+  order_name1 character varying(255),
+  order_type1 character varying(36),
+  proc_code1 character varying(36),
+  code_type1 character varying(36),
+  order_cost1 numeric(13,2),
+  datetime1 timestamp without time zone,
+  active1 boolean)
+  RETURNS VOID AS
+$$
+BEGIN
+  LOOP
+    UPDATE mavenorder SET pat_id =pat_id1,
+    customer_id = customer_id1,
+    encounter_id = encounter_id1,
+    order_name = order_name1,
+    order_type = order_type1,
+    proc_code = proc_code1,
+    code_type = code_type1,
+    order_cost = order_cost1,
+    datetime = datetime1,
+    active = active1
+    WHERE encounter_id = encounter_id1 and customer_id = customer_id1 and pat_id = pat_id1 and proc_code = proc_code1;
+    IF found THEN
+      RETURN;
+    END IF;
+    BEGIN
+      INSERT INTO mavenorder(pat_id, customer_id, encouter_id, order_name, order_type, proc_code, code_type, order_cost, datetime, active)
+        VALUES (pat_id1, customer_id1, encouter_id1, order_name1, order_type1, proc_code1, code_type1, order_cost1, datetime1, active1);
+      RETURN;
+    EXCEPTION WHEN unique_violation THEN
+    END;
+  END LOOP;
+END;
+$$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION upsert_enc_order(pat_id character varying(100),
+  customer_id numeric(18,0),
+  encounter_id character varying(100),
+  order_name character varying(255),
+  order_type character varying(36),
+  proc_code character varying(36),
+  code_type character varying(36),
+  order_cost numeric(13,2),
+  datetime timestamp without time zone,
+  active boolean)
+  OWNER TO maven;
+
+
+CREATE OR REPLACE FUNCTION upsert_encounter(csn1 character varying(100), pat_id1 character varying(100),
+  enc_type1 character varying(254), contact_date1 date,
+  visit_prov_id1 character varying(18), bill_prov_id1 character varying(18), department_id1 numeric(18,0),
+  hosp_admsn_time1 date, hosp_disch_time1 date, customer_id1 numeric(18,0))
+  RETURNS VOID AS
+$$
+BEGIN
+  LOOP
+    UPDATE encounter SET pat_id = pat_id1, enc_type = enc_type1, contact_date = contact_date1,
+      visit_prov_id = visit_prov_id1, bill_prov_id = bill_prov_id1, department_id = department_id1,
+      hosp_admsn_time = hosp_admsn_time1, hosp_disch_time = hosp_disch_time1 WHERE csn = csn1 AND customer_id = customer_id1;
+    IF found THEN
+      RETURN;
+    END IF;
+    BEGIN
+      INSERT INTO encounter(csn, pat_id, enc_type, contact_date, visit_prov_id, bill_prov_id, department_id, hosp_admsn_time, hosp_disch_time, customer_id)
+        VALUES (csn1, pat_id1, enc_type1, contact_date1, visit_prov_id1, bill_prov_id1, department_id1, hosp_admsn_time1, hosp_disch_time1, customer_id1);
+      RETURN;
+    EXCEPTION WHEN unique_violation THEN
+    END;
+  END LOOP;
+END;
+$$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION upsert_encounter(character varying(100), character varying(100), character varying(254),
+date, character varying(18), character varying(18), numeric(18,0), date, date, numeric(18,0))
+  OWNER TO maven;
+
+CREATE OR REPLACE FUNCTION upsert_encounterdx(pat_id1 character varying(100),
+  csn1 character varying(100),
+  dx_id1 character varying(36),
+  annotation1 character varying(200),
+  primary_dx_yn1 character varying(1),
+  dx_chronic_yn1 character varying(1),
+  customer_id1 numeric(18,0))
+  RETURNS VOID AS
+$$
+BEGIN
+  LOOP
+    UPDATE encounterdx SET pat_id=pat_id1, csn=csn1, annotation=annotation1, primary_dx_yn=primary_dx_yn1, dx_chronic_yn=dx_chronic_yn1,
+       customer_id=customer_id1 WHERE csn = csn1 AND customer_id = customer_id1 AND dx_id=dx_id1;
+    IF found THEN
+      RETURN;
+    END IF;
+    BEGIN
+      INSERT INTO encounterdx(pat_id, csn, dx_id, annotation, primary_dx_yn, dx_chronic_yn,
+            customer_id)
+        VALUES (pat_id1, csn1, dx_id1, annotation1, primary_dx_yn1, dx_chronic_yn1, customer_id1);
+      RETURN;
+    EXCEPTION WHEN unique_violation THEN
+    END;
+  END LOOP;
+END;
+$$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION upsert_encounterdx(character varying(100), character varying(100), character varying(36), character varying(200), character varying(1), character varying(1), numeric(18,0))
+  OWNER TO maven;
+
 
 INSERT INTO ruleTest.rules VALUES ('Test rule name','This is the test rule description','proc',12345,0,200,'12345678,9012345,67890123,1222222,56789876','90324023984,43987523,309753492785,53425243235','These are the details for the test rule','test only in department','test not in department'); 
 INSERT INTO ruleTest.rules VALUES ('Test rule name 1','This is the test rule description 1','proc',12345,0,200,'22345678,0012345,77890123,2222222,66789876','00324023984,33987523,009753492785,33425243235','These are the details for the test rule1','test only in department1','test not in department1');

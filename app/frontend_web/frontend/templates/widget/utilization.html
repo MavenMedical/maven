@@ -2,11 +2,15 @@
 
     <div class="panel-body">
         <h3 class="panel-title">
-            Historical Utilization
+           <% if(page == 'episode') { %>
+            Utilization for this Encounter
+            <% } else { %>
+                Utilization
+            <% } %>
         </h3>
 
         <div class="row">
-            <div class="col-sm-6 number"><b>$95,100</b></div>
+            <div class="col-sm-6 number"><b>$<%= utilization.get("spending") %></b></div>
         </div>
     </div>
 </div>

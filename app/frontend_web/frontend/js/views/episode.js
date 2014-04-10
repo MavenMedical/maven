@@ -1,6 +1,11 @@
-/**
- * Created by Asmaa Aljuhani on 3/11/14.
- */
+/***************************************************************************
+ * Copyright (c) 2014 - Maven Medical
+ * AUTHOR: 'Asmaa Aljuhani'
+ * DESCRIPTION: This is the Episode view were all widgets that are needed to
+ *              be in the episode page are rendered here.
+ * PREREQUISITE: libraries should be predefine in main.js
+ * LAST MODIFIED FOR JIRA ISSUE: MAV-98
+ **************************************************************************/
 
 define([
     'jquery',     // lib/jquery/jquery
@@ -15,41 +20,39 @@ define([
 
     'views/chart/dailycost',
     'views/chart/costbd',
+    'views/widget/alert',
 
 
     // Using the Require.js text! plugin, we are loaded raw text
     // which will be used as our views primary template
     'text!templates/episode.html'
-], function ($, _, Backbone, PatInfo, Utilization, Saving, Orderable, DailyCost, CostBD, episodeTemplate) {
+], function ($, _, Backbone, PatInfo, Utilization, Saving, Orderable, DailyCost, CostBD, Alert, episodeTemplate) {
 
     var EpisodeView = Backbone.View.extend({
-        el: $('.page'),
+        el: '.page',
+        template: _.template(episodeTemplate),
+        initialize: function(){
+            _.bindAll(this, 'render');
+            this.render();
+        },
         render: function () {
             $('.nav li').removeClass('active');
             $('.nav li a[href="' + window.location.hash + '"]').parent().addClass('active');
 
-            var template = _.template(episodeTemplate, {});
-            this.$el.html(template);
+            this.$el.html(this.template);
+
+            console.log('test');
 
             //widgets
-            var patinfo = new PatInfo;
-            patinfo.render();
+            this.patinfo = new PatInfo;
+            this.util = new Utilization;
+            this.saving = new Saving;
+            this.orderable = new Orderable;
+            this.dailycost = new DailyCost;
+            this.costbd = new CostBD;
+            this.alert = new Alert;
 
-            var util = new Utilization;
-            util.render();
-
-            var saving = new Saving;
-            saving.render();
-
-            var orderable = new Orderable;
-            orderable.render();
-
-            var dailycost = new DailyCost;
-            dailycost.render();
-
-            var costbd = new CostBD;
-            costbd.render();
-
+            return this;
         }
     });
 

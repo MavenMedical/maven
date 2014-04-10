@@ -17,60 +17,56 @@ __author__='Yuki Uchino'
 #*************************************************************************
 
 import app.backend.module_rule_engine.base_evaluator as BE
-#from xml.etree import ElementTree as ET
-#from clientApp.api import cliPatient as PT
 import app.utils.streaming.stream_processor as SP
 from app.utils.database.database import AsyncConnectionPool,SingleThreadedConnection, MappingUtilites
+from app.utils.database.fhir_database import PostgresFHIR
 import maven_config as MC
 import asyncio
-import json
 import pickle
-
-
+import clientApp.api.api as api
+import maven_logging as ML
 
 
 class CostEvaluator(SP.StreamProcessor):
 
     def __init__(self, configname):
         SP.StreamProcessor.__init__(self, configname)
+        self.conn = SingleThreadedConnection('CostEvalConnection')
+        self.PF = PostgresFHIR()
 
 
     @asyncio.coroutine
     def read_object(self, obj, _):
-        composition = json.loads(obj.decode())
-        ord_id_list = []
-        for sec in composition['section']:
-            if sec['title'] == "Encounter Orders":
-                for ord in sec['content']:
-                    for id in ord['identifier']:
-                        if id['label'] == "CPT":
-                            ord_id_list.append(id.value)
-                yield from self.evaluate_orders(ord_id_list, composition)
-        #self.write_object(obj, writer_key='aggregate')
-        #self.write_object(obj, writer_key='logging')
-        print("h")
+        composition = pickle.loads(obj)
+        self.evaluate_orders(composition)
+        self.PF.write_composition_to_db(composition, self.conn)
+        self.write_object(composition, writer_key='aggregate')
 
-    @asyncio.coroutine
-    def evaluate_orders(self, ord_id_list, composition):
-        conn = AsyncConnectionPool('test conn pool', self.loop)
-        orders_cost_summary = []
+    def evaluate_orders(self, composition):
+        """
+        Takes a FHIR Composition object, iterates through the Orders found in the "Encounter Orders"
+        Composition.section object, checks the costmap table for the cost-look-up, and then adds a
+        NEW section to Composition.section labeled "Encounter Cost Breakdown"
 
-        for sec in composition['section']:
-            if sec['title'] == "Encounter Orders":
-                total_cost = 0.00
-                for order in sec['content']:
-                    cur = yield from conn.execute_single("select costmap.cost_amt, costmap.billing_code from costmap")
-                    for result in cur:
-                        order['totalCost'] = float(result[0])
+        :param composition: FHIR Composition object created using Maven's FHIR API
+        """
+        encounter_cost_breakdown = []
+        total_cost = 0.00
 
-                        for id in order['detail'][0]['identifier']:
-                            if id['label'] == "name":
-                                orders_cost_summary.append({str(id.value): str(result[0])})
-                        total_cost += float(result[0])
-                    print(order)
-                print(total_cost)
-            composition.section.append(orders_cost_summary)
-        return composition
+        orders = composition.get_encounter_orders()
+        for order in orders:
+            order.totalCost = 0.00
+            order_details = composition.get_proc_supply_details(order)
+
+            for detail in order_details:
+                cur = self.conn.execute("select cost_amt from costmap where billing_code='%s'" % detail[0])
+                for result in cur:
+                    #detail.append(float(result[0]))
+                    order.totalCost += float(result[0])
+                    encounter_cost_breakdown.append([detail[1], float(result[0])])
+
+            total_cost += order.totalCost
+        composition.section.append(api.Section(title="Encounter Cost Breakdown", content=encounter_cost_breakdown))
 
 
 def run_cost_evaluator():
@@ -111,16 +107,13 @@ def run_cost_evaluator():
             SP.CONFIG_KEY:'logging',
             SP.CONFIG_WRITERKEY:'logging',
         },
-        'test conn pool': {
-            AsyncConnectionPool.CONFIG_CONNECTION_STRING:
-            ("dbname=%s user=%s password=%s host=%s port=%s" % ('maven', 'maven', 'temporary', 'localhost', '5432')),
-            AsyncConnectionPool.CONFIG_MIN_CONNECTIONS: 4,
-            AsyncConnectionPool.CONFIG_MAX_CONNECTIONS: 8
-        },
-        'test blocking': {
+        'CostEvalConnection': {
             SingleThreadedConnection.CONFIG_CONNECTION_STRING:
-            ("dbname=%s user=%s password=%s host=%s port=%s" % ('maven', 'maven', 'temporary', 'localhost', '5432'))
-        }
+            ("dbname=%s user=%s password=%s host=%s port=%s" % ('maven', 'maven', 'temporary', MC.dbhost, '5432')),
+
+            #AsyncConnectionPool.CONFIG_MIN_CONNECTIONS: 2,
+            #AsyncConnectionPool.CONFIG_MAX_CONNECTIONS: 4
+        },
     }
 
     MC.MavenConfig = MavenConfig

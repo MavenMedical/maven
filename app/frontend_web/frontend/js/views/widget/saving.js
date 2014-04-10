@@ -7,15 +7,29 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
+    'currentContext',
+    'models/utilizationModel',
     'text!templates/widget/saving.html'
-], function ($, _, Backbone, savingTemplate) {
-
-    var Saving = Backbone.View.extend({
-        el: $('.saving'),
-        render: function () {
-            var template = _.template(savingTemplate, {});
-            $('.saving').append(template);
-        }
-    });
-    return Saving;
-});
+	], function ($, _, Backbone, currentContext, UtilizationModel, savingTemplate) {
+	   
+	   var Saving = Backbone.View.extend({
+		   el: '.saving',
+		   template: _.template(savingTemplate),
+		   initialize: function(){
+		       _.bindAll(this,'render');
+		       this.utilization = new UtilizationModel;
+		       this.render();
+		   },
+		   render: function () {
+		       var that = this;
+		       this.utilization.fetch({
+			       success: function (util) {
+				   that.$el.html(that.template({utilization:util, page: currentContext.get('page')}));
+			       },
+				   data: $.param(currentContext.toJSON())
+				   });
+                return this;
+		   }
+	       });
+	   return Saving;
+       });

@@ -1,0 +1,162 @@
+{
+    "name_space": null,
+    "cclass": null,
+    "version_id": 1,
+    "author": null,
+    "event": null,
+    "type": null,
+    "subject": null,
+    "encounter": null,
+    "date": "2014-03-20T11:22:45.373529",
+    "customer_id": null,
+    "custodian": null,
+    "confidentiality": null,
+    "id": "7cc38e08b04311e387020800275923d1",
+    "title": null,
+    "status": null,
+    "identifier": [],
+    "maven_route_key": "writer:1",
+    "text": "",
+    "last_modified_date": "2014-03-20T11:22:45.373519",
+    "section": [
+        {
+            "title": "Encounter Orders",
+            "content": [
+                {
+                    "name_space": null,
+                    "source": null,
+                    "patient": null,
+                    "id": "7cc39196b04311e387020800275923d1",
+                    "subject": null,
+                    "date": "2014-03-20T11:22:45.373622",
+                    "customer_id": null,
+                    "target": null,
+                    "practitioner": null,
+                    "identifier": [],
+                    "detail": [
+                        {
+                            "name_space": null,
+                            "customer_id": null,
+                            "id": "7cc39506b04311e387020800275923d1",
+                            "type": null,
+                            "subject": null,
+                            "encounter": null,
+                            "date": null,
+                            "identifier": [
+                                {
+                                    "period": null,
+                                    "assigner": null,
+                                    "use": null,
+                                    "system": "clientEMR",
+                                    "label": "name",
+                                    "value": "CBC with Automated Diff"
+                                },
+                                {
+                                    "period": null,
+                                    "assigner": null,
+                                    "use": null,
+                                    "system": "clientEMR",
+                                    "label": "Internal",
+                                    "value": "2345678"
+                                }
+                            ],
+                            "name": "CBC with Automated Diff",
+                            "patient": null,
+                            "followUp": null,
+                            "outcome": "",
+                            "performer": null,
+                            "version_id": 1,
+                            "text": "",
+                            "last_modified_date": "2014-03-20T11:22:45.373697",
+                            "notes": ""
+                        }
+                    ],
+                    "when": [],
+                    "version_id": 1,
+                    "text": "",
+                    "last_modified_date": "2014-03-20T11:22:45.373612",
+                    "totalCost": null
+                },
+                {
+                    "name_space": null,
+                    "source": null,
+                    "patient": null,
+                    "id": "7cc398c6b04311e387020800275923d1",
+                    "subject": null,
+                    "date": "2014-03-20T11:22:45.373830",
+                    "customer_id": null,
+                    "target": null,
+                    "practitioner": null,
+                    "identifier": [],
+                    "detail": [
+                        {
+                            "name_space": null,
+                            "customer_id": null,
+                            "id": "7cc39d62b04311e387020800275923d1",
+                            "type": null,
+                            "subject": null,
+                            "encounter": null,
+                            "date": null,
+                            "identifier": [
+                                {
+                                    "period": null,
+                                    "assigner": null,
+                                    "use": null,
+                                    "system": "clientEMR",
+                                    "label": "name",
+                                    "value": "CBC with Automated Diff"
+                                },
+                                {
+                                    "period": null,
+                                    "assigner": null,
+                                    "use": null,
+                                    "system": "clientEMR",
+                                    "label": "Internal",
+                                    "value": "1234567"
+                                }
+                            ],
+                            "name": "CBC with Automated Diff",
+                            "patient": null,
+                            "followUp": null,
+                            "outcome": "",
+                            "performer": null,
+                            "version_id": 1,
+                            "text": "",
+                            "last_modified_date": "2014-03-20T11:22:45.373913",
+                            "notes": ""
+                        }
+                    ],
+                    "when": [],
+                    "version_id": 1,
+                    "text": "",
+                    "last_modified_date": "2014-03-20T11:22:45.373820",
+                    "totalCost": null
+                }
+            ],
+            "code": null,
+            "subject": null
+        },
+        {
+            "title": "Encounter Cost Breakdown",
+            "subject": null,
+            "code": null,
+            "content": [
+                [
+                    "2345678",
+                    "CBC with Automated Diff",
+                    109.9
+                ],
+                [
+                    "1234567",
+                    "CBC with Automated Diff",
+                    562.5
+                ],
+                [
+                    "n/a",
+                    "Total Cost",
+                    672.4
+                ]
+            ]
+        }
+    ]
+}

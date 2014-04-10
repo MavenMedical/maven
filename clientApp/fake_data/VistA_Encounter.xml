@@ -1,1 +1,510 @@
-<GetPatientDemographicsResult><Address><City>Baltimore</City><Country></Country><County>005</County><State>MARYLAND</State><Street>123 Test Street</Street>1</Zip></Address><DateOfBirth>12/30/1944</DateOfBirth><Email></Email><Gender>MALE</Gender><MaritalStatus>MARRIED</MaritalStatus><Name><FirstName>ONE</FirstName><LastName>ZZTEST</LastName><MaidenName></MaidenName><MiddleName></MiddleName>me><Suffix></Suffix><Title></Title></Name><NationalIdentifier>307123044P</NationalIdentifier><Phones><Phone><Number>814-883-1251</Number><Type>Cell Phone</Type></Phone></Phones><Race></Race><Religion></Religion></GetPatientDemographicsResult><ProcedureCode>74170</ProcedureCode><CodeType>CPT4</CodeType><ExpectedDate>MAR 12,2014@07:43</ExpectedDate><ExpiredDate></ExpiredDate><Name>CT ABDOMEN W&W/O CONT</Name><Type>PROC</Type></Order></Orders>
+<Encounter>
+    <EncID>987987917</EncID>
+
+   <GetPatientDemographicsResult>
+       <PatientID>1235412</PatientID>
+       <PatientIDType>CID</PatientIDType>
+
+      <Address>
+
+         <City>BROOKLYN</City>
+
+         <Country />
+
+         <County>047</County>
+
+         <State>NEW YORK</State>
+
+         <Street>12 WAYLAND AVE</Street>
+
+         <Zip>11234</Zip>
+
+      </Address>
+
+      <DateOfBirth>01/24/1945</DateOfBirth>
+
+      <Gender>FEMALE</Gender>
+
+      <MaritalStatus>MARRIED</MaritalStatus>
+
+      <Name>
+
+         <FirstName>Cat</FirstName>
+
+         <LastName>Woman</LastName>
+
+         <MaidenName />
+
+         <MiddleName />
+
+         <Nickname />
+
+         <Suffix />
+
+         <Title />
+
+      </Name>
+
+      <NationalIdentifier>000003322</NationalIdentifier>
+
+      <Phones />
+
+      <Race />
+
+      <Religion />
+
+   </GetPatientDemographicsResult>
+
+   <Orders>
+
+      <Order>
+
+         <ProcedureCode>1</ProcedureCode>
+
+         <CodeType />
+
+         <ExpectedDate>JUL 27, 2005@11:52:24</ExpectedDate>
+          <OrderingDate>JUL 27, 2005@11:52:24</OrderingDate>
+
+         <ExpiredDate />
+
+         <Name>Vibramycin 100mg capsule (count 14)</Name>
+
+         <Type>PROC</Type>
+
+      </Order>
+
+      <Order>
+
+         <ProcedureCode>2</ProcedureCode>
+
+         <CodeType />
+
+         <ExpectedDate>JUL 27, 2005@17:20:22</ExpectedDate>
+          <OrderingDate>JUL 27, 2005@17:20:22</OrderingDate>
+
+         <ExpiredDate />
+
+         <Name>Doxycycline 100mg capsule (count 14)</Name>
+
+         <Type>PROC</Type>
+
+      </Order>
+
+      <Order>
+
+         <ProcedureCode>3</ProcedureCode>
+
+         <CodeType />
+
+         <ExpectedDate>JUL 27, 2005@17:22:55</ExpectedDate>
+         <OrderingDate>JUL 27, 2005@17:22:55</OrderingDate>
+
+         <ExpiredDate />
+
+         <Name>CT Head w/o Contrast</Name>
+
+         <Type>PROC</Type>
+
+      </Order>
+
+      <Order>
+
+         <ProcedureCode>4</ProcedureCode>
+
+         <CodeType />
+
+         <ExpectedDate>JUL 27, 2005@17:25:35</ExpectedDate>
+          <OrderingDate>JUL 27, 2005@17:25:35</OrderingDate>
+
+         <ExpiredDate />
+
+         <Name>Immunoglobulin Assay</Name>
+
+         <Type>PROC</Type>
+
+      </Order>
+
+      <Order>
+
+         <ProcedureCode>2345678</ProcedureCode>
+
+         <CodeType />
+
+         <ExpectedDate>JUL 27, 2005@17:25:39</ExpectedDate>
+          <OrderingDate>JUL 27, 2005@17:25:39</OrderingDate>
+
+         <ExpiredDate />
+
+         <Name>URINALYSIS</Name>
+
+         <Type>PROC</Type>
+
+      </Order>
+
+      <Order>
+
+         <ProcedureCode>2345678</ProcedureCode>
+
+         <CodeType />
+
+         <ExpectedDate>JUL 27, 2005@17:25:39</ExpectedDate>
+          <OrderingDate>JUL 27, 2005@17:25:39</OrderingDate>
+
+         <ExpiredDate />
+
+         <Name>LDL CHOLESTEROL</Name>
+
+         <Type>PROC</Type>
+
+      </Order>
+
+   </Orders>
+
+   <GetActiveProblemsResult>
+
+      <ErrorCode />
+
+      <Problems>
+
+         <Problem>
+
+            <Comment />
+
+            <Description />
+
+            <DiagnosisIDs>
+
+               <IDType>
+
+                  <ID>250.02</ID>
+
+                  <Type>ICD</Type>
+
+               </IDType>
+
+            </DiagnosisIDs>
+
+            <EntryPerson>
+
+               <ID>60</ID>
+
+               <Name>FARLEY,CHRIS</Name>
+
+            </EntryPerson>
+
+            <IsChronic />
+
+            <IsHospitalProblem />
+
+            <IsPresentOnAdmission />
+
+            <IsPrincipal />
+
+            <IsVisibleToPatient>true</IsVisibleToPatient>
+
+            <NotedDate>JUL 18, 2005</NotedDate>
+
+            <Priority />
+
+            <ProblemClass />
+
+            <ProblemIDs>
+
+               <IDType>
+
+                  <ID>1</ID>
+
+                  <Type>Internal</Type>
+
+               </IDType>
+
+            </ProblemIDs>
+
+         </Problem>
+
+         <Problem>
+
+            <Comment />
+
+            <Description />
+
+            <DiagnosisIDs>
+
+               <IDType>
+
+                  <ID>648.00</ID>
+
+                  <Type>ICD</Type>
+
+               </IDType>
+
+            </DiagnosisIDs>
+
+            <EntryPerson>
+
+               <ID>60</ID>
+
+               <Name>FARLEY,CHRIS</Name>
+
+            </EntryPerson>
+
+            <IsChronic />
+
+            <IsHospitalProblem />
+
+            <IsPresentOnAdmission />
+
+            <IsPrincipal />
+
+            <IsVisibleToPatient>true</IsVisibleToPatient>
+
+            <NotedDate>JUL 18, 2005</NotedDate>
+
+            <Priority />
+
+            <ProblemClass />
+
+            <ProblemIDs>
+
+               <IDType>
+
+                  <ID>2</ID>
+
+                  <Type>Internal</Type>
+
+               </IDType>
+
+            </ProblemIDs>
+
+         </Problem>
+
+         <Problem>
+
+            <Comment>second encounter note</Comment>
+
+            <Description />
+
+            <DiagnosisIDs>
+
+               <IDType>
+
+                  <ID>250.02</ID>
+
+                  <Type>ICD</Type>
+
+               </IDType>
+
+            </DiagnosisIDs>
+
+            <EntryPerson>
+
+               <ID>60</ID>
+
+               <Name>FARLEY,CHRIS</Name>
+
+            </EntryPerson>
+
+            <IsChronic />
+
+            <IsHospitalProblem />
+
+            <IsPresentOnAdmission />
+
+            <IsPrincipal />
+
+            <IsVisibleToPatient>true</IsVisibleToPatient>
+
+            <NotedDate>JUL 19, 2005</NotedDate>
+
+            <Priority />
+
+            <ProblemClass />
+
+            <ProblemIDs>
+
+               <IDType>
+
+                  <ID>3</ID>
+
+                  <Type>Internal</Type>
+
+               </IDType>
+
+            </ProblemIDs>
+
+         </Problem>
+
+         <Problem>
+
+            <Comment>3rd try</Comment>
+
+            <Description />
+
+            <DiagnosisIDs>
+
+               <IDType>
+
+                  <ID>648.02</ID>
+
+                  <Type>ICD</Type>
+
+               </IDType>
+
+            </DiagnosisIDs>
+
+            <EntryPerson>
+
+               <ID>60</ID>
+
+               <Name>FARLEY,CHRIS</Name>
+
+            </EntryPerson>
+
+            <IsChronic />
+
+            <IsHospitalProblem />
+
+            <IsPresentOnAdmission />
+
+            <IsPrincipal />
+
+            <IsVisibleToPatient>true</IsVisibleToPatient>
+
+            <NotedDate>JUL 19, 2005</NotedDate>
+
+            <Priority />
+
+            <ProblemClass />
+
+            <ProblemIDs>
+
+               <IDType>
+
+                  <ID>4</ID>
+
+                  <Type>Internal</Type>
+
+               </IDType>
+
+            </ProblemIDs>
+
+         </Problem>
+
+         <Problem>
+
+            <Comment />
+
+            <Description />
+
+            <DiagnosisIDs>
+
+               <IDType>
+
+                  <ID>V18.0</ID>
+
+                  <Type>ICD</Type>
+
+               </IDType>
+
+            </DiagnosisIDs>
+
+            <EntryPerson>
+
+               <ID>60</ID>
+
+               <Name>FARLEY,CHRIS</Name>
+
+            </EntryPerson>
+
+            <IsChronic />
+
+            <IsHospitalProblem />
+
+            <IsPresentOnAdmission />
+
+            <IsPrincipal />
+
+            <IsVisibleToPatient>true</IsVisibleToPatient>
+
+            <NotedDate>JUL 19, 2005</NotedDate>
+
+            <Priority />
+
+            <ProblemClass />
+
+            <ProblemIDs>
+
+               <IDType>
+
+                  <ID>5</ID>
+
+                  <Type>Internal</Type>
+
+               </IDType>
+
+            </ProblemIDs>
+
+         </Problem>
+
+         <Problem>
+
+            <Comment />
+
+            <Description />
+
+            <DiagnosisIDs>
+
+               <IDType>
+
+                  <ID>428.9</ID>
+
+                  <Type>ICD</Type>
+
+               </IDType>
+
+            </DiagnosisIDs>
+
+            <EntryPerson>
+
+               <ID>11</ID>
+
+               <Name>DOCTOR,ONE</Name>
+
+            </EntryPerson>
+
+            <IsChronic />
+
+            <IsHospitalProblem />
+
+            <IsPresentOnAdmission />
+
+            <IsPrincipal />
+
+            <IsVisibleToPatient>true</IsVisibleToPatient>
+
+            <NotedDate>JUL 29, 2005</NotedDate>
+
+            <Priority />
+
+            <ProblemClass />
+
+            <ProblemIDs>
+
+               <IDType>
+
+                  <ID>12</ID>
+
+                  <Type>Internal</Type>
+
+               </IDType>
+
+            </ProblemIDs>
+
+         </Problem>
+
+      </Problems>
+
+   </GetActiveProblemsResult>
+
+</Encounter>

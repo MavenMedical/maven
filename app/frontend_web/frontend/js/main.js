@@ -1,6 +1,10 @@
-/**
- * Created by Asmaa Aljuhani on 3/11/14.
- */
+/***************************************************************************
+ * Copyright (c) 2014 - Maven Medical
+ * AUTHOR: 'Asmaa Aljuhani'
+ * DESCRIPTION: This Javascript file holds all libraries that will be used
+ *              by the MVC and Initialize the frontend App.
+ * LAST MODIFIED FOR JIRA ISSUE: MAV-98
+ **************************************************************************/
 
 // Require.js allows us to configure shortcut alias
 require.config({
@@ -8,15 +12,27 @@ require.config({
         jquery: 'libs/jquery/jquery-min',
         underscore: 'libs/underscore/underscore',
         backbone: 'libs/backbone/backbone',
-        templates: '../templates'
+        bootstrap: '../css/bootstrap/js/bootstrap.min',
+	templates: '../templates',
+	router: 'router'	
+    },
+    shim: {
+        bootstrap :{
+            deps: ['jquery']
+        }
     }
 });
 
 require([
     //Load our app module and pass it to our definition function
-    'app',
-], function (App) {
-    // The "app" dependency is passed in as "App"
+	 'backbone',
+	 'router',
+	 ], function (Backbone,AppRouter) {
     // Again, the other dependencies passed in are not "AMD" therefore don't pass a parameter to this function
-    App.initialize();
+	    //App.initialize();
+	    
+	    //alert('starting history');
+	    Backbone.history.start();
+	    //alert('history started');
+
 });

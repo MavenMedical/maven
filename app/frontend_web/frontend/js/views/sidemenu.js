@@ -16,6 +16,7 @@ define([
         render: function () {
             var template = _.template(sidemenuTemplate, {});
             this.$el.html(template);
+            return this;
         }
     });
     return SideMenu;

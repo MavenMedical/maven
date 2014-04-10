@@ -1,0 +1,32 @@
+
+# initial setup
+# note that the f1-micro instance is too small to do a yum update, so we create from g1-small
+gcutil addinstance frontend-prototype --tags=web --machine_type=g1-small --image=centos-6 --zone=us-central1-a
+gcutil ssh frontend-prototype
+# push a file from local to remote (pull is the reverse)
+gcutil push frontend-prototype .bashrc .
+gcutil listinstances
+
+# login as "tom" to "frontend-small"
+ssh tom@`gcutil listinstances | grep frontend-small | awk  '{print $10;}'`
+
+# delete the instance - it gives the option to remove or keep the disk
+gcutil deleteinstance frontend-prototype
+
+# startup the database prototype using the existing database boot and data disks
+gcutil addinstance database-prototype --tags=database --zone="us-central1-a" --machine_type="g1-small" --disk="database-prototype,deviceName=database-prototype,mode=READ_WRITE,boot" --disk="test-data,deviceName=test-data,mode=READ_WRITE"
+
+# start a new frontend instance from our image
+gcutil addinstance frontend-small --tags=web --zone="us-central1-a" --machine_type="f1-micro" --image="frontend-1"
+
+# list images to use
+gcutil listimages
+
+gcutil listaddresses
+
+# copy local maven directory to cloud host
+rsync -az -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /home/devel/.ssh/google_compute_engine" --progress  maven devel@23.251.152.200:
+
+
+
+

@@ -1,32 +1,10 @@
 <div class="panel panel-default">
     <div class="panel-body">
         <h3 class="panel-title">
-            Dr.Smith's Recent Patients
+          <%= display %>'s Recent Patients
         </h3>
         <table class="table table-condensed table-hover">
             <tbody>
-            <% _.each(patients, function(patient){ %>
-            <tr>
-                <td>
-                    <a href="#/patient/<%= patient.id %>">
-                        <%= patient.get("name") %>
-                    </a>
-                </td>
-                <td>
-                    <%= patient.get("gender") %>
-                </td>
-                <td>
-                    <%= patient.get("DOB") %>
-                </td>
-                <td>
-                    <%= patient.get("diagnosis") %>
-                </td>
-                <td>
-                    <%= patient.get("cost") %>
-                </td>
-            </tr>
-            <% }); %>
-
             </tbody>
         </table>
     </div>
