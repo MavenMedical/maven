@@ -18,6 +18,14 @@
     <script src="js/amcharts/pie.js" type="text/javascript"></script>
     <script src="js/amcharts/themes/light.js" type="text/javascript"></script>
     <script src="js/charts.js"></script>
+ //-------------------------------------------------------------------------------libraries alertify
+
+	<script src="js/alertify.min.js"></script>
+
+    <link rel="stylesheet" href="css/alertify.core.css" />
+	<link rel="stylesheet" href="css/alertify.default.css" id="toggleCSS" />
+  //-------------------------------------------------------------------------------------------
+
     <link href="css/style.css" rel="stylesheet">
 </head>
 
@@ -46,6 +54,10 @@
         <li>
             <a href="encounter.html"><i class="glyphicon glyphicon-time"></i> Encounter</a>
         </li>
+         <li >
+            <a href="Treatment.html"><i class="glyphicon glyphicon-time"></i> Treatment</a>
+
+        </li>
         <!--
       <li class="nav-header">
         <a href="patient.html" data-toggle="collapse" data-target="#userMenu"><span class="glyphicon glyphicon-user"></span> Patient
@@ -71,6 +83,9 @@
         <li>
             <a href="encounter.html" class="text-center"><i class="glyphicon glyphicon-time"></i></a>
         </li>
+             <li>
+            <a href="Treatment.html" class="text-center"><i class="glyphicon glyphicon-time"></i></a>
+             </li>
     </ul>
 
 </div>
@@ -80,7 +95,7 @@
 <!-- top nav -->
 <div class="navbar navbar-blue navbar-static-top">
     <div class="navbar-header">
-        <button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".navbar-collapse">
+        <button class="navbar-toggle" type="button"  data-toggle="collapse" data-target=".navbar-collapse">
             <span class="sr-only">Toggle</span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
@@ -117,48 +132,35 @@
 <!-- /top nav -->
 <div class="padding">
 <div class="full col-sm-9">
-<!-- Charts -->
+
+
+<!--/row-->
 <div class="row">
     <!-- main col left -->
-    <div class="col-sm-4">
+    <div class="col-sm-6">
         <div class="panel panel-default">
             <div class="panel-body">
                 <h3 class="panel-title">
-                    Dr.Smith's Alerts for 2013
-                    <div class="number"  style="display: inline-block; margin: 0 auto; padding-left:40%;"><b>5</b></div>
+                    Alerts
                 </h3>
 
-                <div class="micro-chart" id="num_of_alerts" style="vertical-align: middle; display: inline-block; width: 100%; height: 40px;"></div>
-            </div>
-        </div>
-    </div>
-    <!-- main col center -->
-    <div class="col-sm-4">
-        <div class="panel panel-default">
-
-            <div class="panel-body">
-                <h3 class="panel-title">
-                    Dr.Smith's Action on Alerts
-                </h3>
-                <div id="percent1" style="vertical-align: middle; display: inline-block; width: 100%; height: 50px;"></div>
+                <div id="num_of_alerts" class="chart-col-6"></div>
             </div>
         </div>
     </div>
     <!-- main col right -->
-    <div class="col-sm-4">
+    <div class="col-sm-6">
         <div class="panel panel-default">
-
             <div class="panel-body">
                 <h3 class="panel-title">
-                    Potential Savings
+                    Alerts 2
                 </h3>
 
-                <div class="col-sm-6 number"><b>$95,100</b></div>
+                <div id="daily_cost" class="chart-col-6"></div>
             </div>
         </div>
     </div>
 </div>
-<!--/row-->
 <!-- row -->
 <div class="row">
 <div class="col-sm-12">
@@ -232,7 +234,7 @@
                                     href="#">An-Online.org</a>
                             </div>
                             <div class="col-sm-2">
-                                <a href="encounter.html" class="btn btn-default active" role="button"><i
+                                 <a href="#" class="btn btn-default active" id="custom" role="button"><i
                                         class="glyphicon glyphicon-share-alt"></i> Check this Encounter</a>
                             </div>
                         </div>
@@ -734,6 +736,20 @@
 </script>
 
 <script src="js/screen-17005174c2.js"></script>
+
+//------------------
+
+
+<script>
+
+		// ==============================
+		// Custom Log
+
+
+
+	</script>
+
+//-------------
 </body>
 
 </html>
