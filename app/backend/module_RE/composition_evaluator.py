@@ -21,6 +21,7 @@ import asyncio
 import app.utils.streaming.stream_processor as SP
 from app.utils.database.database import AsyncConnectionPool,SingleThreadedConnection, MappingUtilites
 import maven_config as MC
+import maven_logging as ML
 import pickle
 from clientApp.api.api import Composition
 
@@ -34,28 +35,30 @@ class CompositionEvaluator(SP.StreamProcessor):
     @asyncio.coroutine
     def read_object(self, obj, _):
         composition = pickle.loads(obj)
-        yield from self.evaluate_object(composition)
+        rules = yield from self.get_matching_sleuth_rules(composition)
+        ML.PRINT("Herro")
 
-    def evaluate_object(self, composition):
+    @asyncio.coroutine
+    def get_matching_sleuth_rules(self, composition):
         orders = composition.get_encounter_orders()
+        customer_id = composition.customer_id
         applicable_sleuth_rules = []
         DBMapper = MappingUtilites()
         for order in orders:
             order_details = composition.get_proc_supply_details(order)
 
             for detail in order_details:
-                column_map = ["encounter.csn",
-                              "encounter.contact_date",
-                              "patient.patname",
-                              "encounter.pat_id",
-                              "patient.birthdate",
-                              "patient.sex"]
-
+                column_map = ["sleuth_rule.rule_details"]
                 columns = DBMapper.select_rows_from_map(column_map)
-                cur = self.conn.execute_single("select cost_amt from costmap where billing_code='%s'" % detail[0])
+                cur = yield from self.conn.execute_single("select %s from sleuth_rule where cpt_trigger='%s' and customer_id=%s" % (columns, detail[0], customer_id))
                 for result in cur:
                     applicable_sleuth_rules.append(result)
 
+        return applicable_sleuth_rules
+
+    @asyncio.coroutine
+    def evaluate_object(self, composition):
+        raise NotImplementedError
 
 
     def evaluator_response(self, obj, response):
@@ -122,4 +125,4 @@ def run_composition_evaluator():
         loop.close()
 
 if __name__ == '__main__':
-    run_cost_evaluator()
+    run_composition_evaluator()

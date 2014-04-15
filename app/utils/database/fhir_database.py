@@ -6,7 +6,7 @@ __author__='Yuki Uchino'
 #************************
 #DESCRIPTION:   This fhir_database.py module contains the classes required to update the
 #               SQL database from FHIR objects, as well as convert database records into
-#               FHIR objects for transfer
+#               FHIR objects.
 #
 #
 #************************

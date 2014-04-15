@@ -46,12 +46,12 @@ class CostEvaluator(SP.StreamProcessor):
         """
         Takes a FHIR Composition object, iterates through the Orders found in the "Encounter Orders"
         Composition.section object, checks the costmap table for the cost-look-up, and then adds a
-        NEW section to Composition.section labeled "Encounter Cost Breakdown"
+        NEW section to Composition.section labeled "Encounter Cost Breakdown," which is a list of
+        {"order name": 807.13} tuples with order name and the price.
 
         :param composition: FHIR Composition object created using Maven's FHIR API
         """
         encounter_cost_breakdown = []
-        total_cost = 0.00
 
         orders = composition.get_encounter_orders()
         for order in orders:
@@ -61,11 +61,9 @@ class CostEvaluator(SP.StreamProcessor):
             for detail in order_details:
                 cur = self.conn.execute("select cost_amt from costmap where billing_code='%s'" % detail[0])
                 for result in cur:
-                    #detail.append(float(result[0]))
                     order.totalCost += float(result[0])
                     encounter_cost_breakdown.append([detail[1], float(result[0])])
 
-            total_cost += order.totalCost
         composition.section.append(api.Section(title="Encounter Cost Breakdown", content=encounter_cost_breakdown))
 
 
