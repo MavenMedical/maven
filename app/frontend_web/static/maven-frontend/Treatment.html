@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+    <title>
+    </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css"
+    rel="stylesheet">
+    <link href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"
+    rel="stylesheet">
+
+      <script src="js/amcharts/amcharts.js" type="text/javascript"></script>
+      <script src="js/amcharts/serial.js" type="text/javascript"></script>
+          <script src="js/amstockcharts/amstock.js" type="text/javascript"></script>
+      <script src="js/amcharts/pie.js" type="text/javascript"></script>
+      <script src="js/amcharts/themes/light.js" type="text/javascript"></script>
+<script src="js/charts.js"></script>
+    <link href="css/style.css" rel="stylesheet">
+</head>
+
+  <body >
+    <div class="wrapper">
+      <div class="box">
+        <div class="row row-offcanvas row-offcanvas-left">
+          <!-- sidebar -->
+          <div class="column col-sm-2 col-xs-1 sidebar-offcanvas" id="sidebar">
+            <ul class="nav">
+              <li>
+                <a href="#" data-toggle="offcanvas" class="visible-xs text-center"><i class="glyphicon glyphicon-chevron-right"></i></a>
+              </li>
+            </ul>
+            <ul class="nav hidden-xs" id="lg-menu">
+               <li >
+            <a href="home.html"><i class="glyphicon glyphicon-home"></i> Home</a>
+        </li>
+        <li>
+            <a href="alerts.html"><i class="glyphicon glyphicon-flag"></i> Alerts</a>
+        </li>
+        <li >
+            <a href="patient.html"><i class="glyphicon glyphicon-user"></i> Patient</a>
+        </li>
+        <li >
+              <a href="encounter.html"><i class="glyphicon glyphicon-time"></i> Encounter</a>
+        </li>
+        <li  class="active">
+            <a href="Treatment.html"><i class="glyphicon glyphicon-time"></i> Treatment</a>
+
+        </li>
+
+
+
+                <!--
+              <li class="nav-header">
+                <a href="patient.html" data-toggle="collapse" data-target="#userMenu"><span class="glyphicon glyphicon-user"></span> Patient
+                    <i class="glyphicon glyphicon-chevron-right"></i></a>
+                <ul class="list-unstyled collapse" id="userMenu">
+                  <li class="active">
+                    <a href="#"><i class="glyphicon glyphicon-?"></i> Encounter</a>
+                  </li>
+                </ul>
+              </li> -->
+            </ul>
+            <!-- tiny only nav-->
+            <ul class="nav visible-xs" id="xs-menu">
+              <li>
+                <a href="home.html" class="text-center"><i class="glyphicon glyphicon-home"></i></a>
+              </li>
+              <li>
+                <a href="alerts.html" class="text-center"><i class="glyphicon glyphicon-flag"></i></a>
+              </li>
+              <li>
+                <a href="patient.html" class="text-center"><i class="glyphicon glyphicon-user"></i></a>
+              </li>
+                 <li>
+            <a href="encounter.html" class="text-center"><i class="glyphicon glyphicon-time"></i></a>
+                 </li>
+                     <li>
+            <a href="Treatment.html" class="text-center"><i class="glyphicon glyphicon-time"></i></a>
+                  </li>
+
+
+            </ul>
+          </div>
+          <!-- /sidebar -->
+          <!-- main right col -->
+          <div class="column col-sm-10 col-xs-11" id="main">
+            <!-- top nav -->
+            <div class="navbar navbar-blue navbar-static-top">
+              <div class="navbar-header">
+                <button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".navbar-collapse">
+                  <span class="sr-only">Toggle</span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                </button>
+                <a href="/" class="navbar-brand logo">maven</a>
+              </div>
+              <nav class="collapse navbar-collapse" role="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="glyphicon glyphicon-user"></i> Dr.Smith <span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                      <li>
+                        <a href="">My Profile</a>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+                <form class="navbar-form navbar-right">
+                  <div class="input-group input-group-sm" style="max-width:360px;">
+                    <input type="text" class="form-control" placeholder="Search Patient" name="srch-term"
+                    id="srch-term">
+                    <div class="input-group-btn">
+                      <button class="btn btn-default" type="submit">
+                        <i class="glyphicon glyphicon-search"></i>
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </nav>
+            </div>
+            <!-- /top nav -->
+
+
+   <!-- row-->
+<div class="row">
+    <!-- main col right -->
+    <div class="col-sm-12">
+
+        <div class="panel panel-default">
+   <h3 class="panel-title">
+
+                               1
+                               1
+                </h3>
+
+            <div class="panel-body">
+                <h2 class="panel-title">
+
+
+                    <h1> American Academy of Allergy, Asthma & Immunology </h1>
+                    <h3>  10 Things Physicians and Patients Should Question </h3 >
+                </h2>
+
+                <div class="panel-body">
+                    <div class="panel-group" id="accordion2">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <a data-toggle="collapse" data-parent="#accordion2" href="#collapse2-1">
+                                    <h4 class="sub-sub-panel panel-title">
+                                        <div class="row">
+                                            <div class="col-sm-1    ">
+                                                1
+                                            </div>
+                                            <div class="col-sm-11">
+                                                Don’t perform unproven diagnostic tests, such as immunoglobulin G (IgG) testing or an indiscriminate battery of immunoglobulin E (IgE) tests, in the evaluation of allergy.
+
+                                            </div>
+
+
+                                        </div>
+                                    </h4>
+                                </a>
+                            </div>
+                            <div id="collapse2-1" class="panel-collapse collapse in">
+                                <div class="panel-body">
+                                    <div class="row">
+                                            <div class="col-sm-12">
+                                                Appropriate diagnosis and treatment of allergies requires specific IgE testing (either skin or blood tests) based on the patient’s clinical history. The use of other tests or methods to diagnose allergies is unproven and can lead to inappropriate diagnosis and treatment. Appropriate diagnosis and treatment is both cost effective and essential for optimal patient care.
+                                            </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <a data-toggle="collapse" data-parent="#accordion2" href="#collapse2-2">
+                                    <h4 class="sub-sub-panel panel-title">
+                                        <div class="row">
+                                            <div class="col-sm-1">
+                                                2
+                                            </div>
+                                            <div class="col-sm-11">
+                                               Don’t order sinus computed tomography (CT) or indiscriminately prescribe antibiotics for uncomplicated acute rhinosinusitis.
+
+                                            </div>
+
+                                        </div>
+                                    </h4>
+                                </a>
+                            </div>
+                            <div id="collapse2-2" class="panel-collapse collapse">
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                          Viral infections cause the majority of acute rhinosinusitis and only 0.5 percent to 2 percent progress to bacterial infections. Most acute rhinosinusitis resolves without treatment in two weeks. Uncomplicated acute rhinosinusitis is generally diagnosed clinically and does not require a sinus CT scan or other imaging. Antibiotics are not recommended for patients with uncomplicated acute rhinosinusitis who have mild illness and assurance of follow-up. If a decision is made to treat, amoxicillin should be first-line antibiotic treatment for most acute rhinosinusitis.
+                                        </div>
+
+
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <a data-toggle="collapse" data-parent="#accordion2" href="#collapse2-3">
+                                    <h4 class="sub-sub-panel panel-title">
+                                        <div class="row">
+                                            <div class="col-sm-1">
+                                                3
+                                            </div>
+                                            <div class="col-sm-11">
+                                                Don’t routinely do diagnostic testing in patients with chronic urticaria.
+                                            </div>
+
+
+                                        </div>
+                                    </h4>
+                                </a>
+                            </div>
+                                  <div id="collapse2-3" class="panel-collapse collapse">
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                           In the overwhelming majority of patients with chronic urticaria, a definite etiology is not identified. Limited laboratory testing may be warranted to exclude underlying causes. Targeted laboratory testing based on clinical suspicion is appropriate. Routine extensive testing is neither cost effective nor associated with improved clinical outcomes. Skin or serum-specific IgE testing for inhalants or foods is not indicated, unless there is a clear history implicating an allergen as a provoking or perpetuating factor for urticaria.
+                                            <a href="#">Asnc.org</a>
+                                        </div>
+
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                             <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <a data-toggle="collapse" data-parent="#accordion2" href="#collapse2-4">
+                                    <h4 class="sub-sub-panel panel-title">
+                                        <div class="row">
+                                            <div class="col-sm-1">
+                                                4
+                                            </div>
+                                            <div class="col-sm-11">
+                                                Don’t recommend replacement immunoglobulin therapy for recurrent infections unless impaired antibody responses to vaccines are demonstrated.
+
+                                            </div>
+
+
+                                        </div>
+                                    </h4>
+                                </a>
+                            </div>
+                                  <div id="collapse2-4" class="panel-collapse collapse">
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                           Immunoglobulin (gammaglobulin) replacement is expensive and does not improve outcomes unless there is impairment of antigen-specific IgG antibody responses to vaccine immunizations or natural infections. Low levels of immunoglobulins (isotypes or subclasses), without impaired antigen-specific IgG antibody responses, do not indicate a need for immunoglobulin replacement therapy. Exceptions include IgG levels <150mg/dl and genetically defined/suspected disorders. Measurement of IgG subclasses is not routinely useful in determining the need for immunoglobulin therapy. Selective IgA deficiency is not an indication for administration of immunoglobulin.
+                                            <a href="#">Asnc.org</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                               <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <a data-toggle="collapse" data-parent="#accordion2" href="#collapse2-5">
+                                    <h4 class="sub-sub-panel panel-title">
+                                        <div class="row">
+                                            <div class="col-sm-1">
+                                                5
+                                            </div>
+                                            <div class="col-sm-11">
+                                                Don’t diagnose or manage asthma without spirometry.
+                                            </div>
+
+
+                                        </div>
+                                    </h4>
+                                </a>
+                            </div>
+                                  <div id="collapse2-5" class="panel-collapse collapse">
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                          Clinicians often rely solely upon symptoms when diagnosing and managing asthma, but these symptoms may be misleading and be from alternate causes. Therefore spirometry is essential to confirm the diagnosis in those patients who can perform this procedure. Recent guidelines highlight spirometry’s value in stratifying disease severity and monitoring control. History and physical exam alone may over- or under-estimate asthma control. Beyond the increased costs of care, repercussions of misdiagnosing asthma include delaying a correct diagnosis and treatment.
+                                            <a href="#">Asnc.org</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <a data-toggle="collapse" data-parent="#accordion2" href="#collapse2-6">
+                                    <h4 class="sub-sub-panel panel-title">
+                                        <div class="row">
+                                            <div class="col-sm-1">
+                                                6
+                                            </div>
+                                            <div class="col-sm-11">
+                                                Don’t rely on antihistamines as first-line treatment in severe allergic reactions.
+                                            </div>
+
+
+                                        </div>
+                                    </h4>
+                                </a>
+                            </div>
+                                  <div id="collapse2-6" class="panel-collapse collapse">
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                                                  <p>  Epinephrine is the first-line treatment for anaphylaxis. Data indicate that antihistamines are overused as the first-line treatment of anaphylaxis. By definition, anaphylaxis has cardiovascular and respiratory manifestations, which require treatment with epinephrine. Overuse of antihistamines, which do not treat cardiovascular or respiratory manifestations of anaphylaxis, can delay the effective first-line treatment with epinephrine.</p>
+
+                                                                    <p>Epinephrine should be administered as soon as the diagnosis of anaphylaxis is suspected. Antihistamines are second-line supportive therapy for cutaneous non-life-threatening symptoms (hives), but do not replace epinephrine as the first-line treatment for anaphylaxis.</p>
+
+                                                                   <p> Fatalities during anaphylaxis have been associated with delayed administration of epinephrine.</p>
+
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                               <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <a data-toggle="collapse" data-parent="#accordion2" href="#collapse2-7">
+                                    <h4 class="sub-sub-panel panel-title">
+                                        <div class="row">
+                                            <div class="col-sm-1">
+                                                7
+                                            </div>
+                                            <div class="col-sm-11">
+                                               Don’t perform food IgE testing without a history consistent with potential IgE-mediated food allergy.
+
+                                            </div>
+
+
+                                        </div>
+                                    </h4>
+                                </a>
+                            </div>
+                                  <div id="collapse2-7" class="panel-collapse collapse">
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                                   <p>  False or clinically irrelevant positive allergy tests for foods are frequent. Indiscriminate screening results in inappropriate avoidance of foods and wastes healthcare resources. IgE testing for specific foods must be driven by a history of signs or symptoms consistent with an IgE-mediated reaction after eating a particular food. Ordering IgE testing in individuals who do not have a history consistent with or suggestive for food allergy based on history frequently reveals positive tests that are unlikely to be clinically relevant. Testing, when done, should be limited to suspected foods.</p>
+
+                                                    <p> The diagnostic utility of IgE testing for specific foods is optimal when a history compatible with or suggestive for the diagnosis of food allergy is present. In the absence of a compatible or suggestive history, the pre-test probability for a diagnosis of food allergy is low and a positive skin or in vitro IgE test does not establish a diagnosis of food allergy. Skin testing or serum testing for specific-IgE to food antigens has excellent sensitivity and high negative predictive value, but has low specificity and low positive predictive value.</p>
+
+                                                    <p> Considering that 50 to 90 percent of presumed cases of food allergy do not reflect IgE-mediated (allergic) pathogenesis and may instead reflect food intolerance or symptoms not causally associated with food consumption, ordering panels of food tests leads to many incorrectly identified food allergies and inappropriate recommendations to avoid foods that are positive on testing.</p>
+
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                                     <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <a data-toggle="collapse" data-parent="#accordion2" href="#collapse2-8">
+                                    <h4 class="sub-sub-panel panel-title">
+                                        <div class="row">
+                                            <div class="col-sm-1">
+                                               8
+                                            </div>
+                                            <div class="col-sm-11">
+                                               Don’t routinely order low- or iso-osmolar radiocontrast media or pretreat with corticosteroids and antihistamines for patients with a history of seafood allergy, who require radiocontrast media.
+
+
+                                            </div>
+
+
+                                        </div>
+                                    </h4>
+                                </a>
+                            </div>
+                                  <div id="collapse2-8" class="panel-collapse collapse">
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                                  <p>    Although the exact mechanism for contrast media reactions is unknown, there is no cause and effect connection with seafood allergy. Consequently there is no reason to use more expensive agents or pre-medication before using contrast media in patients with a history of seafood allergy. A prior history of anaphylaxis to contrast media is an indication to use low- or iso-osmolar agents and pretreat with corticosteroids and antihistamines.</p>
+
+                                                  <p>    Patients with a history of seafood allergy are not at elevated risk for anaphylaxis from iodinated contrast media. Similarly, patients who have hadanaphylaxis from contrast media should not be told that they are allergic to seafood.</p>
+
+                                                  <p>    Patients with a history of seafood allergy who are labeled as being at greater risk for adverse reaction from contrast infusions experience considerable morbidity from unnecessary precautions – including but not limited to denying them indicated roentgenographic procedures and adverse effects from pretreatment with antihistamine and/or corticosteroid medications.</p>
+
+                                                  <p>    Regardless of whether these patients truly have IgE-mediated allergies to seafood (crustacean), there is no evidence in the medical literature that indicates they are at elevated risk for anaphylaxis from contrast infusion compared with the history-negative general population.</p>
+
+                                                  <p>    In a random telephone survey of 5,529 households with a census of 14,948 individuals, seafood allergy was reported by 3.3 percent of survey respondents. According to current U.S. population estimates for 2013, this corresponds to 10,395,000 Americans.</p>
+
+                                                   <p>   The mechanism for anaphylaxis to radio-iodinated contrast media relates to the physiochemical properties of these media and is unrelated to its iodine content. Further, although delayed-type hypersensitivity (allergic contact dermatitis) reactions to iodine have rarely been reported, IgE-mediated reactions to iodine have not, and neither type of reaction would be related to IgE-mediated shellfish allergy nor to contrast media reactions. Patients with a history of prior anaphylaxis to contrast media are at elevated risk for anaphylactic reaction with re-exposure to contrast media.</p>
+
+                                                  <p>    Patients with asthma or cardiovascular disease, or who are taking beta blockers, are at increased risk for serious anaphylaxis from radiographic contrast media.</p>
+
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                                            <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <a data-toggle="collapse" data-parent="#accordion2" href="#collapse2-9">
+                                    <h4 class="sub-sub-panel panel-title">
+                                        <div class="row">
+                                            <div class="col-sm-1">
+                                             9
+                                            </div>
+                                            <div class="col-sm-11">
+                                              Don’t routinely avoid influenza vaccination in egg-allergic patients.
+
+                                            </div>
+
+
+                                        </div>
+                                    </h4>
+                                </a>
+                            </div>
+                                  <div id="collapse2-9" class="panel-collapse collapse">
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                                   <p> Of the vaccines that may contain egg protein (measles, mumps, rabies, influenza and yellow fever), measles, mumps and rabies vaccines have at most negligible egg protein; consequently no special precautions need to be followed in egg-allergic patients for these vaccines. Studies in egg-allergic patients receiving egg-based inactivated influenza vaccine have not reported reactions; consequently egg-allergic patients should be given either egg-free influenza vaccine or should receive egg-based influenza vaccine with a 30-minute post-vaccine observation period. Egg-allergic patients receiving the yellow fever vaccine should be skin tested with the vaccine and receive the vaccine with a 30-minute observation period if the skin test is negative. If positive, the vaccine may be given in graded doses with appropriate medical observation.</p>
+
+                                                   <p> Egg protein is present in influenza and yellow fever vaccines and in theory could cause reactions in egg-allergic patients. However, in 27 published studies collectively 4,172 patients with egg allergy received 4,729 doses of egg-based inactivated influenza vaccine (IIV) with no cases of anaphylaxis, including 513 with severe egg allergy who uneventfully received 597 doses. The CDC’s Advisory Committee on Immunization Practices recommends that egg-allergic persons receive IIV as a single dose without prior vaccine skin testing and be observed for 30 minutes afterwards for any possible allergic reaction. If the reaction to the ingestion of eggs was hives only, the vaccine can be administered in a primary care setting, whereas if the reaction to the ingestion of eggs was more severe, the vaccine should be administered in an allergist/immunologist’s office. Two new IIVs not grown in eggs have been approved for patients 18 years and older: Flucelvax, prepared from virus propagated in cell culture, and Flublok, recombinant hemagglutinin proteins produced in an insect cell line. For egg-allergic patients 18 years of age and older, either egg-based IIV can be used with the precautions above or egg-free IIV can be used.</p>
+
+                                                   <p> Measles and mumps vaccines (and Purified Chick Embryo Cell [PCEC] rabies vaccine) are grown in chick embryo fibroblast cultures and contain negligible or no egg protein. Thus, MMR and PCEC rabies vaccine can be administered to egg-allergic recipients in the usual manner.</p>
+
+                                                    <p>Per the Yellow Fever vaccine package insert, egg-allergic recipients should be skin tested with the vaccine prior to administration. If negative, the vaccine can be given in the usual manner, but the patient should be observed for 30 minutes afterward. If the vaccine skin test is positive, the vaccine can be given in graded doses under appropriate medical observation.</p>
+
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                                                 <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <a data-toggle="collapse" data-parent="#accordion2" href="#collapse2-10">
+                                    <h4 class="sub-sub-panel panel-title">
+                                        <div class="row">
+                                            <div class="col-sm-1">
+                                               10
+                                            </div>
+                                            <div class="col-sm-11">
+                                              Don’t overuse non-beta lactam antibiotics in patients with a history of penicillin allergy, without an appropriate evaluation.
+
+                                            </div>
+
+
+                                        </div>
+                                    </h4>
+                                </a>
+                            </div>
+                                  <div id="collapse2-10" class="panel-collapse collapse">
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                                       <p> While about 10 percent of the population reports a history of penicillin allergy, studies show that 90 percent on more of these patients are not allergic to penicillins and are able to take these antibiotics safely. The main reason for this observation is that penicillin allergy is often misdiagnosed and when present wanes over time in most (but not all) individuals. Patients labeled penicillin-allergic are more likely to be treated with alternative antibiotics (such as vancomycin and quinolones), have higher medical costs, experience longer hospital stays, and are more likely to develop complications such as infections with vancomycin-resistant enterococcus (VRE) and Clostridium difficile.</p>
+
+                                                       <p> Evaluation for specific IgE to penicillin can be carried out by skin testing. Ideally, penicillin skin testing should be performed with both major and minor determinants. The negative predictive value of penicillin skin testing for immediate reactions approaches 100 percent, whereas the positive predictive value is between 40 and 100 percent. The usefulness of in vitro tests for penicillin-specific IgE is limited by their uncertain predictive value. They are not suitable substitutes for penicillin skin testing.</p>
+
+                                                      <p>  By identifying the overwhelming majority of individuals who can safely receive penicillin and penicillin-like drugs, we can improve the appropriateness of antibiotic therapy and clinical care outcomes.</p>
+
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /row -->
+
+
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js">
+    </script>
+    <script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js">
+    </script>
+
+    <script src="js/bootstrapscript.js"></script>
+
+</body>
+
+</html>

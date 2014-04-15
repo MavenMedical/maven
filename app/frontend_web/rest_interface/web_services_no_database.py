@@ -70,6 +70,9 @@ alert_list = [
     {'id':7, 'patient':'4', 'type':4, 'date':'12/21/2013', 'action':''},
 ]
 
+with open('/usr/share/dict/words') as f:
+    words = [x.strip() for x in f.readlines()]
+
 def min_zero_normal(u,s):
     ret = int(random.normalvariate(u,s))
     if ret<0:
@@ -165,6 +168,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
 #        self.add_handler(['GET'], '/alert_details', self.get_alert_details)
         self.add_handler(['GET'], '/orders(?:/(\d+)-(\d+)?)?', self.get_orders)
 #        self.add_handler(['GET'], '/order_details', self.get_order_details)
+        self.add_handler(['GET'], '/autocomplete', self.get_autocomplete)
 
     def schedule(self, loop):
         HTTP.HTTPProcessor.schedule(self, loop)
@@ -173,6 +177,13 @@ class FrontendWebService(HTTP.HTTPProcessor):
     @asyncio.coroutine
     def get_stub(self, _header, _body, _qs, _matches, _key):
         return (HTTP.OK_RESPONSE, b'', None)
+
+    @asyncio.coroutine
+    def get_autocomplete(self, _header, _body, qs, _matches, _key):
+        global words
+        term = qs['term'][0]
+        res=itertools.islice(filter(lambda x: x.startswith(term), words),20)
+        return (HTTP.OK_RESPONSE, json.dumps(list(res)), None)
 
     @asyncio.coroutine
     def post_login(self, _header, body, _qs, _matches, _key):
