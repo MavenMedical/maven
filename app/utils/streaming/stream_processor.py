@@ -38,6 +38,8 @@ CONFIGVALUE_EXPLICIT = "explicit"
 CONFIGVALUE_IDENTITYPARSER = "identity"
 CONFIGVALUE_UNPICKLEPARSER = "unpickle"
 CONFIGVALUE_UNPICKLESTREAMPARSER = "unpicklestream"
+CONFIGVALUE_DISCONNECTRESTART = 'restart'
+CONFIGVALUE_DISCONNECTIGNORE = 'ignore'
 
 CONFIG_HOST = "host"
 CONFIG_PORT = "port"
@@ -47,10 +49,14 @@ CONFIG_DEFAULTWRITEKEY = "default writer key"
 CONFIG_QUEUE = "queue"
 CONFIG_EXCHANGE = "exchange"
 CONFIG_KEY = "key"
+CONFIG_ONDISCONNECT = 'disconnect'
 
 global _global_writers
 
 _global_writers = {}
+
+class StreamProcessorException(Exception):
+    pass
 
 class StreamProcessor():
     """ This is a basic stream processor class.  It implements several different stream protocols so that
@@ -207,15 +213,21 @@ class StreamProcessor():
         :param obj: the object to write on the output channel
         """
         if not port:
+            #print('writer key passed in as '+str(writer_key))
             if not writer_key:
                 writer_key = self.default_write_key
+                #print('set writer_key to '+str(writer_key))
             try:
                 w = self.writers[writer_key]
+                #print('set w to '+str(w))
             except KeyError:
+                #print('no such writer key in writers')
                 try:
                     w = _global_writers[writer_key]
+                    #print('set w = '+str(w))
                 except KeyError:
                     w = self.writers[None]
+                    #print('no such default, setting based on None: '+str(w))
             w.write_object(obj)
         else:
             return self.write_object_direct(obj, writer_key, port)
@@ -244,13 +256,11 @@ class StreamProcessor():
     def unregister_writer(self, key):
         if self.has_dynamic_writer:
             global _global_writers
-            try:
+            if not key == self.dynamic_writer:
                 #ML.DEBUG("removing "+str(key)+" from "+str(_global_writers))
                 _global_writers.pop(key).close()
-            except KeyError:
-                pass
-            #else:
-            #ML.DEBUG('no dynamic')
+            else:
+                _global_writers[key]._unregister()
 
     def close(self):
         """ closes the stream processor's reader and writer
@@ -264,8 +274,67 @@ class StreamProcessor():
 # Network Readers
 #############################
 
+class ReEstablishProtocol(asyncio.Protocol):
+    def __init__(self, loop, transport_cb, host=None, port=None, ssl=None, server_hostname=None,
+                 protocol_factory=None):
+        #print("initializing reestablish protocol")
+        self.host=host
+        self.port=port
+        self.ssl=ssl
+        self.server_hostname=server_hostname
+        self.loop = loop
+        self.transport_cb = transport_cb
+        self.protocol_factory = protocol_factory
+        self.reader=None
+
+    def factory(self):
+        if self.protocol_factory:
+            self.reader = self.protocol_factory(self.loop)()
+        return self
+
+    @asyncio.coroutine
+    def connect(self):
+        #print("in connect")
+        sleeptime=.1
+        while sleeptime:
+            try:
+                yield from self.loop.create_connection(self.factory, host=self.host, port=self.port,
+                                                       ssl = self.ssl, server_hostname = self.server_hostname)
+                sleeptime=0
+            except:
+                sleeptime = sleeptime * 2
+                if sleeptime > 2:
+                    sleeptime = 4
+                    #traceback.print_exc()
+                #print("trying again after sleeping for "+str(sleeptime))
+                yield from asyncio.sleep(sleeptime, self.loop)
+
+    def connection_made(self, transport):
+        #print("connecting made - registering it")
+        self.transport_cb(transport)
+        if self.reader:
+            self.reader.connection_made(transport)
+
+    def connection_lost(self, exc):
+        #print("connection lost")
+        if self.reader:
+            self.reader.connection_lost(exc)
+        self.reader = None
+        if self.transport_cb(None): # returns true iff the connection should start again
+            #print("scheduling an attempt to re-establish")
+            asyncio.Task(self.connect())
+
+    def data_received(self, data):
+        if self.reader:
+            self.reader.data_received(data)
+
+    def eof_received(self):
+        if self.reader:
+            self.reader.eof_received()
+
+
 class _SocketServerReader():
-    ### Starts a server to read data from a socket and pass it to the stream processor 
+    ### Starts a server to read data from a socket and pass it to the stream processor
 
     def __init__(self, configname, parser_factory_factory):
         # store initialization arguments, and look up the config map
@@ -280,17 +349,18 @@ class _SocketServerReader():
             self.port = config[CONFIG_PORT]
         except KeyError as e:
             raise MC.InvalidConfig("SocketReader "+configname+" missing parameter: "+e.args[0])
-        
+
     def schedule(self, loop):
         self.loop = loop
         # start a listening server which creates a new instance of the parser for each connection
-        self.server = asyncio.Task(loop.create_server(self.parser_factory_factory(loop), 
+        self.server = asyncio.Task(loop.create_server(self.parser_factory_factory(loop),
                                                       host=self.host, port=self.port), loop=loop)
         loop.run_until_complete(asyncio.sleep(.01))
         return self.server
 
     def close(self):
         self.server.cancel()
+
 
 class _SocketQueryReader():        
     def __init__(self, configname, parser_factory_factory):
@@ -303,18 +373,25 @@ class _SocketQueryReader():
         try:
             self.host = config.get(CONFIG_HOST,None)
             self.port = config[CONFIG_PORT]
+            self.ondisconnect = config.get(CONFIG_ONDISCONNECT, CONFIGVALUE_DISCONNECTIGNORE)
         except KeyError as e:
             raise MC.InvalidConfig("SocketReader "+configname+" missing parameter: "+e.args[0])
+        self.closed=False
 
     def schedule(self, loop):
         self.loop = loop
         # start a listening server which creates a new instance of the parser for each connection
-        self.server = asyncio.Task(loop.create_connection(self.parser_factory_factory(loop), 
-                                                      host=self.host, port=self.port), loop=loop)
+        protocol = ReEstablishProtocol(loop, self.set_transport, host=self.host, port=self.port,
+                                       protocol_factory = self.parser_factory_factory)
+        self.server = asyncio.Task(protocol.connect())
         loop.run_until_complete(asyncio.sleep(.01))
         return self.server
 
+    def set_transport(self, transport):
+        return self.ondisconnect == CONFIGVALUE_DISCONNECTRESTART and not self.closed
+
     def close(self):
+        self.closed=True
         self.server.cancel()
         
 
@@ -524,6 +601,7 @@ class _BaseWriter():
         try:
             self.config = MC.MavenConfig[configname]
             self.writer_key = self.config.get(CONFIG_WRITERKEY, None)
+            self.ondisconnect = self.config.get(CONFIG_ONDISCONNECT,CONFIGVALUE_DISCONNECTIGNORE)
         except:
             if require_config:
                 raise MC.InvalidConfig("some real error")
@@ -536,6 +614,9 @@ class _BaseWriter():
     def write_object(self, obj, host, port):
         raise NotImplemented()
 
+    def _unregister(self):
+        pass
+
 class _SocketClientWriter(_BaseWriter):
     # Connects to a remote server over a socket to write its data
 
@@ -546,20 +627,30 @@ class _SocketClientWriter(_BaseWriter):
             self.host = self.config[CONFIG_HOST]
             self.port = self.config[CONFIG_PORT]
             self.writer_key = self.config.get(CONFIG_WRITERKEY, None)
+            self.ondiconnect = self.config.get(CONFIG_ONDISCONNECT, CONFIGVALUE_DISCONNECTIGNORE)
         except KeyError as e:
             raise MC.InvalidConfig("SocketReader "+configname+" missing parameter: "+e.args[0])        
-        
+        self.closed=False
+        self.transport=None
+
     def write_object(self, obj):
-        self.socket.sendall(obj)
+        if self.transport:
+            self.transport.write(obj)
+        else:
+            raise StreamProcessorException("no transport active to write on")
 
     def schedule(self, loop):
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.connect((self.host, self.port))
-        self.socket.setblocking(False)
+        self.loop=loop
+        protocol = ReEstablishProtocol(loop, self.set_transport, host=self.host, port=self.port)
+        asyncio.Task(protocol.connect())
+
+    def set_transport(self, transport):
+        self.transport = transport
+        return self.ondisconnect == CONFIGVALUE_DISCONNECTRESTART and not self.closed
 
     def close(self):
-        self.socket.close()
-
+        self.closed=True
+        self.transport.close()
 
 class _SocketReplyWriter(_BaseWriter):
 
@@ -586,7 +677,7 @@ class _SocketReplyWriter(_BaseWriter):
         ML.DEBUG(('writing object %s: ' % self.writer_key)+str(obj))
         if not self.transport:
             #if not self.last_writer:
-            raise Exception("SocketReplyWriter needs a socket to reply on!")
+            raise StreamProcessorException("SocketReplyWriter needs a socket to reply on!")
             #else:
             #    self.last_writer.write_object(obj)
         else:
@@ -604,9 +695,9 @@ class _SocketReplyWriter(_BaseWriter):
         return self.last_writer
 
 class _SocketQueryWriter(_BaseWriter):
-    def __init__(self, configname, socket=None):
+    def __init__(self, configname):
         _BaseWriter.__init__(self, configname)
-        self.socket = None
+        self.transport = None
         global _global_writers
         _global_writers[self.writer_key] = self
 
@@ -614,17 +705,20 @@ class _SocketQueryWriter(_BaseWriter):
         pass
 
     def write_object(self, obj):
-        if not self.socket:
+        if not self.transport:
             raise Exception("SocketReplyWriter needs a socket to reply on!")
-        self.socket.sendall(obj)
+        self.transport.write(obj)
         
     def close(self):
+        self.transport = None
         pass
 
     def _register_new(self, obj):
-        self.socket = obj.get_extra_info('socket')
+        self.transport = obj
         return None
-        
+
+    def _unregister(self):
+        self.transport = None
 
 class _RabbitWriter(_BaseWriter):
     def __init__(self, configname):
@@ -636,7 +730,7 @@ class _RabbitWriter(_BaseWriter):
             self.incoming_key = self.config[CONFIG_KEY]
             self.writer_key = self.config.get(CONFIG_WRITERKEY, None)
         except KeyError as e:
-            raise MC.InvalidConfig("SocketReader "+configname+" missing parameter: "+e.args[0])
+            raise MC.InvalidConfig("RabbitWriter "+configname+" missing parameter: "+e.args[0])
 
     def schedule(self, loop):
         try:
