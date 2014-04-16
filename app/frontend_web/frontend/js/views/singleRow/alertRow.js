@@ -34,7 +34,7 @@ define([
         },
         showEvidence:function(){
            console.log('#evidence'+currentContext.get('alert'));
-            //jQuery.noConflict();
+            jQuery.noConflict();
             $('#evidence'+currentContext.get('alert')).modal();
         },
         handleClick: function(){
