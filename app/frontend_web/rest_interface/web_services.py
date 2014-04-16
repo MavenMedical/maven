@@ -159,6 +159,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         self.add_handler(['GET'], '/spending_details', self.get_spending_details)
         self.add_handler(['GET'], '/alerts(?:/(\d+)-(\d+)?)?', self.get_alerts)
         self.add_handler(['GET'], '/orders(?:/(\d+)-(\d+)?)?', self.get_orders)
+        self.add_handler(['GET'], '/autocomplete', self.get_autocomplete)
         self.db = AsyncConnectionPool(db_configname)
 
     def schedule(self, loop):
@@ -169,6 +170,10 @@ class FrontendWebService(HTTP.HTTPProcessor):
     @asyncio.coroutine
     def get_stub(self, _header, _body, _qs, _matches, _key):
         return (HTTP.OK_RESPONSE, b'', None)
+
+    @asyncio.coroutine
+    def get_autocomplete(self, _header, _body, qs, _matches, _key):
+        return (HTTP.OK_RESPONSE, json.dumps(['Maven']),None)
 
     @asyncio.coroutine
     def post_login(self, _header, body, _qs, _matches, _key):
