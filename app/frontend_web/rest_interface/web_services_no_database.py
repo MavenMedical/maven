@@ -16,7 +16,7 @@ import random
 import itertools
 
 import utils.streaming.stream_processor as SP
-import app.utils.streaming.http_responder as HTTP
+import utils.streaming.http_responder as HTTP
 import asyncio
 
 import utils.crypto.authorization_key as AK
