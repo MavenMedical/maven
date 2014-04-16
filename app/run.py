@@ -18,15 +18,15 @@ import asyncio
 
 import backend as maven_backend
 #import frontend_web as maven_frontend
-#from app.backend.module_webservice.data_router import MavenWebservicesServer
+#from app.backend.webservices.data_router import MavenWebservicesServer
 #from app.backend.data_router import Emitter as emitter
 from werkzeug.contrib.fixers import ProxyFix
 from concurrent.futures import ProcessPoolExecutor
 #from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import Process
-from app.backend.module_webservice import data_router as DR
+from app.backend.webservices import data_router as DR
 from clientApp.module_webservice import client_server as CS
-#from app.backend.module_webservice.data_router import MavenWebservicesServer as services
+#from app.backend.webservices.data_router import MavenWebservicesServer as services
 
 
 

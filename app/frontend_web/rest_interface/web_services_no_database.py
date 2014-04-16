@@ -11,17 +11,18 @@ __author__='Tom DuBois'
 #************************
 #*************************************************************************
 
-import app.utils.streaming.stream_processor as SP
-import app.utils.streaming.http_responder as HTTP
-import app.utils.crypto.authorization_key as AK
-import asyncio
 import json
 import random
+import itertools
+
+import utils.streaming.stream_processor as SP
+import utils.streaming.http_responder as HTTP
+import asyncio
+
+import utils.crypto.authorization_key as AK
 import maven_logging as ML
 import maven_config as MC
-import itertools
-import traceback
-import time
+
 
 CONTEXT_USER = 'user'
 CONTEXT_PROVIDER = 'provider'

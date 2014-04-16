@@ -16,17 +16,17 @@ __author__='Yuki Uchino'
 #************************
 #LAST MODIFIED FOR JIRA ISSUE: MAV-65
 #*************************************************************************
-import app.utils.streaming.stream_processor as SP
-import app.utils.streaming.http_responder as HR
-import maven_config as MC
-import maven_logging as ML
-import asyncio
 import json
 import argparse
-from clientApp.module_webservice.emr_parser import VistaParser
-import clientApp.api.api as api
 import pickle
 import urllib
+import utils.streaming.stream_processor as SP
+import asyncio
+import utils.streaming.http_responder as HR
+import maven_config as MC
+import maven_logging as ML
+from clientApp.module_webservice.emr_parser import VistaParser
+import utils.api.api as api
 
 
 #ARGS.add_argument(

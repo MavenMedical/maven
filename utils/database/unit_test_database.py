@@ -11,10 +11,13 @@
 #  Last Modified: FOR JIRA ISSUE: MAV-70 Wednesday February 26th
 #####################################################################################################
 
-import asyncio
-from app.utils.database.database import AsyncConnectionPool,SingleThreadedConnection, MappingUtilites
-import maven_config as MC
 import unittest
+
+import asyncio
+
+from utils.database.database import AsyncConnectionPool,SingleThreadedConnection, MappingUtilites
+import maven_config as MC
+
 
 global multiple
 multiple = False

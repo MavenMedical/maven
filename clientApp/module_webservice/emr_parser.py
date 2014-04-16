@@ -18,11 +18,11 @@ __author__='Yuki Uchino'
 #*************************************************************************
 import xml.etree.ElementTree as ET
 import datetime
-import maven_config as MC
-import json
-import clientApp.api.api as api
 import uuid
+
 import dateutil.parser
+
+import utils.api.api as api
 
 
 class EpicParser():

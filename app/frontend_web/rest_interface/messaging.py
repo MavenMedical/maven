@@ -11,13 +11,16 @@ __author__='Tom DuBois'
 #************************
 #*************************************************************************
 
+import json
+
 import app.utils.streaming.stream_processor as SP
-import app.utils.streaming.http_responder as HTTP
 import asyncio
 import asyncio.queues
-import json
+
+import utils.streaming.http_responder as HTTP
 import maven_logging as ML
 import maven_config as MC
+
 
 class MessagingWebService(HTTP.HTTPProcessor):
     

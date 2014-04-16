@@ -1,5 +1,5 @@
-import clientApp.api.cliConfig as cliConfig
-import clientApp.api.cliPatient as cliPatient
+import utils.api.cliConfig as cliConfig
+import utils.api.cliPatient as cliPatient
 from maven_logging import PRINT
 
 __author__ = 'dave'

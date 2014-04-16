@@ -1,0 +1,232 @@
+<Order>
+<AuthorizingProviderIDs xmlns:a="urn:Epic-com:Scheduling.2012.Services.Patient">
+<a:IDType>
+<a:ID> 801468</a:ID>
+<a:Type>Internal</a:Type>
+</a:IDType>
+</AuthorizingProviderIDs>
+<AuthorizingProviderName>BACH, JOSH</AuthorizingProviderName>
+<Class>Normal</Class>
+<Comments xmlns:a="http://schemas.microsoft.com/2003/10/Serialization/Arrays"></Comments>
+<DepartmentIDs xmlns:a="urn:Epic-com:Scheduling.2012.Services.Patient">
+<a:IDType>
+<a:ID>900500</a:ID>
+<a:Type>Internal</a:Type>
+</a:IDType>
+</DepartmentIDs>
+<DepartmentName>SPORTS MEDICINE</DepartmentName>
+<Diagnoses>
+<RecordNameIDs>
+<IDs xmlns:a="urn:Epic-com:Scheduling.2012.Services.Patient">
+<a:IDType>
+<a:ID>15633</a:ID>
+<a:Type>Internal</a:Type>
+</a:IDType>
+</IDs>
+<Name>Sepsis</Name>
+</RecordNameIDs>
+</Diagnoses>
+<EncounterProviderIDs xmlns:a="urn:Epic-com:Scheduling.2012.Services.Patient">
+<a:IDType>
+<a:ID> 900500</a:ID>
+<a:Type>Internal</a:Type>
+</a:IDType>
+</EncounterProviderIDs>
+<EncounterProviderName>ALEXANDER, CRAIG</EncounterProviderName>
+<ExpectedDate>7/21/2012</ExpectedDate>
+<ExpirationDate>7/21/2014</ExpirationDate>
+<IDs xmlns:a="urn:Epic-com:Scheduling.2012.Services.Patient">
+<a:IDType>
+<a:ID>7019528</a:ID>
+<a:Type>Internal</a:Type>
+</a:IDType>
+</IDs>
+<OrderingDate>7/20/2012</OrderingDate>
+<OrderingProviderIDs i:nil="true" xmlns:a="urn:Epic-com:Scheduling.2012.Services.Patient"></OrderingProviderIDs>
+<OrderingProviderName i:nil="true"></OrderingProviderName>
+<OrderingUserIDs xmlns:a="urn:Epic-com:Scheduling.2012.Services.Patient">
+<a:IDType>
+<a:ID> 5935</a:ID>
+<a:Type>Internal</a:Type>
+</a:IDType>
+</OrderingUserIDs>
+<OrderingUserName>BACH, JOSH</OrderingUserName>
+<OriginalChildCount>1</OriginalChildCount>
+<Priority>Routine</Priority>
+<ProcedureCategoryIDs xmlns:a="urn:Epic-com:Scheduling.2012.Services.Patient">
+<a:IDType>
+<a:ID> 2</a:ID>
+<a:Type>Internal</a:Type>
+</a:IDType>
+</ProcedureCategoryIDs>
+<ProcedureCategoryName>MEDICAL IMAGING</ProcedureCategoryName>
+<ProcedureIDs xmlns:a="urn:Epic-com:Scheduling.2012.Services.Patient">
+<a:IDType>
+<a:ID>900601</a:ID>
+<a:Type>Internal</a:Type>
+</a:IDType>
+</ProcedureIDs>
+<ProcedureName>JJB BLOOD DRAW A</ProcedureName>
+<ReferringProviderIDs xmlns:a="urn:Epic-com:Scheduling.2012.Services.Patient">
+<a:IDType>
+<a:ID> 801468</a:ID>
+<a:Type>Internal</a:Type>
+</a:IDType>
+</ReferringProviderIDs>
+<ReferringProviderName>BACH, JOSH</ReferringProviderName>
+<SchedulingInstructions xmlns:a="http://schemas.microsoft.com/2003/10/Serialization/Arrays"></SchedulingInstructions>
+<SchedulingNotes xmlns:a="http://schemas.microsoft.com/2003/10/Serialization/Arrays"></SchedulingNotes>
+<StandingStatus>Future</StandingStatus>
+<Status i:nil="true"></Status>
+<UnreleasedChildCount>1</UnreleasedChildCount>
+<VisitTypes>
+<VisitType>
+<IDs xmlns:a="urn:Epic-com:Scheduling.2012.Services.Patient">
+<a:IDType>
+<a:ID> 121332</a:ID>
+<a:Type>Internal</a:Type>
+</a:IDType>
+</IDs>
+<IsPanel>false</IsPanel>
+<Name>BLOOD DRAW</Name>
+</VisitType>
+<VisitType>
+<IDs xmlns:a="urn:Epic-com:Scheduling.2012.Services.Patient">
+<a:IDType>
+<a:ID> 121333</a:ID>
+<a:Type>Internal</a:Type>
+</a:IDType>
+</IDs>
+<IsPanel>false</IsPanel>
+<Name>BLOOD DRAW</Name>
+</VisitType>
+</VisitTypes>
+</Order>
+
+
+
+CREATE TABLE evidence
+(
+  evidence_id serial,
+  customer_id numeric(18,0),
+  pat_id character varying(100),
+  encounter_id character varying(100),
+  prov_id character varying(18),
+  event_type character varying(25),
+  event_time timestamp without time zone,
+  dep_id numeric(18,0),
+  room_id character varying(25)
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE adt
+  OWNER TO postgres;
+
+-- Index: ixadtevent
+
+-- DROP INDEX ixadtevent;
+
+CREATE INDEX ixadtevent
+  ON adt
+  USING btree
+  (event_id COLLATE pg_catalog."default", customer_id);
+
+-- Index: ixadtpatient
+
+-- DROP INDEX ixadtpatient;
+
+CREATE INDEX ixadtpatient
+  ON adt
+  USING btree
+  (pat_id COLLATE pg_catalog."default", customer_id);
+
+
+
+CREATE INDEX ixadtevent
+  ON adt
+  USING btree
+  (event_id COLLATE pg_catalog."default", customer_id);
+
+
+CREATE INDEX ixadtpatient
+  ON adt
+  USING btree
+  (pat_id COLLATE pg_catalog."default", customer_id);
+
+
+CREATE TABLE alerts
+(
+  alert_id serial PRIMARY KEY,
+  customer_id numeric(18,0),
+  encounter_id character varying(100) NOT NULL,
+  sleuth_rule integer,
+  pat_id character varying(100) NOT NULL,
+  prov_id character varying(18) NOT NULL,
+  alert_type character varying(25),
+  alert_date timestamp without time zone NOT NULL,
+  orderable character varying(128),
+  short_title character varying(25),
+  title character varying(100),
+  msg character varying(300),
+  action character varying(128),
+  outcome character varying(128)
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE alerts
+  OWNER TO maven;
+
+-- Index: ixalert
+
+-- DROP INDEX ixalert;
+
+CREATE INDEX ixalert
+  ON alerts
+  USING btree
+  (alert_id);
+
+-- Index: ixdepartment
+
+-- DROP INDEX ixdepartment;
+
+CREATE INDEX ixdepartment
+  ON alerts
+  USING btree
+  (dep, customer_id);
+
+-- Index: ixencounter_date
+
+-- DROP INDEX ixencounter_date;
+
+CREATE INDEX ixencounter_date
+  ON alerts
+  USING btree
+  (encounter_date);
+
+-- Index: ixpatient
+
+-- DROP INDEX ixpatient;
+
+CREATE INDEX ixpatient
+  ON alerts
+  USING btree
+  (pat_id COLLATE pg_catalog."default", customer_id);
+
+-- Index: ixprovider
+
+-- DROP INDEX ixprovider;
+
+CREATE INDEX ixprovider
+  ON alerts
+  USING btree
+  (prov_id COLLATE pg_catalog."default", customer_id);
+
+
+POST /api HTTP/1.0\r\nHost: demo.mavenmedical.net\r\nX-Real-IP: 172.31.21.251\r\nX-Forwarded-For: 172.8.207.66, 172.31.21.251\r\nConnection: close\r\nContent-Length: 1021\r\nAccept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2\r\nContent-Type: application/POST\r\nUser-Agent: Java/1.7.0_51\r\nX-Forwarded-Port: 80\r\nX-Forwarded-Proto: http\r\n\r\n<Encounter><EncID>10|76|3140410</EncID><GetPatientDemographicsResult><PatientID>10</PatientID><PatientIDType>internal</PatientIDType><Address><City></City><Country></Country><County></County><State></State><Street></Street><Zip></Zip></Address><DateOfBirth>02/02/2003</DateOfBirth><Gender>MALE</Gender><MaritalStatus></MaritalStatus><Name><FirstName>DAVID</FirstName><LastName>SMITH</LastName><MaidenName></MaidenName><MiddleName></MiddleName><Nickname></Nickname><Suffix></Suffix><Title></Title></Name><NationalIdentifier>787654454</NationalIdentifier><Phones></Phones><Race></Race><Religion></Religion></GetPatientDemographicsResult> <Orders><Order><ID>145</ID><ProcedureCode>5</ProcedureCode><CodeType>maven</CodeType><ExpectedDate>APR 10, 2014@10:46</ExpectedDate><OrderingDate>APR 10, 2014@10:46</OrderingDate><ExpiredDate></ExpiredDate><Name>ACETAMINOPHEN 325MG TAB </Name><Type>PROC</Type></Order></Orders> <GetActiveProblemsResult><ErrorCode></ErrorCode><Problems></Problems></GetActiveProblemsResult></Encounter>
+
+
+select isicd9child(60192008,'629.89');
+select isicd9child(3754002,'629.89');
+2526004 --> 3754002

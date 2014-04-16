@@ -15,8 +15,10 @@
 ##############################################################################
 
 import asyncio
+
 import maven_config as MC
-import app.utils.streaming.stream_processor as SP
+import utils.streaming.stream_processor as SP
+
 
 rabbittestproducername = 'test producer rabbit'
 rabbittestconsumername = 'test consumer rabbit'

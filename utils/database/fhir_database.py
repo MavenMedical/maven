@@ -6,7 +6,7 @@ __author__='Yuki Uchino'
 #************************
 #DESCRIPTION:   This fhir_database.py module contains the classes required to update the
 #               SQL database from FHIR objects, as well as convert database records into
-#               FHIR objects for transfer
+#               FHIR objects.
 #
 #
 #************************
@@ -16,16 +16,10 @@ __author__='Yuki Uchino'
 #************************
 #LAST MODIFIED FOR JIRA ISSUE: MAV-96
 #*************************************************************************
-import app.backend.module_rule_engine.base_evaluator as BE
-import app.utils.streaming.stream_processor as SP
-from app.utils.database.database import AsyncConnectionPool,SingleThreadedConnection, MappingUtilites
-import maven_config as MC
-import asyncio
 import json
-import pickle
-import clientApp.api.api as api
-import maven_logging as ML
 import datetime
+
+import utils.api.api as api
 
 
 class PostgresFHIR():
