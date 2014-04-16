@@ -1,71 +1,73 @@
 #*************************************************************************
 #Copyright (c) 2014 - Maven Medical
+#
 #************************
 #AUTHOR:
 __author__='Yuki Uchino'
 #************************
-#DESCRIPTION:   This composition_evaluator.py contains the classes required to process a
-#               FHIR Composition object through Maven Sleuth Rule Engine.
-#
-#
+#DESCRIPTION:   This python file acts to analyze the cost of orderables that were delivered via message
+#               from an EMR.
 #
 #************************
-#ASSUMES:
+#ASSUMES:       XML format that is described in the Unit Test for the clientApp api.
 #************************
 #SIDE EFFECTS:
 #************************
-#LAST MODIFIED FOR JIRA ISSUE: MAV-96
+#LAST MODIFIED FOR JIRA ISSUE: MAV-1
 #*************************************************************************
-from app.backend.module_RE.base_evaluator import BaseEvaluator as BE
-import asyncio
-import app.utils.streaming.stream_processor as SP
-from app.utils.database.database import AsyncConnectionPool,SingleThreadedConnection, MappingUtilites
-import maven_config as MC
-import maven_logging as ML
+
 import pickle
-from clientApp.api.api import Composition
+
+from utils.database.database import SingleThreadedConnection
+import asyncio
+
+import utils.streaming.stream_processor as SP
+from utils.database.fhir_database import PostgresFHIR
+import maven_config as MC
+import utils.api.api as api
 
 
-class CompositionEvaluator(SP.StreamProcessor):
+class CostEvaluator(SP.StreamProcessor):
 
     def __init__(self, configname):
         SP.StreamProcessor.__init__(self, configname)
-        self.conn = AsyncConnectionPool('EvaluatorConnectionPool')
+        self.conn = SingleThreadedConnection('CostEvalConnection')
+        self.PF = PostgresFHIR()
+
 
     @asyncio.coroutine
     def read_object(self, obj, _):
         composition = pickle.loads(obj)
-        rules = yield from self.get_matching_sleuth_rules(composition)
-        ML.PRINT("Herro")
+        self.evaluate_orders(composition)
+        self.PF.write_composition_to_db(composition, self.conn)
+        self.write_object(composition, writer_key='aggregate')
 
-    @asyncio.coroutine
-    def get_matching_sleuth_rules(self, composition):
+    def evaluate_orders(self, composition):
+        """
+        Takes a FHIR Composition object, iterates through the Orders found in the "Encounter Orders"
+        Composition.section object, checks the costmap table for the cost-look-up, and then adds a
+        NEW section to Composition.section labeled "Encounter Cost Breakdown," which is a list of
+        {"order name": 807.13} tuples with order name and the price.
+
+        :param composition: FHIR Composition object created using Maven's FHIR API
+        """
+        encounter_cost_breakdown = []
+
         orders = composition.get_encounter_orders()
-        customer_id = composition.customer_id
-        applicable_sleuth_rules = []
-        DBMapper = MappingUtilites()
         for order in orders:
+            order.totalCost = 0.00
             order_details = composition.get_proc_supply_details(order)
 
             for detail in order_details:
-                column_map = ["sleuth_rule.rule_details"]
-                columns = DBMapper.select_rows_from_map(column_map)
-                cur = yield from self.conn.execute_single("select %s from sleuth_rule where cpt_trigger='%s' and customer_id=%s" % (columns, detail[0], customer_id))
+                cur = self.conn.execute("select cost_amt from costmap where billing_code='%s'" % detail[0])
                 for result in cur:
-                    applicable_sleuth_rules.append(result)
+                    order.totalCost += float(result[0])
+                    encounter_cost_breakdown.append([detail[1], float(result[0])])
 
-        return applicable_sleuth_rules
-
-    @asyncio.coroutine
-    def evaluate_object(self, composition):
-        raise NotImplementedError
+        composition.section.append(api.Section(title="Encounter Cost Breakdown", content=encounter_cost_breakdown))
 
 
-    def evaluator_response(self, obj, response):
-        raise NotImplementedError
-
-
-def run_composition_evaluator():
+def run_cost_evaluator():
 
     rabbithandler = 'rabbitmessagehandler'
     MavenConfig = {
@@ -103,18 +105,19 @@ def run_composition_evaluator():
             SP.CONFIG_KEY:'logging',
             SP.CONFIG_WRITERKEY:'logging',
         },
-        'EvaluatorConnectionPool': {
-            AsyncConnectionPool.CONFIG_CONNECTION_STRING:
-            ("dbname=%s user=%s password=%s host=%s port=%s" % ('maven', 'maven', 'temporary', 'localhost', '5432')),
-            AsyncConnectionPool.CONFIG_MIN_CONNECTIONS: 2,
-            AsyncConnectionPool.CONFIG_MAX_CONNECTIONS: 4
+        'CostEvalConnection': {
+            SingleThreadedConnection.CONFIG_CONNECTION_STRING:
+            ("dbname=%s user=%s password=%s host=%s port=%s" % ('maven', 'maven', 'temporary', MC.dbhost, '5432')),
+
+            #AsyncConnectionPool.CONFIG_MIN_CONNECTIONS: 2,
+            #AsyncConnectionPool.CONFIG_MAX_CONNECTIONS: 4
         },
     }
 
     MC.MavenConfig = MavenConfig
 
     loop = asyncio.get_event_loop()
-    sp_message_handler = CompositionEvaluator(rabbithandler)
+    sp_message_handler = CostEvaluator(rabbithandler)
     sp_message_handler.schedule(loop)
 
     try:
@@ -125,4 +128,4 @@ def run_composition_evaluator():
         loop.close()
 
 if __name__ == '__main__':
-    run_composition_evaluator()
+    run_cost_evaluator()

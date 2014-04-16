@@ -11,22 +11,19 @@ __author__='Tom DuBois'
 #************************
 #*************************************************************************
 
-from app.utils.database.database import AsyncConnectionPool
-from app.utils.database.database import MappingUtilites as DBMapUtils
-import app.utils.streaming.stream_processor as SP
-import app.utils.streaming.http_responder as HTTP
-import app.utils.crypto.authorization_key as AK
-import asyncio
 import json
 import random
+import itertools
+from utils.database.database import AsyncConnectionPool
+from utils.database.database import MappingUtilites as DBMapUtils
+import utils.streaming.stream_processor as SP
+import utils.streaming.http_responder as HTTP
+import asyncio
+import dateutil.parser as prsr
+import utils.crypto.authorization_key as AK
 import maven_logging as ML
 import maven_config as MC
-import itertools
-import traceback
-import psycopg2.extras
-import datetime
-import dateutil.parser as prsr
-import time
+
 
 CONFIG_DATABASE = 'database'
 

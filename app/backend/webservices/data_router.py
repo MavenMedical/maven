@@ -14,17 +14,14 @@ __author__='Yuki Uchino'
 #************************
 #LAST MODIFIED FOR JIRA ISSUE: MAV-1
 #*************************************************************************
-from app.utils.streaming import stream_processor as SP
-import maven_config as MC
-import maven_logging as ML
-import asyncio
 import argparse
 import json
 import pickle
-import clientApp.api.api as api
-import app.utils.crypto.authorization_key as AK
-
-
+from utils.streaming import stream_processor as SP
+import asyncio
+import maven_config as MC
+import utils.api.api as api
+import utils.crypto.authorization_key as AK
 ARGS = argparse.ArgumentParser(description='Maven Client Receiver Configs.')
 ARGS.add_argument(
     '--emr', action='store', dest='emr',

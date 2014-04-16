@@ -222,6 +222,9 @@ class Composition(Resource):
 
         return problem_list
 
+    def get_encounter_meds(self):
+        raise NotImplementedError
+
 
 class Patient(Resource):
     """

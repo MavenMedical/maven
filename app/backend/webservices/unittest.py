@@ -16,7 +16,7 @@ __author__='Yuki Uchino'
 #*************************************************************************
 import asyncio
 #from app.backend.data_router import Receiver
-#import app.backend.module_webservice.receiver as receiver
+#import app.backend.webservices.receiver as receiver
 
 
 class EchoClient(asyncio.Protocol):
