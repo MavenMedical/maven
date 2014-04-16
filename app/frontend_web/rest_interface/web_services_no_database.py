@@ -15,7 +15,7 @@ import json
 import random
 import itertools
 
-import app.utils.streaming.stream_processor as SP
+import utils.streaming.stream_processor as SP
 import app.utils.streaming.http_responder as HTTP
 import asyncio
 
