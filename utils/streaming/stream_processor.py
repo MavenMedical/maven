@@ -258,7 +258,10 @@ class StreamProcessor():
             global _global_writers
             if not key == self.dynamic_writer:
                 #ML.DEBUG("removing "+str(key)+" from "+str(_global_writers))
-                _global_writers.pop(key).close()
+                try:
+                    _global_writers.pop(key).close()
+                except KeyError:
+                    pass
             else:
                 _global_writers[key]._unregister()
 

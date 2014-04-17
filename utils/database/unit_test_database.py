@@ -32,7 +32,7 @@ class TestAsyncDatabase(unittest.TestCase):
         """
         global multiple
 
-        yield from conn.execute_and_close_single('drop table TomTest'+ident)
+        yield from conn.execute_and_close_single('drop table if exists TomTest'+ident)
         yield from conn.execute_and_close_single('create table TomTest'+ident
                                           +' (id serial PRIMARY KEY, num integer, data varchar);')
         rows = []
@@ -169,6 +169,9 @@ MC.MavenConfig = {
             ("dbname=%s user=%s password=%s host=%s port=%s" % ('maven', 'maven', 'temporary', 'localhost', '5432'))
     }
 }
+
+tab = TestAsyncDatabase()
+tab.test_async_main()
 
 
 #########
