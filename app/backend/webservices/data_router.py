@@ -14,20 +14,14 @@ __author__='Yuki Uchino'
 #************************
 #LAST MODIFIED FOR JIRA ISSUE: MAV-1
 #*************************************************************************
-from app.utils.streaming import stream_processor as SP
-from xml.etree import ElementTree as ET
-import maven_config as MC
-import maven_logging as ML
-import asyncio
-import uuid
 import argparse
 import json
-from app.backend.module_rule_engine import order_object as OO
 import pickle
-import clientApp.api.api as api
-import app.utils.crypto.authorization_key as AK
-
-
+from utils.streaming import stream_processor as SP
+import asyncio
+import maven_config as MC
+import utils.api.api as api
+import utils.crypto.authorization_key as AK
 ARGS = argparse.ArgumentParser(description='Maven Client Receiver Configs.')
 ARGS.add_argument(
     '--emr', action='store', dest='emr',
@@ -60,7 +54,6 @@ class OutgoingMessageHandler(SP.StreamProcessor):
 
     @asyncio.coroutine
     def read_object(self, obj, _):
-        #json_composition = json.dumps(obj, default=api.jdefault, indent=4).encode()
         obj.user = 'JHU1093124'
         obj.userAuth = AK.authorization_key(obj.user, 44, 60*60)
         self.write_object(pickle.dumps(obj), writer_key=obj.maven_route_key[1])

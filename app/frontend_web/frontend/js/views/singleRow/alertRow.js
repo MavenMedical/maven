@@ -28,15 +28,14 @@ define([
             'click span': 'showEvidence'
         },
         render: function(){
-            console.log('alert row render');
             console.log(this.model.toJSON());
             $(this.el).html(this.template(this.model.toJSON()));
             return this;
         },
         showEvidence:function(){
-           console.log('#evidence-'+currentContext.get('alert'));
-            //jQuery.noConflict();
-            $('#evidence-' + currentContext.get('alert')).modal();
+           console.log('#evidence'+currentContext.get('alert'));
+            jQuery.noConflict();
+            $('#evidence'+currentContext.get('alert')).modal();
         },
         handleClick: function(){
             currentContext.set({alert : this.model.get('id')});

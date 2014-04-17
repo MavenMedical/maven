@@ -11,10 +11,13 @@
 #  Last Modified: FOR JIRA ISSUE: MAV-70 Wednesday February 26th
 #####################################################################################################
 
-import asyncio
-from app.utils.database.database import AsyncConnectionPool,SingleThreadedConnection, MappingUtilites
-import maven_config as MC
 import unittest
+
+import asyncio
+
+from utils.database.database import AsyncConnectionPool,SingleThreadedConnection, MappingUtilites
+import maven_config as MC
+
 
 global multiple
 multiple = False
@@ -29,7 +32,7 @@ class TestAsyncDatabase(unittest.TestCase):
         """
         global multiple
 
-        yield from conn.execute_and_close_single('drop table TomTest'+ident)
+        yield from conn.execute_and_close_single('drop table if exists TomTest'+ident)
         yield from conn.execute_and_close_single('create table TomTest'+ident
                                           +' (id serial PRIMARY KEY, num integer, data varchar);')
         rows = []
@@ -166,6 +169,9 @@ MC.MavenConfig = {
             ("dbname=%s user=%s password=%s host=%s port=%s" % ('maven', 'maven', 'temporary', 'localhost', '5432'))
     }
 }
+
+tab = TestAsyncDatabase()
+tab.test_async_main()
 
 
 #########

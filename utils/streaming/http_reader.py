@@ -13,15 +13,18 @@
 #  Last Modified: 
 ##############################################################################
 
-import asyncio
-import maven_config as MC
-import maven_logging as ML
-import app.utils.streaming.stream_processor as SP
-from http_parser.parser import HttpParser
 import urllib.parse
 import json
 import traceback
 import re
+
+import asyncio
+from http_parser.parser import HttpParser
+
+import maven_config as MC
+import maven_logging as ML
+import utils.streaming.stream_processor as SP
+
 
 CONFIGVALUE_HTTPPARSER = 'http parser'
 

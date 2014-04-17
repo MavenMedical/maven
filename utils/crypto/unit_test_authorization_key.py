@@ -1,6 +1,8 @@
-import app.utils.crypto.authorization_key as AK
 import time
+
+import utils.crypto.authorization_key as AK
 import maven_logging as ML
+
 
 user = 'tom'
 bad_user='not tom'

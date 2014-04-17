@@ -102,6 +102,7 @@ class AsyncConnectionPool():
 
             # wait for a result from the database
             yield from self._wait(conn)
+
             ML.DEBUG("Finish execution")
             # the cursor is an iterator through the results, return it
             if future != None:
@@ -112,7 +113,12 @@ class AsyncConnectionPool():
             ML.ERROR("Error Querying Database: %s" % e)
             raise RuntimeError("There was an error querying the database")
         finally:
-            self._release_connection(conn)  # put the connection back on the queue
+            if conn.closed:
+                self.in_use.remove(conn)
+                asyncio.Task(self._test_connection())
+                asyncio.Task(self._new_connection())
+            else:
+                self._release_connection(conn)  # put the connection back on the queue
 
     @asyncio.coroutine
     def execute_multiple(self,cmds,extras=None, close=None):
@@ -164,6 +170,7 @@ class AsyncConnectionPool():
             ML.DEBUG("Returning cursors, user did not set a close parameter")
             return cursors
 
+    @asyncio.coroutine
     def execute_and_close_single(self, cmd, extra=None):
         """ Works the same as execute, only closes the cursor afterward - for statements other than SELECT
         :param cmd: The sql command to send to the database
@@ -175,6 +182,16 @@ class AsyncConnectionPool():
             ML.ERROR("The cursor returned from the query is null")
             raise RuntimeError("The cursor returned from the query is null and cannot be closed")
         cur.close()
+
+    @asyncio.coroutine
+    def _test_connection(self):
+        if self.ready:
+            try:
+                cur = yield from self.execute_single('SELECT 1', None)
+                cur.close()
+            except:
+                pass
+
 
     def close(self):
         """ Closes all of the connections managed by this connection pool
@@ -237,20 +254,30 @@ class AsyncConnectionPool():
 
     @asyncio.coroutine
     def _new_connection(self):
+
         """ Create a new connection to the database, add it to the right queues, and wake up waiting coroutines
         """
         # Double check for headroom to make another connection
         if len(self.ready) + len(self.in_use) + self.pending <= self.MAX_CONNECTIONS:
-            # make the connection with async=1, and wait for it to be ready
-            connection = psycopg2.connect(self.CONNECTION_STRING, async=1)
-            yield from self._wait(connection)
-            ML.DEBUG("Allocated a new connection")
-
-            # add it to the ready queue, and wake up any waiting coroutine
-            self.ready.append(connection)
-            self.connection_sem.release()
-        # whether or not a new connection is allocated, decrement self.pending
-        self.pending -= 1
+            sleep_time = .1
+            while sleep_time:
+                try:
+                    # make the connection with async=1, and wait for it to be ready
+                    connection = psycopg2.connect(self.CONNECTION_STRING, async=1)
+                    yield from self._wait(connection)
+                    ML.DEBUG("Allocated a new connection")
+                
+                    # add it to the ready queue, and wake up any waiting coroutine
+                    self.ready.append(connection)
+                    self.connection_sem.release()
+                    # whether or not a new connection is allocated, decrement self.pending
+                    self.pending -= 1
+                    sleep_time = 0
+                except (psycopg2.DatabaseError, psycopg2.OperationalError):
+                    yield from asyncio.sleep(sleep_time)
+                    sleep_time = sleep_time * 2
+                    if sleep_time > 4:
+                        sleep_time = 4
         
     @asyncio.coroutine
     def _wait(self, connection):

@@ -11,22 +11,19 @@ __author__='Tom DuBois'
 #************************
 #*************************************************************************
 
-from app.utils.database.database import AsyncConnectionPool
-from app.utils.database.database import MappingUtilites as DBMapUtils
-import app.utils.streaming.stream_processor as SP
-import app.utils.streaming.http_responder as HTTP
-import app.utils.crypto.authorization_key as AK
-import asyncio
 import json
 import random
+import itertools
+from utils.database.database import AsyncConnectionPool
+from utils.database.database import MappingUtilites as DBMapUtils
+import utils.streaming.stream_processor as SP
+import utils.streaming.http_responder as HTTP
+import asyncio
+import dateutil.parser as prsr
+import utils.crypto.authorization_key as AK
 import maven_logging as ML
 import maven_config as MC
-import itertools
-import traceback
-import psycopg2.extras
-import datetime
-import dateutil.parser as prsr
-import time
+
 
 CONFIG_DATABASE = 'database'
 
@@ -159,6 +156,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         self.add_handler(['GET'], '/spending_details', self.get_spending_details)
         self.add_handler(['GET'], '/alerts(?:/(\d+)-(\d+)?)?', self.get_alerts)
         self.add_handler(['GET'], '/orders(?:/(\d+)-(\d+)?)?', self.get_orders)
+        self.add_handler(['GET'], '/autocomplete', self.get_autocomplete)
         self.db = AsyncConnectionPool(db_configname)
 
     def schedule(self, loop):
@@ -169,6 +167,10 @@ class FrontendWebService(HTTP.HTTPProcessor):
     @asyncio.coroutine
     def get_stub(self, _header, _body, _qs, _matches, _key):
         return (HTTP.OK_RESPONSE, b'', None)
+
+    @asyncio.coroutine
+    def get_autocomplete(self, _header, _body, qs, _matches, _key):
+        return (HTTP.OK_RESPONSE, json.dumps(['Maven']),None)
 
     @asyncio.coroutine
     def post_login(self, _header, body, _qs, _matches, _key):
