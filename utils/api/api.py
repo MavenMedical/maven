@@ -222,6 +222,19 @@ class Composition(Resource):
 
         return problem_list
 
+    def get_encounter_dx_codes(self):
+        """
+        Returns the encounter diagnoses as a list of ICD-9 codes
+        """
+        problem_list = self.get_encounter_problem_list()
+        problem_list_codes_IDs = []
+
+        for problem in problem_list:
+            for id in problem.identifier:
+                problem_list_codes_IDs.append(id.value)
+
+        return problem_list_codes_IDs
+
     def get_encounter_meds(self):
         raise NotImplementedError
 
