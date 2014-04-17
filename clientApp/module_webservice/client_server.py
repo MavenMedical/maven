@@ -29,11 +29,10 @@ from clientApp.module_webservice.emr_parser import VistaParser
 import utils.api.api as api
 
 
-ARGS = argparse.ArgumentParser(description='Maven Client Receiver Configs.')
-ARGS.add_argument(
-    '--emr', action='store', dest='emr',
-    default='Epic', help='EMR Name')
-args = ARGS.parse_args()
+#ARGS.add_argument(
+#    '--emr', action='store', dest='emr',
+#    default='Epic', help='EMR Name')
+#args = ARGS.parse_args()
 
 
 class OutgoingToMavenMessageHandler(HR.HTTPReader):
@@ -48,12 +47,21 @@ class OutgoingToMavenMessageHandler(HR.HTTPReader):
         param: obj is list of headers, body
         param: key is key
         """
-        header = obj[0]
-        body = obj[1]
-        message = body.decode()
-        composition = yield from self.create_composition(message)
-        ML.PRINT(json.dumps(json.dumps([composition, key], default=api.jdefault)))
-        self.write_object(json.dumps([composition, key], default=api.jdefault).encode(), self.wk)
+        #header = obj[0]
+        try:
+            body = obj[1]
+            if not len(body):
+                self.write_object(HR.wrap_response(HR.BAD_RESPONSE,b'',None), key)
+            else:
+                message = body.decode()
+                composition = yield from self.create_composition(message)
+                ML.PRINT(json.dumps(json.dumps([composition, key], default=api.jdefault)))
+                self.write_object(json.dumps([composition, key], default=api.jdefault).encode(), self.wk)
+        except:
+            try:
+                self.write_object(HR.wrap_response(HR.ERROR_RESPONSE, b'', None), key)
+            except:
+                pass
 
     @asyncio.coroutine
     def create_composition(self, message):
@@ -138,7 +146,8 @@ def main(loop):
         incomingfrommavenmessagehandler+".Reader":
         {
             SP.CONFIG_HOST:'127.0.0.1',
-            SP.CONFIG_PORT:8090
+            SP.CONFIG_PORT:8090,
+            SP.CONFIG_ONDISCONNECT: SP.CONFIGVALUE_DISCONNECTRESTART,
         },
 
         incomingfrommavenmessagehandler+".Writer":
@@ -159,7 +168,6 @@ def main(loop):
 
     try:
         loop.run_forever()
-
     except KeyboardInterrupt:
         sp_consumer.close()
         sp_producer.close()

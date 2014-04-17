@@ -15,8 +15,8 @@ import json
 import random
 import itertools
 
-import app.utils.streaming.stream_processor as SP
-import app.utils.streaming.http_responder as HTTP
+import utils.streaming.stream_processor as SP
+import utils.streaming.http_responder as HTTP
 import asyncio
 
 import utils.crypto.authorization_key as AK
@@ -72,7 +72,8 @@ alert_list = [
 ]
 
 with open('/usr/share/dict/words') as f:
-    words = [x.strip() for x in f.readlines()]
+    words = list([x.strip() for x in f.readlines()])
+    words.sort(key=str.casefold)
 
 def min_zero_normal(u,s):
     ret = int(random.normalvariate(u,s))
@@ -182,9 +183,36 @@ class FrontendWebService(HTTP.HTTPProcessor):
     @asyncio.coroutine
     def get_autocomplete(self, _header, _body, qs, _matches, _key):
         global words
-        term = qs['term'][0]
-        res=itertools.islice(filter(lambda x: x.startswith(term), words),20)
-        return (HTTP.OK_RESPONSE, json.dumps(list(res)), None)
+        term = qs['term'][0].casefold()
+        try:
+            rind = term.rindex(' ')+1
+            prefix = term[:rind]
+            term = term[rind:]
+        except ValueError:
+            prefix = ''
+        l = len(term)
+        first = 0
+        last = len(words)-1
+        while last - first > 1:
+            mid=int((first+last)/2)
+            print([mid,words[mid]])
+            if words[mid].casefold()<term:
+                first = mid
+            else:
+                last=mid
+            
+        print([first, words[first], last, words[last]])
+
+        first +=1
+        if not words[first].casefold().startswith(term):
+            return (HTTP.OK_RESPONSE,b'',None)
+        last=first+1
+        while words[last].casefold().startswith(term) and last-first<100:
+            print(words[last])
+            last += 1
+        print(words[last])
+        
+        return (HTTP.OK_RESPONSE, json.dumps([prefix+x for x in words[first:last]]), None)
 
     @asyncio.coroutine
     def post_login(self, _header, body, _qs, _matches, _key):

@@ -25,7 +25,7 @@ define([
         template: _.template(alertRowTemplate),
         events:{
             'click .panel-heading': 'handleClick',
-            'click .spans': 'showEvidence'
+            'click span': 'showEvidence'
         },
         render: function(){
             console.log(this.model.toJSON());
@@ -34,7 +34,7 @@ define([
         },
         showEvidence:function(){
            console.log('#evidence'+currentContext.get('alert'));
-            //jQuery.noConflict();
+            jQuery.noConflict();
             $('#evidence'+currentContext.get('alert')).modal();
         },
         handleClick: function(){

@@ -10,6 +10,7 @@ define([
     'currentContext',
 
     //views
+    'views/widget/search',
     'views/widget/patientList',
     'views/chart/spending',
     'views/chart/costbd',
@@ -17,7 +18,7 @@ define([
     // Using the Require.js text! plugin, we are loaded raw text
     // which will be used as our views primary template
     'text!templates/home.html'
-], function ($, _, Backbone, currentContext, PatientList, Spending, CostBD, homeTemplate ) {
+], function ($, _, Backbone, currentContext, Search, PatientList, Spending, CostBD, homeTemplate ) {
 
     var HomeView = Backbone.View.extend({
         el: '.page',
@@ -29,12 +30,16 @@ define([
         render: function () {
             $('.nav li').removeClass('active');
             $('.nav li a[href="' + window.location.hash + '"]').parent().addClass('active');
+             // clear li content from the dynamic list
+            $('#dynamic_menu').empty();
+            $('#dynamic_menu_xs').empty();
             $('.patientinfo').empty();
 
             this.$el.html(this.template);
 
             //widgets
             console.log('home render widgets');
+            this.search = new Search;
             this.patientlist = new PatientList;
             console.log('home widgets');
             console.log(currentContext.get('patients'));

@@ -2,7 +2,6 @@
  * Created by devel on 3/27/14.
  */
 
-
 define([
     // These are path alias that we configured in our main.js
     'jquery',     // lib/jquery/jquery
@@ -16,7 +15,7 @@ define([
         el: '.page',
         template: _.template(evidenceTemplate),
         initialize: function () {
-            console.log("evidence ini");
+            console.log("evidence ini test2");
             _.bindAll(this, 'render');
             this.render();
         },

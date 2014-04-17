@@ -8,45 +8,27 @@
     </ul>
     <ul class="nav hidden-xs" id="lg-menu">
         <li>
-            <a href="#"><i class="glyphicon glyphicon-home"></i> Home</a>
+            <a href="#"><i class="glyphicon glyphicon-home"><span> Home</span></i></a>
         </li>
         <li>
-            <a href="#/alerts"><i class="glyphicon glyphicon-flag"></i> Alerts</a>
+            <a href="#/alerts"><i class="glyphicon glyphicon-flag"><span> Alerts</span></i></a>
         </li>
-        <ul class="nav hidden-xs">
-        <li>
-            <a href="#/patient"><i class="glyphicon glyphicon-user"></i> Patient</a>
-        </li>
-        <li>
-            <a href="#/episode"><i class="glyphicon glyphicon-time"></i> Encounter</a>
-        </li>
-            </ul>
-        <!--
-      <li class="nav-header">
-        <a href="patient.html" data-toggle="collapse" data-target="#userMenu"><span class="glyphicon glyphicon-user"></span> Patient
-            <i class="glyphicon glyphicon-chevron-right"></i></a>
-        <ul class="list-unstyled collapse" id="userMenu">
-          <li class="active">
-            <a href="#"><i class="glyphicon glyphicon-?"></i> Encounter</a>
-          </li>
+        <ul class="nav hidden-xs" id="dynamic_menu">
         </ul>
-      </li> -->
     </ul>
     <!-- tiny only nav-->
     <ul class="nav visible-xs" id="xs-menu">
         <li>
-            <a href="" class="text-center"><i class="glyphicon glyphicon-home"></i></a>
+            <a href="#" class="text-center"><i class="glyphicon glyphicon-home"></i></a>
         </li>
         <li>
             <a href="#/alerts" class="text-center"><i class="glyphicon glyphicon-flag"></i></a>
         </li>
-        <li>
-            <a href="#/patient" class="text-center"><i class="glyphicon glyphicon-user"></i></a>
-        </li>
-        <li>
-            <a href="#/episode" class="text-center"><i class="glyphicon glyphicon-time"></i></a>
-        </li>
-
+        <ul class="nav visible-xs" id="dynamic_menu_xs">
+            <li>
+                <a href="#/episode" class="text-center"><i class="glyphicon glyphicon-time"></i></a>
+            </li>
+        </ul>
     </ul>
 </div>
 <!-- /sidebar -->
