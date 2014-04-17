@@ -25,17 +25,18 @@ define([
         template: _.template(alertRowTemplate),
         events:{
             'click .panel-heading': 'handleClick',
-            'click .spans': 'showEvidence'
+            'click span': 'showEvidence'
         },
         render: function(){
+            console.log('alert row render');
             console.log(this.model.toJSON());
             $(this.el).html(this.template(this.model.toJSON()));
             return this;
         },
         showEvidence:function(){
-           console.log('#evidence'+currentContext.get('alert'));
+           console.log('#evidence-'+currentContext.get('alert'));
             //jQuery.noConflict();
-            $('#evidence'+currentContext.get('alert')).modal();
+            $('#evidence-' + currentContext.get('alert')).modal();
         },
         handleClick: function(){
             currentContext.set({alert : this.model.get('id')});
