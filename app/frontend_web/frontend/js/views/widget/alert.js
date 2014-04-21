@@ -25,7 +25,7 @@ define([
         template: _.template(alertTemplate),
 
         initialize: function(){
-          console.log("alert ini ");
+		//console.log("alert ini ");
             _.bindAll(this, 'render', 'addAlert');
             this.alerts = new AlertCollection;
             this.alerts.bind('add', this.addAlert, this);
@@ -33,12 +33,12 @@ define([
             this.render();
         },
         render: function () {
-		    console.log('alert render');
+		//console.log('alert render');
             this.$el.html(this.template);
 
         },
         addAlert: function (alrt){
-            console.log("add alert");
+		//console.log("add alert");
             var alertrow = new alertRow({
                 model: alrt
             });
