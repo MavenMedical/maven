@@ -16,6 +16,17 @@ __author__='Yuki Uchino'
 #************************
 #LAST MODIFIED FOR JIRA ISSUE: MAV-96
 #*************************************************************************
+#      .---.        .-----------
+#     /     \  __  /    ------
+#    / /     \(  )/    -----
+#   //////   ' \/ `   ---
+#  //// / // :    : ---
+# // /   /  /`    '--
+#//          //..\\
+#       ====UU====UU====
+#           '//||\\`
+#             ''``
+#*************************************************************************
 import pickle
 
 import asyncio
@@ -24,6 +35,7 @@ import utils.streaming.stream_processor as SP
 import maven_config as MC
 import maven_logging as ML
 import decimal
+import datetime
 
 
 class CompositionEvaluator(SP.StreamProcessor):
@@ -53,7 +65,12 @@ class CompositionEvaluator(SP.StreamProcessor):
             order_details = composition.get_proc_supply_details(order)
 
             for detail in order_details:
-                column_map = ["sleuth_rule.rule_details"]
+                column_map = ["sleuth_rule.rule_details",
+                              "sleuth_rule.rule_id",
+                              "sleuth_rule.cpt_trigger",
+                              "sleuth_rule.name",
+                              "sleuth_rule.description"]
+
                 columns = self.DBMapper.select_rows_from_map(column_map)
                 cur = yield from self.conn.execute_single("select %s from sleuth_rule where cpt_trigger='%s' and customer_id=%s" % (columns, detail[0], customer_id))
                 for result in cur:
@@ -70,12 +87,18 @@ class CompositionEvaluator(SP.StreamProcessor):
         """
         encounter_dx_codes = composition.get_encounter_dx_codes()
         encounter_snomedIDs = yield from self.get_snomedIDs(encounter_dx_codes)
+        customer_id = composition.customer_id
 
         for rule in rules:
             rule_details = rule[0]['details']
             encounter_dx_rules = yield from self.get_encounter_dx_rules(rule_details)
-            results = yield from self.evaluate_encounter_dx(encounter_snomedIDs, encounter_dx_rules)
-            ML.PRINT(results)
+            enc_dx_results = yield from self.evaluate_encounter_dx(encounter_snomedIDs, encounter_dx_rules)
+            lab_results = yield from self.evaluate_encounter_labs()
+            med_results = yield from self.evaluate_encounter_meds()
+
+            if enc_dx_results and lab_results and med_results:
+                evidence = yield from self.gather_evidence(rule, customer_id)
+                yield from self.generate_alert(composition, rule, evidence)
 
     @asyncio.coroutine
     def evaluate_encounter_dx(self, encounter_snomedIDs, dx_rules):
@@ -106,6 +129,70 @@ class CompositionEvaluator(SP.StreamProcessor):
             return False
         else:
             return True
+
+    @asyncio.coroutine
+    def evaluate_encounter_labs(self):
+        return True
+
+    @asyncio.coroutine
+    def evaluate_encounter_meds(self):
+        return True
+
+    @asyncio.coroutine
+    def evaluate_encounter_cost(self):
+        return True
+
+    @asyncio.coroutine
+    def gather_evidence(self, rule, customer_id):
+        evidence = []
+        column_map = ["sleuth_evidence.name",
+                      "sleuth_evidence.description",
+                      "sleuth_evidence.source",
+                      "sleuth_evidence.source_url"]
+        columns = self.DBMapper.select_rows_from_map(column_map)
+        cur = yield from self.conn.execute_single("select %s from sleuth_evidence where sleuth_rule='%s' and customer_id=%s" % (columns, rule[1], customer_id))
+        for result in cur:
+            evidence.append(result)
+
+        return evidence
+
+    @asyncio.coroutine
+    def generate_alert(self, composition, rule, evidence):
+
+        composition_alerts_section = composition.get_alerts_section()
+
+        column_map = ["customer_id",
+                      "pat_id",
+                      "provider_id",
+                      "encounter_id",
+                      "code_trigger",
+                      "sleuth_rule",
+                      "alert_datetime",
+                      "short_title",
+                      "long_title",
+                      "description",
+                      "override_indications",
+                      "saving"]
+        columns = self.DBMapper.select_rows_from_map(column_map)
+        customer_id = composition.customer_id
+        pat_id = composition.subject
+        provider_id = "JHU39822830"
+        encounter_id = composition.encounter.get_csn()
+        code_trigger = rule[2]
+        alert_datetime = datetime.datetime.now()
+        short_title = rule[3]
+        long_title = "On Sinusitis: A Theoretical Disposition"
+        description = rule[4]
+        override_indications = "Select one of these override indications boink"
+        saving = 807.12
+
+
+        cur = yield from self.conn.execute_single("INSERT INTO alert(%s) VALUES (%s, '%s', '%s', '%s', '%s', %s, '%s', '%s', '%s', '%s', '%s', %s)" %
+                                                  (columns, 1, "e10982371", "10982097843", "098509823423",
+                                                  "73670", 1, datetime.datetime.now(), "Test short title", "Test Long title",
+                                                  "Test description", "Test override indications", 807.00))
+
+        ML.PRINT("Just inserted alert record into DB")
 
     @asyncio.coroutine
     def get_encounter_dx_rules(self, rule_details):

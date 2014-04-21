@@ -238,6 +238,17 @@ class Composition(Resource):
     def get_encounter_meds(self):
         raise NotImplementedError
 
+    def get_alerts_section(self):
+
+        for sec in self.section:
+            if sec.title == "Maven Alerts":
+                return sec
+
+        alerts_section = Section(title="Maven Alerts", content=[])
+        self.section.append(alerts_section)
+
+        return alerts_section
+
 
 class Patient(Resource):
     """

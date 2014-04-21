@@ -206,90 +206,48 @@ CREATE INDEX ixadtpatient
 ALTER TABLE public.adt OWNER TO maven;
 
 
-CREATE TABLE alerts
+--
+
+CREATE TABLE alert
 (
   alert_id serial PRIMARY KEY,
   customer_id numeric(18,0),
-  encounter_id character varying(100) NOT NULL,
-  pat_id character varying(100) NOT NULL,
-  prov_id character varying(18) NOT NULL,
-  prov_name character varying(100),
-  dep numeric(18,0),
-  encounter_date timestamp without time zone NOT NULL,
-  alert_date timestamp without time zone NOT NULL,
-  orderable character varying(128),
+  pat_id character varying(100),
+  provider_id character varying(18),
+  encounter_id character varying(100),
+  code_trigger character varying(128),
+  sleuth_rule integer,
+  alert_datetime timestamp without time zone,
+  short_title character varying(25),
+  long_title character varying(255),
+  description character varying,
+  override_indications character varying,
   outcome character varying(128),
-  alert_title character varying(128),
-  alert_msg character varying(300),
-  action character varying(128),
-  saving integer
+  saving numeric(18,2)
 )
-WITH (
-  OIDS=FALSE
-);
-ALTER TABLE public.alerts
-  OWNER TO maven;
+  WITH (
+      OIDS=FALSE
+  );
 
---
--- Name: alerts_alert_id_seq; Type: SEQUENCE; Schema: public; Owner: maven
---
-
-CREATE SEQUENCE alerts_alert_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
+ALTER TABLE public.alert
+    OWNER TO maven;
 
 
-ALTER TABLE public.alerts_alert_id_seq OWNER TO maven;
+-- Index: "logging".ixencounter
 
---
--- Name: alerts_alert_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: maven
---
-
-ALTER SEQUENCE alerts_alert_id_seq OWNED BY alerts.alert_id;
-
--- Index: public.ixalert
-
--- DROP INDEX ixalert;
-CREATE INDEX ixalert
-  ON public.alerts
+-- DROP INDEX ixencounter;
+CREATE INDEX ixencounter
+  ON public.alert
   USING btree
-  (alert_id);
+  (encounter_id, customer_id);
 
+-- Index: "logging".ixprovider
 
--- Index: public.ixdepartment
-
--- DROP INDEX ixdepartment;
-CREATE INDEX ixdepartment
-  ON public.alerts
-  USING btree
-  (dep, customer_id);
-
--- Index: public.ixencounter_date
-
--- DROP INDEX public.ixencounter_date;
-CREATE INDEX ixencounter_date
-  ON public.alerts
-  USING btree
-  (encounter_date);
-
--- Index: "logging".ixpatient
-
--- DROP INDEX ixpatient;
-CREATE INDEX ixpatient
-  ON public.alerts
-  USING btree
-  (pat_id, customer_id);
-
--- Index: "logging".ixuser
-
--- DROP INDEX ixuser;
+-- DROP INDEX ixprovider;
 CREATE INDEX ixprovider
-  ON public.alerts
+  ON public.alert
   USING btree
-  (prov_id, customer_id);
+  (provider_id, customer_id);
 
 
 -- Table: composition
