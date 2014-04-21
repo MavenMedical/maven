@@ -13,8 +13,7 @@ require.config({
         underscore: 'libs/underscore/underscore',
         backbone: 'libs/backbone/backbone',
         bootstrap: '../css/bootstrap/js/bootstrap.min',
-	templates: '../templates',
-	router: 'router'	
+        templates: '../templates'
     },
     shim: {
         bootstrap :{
@@ -25,14 +24,9 @@ require.config({
 
 require([
     //Load our app module and pass it to our definition function
-	 'backbone',
-	 'router',
-	 ], function (Backbone,AppRouter) {
+    'app',
+], function (App) {
+    // The "app" dependency is passed in as "App"
     // Again, the other dependencies passed in are not "AMD" therefore don't pass a parameter to this function
-	    //App.initialize();
-	    
-	    //alert('starting history');
-	    Backbone.history.start();
-	    //alert('history started');
-
+    App.initialize();
 });

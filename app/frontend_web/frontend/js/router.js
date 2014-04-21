@@ -116,9 +116,9 @@ define([
             sidemenu.render();
             var topnav = new TopNav;
             topnav.render();
-
+	    Backbone.history.start();
         }
     });
 
-    return new AppRouter;
+    return AppRouter;
 });

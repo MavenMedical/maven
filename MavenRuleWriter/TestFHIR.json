@@ -1,0 +1,636 @@
+{
+    "event": null,
+    "title": null,
+    "version_id": 1,
+    "custodian": null,
+    "date": "2014-03-22T18:44:47.503377",
+    "identifier": [],
+    "author": null,
+    "last_modified_date": "2014-03-22T18:44:47.503369",
+    "subject": {
+        "identifier": [
+            {
+                "period": null,
+                "label": "Internal",
+                "assigner": null,
+                "use": null,
+                "system": "maven",
+                "value": "92006da0b21311e380ff0800275923d1"
+            },
+            {
+                "period": null,
+                "label": null,
+                "assigner": null,
+                "use": null,
+                "system": "NationalIdentifier",
+                "value": "000003322"
+            }
+        ],
+        "multipleBirth": 0,
+        "link": [],
+        "contact": [],
+        "id": "9202eaa8b21311e391d60800275923d1",
+        "careProvider": [],
+        "text": "",
+        "telecom": [],
+        "gender": "FEMALE",
+        "address": [],
+        "birthDate": "1945-01-24T00:00:00",
+        "photo": [],
+        "name": [
+            {
+                "suffix": [],
+                "family": [
+                    "ZZ PATIENT"
+                ],
+                "text": null,
+                "use": null,
+                "period": null,
+                "prefix": [],
+                "given": [
+                    "TEST ONE"
+                ]
+            }
+        ],
+        "communication": [],
+        "active": true,
+        "problem_list": [],
+        "last_modified_date": "2014-03-22T18:44:47.503453",
+        "deceased": false,
+        "customer_id": null,
+        "name_space": null,
+        "version_id": 1,
+        "managingOrganization": [],
+        "maritalStatus": ""
+    },
+    "id": "9202e74cb21311e391d60800275923d1",
+    "type": null,
+    "cclass": null,
+    "text": "",
+    "maven_route_key": "writer:1",
+    "customer_id": null,
+    "section": [
+        {
+            "title": "Encounter Orders",
+            "content": [
+                {
+                    "detail": [
+                        {
+                            "patient": null,
+                            "subject": null,
+                            "version_id": 1,
+                            "cost": null,
+                            "outcome": "",
+                            "last_modified_date": "2014-03-22T18:44:47.504781",
+                            "id": "92031a28b21311e391d60800275923d1",
+                            "type": "PROC",
+                            "name": "HEMOGLOBIN A1C",
+                            "text": "",
+                            "followUp": null,
+                            "customer_id": null,
+                            "notes": "",
+                            "identifier": [
+                                {
+                                    "period": null,
+                                    "label": "Internal",
+                                    "assigner": null,
+                                    "use": null,
+                                    "system": "clientEMR",
+                                    "value": "1234567"
+                                }
+                            ],
+                            "name_space": null,
+                            "encounter": null,
+                            "performer": null,
+                            "date": null
+                        }
+                    ],
+                    "patient": null,
+                    "subject": null,
+                    "date": null,
+                    "identifier": [],
+                    "source": null,
+                    "last_modified_date": "2014-03-22T18:44:47.504580",
+                    "id": "9203160eb21311e391d60800275923d1",
+                    "practitioner": null,
+                    "text": "",
+                    "totalCost": null,
+                    "customer_id": null,
+                    "name_space": null,
+                    "target": null,
+                    "when": [],
+                    "version_id": 1
+                },
+                {
+                    "detail": [
+                        {
+                            "patient": null,
+                            "subject": null,
+                            "version_id": 1,
+                            "cost": null,
+                            "outcome": "",
+                            "last_modified_date": "2014-03-22T18:44:47.504944",
+                            "id": "920324e6b21311e391d60800275923d1",
+                            "type": "PROC",
+                            "name": "LDL-CHOL CALCULATION",
+                            "text": "",
+                            "followUp": null,
+                            "customer_id": null,
+                            "notes": "",
+                            "identifier": [
+                                {
+                                    "period": null,
+                                    "label": "Internal",
+                                    "assigner": null,
+                                    "use": null,
+                                    "system": "clientEMR",
+                                    "value": "1234567"
+                                }
+                            ],
+                            "name_space": null,
+                            "encounter": null,
+                            "performer": null,
+                            "date": null
+                        }
+                    ],
+                    "patient": null,
+                    "subject": null,
+                    "date": null,
+                    "identifier": [],
+                    "source": null,
+                    "last_modified_date": "2014-03-22T18:44:47.504871",
+                    "id": "9203220cb21311e391d60800275923d1",
+                    "practitioner": null,
+                    "text": "",
+                    "totalCost": null,
+                    "customer_id": null,
+                    "name_space": null,
+                    "target": null,
+                    "when": [],
+                    "version_id": 1
+                },
+                {
+                    "detail": [
+                        {
+                            "patient": null,
+                            "subject": null,
+                            "version_id": 1,
+                            "cost": null,
+                            "outcome": "",
+                            "last_modified_date": "2014-03-22T18:44:47.505115",
+                            "id": "92032b9eb21311e391d60800275923d1",
+                            "type": "PROC",
+                            "name": "LDL CHOLESTEROL",
+                            "text": "",
+                            "followUp": null,
+                            "customer_id": null,
+                            "notes": "",
+                            "identifier": [
+                                {
+                                    "period": null,
+                                    "label": "Internal",
+                                    "assigner": null,
+                                    "use": null,
+                                    "system": "clientEMR",
+                                    "value": "2345678"
+                                }
+                            ],
+                            "name_space": null,
+                            "encounter": null,
+                            "performer": null,
+                            "date": null
+                        }
+                    ],
+                    "patient": null,
+                    "subject": null,
+                    "date": null,
+                    "identifier": [],
+                    "source": null,
+                    "last_modified_date": "2014-03-22T18:44:47.505042",
+                    "id": "920328bab21311e391d60800275923d1",
+                    "practitioner": null,
+                    "text": "",
+                    "totalCost": null,
+                    "customer_id": null,
+                    "name_space": null,
+                    "target": null,
+                    "when": [],
+                    "version_id": 1
+                },
+                {
+                    "detail": [
+                        {
+                            "patient": null,
+                            "subject": null,
+                            "version_id": 1,
+                            "cost": null,
+                            "outcome": "",
+                            "last_modified_date": "2014-03-22T18:44:47.505262",
+                            "id": "92033170b21311e391d60800275923d1",
+                            "type": "PROC",
+                            "name": "HDL",
+                            "text": "",
+                            "followUp": null,
+                            "customer_id": null,
+                            "notes": "",
+                            "identifier": [
+                                {
+                                    "period": null,
+                                    "label": "Internal",
+                                    "assigner": null,
+                                    "use": null,
+                                    "system": "clientEMR",
+                                    "value": "2345678"
+                                }
+                            ],
+                            "name_space": null,
+                            "encounter": null,
+                            "performer": null,
+                            "date": null
+                        }
+                    ],
+                    "patient": null,
+                    "subject": null,
+                    "date": null,
+                    "identifier": [],
+                    "source": null,
+                    "last_modified_date": "2014-03-22T18:44:47.505197",
+                    "id": "92032edcb21311e391d60800275923d1",
+                    "practitioner": null,
+                    "text": "",
+                    "totalCost": null,
+                    "customer_id": null,
+                    "name_space": null,
+                    "target": null,
+                    "when": [],
+                    "version_id": 1
+                },
+                {
+                    "detail": [
+                        {
+                            "patient": null,
+                            "subject": null,
+                            "version_id": 1,
+                            "cost": null,
+                            "outcome": "",
+                            "last_modified_date": "2014-03-22T18:44:47.505405",
+                            "id": "920336fcb21311e391d60800275923d1",
+                            "type": "PROC",
+                            "name": "URINALYSIS",
+                            "text": "",
+                            "followUp": null,
+                            "customer_id": null,
+                            "notes": "",
+                            "identifier": [
+                                {
+                                    "period": null,
+                                    "label": "Internal",
+                                    "assigner": null,
+                                    "use": null,
+                                    "system": "clientEMR",
+                                    "value": "2345678"
+                                }
+                            ],
+                            "name_space": null,
+                            "encounter": null,
+                            "performer": null,
+                            "date": null
+                        }
+                    ],
+                    "patient": null,
+                    "subject": null,
+                    "date": null,
+                    "identifier": [],
+                    "source": null,
+                    "last_modified_date": "2014-03-22T18:44:47.505340",
+                    "id": "92033472b21311e391d60800275923d1",
+                    "practitioner": null,
+                    "text": "",
+                    "totalCost": null,
+                    "customer_id": null,
+                    "name_space": null,
+                    "target": null,
+                    "when": [],
+                    "version_id": 1
+                },
+                {
+                    "detail": [
+                        {
+                            "patient": null,
+                            "subject": null,
+                            "version_id": 1,
+                            "cost": null,
+                            "outcome": "",
+                            "last_modified_date": "2014-03-22T18:44:47.505555",
+                            "id": "92033b2ab21311e391d60800275923d1",
+                            "type": "PROC",
+                            "name": "LDL-CHOL CALCULATION",
+                            "text": "",
+                            "followUp": null,
+                            "customer_id": null,
+                            "notes": "",
+                            "identifier": [
+                                {
+                                    "period": null,
+                                    "label": "Internal",
+                                    "assigner": null,
+                                    "use": null,
+                                    "system": "clientEMR",
+                                    "value": "2345678"
+                                }
+                            ],
+                            "name_space": null,
+                            "encounter": null,
+                            "performer": null,
+                            "date": null
+                        }
+                    ],
+                    "patient": null,
+                    "subject": null,
+                    "date": null,
+                    "identifier": [],
+                    "source": null,
+                    "last_modified_date": "2014-03-22T18:44:47.505486",
+                    "id": "92033a1cb21311e391d60800275923d1",
+                    "practitioner": null,
+                    "text": "",
+                    "totalCost": null,
+                    "customer_id": null,
+                    "name_space": null,
+                    "target": null,
+                    "when": [],
+                    "version_id": 1
+                },
+                {
+                    "detail": [
+                        {
+                            "patient": null,
+                            "subject": null,
+                            "version_id": 1,
+                            "cost": null,
+                            "outcome": "",
+                            "last_modified_date": "2014-03-22T18:44:47.505702",
+                            "id": "92034296b21311e391d60800275923d1",
+                            "type": "PROC",
+                            "name": "LDL CHOLESTEROL",
+                            "text": "",
+                            "followUp": null,
+                            "customer_id": null,
+                            "notes": "",
+                            "identifier": [
+                                {
+                                    "period": null,
+                                    "label": "Internal",
+                                    "assigner": null,
+                                    "use": null,
+                                    "system": "clientEMR",
+                                    "value": "2345678"
+                                }
+                            ],
+                            "name_space": null,
+                            "encounter": null,
+                            "performer": null,
+                            "date": null
+                        }
+                    ],
+                    "patient": null,
+                    "subject": null,
+                    "date": null,
+                    "identifier": [],
+                    "source": null,
+                    "last_modified_date": "2014-03-22T18:44:47.505637",
+                    "id": "92034002b21311e391d60800275923d1",
+                    "practitioner": null,
+                    "text": "",
+                    "totalCost": null,
+                    "customer_id": null,
+                    "name_space": null,
+                    "target": null,
+                    "when": [],
+                    "version_id": 1
+                }
+            ],
+            "code": null,
+            "subject": null
+        },
+        {
+            "title": "Problem List",
+            "content": [
+                {
+                    "subject": null,
+                    "isPOA": null,
+                    "isHospital": null,
+                    "identifier": [
+                        {
+                            "period": null,
+                            "label": "ICD",
+                            "assigner": null,
+                            "use": null,
+                            "system": "clientEMR",
+                            "value": "250.02"
+                        }
+                    ],
+                    "version_id": 1,
+                    "isChronic": null,
+                    "last_modified_date": "2014-03-22T18:44:47.505776",
+                    "category": null,
+                    "id": "920344eeb21311e391d60800275923d1",
+                    "asserter": null,
+                    "text": "",
+                    "customer_id": null,
+                    "notes": null,
+                    "related_item": [],
+                    "name_space": null,
+                    "isPrinciple": null,
+                    "encounter": null,
+                    "status": null,
+                    "code": null,
+                    "date_asserted": "2014-03-22T18:44:47.505786"
+                },
+                {
+                    "subject": null,
+                    "isPOA": null,
+                    "isHospital": null,
+                    "identifier": [
+                        {
+                            "period": null,
+                            "label": "ICD",
+                            "assigner": null,
+                            "use": null,
+                            "system": "clientEMR",
+                            "value": "648.00"
+                        }
+                    ],
+                    "version_id": 1,
+                    "isChronic": null,
+                    "last_modified_date": "2014-03-22T18:44:47.505875",
+                    "category": null,
+                    "id": "92034944b21311e391d60800275923d1",
+                    "asserter": null,
+                    "text": "",
+                    "customer_id": null,
+                    "notes": null,
+                    "related_item": [],
+                    "name_space": null,
+                    "isPrinciple": null,
+                    "encounter": null,
+                    "status": null,
+                    "code": null,
+                    "date_asserted": "2014-03-22T18:44:47.505883"
+                },
+                {
+                    "subject": null,
+                    "isPOA": null,
+                    "isHospital": null,
+                    "identifier": [
+                        {
+                            "period": null,
+                            "label": "ICD",
+                            "assigner": null,
+                            "use": null,
+                            "system": "clientEMR",
+                            "value": "250.02"
+                        }
+                    ],
+                    "version_id": 1,
+                    "isChronic": null,
+                    "last_modified_date": "2014-03-22T18:44:47.505956",
+                    "category": null,
+                    "id": "92034c78b21311e391d60800275923d1",
+                    "asserter": null,
+                    "text": "",
+                    "customer_id": null,
+                    "notes": null,
+                    "related_item": [],
+                    "name_space": null,
+                    "isPrinciple": null,
+                    "encounter": null,
+                    "status": null,
+                    "code": null,
+                    "date_asserted": "2014-03-22T18:44:47.505964"
+                },
+                {
+                    "subject": null,
+                    "isPOA": null,
+                    "isHospital": null,
+                    "identifier": [
+                        {
+                            "period": null,
+                            "label": "ICD",
+                            "assigner": null,
+                            "use": null,
+                            "system": "clientEMR",
+                            "value": "648.02"
+                        }
+                    ],
+                    "version_id": 1,
+                    "isChronic": null,
+                    "last_modified_date": "2014-03-22T18:44:47.506039",
+                    "category": null,
+                    "id": "92034facb21311e391d60800275923d1",
+                    "asserter": null,
+                    "text": "",
+                    "customer_id": null,
+                    "notes": null,
+                    "related_item": [],
+                    "name_space": null,
+                    "isPrinciple": null,
+                    "encounter": null,
+                    "status": null,
+                    "code": null,
+                    "date_asserted": "2014-03-22T18:44:47.506047"
+                },
+                {
+                    "subject": null,
+                    "isPOA": null,
+                    "isHospital": null,
+                    "identifier": [
+                        {
+                            "period": null,
+                            "label": "ICD",
+                            "assigner": null,
+                            "use": null,
+                            "system": "clientEMR",
+                            "value": "V18.0"
+                        }
+                    ],
+                    "version_id": 1,
+                    "isChronic": null,
+                    "last_modified_date": "2014-03-22T18:44:47.506120",
+                    "category": null,
+                    "id": "920352eab21311e391d60800275923d1",
+                    "asserter": null,
+                    "text": "",
+                    "customer_id": null,
+                    "notes": null,
+                    "related_item": [],
+                    "name_space": null,
+                    "isPrinciple": null,
+                    "encounter": null,
+                    "status": null,
+                    "code": null,
+                    "date_asserted": "2014-03-22T18:44:47.506128"
+                },
+                {
+                    "subject": null,
+                    "isPOA": null,
+                    "isHospital": null,
+                    "identifier": [
+                        {
+                            "period": null,
+                            "label": "ICD",
+                            "assigner": null,
+                            "use": null,
+                            "system": "clientEMR",
+                            "value": "428.9"
+                        }
+                    ],
+                    "version_id": 1,
+                    "isChronic": null,
+                    "last_modified_date": "2014-03-22T18:44:47.506198",
+                    "category": null,
+                    "id": "920355f6b21311e391d60800275923d1",
+                    "asserter": null,
+                    "text": "",
+                    "customer_id": null,
+                    "notes": null,
+                    "related_item": [],
+                    "name_space": null,
+                    "isPrinciple": null,
+                    "encounter": null,
+                    "status": null,
+                    "code": null,
+                    "date_asserted": "2014-03-22T18:44:47.506207"
+                }
+            ],
+            "code": null,
+            "subject": null
+        }
+    ],
+    "confidentiality": null,
+    "name_space": null,
+    "encounter": {
+        "hospitalization": null,
+        "participant": [],
+        "subject": null,
+        "version_id": 1,
+        "identifier": [],
+        "encounter_class": null,
+        "length": null,
+        "department": null,
+        "last_modified_date": "2014-03-22T18:44:47.485489",
+        "priority": null,
+        "id": "9202ed32b21311e391d60800275923d1",
+        "type": null,
+        "text": "",
+        "customer_id": null,
+        "name_space": null,
+        "period": null,
+        "indication": null,
+        "partOf": null,
+        "serviceProvider": null,
+        "status": null,
+        "reason": null
+    },
+    "status": null
+}
