@@ -11,36 +11,3 @@
         <div id="cost-bd" class="chart-col-6"></div>
     </div>
 </div>
-
-<script>
-    var colorArray = ["#0188BB", "#4C2694", "#79B32D", "#FF8500", "#00587A" ]
-    //Palette URL: http://colorschemedesigner.com/#3q62mWSE5w0w0
-
-    var chart = AmCharts.makeChart("cost-bd", {
-        "type": "pie",
-        "colors": colorArray,
-
-        "dataProvider": [
-            {
-                //"order": "CT Head w/o Contrast",
-                "order": "Imaging",
-                "cost": "807"
-            },
-            {
-                //"order": "Cefixime 100mg",
-                "order": "Meds",
-                "cost": "547"
-            }
-        ],
-        "titleField": "order",
-        "valueField": "cost",
-        "labelRadius": 5,
-
-        "radius": "25%",
-        "innerRadius": "60%",
-        "labelText": "[[title]]: $[[value]]"
-        //"balloonText": "Expenses in [[title]]:<b>$[[value]]</b>"
-    });
-
-
-</script>
