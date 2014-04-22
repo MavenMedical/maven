@@ -29,6 +29,7 @@ create table terminology.drugClassAncestry
    ,primary key (classaui,inclassaui)
 );
 create index ixDrugClassAncestryPK on terminology.drugClassAncestry (classaui,inclassaui);
+create index ixDrugClassAncestryReverse on terminology.drugClassAncestry (inclassaui,classaui);
 
 create or replace function  populateDrugAncestry() returns void as
 $BODY$
