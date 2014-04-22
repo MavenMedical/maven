@@ -239,7 +239,10 @@ class Composition(Resource):
         raise NotImplementedError
 
     def get_alerts_section(self):
-
+        """
+        Returns the "Maven Alerts" section of the composition. If no alerts section is found, then it generates an empty section
+        and returns that.
+        """
         for sec in self.section:
             if sec.title == "Maven Alerts":
                 return sec

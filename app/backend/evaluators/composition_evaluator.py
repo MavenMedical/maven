@@ -69,7 +69,8 @@ class CompositionEvaluator(SP.StreamProcessor):
                               "sleuth_rule.rule_id",
                               "sleuth_rule.cpt_trigger",
                               "sleuth_rule.name",
-                              "sleuth_rule.description"]
+                              "sleuth_rule.description",
+                              "sleuth_rule.rule_id"]
 
                 columns = self.DBMapper.select_rows_from_map(column_map)
                 cur = yield from self.conn.execute_single("select %s from sleuth_rule where cpt_trigger='%s' and customer_id=%s" % (columns, detail[0], customer_id))
@@ -158,8 +159,28 @@ class CompositionEvaluator(SP.StreamProcessor):
 
     @asyncio.coroutine
     def generate_alert(self, composition, rule, evidence):
+        """
+        Generates an alert from the rule that evaluated to true, along with the evidence that supports that rule (from a clinical perspective)
+
+        :param composition: The composition that is being analyzed. This method attaches a new FHIR SECTION to the composition
+        :param rule: The sleuth_rule that evaluated to true
+        :param evidence: A LIST of evidence that supports the rule.
+        """
 
         composition_alerts_section = composition.get_alerts_section()
+
+        customer_id = composition.customer_id
+        pat_id = composition.subject.get_pat_id()
+        provider_id = "JHU39822830"
+        encounter_id = composition.encounter.get_csn()
+        code_trigger = rule[2]
+        sleuth_rule = rule[5]
+        alert_datetime = datetime.datetime.now()
+        short_title = rule[3]
+        long_title = "On Sinusitis: A Theoretical Disposition"
+        description = rule[4]
+        override_indications = "Select one of these override indications boink"
+        saving = 807.12
 
         column_map = ["customer_id",
                       "pat_id",
@@ -174,25 +195,12 @@ class CompositionEvaluator(SP.StreamProcessor):
                       "override_indications",
                       "saving"]
         columns = self.DBMapper.select_rows_from_map(column_map)
-        customer_id = composition.customer_id
-        pat_id = composition.subject
-        provider_id = "JHU39822830"
-        encounter_id = composition.encounter.get_csn()
-        code_trigger = rule[2]
-        alert_datetime = datetime.datetime.now()
-        short_title = rule[3]
-        long_title = "On Sinusitis: A Theoretical Disposition"
-        description = rule[4]
-        override_indications = "Select one of these override indications boink"
-        saving = 807.12
-
 
         cur = yield from self.conn.execute_single("INSERT INTO alert(%s) VALUES (%s, '%s', '%s', '%s', '%s', %s, '%s', '%s', '%s', '%s', '%s', %s)" %
-                                                  (columns, 1, "e10982371", "10982097843", "098509823423",
-                                                  "73670", 1, datetime.datetime.now(), "Test short title", "Test Long title",
-                                                  "Test description", "Test override indications", 807.00))
+                                                  (columns, customer_id, pat_id, provider_id, encounter_id,
+                                                  code_trigger, sleuth_rule, alert_datetime, short_title, long_title,
+                                                  description, override_indications, saving))
 
-        ML.PRINT("Just inserted alert record into DB")
 
     @asyncio.coroutine
     def get_encounter_dx_rules(self, rule_details):

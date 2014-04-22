@@ -206,7 +206,9 @@ CREATE INDEX ixadtpatient
 ALTER TABLE public.adt OWNER TO maven;
 
 
---
+-- Table: alert
+
+-- DROP TABLE alert;
 
 CREATE TABLE alert
 (
@@ -215,6 +217,8 @@ CREATE TABLE alert
   pat_id character varying(100),
   provider_id character varying(18),
   encounter_id character varying(100),
+  category character varying(100),
+  status character varying(100),
   code_trigger character varying(128),
   sleuth_rule integer,
   alert_datetime timestamp without time zone,
@@ -747,6 +751,27 @@ CREATE INDEX ixmedorderpatid
   ON public.medorder
   USING btree
   (pat_id COLLATE pg_catalog."default");
+
+
+-- Table: override_indication
+
+-- DROP TABLE override_indication
+
+CREATE TABLE override_indication
+(
+  override_id serial PRIMARY KEY,
+  customer_id numeric(18,0),
+  sleuth_rule integer,
+  category character varying(255),
+  name character varying(25),
+  description character varying(255)
+)
+  WITH (
+      OIDS=FALSE
+  );
+
+ALTER TABLE public.override_indication
+    OWNER TO maven;
 
 -- Table: patient
 
