@@ -193,10 +193,25 @@ class VistaParser():
 
         for child in enc_root:
             if "EncID" in child.tag:
-                composition.encounter = api.Encounter()
-                composition.encounter.identifier.append(api.Identifier(system="clientEMR",
-                                                                       label="Internal",
-                                                                       value=child.text))
+                if composition.encounter is not None:
+                    composition.encounter.identifier.append(api.Identifier(system="clientEMR",
+                                                                           label="Internal",
+                                                                           value=child.text))
+                else:
+                    composition.encounter = api.Encounter()
+                    composition.encounter.identifier.append(api.Identifier(system="clientEMR",
+                                                                           label="Internal",
+                                                                           value=child.text))
+
+            elif "ProvID" in child.tag:
+                if composition.encounter is None:
+                    composition.encounter = api.Encounter()
+                practitioner = api.Practitioner()
+                practitioner.add_identifier(system="clientEMR",
+                                            label="Internal",
+                                            value=child.text)
+                composition.encounter.add_practitioner(practitioner)
+
             elif "PatientDemographics" in child.tag:
                 composition.subject = self.parse_demographics(child)
 
