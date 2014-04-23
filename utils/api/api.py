@@ -152,8 +152,18 @@ class Composition(Resource):
         if json_encounter['encounter_class'] is not None:
             encounter.encounter_class = json_encounter['encounter_class']
 
+        if len(json_encounter['participant']) > 0:
+            for prov in json_encounter['participant']:
+                practitioner = Practitioner()
+
+                for id in prov['identifier']:
+                    practitioner.identifier.append(Identifier(label=id['label'], system=id['system'], value=id['value']))
+
+                encounter.participant.append(practitioner)
+
         if json_encounter['type'] != "null":
             encounter.type = json_encounter['type']
+
         return encounter
 
     def create_orders_from_json(self, json_orders):
@@ -333,6 +343,7 @@ class Patient(Resource):
             #if id.label == "MRN" and id.system == "clientEMR":
                 #return id.value
 
+
 class Practitioner(Resource):
 
     def __init__(self, organization=None):
@@ -403,6 +414,12 @@ class Encounter(Resource):
         for id in self.identifier:
             if id.system == "clientEMR" and id.label == "Internal":
                 return id.value
+
+    def get_prov_id(self):
+        for participant in self.participant:
+            for id in participant.identifier:
+                if id.system == "clientEMR" and id.label == "Internal":
+                    return id.value
 
 
 class Procedure(Resource):

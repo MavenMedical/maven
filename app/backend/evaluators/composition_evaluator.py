@@ -171,7 +171,7 @@ class CompositionEvaluator(SP.StreamProcessor):
 
         customer_id = composition.customer_id
         pat_id = composition.subject.get_pat_id()
-        provider_id = "JHU39822830"
+        provider_id = composition.encounter.get_prov_id()
         encounter_id = composition.encounter.get_csn()
         code_trigger = rule[2]
         sleuth_rule = rule[5]
@@ -200,7 +200,6 @@ class CompositionEvaluator(SP.StreamProcessor):
                                                   (columns, customer_id, pat_id, provider_id, encounter_id,
                                                   code_trigger, sleuth_rule, alert_datetime, short_title, long_title,
                                                   description, override_indications, saving))
-
 
     @asyncio.coroutine
     def get_encounter_dx_rules(self, rule_details):
