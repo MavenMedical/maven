@@ -29,3 +29,5 @@ perl -pi -e 's/\\/\//' $rrf/RXNSAT.RRF
 #su postgres -c "psql -f addDummyCol.sql"
 su postgres -c "psql -f /tmp/runnow.sql"
 su postgres -c "psql -f prepDrugClassAPI.sql"
+cd nadac
+./importNADAC.sh
