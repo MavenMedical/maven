@@ -54,10 +54,19 @@ def write_composition_patient(composition, conn):
 
 def write_composition_encounter(composition, conn):
     try:
+        encounter_id = composition.encounter.get_csn()
         pat_id = composition.subject.get_pat_id()
+        encounter_type = "Emergency"
+        encounter_date = "2014-03-24"
+        provider_id = composition.encounter.get_prov_id()
+        bill_prov_id = "32209837"
+        encounter_dep = 1235234
+        encounter_admit_time = "2014-03-24T08:45:23"
+        encounter_disch_time = "NULL"
         customer_id = composition.customer_id
-        encID = composition.encounter.get_csn()
-        cur = conn.execute("SELECT upsert_encounter('%s', '%s', 'Emergency', '2014-03-24', 'JHU1093124', '32209837', 1235234, '2014-03-24T08:45:23', NULL, '%s')" % (encID, pat_id, customer_id))
+
+        cur = conn.execute("SELECT upsert_encounter('%s', '%s', '%s', '%s', '%s', '%s', %s, '%s', %s, '%s')" %
+                           (encounter_id, pat_id, encounter_type, encounter_date, provider_id, bill_prov_id, encounter_dep, encounter_admit_time, encounter_disch_time, customer_id))
         cur.close()
 
     except:
@@ -96,10 +105,22 @@ def write_composition_encounter_orders(composition, conn):
         pat_id = composition.subject.get_pat_id()
         customer_id = composition.customer_id
         encID = composition.encounter.get_csn()
-        now = datetime.datetime.now()
+        order_datetime = datetime.datetime.now()
         orders = composition.get_encounter_orders()
         for order in orders:
-            cur = conn.execute("INSERT INTO mavenorder(pat_id, customer_id, encounter_id, order_name, order_type, proc_code, code_type, order_cost, datetime) VALUES('%s', %s,'%s','%s','%s', '%s', '%s', %s, '%s')" % (pat_id, composition.customer_id, encID, order.detail[0].name, order.detail[0].type, order.detail[0].identifier[0].value, "maven", float(order.totalCost), now))
+            order_name = order.detail[0].name
+            order_type = order.detail[0].type
+            order_code = order.detail[0].identifier[0].value
+            order_code_type = "maven"
+            order_cost = float(order.totalCost)
+            active = True
+
+            cur = conn.execute("SELECT upsert_enc_order('%s', %s, '%s', '%s', '%s', '%s', '%s', %s, '%s', '%s')" %
+                              (pat_id, customer_id, encID, order_name, order_type, order_code, order_code_type, order_cost, order_datetime, active))
+
+            #cur = conn.execute("INSERT INTO mavenorder(pat_id, customer_id, encounter_id, order_name, order_type, proc_code, code_type, order_cost, datetime) VALUES('%s', %s,'%s','%s','%s', '%s', '%s', %s, '%s')" % (pat_id, composition.customer_id, encID, order.detail[0].name, order.detail[0].type, order.detail[0].identifier[0].value, "maven", float(order.totalCost), now))
+
+            cur.close()
 
     except:
         raise Exception("Error parsing encounter orders")
