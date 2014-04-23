@@ -9,7 +9,7 @@ define([
     'currentContext',
     //models
     'models/patientModel',
-
+    'models/chartsModels/spendingModel',
     //views
     'views/widget/patInfo',
     'views/widget/utilization',
@@ -22,7 +22,8 @@ define([
     // Using the Require.js text! plugin, we are loaded raw text
     // which will be used as our views primary template
     'text!templates/patient.html'
-], function ($, _, Backbone, currentContext, PatientModel, PatInfo, Utilization, Saving, Alert, Spending, CostBD, patientTemplate) {
+	], function ($, _, Backbone, currentContext, PatientModel, SpendingModel,
+		     PatInfo, Utilization, Saving, Alert, Spending, CostBD, patientTemplate) {
 
     var PatientView = Backbone.View.extend({
         el: $('.page'),
@@ -59,6 +60,12 @@ define([
             this.spending = new Spending;
             this.costbd = new CostBD;
             this.alert = new Alert;
+
+	    this.spendingModel = new SpendingModel;
+
+	    this.spendingModel.on('change', this.spending.update);
+	    this.spendingModel.on('change', this.costbd.update);
+	    this.spendingModel.fetch({data: $.param(currentContext.toJSON())});
 
             return this;
         }

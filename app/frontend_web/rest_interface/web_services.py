@@ -14,6 +14,8 @@ __author__='Tom DuBois'
 import json
 import random
 import itertools
+import datetime
+from collections import defaultdict
 from utils.database.database import AsyncConnectionPool
 from utils.database.database import MappingUtilites as DBMapUtils
 import utils.streaming.stream_processor as SP
@@ -60,21 +62,18 @@ def spending():
         }
 
 
-encounter = 0
-
 def create_spend(days, prob_fall_ill, prob_stay_ill):
     state = None
     history = {}
-    global encounter
+    firstday = datetime.datetime.today() - datetime.timedelta(days=days)
     for i in range(days):
+        day = (firstday + datetime.timedelta(days=i)).replace(microsecond=0).isoformat()
         r = random.uniform(0,1)
         oldstate = state
-        state = (state and prob_stay_ill<r) or (not state and prob_fall_ill<r)
-        if not oldstate and state:
-            encounter += 1
+        state = (state and prob_stay_ill>r) or (not state and prob_fall_ill>r)
+        #print([oldstate, state, r])
         if state:
-            history[i]=spending()
-            history[i]['encounter']=str(encounter)
+            history[day]=spending()
     return history
 
 patient_spending = {
@@ -83,6 +82,12 @@ patient_spending = {
     '3': create_spend(200,.05,.8),
     '4': create_spend(100,.1,.5),
 }
+
+def lookup_patient_spending(id):
+    global patient_spending
+    if not id in patient_spending:
+        patient_spending[id]=create_spend(100,.05,.6)
+    return patient_spending[id]
 
 def prettify(s, type=None):
     if type == "name":
@@ -290,24 +295,25 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
     @asyncio.coroutine
     def get_daily_spending(self, _header, _body, qs, _matches, _key):
-        global patient_spending
         context = restrict_context(qs,
                                    FrontendWebService.daily_required_contexts,
                                    FrontendWebService.daily_available_contexts)
         user = context[CONTEXT_USER]
-        patient_dict = {}
+        patient_dict = defaultdict(lambda: defaultdict(int))
         if CONTEXT_PATIENTLIST in context:
             patient_ids = context[CONTEXT_PATIENTLIST]
-            auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
+            #auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
             
-            for patient_id in set(patient_ids).intersection(patient_spending.keys()):
+            for patient_id in patient_ids:
                 try:
-                    if AK.check_authorization((user, patient_id), auth_keys[patient_id], AUTH_LENGTH):
-                        patient_dict[patient_id]=dict([(k,sum(map(lambda x: x if type(x) is int else 0,
-                                                                  v.values())))
-                                                       for k,v in patient_spending[patient_id].items()])
+                    #if AK.check_authorization((user, patient_id), auth_keys[patient_id], AUTH_LENGTH):
+                    data = lookup_patient_spending(patient_id)
+                    for day in data:
+                        for k2, v2 in data[day].items():
+                            patient_dict[day][k2]+=v2
                 except TypeError:
-                    pass
+                    raise
+                    #pass
 
         return (HTTP.OK_RESPONSE, json.dumps(patient_dict), None)
 

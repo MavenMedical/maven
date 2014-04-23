@@ -11,19 +11,19 @@ OrdTrig(ordid,job,del)
     s hostname=$p(tmp,"^",10),program=$p(tmp,"^",12)
     s ordstring=$$ALLORD(ordid)
     s ptid=$o(^xMAVEN("ORIX","OPPD",ordid,""))
-    w ordstring
     ;;;;;;;;;;;;;;;;;;The next lines are only a placeholder for the encounter id
-    s prov=$o(^xMAVEN("ORIX","OPPD",ordid,ptid,"")),dt=$o(^xMAVEN("ORIX","OPPD",ordid,ptid,prov,""))
+    s prov=$o(^xMAVEN("ORIX","OPPD",ordid,ptid,"")),dt=$$GET1^DIQ(100,ordid,4,"I")\1
+    s:dt="" dt=$o(^xMAVEN("ORIX","OPPD",ordid,ptid,prov,""))
     s encid=ptid_"|"_prov_"|"_dt
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     d:del CleanDeleted(ordid,ptid,prov,dt)
     s patstring=$$PAT(ptid)
-    s sendstring="<Encounter><EncID>"_encid_"</EncID>"_patstring_" "_ordstring_" "_$$PROBS(ptid)_"</Encounter>"
+    s sendstring="<Encounter><ProvId>"_prov_"</ProvId><EncID>"_encid_"</EncID>"_patstring_" "_ordstring_" "_$$PROBS(ptid)_"</Encounter>"
     ;w patstring,!
     ;w ordstring,!
     ;w "Sendstring: "_sendstring
     ;w sendstring
-    d SocketMsg(sendstring,program,port)
+    d SocketMsg(sendstring,ip,port)
     q
 ORD(ordid)
     n rtn,code,codetyp,dt,nm,ordtype
@@ -35,7 +35,7 @@ ORD(ordid)
     s dt=$$GET1^DIQ(100,ordid,4),nm=$$GET1^DIQ(101.43,ordble,.01)
     s ordtype="PROC"
     s:codetyp["CPT" ordtype="PROC"
-    s rtn="<Order><ProcedureCode>{CODE}</ProcedureCode><CodeType>{CodeType}</CodeType><ExpectedDate>{EXPECTDATE}</ExpectedDate><OrderingDate>{EXPECTDATE}</OrderingDate><ExpiredDate></ExpiredDate><Name>{NAME}</Name><Type>{ORDTYPE}</Type></Order>"
+    s rtn="<Order><ID>"_ordid_"</ID><ProcedureCode>{CODE}</ProcedureCode><CodeType>{CodeType}</CodeType><ExpectedDate>{EXPECTDATE}</ExpectedDate><OrderingDate>{EXPECTDATE}</OrderingDate><ExpiredDate></ExpiredDate><Name>{NAME}</Name><Type>{ORDTYPE}</Type></Order>"
     s rtn=$$replace(rtn,"{CODE}",$$encode(code))
     s rtn=$$replace(rtn,"{CodeType}",$$encode(codetyp))
 	;note, currently the ordering date and the expected date are the same (ordering date)
