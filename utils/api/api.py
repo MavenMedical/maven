@@ -334,7 +334,7 @@ class Patient(Resource):
 
     def get_pat_id(self):
         for id in self.identifier:
-            if id.label == "internal" and id.system == "clientEMR":
+            if id.label == "Internal" and id.system == "clientEMR":
                 return id.value
 
     def get_mrn(self):

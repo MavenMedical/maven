@@ -54,7 +54,7 @@ class OutgoingMessageHandler(SP.StreamProcessor):
 
     @asyncio.coroutine
     def read_object(self, obj, _):
-        obj.user = 'JHU1093124'
+        obj.user = obj.encounter.get_prov_id()
         obj.userAuth = AK.authorization_key(obj.user, 44, 60*60)
         self.write_object(pickle.dumps(obj), writer_key=obj.maven_route_key[1])
 

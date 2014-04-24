@@ -163,7 +163,7 @@ class CompositionEvaluator(SP.StreamProcessor):
         Generates an alert from the rule that evaluated to true, along with the evidence that supports that rule (from a clinical perspective)
 
         :param composition: The composition that is being analyzed. This method attaches a new FHIR SECTION to the composition
-        :param rule: The sleuth_rule that evaluated to true
+        :param rule: The sleuth_rule that evaluated to truec
         :param evidence: A LIST of evidence that supports the rule.
         """
 

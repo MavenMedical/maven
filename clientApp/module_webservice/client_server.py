@@ -96,8 +96,8 @@ class IncomingFromMavenMessageHandler(HR.HTTPWriter):
         userAuth = composition.userAuth
 
         csn = urllib.parse.quote(composition.encounter.get_csn())
-        #patientid = composition.subject.get_pat_id()
-        patientid = '1235412'
+        patient_id = composition.subject.get_pat_id()
+
         for sec in composition.section:
             if sec.title == "Encounter Cost Breakdown":
                 for cost in sec.content:
@@ -105,7 +105,7 @@ class IncomingFromMavenMessageHandler(HR.HTTPWriter):
                     notification_content += ("%s: $%s<br>" % (cost[0], cost[1]))
                 print(total_cost)
 
-        notification_body = ("<html><body bgcolor=#FFFFFF style='font-family: Arial; color: #444; word-spacing: normal; text-align: left; letter-spacing: 0; font-size: 104%%;'><table><col width=32px><col width=30%%><col width=10%%><col width=60%%><tr><td valign='top'><img src={{IMGLOGO}} /></td><td valign='top'><a href='%s/#/episode/%s/patient/%s/login/%s/%s'><b>Encounter Cost Alert</b></a><br/>This Encounter Costs<br/>$%s</td><td></td><td valign='top' style='font-family: Arial; color: #444; word-spacing: normal; text-align: left; letter-spacing: 0; font-size: 104%%;'>%s</td></body></html>" % (MC.http_addr, csn, patientid, user, userAuth, round(total_cost,2), notification_content))
+        notification_body = ("<html><body bgcolor=#FFFFFF style='font-family: Arial; color: #444; word-spacing: normal; text-align: left; letter-spacing: 0; font-size: 104%%;'><table><col width=32px><col width=30%%><col width=10%%><col width=60%%><tr><td valign='top'><img src={{IMGLOGO}} /></td><td valign='top'><a href='%s/#/episode/%s/patient/%s/login/%s/%s'><b>Encounter Cost Alert</b></a><br/>This Encounter Costs<br/>$%s</td><td></td><td valign='top' style='font-family: Arial; color: #444; word-spacing: normal; text-align: left; letter-spacing: 0; font-size: 104%%;'>%s</td></body></html>" % (MC.http_addr, csn, patient_id, user, userAuth, round(total_cost,2), notification_content))
         return notification_body
 
 def main(loop):
