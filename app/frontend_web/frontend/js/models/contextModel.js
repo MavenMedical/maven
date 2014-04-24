@@ -26,9 +26,8 @@ define([
 	    patientName:'',
             provider: null,
             encounter: null,
-            department: null,
-            alert: null
-        },
+            department: null
+         },
         setUser: function (user, pw, route) {
 		if (this.user != user || !this.userAuth) {
 		    this.set('user', user);

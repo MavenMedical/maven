@@ -91,15 +91,15 @@ define([
         },
         showEvidence: function (enc, pat, evi, user, userAuth) {
             //update current context page
-		currentContext.set({alert:evi,encounter:enc,patients:pat});
+		currentContext.set({encounter:enc,patients:pat});
 		if(user && user != currentContext.get('user')) {
 		currentContext.setUser(user,userAuth, Backbone.history.fragment);
 	    } else {
 		if(CheckLogin()) {
 		    var episodeView = new EpisodeView;
 		    
-		    var evidence = new Evidence;
-		    $('#evidence-' + currentContext.get('alert')).modal();
+		    var evidence = new Evidence(evi);
+		    $('#evidence-' + evi).modal();
 		}
 	    }
         },

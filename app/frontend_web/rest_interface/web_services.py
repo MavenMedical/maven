@@ -353,7 +353,10 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                    FrontendWebService.alerts_required_contexts,
                                    FrontendWebService.alerts_available_contexts)
         user = context[CONTEXT_USER]
-        patient = context[CONTEXT_PATIENTLIST][0]
+        try:
+            patient = context[CONTEXT_PATIENTLIST][0]
+        except KeyError:
+            patient = None
         customer = context[CONTEXT_CUSTOMERID]
 
         try:
@@ -367,9 +370,15 @@ class FrontendWebService(HTTP.HTTPProcessor):
                           "alerts.saving"]
 
             columns = DBMapUtils().select_rows_from_map(column_map)
-            cur = yield from self.db.execute_single("SELECT %s"
-                                                    " from alerts"
-                                                    " WHERE alerts.pat_id = '%s' AND alerts.customer_id = %s;" % (columns, patient, customer))
+            if patient:
+                cur = yield from self.db.execute_single("SELECT %s"
+                                                        " from alerts"
+                                                        " WHERE alerts.prov_id = '%s' AND alerts.pat_id = '%s' AND alerts.customer_id = %s;" % (columns, user, patient, customer))
+            else: 
+                cur = yield from self.db.execute_single("SELECT %s"
+                                                        " from alerts"
+                                                        " WHERE alerts.prov_id = '%s' AND alerts.customer_id = %s;" % (columns, user, customer))
+                
             results = []
             for x in cur:
                 results.append({'id': x[0], 'patient': x[1], 'name':x[4], 'cost': x[7], 'html': x[5], 'date': str(x[2])})
