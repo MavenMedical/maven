@@ -109,7 +109,6 @@ class IncomingFromMavenMessageHandler(HR.HTTPWriter):
         return notification_body
 
 def main(loop):
-    ML.DEBUG = ML.stdout_log
     outgoingtomavenmessagehandler = 'client consumer socket'
     incomingfrommavenmessagehandler = 'client producer socket'
 
@@ -175,6 +174,7 @@ def main(loop):
 
 
 if __name__ == '__main__':
+    ML.DEBUG = ML.stdout_log
     loop = asyncio.get_event_loop()
     main(loop)
 

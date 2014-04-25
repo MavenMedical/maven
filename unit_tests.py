@@ -19,9 +19,10 @@ import importlib
 import re
 import traceback
 import difflib
-
+import subprocess
 import maven_config
 import maven_logging
+import time
 from sys import exit
 maven_logging.DEBUG = maven_logging.results_var_log
 maven_logging.WARN = maven_logging.results_var_log
@@ -36,10 +37,39 @@ def find_files(directory, pattern):
             yield os.path.join(root, filename)
 
 passing = True
+
+for f in find_files('.', 'unit_test_*.bash'):
+    maven_logging.clear_results()
+    try:
+        print("TESTING: "+f)
+        test_output = subprocess.check_output([f], timeout=5).decode('utf-8')
+        #print(test_output)
+        try:
+            with open(re.sub('bash$', 'output', f),'r') as golden:
+                gold = golden.read().strip()
+                #print("gold: "+gold+"G")
+                diff = difflib.unified_diff(gold.splitlines(True), test_output.splitlines(True))
+                d = ''.join(diff)
+                if not d == '':
+                    print(d)
+                    print("FAILED: "+f)
+                    passing = False
+                else:
+                    print("PASSED: "+f)
+        except FileNotFoundError:
+            print("PASSED: "+f)
+            pass
+    except Exception:
+        traceback.print_exc()
+        print("FAILED: "+f)
+        #print('\n'.join(traceback.format_exc().split('\n')[14:]))
+        passing = False
+
 for f in find_files('.', 'unit_test_*.py'):
     mod = re.sub('/', '.', f[2:-3])
     maven_logging.clear_results()
     try:
+        print("TESTING: "+f)
         test = importlib.import_module(mod,)
         try:
             with open(re.sub('py$', 'output', f)) as golden:
@@ -48,8 +78,8 @@ for f in find_files('.', 'unit_test_*.py'):
                 diff = difflib.unified_diff(gold.splitlines(True), maven_logging.get_results().splitlines(True))
                 d = ''.join(diff)
                 if not d == '':
-                    print("FAILED: "+mod)
                     print(d)
+                    print("FAILED: "+mod)
                     passing = False
                 else:
                     print("PASSED: "+mod)
@@ -57,8 +87,8 @@ for f in find_files('.', 'unit_test_*.py'):
             print("PASSED: "+mod)
             pass
     except Exception:
-        print("FAILED: "+mod)
         print('\n'.join(traceback.format_exc().split('\n')[14:]))
+        print("FAILED: "+mod)
         passing = False
 
 if passing:

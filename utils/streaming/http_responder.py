@@ -353,7 +353,7 @@ class HTTPWriter(SP.StreamProcessor):
         :param obj: 
         :param key: 
         """        
-        
+        k = None
         ret = None
         try:
             (response, body, extras, k) = yield from self.format_response(obj, key)
