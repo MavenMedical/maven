@@ -488,13 +488,27 @@ class Medication(Resource):
 
 class Alert(Resource):
 
-    def __init__(self, category=None, status=None, subject=None, author=None):
+    def __init__(self, category=None, status=None, subject=None, author=None, provider_id=None, encounter_id=None,
+                 code_trigger=None, sleuth_rule=None, alert_datetime=None, short_title=None, long_title=None,
+                 description=None, override_indications=None, outcome=None, saving=None):
         Resource.__init__(self)
         self.category = category
         self.status = status
         self.subject = subject
         self.author = author
         self.note = ""
+        self.provider_id = provider_id
+        self.encounter_id = encounter_id
+        self.code_trigger = code_trigger
+        self.sleuth_rule = sleuth_rule
+        self.alert_datetime = alert_datetime
+        self.short_title = short_title
+        self.long_title = long_title
+        self.description = description
+        if override_indications is None:
+            self.override_indications = []
+        self.outcome = outcome
+        self.saving = saving
 
 
 class Observation(Resource):

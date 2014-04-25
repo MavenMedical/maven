@@ -28,9 +28,10 @@ __author__='Yuki Uchino'
 #             ''``
 #*************************************************************************
 import pickle
-
 import asyncio
 from utils.database.database import AsyncConnectionPool, MappingUtilites
+import utils.database.fhir_database as FHIR_DB
+import utils.api.api as FHIR_API
 import utils.streaming.stream_processor as SP
 import maven_config as MC
 import maven_logging as ML
@@ -52,8 +53,35 @@ class CompositionEvaluator(SP.StreamProcessor):
     @asyncio.coroutine
     def read_object(self, obj, _):
         composition = pickle.loads(obj)
+        yield from self.evaluate_encounter_cost(composition)
         rules = yield from self.get_matching_sleuth_rules(composition)
         yield from self.evaluate_sleuth_rules(composition, rules)
+        yield from FHIR_DB.write_composition_to_db(composition, self.conn)
+
+    @asyncio.coroutine
+    def evaluate_encounter_cost(self, composition):
+        """
+        Takes a FHIR Composition object, iterates through the Orders found in the "Encounter Orders"
+        Composition.section object, checks the costmap table for the cost-look-up, and then adds a
+        NEW section to Composition.section labeled "Encounter Cost Breakdown," which is a list of
+        {"order name": 807.13} tuples with order name and the price.
+
+        :param composition: FHIR Composition object created using Maven's FHIR API
+        """
+        encounter_cost_breakdown = []
+
+        orders = composition.get_encounter_orders()
+        for order in orders:
+            order.totalCost = 0.00
+            order_details = composition.get_proc_supply_details(order)
+
+            for detail in order_details:
+                cur = yield from self.conn.execute_single("select cost_amt from costmap where billing_code='%s'" % detail[0])
+                for result in cur:
+                    order.totalCost += float(result[0])
+                    encounter_cost_breakdown.append([detail[1], float(result[0])])
+
+        return composition.section.append(FHIR_API.Section(title="Encounter Cost Breakdown", content=encounter_cost_breakdown))
 
     @asyncio.coroutine
     def get_matching_sleuth_rules(self, composition):
@@ -140,10 +168,6 @@ class CompositionEvaluator(SP.StreamProcessor):
         return True
 
     @asyncio.coroutine
-    def evaluate_encounter_cost(self):
-        return True
-
-    @asyncio.coroutine
     def gather_evidence(self, rule, customer_id):
         evidence = []
         column_map = ["sleuth_evidence.name",
@@ -200,6 +224,8 @@ class CompositionEvaluator(SP.StreamProcessor):
                                                   (columns, customer_id, pat_id, provider_id, encounter_id,
                                                   code_trigger, sleuth_rule, alert_datetime, short_title, long_title,
                                                   description, override_indications, saving))
+
+        FHIR_alert = FHIR_API.Alert()
 
     @asyncio.coroutine
     def get_encounter_dx_rules(self, rule_details):
