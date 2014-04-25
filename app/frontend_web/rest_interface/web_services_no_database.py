@@ -138,7 +138,7 @@ def restrict_context(qs, required, available):
     try:
         AK.check_authorization(qs['user'][0], qs[CONTEXT_KEY][0], AUTH_LENGTH)
     except AK.UnauthorizedException as ue:
-        raise HTTP.UnauthorizatedRequest(str(ue))
+        raise HTTP.UnauthorizedRequest(str(ue))
 
     context = {}
     for k, v in qs.items():
