@@ -57,6 +57,7 @@ class CompositionEvaluator(SP.StreamProcessor):
         rules = yield from self.get_matching_sleuth_rules(composition)
         yield from self.evaluate_sleuth_rules(composition, rules)
         yield from FHIR_DB.write_composition_to_db(composition, self.conn)
+        self.write_object(composition, writer_key='aggregate')
 
     @asyncio.coroutine
     def evaluate_encounter_cost(self, composition):
@@ -225,7 +226,13 @@ class CompositionEvaluator(SP.StreamProcessor):
                                                   code_trigger, sleuth_rule, alert_datetime, short_title, long_title,
                                                   description, override_indications, saving))
 
-        FHIR_alert = FHIR_API.Alert()
+        FHIR_alert = FHIR_API.Alert(customer_id=customer_id, subject=pat_id, provider_id=provider_id, encounter_id=encounter_id,
+                                    code_trigger=code_trigger, sleuth_rule=sleuth_rule, alert_datetime=alert_datetime,
+                                    short_title=short_title, long_title=long_title, description=description,
+                                    override_indications=override_indications, saving=saving)
+
+        composition_alerts_section.content.append(FHIR_alert)
+
 
     @asyncio.coroutine
     def get_encounter_dx_rules(self, rule_details):

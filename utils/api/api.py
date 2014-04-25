@@ -101,10 +101,10 @@ class Composition(Resource):
             if sec['title'] == "Encounter Orders":
                 composition.section.append(Section(title="Encounter Orders", content=self.create_orders_from_json(sec['content'])))
 
-            if sec['title'] == "Problem List":
+            elif sec['title'] == "Problem List":
                 composition.section.append(Section(title="Problem List", content=self.create_problem_list_from_json(sec['content'])))
 
-            if sec['title'] == "Encounter Cost Breakdown":
+            elif sec['title'] == "Encounter Cost Breakdown":
                 composition.section.append(Section(title="Encounter Cost Breakdown", content=sec['content']))
 
         return composition
@@ -488,10 +488,10 @@ class Medication(Resource):
 
 class Alert(Resource):
 
-    def __init__(self, category=None, status=None, subject=None, author=None, provider_id=None, encounter_id=None,
+    def __init__(self, customer_id, category=None, status=None, subject=None, author=None, provider_id=None, encounter_id=None,
                  code_trigger=None, sleuth_rule=None, alert_datetime=None, short_title=None, long_title=None,
                  description=None, override_indications=None, outcome=None, saving=None):
-        Resource.__init__(self)
+        Resource.__init__(self, customer_id=customer_id)
         self.category = category
         self.status = status
         self.subject = subject
@@ -723,6 +723,8 @@ class Section():
         self.code = code
         self.subject = subject
         self.content = content
+        #if content is None:
+        #    self.content = []
 
 
 class Event():
