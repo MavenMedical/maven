@@ -309,6 +309,19 @@ small.text-muted {
     font-family: courier, courier-new, monospace;
 }
 
+/* Customized Icons  */
+.icon-med {
+    background-image: url("https://cdn1.iconfinder.com/data/icons/fatcow/32x32/pill.png");
+    background-position: center center;
+    height: 24px;
+    line-height: 15px;
+    width: 24px;
+}
+
+
+
+
+
 /* adjust the contents on smaller devices */
 @media (max-width: 768px) {
 

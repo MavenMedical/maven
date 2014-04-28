@@ -411,6 +411,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
                           "mavenorder.datetime",
                           "mavenorder.active",
                           "mavenorder.order_cost"]
+            # need the category of the order to use it for the UI icon and order chart
 
             columns = DBMapUtils().select_rows_from_map(column_map)
             cur = yield from self.db.execute_single("SELECT %s"
@@ -419,7 +420,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
             results = []
             y = 0
             for x in cur:
-                results.append({'id': y, 'name': x[0], 'date': str(x[1]), 'result': "Active", 'cost': int(x[3])})
+                results.append({'id': y, 'name': x[0], 'date': str(x[1]), 'result': "Active", 'cost': int(x[3]), 'category': 'med'})
                 y += 1
                 ML.DEBUG(x)
 
