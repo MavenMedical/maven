@@ -256,6 +256,7 @@ class HTTPProcessor(SP.StreamProcessor):
                         ret=wrap_response(resp, body, extras)
                     break
         except KeyError:  # key error means an object isn't found
+            traceback.print_exc()
             ret = wrap_response(NOTFOUND_RESPONSE, b'')
         except ValueError:
             traceback.print_exc()
@@ -352,7 +353,7 @@ class HTTPWriter(SP.StreamProcessor):
         :param obj: 
         :param key: 
         """        
-        
+        k = None
         ret = None
         try:
             (response, body, extras, k) = yield from self.format_response(obj, key)

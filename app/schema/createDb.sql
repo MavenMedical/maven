@@ -1102,13 +1102,13 @@ BEGIN
     order_cost = order_cost1,
     datetime = datetime1,
     active = active1
-    WHERE encounter_id = encounter_id1 and customer_id = customer_id1 and pat_id = pat_id1 and proc_code = proc_code1;
+    WHERE encounter_id = encounter_id1 and customer_id = customer_id1 and proc_code = proc_code1;
     IF found THEN
       RETURN;
     END IF;
     BEGIN
-      INSERT INTO mavenorder(pat_id, customer_id, encouter_id, order_name, order_type, proc_code, code_type, order_cost, datetime, active)
-        VALUES (pat_id1, customer_id1, encouter_id1, order_name1, order_type1, proc_code1, code_type1, order_cost1, datetime1, active1);
+      INSERT INTO mavenorder(pat_id, customer_id, encounter_id, order_name, order_type, proc_code, code_type, order_cost, datetime, active)
+        VALUES (pat_id1, customer_id1, encounter_id1, order_name1, order_type1, proc_code1, code_type1, order_cost1, datetime1, active1);
       RETURN;
     EXCEPTION WHEN unique_violation THEN
     END;

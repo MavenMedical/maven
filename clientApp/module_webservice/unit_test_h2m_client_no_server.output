@@ -1,0 +1,6 @@
+/home/devel/maven
+HTTP/1.0 500 Internal Server Error
+Content-Type: application/json
+Connection: close
+Content-length: 0
+

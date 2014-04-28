@@ -12,14 +12,12 @@ define([
     'backbone',    // lib/backbone/backbone
 
 
-    'currentContext',
-
     'views/widget/evidence',
 
     //Template
     'text!templates/singleRow/alertRow.html'
 
-], function ($, _, Backbone, currentContext,Evidence, alertRowTemplate) {
+], function ($, _, Backbone, Evidence, alertRowTemplate) {
     var alertRow = Backbone.View.extend({
         tagName: 'div',
         template: _.template(alertRowTemplate),
@@ -28,19 +26,17 @@ define([
             'click span': 'showEvidence'
         },
         render: function(){
-		//console.log(this.model.toJSON());
             $(this.el).html(this.template(this.model.toJSON()));
             return this;
         },
         showEvidence:function(){
-		//console.log('#evidence'+currentContext.get('alert'));
             jQuery.noConflict();
-            $('#evidence'+currentContext.get('alert')).modal();
+            $('#evidence'+this.model.get('id')).modal();
         },
         handleClick: function(){
-            currentContext.set({alert : this.model.get('id')});
-            this.evidence = new Evidence;
-            $('#collapse'+this.model.get('patient')+'-'+this.model.get('id')).toggleClass("in");
+		var id = this.model.get('id');
+		this.evidence = new Evidence({'evi': id});
+		$('#collapse'+this.model.get('patient')+'-'+id).toggleClass("in");
         }
 
     });

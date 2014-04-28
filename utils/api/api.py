@@ -101,10 +101,10 @@ class Composition(Resource):
             if sec['title'] == "Encounter Orders":
                 composition.section.append(Section(title="Encounter Orders", content=self.create_orders_from_json(sec['content'])))
 
-            if sec['title'] == "Problem List":
+            elif sec['title'] == "Problem List":
                 composition.section.append(Section(title="Problem List", content=self.create_problem_list_from_json(sec['content'])))
 
-            if sec['title'] == "Encounter Cost Breakdown":
+            elif sec['title'] == "Encounter Cost Breakdown":
                 composition.section.append(Section(title="Encounter Cost Breakdown", content=sec['content']))
 
         return composition
@@ -152,8 +152,18 @@ class Composition(Resource):
         if json_encounter['encounter_class'] is not None:
             encounter.encounter_class = json_encounter['encounter_class']
 
+        if len(json_encounter['participant']) > 0:
+            for prov in json_encounter['participant']:
+                practitioner = Practitioner()
+
+                for id in prov['identifier']:
+                    practitioner.identifier.append(Identifier(label=id['label'], system=id['system'], value=id['value']))
+
+                encounter.participant.append(practitioner)
+
         if json_encounter['type'] != "null":
             encounter.type = json_encounter['type']
+
         return encounter
 
     def create_orders_from_json(self, json_orders):
@@ -324,7 +334,7 @@ class Patient(Resource):
 
     def get_pat_id(self):
         for id in self.identifier:
-            if id.label == "internal" and id.system == "clientEMR":
+            if id.label == "Internal" and id.system == "clientEMR":
                 return id.value
 
     def get_mrn(self):
@@ -332,6 +342,7 @@ class Patient(Resource):
         #for id in self.identifier:
             #if id.label == "MRN" and id.system == "clientEMR":
                 #return id.value
+
 
 class Practitioner(Resource):
 
@@ -404,6 +415,12 @@ class Encounter(Resource):
             if id.system == "clientEMR" and id.label == "Internal":
                 return id.value
 
+    def get_prov_id(self):
+        for participant in self.participant:
+            for id in participant.identifier:
+                if id.system == "clientEMR" and id.label == "Internal":
+                    return id.value
+
 
 class Procedure(Resource):
 
@@ -471,13 +488,27 @@ class Medication(Resource):
 
 class Alert(Resource):
 
-    def __init__(self, category=None, status=None, subject=None, author=None):
-        Resource.__init__(self)
+    def __init__(self, customer_id, category=None, status=None, subject=None, author=None, provider_id=None, encounter_id=None,
+                 code_trigger=None, sleuth_rule=None, alert_datetime=None, short_title=None, long_title=None,
+                 description=None, override_indications=None, outcome=None, saving=None):
+        Resource.__init__(self, customer_id=customer_id)
         self.category = category
         self.status = status
         self.subject = subject
         self.author = author
         self.note = ""
+        self.provider_id = provider_id
+        self.encounter_id = encounter_id
+        self.code_trigger = code_trigger
+        self.sleuth_rule = sleuth_rule
+        self.alert_datetime = alert_datetime
+        self.short_title = short_title
+        self.long_title = long_title
+        self.description = description
+        if override_indications is None:
+            self.override_indications = []
+        self.outcome = outcome
+        self.saving = saving
 
 
 class Observation(Resource):
@@ -692,6 +723,8 @@ class Section():
         self.code = code
         self.subject = subject
         self.content = content
+        #if content is None:
+        #    self.content = []
 
 
 class Event():

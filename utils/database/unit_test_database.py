@@ -74,14 +74,14 @@ class TestAsyncDatabase(unittest.TestCase):
     @asyncio.coroutine
     def process(self,loop, ident, conn):
         prints_on = False
-        print("3 Tasks Processing...")
+        #print("3 Tasks Processing...")
         for x in range(3):
             if prints_on: print("hello from %s" % ident)
             yield from self.db_main(ident, conn)
             if prints_on: print("%s sleeping" % ident)
-            yield from asyncio.sleep(.5)
+            yield from asyncio.sleep(.05)
             if prints_on: print("%s woke up" % ident)
-            print("Task Finished")
+            #print("Task Finished")
 
     def test_async_main(self):
         """This is the test for the async database connection, we create three tasks that run three times.
@@ -89,15 +89,15 @@ class TestAsyncDatabase(unittest.TestCase):
         global multiple
         multiple = True
         loop = asyncio.get_event_loop()
-        print(loop)
+        #print(loop)
         conn = AsyncConnectionPool('test conn pool', loop)
         tasks = [asyncio.Task(self.process(loop, x, conn)) for x in ['p1', 'p2', 'p3', 'x']]
-        print("Starting loop")
+        #print("Starting loop")
         loop.run_until_complete(asyncio.wait(tasks))
         multiple = False
         tasks = [asyncio.Task(self.process(loop, x, conn)) for x in ['p1', 'p2', 'p3', 'x']]
         loop.run_until_complete(asyncio.wait(tasks))
-        print ("done with async test")
+        #print ("done with async test")
 
 class TestBlockingDB(unittest.TestCase):
     """These tests check that the single threaded database connection and query work as well as mapping utilites"""
