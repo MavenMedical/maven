@@ -29,6 +29,7 @@ import maven_logging as ML
 from clientApp.module_webservice.emr_parser import VistaParser
 import utils.api.api as api
 import clientApp.module_webservice.notification_generator as NG
+import os
 
 #ARGS.add_argument(
 #    '--emr', action='store', dest='emr',
@@ -56,8 +57,9 @@ class OutgoingToMavenMessageHandler(HR.HTTPReader):
             else:
                 message = body.decode()
                 composition = yield from self.create_composition(message)
-                ML.PRINT(json.dumps(json.dumps([composition, key], default=api.jdefault)))
-                self.write_object(json.dumps([composition, key], default=api.jdefault).encode(), self.wk)
+                if not 'MAVEN_TESTING' in os.environ:
+                    ML.PRINT(json.dumps(json.dumps([composition, key], default=api.jdefault,sort_keys=True),sort_keys=True))
+                self.write_object(json.dumps([composition, key], default=api.jdefault,sort_keys=True).encode(), self.wk)
         except:
             try:
                 self.write_object(HR.wrap_response(HR.ERROR_RESPONSE, b'', None), key)
@@ -90,7 +92,6 @@ class IncomingFromMavenMessageHandler(HR.HTTPWriter):
 
 
 def main(loop):
-    ML.DEBUG = ML.stdout_log
     outgoingtomavenmessagehandler = 'client consumer socket'
     incomingfrommavenmessagehandler = 'client producer socket'
     clientemrconfig = 'client emr config'
@@ -167,6 +168,7 @@ def main(loop):
 
 
 if __name__ == '__main__':
+    ML.DEBUG = ML.stdout_log
     loop = asyncio.get_event_loop()
     main(loop)
 

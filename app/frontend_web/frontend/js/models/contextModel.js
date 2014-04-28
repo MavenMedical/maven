@@ -13,6 +13,16 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
 	], function ($, _, Backbone) {
+	   
+	   function setActiveStyleSheet(title) {
+	       var i, a, main;
+	       for(i=0; (a = document.getElementsByTagName("link")[i]); i++) {
+		   if(a.getAttribute("rel").indexOf("style") != -1 && a.getAttribute("title")) {
+		       a.disabled = true;
+		       if(a.getAttribute("title") == title) a.disabled = false;
+		   }
+	       }
+	   }
 
     var Context = Backbone.Model.extend({
 	urlRoot: '/login',
@@ -34,6 +44,7 @@ define([
 		    //alert('setting user');
 		    this.fetch({
 			    success: function (res) {
+				setActiveStyleSheet(res.get('stylesheet'));
 				Backbone.history.loadUrl(route);
 			    },
 				data: JSON.stringify({user:user, password:pw}),

@@ -1,0 +1,13 @@
+POST /api HTTP/1.0
+Host: demo.mavenmedical.net
+X-Real-IP: 172.31.3.1
+X-Forwarded-For: 172.8.207.66, 172.31.3.1
+Connection: close
+Content-Length: 11
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Content-Type: application/POST
+User-Agent: Java/1.7.0_51
+X-Forwarded-Port: 80
+X-Forwarded-Proto: http
+
+<Encounter>
