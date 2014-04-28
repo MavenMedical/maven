@@ -42,7 +42,7 @@ for f in find_files('.', 'unit_test_*.bash'):
     maven_logging.clear_results()
     try:
         print("TESTING: "+f)
-        test_output = subprocess.check_output([f], timeout=5).decode('utf-8')
+        test_output = subprocess.check_output([f], timeout=5).decode('utf-8').strip()
         #print(test_output)
         try:
             with open(re.sub('bash$', 'output', f),'r') as golden:
