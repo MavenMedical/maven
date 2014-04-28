@@ -20,6 +20,7 @@ import json
 import argparse
 import pickle
 import urllib
+import urllib.parse
 import utils.streaming.stream_processor as SP
 import asyncio
 import utils.streaming.http_responder as HR
@@ -27,7 +28,7 @@ import maven_config as MC
 import maven_logging as ML
 from clientApp.module_webservice.emr_parser import VistaParser
 import utils.api.api as api
-
+import clientApp.module_webservice.notification_generator as NG
 
 #ARGS.add_argument(
 #    '--emr', action='store', dest='emr',
@@ -71,47 +72,28 @@ class OutgoingToMavenMessageHandler(HR.HTTPReader):
 
 class IncomingFromMavenMessageHandler(HR.HTTPWriter):
 
-    def __init__(self, configname):
+    def __init__(self, configname, notification_generator):
         HR.HTTPWriter.__init__(self, configname)
+        self.notification_generator = notification_generator
 
     @asyncio.coroutine
     def format_response(self, obj, _):
         #json_composition = json.loads(obj.decode())
         #composition = api.Composition().create_composition_from_json(json_composition)
         composition = pickle.loads(obj)
-        
+        notification_body = yield from self.notification_generator.generate_notification_content(composition)
+
         ML.DEBUG(json.dumps(composition, default=api.jdefault, indent=4))
-        notification_body = yield from self.generate_notification_html(composition)
         ML.DEBUG("NOTIFY HTML BODY: " + notification_body)
-        ML.DEBUG('Message was successfully sent around the Maven Cloud loop!' + str(composition.maven_route_key))
+
         return (HR.OK_RESPONSE, notification_body, [], composition.maven_route_key[0])
 
-
-    @asyncio.coroutine
-    def generate_notification_html(self, composition):
-        notification_body = ""
-        notification_content = ""
-        total_cost = 0.0
-        user = composition.user
-        userAuth = composition.userAuth
-
-        csn = urllib.parse.quote(composition.encounter.get_csn())
-        patient_id = composition.subject.get_pat_id()
-
-        for sec in composition.section:
-            if sec.title == "Encounter Cost Breakdown":
-                for cost in sec.content:
-                    total_cost += cost[1]
-                    notification_content += ("%s: $%s<br>" % (cost[0], cost[1]))
-                print(total_cost)
-
-        notification_body = ("<html><body bgcolor=#FFFFFF style='font-family: Arial; color: #444; word-spacing: normal; text-align: left; letter-spacing: 0; font-size: 104%%;'><table><col width=32px><col width=30%%><col width=10%%><col width=60%%><tr><td valign='top'><img src={{IMGLOGO}} /></td><td valign='top'><a href='%s/#/episode/%s/patient/%s/login/%s/%s'><b>Encounter Cost Alert</b></a><br/>This Encounter Costs<br/>$%s</td><td></td><td valign='top' style='font-family: Arial; color: #444; word-spacing: normal; text-align: left; letter-spacing: 0; font-size: 104%%;'>%s</td></body></html>" % (MC.http_addr, csn, patient_id, user, userAuth, round(total_cost,2), notification_content))
-        return notification_body
 
 def main(loop):
     ML.DEBUG = ML.stdout_log
     outgoingtomavenmessagehandler = 'client consumer socket'
     incomingfrommavenmessagehandler = 'client producer socket'
+    clientemrconfig = 'client emr config'
 
     MavenConfig = {
         outgoingtomavenmessagehandler:
@@ -157,11 +139,21 @@ def main(loop):
             SP.CONFIG_WRITERKEY:1,
         },
 
+        clientemrconfig:
+        {
+            NG.EMR_TYPE: "vista",
+            NG.EMR_VERSION : "2.0",
+            NG.CLIENTAPP_LOCATION: "cloud"
+
+        },
+
     }
     MC.MavenConfig = MavenConfig
 
+    notification_generator = NG.NotificationGenerator(clientemrconfig)
     sp_consumer = OutgoingToMavenMessageHandler(outgoingtomavenmessagehandler, 2)
-    sp_producer = IncomingFromMavenMessageHandler(incomingfrommavenmessagehandler)
+    sp_producer = IncomingFromMavenMessageHandler(incomingfrommavenmessagehandler, notification_generator)
+
 
     reader = sp_consumer.schedule(loop)
     emr_writer = sp_producer.schedule(loop)
