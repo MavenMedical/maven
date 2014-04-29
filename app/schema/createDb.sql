@@ -298,50 +298,24 @@ ALTER SEQUENCE composition_comp_id_seq OWNED BY composition.comp_id;
 
 -- DROP TABLE costmap;
 
-CREATE TABLE costmap
+CREATE TABLE public.costmap
 (
-  costmap_id serial PRIMARY KEY,
   dep_id numeric(18,0),
   customer_id numeric(18,0),
   billing_code character varying(25),
   code_type character varying(25),
   cost_amt numeric(12,2),
-  cost_type character varying(25)
+  cost_type character varying(25),
+  primary key(billing_code,code_type,customer_id,dep_id)
 )
 with (
 OIDS=FALSE
 );
 ALTER TABLE public.costmap OWNER TO maven;
 
-
---
--- Name: costmap_costmap_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE costmap_costmap_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
+create index ixpkcostmap on public.costmap(billing_code,code_type,customer_id,dep_id);
 
 ALTER TABLE public.costmap_costmap_id_seq OWNER TO maven;
-
---
--- Name: costmap_costmap_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE costmap_costmap_id_seq OWNED BY costmap.costmap_id;
-
--- Index: ixcostmap
-
--- DROP INDEX: ixcostmap
-
-CREATE INDEX ixcostmap
-  on public.costmap
-  USING btree
-  (costmap_id);
 
 -- Index: ixcostmapbillcode
 
