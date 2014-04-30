@@ -123,6 +123,8 @@ class _HTTPStreamParser(SP.MappingParser):
         :params data: the bytes received over the socket
         """
 
+        self.update_last_activity()
+
         ML.DEBUG("RECV: " + str(data))
         
         # split the data on potential http request boundaries
@@ -282,6 +284,10 @@ class HTTPProcessor(SP.StreamProcessor):
                 pass
                 #ML.DEBUG(headers.get('Connection'))
         except:
+            try:
+                self.unregister_writer(key)
+            except:
+                pass
             ML.WARN("connection to %s failed before write happened" % key)
 
     def add_handler(self, methods, regexpstring, fn):
@@ -421,6 +427,7 @@ class BackboneService(HTTPProcessor):
         :param matches: a list of url parts matches from the handler's regex
         :param key: not used here, but potentially useful for passing off processing to another machine
         """
+        yield from asyncio.sleep(.2)
         return (OK_RESPONSE, json.dumps([self.allusers[x] for x in sorted(self.allusers.keys())]),None)
 
     @asyncio.coroutine

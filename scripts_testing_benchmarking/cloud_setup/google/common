@@ -1,5 +1,5 @@
 sudo yum update -y
-sudo yum install elinks screen git emacs kernel-headers fuse-libs fuse-devel fuse lvm2 wireshark nc -y
+sudo yum install elinks screen git emacs kernel-headers fuse-libs fuse-devel fuse lvm2 wireshark nc tcptrack iotop iptraf iftop psacct -y
 
 wget http://yum.postgresql.org/9.3/redhat/rhel-6-x86_64/pgdg-centos93-9.3-1.noarch.rpm
 sudo yum install pgdg-centos93-9.3-1.noarch.rpm -y
