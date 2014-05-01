@@ -24,7 +24,7 @@ import asyncio
 import utils.streaming.stream_processor as SP
 from utils.database.fhir_database import PostgresFHIR as PF
 import maven_config as MC
-import utils.api.api as api
+import utils.api.fhir as api
 
 
 class CostEvaluator(SP.StreamProcessor):

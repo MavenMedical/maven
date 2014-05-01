@@ -17,24 +17,16 @@ __author__='Yuki Uchino'
 #LAST MODIFIED FOR JIRA ISSUE: MAV-65
 #*************************************************************************
 import json
-import argparse
 import pickle
-import urllib
-import urllib.parse
 import utils.streaming.stream_processor as SP
 import asyncio
 import utils.streaming.http_responder as HR
 import maven_config as MC
 import maven_logging as ML
 from clientApp.module_webservice.emr_parser import VistaParser
-import utils.api.api as api
+import utils.api.fhir as api
 import clientApp.module_webservice.notification_generator as NG
 import os
-
-#ARGS.add_argument(
-#    '--emr', action='store', dest='emr',
-#    default='Epic', help='EMR Name')
-#args = ARGS.parse_args()
 
 
 class OutgoingToMavenMessageHandler(HR.HTTPReader):
@@ -80,15 +72,22 @@ class IncomingFromMavenMessageHandler(HR.HTTPWriter):
 
     @asyncio.coroutine
     def format_response(self, obj, _):
+
         #json_composition = json.loads(obj.decode())
         #composition = api.Composition().create_composition_from_json(json_composition)
         composition = pickle.loads(obj)
-        notification_body = yield from self.notification_generator.generate_notification_content(composition)
+        notifications = yield from self.notification_generator.generate_alert_content(composition)
+
+        alert_notification_content = ""
+
+        if len(notifications) > 0:
+            for notification_body in notifications:
+                alert_notification_content += str(notification_body)
 
         ML.DEBUG(json.dumps(composition, default=api.jdefault, indent=4))
-        ML.DEBUG("NOTIFY HTML BODY: " + notification_body)
+        ML.DEBUG("NOTIFY HTML BODY: " + alert_notification_content)
 
-        return (HR.OK_RESPONSE, notification_body, [], composition.maven_route_key[0])
+        return (HR.OK_RESPONSE, alert_notification_content, [], composition.maven_route_key[0])
 
 
 def main(loop):
@@ -144,8 +143,7 @@ def main(loop):
         {
             NG.EMR_TYPE: "vista",
             NG.EMR_VERSION : "2.0",
-            NG.CLIENTAPP_LOCATION: "cloud"
-
+            NG.CLIENTAPP_LOCATION: "cloud",
         },
 
     }

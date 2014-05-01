@@ -224,7 +224,9 @@ CREATE TABLE alert
   alert_datetime timestamp without time zone,
   short_title character varying(25),
   long_title character varying(255),
-  description character varying,
+  title_tag character varying(25),
+  short_description character varying(55),
+  long_description character varying,
   override_indications character varying,
   outcome character varying(128),
   saving numeric(18,2)
@@ -300,48 +302,19 @@ ALTER SEQUENCE composition_comp_id_seq OWNED BY composition.comp_id;
 
 CREATE TABLE costmap
 (
-  costmap_id serial PRIMARY KEY,
   dep_id numeric(18,0),
   customer_id numeric(18,0),
   billing_code character varying(25),
   code_type character varying(25),
   cost_amt numeric(12,2),
-  cost_type character varying(25)
+  cost_type character varying(25),
+  PRIMARY KEY(billing_code, code_type, customer_id, dep_id)
 )
 with (
 OIDS=FALSE
 );
 ALTER TABLE public.costmap OWNER TO maven;
 
-
---
--- Name: costmap_costmap_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE costmap_costmap_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE public.costmap_costmap_id_seq OWNER TO maven;
-
---
--- Name: costmap_costmap_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE costmap_costmap_id_seq OWNED BY costmap.costmap_id;
-
--- Index: ixcostmap
-
--- DROP INDEX: ixcostmap
-
-CREATE INDEX ixcostmap
-  on public.costmap
-  USING btree
-  (costmap_id);
 
 -- Index: ixcostmapbillcode
 
@@ -350,7 +323,7 @@ CREATE INDEX ixcostmap
 CREATE INDEX ixcostmapbillcode
   on public.costmap
   USING btree
-  (billing_code, customer_id);
+  (billing_code, code_type, customer_id, dep_id);
 
 
 

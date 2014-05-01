@@ -262,6 +262,17 @@ class Composition(Resource):
 
         return alerts_section
 
+    def get_encounter_cost_breakdown(self):
+        """
+        Returns the "Encounter Cost Breakdown" section of the composition
+        """
+
+        for sec in self.section:
+            if sec.title == "Encounter Cost Breakdown":
+                return sec
+
+        return None
+
 
 class Patient(Resource):
     """
@@ -507,6 +518,8 @@ class Alert(Resource):
         self.description = description
         if override_indications is None:
             self.override_indications = []
+        else:
+            self.override_indications = override_indications
         self.outcome = outcome
         self.saving = saving
 
