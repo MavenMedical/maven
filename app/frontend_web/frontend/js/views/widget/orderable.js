@@ -27,11 +27,6 @@ define([
         template: _.template(orderableTemplate),
 
         initialize: function () {
-            console.log("ini orderable");
-            _.bindAll(this, 'render', 'addOrder');
-            this.orders = new OrderCollection();
-            this.orders.bind('add', this.addOrder , this);
-            this.orders.fetch({data:$.param(currentContext.toJSON())});
             this.render();
         },
         render: function () {
@@ -42,7 +37,6 @@ define([
             var orderrow = new orderRow({
               model: ord
             });
-           //console.log(orderrow.render().el);
             $('#accordion').append(orderrow.render().el);
         }
     });

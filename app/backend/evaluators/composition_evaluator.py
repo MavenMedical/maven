@@ -14,7 +14,7 @@ __author__='Yuki Uchino'
 #************************
 #SIDE EFFECTS:
 #************************
-#LAST MODIFIED FOR JIRA ISSUE: MAV-96
+#LAST MODIFIED FOR JIRA ISSUE: MAV-123
 #*************************************************************************
 #      .---.        .-----------
 #     /     \  __  /    ------
@@ -28,9 +28,10 @@ __author__='Yuki Uchino'
 #             ''``
 #*************************************************************************
 import pickle
-
 import asyncio
 from utils.database.database import AsyncConnectionPool, MappingUtilites
+import utils.database.fhir_database as FHIR_DB
+import utils.api.fhir as FHIR_API
 import utils.streaming.stream_processor as SP
 import maven_config as MC
 import maven_logging as ML
@@ -52,8 +53,36 @@ class CompositionEvaluator(SP.StreamProcessor):
     @asyncio.coroutine
     def read_object(self, obj, _):
         composition = pickle.loads(obj)
+        yield from self.evaluate_encounter_cost(composition)
         rules = yield from self.get_matching_sleuth_rules(composition)
         yield from self.evaluate_sleuth_rules(composition, rules)
+        yield from FHIR_DB.write_composition_to_db(composition, self.conn)
+        self.write_object(composition, writer_key='aggregate')
+
+    @asyncio.coroutine
+    def evaluate_encounter_cost(self, composition):
+        """
+        Takes a FHIR Composition object, iterates through the Orders found in the "Encounter Orders"
+        Composition.section object, checks the costmap table for the cost-look-up, and then adds a
+        NEW section to Composition.section labeled "Encounter Cost Breakdown," which is a list of
+        {"order name": 807.13} tuples with order name and the price.
+
+        :param composition: FHIR Composition object created using Maven's FHIR API
+        """
+        encounter_cost_breakdown = []
+
+        orders = composition.get_encounter_orders()
+        for order in orders:
+            order.totalCost = 0.00
+            order_details = composition.get_proc_supply_details(order)
+
+            for detail in order_details:
+                cur = yield from self.conn.execute_single("select cost_amt from costmap where billing_code='%s'" % detail[0])
+                for result in cur:
+                    order.totalCost += float(result[0])
+                    encounter_cost_breakdown.append([detail[1], float(result[0])])
+
+        return composition.section.append(FHIR_API.Section(title="Encounter Cost Breakdown", content=encounter_cost_breakdown))
 
     @asyncio.coroutine
     def get_matching_sleuth_rules(self, composition):
@@ -89,6 +118,8 @@ class CompositionEvaluator(SP.StreamProcessor):
         encounter_dx_codes = composition.get_encounter_dx_codes()
         encounter_snomedIDs = yield from self.get_snomedIDs(encounter_dx_codes)
         customer_id = composition.customer_id
+        alert_bundle = []
+
 
         for rule in rules:
             rule_details = rule[0]['details']
@@ -99,7 +130,19 @@ class CompositionEvaluator(SP.StreamProcessor):
 
             if enc_dx_results and lab_results and med_results:
                 evidence = yield from self.gather_evidence(rule, customer_id)
-                yield from self.generate_alert(composition, rule, evidence)
+                alert = yield from self.generate_alert(composition, rule, evidence, alert_bundle)
+                alert_bundle.append(alert)
+
+
+        if len(alert_bundle) > 0:
+            composition_alerts_section = composition.get_alerts_section()
+            alert_datetime = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+            composition_alerts_section.content.append({alert_datetime: alert_bundle})
+            yield from FHIR_DB.write_composition_alerts(alert_datetime, alert_bundle, self.conn)
+
+        else:
+            return
+
 
     @asyncio.coroutine
     def evaluate_encounter_dx(self, encounter_snomedIDs, dx_rules):
@@ -140,10 +183,6 @@ class CompositionEvaluator(SP.StreamProcessor):
         return True
 
     @asyncio.coroutine
-    def evaluate_encounter_cost(self):
-        return True
-
-    @asyncio.coroutine
     def gather_evidence(self, rule, customer_id):
         evidence = []
         column_map = ["sleuth_evidence.name",
@@ -158,20 +197,18 @@ class CompositionEvaluator(SP.StreamProcessor):
         return evidence
 
     @asyncio.coroutine
-    def generate_alert(self, composition, rule, evidence):
+    def generate_alert(self, composition, rule, evidence, alert_group):
         """
         Generates an alert from the rule that evaluated to true, along with the evidence that supports that rule (from a clinical perspective)
 
         :param composition: The composition that is being analyzed. This method attaches a new FHIR SECTION to the composition
-        :param rule: The sleuth_rule that evaluated to true
+        :param rule: The sleuth_rule that evaluated to truec
         :param evidence: A LIST of evidence that supports the rule.
         """
 
-        composition_alerts_section = composition.get_alerts_section()
-
         customer_id = composition.customer_id
         pat_id = composition.subject.get_pat_id()
-        provider_id = "JHU39822830"
+        provider_id = composition.encounter.get_prov_id()
         encounter_id = composition.encounter.get_csn()
         code_trigger = rule[2]
         sleuth_rule = rule[5]
@@ -179,28 +216,15 @@ class CompositionEvaluator(SP.StreamProcessor):
         short_title = rule[3]
         long_title = "On Sinusitis: A Theoretical Disposition"
         description = rule[4]
-        override_indications = "Select one of these override indications boink"
+        override_indications = ['Select one of these override indications boink']
         saving = 807.12
 
-        column_map = ["customer_id",
-                      "pat_id",
-                      "provider_id",
-                      "encounter_id",
-                      "code_trigger",
-                      "sleuth_rule",
-                      "alert_datetime",
-                      "short_title",
-                      "long_title",
-                      "description",
-                      "override_indications",
-                      "saving"]
-        columns = self.DBMapper.select_rows_from_map(column_map)
+        FHIR_alert = FHIR_API.Alert(customer_id=customer_id, subject=pat_id, provider_id=provider_id, encounter_id=encounter_id,
+                                    code_trigger=code_trigger, sleuth_rule=sleuth_rule, alert_datetime=alert_datetime,
+                                    short_title=short_title, long_title=long_title, description=description,
+                                    override_indications=override_indications, saving=saving)
 
-        cur = yield from self.conn.execute_single("INSERT INTO alert(%s) VALUES (%s, '%s', '%s', '%s', '%s', %s, '%s', '%s', '%s', '%s', '%s', %s)" %
-                                                  (columns, customer_id, pat_id, provider_id, encounter_id,
-                                                  code_trigger, sleuth_rule, alert_datetime, short_title, long_title,
-                                                  description, override_indications, saving))
-
+        return FHIR_alert
 
     @asyncio.coroutine
     def get_encounter_dx_rules(self, rule_details):
@@ -277,7 +301,7 @@ def run_composition_evaluator():
         },
         'EvaluatorConnectionPool': {
             AsyncConnectionPool.CONFIG_CONNECTION_STRING:
-            ("dbname=%s user=%s password=%s host=%s port=%s" % ('maven', 'maven', 'temporary', 'localhost', '5432')),
+            ("dbname=%s user=%s password=%s host=%s port=%s" % ('maven', 'maven', 'temporary', MC.dbhost, '5432')),
             AsyncConnectionPool.CONFIG_MIN_CONNECTIONS: 2,
             AsyncConnectionPool.CONFIG_MAX_CONNECTIONS: 4
         },

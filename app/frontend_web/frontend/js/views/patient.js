@@ -22,15 +22,17 @@ define([
     // Using the Require.js text! plugin, we are loaded raw text
     // which will be used as our views primary template
     'text!templates/patient.html'
-	], function ($, _, Backbone, currentContext, PatientModel, SpendingModel,
-		     PatInfo, Utilization, Saving, Alert, Spending, CostBD, patientTemplate) {
+], function ($, _, Backbone, currentContext, PatientModel, SpendingModel, PatInfo, Utilization, Saving, Alert, Spending, CostBD, patientTemplate) {
 
     var PatientView = Backbone.View.extend({
         el: $('.page'),
         render: function () {
             $('.nav li').removeClass('active');
+            $('#dynamic_pat li').remove();
+            $('#dynamic_enc li').remove();
+
             //add patient li to the large side menu
-            $('#dynamic_menu').append(
+            $('#dynamic_pat').append(
                 $('<li>').attr('class', 'active').append(
                     $('<a>').attr('href', '#/patient').append(
                         $('<i>').attr('class', 'glyphicon glyphicon-user').append(
@@ -41,7 +43,7 @@ define([
             //append list of encounters
             var enc = ['1/4/2014', '2/3/2014', '12/17/2013'];
             for (var i = 0; i < enc.length; i++) {
-                $('#dynamic_menu').append(
+                $('#dynamic_enc').append(
                     $('<li>').append(
                         $('<a>').attr('href', '#/episode/9|76|3140328/patient/9').append(
                             $('<i>').attr('class', 'glyphicon glyphicon-time').append(
@@ -61,11 +63,10 @@ define([
             this.costbd = new CostBD;
             this.alert = new Alert;
 
-	    this.spendingModel = new SpendingModel;
-
-	    this.spendingModel.on('change', this.spending.update);
-	    this.spendingModel.on('change', this.costbd.update);
-	    this.spendingModel.fetch({data: $.param(currentContext.toJSON())});
+            this.spendingModel = new SpendingModel;
+            this.spendingModel.on('change', this.spending.update);
+            this.spendingModel.on('change', this.costbd.update);
+            this.spendingModel.fetch({data: $.param(currentContext.toJSON())});
 
             return this;
         }

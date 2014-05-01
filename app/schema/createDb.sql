@@ -224,7 +224,9 @@ CREATE TABLE alert
   alert_datetime timestamp without time zone,
   short_title character varying(25),
   long_title character varying(255),
-  description character varying,
+  title_tag character varying(25),
+  short_description character varying(55),
+  long_description character varying,
   override_indications character varying,
   outcome character varying(128),
   saving numeric(18,2)
@@ -298,59 +300,22 @@ ALTER SEQUENCE composition_comp_id_seq OWNED BY composition.comp_id;
 
 -- DROP TABLE costmap;
 
-CREATE TABLE costmap
+CREATE TABLE public.costmap
 (
-  costmap_id serial PRIMARY KEY,
   dep_id numeric(18,0),
   customer_id numeric(18,0),
   billing_code character varying(25),
   code_type character varying(25),
   cost_amt numeric(12,2),
-  cost_type character varying(25)
+  cost_type character varying(25),
+  primary key(billing_code,code_type,customer_id,dep_id)
 )
 with (
 OIDS=FALSE
 );
 ALTER TABLE public.costmap OWNER TO maven;
 
-
---
--- Name: costmap_costmap_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE costmap_costmap_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE public.costmap_costmap_id_seq OWNER TO maven;
-
---
--- Name: costmap_costmap_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE costmap_costmap_id_seq OWNED BY costmap.costmap_id;
-
--- Index: ixcostmap
-
--- DROP INDEX: ixcostmap
-
-CREATE INDEX ixcostmap
-  on public.costmap
-  USING btree
-  (costmap_id);
-
--- Index: ixcostmapbillcode
-
--- DROP INDEX: ixcostmapbillcode
-
-CREATE INDEX ixcostmapbillcode
-  on public.costmap
-  USING btree
-  (billing_code, customer_id);
+create index ixpkcostmap on public.costmap(billing_code,code_type,customer_id,dep_id);
 
 
 
@@ -1102,13 +1067,13 @@ BEGIN
     order_cost = order_cost1,
     datetime = datetime1,
     active = active1
-    WHERE encounter_id = encounter_id1 and customer_id = customer_id1 and pat_id = pat_id1 and proc_code = proc_code1;
+    WHERE encounter_id = encounter_id1 and customer_id = customer_id1 and proc_code = proc_code1;
     IF found THEN
       RETURN;
     END IF;
     BEGIN
-      INSERT INTO mavenorder(pat_id, customer_id, encouter_id, order_name, order_type, proc_code, code_type, order_cost, datetime, active)
-        VALUES (pat_id1, customer_id1, encouter_id1, order_name1, order_type1, proc_code1, code_type1, order_cost1, datetime1, active1);
+      INSERT INTO mavenorder(pat_id, customer_id, encounter_id, order_name, order_type, proc_code, code_type, order_cost, datetime, active)
+        VALUES (pat_id1, customer_id1, encounter_id1, order_name1, order_type1, proc_code1, code_type1, order_cost1, datetime1, active1);
       RETURN;
     EXCEPTION WHEN unique_violation THEN
     END;
@@ -1193,3 +1158,4 @@ ALTER FUNCTION upsert_encounterdx(character varying(100), character varying(100)
 
 INSERT INTO ruleTest.rules VALUES ('Test rule name','This is the test rule description','proc',12345,0,200,'12345678,9012345,67890123,1222222,56789876','90324023984,43987523,309753492785,53425243235','These are the details for the test rule','test only in department','test not in department'); 
 INSERT INTO ruleTest.rules VALUES ('Test rule name 1','This is the test rule description 1','proc',12345,0,200,'22345678,0012345,77890123,2222222,66789876','00324023984,33987523,009753492785,33425243235','These are the details for the test rule1','test only in department1','test not in department1');
+\copy costmap from 'DefaultProcedurePrices.csv' csv 

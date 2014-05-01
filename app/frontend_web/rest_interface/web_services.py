@@ -127,7 +127,7 @@ def restrict_context(qs, required, available):
     try:
         AK.check_authorization(qs['user'][0], qs[CONTEXT_KEY][0], AUTH_LENGTH)
     except AK.UnauthorizedException as ue:
-        raise HTTP.UnauthorizatedRequest(str(ue))
+        raise HTTP.UnauthorizedRequest(str(ue))
 
     context = {}
     for k, v in qs.items():
@@ -153,6 +153,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         except KeyError:
             raise MC.InvalidConfig('some real error')
 
+        self.origstyle=True
         self.add_handler(['POST'], '/login', self.post_login)
         self.add_handler(['GET'], '/patients(?:/(\d+)-(\d+)?)?', self.get_patients)
         self.add_handler(['GET'], '/patient_details', self.get_patient_details)
@@ -184,12 +185,19 @@ class FrontendWebService(HTTP.HTTPProcessor):
             return (HTTP.BAD_RESPONSE, b'', None)
         else:
             user = info['user']
+            if self.origstyle:
+                stylesheet = 'original'
+            else:
+                stylesheet = 'alternate'
+            self.origstyle = not self.origstyle
+
             try:
                 AK.check_authorization(user, info['password'], AUTH_LENGTH)
-                return (HTTP.OK_RESPONSE, json.dumps({'display':'Dr. Huxtable'}), None)
+                return (HTTP.OK_RESPONSE, json.dumps({'display':'Dr. Huxtable', 'stylesheet':stylesheet}), None)
             except:
                 user_auth = AK.authorization_key(user,AUTH_LENGTH, LOGIN_TIMEOUT)
-                return (HTTP.OK_RESPONSE,json.dumps({CONTEXT_KEY:user_auth, 'display':'Dr. Huxtable'}), None)
+                return (HTTP.OK_RESPONSE,json.dumps({CONTEXT_KEY:user_auth, 'display':'Dr. Huxtable'
+                                                     , 'stylesheet':stylesheet}), None)
 
     patients_required_contexts = [CONTEXT_USER]
     patients_available_contexts = {CONTEXT_USER:str, 'customer_id': int, CONTEXT_ENCOUNTER: str}
@@ -353,7 +361,10 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                    FrontendWebService.alerts_required_contexts,
                                    FrontendWebService.alerts_available_contexts)
         user = context[CONTEXT_USER]
-        patient = context[CONTEXT_PATIENTLIST][0]
+        try:
+            patient = context[CONTEXT_PATIENTLIST][0]
+        except KeyError:
+            patient = None
         customer = context[CONTEXT_CUSTOMERID]
 
         try:
@@ -367,9 +378,15 @@ class FrontendWebService(HTTP.HTTPProcessor):
                           "alerts.saving"]
 
             columns = DBMapUtils().select_rows_from_map(column_map)
-            cur = yield from self.db.execute_single("SELECT %s"
-                                                    " from alerts"
-                                                    " WHERE alerts.pat_id = '%s' AND alerts.customer_id = %s;" % (columns, patient, customer))
+            if patient:
+                cur = yield from self.db.execute_single("SELECT %s"
+                                                        " from alerts"
+                                                        " WHERE alerts.prov_id = '%s' AND alerts.pat_id = '%s' AND alerts.customer_id = %s;" % (columns, user, patient, customer))
+            else: 
+                cur = yield from self.db.execute_single("SELECT %s"
+                                                        " from alerts"
+                                                        " WHERE alerts.prov_id = '%s' AND alerts.customer_id = %s;" % (columns, user, customer))
+                
             results = []
             for x in cur:
                 results.append({'id': x[0], 'patient': x[1], 'name':x[4], 'cost': x[7], 'html': x[5], 'date': str(x[2])})
@@ -411,6 +428,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
                           "mavenorder.datetime",
                           "mavenorder.active",
                           "mavenorder.order_cost"]
+            # need the category of the order to use it for the UI icon and order chart
 
             columns = DBMapUtils().select_rows_from_map(column_map)
             cur = yield from self.db.execute_single("SELECT %s"
@@ -419,7 +437,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
             results = []
             y = 0
             for x in cur:
-                results.append({'id': y, 'name': x[0], 'date': str(x[1]), 'result': "Active", 'cost': int(x[3])})
+                results.append({'id': y, 'name': x[0], 'date': str(x[1]), 'result': "Active", 'cost': int(x[3]), 'category': 'med'})
                 y += 1
                 ML.DEBUG(x)
 

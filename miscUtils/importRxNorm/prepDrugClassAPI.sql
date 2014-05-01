@@ -108,9 +108,47 @@ Declare rtn Boolean;
 Declare Sno numeric;
 begin
         select getClassSnomedFromNDC(ndc) into sno;
-        return isSnomedChile(vparentconcept,sno);
+        return isSnomedChild(vparentconcept,sno);
 end;
 $BODY$
   LANGUAGE plpgsql;
 
+
+CREATE OR REPLACE FUNCTION terminology.isRxAUIchild(vparentconcept numeric, vrxaui character varying)
+  RETURNS boolean AS
+$BODY$
+Declare rtn Boolean;
+Declare Sno numeric;
+begin
+        select b.snomedid into sno
+		from drugclassancestry a 
+		inner join drugclass b on a.classaui=b.rxaui
+		where inclassaui=vrxaui and snomedid is not null;
+        return isSnomedChild(vparentconcept,sno);
+end;
+$BODY$
+  LANGUAGE plpgsql ;
+
+/****************Do not use********************
+ CREATE OR REPLACE FUNCTION terminology.isRxCUIchild(vparentconcept numeric, vrxCui character varying)
+  RETURNS boolean AS
+$BODY$
+Declare rtn Boolean;
+Declare Sno numeric;
+begin
+	rtn=false;
+        for sno in select distinct b.snomedid 
+		from rxnsat sat 
+		inner join drugclassancestry a on a.inclassaui=sat.rxaui
+		inner join drugclass b on a.classaui=b.rxaui
+		where sat.rxcui=vrxcui
+	loop 
+	   if isSnomedChild(vparentconcept,sno) then rtn=true;
+	   end if;
+	end loop;
+        return rtn;
+end;
+$BODY$
+  LANGUAGE plpgsql ;
+******************************************************/
 

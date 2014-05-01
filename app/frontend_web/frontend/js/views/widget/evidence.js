@@ -14,14 +14,15 @@ define([
     var Evidence = Backbone.View.extend({
         el: '.page',
         template: _.template(evidenceTemplate),
-        initialize: function () {
+        initialize: function (options) {
+	    this.evi = options['evi'];
             console.log("evidence ini test2");
             _.bindAll(this, 'render');
-            this.render();
+    	    this.render();
         },
         render: function () {
-            this.$el.append(this.template({alert: currentContext.get('alert')}));
-             return this;
+		this.$el.append(this.template({alert: this.evi}));
+		return this;
         }
     });
     return Evidence;
