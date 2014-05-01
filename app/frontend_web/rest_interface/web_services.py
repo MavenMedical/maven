@@ -153,6 +153,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         except KeyError:
             raise MC.InvalidConfig('some real error')
 
+        self.origstyle=True
         self.add_handler(['POST'], '/login', self.post_login)
         self.add_handler(['GET'], '/patients(?:/(\d+)-(\d+)?)?', self.get_patients)
         self.add_handler(['GET'], '/patient_details', self.get_patient_details)
@@ -184,12 +185,19 @@ class FrontendWebService(HTTP.HTTPProcessor):
             return (HTTP.BAD_RESPONSE, b'', None)
         else:
             user = info['user']
+            if self.origstyle:
+                stylesheet = 'original'
+            else:
+                stylesheet = 'alternate'
+            self.origstyle = not self.origstyle
+
             try:
                 AK.check_authorization(user, info['password'], AUTH_LENGTH)
-                return (HTTP.OK_RESPONSE, json.dumps({'display':'Dr. Huxtable'}), None)
+                return (HTTP.OK_RESPONSE, json.dumps({'display':'Dr. Huxtable', 'stylesheet':stylesheet}), None)
             except:
                 user_auth = AK.authorization_key(user,AUTH_LENGTH, LOGIN_TIMEOUT)
-                return (HTTP.OK_RESPONSE,json.dumps({CONTEXT_KEY:user_auth, 'display':'Dr. Huxtable'}), None)
+                return (HTTP.OK_RESPONSE,json.dumps({CONTEXT_KEY:user_auth, 'display':'Dr. Huxtable'
+                                                     , 'stylesheet':stylesheet}), None)
 
     patients_required_contexts = [CONTEXT_USER]
     patients_available_contexts = {CONTEXT_USER:str, 'customer_id': int, CONTEXT_ENCOUNTER: str}
@@ -420,6 +428,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
                           "mavenorder.datetime",
                           "mavenorder.active",
                           "mavenorder.order_cost"]
+            # need the category of the order to use it for the UI icon and order chart
 
             columns = DBMapUtils().select_rows_from_map(column_map)
             cur = yield from self.db.execute_single("SELECT %s"
@@ -428,7 +437,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
             results = []
             y = 0
             for x in cur:
-                results.append({'id': y, 'name': x[0], 'date': str(x[1]), 'result': "Active", 'cost': int(x[3])})
+                results.append({'id': y, 'name': x[0], 'date': str(x[1]), 'result': "Active", 'cost': int(x[3]), 'category': 'med'})
                 y += 1
                 ML.DEBUG(x)
 

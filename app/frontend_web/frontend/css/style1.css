@@ -2,7 +2,8 @@
 html, body {
     height: 100%;
     font-family: verdana, arial, sans-serif;
-    color: #004059;
+/*    color: #004059;*/
+    color: #004000;
 }
 
 .chart-col-6 {
@@ -16,7 +17,7 @@ html, body {
 }
 
 .blue {
-    color: #0188BB;
+    color: #BB8800;
 }
 
 .control-group {
