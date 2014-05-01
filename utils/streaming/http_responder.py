@@ -25,7 +25,7 @@ import maven_config as MC
 import maven_logging as ML
 import utils.streaming.stream_processor as SP
 
-
+CONFIG_SSLAUTH = 'require client ssl auth'
 CONFIGVALUE_HTTPPARSER = 'http parser'
 
 """
@@ -123,7 +123,7 @@ class _HTTPStreamParser(SP.MappingParser):
         :params data: the bytes received over the socket
         """
 
-        self.update_last_activity()
+        #self.update_last_activity()
 
         ML.DEBUG("RECV: " + str(data))
         
@@ -160,6 +160,10 @@ class IncompleteRequest(Exception):
 class UnauthorizedRequest(Exception):
     pass
 
+def ssl_check(header):
+    if not header.get('VERIFIED','None') == 'SUCCESS':
+        raise UnauthorizedRequest('This services requires ssl client authentication.')
+
 class HTTPProcessor(SP.StreamProcessor):
     """ HTTPProcessor extends stream_processor.StreamProcessor with a web server
     It can create many kinds of web servers, but the motivation is RESTful web services
@@ -184,11 +188,16 @@ class HTTPProcessor(SP.StreamProcessor):
         except KeyError:
             raise MC.InvalidConfig(configname + " did not have sufficient parameters.")            
         
+        if CONFIG_SSLAUTH in self.config:
+            self.sslauth = ssl_check
+        else:
+            self.sslauth = (lambda x: True)
+
         # the web service only needs host and port parameters, but stream processor needs
         # more detailed information.  create detailed configuration parameters here
         readername = configname + '.reader'
         writername = configname + '.writer'
-
+        
         self.config.update(
             {
                 SP.CONFIG_READERTYPE: SP.CONFIGVALUE_ASYNCIOSERVERSOCKET,
@@ -245,6 +254,7 @@ class HTTPProcessor(SP.StreamProcessor):
         #print(req_line)
         ret = None
         try:
+            self.sslauth(headers.get_headers())
             for (r, fn) in self.handlers:
             #print(r, fn)
                 m = r.match(req_line)
@@ -333,6 +343,11 @@ class HTTPReader(SP.StreamProcessor):
         except KeyError:
             raise MC.InvalidConfig(configname + " did not have sufficient parameters.")            
         
+        if CONFIG_SSLAUTH in self.config:
+            self.sslauth = ssl_check
+        else:
+            self.sslauth = (lambda x: True)
+
         # the web service only needs host and port parameters, but stream processor needs
         # more detailed information.  create detailed configuration parameters here
         self.config.update(

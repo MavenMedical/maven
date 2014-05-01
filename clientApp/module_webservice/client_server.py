@@ -47,8 +47,9 @@ class OutgoingToMavenMessageHandler(HR.HTTPReader):
         param: obj is list of headers, body
         param: key is key
         """
-        #header = obj[0]
+        header = obj[0]
         try:
+            self.sslauth(header.get_headers())
             body = obj[1]
             if not len(body):
                 self.write_object(HR.wrap_response(HR.BAD_RESPONSE,b'',None), key)
@@ -57,6 +58,11 @@ class OutgoingToMavenMessageHandler(HR.HTTPReader):
                 composition = yield from self.create_composition(message)
                 ML.PRINT(json.dumps(json.dumps([composition, key], default=api.jdefault)))
                 self.write_object(json.dumps([composition, key], default=api.jdefault).encode(), self.wk)
+        except HR.UnauthorizedRequest:
+            try:
+                self.write_object(HR.wrap_response(HR.UNAUTHORIZED_RESPONSE,b'',None), key)
+            except:
+                pass
         except:
             try:
                 self.write_object(HR.wrap_response(HR.ERROR_RESPONSE, b'', None), key)
@@ -121,6 +127,7 @@ def main(loop):
             SP.CONFIG_WRITERNAME: outgoingtomavenmessagehandler+".Writer",
             #SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_IDENTITYPARSER,
             SP.CONFIG_WRITERDYNAMICKEY:1,
+            HR.CONFIG_SSLAUTH: None,
         },
         outgoingtomavenmessagehandler+".Reader":
         {
