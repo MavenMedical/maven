@@ -114,7 +114,7 @@ $BODY$
   LANGUAGE plpgsql;
 
 
-CREATE OR REPLACE FUNCTION terminology.isRxCUIchild(vparentconcept numeric, vrxaui character varying)
+CREATE OR REPLACE FUNCTION terminology.isRxAUIchild(vparentconcept numeric, vrxaui character varying)
   RETURNS boolean AS
 $BODY$
 Declare rtn Boolean;
@@ -129,7 +129,7 @@ end;
 $BODY$
   LANGUAGE plpgsql ;
 
-
+/****************Do not use********************
  CREATE OR REPLACE FUNCTION terminology.isRxCUIchild(vparentconcept numeric, vrxCui character varying)
   RETURNS boolean AS
 $BODY$
@@ -150,3 +150,5 @@ begin
 end;
 $BODY$
   LANGUAGE plpgsql ;
+******************************************************/
+

@@ -11,3 +11,6 @@ chmod 777 termData
 su postgres -c 'psql -d maven -f termData'
 rm termData
 
+gunzip DefaultProcedurePrices.csv
+su postgres -c 'psql -f test.sql'
+gzip DefaultProcedurePrices.csv

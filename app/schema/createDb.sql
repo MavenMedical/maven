@@ -300,7 +300,7 @@ ALTER SEQUENCE composition_comp_id_seq OWNED BY composition.comp_id;
 
 -- DROP TABLE costmap;
 
-CREATE TABLE costmap
+CREATE TABLE public.costmap
 (
   dep_id numeric(18,0),
   customer_id numeric(18,0),
@@ -308,22 +308,14 @@ CREATE TABLE costmap
   code_type character varying(25),
   cost_amt numeric(12,2),
   cost_type character varying(25),
-  PRIMARY KEY(billing_code, code_type, customer_id, dep_id)
+  primary key(billing_code,code_type,customer_id,dep_id)
 )
 with (
 OIDS=FALSE
 );
 ALTER TABLE public.costmap OWNER TO maven;
 
-
--- Index: ixcostmapbillcode
-
--- DROP INDEX: ixcostmapbillcode
-
-CREATE INDEX ixcostmapbillcode
-  on public.costmap
-  USING btree
-  (billing_code, code_type, customer_id, dep_id);
+create index ixpkcostmap on public.costmap(billing_code,code_type,customer_id,dep_id);
 
 
 
@@ -1166,3 +1158,4 @@ ALTER FUNCTION upsert_encounterdx(character varying(100), character varying(100)
 
 INSERT INTO ruleTest.rules VALUES ('Test rule name','This is the test rule description','proc',12345,0,200,'12345678,9012345,67890123,1222222,56789876','90324023984,43987523,309753492785,53425243235','These are the details for the test rule','test only in department','test not in department'); 
 INSERT INTO ruleTest.rules VALUES ('Test rule name 1','This is the test rule description 1','proc',12345,0,200,'22345678,0012345,77890123,2222222,66789876','00324023984,33987523,009753492785,33425243235','These are the details for the test rule1','test only in department1','test not in department1');
+\copy costmap from 'DefaultProcedurePrices.csv' csv 
