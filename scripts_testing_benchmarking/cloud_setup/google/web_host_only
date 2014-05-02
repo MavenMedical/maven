@@ -56,3 +56,8 @@ wget https://www.rabbitmq.com/releases/rabbitmq-server/v3.2.4/rabbitmq-server-3.
 sudo yum install esl-erlang_16.b.3-2~centos~6_amd64.rpm -y
 sudo service rabbitmq-server start
 sudo chkconfig rabbitmq-server on
+
+
+#add this line: su devel -c '(cd ~/maven && source ~/.bashrc && nohup ~/maven/run_maven.sh)'
+sudo emacs /etc/rc.local
+
