@@ -26,6 +26,7 @@ import urllib.parse
 EMR_TYPE = "emrtype"
 EMR_VERSION = "emrversion"
 CLIENTAPP_LOCATION = "clientapplocation"
+DEBUG = "debug"
 
 
 class NotificationGenerator():
@@ -49,6 +50,7 @@ class NotificationGenerator():
             try:
                 self.emrtype = config.get(EMR_TYPE, None)
                 self.emrversion = config.get(EMR_VERSION, None)
+                self.DEBUG = config.get(DEBUG, None)
 
             except KeyError:
                 raise MC.InvalidConfig(configname + " did not have sufficient parameters.")
@@ -59,17 +61,26 @@ class NotificationGenerator():
 
     @asyncio.coroutine
     def generate_alert_content(self, composition):
-        if self.emrtype == 'vista':
-            return self._vista_alert_content_generator(composition)
+        if self.DEBUG == True:
 
-        elif self.emrtype == 'epic' and self.emrversion == '2010' or '2012':
-            return self._epic_cost_HTML_content_generator(composition)
+            if self.emrtype == 'vista':
+                return self._vista_alert_content_generator(composition)
 
+            elif self.emrtype == 'epic' and self.emrversion == '2010' or '2012':
+                return self._epic_alert_content_generator(composition)
+        else:
+            return []
+
+    ################################################################################################
+    ################################################################################################
+    # Start Vista Alert Generator Components
+    ################################################################################################
     @asyncio.coroutine
     def _vista_alert_content_generator(self, composition):
         alert_contents = []
 
-        #creates the cost alert html. This may want to become more sophisticated over time to shorten the appearance of a very large active orders list
+        #creates the cost alert html. This may want to become more sophisticated over time to
+        #dynamically shorten the appearance of a very large active orders list
         cost_alert = yield from self._vista_cost_alert_generator(composition)
         alert_contents.append(cost_alert)
 
@@ -78,11 +89,9 @@ class NotificationGenerator():
             for sa in sleuth_alerts:
                 alert_contents.append(sa)
 
-        ML.PRINT("Generated %s alert HTMLs" % len(alert_contents))
+        ML.PRINT("Generated %s VistA Alerts" % len(alert_contents))
 
         return alert_contents
-
-
 
     @asyncio.coroutine
     def _vista_cost_alert_generator(self, composition):
@@ -132,8 +141,30 @@ class NotificationGenerator():
 
             return sleuth_alert_HTML_contents
 
+    ################################################################################################
+    ################################################################################################
+    # Start Epic Alert Generator Components
+    ################################################################################################
+    @asyncio.coroutine
+    def _epic_alert_content_generator(self, composition):
+        alert_contents = []
 
+        #creates the cost alert html. This may want to become more sophisticated over time to
+        #dynamically shorten the appearance of a very large active orders list
+        cost_alert = yield from self._epic_cost_alert_generator(composition)
+        alert_contents.append(cost_alert)
+
+        sleuth_alerts = yield from self._epic_sleuth_alert_generator(composition)
+        if len(sleuth_alerts) > 0:
+            for sa in sleuth_alerts:
+                alert_contents.append(sa)
+
+        ML.PRINT("Generated %s Epic alerts" % len(alert_contents))
 
     @asyncio.coroutine
-    def _epic_cost_HTML_content_generator(self, composition):
+    def _epic_cost_alert_generator(self, composition):
+        raise NotImplementedError
+
+    @asyncio.coroutine
+    def _epic_sleuth_alert_generator(self, composition):
         raise NotImplementedError

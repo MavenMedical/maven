@@ -501,7 +501,7 @@ class Alert(Resource):
 
     def __init__(self, customer_id, category=None, status=None, subject=None, author=None, provider_id=None, encounter_id=None,
                  code_trigger=None, sleuth_rule=None, alert_datetime=None, short_title=None, long_title=None,
-                 description=None, override_indications=None, outcome=None, saving=None):
+                 tag_line=None, description=None, override_indications=None, outcome=None, saving=None):
         Resource.__init__(self, customer_id=customer_id)
         self.category = category
         self.status = status
@@ -515,6 +515,7 @@ class Alert(Resource):
         self.alert_datetime = alert_datetime
         self.short_title = short_title
         self.long_title = long_title
+        self.tag_line = tag_line
         self.description = description
         if override_indications is None:
             self.override_indications = []

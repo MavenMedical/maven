@@ -134,7 +134,7 @@ class CompositionEvaluator(SP.StreamProcessor):
                 alert_bundle.append(alert)
 
 
-        if len(alert_bundle) > 0:
+        if alert_bundle is not None and len(alert_bundle) > 0:
             composition_alerts_section = composition.get_alerts_section()
             alert_datetime = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
             composition_alerts_section.content.append({alert_datetime: alert_bundle})
@@ -195,6 +195,22 @@ class CompositionEvaluator(SP.StreamProcessor):
             evidence.append(result)
 
         return evidence
+
+    @asyncio.coroutine
+    def gather_override_indications(self, rule, customer_id):
+        override_indications = []
+        column_map = ["override_indications.name",
+                      "override_indications.description",
+                      "override_indications.name"]
+
+        columns = self.DBMapper.select_rows_from_map(column_map)
+
+        cur = yield from self.conn.execute_single("select %s from override_indication where sleuth_rule='%s' and customer_id=%s" % (columns, rule[1], customer_id))
+        for result in cur:
+            override_indications.append(result)
+
+        return override_indications
+
 
     @asyncio.coroutine
     def generate_alert(self, composition, rule, evidence, alert_group):

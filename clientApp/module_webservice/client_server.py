@@ -80,7 +80,7 @@ class IncomingFromMavenMessageHandler(HR.HTTPWriter):
 
         alert_notification_content = ""
 
-        if len(notifications) > 0:
+        if notifications is not None and len(notifications) > 0:
             for notification_body in notifications:
                 alert_notification_content += str(notification_body)
 
@@ -144,6 +144,7 @@ def main(loop):
             NG.EMR_TYPE: "vista",
             NG.EMR_VERSION : "2.0",
             NG.CLIENTAPP_LOCATION: "cloud",
+            NG.DEBUG: True,
         },
 
     }

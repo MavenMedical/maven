@@ -214,20 +214,19 @@ CREATE TABLE alert
 (
   alert_id serial PRIMARY KEY,
   customer_id numeric(18,0),
+  category character varying(100),
+  status character varying(100),
   pat_id character varying(100),
   provider_id character varying(18),
   encounter_id character varying(100),
-  category character varying(100),
-  status character varying(100),
-  code_trigger character varying(128),
+  code_trigger character varying(100),
+  code_trigger_type character varying(100),
   sleuth_rule integer,
   alert_datetime timestamp without time zone,
   short_title character varying(25),
   long_title character varying(255),
   title_tag character varying(25),
-  short_description character varying(55),
-  long_description character varying,
-  override_indications character varying,
+  description character varying,
   outcome character varying(128),
   saving numeric(18,2)
 )
@@ -254,6 +253,7 @@ CREATE INDEX ixprovider
   ON public.alert
   USING btree
   (provider_id, customer_id);
+
 
 
 -- Table: composition
