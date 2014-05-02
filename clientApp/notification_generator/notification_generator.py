@@ -21,12 +21,14 @@ import maven_config as MC
 import maven_logging as ML
 import urllib
 import urllib.parse
+import math
 
 
 EMR_TYPE = "emrtype"
 EMR_VERSION = "emrversion"
 CLIENTAPP_LOCATION = "clientapplocation"
 DEBUG = "debug"
+COST_ALERT_ICON = "costalerticon"
 
 
 class NotificationGenerator():
@@ -111,11 +113,18 @@ class NotificationGenerator():
 
         if cost_breakdown is not None:
             for cost in cost_breakdown.content:
-                total_cost += cost[1]
-                notification_content += ("%s: $%s<br>" % (cost[0], cost[1]))
+                total_cost += math.ceil(cost[1])
+                notification_content += ("<tr><td>%s</td><td>$%s</td></tr>" % (cost[0], math.ceil(cost[1])))
             print(total_cost)
 
-        notification_body = ("<html><body bgcolor=#FFFFFF style='font-family: Arial; color: #444; word-spacing: normal; text-align: left; letter-spacing: 0; font-size: 104%%;'><table><col width=32px><col width=30%%><col width=10%%><col width=60%%><tr><td valign='top'><img src={{IMGLOGO}} /></td><td valign='top'><a href='%s/#/episode/%s/patient/%s/login/%s/%s'><b>Encounter Cost Alert</b></a><br/>This Encounter Costs<br/>$%s</td><td></td><td valign='top' style='font-family: Arial; color: #444; word-spacing: normal; text-align: left; letter-spacing: 0; font-size: 104%%;'>%s</td></body></html>" % (MC.http_addr, csn, patient_id, user, userAuth, round(total_cost,2), notification_content))
+        #COST ALERT VERSION 1
+        #TODO - The HTML below has hard-coded locations for Notification Icon. Need to move to config.
+        notification_body = ("<html><body bgcolor=#FFFFFF style='font-family: Arial; color: #444; word-spacing: normal; text-align: left; letter-spacing: 0; font-size: 104%%;'><table><col width=32px><col width=30%%><col width=10%%><col width=60%%><tr><td valign='top'><img src='/home/devel/maven/clientApp/notification_generator/img/cheaper-option-48x33px.png' /></td><td valign='top'><a href='%s/#/episode/%s/patient/%s/login/%s/%s'><b>Encounter Cost Alert</b></a><br/><b>Total:</b> $%s</td><td></td><td valign='top' style='font-family: Arial; color: #444; word-spacing: normal; text-align: left; letter-spacing: 0; font-size: 104%%;'><table>%s</table></table></body></html>" % (MC.http_addr, csn, patient_id, user, userAuth, math.ceil(total_cost), notification_content))
+
+        #COST ALERT VERSION 2
+        #TODO - The HTML below has hard-coded locations for Notification Icon. Need to move to config.
+        notification_body += ("<html><body bgcolor=#FFFFFF style='font-family: Arial; color: #444; word-spacing: normal; text-align: left; letter-spacing: 0; font-size: 104%%;'><table><col width=32px><col width=10%%><col width=30%%><col width=60%%><tr><td valign='top'><img src='/home/devel/maven/clientApp/notification_generator/img/evidence-28x35px.png' /></td><td valign='top' style='font-size: 140%%;'><b>$%s</b></td><td valign='top'><a href='%s/#/episode/%s/patient/%s/login/%s/%s'><b>Encounter Cost Details</b></a></td><td valign='top' style='font-family: Arial; color: #444; word-spacing: normal; text-align: left; letter-spacing: 0; font-size: 104%%;'><table>%s</table></td></table></body></html>" % (math.ceil(total_cost), MC.http_addr, csn, patient_id, user, userAuth, notification_content))
+
         return notification_body
 
     @asyncio.coroutine
@@ -138,7 +147,8 @@ class NotificationGenerator():
                     for alert in alert_list:
                         print(alert.short_title)
 
-                        notification_body = ("<html><body bgcolor=#FFFFFF style='font-family: Arial; color: #444; word-spacing: normal; text-align: left; letter-spacing: 0; font-size: 104%%;'><table><col width=32px><col width=30%%><col width=10%%><col width=60%%><tr><td valign='top'><img src={{IMGLOGO}} /></td><td valign='top'><a href='%s/#/episode/%s/patient/%s/login/%s/%s'><b>Maven Sleuth Alert</b></a><br/>%s<br/>$%s</td><td></td><td valign='top' style='font-family: Arial; color: #444; word-spacing: normal; text-align: left; letter-spacing: 0; font-size: 104%%;'>%s</td></body></html>" % (MC.http_addr, csn, patient_id, user, userAuth, alert.short_title, round(total_cost,2), notification_content))
+                        #TODO - The HTML below has hard-coded locations for Notification Icon. Need to move to config.
+                        notification_body = ("<html><body bgcolor=#FFFFFF style='font-family: Arial; color: #444; word-spacing: normal; text-align: left; letter-spacing: 0; font-size: 104%%;'><table><col width=32px><col width=30%%><col width=10%%><col width=60%%><tr><td valign='top'><img src='/home/devel/maven/clientApp/notification_generator/img/evidence-28x35px.png'/></td><td valign='top'><a href='%s/#/episode/%s/patient/%s/login/%s/%s'><b>Maven Sleuth Alert</b></a><br/>%s<br/>$%s</td><td></td><td valign='top' style='font-family: Arial; color: #444; word-spacing: normal; text-align: left; letter-spacing: 0; font-size: 104%%;'>%s</td></body></html>" % (MC.http_addr, csn, patient_id, user, userAuth, alert.short_title, round(total_cost,2), notification_content))
                         sleuth_alert_HTML_contents.append(notification_body)
 
             return sleuth_alert_HTML_contents
