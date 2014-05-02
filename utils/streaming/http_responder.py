@@ -267,7 +267,7 @@ class HTTPProcessor(SP.StreamProcessor):
                             resp = NOCONTENT_RESPONSE
                         ret=wrap_response(resp, body, extras)
                     break
-        except KeyError:  # key error means an object isn't found
+        except (KeyError, IndexError):  # key error means an object isn't found
             traceback.print_exc()
             ret = wrap_response(NOTFOUND_RESPONSE, b'')
         except ValueError:
