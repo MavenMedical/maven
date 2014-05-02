@@ -65,6 +65,7 @@ class OutgoingToMavenMessageHandler(HR.HTTPReader):
             except:
                 pass
 
+
     @asyncio.coroutine
     def create_composition(self, message):
         composition = VistaParser().create_composition(message)

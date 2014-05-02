@@ -137,12 +137,11 @@ def write_composition_alerts(alert_datetime, alert_bundle, conn):
                       "short_title",
                       "long_title",
                       "description",
-                      "override_indications",
                       "saving"]
 
         columns = DBMapper.select_rows_from_map(column_map)
 
-        cur = yield from conn.execute_single("INSERT INTO alert(%s) VALUES (%s, '%s', '%s', '%s', '%s', %s, '%s', '%s', '%s', '%s', '%s', %s)" %
+        cur = yield from conn.execute_single("INSERT INTO alert(%s) VALUES (%s, '%s', '%s', '%s', '%s', %s, '%s', '%s', '%s', '%s', %s)" %
                                             (columns, alert.customer_id, alert.subject, alert.provider_id, alert.encounter_id,
-                                             alert.code_trigger, alert.sleuth_rule, alert_datetime, alert.short_title, alert.long_title,
-                                             alert.description, alert.override_indications[0], alert.saving))
+                                             alert.code_trigger, alert.sleuth_rule, alert_datetime, alert.short_title, alert.tag_line,
+                                             alert.description, alert.saving))

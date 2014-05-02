@@ -628,6 +628,7 @@ class SecurityEvent(Resource):
         self.outcomeDesc = outcomeDesc
 
 
+
 #####
 #####
 #####
@@ -802,4 +803,51 @@ def jdefault(o):
             return o.__dict__
 
 
+##################################################################
+#CUSTOM MAVEN FHIR OBJECTS PROBABLY NOT FHIR-SERVER COMPATIBLE
+##################################################################
+class Rule(Resource):
 
+    def __init__(self, customer_id=None, rule_id=None, code_trigger=None, code_trigger_type=None, dep_id=None, name=None, tag_line=None, description=None, rule_details=None):
+        Resource.__init__(self, customer_id=customer_id)
+        self.sleuth_rule_id = rule_id
+        self.code_trigger = code_trigger
+        self.code_trigger_type = code_trigger_type
+        self.dep_id = dep_id
+        self.name = name
+        self.tag_line = tag_line
+        self.description = description
+        self.rule_details = rule_details['details']
+        self.encounter_dx_rules = []
+        self.historic_dx_rules = []
+        self.encounter_proc_rules = []
+        self.historic_proc_rules = []
+        self.lab_rules = []
+        self.drug_list_rules = []
+
+        #extract the rule_details JSON object into respective lists of each type
+        self.extract_rule_details(self.rule_details)
+
+    def extract_rule_details(self, rule_details):
+        """
+        Takes the rule_details JSON object and creates lists of each respective type of rule
+
+        :param rule_details: JSON object of rule details as defined on the wiki (https://mavenmedical.atlassian.net/wiki/display/MAV/Rule+Structure)
+        """
+
+        for rule_detail in rule_details:
+
+            if rule_detail['type'] == "encounter_dx":
+                self.encounter_dx_rules.append(rule_detail)
+
+            elif rule_detail['type'] == "historic_dx":
+                self.historic_dx_rules.append(rule_detail)
+
+            elif rule_detail['type'] == "encounter_proc":
+                self.encounter_proc_rules.append(rule_detail)
+
+            elif rule_detail['type'] == "lab":
+                self.lab_rules.append(rule_detail)
+
+            elif rule_detail['type'] == "drug_list":
+                self.drug_list_rules.append(rule_detail)

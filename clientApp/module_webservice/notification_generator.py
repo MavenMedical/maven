@@ -61,6 +61,8 @@ class NotificationGenerator():
 
     @asyncio.coroutine
     def generate_alert_content(self, composition):
+
+        #DEBUG trigger, when set to True, messages get sent, when set to False, empty list gets sent
         if self.DEBUG == True:
 
             if self.emrtype == 'vista':
@@ -70,6 +72,7 @@ class NotificationGenerator():
                 return self._epic_alert_content_generator(composition)
         else:
             return []
+
 
     ################################################################################################
     ################################################################################################
@@ -118,7 +121,6 @@ class NotificationGenerator():
     @asyncio.coroutine
     def _vista_sleuth_alert_generator(self, composition):
         sleuth_alert_HTML_contents = []
-        notification_body = ""
         notification_content = ""
         total_cost = 0.0
         user = composition.user
@@ -140,6 +142,7 @@ class NotificationGenerator():
                         sleuth_alert_HTML_contents.append(notification_body)
 
             return sleuth_alert_HTML_contents
+
 
     ################################################################################################
     ################################################################################################

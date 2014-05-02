@@ -913,6 +913,7 @@ CREATE TABLE sleuth_rule
   client_order_code character varying(100),
   dep_id numeric(18,0),
   name character varying(100),
+  tag_line character varying(100),
   description character varying(255),
   rule_details json
 )
