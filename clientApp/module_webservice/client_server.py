@@ -18,6 +18,7 @@ __author__='Yuki Uchino'
 #*************************************************************************
 import json
 import pickle
+
 import utils.streaming.stream_processor as SP
 import asyncio
 import utils.streaming.http_responder as HR
@@ -25,7 +26,7 @@ import maven_config as MC
 import maven_logging as ML
 from clientApp.module_webservice.emr_parser import VistaParser
 import utils.api.fhir as api
-import clientApp.module_webservice.notification_generator as NG
+import clientApp.notification_generator.notification_generator as NG
 import os
 
 
@@ -91,6 +92,7 @@ class IncomingFromMavenMessageHandler(HR.HTTPWriter):
         if notifications is not None and len(notifications) > 0:
             for notification_body in notifications:
                 alert_notification_content += str(notification_body)
+                #alert_notification_content += ""
 
         ML.DEBUG(json.dumps(composition, default=api.jdefault, indent=4))
         ML.DEBUG("NOTIFY HTML BODY: " + alert_notification_content)
@@ -154,6 +156,7 @@ def main(loop):
             NG.EMR_VERSION : "2.0",
             NG.CLIENTAPP_LOCATION: "cloud",
             NG.DEBUG: True,
+            NG.COST_ALERT_ICON: "/clientApp"
         },
 
     }
