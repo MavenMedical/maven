@@ -14,63 +14,42 @@ create index ixDrugClasssnomed on terminology.drugClass (snomedid);
 insert into terminology.drugclass (
 	select distinct a.rxaui,a.rxcui,b.str from rxnsat a 
 	inner join rxnconso b on a.rxaui=b.rxaui
-	where (a.atn='DRUG_CLASS_TYPE' and a.sab='VANDF' and a.atv='2')
-              or (a.atn='ATC_LEVEL' and a.sab='ATC' and a.atv='4')
+	where (a.atn='ATC_LEVEL' and a.sab='ATC' and a.atv='4')
 );
 
 
 update drugclass dc set snomedid= (select min(cast(scui as numeric)) from rxnconso a where a.rxcui=dc.rxcui and a.sab ='SNOMEDCT_US' and tty='PT');
 
-
 create table terminology.drugClassAncestry
 (
-   classAui varchar(20) 
+   classAui varchar(20)
    ,inClassAui varchar(20)
-   ,tradenamecui varchar(20)
+   ,brandname varchar(200)
+   ,routename varchar(200)
+   ,ndc varchar(200)
    ,primary key (classaui,inclassaui)
 );
 create index ixDrugClassAncestryPK on terminology.drugClassAncestry (classaui,inclassaui);
 create index ixDrugClassAncestryReverse on terminology.drugClassAncestry (inclassaui,classaui);
-create index ixDrugClassAncestryTnCui on terminology.drugclassancestry(tradenamecui);
 
-create or replace function  populateDrugAncestry() returns void as
-$BODY$
-declare aui varchar(20);
 
-begin
-	for aui in select rxaui from drugclass where rxaui not in (select distinct classaui from terminology.drugclassAncestry)
-	loop
-		
-		insert into terminology.drugClassAncestry
-		(
-			select distinct dclass,sat.rxaui,second.second_cui  from 
-			(
-				select dc.rxaui dclass, a.rela,b.str first_concept,b.rxcui first_cui,dc.str dclassstr
-				from rxnrel a
-				inner join drugclass dc on a.rxaui1=dc.rxaui
-				inner join rxnconso b on a.rxaui2=b.rxaui and a.rela='member_of'
-			) first
-			inner join 
-			(
-				select a.rxcui1 first_cui,b.str second_concept,b.rxcui second_cui
-				from rxnrel a
-				inner join rxnconso b on a.rxcui2=b.rxcui and a.rela='tradename_of'
-			) second on first.first_cui=second.first_cui
-			inner join 
-			(
-				select a.rxcui1 second_cui,b.str second_concept,b.rxcui third_cui,a.rela
-				from rxnrel a
-				inner join rxnconso b on a.rxcui2=b.rxcui and a.rela='has_ingredient'
-			) third on third.second_cui=second.second_cui
-			inner join rxnsat sat on sat.rxcui=third.third_cui
-			where dclass=aui
-		);
-	end loop;
-end;
-$BODY$
-LANGUAGE plpgsql;
-
-select populateDrugAncestry();
+insert into terminology.drugclassancestry(
+select distinct  dc.rxaui ,ndc.rxaui ,max(coalesce(brand.str,member.str||' (generic)')) ,max(route.groupname),max(ndc.atv)
+from drugclass dc
+inner join rxnrel a on a.rxaui1=dc.rxaui and a.rela='member_of'
+inner join rxnconso member on member.rxaui=a.rxaui2 
+inner join rxnrel rel2 on rel2.rxcui1=member.rxcui and rel2.rela='has_ingredient'
+inner join rxnconso drug on drug.rxcui=rel2.rxcui2 and drug.sab='RXNORM' and drug.tty!='TMSY'
+inner join rxnrel rel3 on rel3.rxcui1=drug.rxcui and rel3.rela in ('consists_of','isa')
+inner join rxnconso soldas on soldas.rxcui=rel3.rxcui2 and soldas.sab='RXNORM' and soldas.tty='SY'
+--check if there's an NDC for the thing
+inner join rxnsat ndc on ndc.rxcui=soldas.rxcui and ndc.atn='NDC'  and ndc.sab='RXNORM' 
+inner join rxnrel routerel on routerel.rxcui1=ndc.rxcui and routerel.rela='dose_form_of'
+inner join doseformgroups route on routerel.rxcui2=route.rxcui
+left outer join rxnrel brel on brel.rxcui1=ndc.rxcui and brel.rela='ingredient_of'
+left outer join rxnconso brand on brel.rxcui2=brand.rxcui and brand.tty='BN'
+group by dc.rxaui ,ndc.rxaui 
+);
 
 create or replace function getClassNameFromNDC(ndc varchar(20))
   RETURNS varchar(200) AS
