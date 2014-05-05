@@ -26,10 +26,12 @@ create table terminology.drugClassAncestry
 (
    classAui varchar(20) 
    ,inClassAui varchar(20)
+   ,tradenamecui varchar(20)
    ,primary key (classaui,inclassaui)
 );
 create index ixDrugClassAncestryPK on terminology.drugClassAncestry (classaui,inclassaui);
 create index ixDrugClassAncestryReverse on terminology.drugClassAncestry (inclassaui,classaui);
+create index ixDrugClassAncestryTnCui on terminology.drugclassancestry(tradenamecui);
 
 create or replace function  populateDrugAncestry() returns void as
 $BODY$
@@ -41,7 +43,7 @@ begin
 		
 		insert into terminology.drugClassAncestry
 		(
-			select distinct dclass,sat.rxaui from 
+			select distinct dclass,sat.rxaui,second.second_cui  from 
 			(
 				select dc.rxaui dclass, a.rela,b.str first_concept,b.rxcui first_cui,dc.str dclassstr
 				from rxnrel a
