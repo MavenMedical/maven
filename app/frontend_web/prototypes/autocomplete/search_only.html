@@ -52,6 +52,12 @@
                           <div class="input-group-btn">
                             <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-search"></span></button>
                           </div>
+
+                             <div class="input-group">
+                          <input type="text" class="form-control" placeholder="Search: patient, diagnosis, date..." id="search"  value="">
+                          <div class="input-group-btn">
+                            <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-search"></span></button>
+                          </div>
 			  
                           <!-- search button -->
 			  
@@ -79,32 +85,7 @@
     </div>
 
 
-     $(function() {
-       console.log("sa");
-       var availableTags = [
-	 "Adaline Malachi",
-	 "Jefferson Lariviere",
-	 "Jordon Severt",
-         "Beulah Gay",
-	 "Asthma",
-	 "Coccidiosis",
-	 "Giardiasis",
-	 "Food poisoning",
 
-	 "05/03/1987",
-	 "03/06/1986",
-	 "08/03/1999",
-	 "11/07/1935"
-
-       ];
-       $("#searchb").autocomplete({
-	 source: availableTags,
-	 messages: {
-           noResults: '',
-           results: function(d) {console.log(d);}
-	 }
-       });
-     });
 
     </script>
 

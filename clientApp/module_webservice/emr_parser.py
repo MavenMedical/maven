@@ -22,7 +22,7 @@ import uuid
 
 import dateutil.parser
 
-import utils.api.api as api
+import utils.api.fhir as api
 
 
 class EpicParser():

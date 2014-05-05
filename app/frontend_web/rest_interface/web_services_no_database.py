@@ -138,7 +138,7 @@ def restrict_context(qs, required, available):
     try:
         AK.check_authorization(qs['user'][0], qs[CONTEXT_KEY][0], AUTH_LENGTH)
     except AK.UnauthorizedException as ue:
-        raise HTTP.UnauthorizatedRequest(str(ue))
+        raise HTTP.UnauthorizedRequest(str(ue))
 
     context = {}
     for k, v in qs.items():
@@ -160,6 +160,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
     def __init__(self, configname):
         HTTP.HTTPProcessor.__init__(self,configname)
 
+        self.origstyle=True
         self.add_handler(['POST'], '/login', self.post_login)
         self.add_handler(['GET'], '/patients(?:/(\d+)-(\d+)?)?', self.get_patients)
         self.add_handler(['GET'], '/patient_details', self.get_patient_details)
@@ -221,12 +222,19 @@ class FrontendWebService(HTTP.HTTPProcessor):
             return (HTTP.BAD_RESPONSE, b'', None)
         else:
             user = info['user']
+            if self.origstyle:
+                stylesheet = 'original'
+            else:
+                stylesheet = 'alternate'
+            self.origstyle = not self.origstyle
+            
             try:
                 AK.check_authorization(user, info['password'], AUTH_LENGTH)
-                return (HTTP.OK_RESPONSE, json.dumps({'display':'Dr. Huxtable'}), None)
+                return (HTTP.OK_RESPONSE, json.dumps({'display':'Dr. Huxtable', 'stylesheet':stylesheet}), None)
             except:
                 user_auth = AK.authorization_key(user,AUTH_LENGTH, LOGIN_TIMEOUT)
-                return (HTTP.OK_RESPONSE,json.dumps({CONTEXT_KEY:user_auth, 'display':'Dr. Huxtable'}), None)
+                return (HTTP.OK_RESPONSE,json.dumps({CONTEXT_KEY:user_auth, 'display':'Dr. Huxtable',
+                                                     'stylesheet':stylesheet}), None)
 
     patients_required_contexts = [CONTEXT_USER]
     patients_available_contexts = {CONTEXT_USER:str}

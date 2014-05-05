@@ -214,18 +214,19 @@ CREATE TABLE alert
 (
   alert_id serial PRIMARY KEY,
   customer_id numeric(18,0),
+  category character varying(100),
+  status character varying(100),
   pat_id character varying(100),
   provider_id character varying(18),
   encounter_id character varying(100),
-  category character varying(100),
-  status character varying(100),
-  code_trigger character varying(128),
+  code_trigger character varying(100),
+  code_trigger_type character varying(100),
   sleuth_rule integer,
   alert_datetime timestamp without time zone,
   short_title character varying(25),
   long_title character varying(255),
+  title_tag character varying(25),
   description character varying,
-  override_indications character varying,
   outcome character varying(128),
   saving numeric(18,2)
 )
@@ -252,6 +253,7 @@ CREATE INDEX ixprovider
   ON public.alert
   USING btree
   (provider_id, customer_id);
+
 
 
 -- Table: composition
@@ -314,17 +316,6 @@ OIDS=FALSE
 ALTER TABLE public.costmap OWNER TO maven;
 
 create index ixpkcostmap on public.costmap(billing_code,code_type,customer_id,dep_id);
-
-ALTER TABLE public.costmap_costmap_id_seq OWNER TO maven;
-
--- Index: ixcostmapbillcode
-
--- DROP INDEX: ixcostmapbillcode
-
-CREATE INDEX ixcostmapbillcode
-  on public.costmap
-  USING btree
-  (billing_code, customer_id);
 
 
 
@@ -922,6 +913,7 @@ CREATE TABLE sleuth_rule
   client_order_code character varying(100),
   dep_id numeric(18,0),
   name character varying(100),
+  tag_line character varying(100),
   description character varying(255),
   rule_details json
 )
@@ -1076,13 +1068,13 @@ BEGIN
     order_cost = order_cost1,
     datetime = datetime1,
     active = active1
-    WHERE encounter_id = encounter_id1 and customer_id = customer_id1 and pat_id = pat_id1 and proc_code = proc_code1;
+    WHERE encounter_id = encounter_id1 and customer_id = customer_id1 and proc_code = proc_code1;
     IF found THEN
       RETURN;
     END IF;
     BEGIN
-      INSERT INTO mavenorder(pat_id, customer_id, encouter_id, order_name, order_type, proc_code, code_type, order_cost, datetime, active)
-        VALUES (pat_id1, customer_id1, encouter_id1, order_name1, order_type1, proc_code1, code_type1, order_cost1, datetime1, active1);
+      INSERT INTO mavenorder(pat_id, customer_id, encounter_id, order_name, order_type, proc_code, code_type, order_cost, datetime, active)
+        VALUES (pat_id1, customer_id1, encounter_id1, order_name1, order_type1, proc_code1, code_type1, order_cost1, datetime1, active1);
       RETURN;
     EXCEPTION WHEN unique_violation THEN
     END;

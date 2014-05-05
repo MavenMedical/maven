@@ -31,7 +31,8 @@ define([
             $('.nav li').removeClass('active');
             $('.nav li a[href="' + window.location.hash + '"]').parent().addClass('active');
              // clear li content from the dynamic list
-            $('#dynamic_menu').empty();
+            $('#dynamic_pat li').remove();
+            $('#dynamic_enc li').remove();
             $('#dynamic_menu_xs').empty();
             $('.patientinfo').empty();
 

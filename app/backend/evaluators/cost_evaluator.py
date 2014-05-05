@@ -22,9 +22,9 @@ from utils.database.database import SingleThreadedConnection
 import asyncio
 
 import utils.streaming.stream_processor as SP
-from utils.database.fhir_database import PostgresFHIR
+from utils.database.fhir_database import PostgresFHIR as PF
 import maven_config as MC
-import utils.api.api as api
+import utils.api.fhir as api
 
 
 class CostEvaluator(SP.StreamProcessor):
@@ -32,7 +32,7 @@ class CostEvaluator(SP.StreamProcessor):
     def __init__(self, configname):
         SP.StreamProcessor.__init__(self, configname)
         self.conn = SingleThreadedConnection('CostEvalConnection')
-        self.PF = PostgresFHIR()
+        self.PF = PF()
 
 
     @asyncio.coroutine

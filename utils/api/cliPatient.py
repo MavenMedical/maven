@@ -1,4 +1,4 @@
-from _elementtree import tostring
+from xml.etree.ElementTree import tostring
 from datetime import datetime
 import cliEncounter
 from cliProblem import cliProblem
