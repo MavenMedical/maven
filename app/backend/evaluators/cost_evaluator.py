@@ -106,9 +106,7 @@ def run_cost_evaluator():
             SP.CONFIG_WRITERKEY:'logging',
         },
         'CostEvalConnection': {
-            SingleThreadedConnection.CONFIG_CONNECTION_STRING:
-            ("dbname=%s user=%s password=%s host=%s port=%s" % ('maven', 'maven', 'temporary', MC.dbhost, '5432')),
-
+            SingleThreadedConnection.CONFIG_CONNECTION_STRING: MC.dbconnection,
             #AsyncConnectionPool.CONFIG_MIN_CONNECTIONS: 2,
             #AsyncConnectionPool.CONFIG_MAX_CONNECTIONS: 4
         },
