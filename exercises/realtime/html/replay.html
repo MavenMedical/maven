@@ -76,7 +76,7 @@
    if(!stopped) {
      $.ajax({
        type: "GET",
-       url: 'services/text',
+       url: 'capture/text',
        data: 'i='+i+"&user="+user,
        success: function(obj) {
 	 //console.log(obj);
@@ -107,7 +107,7 @@
 
  $.ajax({
    type: "GET",
-   url: "services/duration",
+   url: "capture/duration",
    data: "user="+user,
    dataType: "json",
    success: function(obj) {
