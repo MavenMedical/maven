@@ -17,7 +17,7 @@ import urllib.parse
 import json
 import traceback
 import re
-
+import sys
 import asyncio
 from http_parser.parser import HttpParser
 
@@ -69,6 +69,7 @@ class CaptureService(HR.HTTPProcessor):
                 self.starttimes[user]=time.time();
             self.db[user].append([time.time()-self.starttimes[user],json.loads(body.decode('utf-8'))])
             print([user,self.db[user][-1]])
+            sys.stdout.flush()
             return (HR.OK_RESPONSE, b'' ,None)
 
     @asyncio.coroutine
@@ -84,6 +85,7 @@ class CaptureService(HR.HTTPProcessor):
         user = qs['user'][0]
         ret = self.db[user][int(qs['i'][0])]
         print(ret)
+        sys.stdout.flush()
         if not ret[1]:
             ret = b''
         else:
@@ -97,6 +99,7 @@ class CaptureService(HR.HTTPProcessor):
         if not user in self.finished:
             self.db[user].append([time.time()-self.starttimes[user],None])
             print([user,self.db[user][-1]])
+            sys.stdout.flush()
             self.finished[user]=True
         return (HR.OK_RESPONSE, b'' ,None)
 
@@ -110,7 +113,7 @@ if __name__ == '__main__':
             "httpserver":
                 {
                     SP.CONFIG_HOST: 'localhost',
-                    SP.CONFIG_PORT: 8087,
+                    SP.CONFIG_PORT: 1234,
                 },
         }
     hp = CaptureService('httpserver')

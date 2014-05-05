@@ -1,6 +1,7 @@
-<html>
+<html leng='en'>
 <head>
   <title>Maven Candidate Exercises</title>
+  <meta charset='utf-8'>
 </head>
 <body>
   <div style='width: 30%; float:left'>
@@ -8,10 +9,10 @@
       We want to parse an certain (simpler) type of arithmetic expression.  An expression E can be either:
       <ul>
 	<li>a single integer digit n, or </li>
-	<li>a string "(E&plusmn;E)" - where &plusmn; means either the symbol "+" or "-" and E is any valid expression.</li>
+	<li>any string "(E&plusmn;E)" - where &plusmn; means either the symbol "+" or "-" and E is any valid expression.</li>
       </ul>
       
-      For example, "5" is a valid expression.  So is "(6-2)", though not "6-2".  If x and y are both strings represention valid expressions, so is the new string "("+x+"-"+y+")".
+      For example, "5" is a valid expression.  So is "(6-2)", though not "6-2".  "((1+((2-3)-(4+5)))+6)" is a longer example.  If x and y are both strings represention valid expressions, so is the new string "("+x+"-"+y+")".
     </p>
 
     <p>
@@ -23,9 +24,17 @@
     </p>
 
     <p>
-    
+      Create any reasonable tree representation and write a function parse(x) which takes a string x and returns the corresponding tree.  This can be in Python, C/C++, Java, bash, or any other commonly used language you like.  You may assume that every input will be valid, so don't worry about error checking.
+    </p>
 
-      Create any reasonable tree representations and write a function parse(x) which takes a string x and returns the corresponding tree.  You may assume that every input will be valid, so don't worry about error checking.
+    <p> Spend no more than 10-15 minutes on the above problem.  I highly recommend that you spend this time as follows:
+      <ul>
+	<li>Spend a minute or two coming up with a tree structure (it does not have to be a custom class, a recursive list is fine for the inductive case).  Write it as a comment if you like.</li>
+	<li>Define your main function (and any helpers) a give a brief comment for each.</li>
+	<li>Write the main function assuming the helpers work as specified.</li>
+	<li>Fill in the helper functions.</li>
+      </ul>
+      If you finish this task quickly, you can also do the following.
     </p>
 
     <p>
@@ -35,7 +44,7 @@
 
   </div>
   <div style='float:left' width=90%>
-    <textarea id='textbox' rows=25 cols=100 onchange='process_update()' onkeyup='process_update()' onkeydown='suppresstab(event)'></textarea>
+    <textarea id='textbox' rows=40 cols=100 onchange='process_update()' onkeyup='process_update()' onkeydown='suppresstab(event)'></textarea>
     <br>
     <button id=done onclick='done()'>Submit</button>
   </div>
@@ -43,7 +52,7 @@
 <script src="http://code.jquery.com/jquery-latest.min.js"
         type="text/javascript"></script>
 <script>
- function getParameterByName(name) {
+  function getParameterByName(name) {
    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
    results = regex.exec(location.search);
@@ -105,7 +114,7 @@
      [l,c]=finddiff(textbox.value,oldvalue);
      post([l,"+",c]);
      
-   } else {
+   } else if(textbox.value != oldvalue) {
      // something else, just send the entire string
      post(textbox.value)
    }
@@ -116,7 +125,7 @@
    //console.log(str(obj));
    $.ajax({
      type: "POST",
-     url: 'services/update'+'?user='+user,
+     url: 'capture/update'+'?user='+user,
      data: JSON.stringify(obj),
      dataType: 'text/json'
    });
@@ -130,10 +139,14 @@
      textbox.readOnly=true;
      $.ajax({
        type: "POST",
-       url: 'services/done'+'?user='+user,
+       url: 'capture/done'+'?user='+user,
      });
+    window.location.href = 'replay.html?user='+user;
    }   
- }
+ };
+    
+ post(' ');
+
 
 </script>
 </html>

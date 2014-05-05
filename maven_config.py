@@ -13,7 +13,8 @@
 
 MavenConfig={}
 
-dbhost = 'localhost'
+dbconnection = ("dbname=%s user=%s password=%s host=%s port=%s" % ('maven', 'maven', 'temporary', 'localhost', '5432')),
+
 http_addr = 'http://localhost'
 
 class InvalidConfig(Exception):
