@@ -1,0 +1,378 @@
+<!doctype html>
+<!--[if lt IE 7]>
+<html class="no-js ie6 oldie" lang="en"> <![endif]-->
+<!--[if IE 7]>
+<html class="no-js ie7 oldie" lang="en"> <![endif]-->
+<!--[if IE 8]>
+<html class="no-js ie8 oldie" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta name="viewport" content="width=device-width,initialbs-example-modal-lg-scale=1">
+
+    <title>maven</title>
+
+    <!-- Load the require script-->
+
+    <!-- Load  FREE Amchart script -->
+    <script src="../js/amcharts/amcharts.js" type="text/javascript"></script>
+    <script src="../js/amcharts/serial.js" type="text/javascript"></script>
+    <script src="../js/amcharts/pie.js" type="text/javascript"></script>
+    <script src="../js/amcharts/themes/light.js" type="text/javascript"></script>
+
+    <!-- Load Amchart script
+    <script src="js/libs/amcharts/amcharts.js" type="text/javascript"></script>
+    <script src="js/libs/amcharts/serial.js" type="text/javascript"></script>
+    <script src="js/libs/amcharts/pie.js" type="text/javascript"></script>
+    <script src="js/libs/amcharts/themes/light.js" type="text/javascript"></script>-->
+
+    <script src="../../bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
+
+    <link href='http://fonts.googleapis.com/css?family=Maven+Pro' rel='stylesheet' type='text/css'>
+    <link href="styles.css" rel="stylesheet">
+
+    <script type="text/javascript">
+        AmCharts.makeChart("chartdiv",
+                {
+                    "type": "pie",
+                    "pathToImages": "http://cdn.amcharts.com/lib/3/images/",
+                    "balloonText": "[[title]]<br><span style='font-size:14px'><b>[[value]]</b> ([[percents]]%)</span>",
+                    "depth3D": 2,
+                    "innerRadius": "50%",
+                    "labelText": "[[title]] <br>$[[column-1]]",
+                    "colors": [ "#995c9b", "#e45738", "#4e6475", "#36a6be", "#d3aa15" , "#3db76e"],
+                    "brightnessStep": 117.3,
+                    "outlineThickness": 12,
+                    "titleField": "category",
+                    "valueField": "column-1",
+                    "allLabels": [],
+                    "balloon": {},
+                    "titles": [],
+                    "dataProvider": [
+                        {
+                            "category": "Medicine",
+                            "column-1": "450"
+                        },
+                        {
+                            "category": "Consults",
+                            "column-1": "200"
+                        },
+                        {
+                            "category": "Lab Works",
+                            "column-1": "150"
+                        },
+                        {
+                            "category": "Imaging",
+                            "column-1": "100"
+                        },
+                        {
+                            "category": "Procedures",
+                            "column-1": "120"
+                        },
+                        {
+                            "category": "Other",
+                            "column-1": "80"
+                        }
+                    ]
+                }
+        );
+    </script>
+
+</head>
+
+<body>
+
+<!-- Main header -->
+<nav class="navbar navbar-default navbar-fixed-top main-header" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="#"><span class="brand"><b>maven</b></span>
+                <span class="page-title">encounter</span></a>
+        </div>
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav navbar-right">
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                        <i class="glyphicon glyphicon-user"></i>
+                        <span class="dr">Dr.Huxtable</span><b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#">Action</a></li>
+                        <li><a href="#">Another action</a></li>
+                        <li><a href="#">Something else here</a></li>
+                        <li class="divider"></li>
+                        <li><a href="#">Separated link</a></li>
+                        <li class="divider"></li>
+                        <li><a href="#">One more separated link</a></li>
+                    </ul>
+                </li>
+            </ul>
+            <form class="navbar-form navbar-right">
+                <div class="input-group input-group-sm" style="max-width:360px;">
+                    <input type="text" class="form-control" placeholder="Search Patient"
+                           name="srch-term"
+                           id="srch-term">
+
+                    <div class="input-group-btn">
+                        <button class="btn btn-default" type="submit">
+                            <i class="glyphicon glyphicon-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- /.container-fluid -->
+</nav>
+<!-- /Main Header -->
+
+<!-- Patient info -->
+<div class="pat-nav">
+    <div class="container">
+        <div class="col-sm-3 divider">
+            <div class="row pat-title">
+                Patient Name:
+            </div>
+            <div class="row">
+                <span id="pat-name"><b>Suzy Smith</b></span>
+            </div>
+        </div>
+        <div class="col-sm-2 divider">
+            <div class="row pat-sub">
+                DOB:
+            </div>
+            <div class="row">
+                12/04/1985
+            </div>
+        </div>
+        <div class="col-sm-3 divider">
+            <div class="row pat-sub">
+                Allergies:
+            </div>
+            <div class="row">
+                Penicillin, Sulfa Drug
+            </div>
+        </div>
+        <div class="col-sm-2">
+            <div class="row pat-sub">
+                Last Encounter:
+            </div>
+            <div class="row">
+                02/15/2014
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Patient info -->
+
+
+<div class="container">
+<div class="col-sm-8 content">
+    <div class="container">
+        <div class="row" id="utilization">
+            <h2 class="headings">Summary of current encounter</h2>
+
+            <div class="container row enc-date">
+                <span>Today</span>
+                <a href="#">View time range <i class="glyphicon glyphicon-calendar"></i></a>
+            </div>
+            <div class="row">
+                <div class="col-sm-4">
+                    <span class="headings title">Utilization total:</span>
+                    <span class="cost-num">$1100</span>
+                </div>
+                <div class="col-sm-4">
+                    <span class="headings title">CDS impact:</span>
+                    <span class="cost-num">$16</span>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-8">
+                <hr>
+            </div>
+        </div>
+        <div class="row" id="orders">
+            <span class="headings title">Orders</span>
+
+            <div class="row">
+                <div class="col-sm-7">
+                    <div class="panel-group" id="accordion">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+                                    <h4 class="panel-title">
+
+                                        <i class="glyphicon glyphicon-chevron-down"></i>
+
+
+                                        <span class="headings">Echocardiogram</span>
+
+                                        <span class="badge">$1200</span>
+                                    </h4>
+                                </a>
+                            </div>
+                            <div id="collapseOne" class="panel-collapse collapse in">
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <span class="blue">You Ordered:</span>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            Followup ECG ($1200)
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <span class="blue">Because:</span>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            Mitral regurgitation
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <span class="blue">Evidence Suggests:</span>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            Don't test ($0)
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo">
+                                    <h4 class="panel-title">
+                                        <i class="glyphicon glyphicon-chevron-right"></i>
+                                        <span class="headings">CBC</span>
+
+
+                                        <span class="badge nonalert">$38</span>
+                                    </h4>
+                                </a>
+                            </div>
+                            <div id="collapseTwo" class="panel-collapse collapse">
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <span class="blue">You Ordered:</span>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            CBC ($38)
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree">
+                                    <h4 class=" sub-panel panel-title">
+                                        <i class="glyphicon glyphicon-chevron-right"></i>
+
+                                        <span class="headings">CRP</span>
+
+                                        <span class="badge nonalert">$47</span>
+                                    </h4>
+                                </a>
+                            </div>
+                            <div id="collapseThree" class="panel-collapse collapse">
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            <span class="blue">You Ordered:</span>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            CRP ($47)
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-8">
+                <hr>
+            </div>
+        </div>
+        <div class="row" id="cost-bd">
+            <span class="headings title">Encounter Cost Break down</span>
+
+            <div id="chartdiv" style="width: 500px; height: 400px; background-color: #FFFFFF;"></div>
+        </div>
+    </div>
+</div>
+<div class="col-sm-3 side">
+    <div class="container">
+        <div class="row" id="alerts">
+
+            <div class="row">
+                <div class="col-sm-3">
+                    <h2 class="headings alerts">maven alerts</h2>
+                </div>
+            </div>
+
+
+        <div class="row">
+            <div class="col-sm-3">
+                <div class="alert-type">
+                    <img src="images/duplicate-29x37.png">
+                    <span class="headings title center">Duplicates</span>
+                </div>
+
+                <p>Anim pariatur cliche reprehenderit, enim eiusmod high life <span><a href="#">Details ></a></span></p>
+
+                <span class="headings">Impact:</span>
+                <span class="impact">$16</span>
+
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-3">
+                <hr>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-3">
+                <div class="alert-type">
+                    <img src="images/evidence-28x35px.png">
+                    <span class="headings title center">Evidence</span>
+                </div>
+                <p>Anim pariatur cliche reprehenderit, enim eiusmod high life <span><a href="#">Details ></a></span></p>
+                <span class="headings">Impact:</span>
+                <span class="impact">$16</span>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-3">
+                <hr>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-3">
+                <div class="alert-type">
+                    <img src="images/cheaper-option-48x33px.png">
+                    <span class="headings title center">Options</span>
+                </div>
+                <p>Anim pariatur cliche reprehenderit, enim eiusmod high life <span><a href="#">Details ></a></span></p>
+                <span class="headings">Impact:</span>
+                <span class="impact">$16</span>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</div>
+
+</body>
+
+</html>
