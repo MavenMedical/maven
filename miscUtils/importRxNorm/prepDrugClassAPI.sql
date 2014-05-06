@@ -68,36 +68,35 @@ left outer join terminology.rxnconso brand on brel.rxcui2=brand.rxcui and brand.
 group by dc.rxaui ,ndc.rxaui,ndc.atv
 );
 
-create or replace function getClassNameFromNDC(ndc varchar(20))
-  RETURNS varchar(200) AS
-$BODY$
-Declare rtn varchar(200);
-begin
-        select distinct c.str into rtn from rxnsat a
-	inner join terminology.drugClassAncestry b on a.rxaui=b.inclassaui
-	inner join terminology.drugclass c on b.classaui=c.rxaui
-	 where a.atn='NDC' and a.atv=ndc and a.sab='RXNORM' ;
-	 
-        return rtn;
-end;
-$BODY$
-  LANGUAGE plpgsql;
-
-create or replace function getClassSnomedFromNDC(ndc varchar(20))
+create or replace function getClassSnomedFromNDC(v_ndc varchar(20))
   RETURNS numeric AS
 $BODY$
 Declare rtn numeric;
 begin
-        select distinct c.SnomedId into rtn from rxnsat a
-	inner join terminology.drugClassAncestry b on a.rxaui=b.inclassaui
-	inner join terminology.drugclass c on b.classaui=c.rxaui
-	 where a.atn='NDC' and a.atv=ndc and a.sab='RXNORM' ;
-	 
+        select max(c.SnomedId) into rtn 
+        from terminology.drugClassAncestry b 
+        inner join terminology.drugclass c on b.classaui=c.rxaui
+         where b.ndc=v_ndc ;
+
         return rtn;
 end;
 $BODY$
   LANGUAGE plpgsql;
 
+
+create or replace function getClassNameFromNDC(v_ndc varchar(20))
+  RETURNS varchar(200) AS
+$BODY$
+Declare rtn varchar(200);
+begin
+        select classname into rtn from terminology.drugclassancestry a
+	inner join terminology.drugclass b on a.classaui=b.rxaui
+        where ndc=v_ndc
+        order by snomedid limit 1;
+        return rtn;
+end;
+$BODY$
+  LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION isNdcChild(vparentconcept numeric, ndc varchar(20))
   RETURNS boolean AS
@@ -138,19 +137,19 @@ end;
 $BODY$
    language plpgsql;
    
-create or replace function GetAlternativeTable(v_ndc varchar(20)) 
-returns table(brandname varchar(200),relCost numeric(18,2),aproxCost numeric(18,2)) as
+create or replace function GetAlternativeTable(v_ndc varchar(20))
+returns table(brandname varchar(200),relCost numeric(18,2)) as
 $BODY$
 declare nadacCost numeric(18,2);
 begin
-      select getNadacFromNDC(v_ndc) into nadacCost;
-      return query select distinct x.brandname,avg(nadac.unitcost),avg(nadac.unitcost)*nadacCost
-	 from terminology.drugClassAncestry b 
-		inner join terminology.drugClassAncestry x on x.classaui=b.classaui
-		inner join public.nadac nadac on nadac.ndc=x.ndc
-		 where b.ndc=v_ndc
-		 and x.routename=b.routename
-	group by x.brandname;
+      --select getNadacFromNDC(v_ndc) into nadacCost;
+      return query select x.brandname,avg(nadac.unitcost)--,avg(nadac.unitcost)*nadacCost
+         from terminology.drugClassAncestry b
+                inner join terminology.drugClassAncestry x on x.classaui=b.classaui
+                inner join public.nadac nadac on nadac.ndc=x.ndc
+                 where b.ndc=v_ndc
+                 and x.routename=b.routename
+        group by x.brandname;
 
 end;
 $BODY$
