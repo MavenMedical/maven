@@ -20,7 +20,7 @@ import pickle
 from utils.streaming import stream_processor as SP
 import asyncio
 import maven_config as MC
-import utils.api.api as api
+import utils.api.fhir as api
 import utils.crypto.authorization_key as AK
 ARGS = argparse.ArgumentParser(description='Maven Client Receiver Configs.')
 ARGS.add_argument(
