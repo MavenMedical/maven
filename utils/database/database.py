@@ -278,6 +278,11 @@ class AsyncConnectionPool():
                     sleep_time = sleep_time * 2
                     if sleep_time > 4:
                         sleep_time = 4
+                except TypeError:
+                    # This will catch all errors from which we can never recover.
+                    ML.ERROR("The database was unable to connect: "+traceback.format_exc())
+                    self.pending -= 1
+                    self.connection_sem.release()
         
     @asyncio.coroutine
     def _wait(self, connection):
