@@ -219,6 +219,14 @@ class HTTPProcessor(SP.StreamProcessor):
                         SP.CONFIG_WRITERKEY: 1,
                     },
             })
+        if SP.CONFIG_PARSERTIMEOUT in self.config:
+            parsername = configname+'.parser'
+            self.config.update({SP.CONFIG_PARSERNAME: parsername})
+            MC.MavenConfig.update(
+                {
+                    parsername: {SP.CONFIG_PARSERTIMEOUT: self.config[SP.CONFIG_PARSERTIMEOUT]}
+                }
+            )
 
         # initialize the base StreamProcessor with this new configuration pameters
         SP.StreamProcessor.__init__(self, configname)
@@ -492,6 +500,7 @@ if __name__ == '__main__':
                 {
                     SP.CONFIG_HOST: 'localhost',
                     SP.CONFIG_PORT: 8087,
+                    SP.CONFIG_PARSERTIMEOUT: 5,
                 },
         }
     hp = BackboneService('httpserver')
