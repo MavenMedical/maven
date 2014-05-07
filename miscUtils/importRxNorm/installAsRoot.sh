@@ -31,3 +31,5 @@ su postgres -c "psql -f /tmp/runnow.sql"
 su postgres -c "psql -f prepDrugClassAPI.sql"
 cd nadac
 ./importNADAC.sh
+cd ../mdd
+./importMDD.sh
