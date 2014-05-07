@@ -153,7 +153,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
         except KeyError:
             raise MC.InvalidConfig('some real error')
 
-        self.origstyle=True
+        self.stylesheet='original'
+        self.costbdtype = 'donut'  # this assignment isn't used yet
         self.add_handler(['POST'], '/login', self.post_login)
         self.add_handler(['GET'], '/patients(?:/(\d+)-(\d+)?)?', self.get_patients)
         self.add_handler(['GET'], '/patient_details', self.get_patient_details)
@@ -168,7 +169,6 @@ class FrontendWebService(HTTP.HTTPProcessor):
     def schedule(self, loop):
         HTTP.HTTPProcessor.schedule(self, loop)
         self.db.schedule(loop)
-
 
     @asyncio.coroutine
     def get_stub(self, _header, _body, _qs, _matches, _key):
@@ -185,19 +185,20 @@ class FrontendWebService(HTTP.HTTPProcessor):
             return (HTTP.BAD_RESPONSE, b'', None)
         else:
             user = info['user']
-            if self.origstyle:
-                stylesheet = 'original'
+            if not self.stylesheet == 'original':
+                self.stylesheet = 'original'
+                self.costbdtype = 'donut'
             else:
-                stylesheet = 'alternate'
-            self.origstyle = not self.origstyle
+                self.stylesheet = 'alternate'
+                self.costbdtype = 'list'
 
             try:
                 AK.check_authorization(user, info['password'], AUTH_LENGTH)
-                return (HTTP.OK_RESPONSE, json.dumps({'display':'Dr. Huxtable', 'stylesheet':stylesheet}), None)
+                return (HTTP.OK_RESPONSE, json.dumps({'display':'Dr. Huxtable', 'stylesheet':self.stylesheet, 'costbdtype':self.costbdtype}), None)
             except:
                 user_auth = AK.authorization_key(user,AUTH_LENGTH, LOGIN_TIMEOUT)
-                return (HTTP.OK_RESPONSE,json.dumps({CONTEXT_KEY:user_auth, 'display':'Dr. Huxtable'
-                                                     , 'stylesheet':stylesheet}), None)
+                return (HTTP.OK_RESPONSE,json.dumps({CONTEXT_KEY:user_auth, 'display':'Dr. Huxtable',
+                                                     'stylesheet':self.stylesheet, 'costbdtype':self.costbdtype}), None)
 
     patients_required_contexts = [CONTEXT_USER]
     patients_available_contexts = {CONTEXT_USER:str, 'customer_id': int, CONTEXT_ENCOUNTER: str}

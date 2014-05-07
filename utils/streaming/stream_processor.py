@@ -16,6 +16,7 @@ import pickle
 import amqp
 import traceback
 import socket
+import time
 import concurrent.futures
 import maven_config as MC
 import maven_logging as ML
@@ -50,6 +51,8 @@ CONFIG_QUEUE = "queue"
 CONFIG_EXCHANGE = "exchange"
 CONFIG_KEY = "key"
 CONFIG_ONDISCONNECT = 'disconnect'
+CONFIG_PARSERTIMEOUT = "parser timeout"
+
 
 global _global_writers
 
@@ -259,6 +262,7 @@ class StreamProcessor():
             if not key == self.dynamic_writer:
                 #ML.DEBUG("removing "+str(key)+" from "+str(_global_writers))
                 try:
+                    #print('unregistering '+key+' from '+str(_global_writers))
                     _global_writers.pop(key).close()
                 except KeyError:
                     pass
@@ -519,18 +523,39 @@ class MappingParser(asyncio.Protocol):
 
     def __init__(self, configname, read_fn, map_fn, loop, register_fn):
         self.configname = configname
+        self.timeout=None
+        if configname in MC.MavenConfig:
+            config = MC.MavenConfig[configname]
+            self.timeout = config.get(CONFIG_PARSERTIMEOUT,None)
+
         self.read_fn = read_fn  # the coroutine to schedule with the parsed object
         self.loop = loop
         self.map_fn = map_fn  # the function turning bytes into an object
         self.register_fn, self.unregister_fn = register_fn
         self.registered_key = None
+        self.transport = None
+        self.update_last_activity()
+
+    def update_last_activity(self):
+        self.last_activity = time.time()
+        if self.timeout:
+            asyncio.Task(self.check_timeout(), loop=self.loop)
+
+    @asyncio.coroutine
+    def check_timeout(self):
+        yield from asyncio.sleep(self.timeout)
+        if time.time()-self.last_activity >=self.timeout:
+            if self.transport:
+                self.transport.close()
 
     def connection_made(self, transport):
+        self.update_last_activity()
         if self.register_fn:
             self.transport = transport
             self.registered_key = self.register_fn(transport)
 
     def data_received(self, data):
+        self.update_last_activity()
         # create the coroutine to process the data
         coro = self.read_fn(self.map_fn(data), self.registered_key)
         # because this might not be in the main thread use call_soon_threadsafe
@@ -538,7 +563,13 @@ class MappingParser(asyncio.Protocol):
 
     def connection_lost(self, _):
         #ML.DEBUG("connection lost")
-        self.unregister_fn(self.registered_key)
+        self.close()
+
+    def close(self):
+        if self.registered_key:
+            self.unregister_fn(self.registered_key)
+        if self.transport:
+            self.transport.close()
 
     def create_task(coro, loop):
         # only called with loop.call_soon_threadsafe, will be called in the main loop
@@ -586,6 +617,7 @@ class _UnPickleStreamParser(MappingParser):
         self.buf = b''
 
     def data_received(self,data):
+        self.update_last_activity()
         self.buf = self.buf + data  # append the data to the buffer
         ret, self.buf = pickle_stream(self.buf)  # pull out any complete objects at the buffer's head
         for obj in ret:  # schedule each of the complete objects for processing by read_object

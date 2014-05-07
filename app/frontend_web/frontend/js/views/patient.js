@@ -18,11 +18,12 @@ define([
 
     'views/chart/spending',
     'views/chart/costbd',
+    'views/chart/costbdlist',
 
     // Using the Require.js text! plugin, we are loaded raw text
     // which will be used as our views primary template
     'text!templates/patient.html'
-], function ($, _, Backbone, currentContext, PatientModel, SpendingModel, PatInfo, Utilization, Saving, Alert, Spending, CostBD, patientTemplate) {
+	], function ($, _, Backbone, currentContext, PatientModel, SpendingModel, PatInfo, Utilization, Saving, Alert, Spending, CostBDDonut, CostBDList, patientTemplate) {
 
     var PatientView = Backbone.View.extend({
         el: $('.page'),
@@ -60,7 +61,11 @@ define([
             this.util = new Utilization;
             this.saving = new Saving;
             this.spending = new Spending;
-            this.costbd = new CostBD;
+	    if(currentContext.get('costbdtype') == 'donut') {
+		this.costbd = new CostBDDonut;
+	    } else {
+		this.costbd = new CostBDList;
+	    };
             this.alert = new Alert;
 
             this.spendingModel = new SpendingModel;

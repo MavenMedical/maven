@@ -13,7 +13,7 @@
 
 MavenConfig={}
 
-dbconnection = ("dbname=%s user=%s password=%s host=%s port=%s" % ('maven', 'maven', 'temporary', 'localhost', '5432')),
+dbconnection = ("dbname=%s user=%s password=%s host=%s port=%s" % ('maven', 'maven', 'temporary', 'localhost', '5432'))
 
 http_addr = 'http://localhost'
 
