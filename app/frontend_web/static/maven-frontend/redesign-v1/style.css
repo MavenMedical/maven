@@ -26,13 +26,19 @@ body{
     color: #ffffff;
 }
 
+.navbar-lower{
+    top: 50px;
+    width: 100%;
+    background-color: #dff5fd;
+}
+
 .navbar-nav{
     color: #ffffff;
 }
 
 .pat-nav{
   height: 50px;
-  background-color: #dff5fd;
+
 }
 
 .divide-text{
@@ -81,7 +87,7 @@ body{
 .side{
     margin-left: -2px;
     margin-top: 8px;
-    min-height: 900px;
+    min-height: 790px;
     background-color: #fffafa;
     box-shadow: 1px 3px 8px rgba(0, 0, 0, 0.2);
 }
@@ -144,6 +150,20 @@ body{
 .center{
     display: block;
     text-align: center;
+}
+
+.chart-div{
+    margin-top: -60px;
+    width: 100%;
+    height: 350px;
 
 }
 
+/* adjust the contents on smaller devices */
+@media (max-width: 768px) {
+.chart-div{
+    margin-top: -60px;
+    width: 100%;
+    height: 350px;
+}
+}

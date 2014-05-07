@@ -131,40 +131,42 @@
 
 <!-- Patient info -->
 <div class="pat-nav">
-    <div class="container">
-        <div class="col-sm-3 divider">
-            <div class="row pat-title">
-                Patient Name:
+    <nav class="navbar navbar-default navbar-fixed-top navbar-lower" role="navigation">
+        <div class="container">
+            <div class="col-sm-3 divider">
+                <div class="row pat-title">
+                    Patient Name:
+                </div>
+                <div class="row">
+                    <span id="pat-name"><b>Suzy Smith</b></span>
+                </div>
             </div>
-            <div class="row">
-                <span id="pat-name"><b>Suzy Smith</b></span>
+            <div class="col-sm-2 divider">
+                <div class="row pat-sub">
+                    DOB:
+                </div>
+                <div class="row">
+                    12/04/1985
+                </div>
+            </div>
+            <div class="col-sm-3 divider">
+                <div class="row pat-sub">
+                    Allergies:
+                </div>
+                <div class="row">
+                    Penicillin, Sulfa Drug
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="row pat-sub">
+                    Last Encounter:
+                </div>
+                <div class="row">
+                    02/15/2014
+                </div>
             </div>
         </div>
-        <div class="col-sm-2 divider">
-            <div class="row pat-sub">
-                DOB:
-            </div>
-            <div class="row">
-                12/04/1985
-            </div>
-        </div>
-        <div class="col-sm-3 divider">
-            <div class="row pat-sub">
-                Allergies:
-            </div>
-            <div class="row">
-                Penicillin, Sulfa Drug
-            </div>
-        </div>
-        <div class="col-sm-2">
-            <div class="row pat-sub">
-                Last Encounter:
-            </div>
-            <div class="row">
-                02/15/2014
-            </div>
-        </div>
-    </div>
+    </nav>
 </div>
 <!-- /Patient info -->
 
@@ -304,11 +306,24 @@
                 <hr>
             </div>
         </div>
-        <div class="row" id="cost-bd">
-            <span class="headings title">Encounter Cost Break down</span>
-
-            <div id="chartdiv" style="width: 500px; height: 400px; background-color: #FFFFFF;"></div>
+        <div class="row" id="chart-cost-bd">
+            <div class="col-sm-8">
+                <span class="headings title">Encounter Cost Break down</span>
+                <div class="chart-div" id="chartdiv"></div>
+            </div>
         </div>
+        <div class="row">
+            <div class="col-md-8">
+                <hr>
+            </div>
+        </div>
+        <div class="row" id="list-cost-bd">
+            <div class="col-sm-8">
+                <span class="headings title">Orders Cost Break down</span>
+
+            </div>
+        </div>
+
     </div>
 </div>
 <div class="col-sm-3 side">
@@ -322,54 +337,57 @@
             </div>
 
 
-        <div class="row">
-            <div class="col-sm-3">
-                <div class="alert-type">
-                    <img src="images/duplicate-29x37.png">
-                    <span class="headings title center">Duplicates</span>
-                </div>
+            <div class="row">
+                <div class="col-sm-3">
+                    <div class="alert-type">
+                        <img src="images/duplicate-29x37.png">
+                        <span class="headings title center">Duplicates</span>
+                    </div>
 
-                <p>Anim pariatur cliche reprehenderit, enim eiusmod high life <span><a href="#">Details ></a></span></p>
+                    <p>Anim pariatur cliche reprehenderit, enim eiusmod high life <span><a href="#">Details ></a></span>
+                    </p>
 
-                <span class="headings">Impact:</span>
-                <span class="impact">$16</span>
+                    <span class="headings">Impact:</span>
+                    <span class="impact">$16</span>
 
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-sm-3">
-                <hr>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-sm-3">
-                <div class="alert-type">
-                    <img src="images/evidence-28x35px.png">
-                    <span class="headings title center">Evidence</span>
                 </div>
-                <p>Anim pariatur cliche reprehenderit, enim eiusmod high life <span><a href="#">Details ></a></span></p>
-                <span class="headings">Impact:</span>
-                <span class="impact">$16</span>
             </div>
-        </div>
-        <div class="row">
-            <div class="col-sm-3">
-                <hr>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-sm-3">
-                <div class="alert-type">
-                    <img src="images/cheaper-option-48x33px.png">
-                    <span class="headings title center">Options</span>
+            <div class="row">
+                <div class="col-sm-3">
+                    <hr>
                 </div>
-                <p>Anim pariatur cliche reprehenderit, enim eiusmod high life <span><a href="#">Details ></a></span></p>
-                <span class="headings">Impact:</span>
-                <span class="impact">$16</span>
+            </div>
+            <div class="row">
+                <div class="col-sm-3">
+                    <div class="alert-type">
+                        <img src="images/evidence-28x35px.png">
+                        <span class="headings title center">Evidence</span>
+                    </div>
+                    <p>Anim pariatur cliche reprehenderit, enim eiusmod high life <span><a href="#">Details ></a></span>
+                    </p>
+                    <span class="headings">Impact:</span>
+                    <span class="impact">$16</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-3">
+                    <hr>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-3">
+                    <div class="alert-type">
+                        <img src="images/cheaper-option-48x33px.png">
+                        <span class="headings title center">Options</span>
+                    </div>
+                    <p>Anim pariatur cliche reprehenderit, enim eiusmod high life <span><a href="#">Details ></a></span>
+                    </p>
+                    <span class="headings">Impact:</span>
+                    <span class="impact">$16</span>
+                </div>
             </div>
         </div>
     </div>
-</div>
 </div>
 </div>
 
