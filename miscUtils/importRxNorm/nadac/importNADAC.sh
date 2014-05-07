@@ -5,4 +5,4 @@ python XL2CSV.py
 rm *.xls*
 perl -pi -e 's/\"\"//' NADAC.csv
 su postgres -c 'psql -f updateNadac.sql'
-#rm *.csv
+rm *.csv
