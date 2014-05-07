@@ -58,6 +58,14 @@ class NotificationGenerator():
                 self.emrversion = config.get(EMR_VERSION, None)
                 self.DEBUG = config.get(DEBUG, None)
 
+                if self.emrtype == 'vista':
+                    self.templateLoader = jinja2.FileSystemLoader('/home/devel/maven/clientApp/notification_generator/VistA/templates')
+                    self.templateEnv = jinja2.Environment(loader=self.templateLoader)
+
+                elif self.emrtype == 'epic' and self.emrversion == '2010' or '2012':
+                    self.templateLoader = jinja2.FileSystemLoader('/home/devel/maven/clientApp/notification_generator/Epic/templates')
+                    self.templateEnv = jinja2.Environment(loader=self.templateLoader)
+
             except KeyError:
                 raise MC.InvalidConfig(configname + " did not have sufficient parameters.")
 
@@ -72,10 +80,10 @@ class NotificationGenerator():
         if self.DEBUG == True:
 
             if self.emrtype == 'vista':
-                return self._vista_alert_content_generator(composition)
+                return self._vista_alert_content_generator(composition, self.templateEnv)
 
             elif self.emrtype == 'epic' and self.emrversion == '2010' or '2012':
-                return self._epic_alert_content_generator(composition)
+                return self._epic_alert_content_generator(composition, self.templateEnv)
         else:
             return []
 
@@ -85,43 +93,38 @@ class NotificationGenerator():
     # Start Vista Alert Generator Components
     ################################################################################################
     @asyncio.coroutine
-    def _vista_alert_content_generator(self, composition):
+    def _vista_alert_content_generator(self, composition, templateEnv):
         alert_contents = []
 
         #creates the cost alert html. This may want to become more sophisticated over time to
         #dynamically shorten the appearance of a very large active orders list
-        cost_alert = yield from self._vista_cost_alert_generator(composition)
+        cost_alert = yield from self._vista_cost_alert_generator(composition, templateEnv)
         alert_contents.append(cost_alert)
 
-        sleuth_alerts = yield from self._vista_sleuth_alert_generator(composition)
-        if len(sleuth_alerts) > 0:
+        sleuth_alerts = yield from self._vista_sleuth_alert_generator(composition, templateEnv)
+        if sleuth_alerts is not None and len(sleuth_alerts) > 0:
             for sa in sleuth_alerts:
                 alert_contents.append(sa)
 
-        ML.PRINT("Generated %s VistA Alerts" % len(alert_contents))
+        ML.DEBUG("Generated %s VistA Alerts" % len(alert_contents))
 
         return alert_contents
 
     @asyncio.coroutine
-    def _vista_cost_alert_generator(self, composition):
+    def _vista_cost_alert_generator(self, composition, templateEnv):
 
-        templateLoader = jinja2.FileSystemLoader('/home/devel/maven/clientApp/notification_generator/VistA/templates')
-        templateEnv = jinja2.Environment(loader=templateLoader)
         TEMPLATE_FILE = "cost_alert.html"
         TEMPLATE2_FILE = "cost_alert2.html"
-        template = templateEnv.get_template( TEMPLATE_FILE )
-        template2 = templateEnv.get_template( TEMPLATE2_FILE )
+        template = templateEnv.get_template(TEMPLATE_FILE)
+        template2 = templateEnv.get_template(TEMPLATE2_FILE)
 
+        cost_alert_order_list = []
         total_cost = 0.0
         user = composition.user
         userAuth = composition.userAuth
-
         csn = urllib.parse.quote(composition.encounter.get_csn())
         patient_id = composition.subject.get_pat_id()
-
         cost_breakdown = composition.get_encounter_cost_breakdown()
-
-        cost_alert_order_list = []
 
         if cost_breakdown is not None:
             for cost in cost_breakdown.content:
@@ -136,34 +139,41 @@ class NotificationGenerator():
                         "user" : user,
                         "user_auth" : userAuth}
 
-        notification_body = template.render(templateVars)
 
+        notification_body = template.render(templateVars)
         notification_body += template2.render(templateVars)
 
         return notification_body
 
     @asyncio.coroutine
-    def _vista_sleuth_alert_generator(self, composition):
+    def _vista_sleuth_alert_generator(self, composition, templateEnv):
+
+        TEMPLATE_FILE = "sleuth_alert.html"
+        template_sleuth_alert = templateEnv.get_template( TEMPLATE_FILE )
+
         sleuth_alert_HTML_contents = []
-        notification_content = ""
-        total_cost = 0.0
         user = composition.user
         userAuth = composition.userAuth
-
         csn = urllib.parse.quote(composition.encounter.get_csn())
         patient_id = composition.subject.get_pat_id()
 
         composition_alert_section = composition.get_alerts_section()
 
         #check to see if there's anything in the list. Should probably move this to the FHIR api
-        if len(composition_alert_section.content) > 0:
+        if composition_alert_section is not None and len(composition_alert_section.content) > 0:
             for alert_group in composition_alert_section.content:
                 for alert_list in alert_group.values():
                     for alert in alert_list:
-                        print(alert.short_title)
 
-                        #TODO - The HTML below has hard-coded locations for Notification Icon. Need to move to config.
-                        notification_body = ("<html><body bgcolor=#FFFFFF style='font-family: Arial; color: #444; word-spacing: normal; text-align: left; letter-spacing: 0; font-size: 104%%;'><table><col width=32px><col width=30%%><col width=10%%><col width=60%%><tr><td valign='top'><img src='/home/devel/maven/clientApp/notification_generator/img/evidence-28x35px.png'/></td><td valign='top'><a href='%s/#/episode/%s/patient/%s/login/%s/%s'><b>Maven Sleuth Alert</b></a><br/>%s<br/>$%s</td><td></td><td valign='top' style='font-family: Arial; color: #444; word-spacing: normal; text-align: left; letter-spacing: 0; font-size: 104%%;'>%s</td></body></html>" % (MC.http_addr, csn, patient_id, user, userAuth, alert.short_title, round(total_cost,2), notification_content))
+                        templateVars = {"alert_tag_line" : alert.short_title,
+                                        "alert_description" : alert.description,
+                                        "http_address" : MC.http_addr,
+                                        "encounter_id" : csn,
+                                        "patient_id" : patient_id,
+                                        "user" : user,
+                                        "user_auth" : userAuth}
+
+                        notification_body = template_sleuth_alert.render(templateVars)
                         sleuth_alert_HTML_contents.append(notification_body)
 
             return sleuth_alert_HTML_contents
@@ -174,15 +184,15 @@ class NotificationGenerator():
     # Start Epic Alert Generator Components
     ################################################################################################
     @asyncio.coroutine
-    def _epic_alert_content_generator(self, composition):
+    def _epic_alert_content_generator(self, composition, templateEnv):
         alert_contents = []
 
         #creates the cost alert html. This may want to become more sophisticated over time to
         #dynamically shorten the appearance of a very large active orders list
-        cost_alert = yield from self._epic_cost_alert_generator(composition)
+        cost_alert = yield from self._epic_cost_alert_generator(composition, templateEnv)
         alert_contents.append(cost_alert)
 
-        sleuth_alerts = yield from self._epic_sleuth_alert_generator(composition)
+        sleuth_alerts = yield from self._epic_sleuth_alert_generator(composition, templateEnv)
         if len(sleuth_alerts) > 0:
             for sa in sleuth_alerts:
                 alert_contents.append(sa)

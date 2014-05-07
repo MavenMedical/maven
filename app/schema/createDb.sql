@@ -909,9 +909,9 @@ CREATE TABLE sleuth_rule
 (
   rule_id serial,
   customer_id numeric(18,0),
-  cpt_trigger character varying(100),
-  client_order_code character varying(100),
   dep_id numeric(18,0),
+  code_trigger character varying(100),
+  code_trigger_type character varying(100),
   name character varying(100),
   tag_line character varying(100),
   description character varying(255),
