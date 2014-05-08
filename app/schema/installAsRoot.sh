@@ -1,16 +1,8 @@
-chmod 777 .
-su postgres -c 'psql -f createDb.sql'
-mkfifo termData
-gunzip < terminologySchema.data.gz > termData &
-chmod 777 termData
-su postgres -c 'psql -d maven -f termData'
-rm termData
-mkfifo termData
-gunzip < terminologySchema2.data.gz > termData &
-chmod 777 termData
-su postgres -c 'psql -d maven -f termData'
-rm termData
-
-gunzip DefaultProcedurePrices.csv.gz
-su postgres -c 'psql -f test.sql'
+gzip -d DefaultProcedurePrices.csv.gz
+sudo sudo -u postgres psql -f createDb.sql
 gzip DefaultProcedurePrices.csv
+cat terminologySchema.data.gz | gzip -d | sudo sudo -u postgres psql -d maven 
+cat terminologySchema2.data.gz | gzip -d |  sudo sudo -u postgres psql -d maven 
+
+
+

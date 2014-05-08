@@ -38,9 +38,11 @@ chsli           chsli.mavenmedical.net   maven" >> pg_ident.conf
 # need to put unencrypted server key (chmod 600) into data/server.key, also need server.crt and cacert.pem
 # an encrypted key can be unencrypted by openssl rsa -in keyfile -out server.key
 
+echo 'PATH=/usr/pgsql-9.3/bin:${PATH}' >> .bashrc
 exit # exit postgres
 service postgresql start
 exit # exit root
+echo 'PATH=/usr/pgsql-9.3/bin:${PATH}' >> .bashrc
 
 #Note - on google, EBS storage of a truecrypt encrypted partition passed the closest I can get to a "disk pull plug" test.  A single pass doesn't prove much - only that the system isn't horribly broken.  It was also getting around 120 writes/second (compared to amazon's 80).  The writes/second matches what happened without truecrypt, so I don't think encryption costs us anything.
 

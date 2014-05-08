@@ -1,10 +1,20 @@
 sudo yum update -y
-sudo yum install elinks screen git emacs kernel-headers fuse-libs fuse-devel fuse lvm2 wireshark nc tcptrack iotop iptraf iftop psacct -y
+sudo yum install elinks screen git emacs kernel-headers fuse-libs fuse-devel fuse lvm2 wireshark nc tcptrack iotop iptraf iftop psacct pam-devel -y
 
 wget http://yum.postgresql.org/9.3/redhat/rhel-6-x86_64/pgdg-centos93-9.3-1.noarch.rpm
 sudo yum install pgdg-centos93-9.3-1.noarch.rpm -y
 
+#curl http://google-authenticator.googlecode.com/files/libpam-google-authenticator-1.0-source.tar.bz2 | bzip2 -d | tar -xv
+#cd libpam-google-authenticator-1.0
+#make
+#sudo make install
 
+#cd
+#echo auth required pam_google_authenticator.so | cat /etc/pam.d/sshd - | sudo dd of=/etc/pam.d/sshd
+#sudo sed -i -e 's/ChallengeResponseAuthentication no/ChallengeResponseAuthentication yes/' /etc/ssh/sshd_config
+#sudo service sshd restart
+
+if [ 0 ]; do
 sudo useradd tom
 sudo su tom
 # begin as tom
@@ -37,3 +47,4 @@ echo ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDWpkp7g4UnZ3G4Lz/j21zkZf4A6ITkSOTuyQ2
 chmod 600 authorized_keys
 exit
 #end as dave
+done
