@@ -27,10 +27,23 @@ define([
 
     var PatientView = Backbone.View.extend({
         el: $('.page'),
+	update: function(patientModel) {
+            //append list of encounters
+            $('#dynamic_enc li').remove();
+            var enc = patientModel.get('encounters');
+	    var pat_id = patientModel.get('id');
+            for (var i = 0; i < enc.length; i++) {
+                $('#dynamic_enc').append(
+                    $('<li>').append(
+                        $('<a>').attr('href', '#/episode/'+enc[i][0]+'/patient/'+pat_id).append(
+                            $('<i>').attr('class', 'glyphicon glyphicon-time').append(
+                                $('<span>').append(' Encounter (' + enc[i][1] + ')')))));
+
+            }
+	    },
         render: function () {
             $('.nav li').removeClass('active');
             $('#dynamic_pat li').remove();
-            $('#dynamic_enc li').remove();
 
             //add patient li to the large side menu
             $('#dynamic_pat').append(
@@ -40,24 +53,16 @@ define([
                             $('<span>').append(' Patient (' + currentContext.get('patientName') + ')')
                         ))));
 
-            //TODO this should be generated from real data from DB
-            //append list of encounters
-            var enc = ['1/4/2014', '2/3/2014', '12/17/2013'];
-            for (var i = 0; i < enc.length; i++) {
-                $('#dynamic_enc').append(
-                    $('<li>').append(
-                        $('<a>').attr('href', '#/episode/9|76|3140328/patient/9').append(
-                            $('<i>').attr('class', 'glyphicon glyphicon-time').append(
-                                $('<span>').append(' Encounter (' + enc[i] + ')')))));
-
-            }
-
-
             var template = _.template(patientTemplate, {});
             this.$el.html(template);
 
+	    var that=this;
             //widgets
+	    this.patientModel = new PatientModel;
             this.patinfo = new PatInfo;
+	    this.patientModel.on('change', function(pat) {that.patinfo.update(that.patinfo, pat)});
+	    this.patientModel.on('change', this.update);
+	    this.patientModel.fetch({data:$.param(currentContext.toJSON())});
             this.util = new Utilization;
             this.saving = new Saving;
             this.spending = new Spending;

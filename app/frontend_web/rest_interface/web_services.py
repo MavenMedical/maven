@@ -43,10 +43,6 @@ CONTEXT_CUSTOMERID = 'customer_id'
 LOGIN_TIMEOUT = 60 * 60 # 1 hour
 AUTH_LENGTH = 44 # 44 base 64 encoded bits gives the entire 256 bites of SHA2 hash
 
-patient_extras = {
-    '9': {'Allergies': ['Penicillins'], 'Problem List':['Sinusitis', 'Asthma']},
-}
-
 def min_zero_normal(u,s):
     ret = int(random.normalvariate(u,s))
     if ret<0:
@@ -125,7 +121,7 @@ def restrict_context(qs, required, available):
     if not CONTEXT_KEY in qs:
         raise HTTP.UnauthorizedRequest('User is not logged in.')
     try:
-        AK.check_authorization(qs['user'][0], qs[CONTEXT_KEY][0], AUTH_LENGTH)
+        AK.check_authorization(qs[CONTEXT_USER][0], qs[CONTEXT_KEY][0], AUTH_LENGTH)
     except AK.UnauthorizedException as ue:
         raise HTTP.UnauthorizedRequest(str(ue))
 
@@ -155,15 +151,15 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
         self.stylesheet='original'
         self.costbdtype = 'donut'  # this assignment isn't used yet
-        self.add_handler(['POST'], '/login', self.post_login)
-        self.add_handler(['GET'], '/patients(?:/(\d+)-(\d+)?)?', self.get_patients)
-        self.add_handler(['GET'], '/patient_details', self.get_patient_details)
-        self.add_handler(['GET'], '/total_spend', self.get_total_spend)
-        self.add_handler(['GET'], '/spending', self.get_daily_spending)
-        self.add_handler(['GET'], '/spending_details', self.get_spending_details)
-        self.add_handler(['GET'], '/alerts(?:/(\d+)-(\d+)?)?', self.get_alerts)
-        self.add_handler(['GET'], '/orders(?:/(\d+)-(\d+)?)?', self.get_orders)
-        self.add_handler(['GET'], '/autocomplete', self.get_autocomplete)
+        self.add_handler(['POST'], '/login', self.post_login)  # FAKE
+        self.add_handler(['GET'], '/patients(?:/(\d+)-(\d+)?)?', self.get_patients)  # REAL
+        self.add_handler(['GET'], '/patient_details', self.get_patient_details)  # REAL
+        self.add_handler(['GET'], '/total_spend', self.get_total_spend)  # FAKE
+        self.add_handler(['GET'], '/spending', self.get_daily_spending)  # FAKE
+        self.add_handler(['GET'], '/spending_details', self.get_spending_details)  #FAKE
+        self.add_handler(['GET'], '/alerts(?:/(\d+)-(\d+)?)?', self.get_alerts)  # REAL
+        self.add_handler(['GET'], '/orders(?:/(\d+)-(\d+)?)?', self.get_orders)  # REAL
+        self.add_handler(['GET'], '/autocomplete', self.get_autocomplete)  # FAKE
         self.db = AsyncConnectionPool(db_configname)
 
     def schedule(self, loop):
@@ -179,7 +175,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         return (HTTP.OK_RESPONSE, json.dumps(['Maven']),None)
 
     @asyncio.coroutine
-    def post_login(self, _header, body, _qs, _matches, _key):
+    def post_login(self, header, body, _qs, _matches, _key):
         info = json.loads(body.decode('utf-8'))
         if (not 'user' in info) or (not 'password' in info):
             return (HTTP.BAD_RESPONSE, b'', None)
@@ -192,61 +188,77 @@ class FrontendWebService(HTTP.HTTPProcessor):
                 self.stylesheet = 'alternate'
                 self.costbdtype = 'list'
 
+            ret = {'display':'Dr. Huxtable', 'stylesheet':self.stylesheet, 'costbdtype':self.costbdtype, 'customer_id':1}
+
             try:
                 AK.check_authorization(user, info['password'], AUTH_LENGTH)
-                return (HTTP.OK_RESPONSE, json.dumps({'display':'Dr. Huxtable', 'stylesheet':self.stylesheet, 'costbdtype':self.costbdtype}), None)
+                return (HTTP.OK_RESPONSE, json.dumps(ret), None)
             except:
-                user_auth = AK.authorization_key(user,AUTH_LENGTH, LOGIN_TIMEOUT)
-                return (HTTP.OK_RESPONSE,json.dumps({CONTEXT_KEY:user_auth, 'display':'Dr. Huxtable',
-                                                     'stylesheet':self.stylesheet, 'costbdtype':self.costbdtype}), None)
+                # allow bogus password authentication if there is no optional SSL (test environment) 
+                # or if the user has a proper client SSL cert
+                if header.get_headers().get('VERIFIED','SUCCESS') == 'SUCCESS': 
+                    user_auth = AK.authorization_key(user,AUTH_LENGTH, LOGIN_TIMEOUT)
+                    ret[CONTEXT_KEY]=user_auth
+                    return (HTTP.OK_RESPONSE,json.dumps(ret), None)
+                else:
+                    raise HTTP.UnauthorizedRequest('User is not logged in.')
 
-    patients_required_contexts = [CONTEXT_USER]
-    patients_available_contexts = {CONTEXT_USER:str, 'customer_id': int, CONTEXT_ENCOUNTER: str}
+    @asyncio.coroutine
+    def _get_patient_info(self, customerid, user, pat_id=None, encounter_list=None):
+        try:
+            column_map = [
+                "max(patient.patname)",
+                "encounter.pat_id",
+                "max(patient.birthdate)",
+                "max(patient.sex)",
+                "max(encounter.contact_date) as contact_date",
+                "array_agg(encounter.csn || ' ' || encounter.contact_date)" if encounter_list else None,
+                ]
+            columns = DBMapUtils().select_rows_from_map(column_map)
+
+            cur = yield from self.db.execute_single("SELECT "+ columns +
+                                           " from patient JOIN encounter"
+                                           " on (patient.pat_id = encounter.pat_id and encounter.customer_id = %s)"
+                                           " WHERE encounter.visit_prov_id = %s AND encounter.customer_id = %s"
+                                           + ( " AND encounter.pat_id = %s" if pat_id else "") +
+                                           " GROUP BY encounter.pat_id"
+                                           " ORDER BY contact_date;", 
+                                                    extra=(customerid, user, customerid, pat_id) if pat_id
+                                                    else (customerid, user, customerid))
+            results = []
+            for x in cur:
+                results.append({
+                    'id': x[1], 
+                    'name': prettify(x[0], type="name"), 
+                    'gender': prettify(x[3], type="sex"), 
+                    'DOB': str(x[2]), 
+                    'diagnosis': 'NOT VALID YET', 
+                    'key': AK.authorization_key((user, x[1]), AUTH_LENGTH), 
+                    'cost':-1,
+                    'encounters': list(map(lambda v: v.split(' '), x[5])) if encounter_list else None,
+                    })
+                ML.DEBUG(json.dumps(results))
+        except:
+            raise Exception('Error in front end webservices get_patients() call to database')
+        return results
+
+    patients_required_contexts = [CONTEXT_USER, CONTEXT_CUSTOMERID]
+    patients_available_contexts = {CONTEXT_USER:str, CONTEXT_CUSTOMERID: int}
 
     @asyncio.coroutine
     def get_patients(self, _header, _body, qs, matches, _key):
-
-
         # {1: {'id':1, 'name':'Batman', 'gender':'Male', 'DOB':'05/03/1987', 'diagnosis':'Asthma'},}
         ### TODO - Remove hardcoded user context and replace with values from production authentication module
-        qs['customer_id'] = [1]
-        qs['encounter'] = ['987987917']
-
         context = restrict_context(qs,
                                    FrontendWebService.patients_required_contexts,
                                    FrontendWebService.patients_available_contexts)
         user = context[CONTEXT_USER]
-        encounter = context[CONTEXT_ENCOUNTER]
-
-
-        try:
-            column_map = ["encounter.csn",
-                          "encounter.contact_date",
-                          "patient.patname",
-                          "encounter.pat_id",
-                          "patient.birthdate",
-                          "patient.sex"]
-
-            columns = DBMapUtils().select_rows_from_map(column_map)
-            cur = yield from self.db.execute_single("SELECT DISTINCT %s"
-                                           " from patient JOIN encounter"
-                                           " on (patient.pat_id = encounter.pat_id and encounter.customer_id = %s)"
-                                           " WHERE encounter.visit_prov_id = '%s' AND encounter.customer_id = %s;" % (columns, context['customer_id'], context['user'], context['customer_id']))
-            results = []
-            for x in cur:
-                if x[5][0]=='F':
-                    cost = 1335
-                else:
-                    cost = 1200
-                results.append({'id': x[3], 'name': prettify(x[2], type="name"), 'gender': prettify(x[5], type="sex"), 'DOB': str(x[4]), 'diagnosis': 'Sinusitis', 'key': AK.authorization_key((user, x[3]), AUTH_LENGTH), 'cost':cost})
-                ML.DEBUG(json.dumps(results))
-        except:
-            raise Exception('Error in front end webservices get_patients() call to database')
-
+        customerid = context[CONTEXT_CUSTOMERID]
+        results = yield from self._get_patient_info(customerid, user, pat_id=None, encounter_list=None)
 
         return (HTTP.OK_RESPONSE, json.dumps(results), None)
 
-    patient_required_contexts = [CONTEXT_USER,CONTEXT_KEY,CONTEXT_PATIENTLIST]
+    patient_required_contexts = [CONTEXT_USER,CONTEXT_KEY,CONTEXT_PATIENTLIST,CONTEXT_CUSTOMERID]
     patient_available_contexts = {CONTEXT_USER:str,CONTEXT_KEY:str,CONTEXT_PATIENTLIST:str, CONTEXT_CUSTOMERID:int, CONTEXT_ENCOUNTER:str}
 
     @asyncio.coroutine
@@ -255,38 +267,20 @@ class FrontendWebService(HTTP.HTTPProcessor):
         This method returns Patient Details which include the data in the header of the Encounter Page
             i.e. Allergies Problem List, Last Encounter, others.
         """
-        qs['customer_id'] = [1]
-        qs['encounter'] = ['5|76|3140325']
-
         context = restrict_context(qs,
                                    FrontendWebService.patient_required_contexts,
                                    FrontendWebService.patient_available_contexts)
         user = context[CONTEXT_USER]
         patient_id = context[CONTEXT_PATIENTLIST]
         auth_key = context[CONTEXT_KEY]
-        customer = context[CONTEXT_CUSTOMERID]
+        customerid = context[CONTEXT_CUSTOMERID]
         #if not auth_key == _authorization_key((user, patient_id), AUTH_LENGTH):
          #   raise HTTP.IncompleteRequest('%s has not been authorized to view patient %s.' % (user, patient_id))
 
-        try:
-            column_map = ["patient.pat_id",
-                          "patient.patname",
-                          "patient.birthdate",
-                          "patient.sex"]
+        results = yield from self._get_patient_info(customerid, user, pat_id=patient_id, encounter_list=True)
+        results = results[0]
 
-            columns = DBMapUtils().select_rows_from_map(column_map)
-            cur = yield from self.db.execute_single("SELECT %s"
-                                           " from patient"
-                                           " WHERE patient.pat_id = '%s' AND patient.customer_id = %s;" % (columns, patient_id, customer))
-            x = next(cur)
-            results = {'id': x[0], 'name': prettify(x[1], type="name"), 'gender': prettify(x[3], type="sex"), 'DOB': str(x[2]), 'diagnosis': 'Sinusitis', 'key': AK.authorization_key((user, x[0]), AUTH_LENGTH)}
-            ML.DEBUG(json.dumps(results))
-        except:
-            raise Exception('Error in front end webservices get_patients() call to database')
-
-
-        if patient_id in patient_extras:
-            results.update(patient_extras[patient_id])
+        results.update({'Allergies': ['NOT VALID'], 'Problem List':['NOTVALID', 'NOTVALID']},)
         return (HTTP.OK_RESPONSE, json.dumps(results), None)
 
 
@@ -331,8 +325,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
     @asyncio.coroutine
     def get_spending_details(self, _header, _body, qs, _matches, _key):
-        qs['customer_id'] = [1]
-        qs['encounter'] = ['987987917']
+        qs[CONTEXT_ENCOUNTER] = ['987987917']
 
         global patient_spending
         context = restrict_context(qs,
@@ -355,8 +348,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
     @asyncio.coroutine
     def get_alerts(self, _header, _body, qs, _matches, _key):
 
-        qs['customer_id'] = [1]
-        qs['encounter'] = ['987987917']
+        qs[CONTEXT_ENCOUNTER] = ['987987917']
 
         context = restrict_context(qs,
                                    FrontendWebService.alerts_required_contexts,
@@ -380,13 +372,15 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
             columns = DBMapUtils().select_rows_from_map(column_map)
             if patient:
-                cur = yield from self.db.execute_single("SELECT %s"
+                cur = yield from self.db.execute_single("SELECT " + columns +
                                                         " from alerts"
-                                                        " WHERE alerts.prov_id = '%s' AND alerts.pat_id = '%s' AND alerts.customer_id = %s;" % (columns, user, patient, customer))
+                                                        " WHERE alerts.prov_id = %s AND alerts.pat_id = %s AND alerts.customer_id = %s;", 
+                                                        extra=(user, patient, customer))
             else: 
-                cur = yield from self.db.execute_single("SELECT %s"
+                cur = yield from self.db.execute_single("SELECT " + columns +
                                                         " from alerts"
-                                                        " WHERE alerts.prov_id = '%s' AND alerts.customer_id = %s;" % (columns, user, customer))
+                                                        " WHERE alerts.prov_id = %s AND alerts.customer_id = %s;",
+                                                        extra=(user, customer))
                 
             results = []
             for x in cur:
@@ -400,10 +394,6 @@ class FrontendWebService(HTTP.HTTPProcessor):
         return (HTTP.OK_RESPONSE, json.dumps(results), None)
 
 
-    #self.add_handler(['GET'], '/alert_details', self.get_stub)
-    def get_alert_details(self, _header, _body, qs, _matches, _key):
-        return (HTTP.OK_RESPONSE, b'', None)
-
     orders_required_contexts = [CONTEXT_USER, CONTEXT_PATIENTLIST]
     orders_available_contexts = {CONTEXT_USER:str, CONTEXT_PATIENTLIST:list, CONTEXT_CUSTOMERID:int, CONTEXT_ENCOUNTER:str}
 
@@ -411,8 +401,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
     @asyncio.coroutine
     def get_orders(self, _header, _body, qs, _matches, _key):
         ### TODO - Remove hardcoded user context and replace with values from production authentication module
-        qs['customer_id'] = [1]
-        qs['encounter'] = ['9|76|3140328']
+        qs[CONTEXT_ENCOUNTER] = ['9|76|3140328']
 
         context = restrict_context(qs,
                                    FrontendWebService.orders_required_contexts,
@@ -432,9 +421,10 @@ class FrontendWebService(HTTP.HTTPProcessor):
             # need the category of the order to use it for the UI icon and order chart
 
             columns = DBMapUtils().select_rows_from_map(column_map)
-            cur = yield from self.db.execute_single("SELECT %s"
-                                           " from mavenorder"
-                                           " WHERE mavenorder.encounter_id = '%s' AND mavenorder.customer_id = %s;" % (columns, context['encounter'], context['customer_id']))
+            cur = yield from self.db.execute_single("SELECT "+ columns + 
+                                                    " from mavenorder"
+                                                    " WHERE mavenorder.encounter_id = %s AND mavenorder.customer_id = %s;",
+                                                    extra=(context[CONTEXT_ENCOUNTER], context[CONTEXT_CUSTOMERID]))
             results = []
             y = 0
             for x in cur:

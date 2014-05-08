@@ -392,8 +392,9 @@ class MappingUtilites():
         And we can run query: execute_read("SELECT %s FROM Table" % select_rows_from_map(EXAMPLE_MAP))
         """
         params = ""
-        for x in range (len(queryMap)):
-            params= params+queryMap[x]+","
+        for x in queryMap:
+            if x:
+                params= params+x+","
         return params[:-1]
 
     def generate_result_object(self,cursor,queryMap):

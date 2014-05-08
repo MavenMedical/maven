@@ -19,22 +19,14 @@ define([
     var PatInfo = Backbone.View.extend({
         el: '.patientinfo',
         template: _.template(patInfoTemplate),
+	that: this,
         initialize: function(){
             _.bindAll(this, 'render');
             this.pat = new PatientModel;
-            this.render();
         },
-        render: function () {
-            var that = this;
-            this.pat.fetch({
-                success: function (pat) {
-                    that.$el.html(that.template({patient:pat}));
-                },
-                data: $.param(currentContext.toJSON())
-            });
-             return this;
-
-        }
-    });
+	update: function (that, pat) {
+		that.$el.html(that.template({patient:pat}));
+            }
+	});
     return PatInfo;
 });
