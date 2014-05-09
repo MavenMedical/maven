@@ -140,6 +140,12 @@ def restrict_context(qs, required, available):
                     raise HTTP.IncompleteRequest('Request requires exactly one instance of parameter %s.' % k)
     return context
 
+def limit_clause(matches):
+    if len(matches)==2 and all(matches):
+        return " LIMIT %d OFFSET %d" % (matches[1]-matches[0], matches[0])
+    else:
+        return ""
+
 class FrontendWebService(HTTP.HTTPProcessor):
 
     def __init__(self, configname):
@@ -204,7 +210,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
                     raise HTTP.UnauthorizedRequest('User is not logged in.')
 
     @asyncio.coroutine
-    def _get_patient_info(self, customerid, user, pat_id=None, encounter_list=None):
+    def _get_patient_info(self, customerid, user, pat_id=None, limit="", encounter_list=None):
         try:
             column_map = [
                 "max(patient.patname)",
@@ -222,14 +228,17 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                            " WHERE encounter.visit_prov_id = %s AND encounter.customer_id = %s"
                                            + ( " AND encounter.pat_id = %s" if pat_id else "") +
                                            " GROUP BY encounter.pat_id"
-                                           " ORDER BY contact_date;", 
+                                           " ORDER BY contact_date"
+                                           + limit + 
+                                           ";"
+                                               , 
                                                     extra=(customerid, user, customerid, pat_id) if pat_id
                                                     else (customerid, user, customerid))
             results = []
             for x in cur:
                 results.append({
                     'id': x[1], 
-                    'name': prettify(x[0], type="name"), 
+                    'patientName': prettify(x[0], type="name"), 
                     'gender': prettify(x[3], type="sex"), 
                     'DOB': str(x[2]), 
                     'diagnosis': 'NOT VALID YET', 
@@ -254,7 +263,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                    FrontendWebService.patients_available_contexts)
         user = context[CONTEXT_USER]
         customerid = context[CONTEXT_CUSTOMERID]
-        results = yield from self._get_patient_info(customerid, user, pat_id=None, encounter_list=None)
+        results = yield from self._get_patient_info(customerid, user, pat_id=None, 
+                                                    limit = limit_clause(matches), encounter_list=None)
 
         return (HTTP.OK_RESPONSE, json.dumps(results), None)
 
@@ -289,7 +299,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
     @asyncio.coroutine
     def get_total_spend(self, _header, _body, _qs, _matches, _key):
-        ret = {'spending':1355, 'savings':16}
+        ret = {'spending':-1355, 'savings':-16}
         return (HTTP.OK_RESPONSE, json.dumps(ret), None)
 
 
@@ -325,8 +335,6 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
     @asyncio.coroutine
     def get_spending_details(self, _header, _body, qs, _matches, _key):
-        qs[CONTEXT_ENCOUNTER] = ['987987917']
-
         global patient_spending
         context = restrict_context(qs,
                                    FrontendWebService.spending_required_contexts,
@@ -346,9 +354,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
     alerts_available_contexts = {CONTEXT_USER:str, CONTEXT_PATIENTLIST:list, CONTEXT_CUSTOMERID:int, CONTEXT_ENCOUNTER:str}
 
     @asyncio.coroutine
-    def get_alerts(self, _header, _body, qs, _matches, _key):
-
-        qs[CONTEXT_ENCOUNTER] = ['987987917']
+    def get_alerts(self, _header, _body, qs, matches, _key):
 
         context = restrict_context(qs,
                                    FrontendWebService.alerts_required_contexts,
@@ -374,12 +380,14 @@ class FrontendWebService(HTTP.HTTPProcessor):
             if patient:
                 cur = yield from self.db.execute_single("SELECT " + columns +
                                                         " from alerts"
-                                                        " WHERE alerts.prov_id = %s AND alerts.pat_id = %s AND alerts.customer_id = %s;", 
+                                                        " WHERE alerts.prov_id = %s AND alerts.pat_id = %s AND alerts.customer_id = %s"
+                                                        + limit_clause(matches) + ";", 
                                                         extra=(user, patient, customer))
             else: 
                 cur = yield from self.db.execute_single("SELECT " + columns +
                                                         " from alerts"
-                                                        " WHERE alerts.prov_id = %s AND alerts.customer_id = %s;",
+                                                        " WHERE alerts.prov_id = %s AND alerts.customer_id = %s"
+                                                        + limit_clause(matches) + ";", 
                                                         extra=(user, customer))
                 
             results = []
@@ -400,9 +408,6 @@ class FrontendWebService(HTTP.HTTPProcessor):
     #self.add_handler(['GET'], '/orders(?:/(\d+)-(\d+)?)?', self.get_stub)
     @asyncio.coroutine
     def get_orders(self, _header, _body, qs, _matches, _key):
-        ### TODO - Remove hardcoded user context and replace with values from production authentication module
-        qs[CONTEXT_ENCOUNTER] = ['9|76|3140328']
-
         context = restrict_context(qs,
                                    FrontendWebService.orders_required_contexts,
                                    FrontendWebService.orders_available_contexts)
@@ -423,7 +428,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
             columns = DBMapUtils().select_rows_from_map(column_map)
             cur = yield from self.db.execute_single("SELECT "+ columns + 
                                                     " from mavenorder"
-                                                    " WHERE mavenorder.encounter_id = %s AND mavenorder.customer_id = %s;",
+                                                    " WHERE mavenorder.encounter_id = %s AND mavenorder.customer_id = %s;"
+                                                        + limit_clause(matches) + ";", 
                                                     extra=(context[CONTEXT_ENCOUNTER], context[CONTEXT_CUSTOMERID]))
             results = []
             y = 0

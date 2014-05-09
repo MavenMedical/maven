@@ -14,7 +14,7 @@ define([
             gender: "Male",
             DOB: "05/03/1987",
             dx: "Asthma",
-            cost: "1200"
+            cost: "-1"
         }
     });
 

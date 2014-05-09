@@ -7,7 +7,9 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
 
+    // models
     'currentContext',
+    'models/chartsModels/spendingModel',
 
     //views
     'views/widget/search',
@@ -18,7 +20,7 @@ define([
     // Using the Require.js text! plugin, we are loaded raw text
     // which will be used as our views primary template
     'text!templates/home.html'
-], function ($, _, Backbone, currentContext, Search, PatientList, Spending, CostBD, homeTemplate ) {
+	], function ($, _, Backbone, currentContext, SpendingModel, Search, PatientList, Spending, CostBD, homeTemplate ) {
 
     var HomeView = Backbone.View.extend({
         el: '.page',
@@ -43,9 +45,13 @@ define([
             this.search = new Search;
             this.patientlist = new PatientList;
             console.log('home widgets');
-            console.log(currentContext.get('patients'));
+            console.log(currentContext);
+            this.spendingModel = new SpendingModel;
             this.spending = new Spending;
             this.costbd = new CostBD;
+            this.spendingModel.on('change', this.spending.update);
+            this.spendingModel.on('change', this.costbd.update);
+            this.spendingModel.fetch({data: $.param(currentContext.toJSON())});
             return this;
         }
     });

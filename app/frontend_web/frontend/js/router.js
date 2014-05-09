@@ -50,7 +50,7 @@ define([
         showHome: function () {
 		//alert('showing home');
 		if (CheckLogin()) {
-		    currentContext.set({page:'home'});
+		    currentContext.set({page:'home',patients:null,encounter:null,patientName:null});
 		    var homeView = new HomeView
 		}
         },
