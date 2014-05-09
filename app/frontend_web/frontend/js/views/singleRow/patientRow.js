@@ -15,7 +15,7 @@ define([
     'eventhub',
 
     //Template
-    'text!templates/singleRow/patientRow.html'
+    'text!templates/templatesA/singleRow/patientRow.html'
 
 ], function ($, _, Backbone, currentContext, eventHub, patRowTemplate) {
     var patientRow = Backbone.View.extend({

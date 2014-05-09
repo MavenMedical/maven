@@ -17,7 +17,7 @@ define([
 
     // Using the Require.js text! plugin, we are loaded raw text
     // which will be used as our views primary template
-    'text!templates/home.html'
+    'text!templates/templatesA/home.html'
 ], function ($, _, Backbone, currentContext, Search, PatientList, Spending, CostBD, homeTemplate ) {
 
     var HomeView = Backbone.View.extend({

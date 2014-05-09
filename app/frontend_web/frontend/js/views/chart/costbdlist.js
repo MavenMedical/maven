@@ -9,7 +9,7 @@ define([
     'backbone',    // lib/backbone/backbone
     'currentContext',
 
-    'text!templates/chart/costbd.html'
+    'text!templates/templatesA/chart/costbd.html'
 ], function ($, _, Backbone, currentContext, costbdTemplate) {
 
     var CostBD = Backbone.View.extend({
@@ -66,5 +66,3 @@ define([
 	});
     return CostBD;
        });
-
-//Chart codes are in the template file costbd.html

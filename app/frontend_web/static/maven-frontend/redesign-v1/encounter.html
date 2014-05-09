@@ -85,93 +85,103 @@
 </head>
 
 <body>
+<div class="topnav">
+    <!-- Main header -->
+    <nav class="navbar navbar-default navbar-fixed-top main-header" role="navigation">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#"><span class="brand"><b>maven</b></span>
+                    <span class="page-title">encounter <i class="glyphicon glyphicon-chevron-down"></i></span></a>
+            </div>
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            <i class="glyphicon glyphicon-user"></i>
+                            <span class="dr">Dr.Huxtable</span><b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#">Action</a></li>
+                            <li><a href="#">Another action</a></li>
+                            <li><a href="#">Something else here</a></li>
+                            <li class="divider"></li>
+                            <li><a href="#">Separated link</a></li>
+                            <li class="divider"></li>
+                            <li><a href="#">One more separated link</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <form class="navbar-form navbar-right">
+                    <div class="input-group input-group-sm" style="max-width:360px;">
+                        <input type="text" class="form-control" placeholder="Search Patient"
+                               name="srch-term"
+                               id="srch-term">
 
-<!-- Main header -->
-<nav class="navbar navbar-default navbar-fixed-top main-header" role="navigation">
-    <div class="container">
-        <div class="navbar-header">
-            <a class="navbar-brand" href="#"><span class="brand"><b>maven</b></span>
-                <span class="page-title">encounter</span></a>
+                        <div class="input-group-btn">
+                            <button class="btn btn-default" type="submit">
+                                <i class="glyphicon glyphicon-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
-        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-            <ul class="nav navbar-nav navbar-right">
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                        <i class="glyphicon glyphicon-user"></i>
-                        <span class="dr">Dr.Huxtable</span><b class="caret"></b></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="#">Action</a></li>
-                        <li><a href="#">Another action</a></li>
-                        <li><a href="#">Something else here</a></li>
-                        <li class="divider"></li>
-                        <li><a href="#">Separated link</a></li>
-                        <li class="divider"></li>
-                        <li><a href="#">One more separated link</a></li>
-                    </ul>
-                </li>
-            </ul>
-            <form class="navbar-form navbar-right">
-                <div class="input-group input-group-sm" style="max-width:360px;">
-                    <input type="text" class="form-control" placeholder="Search Patient"
-                           name="srch-term"
-                           id="srch-term">
-
-                    <div class="input-group-btn">
-                        <button class="btn btn-default" type="submit">
-                            <i class="glyphicon glyphicon-search"></i>
-                        </button>
+        <!-- /.container-fluid -->
+    </nav>
+    <!-- /Main Header -->
+</div>
+<div class="patientinfo">
+    <!-- Patient info -->
+    <div class="pat-nav">
+        <nav class="navbar navbar-default navbar-fixed-top navbar-lower" role="navigation">
+            <div class="container">
+                <div class="col-sm-3 divider">
+                    <div class="row pat-title">
+                        Patient Name:
+                    </div>
+                    <div class="row">
+                        <span id="pat-name"><b>Suzy Smith</b></span>
                     </div>
                 </div>
-            </form>
-        </div>
+                <div class="col-sm-2 divider">
+                    <div class="row pat-sub">
+                        DOB:
+                    </div>
+                    <div class="row">
+                        12/04/1985
+                    </div>
+                </div>
+                <div class="col-sm-3 divider">
+                    <div class="row pat-sub">
+                        Allergies:
+                    </div>
+                    <div class="row">
+                        Penicillin, Sulfa Drug
+                    </div>
+                </div>
+                <div class="col-sm-2 divider">
+                    <div class="row pat-sub">
+                        Admission:
+                    </div>
+                    <div class="row">
+                        02/15/2014
+                    </div>
+                </div>
+                <div class="col-sm-1">
+                    <div class="row pat-sub">
+                        LOS:
+                    </div>
+                    <div class="row">
+                        3
+                    </div>
+                </div>
+            </div>
+        </nav>
     </div>
-    <!-- /.container-fluid -->
-</nav>
-<!-- /Main Header -->
-
-<!-- Patient info -->
-<div class="pat-nav">
-    <nav class="navbar navbar-default navbar-fixed-top navbar-lower" role="navigation">
-        <div class="container">
-            <div class="col-sm-3 divider">
-                <div class="row pat-title">
-                    Patient Name:
-                </div>
-                <div class="row">
-                    <span id="pat-name"><b>Suzy Smith</b></span>
-                </div>
-            </div>
-            <div class="col-sm-2 divider">
-                <div class="row pat-sub">
-                    DOB:
-                </div>
-                <div class="row">
-                    12/04/1985
-                </div>
-            </div>
-            <div class="col-sm-3 divider">
-                <div class="row pat-sub">
-                    Allergies:
-                </div>
-                <div class="row">
-                    Penicillin, Sulfa Drug
-                </div>
-            </div>
-            <div class="col-sm-2">
-                <div class="row pat-sub">
-                    Last Encounter:
-                </div>
-                <div class="row">
-                    02/15/2014
-                </div>
-            </div>
-        </div>
-    </nav>
+    <!-- /Patient info -->
 </div>
-<!-- /Patient info -->
-
 
 <div class="container">
+<div class="page">
 <div class="col-sm-8 content">
     <div class="container">
         <div class="row" id="utilization">
@@ -309,6 +319,7 @@
         <div class="row" id="chart-cost-bd">
             <div class="col-sm-8">
                 <span class="headings title">Encounter Cost Break down</span>
+
                 <div class="chart-div" id="chartdiv"></div>
             </div>
         </div>
@@ -390,7 +401,7 @@
     </div>
 </div>
 </div>
-
+</div>
 </body>
 
 </html>

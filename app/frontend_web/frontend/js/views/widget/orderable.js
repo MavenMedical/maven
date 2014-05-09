@@ -19,7 +19,7 @@ define([
     //Collection
     'collections/orders',
 
-    'text!templates/widget/orderable.html'
+    'text!templates/templatesA/widget/orderable.html'
 ], function ($, _, Backbone, currentContext, orderRow, OrderModel, OrderCollection, orderableTemplate) {
 
     var Orderable = Backbone.View.extend({

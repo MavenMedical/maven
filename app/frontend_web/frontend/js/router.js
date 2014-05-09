@@ -23,16 +23,31 @@ define([
     'views/patient',
     'views/episode',
     'views/alerts',
-    'views/widget/evidence'
-], function ($, _, Backbone, currentContext, eventHub,  SideMenu, TopNav, HomeView, PatientView, EpisodeView, AlertsView, Evidence) {
+    'views/widget/evidence',
+
+     'text!templates/templatesA/skeleton.html'
+], function ($, _, Backbone, currentContext, eventHub,  SideMenu, TopNav, HomeView, PatientView, EpisodeView, AlertsView, Evidence, skeletonA) {
 
     var CheckLogin = function() {
+
+    CheckSkeleton();
 	if (!currentContext.get('user') || !currentContext.get('userAuth')) {
 	    currentContext.setUser('JHU1093124', 'notarealpassword', Backbone.history.fragment);  // hack for now
 	    return false;
 	}
 	return true;
     };
+
+    // This function is to determine which layout to display
+    var CheckSkeleton = function(){
+        if (currentContext.get('layout') == 'a'){
+            $('body').html(_.template(skeletonA));
+        }
+        else if (currentContext.get('layout') == 'b')
+        {
+            alert('b');
+        }
+    }
 
 
     var AppRouter = Backbone.Router.extend({
@@ -99,11 +114,11 @@ define([
 		    var episodeView = new EpisodeView;
 		    
 		    var evidence = new Evidence(evi);
-		    $('#evidence-' + evi).modal();
-		}
-	    }
-        },
-        defaultAction: function (action) {
+                $('#evidence-' + evi).modal();
+            }
+            }
+            },
+            defaultAction: function (action) {
             console.log('No route:', action);
         },
         initialize: function () {

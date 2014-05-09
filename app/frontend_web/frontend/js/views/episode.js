@@ -26,7 +26,7 @@ define([
 
     // Using the Require.js text! plugin, we are loaded raw text
     // which will be used as our views primary template
-    'text!templates/episode.html'
+    'text!templates/templatesA/episode.html'
 ], function ($, _, Backbone,currentContext, PatInfo, Utilization, Saving, Orderable, DailyCost, OrderBD, Alert,OrderCollection, episodeTemplate) {
 
     var EpisodeView = Backbone.View.extend({
