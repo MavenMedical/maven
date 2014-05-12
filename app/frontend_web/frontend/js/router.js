@@ -29,10 +29,8 @@ define([
 ], function ($, _, Backbone, currentContext, eventHub,  SideMenu, TopNav, HomeView, PatientView, EpisodeView, AlertsView, Evidence, skeletonA) {
 
     var CheckLogin = function() {
-
-    CheckSkeleton();
 	if (!currentContext.get('user') || !currentContext.get('userAuth')) {
-	    currentContext.setUser('JHU1093124', 'notarealpassword', Backbone.history.fragment);  // hack for now
+	    currentContext.setUser(CheckSkeleton, 'JHU1093124', 'notarealpassword', Backbone.history.fragment);  // hack for now
 	    return false;
 	}
 	return true;
@@ -42,10 +40,15 @@ define([
     var CheckSkeleton = function(){
         if (currentContext.get('layout') == 'a'){
             $('body').html(_.template(skeletonA));
+            var sidemenu = new SideMenu;
+            sidemenu.render();
+            var topnav = new TopNav;
+            topnav.render();
+
         }
         else if (currentContext.get('layout') == 'b')
         {
-            alert('b');
+            //alert('b');
         }
     }
 
@@ -65,7 +68,7 @@ define([
         showHome: function () {
 		//alert('showing home');
 		if (CheckLogin()) {
-		    currentContext.set({page:'home'});
+		    currentContext.set({page:'home',patients:null,encounter:null,patientName:null});
 		    var homeView = new HomeView
 		}
         },
@@ -127,10 +130,6 @@ define([
                 options.url = 'services' + options.url;
             });
             // render side menu and topnav for all pages
-            var sidemenu = new SideMenu;
-            sidemenu.render();
-            var topnav = new TopNav;
-            topnav.render();
 	    Backbone.history.start();
         }
     });

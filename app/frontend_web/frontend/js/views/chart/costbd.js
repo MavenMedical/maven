@@ -25,11 +25,16 @@ define([
 	    },	
 	update: function(spend) {
 		var datefilter=null;
+		var that=this;
 		if('title' in spend.changed) {
 		    return;
 		}
 		if('date' in spend.changed) {
 		    datefilter=spend.changed['date'];
+		    //		    $('#costbd-restriction')[0].innerHTML='Only spending on <i><b>'+datefilter.toDateString() +'</b></i> <button id="removedatefilter">(remove filter)</button>';
+		    $('#costbd-restriction')[0].innerHTML='Only spending on <i><b>'+datefilter.toDateString() +'</b></i>';
+ 		} else {
+		    $('#costbd-restriction')[0].innerHTML='';
 		}
 		var colorArray = ["#0188BB", "#4C2694", "#79B32D", "#FF8500", "#00587A" ]
 		//Palette URL: http://colorschemedesigner.com/#3q62mWSE5w0w0
@@ -76,7 +81,6 @@ define([
 		    });
 		// Note that this refers to the object whose change generated the call to update
 		// In this case that is a spendingModel object.
-		var that=this;
 		chart.addListener("pullOutSlice", function(x) {that.clickType(x,that);});
 	    }
 	});

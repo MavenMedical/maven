@@ -10,8 +10,8 @@ define([
     var UtilizationModel = Backbone.Model.extend({
         urlRoot: '/total_spend',
         defaults: {
-		spending:10,
-		savings:1
+		spending:-10,
+		savings:-1
         }
     });
 

@@ -12,7 +12,7 @@ define([
 ], function ($, _, Backbone, sidemenuTemplate) {
 
     var SideMenu = Backbone.View.extend({
-        el: $('.sidemenu'),
+	    el: '.sidemenu',
         render: function () {
             var template = _.template(sidemenuTemplate, {});
             this.$el.html(template);

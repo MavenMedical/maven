@@ -35,7 +35,7 @@ define([
             //update context
             currentContext.set({key : this.model.get("key")});
             currentContext.set({patients : this.model.get("id")});
-	    currentContext.set({patientName : this.model.get("name")});
+	    currentContext.set({patientName : this.model.get("patientName")});
             console.log('I am here at patient row');
             eventHub.events.trigger('select:patient', 'test');
             //eventHub.events.on('selected:patient', console.log('patient selected') );
