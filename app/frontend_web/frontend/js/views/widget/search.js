@@ -7,7 +7,7 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'currentContext',
-    'text!templates/widget/search.html'
+    'text!templates/templatesA/widget/search.html'
 ], function ($, _, Backbone, currentContext, searchTemplate) {
 
     var Search = Backbone.View.extend({

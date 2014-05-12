@@ -8,7 +8,7 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'currentContext',
-    'text!templates/widget/evidence.html'
+    'text!templates/templatesA/widget/evidence.html'
 ], function ($, _, Backbone, currentContext, evidenceTemplate) {
 
     var Evidence = Backbone.View.extend({

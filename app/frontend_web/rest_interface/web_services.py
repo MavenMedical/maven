@@ -137,11 +137,13 @@ class FrontendWebService(HTTP.HTTPProcessor):
             if not self.stylesheet == 'original':
                 self.stylesheet = 'original'
                 self.costbdtype = 'donut'
+                self.layout = 'a'
             else:
                 self.stylesheet = 'alternate'
                 self.costbdtype = 'list'
+                self.layout = 'b'
 
-            ret = {'display':'Dr. Huxtable', 'stylesheet':self.stylesheet, 'costbdtype':self.costbdtype, 'customer_id':1}
+            ret = {'display':'Dr. Huxtable', 'stylesheet':self.stylesheet, 'costbdtype':self.costbdtype, 'customer_id':1, 'layout':self.layout}
 
             try:
                 AK.check_authorization(user, info['password'], AUTH_LENGTH)

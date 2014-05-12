@@ -20,7 +20,7 @@ from flask import Flask, render_template
 from flask.ext.sqlalchemy import SQLAlchemy
 import os
 
-#Specify the path for templates
+#Specify the path for templatesA
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 
 # Define the WSGI application object that will handle the frontend webservice
