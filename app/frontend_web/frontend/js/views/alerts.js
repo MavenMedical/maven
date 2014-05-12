@@ -17,7 +17,7 @@ define([
 	], function ($, _, Backbone, Alert, currentContext, alertTemplate) {
 
     var AlertsView = Backbone.View.extend({
-        el: $('.page'),
+	el: '.page',
         render: function () {
             $('.nav li').removeClass('active');
             $('.nav li a[href="' + window.location.hash + '"]').parent().addClass('active');

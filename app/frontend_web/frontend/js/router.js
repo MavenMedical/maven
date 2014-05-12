@@ -40,11 +40,10 @@ define([
     var CheckSkeleton = function(){
         if (currentContext.get('layout') == 'a'){
             $('body').html(_.template(skeletonA));
-	    alert('a');
         }
         else if (currentContext.get('layout') == 'b')
         {
-            alert('b');
+            //alert('b');
         }
     }
 

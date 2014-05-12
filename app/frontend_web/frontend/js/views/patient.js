@@ -26,7 +26,7 @@ define([
 	], function ($, _, Backbone, currentContext, PatientModel, SpendingModel, PatInfo, Utilization, Saving, Alert, Spending, CostBDDonut, CostBDList, patientTemplate) {
 
     var PatientView = Backbone.View.extend({
-        el: $('.page'),
+        el: '.page',
 	update: function(patientModel) {
             //append list of encounters
             $('#dynamic_enc li').remove();
@@ -55,7 +55,7 @@ define([
 
             var template = _.template(patientTemplate, {});
             this.$el.html(template);
-
+	    
 	    var that=this;
             //widgets
 	    this.patientModel = new PatientModel;

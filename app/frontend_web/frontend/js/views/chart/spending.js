@@ -45,9 +45,9 @@ define([
             }
             if ('title' in spend.changed) {
                 titlefilter = spend.changed['title'];
-		$('#spending-restriction')[0].innerHTML='Only <i><b>'+titlefilter +'</b></i> spending';
+		$('#spending-restriction').html('Only <i><b>'+titlefilter +'</b></i> spending');
             } else {
-		$('#spending-restriction')[0].innerHTML='';
+		$('#spending-restriction').html('');
 	    }
 	    //	    console.log($('#spending-restriction'));
 
@@ -78,9 +78,8 @@ define([
                     date: new Date(d),
                     encounter_cost: total
                 });
-            }
-            ;
-
+            };
+	    
             var chart = AmCharts.makeChart("total-spend", {
                 "type": "serial",
                 "dataDateFormat": "YYYY-MM-DD",
@@ -137,7 +136,7 @@ define([
             // Note that this refers to the object whose change generated the call to update
             // In this case that is a spendingModel object.
             chart.addListener("clickGraphItem", function (x) {
-                that.clickDate(x, that);
+		that.clickDate(x, that);
             });
 	    chart.addListener("zoomed", function(x) {
 		that.zoomed = x;
