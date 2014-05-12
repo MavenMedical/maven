@@ -40,6 +40,11 @@ define([
     var CheckSkeleton = function(){
         if (currentContext.get('layout') == 'a'){
             $('body').html(_.template(skeletonA));
+            var sidemenu = new SideMenu;
+            sidemenu.render();
+            var topnav = new TopNav;
+            topnav.render();
+
         }
         else if (currentContext.get('layout') == 'b')
         {
@@ -125,10 +130,6 @@ define([
                 options.url = 'services' + options.url;
             });
             // render side menu and topnav for all pages
-            var sidemenu = new SideMenu;
-            sidemenu.render();
-            var topnav = new TopNav;
-            topnav.render();
 	    Backbone.history.start();
         }
     });

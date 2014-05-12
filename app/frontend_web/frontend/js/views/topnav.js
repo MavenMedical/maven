@@ -12,11 +12,11 @@ define([
 	], function ($, _, Backbone, currentContext, topnavTemplate) {
 
     var TopNav = Backbone.View.extend({
-        el: $('.topnav'),
+        el: '.topnav',
         render: function () {
 		var template = _.template(topnavTemplate, currentContext.attributes);
-            this.$el.html(template);
-            return this;
+		this.$el.html(template);
+		return this;
         }
     });
     return TopNav;
