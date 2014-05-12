@@ -29,10 +29,8 @@ define([
 ], function ($, _, Backbone, currentContext, eventHub,  SideMenu, TopNav, HomeView, PatientView, EpisodeView, AlertsView, Evidence, skeletonA) {
 
     var CheckLogin = function() {
-
-    CheckSkeleton();
 	if (!currentContext.get('user') || !currentContext.get('userAuth')) {
-	    currentContext.setUser('JHU1093124', 'notarealpassword', Backbone.history.fragment);  // hack for now
+	    currentContext.setUser(CheckSkeleton, 'JHU1093124', 'notarealpassword', Backbone.history.fragment);  // hack for now
 	    return false;
 	}
 	return true;
@@ -42,6 +40,7 @@ define([
     var CheckSkeleton = function(){
         if (currentContext.get('layout') == 'a'){
             $('body').html(_.template(skeletonA));
+	    alert('a');
         }
         else if (currentContext.get('layout') == 'b')
         {

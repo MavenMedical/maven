@@ -141,7 +141,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
             else:
                 self.stylesheet = 'alternate'
                 self.costbdtype = 'list'
-                self.layout = 'b'
+                self.layout = 'a'
 
             ret = {'display':'Dr. Huxtable', 'stylesheet':self.stylesheet, 'costbdtype':self.costbdtype, 'customer_id':1, 'layout':self.layout}
 

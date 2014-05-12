@@ -232,11 +232,13 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
             try:
                 AK.check_authorization(user, info['password'], AUTH_LENGTH)
-                return (HTTP.OK_RESPONSE, json.dumps({'display':'Dr. Huxtable', 'stylesheet':self.stylesheet, 'costbdtype':self.costbdtype}), None)
+                return (HTTP.OK_RESPONSE, json.dumps({'display':'Dr. Huxtable', 'stylesheet':self.stylesheet, 
+                                                      'costbdtype':self.costbdtype, 'layout':'a'}), None)
             except:
                 user_auth = AK.authorization_key(user,AUTH_LENGTH, LOGIN_TIMEOUT)
                 return (HTTP.OK_RESPONSE,json.dumps({CONTEXT_KEY:user_auth, 'display':'Dr. Huxtable',
-                                                     'stylesheet':self.stylesheet, 'costbdtype':self.costbdtype}), None)
+                                                     'stylesheet':self.stylesheet, 'costbdtype':self.costbdtype,
+                                                     'layout':'a'}), None)
 
     patients_required_contexts = [CONTEXT_USER]
     patients_available_contexts = {CONTEXT_USER:str}
