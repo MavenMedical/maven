@@ -43,48 +43,6 @@ CONTEXT_CUSTOMERID = 'customer_id'
 LOGIN_TIMEOUT = 60 * 60 # 1 hour
 AUTH_LENGTH = 44 # 44 base 64 encoded bits gives the entire 256 bites of SHA2 hash
 
-def min_zero_normal(u,s):
-    ret = int(random.normalvariate(u,s))
-    if ret<0:
-        ret=0
-    return ret
-
-def spending():
-    return {
-        'Labs':min_zero_normal(100,50),
-        'Medications':min_zero_normal(300,100),
-        'Procedures':min_zero_normal(500,300),
-        'Room':min_zero_normal(500,50),
-        }
-
-
-def create_spend(days, prob_fall_ill, prob_stay_ill):
-    state = None
-    history = {}
-    firstday = datetime.datetime.today() - datetime.timedelta(days=days)
-    for i in range(days):
-        day = (firstday + datetime.timedelta(days=i)).replace(microsecond=0).isoformat()
-        r = random.uniform(0,1)
-        oldstate = state
-        state = (state and prob_stay_ill>r) or (not state and prob_fall_ill>r)
-        #print([oldstate, state, r])
-        if state:
-            history[day]=spending()
-    return history
-
-patient_spending = {
-    '1': create_spend(100, .1,.5),
-    '2': create_spend(100,.2,.3),
-    '3': create_spend(200,.05,.8),
-    '4': create_spend(100,.1,.5),
-}
-
-def lookup_patient_spending(id):
-    global patient_spending
-    if not id in patient_spending:
-        patient_spending[id]=create_spend(100,.05,.6)
-    return patient_spending[id]
-
 def prettify(s, type=None):
     if type == "name":
         name = s.split(",")
@@ -102,16 +60,6 @@ def prettify(s, type=None):
 
 def copy_and_append(m, kv):
     return dict(itertools.chain(m.items(),[kv]))
-
-def _get_range(tup, max):
-    try:
-        (start, stop) = tuple(map(int,tup))
-        stop += 1
-    except (ValueError, TypeError):
-        (start, stop) = (0, max)
-    if stop > max:
-        stop = max
-    return (start, stop)
 
 def restrict_context(qs, required, available):
     if not set(required).issubset(qs.keys()):
@@ -162,7 +110,6 @@ class FrontendWebService(HTTP.HTTPProcessor):
         self.add_handler(['GET'], '/patient_details', self.get_patient_details)  # REAL
         self.add_handler(['GET'], '/total_spend', self.get_total_spend)  # FAKE
         self.add_handler(['GET'], '/spending', self.get_daily_spending)  # FAKE
-        self.add_handler(['GET'], '/spending_details', self.get_spending_details)  #FAKE
         self.add_handler(['GET'], '/alerts(?:/(\d+)-(\d+)?)?', self.get_alerts)  # REAL
         self.add_handler(['GET'], '/orders(?:/(\d+)-(\d+)?)?', self.get_orders)  # REAL
         self.add_handler(['GET'], '/autocomplete', self.get_autocomplete)  # FAKE
@@ -221,19 +168,26 @@ class FrontendWebService(HTTP.HTTPProcessor):
                 "array_agg(encounter.csn || ' ' || encounter.contact_date)" if encounter_list else None,
                 ]
             columns = DBMapUtils().select_rows_from_map(column_map)
+            cmd = []
+            cmdargs=[]
+            cmd.append("SELECT")
+            cmd.append(columns)
+            cmd.append("FROM patient JOIN encounter")
+            cmd.append("ON (patient.pat_id = encounter.pat_id AND encounter.customer_id = patient.customer_id)")
+            cmd.append("WHERE encounter.customer_id = %s")
+            cmdargs.append(customerid)
+            cmd.append("AND encounter.visit_prov_id = %s")
+            cmdargs.append(user)
+            if pat_id:
+                cmd.append("AND encounter.pat_id = %s")
+                cmdargs.append(pat_id)
+            cmd.append("GROUP BY encounter.pat_id")
+            cmd.append("ORDER BY contact_date")
+            if limit:
+                cmd.append(limit)
 
-            cur = yield from self.db.execute_single("SELECT "+ columns +
-                                           " from patient JOIN encounter"
-                                           " on (patient.pat_id = encounter.pat_id and encounter.customer_id = %s)"
-                                           " WHERE encounter.visit_prov_id = %s AND encounter.customer_id = %s"
-                                           + ( " AND encounter.pat_id = %s" if pat_id else "") +
-                                           " GROUP BY encounter.pat_id"
-                                           " ORDER BY contact_date"
-                                           + limit + 
-                                           ";"
-                                               , 
-                                                    extra=(customerid, user, customerid, pat_id) if pat_id
-                                                    else (customerid, user, customerid))
+            cur = yield from self.db.execute_single(' '.join(cmd)+';',cmdargs)
+
             results = []
             for x in cur:
                 results.append({
@@ -256,8 +210,6 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
     @asyncio.coroutine
     def get_patients(self, _header, _body, qs, matches, _key):
-        # {1: {'id':1, 'name':'Batman', 'gender':'Male', 'DOB':'05/03/1987', 'diagnosis':'Asthma'},}
-        ### TODO - Remove hardcoded user context and replace with values from production authentication module
         context = restrict_context(qs,
                                    FrontendWebService.patients_required_contexts,
                                    FrontendWebService.patients_available_contexts)
@@ -269,7 +221,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
         return (HTTP.OK_RESPONSE, json.dumps(results), None)
 
     patient_required_contexts = [CONTEXT_USER,CONTEXT_KEY,CONTEXT_PATIENTLIST,CONTEXT_CUSTOMERID]
-    patient_available_contexts = {CONTEXT_USER:str,CONTEXT_KEY:str,CONTEXT_PATIENTLIST:str, CONTEXT_CUSTOMERID:int, CONTEXT_ENCOUNTER:str}
+    patient_available_contexts = {CONTEXT_USER:str,CONTEXT_KEY:str,CONTEXT_PATIENTLIST:str, 
+                                  CONTEXT_CUSTOMERID:int, CONTEXT_ENCOUNTER:str}
 
     @asyncio.coroutine
     def get_patient_details(self, _header, _body, qs, matches, _key):
@@ -294,64 +247,112 @@ class FrontendWebService(HTTP.HTTPProcessor):
         return (HTTP.OK_RESPONSE, json.dumps(results), None)
 
 
-    totals_required_contexts = [CONTEXT_USER,CONTEXT_KEY]
-    totals_available_contexts = {CONTEXT_USER:str,CONTEXT_KEY:list,CONTEXT_PATIENTLIST:list}
+    totals_required_contexts = [CONTEXT_USER,CONTEXT_KEY,CONTEXT_CUSTOMERID]
+    totals_available_contexts = {CONTEXT_USER:str,CONTEXT_KEY:list,
+                                 CONTEXT_PATIENTLIST:list, CONTEXT_ENCOUNTER:str,
+                                 CONTEXT_CUSTOMERID: int}
 
     @asyncio.coroutine
-    def get_total_spend(self, _header, _body, _qs, _matches, _key):
-        ret = {'spending':-1355, 'savings':-16}
+    def get_total_spend(self, _header, _body, qs, _matches, _key):
+        context = restrict_context(qs,
+                                   FrontendWebService.daily_required_contexts,
+                                   FrontendWebService.daily_available_contexts)
+        user = context[CONTEXT_USER]
+        patient_ids = context.get(CONTEXT_PATIENTLIST, None)
+        customer = context[CONTEXT_CUSTOMERID]
+        encounter = context.get(CONTEXT_ENCOUNTER, None)
+        #auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
+        
+        column_map = [
+            "sum(order_cost)",
+            ]
+        columns = DBMapUtils().select_rows_from_map(column_map)
+
+        #if AK.check_authorization((user, patient_id), auth_keys[patient_id], AUTH_LENGTH):
+        cmd = []
+        cmdargs=[]
+        cmd.append("SELECT")
+        cmd.append(columns)
+        cmd.append("FROM mavenorder JOIN encounter")
+        cmd.append("ON mavenorder.encounter_id = encounter.csn")
+        cmd.append("WHERE encounter.visit_prov_id = %s")
+        cmdargs.append(user)
+        cmd.append("AND mavenorder.customer_id = %s")
+        cmdargs.append(customer)
+        if patient_ids:
+            cmd.append("AND encounter.pat_id in %s")
+            cmdargs.append(tuple(patient_ids))
+        if encounter:
+            cmd.append("AND encounter.csn = %s")
+            cmdargs.append(encounter)
+        
+        cur = yield from self.db.execute_single(' '.join(cmd)+';',cmdargs)
+        try:
+            x = next(cur)
+            spend = int(x[0])
+        except StopIteration:
+            spend=0
+
+        ret = {'spending':spend, 'savings':-16}
         return (HTTP.OK_RESPONSE, json.dumps(ret), None)
 
 
-    daily_required_contexts = [CONTEXT_USER,CONTEXT_KEY]
-    daily_available_contexts = {CONTEXT_USER:str,CONTEXT_KEY:list,CONTEXT_PATIENTLIST:list}
+    daily_required_contexts = [CONTEXT_USER, CONTEXT_KEY, CONTEXT_CUSTOMERID]
+    daily_available_contexts = {CONTEXT_USER: str, CONTEXT_KEY: list, 
+                                CONTEXT_PATIENTLIST: list, CONTEXT_CUSTOMERID: int,
+                                CONTEXT_ENCOUNTER: str}
 
+#select count(orderid), max(order_name), date_trunc('day',datetime) as dt, order_type, sum(order_cost) from mavenorder join encounter on mavenorder.encounter_id=encounter.csn where encounter.visit_prov_id='JHU1093124' group by dt, order_type, proc_code;
     @asyncio.coroutine
     def get_daily_spending(self, _header, _body, qs, _matches, _key):
         context = restrict_context(qs,
                                    FrontendWebService.daily_required_contexts,
                                    FrontendWebService.daily_available_contexts)
         user = context[CONTEXT_USER]
+        customer = context[CONTEXT_CUSTOMERID]
         patient_dict = defaultdict(lambda: defaultdict(int))
-        if CONTEXT_PATIENTLIST in context:
-            patient_ids = context[CONTEXT_PATIENTLIST]
-            #auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
-            
-            for patient_id in patient_ids:
-                try:
-                    #if AK.check_authorization((user, patient_id), auth_keys[patient_id], AUTH_LENGTH):
-                    data = lookup_patient_spending(patient_id)
-                    for day in data:
-                        for k2, v2 in data[day].items():
-                            patient_dict[day][k2]+=v2
-                except TypeError:
-                    raise
-                    #pass
+        encounter = context.get(CONTEXT_ENCOUNTER, None)
+        patient_ids = context.get(CONTEXT_PATIENTLIST,None)
+        #auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
+        
+        column_map = [
+            "to_char(datetime,'Mon/DD/YYYY') as dt",
+            "order_type",
+            "sum(order_cost)",
+            ]
+        columns = DBMapUtils().select_rows_from_map(column_map)
+        
+
+        #if AK.check_authorization((user, patient_id), auth_keys[patient_id], AUTH_LENGTH):
+        cmd = []
+        cmdargs=[]
+        cmd.append("SELECT")
+        cmd.append(columns)
+        cmd.append("FROM mavenorder JOIN encounter")
+        cmd.append("ON mavenorder.encounter_id = encounter.csn")
+        cmd.append("WHERE encounter.visit_prov_id = %s")
+        cmdargs.append(user)
+        cmd.append("AND mavenorder.customer_id = %s")
+        cmdargs.append(customer)
+        if patient_ids:
+            cmd.append("AND encounter.pat_id in %s")
+            cmdargs.append(tuple(patient_ids))
+        if encounter:
+            cmd.append("AND encounter.csn = %s")
+            cmdargs.append(encounter)
+        cmd.append("GROUP BY dt, order_type")
+
+        cur = yield from self.db.execute_single(' '.join(cmd)+';',cmdargs)
+        for x in cur:
+            patient_dict[x[0]][x[1]] += int(x[2])
 
         return (HTTP.OK_RESPONSE, json.dumps(patient_dict), None)
 
-    spending_required_contexts = [CONTEXT_USER,CONTEXT_PATIENTLIST,CONTEXT_DATE]
-    spending_available_contexts = {CONTEXT_USER:str,CONTEXT_PATIENTLIST:str,CONTEXT_DATE:int}
-
-    @asyncio.coroutine
-    def get_spending_details(self, _header, _body, qs, _matches, _key):
-        global patient_spending
-        context = restrict_context(qs,
-                                   FrontendWebService.spending_required_contexts,
-                                   FrontendWebService.spending_available_contexts)
-        user = context[CONTEXT_USER]
-        patient_id = context[CONTEXT_PATIENTLIST]
-        date = context[CONTEXT_DATE]
-        print(patient_spending[patient_id])
-        print(patient_spending[patient_id][date])
-        print(date)
-        spend = patient_spending.get(patient_id,{}).get(date,{})
-        return (HTTP.OK_RESPONSE, json.dumps(spend), None)
-
     #self.add_handler(['GET'], '/alerts(?:/(\d+)-(\d+)?)?', self.get_stub)
 
-    alerts_required_contexts = [CONTEXT_USER]
-    alerts_available_contexts = {CONTEXT_USER:str, CONTEXT_PATIENTLIST:list, CONTEXT_CUSTOMERID:int, CONTEXT_ENCOUNTER:str}
+    alerts_required_contexts = [CONTEXT_USER, CONTEXT_CUSTOMERID]
+    alerts_available_contexts = {CONTEXT_USER:str, CONTEXT_PATIENTLIST:list, 
+                                 CONTEXT_CUSTOMERID:int, CONTEXT_ENCOUNTER:str}
 
     @asyncio.coroutine
     def get_alerts(self, _header, _body, qs, matches, _key):
@@ -360,95 +361,94 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                    FrontendWebService.alerts_required_contexts,
                                    FrontendWebService.alerts_available_contexts)
         user = context[CONTEXT_USER]
-        try:
-            patient = context[CONTEXT_PATIENTLIST][0]
-        except KeyError:
-            patient = None
+        patients = context.get(CONTEXT_PATIENTLIST,None)
         customer = context[CONTEXT_CUSTOMERID]
+        limit = limit_clause(matches)
 
-        try:
-            column_map = ["alerts.alert_id",
-                          "alerts.pat_id",
-                          "alerts.encounter_date",
-                          "alerts.alert_date",
-                          "alerts.alert_title",
-                          "alerts.alert_msg",
-                          "alerts.action",
-                          "alerts.saving"]
+        column_map = ["alerts.alert_id",
+                      "alerts.pat_id",
+                      "alerts.encounter_date",
+                      "alerts.alert_date",
+                      "alerts.alert_title",
+                      "alerts.alert_msg",
+                      "alerts.action",
+                      "alerts.saving"]
 
-            columns = DBMapUtils().select_rows_from_map(column_map)
-            if patient:
-                cur = yield from self.db.execute_single("SELECT " + columns +
-                                                        " from alerts"
-                                                        " WHERE alerts.prov_id = %s AND alerts.pat_id = %s AND alerts.customer_id = %s"
-                                                        + limit_clause(matches) + ";", 
-                                                        extra=(user, patient, customer))
-            else: 
-                cur = yield from self.db.execute_single("SELECT " + columns +
-                                                        " from alerts"
-                                                        " WHERE alerts.prov_id = %s AND alerts.customer_id = %s"
-                                                        + limit_clause(matches) + ";", 
-                                                        extra=(user, customer))
+        columns = DBMapUtils().select_rows_from_map(column_map)
+        cmd=[]
+        cmdargs=[]
+        cmd.append("SELECT")
+        cmd.append(columns)
+        cmd.append("FROM alerts")
+        cmd.append("Where alerts.prov_id = %s and alerts.customer_id = %s")
+        cmdargs.append(user)
+        cmdargs.append(customer)
+        if patients:
+            cmd.append("AND alerts.pat_id in %s")
+            cmdargs.append(tuple(patients))
+        cmd.append("ORDER BY alerts.alert_date desc")
+        if limit:
+            cmd.append(limit)
+
+        cur = yield from self.db.execute_single(' '.join(cmd)+';',cmdargs)
                 
-            results = []
-            for x in cur:
-                results.append({'id': x[0], 'patient': x[1], 'name':x[4], 'cost': x[7], 'html': x[5], 'date': str(x[2])})
-                ML.DEBUG(json.dumps(results))
-        except:
-            raise Exception('Error in front end webservices get_patients() call to database')
+        results = []
+        for x in cur:
+            results.append({'id': x[0], 'patient': x[1], 'name':x[4], 'cost': x[7], 'html': x[5], 'date': str(x[2])})
+            ML.DEBUG(json.dumps(results))
 
         #auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
 
         return (HTTP.OK_RESPONSE, json.dumps(results), None)
 
 
-    orders_required_contexts = [CONTEXT_USER, CONTEXT_PATIENTLIST]
-    orders_available_contexts = {CONTEXT_USER:str, CONTEXT_PATIENTLIST:list, CONTEXT_CUSTOMERID:int, CONTEXT_ENCOUNTER:str}
+    orders_required_contexts = [CONTEXT_USER, CONTEXT_PATIENTLIST, CONTEXT_ENCOUNTER, CONTEXT_CUSTOMERID]
+    orders_available_contexts = {CONTEXT_USER:str, CONTEXT_PATIENTLIST:list, 
+                                 CONTEXT_CUSTOMERID:int, CONTEXT_ENCOUNTER:str}
 
     #self.add_handler(['GET'], '/orders(?:/(\d+)-(\d+)?)?', self.get_stub)
     @asyncio.coroutine
-    def get_orders(self, _header, _body, qs, _matches, _key):
+    def get_orders(self, _header, _body, qs, matches, _key):
         context = restrict_context(qs,
                                    FrontendWebService.orders_required_contexts,
                                    FrontendWebService.orders_available_contexts)
         user = context[CONTEXT_USER]
         patient_ids = context[CONTEXT_PATIENTLIST]
-        #encounter = context[CONTEXT_ENCOUNTER]
+        encounter = context[CONTEXT_ENCOUNTER]
+        customer = context[CONTEXT_CUSTOMERID]
+        limit = limit_clause(matches)
         #auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
 
         order_dict = {}
 
-        try:
-            column_map = ["mavenorder.order_name",
-                          "mavenorder.datetime",
-                          "mavenorder.active",
-                          "mavenorder.order_cost"]
-            # need the category of the order to use it for the UI icon and order chart
+        column_map = ["mavenorder.order_name",
+                      "mavenorder.datetime",
+                      "mavenorder.active",
+                      "mavenorder.order_cost"]
+        # need the category of the order to use it for the UI icon and order chart
+        
+        columns = DBMapUtils().select_rows_from_map(column_map)
+        cmd=[]
+        cmdargs =[]
+        cmd.append("SELECT")
+        cmd.append(columns)
+        cmd.append("FROM mavenorder")
+        cmd.append("WHERE mavenorder.encounter_id = %s AND mavenorder.customer_id = %s")
+        cmdargs.append(encounter)
+        cmdargs.append(customer)
+        cmd.append("ORDER BY mavenorder.datetime desc")
+        if limit:
+            cmd.append(limit)
 
-            columns = DBMapUtils().select_rows_from_map(column_map)
-            cur = yield from self.db.execute_single("SELECT "+ columns + 
-                                                    " from mavenorder"
-                                                    " WHERE mavenorder.encounter_id = %s AND mavenorder.customer_id = %s;"
-                                                        + limit_clause(matches) + ";", 
-                                                    extra=(context[CONTEXT_ENCOUNTER], context[CONTEXT_CUSTOMERID]))
-            results = []
-            y = 0
-            for x in cur:
-                results.append({'id': y, 'name': x[0], 'date': str(x[1]), 'result': "Active", 'cost': int(x[3]), 'category': 'med'})
-                y += 1
-                ML.DEBUG(x)
-
-        except:
-            raise Exception("Error querying encounter orders from the database")
-
+        cur = yield from self.db.execute_single(' '.join(cmd)+';',cmdargs)
+        results = []
+        y = 0
+        for x in cur:
+            results.append({'id': y, 'name': x[0], 'date': str(x[1]), 'result': "Active", 'cost': int(x[3]), 'category': 'med'})
+            y += 1
+            ML.DEBUG(x)
 
         return (HTTP.OK_RESPONSE, json.dumps(results), None)
-
-
-    #self.add_handler(['GET'], '/order_details', self.get_stub)
-    def get_order_details(self, _header, _body, qs, _matches, _key):
-        return (HTTP.OK_RESPONSE, b'', None)
-
 
 
 if __name__ == '__main__':
