@@ -82,10 +82,11 @@ class CompositionEvaluator(SP.StreamProcessor):
             order_details = composition.get_proc_supply_details(order)
 
             for detail in order_details:
-                cur = yield from self.conn.execute_single("select cost_amt from costmap where billing_code='%s'" % detail[0])
+                cur = yield from self.conn.execute_single("select cost_amt from costmap where billing_code=%s", extra=[detail[0]])
                 for result in cur:
                     order.totalCost += float(result[0])
                     encounter_cost_breakdown.append([detail[1], float(result[0])])
+                cur.close()
 
         return composition.section.append(FHIR_API.Section(title="Encounter Cost Breakdown", content=encounter_cost_breakdown))
 
@@ -113,7 +114,7 @@ class CompositionEvaluator(SP.StreamProcessor):
                               "sleuth_rule.tag_line"]
                 columns = self.DBMapper.select_rows_from_map(column_map)
 
-                cur = yield from self.conn.execute_single("select %s from sleuth_rule where cpt_trigger='%s' and customer_id=%s" % (columns, detail[0], customer_id))
+                cur = yield from self.conn.execute_single("select " + columns + " from sleuth_rule where cpt_trigger=%s and customer_id=%s", extra=[detail[0], customer_id])
 
                 for result in cur:
                     FHIR_rule = FHIR_API.Rule(rule_details=result[0],
@@ -188,7 +189,7 @@ class CompositionEvaluator(SP.StreamProcessor):
             if dx_rule['exists'] == True:
                 for enc_dx in encounter_snomedIDs:
                     dx_pass = False
-                    cur = yield from self.conn.execute_single("select issnomedchild(%s,%s)" % (dx_rule['snomed'], enc_dx))
+                    cur = yield from self.conn.execute_single("select issnomedchild(%s,%s)", extra=[dx_rule['snomed'], enc_dx])
                     dx_pass = cur.fetchone()[0]
                     if dx_pass == True:
                         dx_rule_eval = True
@@ -225,7 +226,7 @@ class CompositionEvaluator(SP.StreamProcessor):
                       "sleuth_evidence.source",
                       "sleuth_evidence.source_url"]
         columns = self.DBMapper.select_rows_from_map(column_map)
-        cur = yield from self.conn.execute_single("select %s from sleuth_evidence where sleuth_rule='%s' and customer_id=%s" % (columns, rule.sleuth_rule_id, customer_id))
+        cur = yield from self.conn.execute_single("select " + columns + " from sleuth_evidence where sleuth_rule=%s and customer_id=%s", extra=[rule.sleuth_rule_id, customer_id])
         for result in cur:
             evidence.append(result)
 
@@ -239,7 +240,7 @@ class CompositionEvaluator(SP.StreamProcessor):
 
         columns = self.DBMapper.select_rows_from_map(column_map)
 
-        cur = yield from self.conn.execute_single("select %s from override_indication where sleuth_rule='%s' and customer_id=%s" % (columns, rule.sleuth_rule_id, customer_id))
+        cur = yield from self.conn.execute_single("select " + columns + " from override_indication where sleuth_rule=%s and customer_id=%s", extra=[rule.sleuth_rule_id, customer_id])
         for result in cur:
             override_indications.append(result)
 
@@ -304,7 +305,7 @@ class CompositionEvaluator(SP.StreamProcessor):
         for enc_dx in encounter_dx_codes:
             column_map = ["snomedid"]
             columns = self.DBMapper.select_rows_from_map(column_map)
-            cur = yield from self.conn.execute_single("select %s from terminology.codemap where code='%s'" % (columns, enc_dx))
+            cur = yield from self.conn.execute_single("select " + columns + " from terminology.codemap where code=%s", extra=[enc_dx])
             for result in cur:
                 encounter_dx_snomeds.append(int(result[0]))
             cur.close()

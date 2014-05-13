@@ -45,8 +45,8 @@ def write_composition_patient(composition, conn):
         cur_pcp_prov_id = composition.subject.get_current_pcp()
 
 
-        cur = yield from conn.execute_single("SELECT upsert_patient('%s', %s, '%s', '%s', '%s', '%s', '%s', '%s')" %
-                                            (pat_id, customer_id, birth_month, sex, mrn, patname, cur_pcp_prov_id, birth_date))
+        cur = yield from conn.execute_single("SELECT upsert_patient(%s, %s, %s, %s, %s, %s, %s, %s)",
+                                            extra=[pat_id, customer_id, birth_month, sex, mrn, patname, cur_pcp_prov_id, birth_date])
         cur.close()
     except:
         raise Exception("Error inserting patient data into database")
@@ -62,11 +62,11 @@ def write_composition_encounter(composition, conn):
         bill_prov_id = "32209837"
         encounter_dep = 1235234
         encounter_admit_time = "2014-03-24T08:45:23"
-        encounter_disch_time = "NULL"
+        encounter_disch_time = None
         customer_id = composition.customer_id
 
-        cur = yield from conn.execute_single("SELECT upsert_encounter('%s', '%s', '%s', '%s', '%s', '%s', %s, '%s', %s, '%s')" %
-                                            (encounter_id, pat_id, encounter_type, encounter_date, provider_id, bill_prov_id, encounter_dep, encounter_admit_time, encounter_disch_time, customer_id))
+        cur = yield from conn.execute_single("SELECT upsert_encounter(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                                            extra=[encounter_id, pat_id, encounter_type, encounter_date, provider_id, bill_prov_id, encounter_dep, encounter_admit_time, encounter_disch_time, customer_id])
         cur.close()
 
     except:
@@ -79,7 +79,7 @@ def write_composition_json(composition, conn):
         customer_id = composition.customer_id
         encID = composition.encounter.get_csn()
         json_composition = json.dumps(composition, default=api.jdefault)
-        cur = yield from conn.execute_single("INSERT INTO composition (patient_id, encounter_id, customer_id, comp_body) VALUES ('%s', '%s', %s, ('%s'))" % (pat_id, encID, customer_id, json_composition))
+        cur = yield from conn.execute_single("INSERT INTO composition (patient_id, encounter_id, customer_id, comp_body) VALUES (%s, %s, %s, %s)", extra=[pat_id, encID, customer_id, json_composition])
         cur.close()
 
     except:
@@ -94,7 +94,7 @@ def write_composition_encounterdx(composition, conn):
         problem_list = composition.get_encounter_problem_list()
         for problem in problem_list:
             dx_ID = problem.get_problem_ID().value
-            cur = conn.execute_single("SELECT upsert_encounterdx('%s', '%s', '%s', NULL, NULL, NULL, %s)" % (pat_id, encID, dx_ID, customer_id))
+            cur = conn.execute_single("SELECT upsert_encounterdx(%s, %s, %s, NULL, NULL, NULL, %s)", extra=[pat_id, encID, dx_ID, customer_id])
             cur.close()
 
     except:
@@ -116,8 +116,8 @@ def write_composition_encounter_orders(composition, conn):
             order_cost = float(order.totalCost)
             active = True
 
-            cur = yield from conn.execute_single("SELECT upsert_enc_order('%s', %s, '%s', '%s', '%s', '%s', '%s', %s, '%s', '%s')" %
-                                                (pat_id, customer_id, encID, order_name, order_type, order_code, order_code_type, order_cost, order_datetime, active))
+            cur = yield from conn.execute_single("SELECT upsert_enc_order(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                                                extra=[pat_id, customer_id, encID, order_name, order_type, order_code, order_code_type, order_cost, order_datetime, active])
 
     except:
         raise Exception("Error inserting encounter orders into database")
@@ -141,7 +141,7 @@ def write_composition_alerts(alert_datetime, alert_bundle, conn):
 
         columns = DBMapper.select_rows_from_map(column_map)
 
-        cur = yield from conn.execute_single("INSERT INTO alert(%s) VALUES (%s, '%s', '%s', '%s', '%s', %s, '%s', '%s', '%s', '%s', %s)" %
-                                            (columns, alert.customer_id, alert.subject, alert.provider_id, alert.encounter_id,
+        cur = yield from conn.execute_single("INSERT INTO alert(" + columns + ") VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                                            extra=[alert.customer_id, alert.subject, alert.provider_id, alert.encounter_id,
                                              alert.code_trigger, alert.sleuth_rule, alert_datetime, alert.short_title, alert.tag_line,
-                                             alert.description, alert.saving))
+                                             alert.description, alert.saving])
