@@ -8,7 +8,7 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
-    'text!templates/templatesA/sidemenu.html'
+    'text!templates/sidemenu.html'
 ], function ($, _, Backbone, sidemenuTemplate) {
 
     var SideMenu = Backbone.View.extend({

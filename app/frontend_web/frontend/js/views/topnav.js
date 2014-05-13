@@ -8,7 +8,7 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'currentContext',
-    'text!templates/templatesA/topnav.html'
+    'text!templates/topnav.html'
 	], function ($, _, Backbone, currentContext, topnavTemplate) {
 
     var TopNav = Backbone.View.extend({

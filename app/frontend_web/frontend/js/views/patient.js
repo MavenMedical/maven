@@ -22,7 +22,7 @@ define([
 
     // Using the Require.js text! plugin, we are loaded raw text
     // which will be used as our views primary template
-    'text!templates/templatesA/patient.html'
+    'text!templates/patient.html'
 	], function ($, _, Backbone, currentContext, PatientModel, SpendingModel, PatInfo, Utilization, Saving, Alert, Spending, CostBDDonut, CostBDList, patientTemplate) {
 
     var PatientView = Backbone.View.extend({

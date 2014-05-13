@@ -9,7 +9,7 @@ define([
     'backbone',    // lib/backbone/backbone
     'currentContext',
 
-    'text!templates/templatesA/chart/costbd.html'
+    'text!templates/chart/costbd.html'
 ], function ($, _, Backbone, currentContext, costbdTemplate) {
 
     var CostBD = Backbone.View.extend({

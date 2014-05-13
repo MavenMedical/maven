@@ -1228,7 +1228,7 @@ var jsPDF = (function () {
             } else {
                 throw new Error('Type of text must be string or Array. "' + text + '" is not recognized.');
             }
-            // Using "'" ("go next line and render text" mark) would save space but would complicate our rendering code, templatesA
+            // Using "'" ("go next line and render text" mark) would save space but would complicate our rendering code, templates
 
             // BT .. ET does NOT have default settings for Tf. You must state that explicitely every time for BT .. ET
             // if you want text transformation matrix (+ multiline) to work reliably (which reads sizes of things from font declarations)

@@ -14,7 +14,7 @@ define([
     'currentContext',
 
     //Template
-    'text!templates/templatesA/singleRow/orderRow.html'
+    'text!templates/singleRow/orderRow.html'
 
 ], function ($, _, Backbone, currentContext, orderRowTemplate) {
     var orderRow = Backbone.View.extend({

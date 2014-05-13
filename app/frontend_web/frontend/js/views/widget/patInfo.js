@@ -13,7 +13,7 @@ define([
     //Model
     'models/patientModel',
 
-    'text!templates/templatesA/widget/patInfo.html'
+    'text!templates/widget/patInfo.html'
 ], function ($, _, Backbone, currentContext,  PatientModel, patInfoTemplate) {
 
     var PatInfo = Backbone.View.extend({

@@ -15,7 +15,7 @@ define([
     'views/widget/evidence',
 
     //Template
-    'text!templates/templatesA/singleRow/alertRow.html'
+    'text!templates/singleRow/alertRow.html'
 
 ], function ($, _, Backbone, Evidence, alertRowTemplate) {
     var alertRow = Backbone.View.extend({
