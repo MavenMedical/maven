@@ -1,7 +1,7 @@
 \connect maven
 
-DROP  TABLE IF EXISTS source_organization;
-CREATE TABLE source_organization (
+DROP  TABLE IF EXISTS terminology.source_organization;
+CREATE TABLE terminology.source_organization (
   copyright_id varchar(255) not null,
   name varchar(255) default null,
   copyright text,
@@ -10,8 +10,8 @@ CREATE TABLE source_organization (
   primary key (copyright_id)
 ) ;
 
-DROP  TABLE IF EXISTS loinc;
-CREATE TABLE loinc (
+DROP  TABLE IF EXISTS terminology.loinc;
+CREATE TABLE terminology.loinc (
   loinc_num varchar(10) not null,
   component varchar(255) default null,
   property varchar(30) default null,
@@ -64,8 +64,8 @@ CREATE TABLE loinc (
 
 );
 
-DROP TABLE IF EXISTS map_to;
-CREATE TABLE map_to (
+DROP TABLE IF EXISTS terminology.map_to;
+CREATE TABLE terminology.map_to (
   loinc varchar(10) DEFAULT NULL,
   map_to varchar(10) DEFAULT NULL,
   comment text,
@@ -73,6 +73,6 @@ CREATE TABLE map_to (
 
 );
 
-\copy map_to from 'map_to2.csv' csv
-\copy loinc from 'loinc2.csv' csv
-\copy source_organization from 'source_organization2.csv' csv
+\copy terminology.map_to from 'map_to2.csv' csv
+\copy terminology.loinc from 'loinc2.csv' csv
+\copy terminology.source_organization from 'source_organization2.csv' csv
