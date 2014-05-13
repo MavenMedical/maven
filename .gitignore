@@ -42,7 +42,7 @@ app/configs/app.db
 # Logs and databases #
 ######################
 *.log
-*.sql
+#*.sql #we want to be able to check in changes to the database. 
 *.sqlite
 
 # OS generated files #
