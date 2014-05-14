@@ -1,14 +1,15 @@
+\connect maven
 
-create table terminology.DrugClass
+create table terminology.drugclass
 (
    rxaui varchar(20) primary key
    ,rxcui varchar(20)
    ,str varchar(4000)
    ,snomedid numeric(18,0)
 );
-create index ixDrugClassaui on terminology.drugClass (rxaui);
-create index ixDrugClasscui on terminology.drugClass (rxcui);
-create index ixDrugClasssnomed on terminology.drugClass (snomedid);
+create index ixDrugClassaui on terminology.drugclass (rxaui);
+create index ixDrugClasscui on terminology.drugclass (rxcui);
+create index ixDrugClasssnomed on terminology.drugclass (snomedid);
 
 
 insert into terminology.drugclass (
@@ -18,11 +19,11 @@ insert into terminology.drugclass (
 );
 
 
-update terminology.drugclass dc set snomedid= (select min(cast(scui as numeric)) from rxnconso a where a.rxcui=dc.rxcui and a.sab ='SNOMEDCT_US' and tty='PT');
+update terminology.drugclass dc set snomedid= (select min(cast(scui as numeric)) from terminology.rxnconso a where a.rxcui=dc.rxcui and a.sab ='SNOMEDCT_US' and tty='PT');
 
-create table terminology.doseformGroups (rxcui varchar(20) primary key, groupname varchar(200));
+create table terminology.doseformgroups (rxcui varchar(20) primary key, groupname varchar(200));
 create index ixdoseformgrouppk on terminology.doseformgroups (rxcui);
-insert into doseformgroups 
+insert into terminology.doseformgroups
 (
 	select rxcui,max(grp) from (
 	select distinct a.rxcui,case when lower(str) like '%oral%' or lower(str) like '%extend%tab%' or lower(str) like '%pill%' or lower(str) like '%chewable%' or lower(str) like ('%tab%extend%') 
@@ -34,7 +35,7 @@ insert into doseformgroups
 );
 
 
-create table terminology.drugClassAncestry
+create table terminology.drugclassancestry
 (
    classAui varchar(20)
    ,inClassAui varchar(20)
@@ -45,14 +46,14 @@ create table terminology.drugClassAncestry
    ,drug varchar(200)
    ,primary key (classaui,inclassaui,ndc)
 );
-create index ixDrugClassAncestryPK on terminology.drugClassAncestry (classaui,inclassaui,ndc);
-create index ixDrugClassAncestryReverse on terminology.drugClassAncestry (inclassaui,classaui,ndc);
+create index ixDrugClassAncestryPK on terminology.drugclassancestry (classaui,inclassaui,ndc);
+create index ixDrugClassAncestryReverse on terminology.drugclassancestry (inclassaui,classaui,ndc);
 create index ixDrugClassAncestryNDC on terminology.drugclassancestry(ndc,classaui,inclassaui);
 
 
 insert into terminology.drugclassancestry(
 select distinct  dc.rxaui ,ndc.rxaui ,max(coalesce(brand.str,member.str||' (generic)')) ,max(route.groupname),ndc.atv,max(dc.str),max(member.str)
-from drugclass dc
+from terminology.drugclass dc
 inner join terminology.rxnrel a on a.rxaui1=dc.rxaui and a.rela='member_of'
 inner join terminology.rxnconso member on member.rxaui=a.rxaui2 
 inner join terminology.rxnrel rel2 on rel2.rxcui1=member.rxcui and rel2.rela='has_ingredient'
@@ -68,13 +69,15 @@ left outer join terminology.rxnconso brand on brel.rxcui2=brand.rxcui and brand.
 group by dc.rxaui ,ndc.rxaui,ndc.atv
 );
 
+
+-- Starting from the granular NDC code, go up the hierarchy to the class, and get THAT Snomed ID
 create or replace function getClassSnomedFromNDC(v_ndc varchar(20))
   RETURNS numeric AS
 $BODY$
 Declare rtn numeric;
 begin
         select max(c.SnomedId) into rtn 
-        from terminology.drugClassAncestry b 
+        from terminology.drugclassancestry b
         inner join terminology.drugclass c on b.classaui=c.rxaui
          where b.ndc=v_ndc ;
 
@@ -144,8 +147,8 @@ declare nadacCost numeric(18,2);
 begin
       --select getNadacFromNDC(v_ndc) into nadacCost;
       return query select x.brandname,avg(nadac.unitcost)--,avg(nadac.unitcost)*nadacCost
-         from terminology.drugClassAncestry b
-                inner join terminology.drugClassAncestry x on x.classaui=b.classaui
+         from terminology.drugclassancestry b
+                inner join terminology.drugclassancestry x on x.classaui=b.classaui
                 inner join public.nadac nadac on nadac.ndc=x.ndc
                  where b.ndc=v_ndc
                  and x.routename=b.routename

@@ -108,21 +108,23 @@ class CompositionEvaluator(SP.StreamProcessor):
             for detail in order_details:
                 column_map = ["sleuth_rule.rule_details",
                               "sleuth_rule.rule_id",
-                              "sleuth_rule.cpt_trigger",
+                              "sleuth_rule.code_trigger",
+                              "sleuth_rule.code_trigger_type",
                               "sleuth_rule.name",
                               "sleuth_rule.description",
                               "sleuth_rule.tag_line"]
                 columns = self.DBMapper.select_rows_from_map(column_map)
 
-                cur = yield from self.conn.execute_single("select " + columns + " from sleuth_rule where cpt_trigger=%s and customer_id=%s", extra=[detail[0], customer_id])
+                cur = yield from self.conn.execute_single("select " + columns + " from sleuth_rule where code_trigger=%s and customer_id=%s", extra=[detail[0], customer_id])
 
                 for result in cur:
                     FHIR_rule = FHIR_API.Rule(rule_details=result[0],
                                               rule_id=result[1],
                                               code_trigger=result[2],
-                                              name=result[3],
-                                              description=result[4],
-                                              tag_line=result[5])
+                                              code_trigger_type=result[3],
+                                              name=result[4],
+                                              description=result[5],
+                                              tag_line=result[6])
 
                     applicable_sleuth_rules.append(FHIR_rule)
         return applicable_sleuth_rules

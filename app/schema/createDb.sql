@@ -515,9 +515,9 @@ CREATE INDEX ixencounterdxcsndx
 CREATE TABLE labresult
 (
   orderid numeric(18,0),
+  customer_id numeric(18,0),
   pat_id character varying(100),
   csn character varying(100),
-  customer_id numeric(18,0),
   result_time date,
   component_id numeric(18,0),
   result character varying(254),
@@ -993,28 +993,6 @@ CREATE INDEX ixmedication
   (med_id, customer_id);
 
 
-  
-create schema ruleTest authorization maven;
--- Table: ruleTest.rules
-
--- DROP TABLE ruleTest.rules;
-
-CREATE TABLE ruleTest.rules
-(
-  ruleName character varying(50),
-  ruleDescription character varying(500),
-  orderType character varying(4), --Med or Proc
-  orderedCPT numeric(5), --CPT code
-  minAge numeric(3),
-  maxAge numeric(3),
-  withDx character varying(500), --snomedids separated by commas
-  withoutDx character varying(500), 
-  details character varying(500),
-  onlyInDept character varying(50),
-  notInDept character varying(50)
-);
-ALTER TABLE ruleTest.rules
-  OWNER TO maven;
 
 CREATE OR REPLACE FUNCTION upsert_patient(pat_id1 character varying(100), customer_id1 numeric(18,0),
   birth_month1 character varying(6), sex1 character varying(254),
@@ -1155,8 +1133,3 @@ $$
   COST 100;
 ALTER FUNCTION upsert_encounterdx(character varying(100), character varying(100), character varying(36), character varying(200), character varying(1), character varying(1), numeric(18,0))
   OWNER TO maven;
-
-
-INSERT INTO ruleTest.rules VALUES ('Test rule name','This is the test rule description','proc',12345,0,200,'12345678,9012345,67890123,1222222,56789876','90324023984,43987523,309753492785,53425243235','These are the details for the test rule','test only in department','test not in department'); 
-INSERT INTO ruleTest.rules VALUES ('Test rule name 1','This is the test rule description 1','proc',12345,0,200,'22345678,0012345,77890123,2222222,66789876','00324023984,33987523,009753492785,33425243235','These are the details for the test rule1','test only in department1','test not in department1');
-\copy costmap from 'DefaultProcedurePrices.csv' csv 
