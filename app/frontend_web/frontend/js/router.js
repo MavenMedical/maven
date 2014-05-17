@@ -25,8 +25,9 @@ define([
     'views/alerts',
     'views/widget/evidence',
 
-     'text!templates/templatesA/skeleton.html'
-], function ($, _, Backbone, currentContext, eventHub,  SideMenu, TopNav, HomeView, PatientView, EpisodeView, AlertsView, Evidence, skeletonA) {
+    'text!templates/templatesA/skeleton.html',
+    'text!templates/templatesB/skeleton.html'
+], function ($, _, Backbone, currentContext, eventHub,  SideMenu, TopNav, HomeView, PatientView, EpisodeView, AlertsView, Evidence, skeletonA, skeletonB) {
 
     var CheckLogin = function() {
 	if (!currentContext.get('user') || !currentContext.get('userAuth')) {
@@ -47,7 +48,8 @@ define([
 
         }
         else if (currentContext.get('layout') == 'b')
-        {
+        {lp
+            $('body').html(_.template(skeletonB));
             //alert('b');
         }
     }
