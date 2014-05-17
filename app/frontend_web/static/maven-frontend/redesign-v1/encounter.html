@@ -30,7 +30,9 @@
     <script src="js/libs/amcharts/pie.js" type="text/javascript"></script>
     <script src="js/libs/amcharts/themes/light.js" type="text/javascript"></script>-->
 
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
     <script src="../../bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
+
 
     <link href='http://fonts.googleapis.com/css?family=Maven+Pro' rel='stylesheet' type='text/css'>
     <link href="styles.css" rel="stylesheet">
@@ -54,28 +56,12 @@
                     "titles": [],
                     "dataProvider": [
                         {
-                            "category": "Medicine",
-                            "column-1": "450"
-                        },
-                        {
-                            "category": "Consults",
-                            "column-1": "200"
-                        },
-                        {
-                            "category": "Lab Works",
-                            "column-1": "150"
+                            "category": "Meds",
+                            "column-1": "547"
                         },
                         {
                             "category": "Imaging",
-                            "column-1": "100"
-                        },
-                        {
-                            "category": "Procedures",
-                            "column-1": "120"
-                        },
-                        {
-                            "category": "Other",
-                            "column-1": "80"
+                            "column-1": "807"
                         }
                     ]
                 }
@@ -85,6 +71,7 @@
 </head>
 
 <body>
+
 <div class="topnav">
     <!-- Main header -->
     <nav class="navbar navbar-default navbar-fixed-top main-header" role="navigation">
@@ -139,15 +126,15 @@
                         Patient Name:
                     </div>
                     <div class="row">
-                        <span id="pat-name"><b>Suzy Smith</b></span>
+                        <span id="pat-name"><b>Suzy Smith</b></span> (2003-01-02)
                     </div>
                 </div>
                 <div class="col-sm-2 divider">
                     <div class="row pat-sub">
-                        DOB:
+                        Problem List:
                     </div>
                     <div class="row">
-                        12/04/1985
+                        Sinusitis, Asthma
                     </div>
                 </div>
                 <div class="col-sm-3 divider">
@@ -155,7 +142,7 @@
                         Allergies:
                     </div>
                     <div class="row">
-                        Penicillin, Sulfa Drug
+                        Penicillin
                     </div>
                 </div>
                 <div class="col-sm-2 divider">
@@ -163,7 +150,7 @@
                         Admission:
                     </div>
                     <div class="row">
-                        02/15/2014
+                        today
                     </div>
                 </div>
                 <div class="col-sm-1">
@@ -194,7 +181,7 @@
             <div class="row">
                 <div class="col-sm-4">
                     <span class="headings title">Utilization total:</span>
-                    <span class="cost-num">$1100</span>
+                    <span class="cost-num">$1355</span>
                 </div>
                 <div class="col-sm-4">
                     <span class="headings title">CDS impact:</span>
@@ -218,23 +205,23 @@
                                 <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
                                     <h4 class="panel-title">
 
-                                        <i class="glyphicon glyphicon-chevron-down"></i>
+                                        <i class="glyphicon glyphicon-chevron-right"></i>
 
 
-                                        <span class="headings">Echocardiogram</span>
+                                        <span class="headings">ACETAMINOPHEN 325MG TAB</span>
 
-                                        <span class="badge">$1200</span>
+                                        <span class="badge">$4</span>
                                     </h4>
                                 </a>
                             </div>
-                            <div id="collapseOne" class="panel-collapse collapse in">
+                            <div id="collapseOne" class="panel-collapse collapse">
                                 <div class="panel-body">
                                     <div class="row">
                                         <div class="col-sm-6">
                                             <span class="blue">You Ordered:</span>
                                         </div>
                                         <div class="col-sm-6">
-                                            Followup ECG ($1200)
+                                            ACETAMINOPHEN ($4)
                                         </div>
                                     </div>
                                     <div class="row">
@@ -262,10 +249,10 @@
                                 <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo">
                                     <h4 class="panel-title">
                                         <i class="glyphicon glyphicon-chevron-right"></i>
-                                        <span class="headings">CBC</span>
+                                        <span class="headings">CEFIXIME TAB</span>
 
 
-                                        <span class="badge nonalert">$38</span>
+                                        <span class="badge nonalert">$543</span>
                                     </h4>
                                 </a>
                             </div>
@@ -276,7 +263,7 @@
                                             <span class="blue">You Ordered:</span>
                                         </div>
                                         <div class="col-sm-6">
-                                            CBC ($38)
+                                            CEFIXIME TAB ($543)
                                         </div>
                                     </div>
                                 </div>
@@ -288,9 +275,9 @@
                                     <h4 class=" sub-panel panel-title">
                                         <i class="glyphicon glyphicon-chevron-right"></i>
 
-                                        <span class="headings">CRP</span>
+                                        <span class="headings">CT SINUS COMPLETE W/O CONTRAST</span>
 
-                                        <span class="badge nonalert">$47</span>
+                                        <span class="badge nonalert">$807</span>
                                     </h4>
                                 </a>
                             </div>
@@ -301,7 +288,7 @@
                                             <span class="blue">You Ordered:</span>
                                         </div>
                                         <div class="col-sm-6">
-                                            CRP ($47)
+                                            CT SINUS ($807)
                                         </div>
                                     </div>
                                 </div>
@@ -311,6 +298,7 @@
                 </div>
             </div>
         </div>
+
         <div class="row">
             <div class="col-md-8">
                 <hr>
@@ -323,17 +311,19 @@
                 <div class="chart-div" id="chartdiv"></div>
             </div>
         </div>
+        <!--
         <div class="row">
             <div class="col-md-8">
                 <hr>
             </div>
         </div>
+
         <div class="row" id="list-cost-bd">
             <div class="col-sm-8">
                 <span class="headings title">Orders Cost Break down</span>
 
             </div>
-        </div>
+        </div>-->
 
     </div>
 </div>
@@ -355,11 +345,11 @@
                         <span class="headings title center">Duplicates</span>
                     </div>
 
-                    <p>Anim pariatur cliche reprehenderit, enim eiusmod high life <span><a href="#">Details ></a></span>
+                    <p><b>Lab Order Recently Resulted</b>  Recent Immunoglobulin Resulted on 3/26/14 <span><a href="#">Details ></a></span>
                     </p>
 
-                    <span class="headings">Impact:</span>
-                    <span class="impact">$16</span>
+                    <!--<span class="headings">Impact:</span>
+                    <span class="impact">$16</span>-->
 
                 </div>
             </div>
@@ -372,12 +362,12 @@
                 <div class="col-sm-3">
                     <div class="alert-type">
                         <img src="images/evidence-28x35px.png">
-                        <span class="headings title center">Evidence</span>
+                        <span class="headings title center">Evidence-Based Guidelines</span>
                     </div>
-                    <p>Anim pariatur cliche reprehenderit, enim eiusmod high life <span><a href="#">Details ></a></span>
+                    <p><b>Acute Sinusitis</b>  CT Scans and Antiobiotics are often over-utilized in certain scenarios <span><a href="#evidence" data-toggle="modal" data-target="#myModal">Show Evidence >></a></span>
                     </p>
-                    <span class="headings">Impact:</span>
-                    <span class="impact">$16</span>
+                    <!--<span class="headings">Impact:</span>
+                    <span class="impact">$16</span>-->
                 </div>
             </div>
             <div class="row">
@@ -391,10 +381,10 @@
                         <img src="images/cheaper-option-48x33px.png">
                         <span class="headings title center">Options</span>
                     </div>
-                    <p>Anim pariatur cliche reprehenderit, enim eiusmod high life <span><a href="#">Details ></a></span>
+                    <p><b>High Value Generic Medication Available</b> Economic 3rd-gen Cephalosphorins (cefdinir, cefpodoxim) are available <span><a href="#">Details ></a></span>
                     </p>
-                    <span class="headings">Impact:</span>
-                    <span class="impact">$16</span>
+                    <!--<span class="headings">Impact:</span>
+                    <span class="impact">$16</span>-->
                 </div>
             </div>
         </div>
@@ -402,6 +392,78 @@
 </div>
 </div>
 </div>
+   <!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+ <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div style="margin-left: 75%">
+                <button type="button" class="btn btn-default btn-md">
+                        <span class="glyphicon glyphicon glyphicon-star"></span>
+                    </button>
+                <button type="button" class="btn btn-default btn-md" data-dismiss="modal">
+                        <span class="glyphicon glyphicon glyphicon-thumbs-up"> 8%</span>
+                    </button>
+                    <button type="button"thumbs-up class="btn btn-default btn-md" data-dismiss="modal">
+                        <span class="glyphicon glyphicon glyphicon-thumbs-down"> 92%</span>
+                    </button>
+                    </div>
+                <!--<h4>Title</h4>-->
+            </div>
+
+            <div class="modal-body">
+
+                <div id="122" class="panel panel-default">
+                    <div class="panel-heading">
+                        <a data-toggle="collapse" data-parent="#accordion">
+                            <h4 class="sub-panel panel-title">
+                                <b>Don’t order sinus computed tomography (CT) or indiscriminately prescribe
+                                    antibiotics for uncomplicated acute rhinosinusitis</b>
+                            </h4>
+                        </a>
+                    </div>
+                    <div id="123" class="panel-collapse collapse in">
+                        <div class="panel-body">
+                            Viral infections cause the majority of acute rhinosinusitis and only 0.5 percent to 2
+                            percent progress to bacterial infections. Most acute rhinosinusitis resolves without
+                            treatment in two weeks. Uncomplicated acute rhinosinusitis is generally diagnosed
+                            clinically and does not require a sinus CT scan or other imaging. Antibiotics are not
+                            recommended for patients with uncomplicated acute rhinosinusitis who have mild illness
+                            and assurance of follow-up. If a decision is made to treat, amoxicillin should be
+                            first-line antibiotic treatment for most acute rhinosinusitis.
+
+                            <a href="http://www.acr.org/~/media/8172B4DE503149248E64856857674BB5.pdf" target="_blank"><span class="label label-info">ACR</span></a>
+                            <a href="http://www.choosingwisely.org/doctor-patient-lists/american-academy-of-allergy-asthma-immunology/" target="_blank"><span class="label label-info">Choosing Wisely</span></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="111" class="panel panel-default">
+                    <div class="panel-heading">
+                        <a data-toggle="collapse" data-parent="#accordion">
+                            <h4 class="sub-panel panel-title">
+                                <b>Clinical Pathway: Management Of Children With Symptoms Possibly Related To
+                                    Sinusitis</b>
+                            </h4>
+                        </a>
+                    </div>
+                    <div id="'222" class="panel-collapse collapse in">
+                        <div class="panel-body">
+                            <img src="images/Sinusitis.JPG" width="95%" >
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="modal-footer">
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
 </body>
 
 </html>
