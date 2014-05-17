@@ -38,12 +38,13 @@ define([
             encounter: null,
             department: null
          },
-        setUser: function (user, pw, route) {
+        setUser: function (cb, user, pw, route) {
 		if (this.user != user || !this.userAuth) {
 		    this.set('user', user);
 		    //alert('setting user');
 		    this.fetch({
 			    success: function (res) {
+				cb();
 				setActiveStyleSheet(res.get('stylesheet'));
 				Backbone.history.loadUrl(route);
 			    },

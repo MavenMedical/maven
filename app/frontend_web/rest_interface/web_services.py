@@ -103,7 +103,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
         except KeyError:
             raise MC.InvalidConfig('some real error')
 
-        self.stylesheet=''
+        self.stylesheet='original'
+        self.costbdtype = 'donut'  # this assignment isn't used yet
         self.add_handler(['POST'], '/login', self.post_login)  # FAKE
         self.add_handler(['GET'], '/patients(?:/(\d+)-(\d+)?)?', self.get_patients)  # REAL
         self.add_handler(['GET'], '/patient_details', self.get_patient_details)  # REAL
@@ -133,7 +134,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
             return (HTTP.BAD_RESPONSE, b'', None)
         else:
             user = info['user']
-            if not self.stylesheet == 'original' or True:
+            if not self.stylesheet == 'original':
                 self.stylesheet = 'original'
 
             ret = {'display':'Dr. Huxtable', 'stylesheet':self.stylesheet, 

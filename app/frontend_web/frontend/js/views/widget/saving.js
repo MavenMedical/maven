@@ -9,7 +9,7 @@ define([
     'backbone',    // lib/backbone/backbone
     'currentContext',
     'models/utilizationModel',
-    'text!templates/widget/saving.html'
+    'text!templates/templatesA/widget/saving.html'
 	], function ($, _, Backbone, currentContext, UtilizationModel, savingTemplate) {
 	   
 	   var Saving = Backbone.View.extend({

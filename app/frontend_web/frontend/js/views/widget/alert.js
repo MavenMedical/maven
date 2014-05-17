@@ -17,7 +17,7 @@ define([
     'models/alertModel',
 
     'collections/alerts',
-    'text!templates/widget/alert.html'
+    'text!templates/templatesA/widget/alert.html'
 	], function ($, _, Backbone,currentContext, alertRow, AlertModel, AlertCollection, alertTemplate) {
 
     var Alert = Backbone.View.extend({

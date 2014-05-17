@@ -9,7 +9,7 @@ define([
     'backbone',    // lib/backbone/backbone
     'currentContext',
     //model
-    'text!templates/chart/spending.html'
+    'text!templates/templatesA/chart/spending.html'
 ], function ($, _, Backbone, currentContext, spendingTemplate) {
 
     var Spending = Backbone.View.extend({

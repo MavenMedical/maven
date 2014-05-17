@@ -20,7 +20,7 @@ define([
     'collections/patients',
 
     //Template
-    'text!templates/widget/patientList.html'
+    'text!templates/templatesA/widget/patientList.html'
 ], function ($, _, Backbone, currentContext, patientRow,  PatientModel, PatientCollection, patientListTemplate) {
         var PatientList = Backbone.View.extend({
             el: '.patientlist',

@@ -8,7 +8,7 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'currentContext',
-    'text!templates/chart/dailycost.html'
+    'text!templates/templatesA/chart/dailycost.html'
 ], function ($, _, Backbone, currentContext, dailycostTemplate) {
 
     var DailyCost = Backbone.View.extend({

@@ -25,16 +25,33 @@ define([
     'views/alerts',
     'views/widget/evidence',
 
-     'text!templates/skeleton.html'
+     'text!templates/templatesA/skeleton.html'
 ], function ($, _, Backbone, currentContext, eventHub,  SideMenu, TopNav, HomeView, PatientView, EpisodeView, AlertsView, Evidence, skeletonA) {
 
     var CheckLogin = function() {
 	if (!currentContext.get('user') || !currentContext.get('userAuth')) {
-	    currentContext.setUser('JHU1093124', 'notarealpassword', Backbone.history.fragment);  // hack for now
+	    currentContext.setUser(CheckSkeleton, 'JHU1093124', 'notarealpassword', Backbone.history.fragment);  // hack for now
 	    return false;
 	}
 	return true;
     };
+
+    // This function is to determine which layout to display
+    var CheckSkeleton = function(){
+        if (currentContext.get('layout') == 'a'){
+            $('body').html(_.template(skeletonA));
+            var sidemenu = new SideMenu;
+            sidemenu.render();
+            var topnav = new TopNav;
+            topnav.render();
+
+        }
+        else if (currentContext.get('layout') == 'b')
+        {
+            //alert('b');
+        }
+    }
+
 
     var AppRouter = Backbone.Router.extend({
         routes: {
@@ -112,11 +129,7 @@ define([
             $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
                 options.url = 'services' + options.url;
             });
-            //render side menu and topnav for all pages
-            var sidemenu = new SideMenu;
-            sidemenu.render();
-            var topnav = new TopNav;
-            topnav.render();
+            // render side menu and topnav for all pages
 	    Backbone.history.start();
         }
     });
