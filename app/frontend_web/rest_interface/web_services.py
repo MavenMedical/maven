@@ -135,14 +135,17 @@ class FrontendWebService(HTTP.HTTPProcessor):
             user = info['user']
             if not self.stylesheet == 'original' or True:
                 self.stylesheet = 'original'
-                self.costbdtype = 'donut'
-                self.layout = 'templatesA'
-            else:
-                self.stylesheet = 'alternate'
-                self.costbdtype = 'list'
-                self.layout = 'templatesB'
 
-            ret = {'display':'Dr. Huxtable', 'stylesheet':self.stylesheet, 'costbdtype':self.costbdtype, 'customer_id':1, 'layout':self.layout}
+            ret = {'display':'Dr. Huxtable', 'stylesheet':self.stylesheet, 
+                   'customer_id':1,
+                   'widgets': 
+                   {
+                    'patientInfo':'#fixed-top',
+                       #'alerts':'#floating-right',
+                       #'basicStats':'#rowA-1-1',
+                    'patientList':'#rowA-1-1',
+                    }
+                   }
 
             try:
                 AK.check_authorization(user, info['password'], AUTH_LENGTH)
@@ -244,7 +247,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         results = yield from self._get_patient_info(customerid, user, pat_id=patient_id, encounter_list=True)
         results = results[0]
 
-        results.update({'Allergies': ['NOT VALID'], 'Problem List':['NOTVALID', 'NOTVALID']},)
+        results.update({'Allergies': ['NOT VALID'], 'ProblemList':['NOTVALID', 'NOTVALID']},)
         return (HTTP.OK_RESPONSE, json.dumps(results), None)
 
 

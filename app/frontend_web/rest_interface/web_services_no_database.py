@@ -44,7 +44,7 @@ patients_list = {
 } 
 
 patient_extras = {
-    '1': {'Allergies': ['Penicillins','Nuts','Cats'], 'Problem List':['Asthma','Cholera']},
+    '1': {'Allergies': ['Penicillins','Nuts','Cats'], 'ProblemList':['Asthma','Cholera']},
 }
 
 order_list = {
@@ -161,7 +161,6 @@ class FrontendWebService(HTTP.HTTPProcessor):
         HTTP.HTTPProcessor.__init__(self,configname)
 
         self.stylesheet='original'
-        self.costbdtype = 'donut'  # this assignment isn't used yet
         self.add_handler(['POST'], '/login', self.post_login)
         self.add_handler(['GET'], '/patients(?:/(\d+)-(\d+)?)?', self.get_patients)
         self.add_handler(['GET'], '/patient_details', self.get_patient_details)
@@ -223,22 +222,30 @@ class FrontendWebService(HTTP.HTTPProcessor):
             return (HTTP.BAD_RESPONSE, b'', None)
         else:
             user = info['user']
-            if not self.stylesheet == 'original':
+            if True or not self.stylesheet == 'original':
                 self.stylesheet = 'original'
-                self.costbdtype = 'donut'
-            else:
-                self.stylesheet = 'alternate'
-                self.costbdtype = 'list'
 
             try:
                 AK.check_authorization(user, info['password'], AUTH_LENGTH)
-                return (HTTP.OK_RESPONSE, json.dumps({'display':'Dr. Huxtable', 'stylesheet':self.stylesheet, 
-                                                      'costbdtype':self.costbdtype, 'layout':'a'}), None)
+                return (HTTP.OK_RESPONSE, json.dumps({'display':'Dr. Huxtable', 
+                                                      'stylesheet':self.stylesheet,
+                                                      'widgets': 
+                                                      {
+                                                          'patientInfo':'#fixed-top',
+                                                          'patientList':'#rowA-1-1',
+                                                      },
+}), None)
             except:
                 user_auth = AK.authorization_key(user,AUTH_LENGTH, LOGIN_TIMEOUT)
-                return (HTTP.OK_RESPONSE,json.dumps({CONTEXT_KEY:user_auth, 'display':'Dr. Huxtable',
-                                                     'stylesheet':self.stylesheet, 'costbdtype':self.costbdtype,
-                                                     'layout':'a'}), None)
+                return (HTTP.OK_RESPONSE,json.dumps({CONTEXT_KEY:user_auth, 
+                                                     'display':'Dr. Huxtable',
+                                                     'stylesheet':self.stylesheet,
+                                                      'widgets': 
+                                                      {
+                                                          'patientInfo':'#fixed-top',
+                                                          'patientList':'#rowA-1-1',
+                                                      },
+                                                 }), None)
 
     patients_required_contexts = [CONTEXT_USER]
     patients_available_contexts = {CONTEXT_USER:str}
@@ -275,6 +282,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         patient_dict = dict(patients_list[patient_id])
         if patient_id in patient_extras:
             patient_dict.update(patient_extras[patient_id])
+        patient_dict.update({'Allergies': ['NOT VALID'], 'ProblemList':['NOTVALID', 'NOTVALID'], 'encounters':['1']},)
         return (HTTP.OK_RESPONSE, json.dumps(patient_dict), None)
 
 

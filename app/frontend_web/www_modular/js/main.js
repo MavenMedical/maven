@@ -13,7 +13,7 @@ require.config({
         underscore: 'libs/underscore/underscore',
         backbone: 'libs/backbone/backbone',
         bootstrap: '../css/bootstrap/js/bootstrap.min',
-        templates: '../templates'
+	templates: '../templates'
     },
     shim: {
         bootstrap :{
@@ -25,6 +25,17 @@ require.config({
 require([
     //Load our app module and pass it to our definition function
     'app',
+    'jquery',
+    'underscore',
+    'backbone',
+    'bootstrap',
+    'router',
+    'globalmodels/contextModel',
+    'globalmodels/patientModel',
+    //    'globalmodels/spendingModel',
+    //    'localmodels/patientRowModel',
+    
+    'text'
 ], function (App) {
     // The "app" dependency is passed in as "App"
     // Again, the other dependencies passed in are not "AMD" therefore don't pass a parameter to this function
