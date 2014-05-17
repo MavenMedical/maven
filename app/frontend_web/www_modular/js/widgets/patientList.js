@@ -7,15 +7,9 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
-
     'globalmodels/contextModel',
-
-    //Collection
     'globalmodels/patientCollection',
-
-    //row view
     'singleRow/patientRow',
-    //Template
     'text!templates/patientList.html'
 ], function ($, _, Backbone, contextModel, patientCollection, PatientRow, patientListTemplate) {
         var PatientList = Backbone.View.extend({

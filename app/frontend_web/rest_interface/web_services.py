@@ -141,10 +141,11 @@ class FrontendWebService(HTTP.HTTPProcessor):
                    'customer_id':1,
                    'widgets': 
                    {
-                    'patientInfo':'#fixed-top',
+                       'patientInfo':'#fixed-top',
                        #'alerts':'#floating-right',
                        #'basicStats':'#rowA-1-1',
-                    'patientList':'#rowA-1-1',
+                       'patientList':'#rowA-1-1',
+                       'costdonut':'#rowB-1-1',
                     }
                    }
 
@@ -197,7 +198,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
             for x in cur:
                 results.append({
                     'id': x[1], 
-                    'patientName': prettify(x[0], type="name"), 
+                    'name': prettify(x[0], type="name"), 
                     'gender': prettify(x[3], type="sex"), 
                     'DOB': str(x[2]), 
                     'diagnosis': 'NOT VALID YET', 

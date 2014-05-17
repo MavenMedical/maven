@@ -14,6 +14,17 @@
     var-floating-right-size
  */
 
+.chart-col-6 {
+    width: 100%;
+    height:350px;
+}
+
+.chart-col-12 {
+    width: 100%;
+    height: 400px;
+}
+
+
 html, body {
     padding:0px;
     margin:0px;

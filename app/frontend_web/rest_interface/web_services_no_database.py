@@ -233,6 +233,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                                       {
                                                           'patientInfo':'#fixed-top',
                                                           'patientList':'#rowA-1-1',
+                                                          'costdonut':'#rowB-1-2',
                                                       },
 }), None)
             except:
@@ -244,6 +245,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                                       {
                                                           'patientInfo':'#fixed-top',
                                                           'patientList':'#rowA-1-1',
+                                                          'costdonut':'#rowB-1-1',
                                                       },
                                                  }), None)
 
