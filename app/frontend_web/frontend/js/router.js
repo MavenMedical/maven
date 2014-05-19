@@ -48,9 +48,11 @@ define([
 
         }
         else if (currentContext.get('layout') == 'b')
-        {lp
+        {
             $('body').html(_.template(skeletonB));
             //alert('b');
+            var topnav = new TopNav;
+            topnav.render();
         }
     }
 
