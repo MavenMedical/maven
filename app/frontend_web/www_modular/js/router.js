@@ -32,6 +32,7 @@ define([
 	    if (CheckLogin()) {
 		console.log('showing page '+currentContext.get('page'));
 		/* do more stuff here */
+		window.scrollTo(0,0);
 	    } else {
 		console.log('trying to log in');
 	    }

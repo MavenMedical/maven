@@ -1,14 +1,11 @@
-/**
- * Created by Asmaa Aljuhani on 3/14/14.
- */
-
 define([
     'jquery',
     'underscore',
     'backbone',
-    'localmodels/patientModel',
     'globalmodels/contextModel'
-], function($, _, Backbone, PatientModel, contextModel){
+], function($, _, Backbone, contextModel){
+    var PatientModel = Backbone.Model;
+
     var PatientCollection = Backbone.Collection.extend({
 	url: '/patients',
 	model: PatientModel,

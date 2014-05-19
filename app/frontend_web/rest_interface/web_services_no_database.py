@@ -37,10 +37,10 @@ LOGIN_TIMEOUT = 60 * 60 # 1 hour
 AUTH_LENGTH = 10 # ok for this fake data - not for real
 
 patients_list = {
-    '1': {'id':'1', 'name':'Batman', 'gender':'Male', 'DOB':'05/03/1987', 'diagnosis':'Asthma'},
-    '2': {'id':'2', 'name':'Wonder Woman', 'gender':'Female', 'DOB':'03/06/1986', 'diagnosis':'Coccidiosis'},
-    '3': {'id':'3', 'name':'Superman', 'gender':'Male', 'DOB':'08/03/1999',  'diagnosis':'Food poisoning'},
-    '4': {'id':'4', 'name':'Storm', 'gender':'Female', 'DOB':'11/07/1935', 'diagnosis':'Giardiasis'},
+    '1': {'id':'1', 'name':'Batman', 'gender':'Male', 'DOB':'05/03/1987', 'diagnosis':'Asthma', 'cost':-1},
+    '2': {'id':'2', 'name':'Wonder Woman', 'gender':'Female', 'DOB':'03/06/1986', 'diagnosis':'Coccidiosis', 'cost':-1},
+    '3': {'id':'3', 'name':'Superman', 'gender':'Male', 'DOB':'08/03/1999',  'diagnosis':'Food poisoning', 'cost':-1},
+    '4': {'id':'4', 'name':'Storm', 'gender':'Female', 'DOB':'11/07/1935', 'diagnosis':'Giardiasis', 'cost':-1},
 } 
 
 patient_extras = {
@@ -55,10 +55,10 @@ order_list = {
 
 alert_types = {
     1: {'name':'Avoid NSAIDS', 'cost':168, 'html':'<b>Avoid nonsteroidal anti-inflammatory drugs (NSAIDS)</b> in individuals with hypertension or heart failure or CKD of all causes, including diabetes.'},
-    2: {'name':'Placeholder', 'cost':0, 'html':'Placeholder alert to be replaced by something real.  Consult <a href="www.google.com">google</a> for more information.'},
-    3: {'name':'Placeholder', 'cost':0, 'html':'Placeholder alert to be replaced by something real.  Consult <a href="www.google.com">google</a> for more information.'},
-    4: {'name':'Placeholder', 'cost':0, 'html':'Placeholder alert to be replaced by something real.  Consult <a href="www.google.com">google</a> for more information.'},
-    5: {'name':'Placeholder', 'cost':0, 'html':'Placeholder alert to be replaced by something real.  Consult <a href="www.google.com">google</a> for more information.'},
+    2: {'name':'Placeholder', 'cost':0, 'html':'Placeholder alert to be replaced by something real.  Consult <a href="https://www.google.com">google</a> for more information.'},
+    3: {'name':'Placeholder', 'cost':0, 'html':'Placeholder alert to be replaced by something real.  Consult <a href="https://www.google.com">google</a> for more information.'},
+    4: {'name':'Placeholder', 'cost':0, 'html':'Placeholder alert to be replaced by something real.  Consult <a href="https://www.google.com">google</a> for more information.'},
+    5: {'name':'Placeholder', 'cost':0, 'html':'Placeholder alert to be replaced by something real.  Consult <a href="https://www.google.com">google</a> for more information.'},
 }
 
 alert_list = [
@@ -225,28 +225,25 @@ class FrontendWebService(HTTP.HTTPProcessor):
             if True or not self.stylesheet == 'original':
                 self.stylesheet = 'original'
 
+            widgets = {
+                'patientInfo':'#fixed-topB-1-1',
+                'patientList':'#rowA-1-1',
+                'costdonut':'#rowB-1-2',
+                'alertList':'#floating-right',
+            }
+
             try:
                 AK.check_authorization(user, info['password'], AUTH_LENGTH)
                 return (HTTP.OK_RESPONSE, json.dumps({'display':'Dr. Huxtable', 
                                                       'stylesheet':self.stylesheet,
-                                                      'widgets': 
-                                                      {
-                                                          'patientInfo':'#fixed-top',
-                                                          'patientList':'#rowA-1-1',
-                                                          'costdonut':'#rowB-1-2',
-                                                      },
-}), None)
+                                                      'widgets': widgets,
+                                                  }), None)
             except:
                 user_auth = AK.authorization_key(user,AUTH_LENGTH, LOGIN_TIMEOUT)
                 return (HTTP.OK_RESPONSE,json.dumps({CONTEXT_KEY:user_auth, 
                                                      'display':'Dr. Huxtable',
                                                      'stylesheet':self.stylesheet,
-                                                      'widgets': 
-                                                      {
-                                                          'patientInfo':'#fixed-top',
-                                                          'patientList':'#rowA-1-1',
-                                                          'costdonut':'#rowB-1-1',
-                                                      },
+                                                      'widgets': widgets,
                                                  }), None)
 
     patients_required_contexts = [CONTEXT_USER]
@@ -284,7 +281,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
         patient_dict = dict(patients_list[patient_id])
         if patient_id in patient_extras:
             patient_dict.update(patient_extras[patient_id])
-        patient_dict.update({'Allergies': ['NOT VALID'], 'ProblemList':['NOTVALID', 'NOTVALID'], 'encounters':['1']},)
+        patient_dict.update({'cost':-1, 'Allergies': ['NOT VALID'], 
+                             'ProblemList':['NOTVALID', 'NOTVALID'], 'encounters':['1']},)
         return (HTTP.OK_RESPONSE, json.dumps(patient_dict), None)
 
 

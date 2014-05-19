@@ -3,10 +3,14 @@
  */
 
 define([
-    'localmodels/patientModel',
+    'jquery',
+    'backbone',
     'globalmodels/contextModel'
-], function (PatientModel, contextModel) {
-    patientModel = new PatientModel;
+], function ($, BackBone, contextModel) {
+
+    var PatientModel = Backbone.Model.extend({urlRoot: '/patient_details'});
+    var patientModel = new PatientModel;
+
     if(contextModel.get('patients') && contextModel.get('userAuth')) {
 	patientModel.fetch({data:$.param(contextModel.toJSON())});
     }

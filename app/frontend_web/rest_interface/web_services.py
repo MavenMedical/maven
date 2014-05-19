@@ -142,10 +142,9 @@ class FrontendWebService(HTTP.HTTPProcessor):
                    'widgets': 
                    {
                        'patientInfo':'#fixed-top',
-                       #'alerts':'#floating-right',
-                       #'basicStats':'#rowA-1-1',
                        'patientList':'#rowA-1-1',
                        'costdonut':'#rowB-1-1',
+                       'alertList':'#floating-right',
                     }
                    }
 
