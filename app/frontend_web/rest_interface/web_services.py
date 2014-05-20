@@ -109,7 +109,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         self.add_handler(['GET'], '/patients(?:/(\d+)-(\d+)?)?', self.get_patients)  # REAL
         self.add_handler(['GET'], '/patient_details', self.get_patient_details)  # REAL
         self.add_handler(['GET'], '/total_spend', self.get_total_spend)  # FAKE
-        self.add_handler(['GET'], '/spending', self.get_daily_spending)  # FAKE
+        self.add_handler(['GET'], '/spending', self.get_daily_spending)  # REAL
         self.add_handler(['GET'], '/alerts(?:/(\d+)-(\d+)?)?', self.get_alerts)  # REAL
         self.add_handler(['GET'], '/orders(?:/(\d+)-(\d+)?)?', self.get_orders)  # REAL
         self.add_handler(['GET'], '/autocomplete', self.get_autocomplete)  # FAKE
@@ -141,10 +141,14 @@ class FrontendWebService(HTTP.HTTPProcessor):
                    'customer_id':1,
                    'widgets': 
                    {
-                       'patientInfo':'#fixed-top',
+                       'topBanner':'#fixed-topA-1-1',
+                       'patientInfo':'#fixed-topB-1-1',
+                       'patientSearch':'#fixed-topB-1-1',
                        'patientList':'#rowA-1-1',
-                       'costdonut':'#rowB-1-1',
-                       'alertList':'#floating-right',
+                       'encounterSummary':'#rowB-1-1',
+                       'orderList':'#rowC-1-1',
+                       'costdonut':'#rowD-1-1',
+                       'alertList':'#floating-right',                       
                     }
                    }
 
@@ -407,7 +411,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         return (HTTP.OK_RESPONSE, json.dumps(results), None)
 
 
-    orders_required_contexts = [CONTEXT_USER, CONTEXT_PATIENTLIST, CONTEXT_ENCOUNTER, CONTEXT_CUSTOMERID]
+    orders_required_contexts = [CONTEXT_USER, CONTEXT_CUSTOMERID]
     orders_available_contexts = {CONTEXT_USER:str, CONTEXT_PATIENTLIST:list, 
                                  CONTEXT_CUSTOMERID:int, CONTEXT_ENCOUNTER:str}
 
@@ -418,10 +422,15 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                    FrontendWebService.orders_required_contexts,
                                    FrontendWebService.orders_available_contexts)
         user = context[CONTEXT_USER]
-        patient_ids = context[CONTEXT_PATIENTLIST]
-        encounter = context[CONTEXT_ENCOUNTER]
+        patient_ids = context.get(CONTEXT_PATIENTLIST, None)
+        if not patient_ids:
+            return (HTTP.OK_RESPONSE, b'', None)
+
+        encounter = context.get(CONTEXT_ENCOUNTER, None)
         customer = context[CONTEXT_CUSTOMERID]
         limit = limit_clause(matches)
+        if not limit:
+            limit='LIMIT 10'
         #auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
 
         order_dict = {}
@@ -438,9 +447,11 @@ class FrontendWebService(HTTP.HTTPProcessor):
         cmd.append("SELECT")
         cmd.append(columns)
         cmd.append("FROM mavenorder")
-        cmd.append("WHERE mavenorder.encounter_id = %s AND mavenorder.customer_id = %s")
-        cmdargs.append(encounter)
+        cmd.append("WHERE mavenorder.customer_id = %s")
         cmdargs.append(customer)
+        if encounter:
+            cmd.append("AND mavenorder.encounter_id = %s")
+            cmdargs.append(encounter)
         cmd.append("ORDER BY mavenorder.datetime desc")
         if limit:
             cmd.append(limit)

@@ -226,10 +226,14 @@ class FrontendWebService(HTTP.HTTPProcessor):
                 self.stylesheet = 'original'
 
             widgets = {
+                'topBanner':'#fixed-topA-1-1',
                 'patientInfo':'#fixed-topB-1-1',
+                'patientSearch':'#fixed-topB-1-1',
                 'patientList':'#rowA-1-1',
-                'costdonut':'#rowB-1-2',
-                'alertList':'#floating-right',
+                'encounterSummary':'#rowB-1-1',
+                'orderList':'#rowC-1-1',
+                'costdonut':'#rowD-1-1',
+                'alertList':'#floating-right',                       
             }
 
             try:

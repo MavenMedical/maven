@@ -1,33 +1,20 @@
-<div class="panel panel-default">
-    <div class="panel-heading">
-        <a data-toggle="collapse" data-parent="#alertaccordion">
-            <h4 class="sub-sub-panel panel-title">
-                <div class="row">
-                    <div class="col-sm-6">
-                        <%= name %>
-                    </div>
-                    <div class="col-sm-6" style="text-align:right">
-                        Ignored
-                    </div>
-                </div>
-            </h4>
-        </a>
+<div class="row">
+  <div class="col-sm-12">
+    <div class="alert-type">
+      <img src="images/duplicate-29x37.png"><br>
+      <span class="headings title center">Duplicates</span>
     </div>
-    <div id="collapse<%= patient %>-<%= id %>" class="panel-collapse collapse">
-        <div class="panel-body">
-            <div class="row">
-                <%= html %>
-                <span class="label label-info" data-toggle="modal" data-target="#evidence-<%= id %>">Show Evidence</span>
-                <!--<div class="col-sm-10">
-                    <%= html %>
-                </div>-->
-                <!--<div class="col-sm-2">
-                    <a  class="btn btn-default active" role="button"><i
-                            class="glyphicon glyphicon-share-alt"></i> Check this Encounter</a>
-                </div>-->
-
-
-            </div>
-        </div>
-    </div>
+    <p>
+      <b><%= name %></b>
+      <%= html %> 
+      <span>
+	<a style='white-space:nowrap' href='javascript:showEvidence("<%= id %>")'>
+	  Show Evidence >
+	  </a>
+      </span>
+    </p>
+    <!--<span class="headings">Impact:</span>
+    <span class="impact">$16</span>-->
+    <hr>
+  </div>
 </div>

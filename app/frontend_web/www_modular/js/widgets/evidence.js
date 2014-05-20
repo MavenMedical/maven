@@ -16,13 +16,12 @@ define([
         initialize: function (options) {
 	    this.evi = options['evi'];
             _.bindAll(this, 'render');
-    	    this.render();
+	    this.render();
         },
         render: function () {
 	    evidence_text=this.template({alert: this.evi});
 	    //console.log(evidence_text);
 	    this.$el.append(evidence_text);
-	    //$(this.el).empty();
 	    return this;
         }
     });

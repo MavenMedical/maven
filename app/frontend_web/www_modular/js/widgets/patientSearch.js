@@ -7,23 +7,23 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
-    'globalmodels/patientModel', // current patient (if any)
-    'text!templates/patientInfo.html'
-], function ($, _, Backbone,  patientModel, patInfoTemplate) {
+    'globalmodels/contextModel', // current patient (if any)
+    'text!templates/patientSearch.html'
+], function ($, _, Backbone,  contextModel, patSearchTemplate) {
     
     var PatInfo = Backbone.View.extend({
-	template: _.template(patInfoTemplate),
+	template: _.template(patSearchTemplate),
 	initialize: function(){
-	    this.update(patientModel);
-	    patientModel.on('change', this.update, this);
+	    this.update(contextModel);
+	    contextModel.on('change:patients', this.update, this);
 	},
-	update: function(pat) {
-	    if(patientModel.get('id')) {
-		//this.$el[0].style.display='';
-		this.$el.html(this.template(patientModel.attributes));
-	    } else {
+	update: function(cm) {
+	    if(cm.get('patients')) {
 		// for now this is what we do when there is no patient selected
 		//this.$el[0].style.display='none';
+	    } else {
+		//this.$el[0].style.display='';
+		this.$el.html(this.template(contextModel.attributes));
 	    }
 	}
     });

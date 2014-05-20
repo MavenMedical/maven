@@ -28,15 +28,15 @@ define([
 	urlRoot: '/login',
         defaults: {
             page: null,
-            user: 'JHU1093124',
-	    userAuth: '',
-	    display: 'Dr. XYZ',
+            userAuth: '',
             patients: '',
             patientAuth: '',
-	    patientName:'',
+            patientName:'',
             provider: null,
             encounter: null,
-            department: null
+            department: null,
+	    searchPatient: null,
+	    searchDiagnosis: null,
         },
         setUser: function (user, pw, route) {
 	    if (this.user != user || !this.userAuth) {
@@ -65,20 +65,7 @@ define([
 		});
 	    }
 	}
-	
     });
 
     return new Context;
 });
-
-
-
-
-
-
-
-
-
-
-
-
