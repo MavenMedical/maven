@@ -42,6 +42,7 @@ html, body {
 
 .pat-info {
     height:80px;
+    display:table;
 }
 
 #fixed-bottom {
@@ -66,7 +67,7 @@ html, body {
 #fixed-right {
     position:fixed;
     visibility:hidden;
-    width:25%; /*var-fixed-right-size*/
+    width:20%; /*var-fixed-right-size*/
     top: 130px;  /*var-fixed-top-size*/
     bottom: 0px; /*var-fixed-bottom-size*/
     right:0px;
@@ -75,7 +76,7 @@ html, body {
 #wrapper {
     position:relative;
     left:20%; /*var-fixed-left-size*/
-    width:55%;/*100% minus var-fixed-left-size minus var-fixed-right-size */;
+    width:60%;/*100% minus var-fixed-left-size minus var-fixed-right-size */;
     bottom:0px;
     z-index:1;
     margin-top: 130px; /*var-fixed-top-size*/
@@ -310,6 +311,17 @@ body{
 
 .modal-body{
     background-color: #fff6f6;
+}
+
+.search-box {
+    display: table-cell;
+    vertical-align: middle;
+    horizontal-align:middle;
+    margin: auto;
+}
+
+.alert-list-panel {
+        background-color: #c0c0c0;
 }
 
 /* adjust the contents on smaller devices */

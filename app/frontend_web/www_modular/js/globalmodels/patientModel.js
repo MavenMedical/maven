@@ -12,14 +12,14 @@ define([
     var patientModel = new PatientModel;
 
     if(contextModel.get('patients') && contextModel.get('userAuth')) {
-	patientModel.fetch({data:$.param(contextModel.toJSON())});
+	patientModel.fetch({data:$.param(contextModel.toParams())});
     }
     contextModel.on('change:patients change:userAuth', 
 		    function(x) {
 			if(x.get('patients') != patientModel.get('id') 
 			  && x.get('userAuth')) {
 			    if(x.get('patients')) {
-				patientModel.fetch({data:$.param(x.toJSON())});
+				patientModel.fetch({data:$.param(x.toParams())});
 			    } else {
 				patientModel.set({id:''});
 			    }

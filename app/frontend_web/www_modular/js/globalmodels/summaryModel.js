@@ -12,11 +12,11 @@ define([
     var summaryModel = new SummaryModel;
 
     if(contextModel.get('userAuth')) {
-	summaryModel.fetch({data:$.param(contextModel.toJSON())});
+	summaryModel.fetch({data:$.param(contextModel.toParams())});
     }
     contextModel.on('change:patients change:userAuth', 
 		    function(x) {
-			summaryModel.fetch({data:$.param(x.toJSON())});
+			summaryModel.fetch({data:$.param(x.toParams())});
 		    });
     
     return summaryModel;

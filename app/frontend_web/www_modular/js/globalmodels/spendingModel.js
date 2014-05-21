@@ -27,12 +27,12 @@ define([
     var spendingModel = new SpendingModel;
 
     if(contextModel.get('userAuth')) {
-	spendingModel.fetch({data:$.param(contextModel.toJSON())});
+	spendingModel.fetch({data:$.param(contextModel.toParams())});
     }
     contextModel.on('change:patients change:userAuth', 
 		    function(x) {
 			if(x.get('userAuth')) {
-			    spendingModel.fetch({data:$.param(x.toJSON())});
+			    spendingModel.fetch({data:$.param(x.toParams())});
 			}
 		    });
 

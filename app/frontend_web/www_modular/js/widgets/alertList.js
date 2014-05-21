@@ -9,13 +9,12 @@ define([
     'singleRow/alertRow',
     // Using the Require.js text! plugin, we are loaded raw text
     // which will be used as our views primary template
-    'text!templates/alertList.html'
-], function ($, _, Backbone, alertCollection, AlertRow, alertTemplate) {
+], function ($, _, Backbone, alertCollection, AlertRow) {
 
     var AlertList = Backbone.View.extend({
-	template: _.template(alertTemplate),
-	initialize: function() {
-            var template = this.$el.html(this.template());
+	initialize: function(arg) {
+	    this.template = _.template(arg.template);
+	    this.$el.html(this.template());
 	    alertCollection.bind('add', this.addAlert, this);
 	    alertCollection.bind('reset', this.reset, this);
 	    //alertCollection.bind('remove', this.remove, this);

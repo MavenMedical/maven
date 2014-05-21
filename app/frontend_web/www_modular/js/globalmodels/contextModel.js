@@ -38,6 +38,14 @@ define([
 	    searchPatient: null,
 	    searchDiagnosis: null,
         },
+	toParams: function() {
+	    var ret = _.pick(this.attributes,['user','provider','date','daterange',
+		 			      'patients','department','userAuth', 'customer_id']);
+	    for(var x in ret) {
+		if(!ret[x]) {delete ret[x];}
+	    }
+	    return ret;
+	},
         setUser: function (user, pw, route) {
 	    if (this.user != user || !this.userAuth) {
 		this.set('user', user);
@@ -45,17 +53,25 @@ define([
 		this.fetch({
 		    success: function (res) {
 			setActiveStyleSheet(res.get('stylesheet'));
-			var widgetmap = res.get('widgets');
+			// each row is [html_id, viewfile, templatefile]
+			var widgetlist = res.get('widgets');
 			var viewlist = []; 
-			var elemlist = [];
-			for (var viewname in widgetmap) {
-			    console.log('adding view '+viewname+' to element '+widgetmap[viewname]);
-			    viewlist.push('widgets/'+viewname);
-			    elemlist.push(widgetmap[viewname]);
+			var templatelist = [];
+			for (var ind in widgetlist) {
+			    var row = widgetlist[ind];
+			    viewlist.push('widgets/'+row[1]);
+			    if (row.length==3) {
+				templatelist.push('text!/templates/'+row[2]);
+			    } else {
+				templatelist.push('text!templates/'+row[1]+'.html');
+			    }
+			    console.log('adding view '+row[1]+' to element '+row[0]+
+					' with template '+templatelist[templatelist.length-1]);
 			}
-			require(viewlist,function () {
+			require(viewlist.concat(templatelist),function () {
 			    for(var i=0;i<viewlist.length;i++) {
-				var view = new arguments[i]({el:$(elemlist[i])});
+				var view = new arguments[i]({el:$(widgetlist[i][0]),
+							     template:arguments[i+viewlist.length]});
 			    }
 			    Backbone.history.loadUrl(route);
 			});

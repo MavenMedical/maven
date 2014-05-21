@@ -8,24 +8,21 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'globalmodels/contextModel', // current patient (if any)
-    'text!templates/patientSearch.html'
-], function ($, _, Backbone,  contextModel, patSearchTemplate) {
+], function ($, _, Backbone,  contextModel) {
     
-    var PatInfo = Backbone.View.extend({
-	template: _.template(patSearchTemplate),
-	initialize: function(){
+    var PatSearch = Backbone.View.extend({
+	initialize: function(arg){
+	    this.template = _.template(arg.template);
 	    this.update(contextModel);
 	    contextModel.on('change:patients', this.update, this);
 	},
 	update: function(cm) {
 	    if(cm.get('patients')) {
 		// for now this is what we do when there is no patient selected
-		//this.$el[0].style.display='none';
 	    } else {
-		//this.$el[0].style.display='';
 		this.$el.html(this.template(contextModel.attributes));
 	    }
 	}
     });
-    return PatInfo;
+    return PatSearch;
 });

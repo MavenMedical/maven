@@ -8,12 +8,11 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'globalmodels/contextModel', // current patient (if any)
-    'text!templates/topBanner.html'
-], function ($, _, Backbone,  contextModel, topBannerTemplate) {
+], function ($, _, Backbone,  contextModel) {
     
-    var PatInfo = Backbone.View.extend({
-	template: _.template(topBannerTemplate),
-	initialize: function(){
+    var TopBanner = Backbone.View.extend({
+	initialize: function(arg){
+	    this.template = _.template(arg.template);
 	    this.update(contextModel);
 	    contextModel.on('change:display change:page', this.update, this);
 	},
@@ -21,5 +20,5 @@ define([
 	    this.$el.html(this.template(contextModel.attributes));
 	}
     });
-    return PatInfo;
+    return TopBanner;
 });

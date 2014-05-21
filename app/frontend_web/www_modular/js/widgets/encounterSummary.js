@@ -9,12 +9,11 @@ define([
     'backbone',    // lib/backbone/backbone
     'globalmodels/summaryModel', // current patient (if any)
     'globalmodels/contextModel',
-    'text!templates/encounterSummary.html'
-], function ($, _, Backbone,  summaryModel, contextModel, encSummaryTemplate) {
+], function ($, _, Backbone,  summaryModel, contextModel) {
     
     var Summary = Backbone.View.extend({
-	template: _.template(encSummaryTemplate),
-	initialize: function(){
+	initialize: function(arg) {
+	    this.template = _.template(arg.template); // this must already be loaded
 	    this.update(summaryModel);
 	    summaryModel.on('change', this.update, this);
 	    contextModel.on('change:patientName change:encounter', this.update, this);

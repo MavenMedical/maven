@@ -48,8 +48,8 @@ patient_extras = {
 }
 
 order_list = {
-    '1': [{'title':'Echocardiogram', 'order':'Followup ECG', 'reason':'Mitral regurgitation', 'evidence':'Don\'t test', 'date':'1/1/2014', 'result':'','cost':1200 , 'ecost': 0},
-        {'title':'Immunoglobulin','order':'place holder', 'reason':'klsdf jlkwec', 'evidence':'jmdljxs', 'date':'1/24/2014', 'result':'','cost':130 , 'ecost': 0},
+    '1': [{'id':'1','name':'Echocardiogram', 'order':'Followup ECG', 'reason':'Mitral regurgitation', 'evidence':'Don\'t test', 'date':'1/1/2014', 'result':'','cost':1200 , 'ecost': 0},
+        {'id':'2', 'name':'Immunoglobulin','order':'place holder', 'reason':'klsdf jlkwec', 'evidence':'jmdljxs', 'date':'1/24/2014', 'result':'','cost':130 , 'ecost': 0},
         ],
 }
 
@@ -225,16 +225,16 @@ class FrontendWebService(HTTP.HTTPProcessor):
             if True or not self.stylesheet == 'original':
                 self.stylesheet = 'original'
 
-            widgets = {
-                'topBanner':'#fixed-topA-1-1',
-                'patientInfo':'#fixed-topB-1-1',
-                'patientSearch':'#fixed-topB-1-1',
-                'patientList':'#rowA-1-1',
-                'encounterSummary':'#rowB-1-1',
-                'orderList':'#rowC-1-1',
-                'costdonut':'#rowD-1-1',
-                'alertList':'#floating-right',                       
-            }
+            widgets = [
+                ['#fixed-topA-1-1','topBanner','topBanner.html'],
+                ['#fixed-topB-1-1','patientInfo'],
+                ['#fixed-topB-1-1','patientSearch'],
+                ['#rowA-1-1','patientList'],
+                ['#rowB-1-1','encounterSummary'],
+                ['#rowC-1-1','orderList'],
+                ['#rowD-1-1','costdonut','costbreakdown.html'],
+                ['#floating-right','alertList'],
+            ]
 
             try:
                 AK.check_authorization(user, info['password'], AUTH_LENGTH)

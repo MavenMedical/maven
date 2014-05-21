@@ -16,14 +16,14 @@ define([
 
     orderCollection = new OrderCollection;
     if(contextModel.get('userAuth')) {
-	orderCollection.fetch({data:$.param(contextModel.toJSON())});
+	orderCollection.fetch({data:$.param(contextModel.toParams())});
     }
     contextModel.on('change:patients', 
 		    // this will be needed once the context filters things
 		    function(cm) {
 			if(true && cm.get('userAuth')) {
 			    if (cm.get('patients')) {
-				orderCollection.fetch({data:$.param(contextModel.toJSON())});
+				orderCollection.fetch({data:$.param(contextModel.toParams())});
 			    } else {
 				orderCollection.reset();
 			    }

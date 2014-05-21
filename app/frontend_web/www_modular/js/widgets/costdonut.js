@@ -9,12 +9,11 @@ define([
     'backbone',    // lib/backbone/backbone
     'globalmodels/contextModel',
     'globalmodels/spendingModel',
-    'text!templates/costbreakdown.html'
-], function ($, _, Backbone, contextModel, spendingModel, costbreakdownTemplate) {
+], function ($, _, Backbone, contextModel, spendingModel) {
 
     var CostBD = Backbone.View.extend({
-        template: _.template(costbreakdownTemplate),
-        initialize: function(){
+	initialize: function(arg) {
+	    this.template = _.template(arg.template); // this must already be loaded
 	    this.$el.html(this.template({page: contextModel.get('page')}));
 	    spendingModel.on('change', this.update, this);
 	    this.update();

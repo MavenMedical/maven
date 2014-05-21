@@ -7,16 +7,12 @@ define([
     'globalmodels/orderCollection',
     
     'singleRow/orderRow',
-    // Using the Require.js text! plugin, we are loaded raw text
-    // which will be used as our views primary template
-    'text!templates/orderList.html'
-], function ($, _, Backbone, orderCollection, OrderRow, orderTemplate) {
+], function ($, _, Backbone, orderCollection, OrderRow) {
 
     var OrderList = Backbone.View.extend({
-	template: _.template(orderTemplate),
-	initialize: function() {
-            var template = 
-		this.$el.html(this.template());
+	initialize: function(arg) {
+	    this.template = _.template(arg.template); // this must already be loaded
+	    this.$el.html(this.template());
 	    orderCollection.bind('add', this.addOrder, this);
 	    orderCollection.bind('reset', this.reset, this);
 	    //orderCollection.bind('remove', this.remove, this);

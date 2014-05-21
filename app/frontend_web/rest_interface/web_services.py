@@ -139,19 +139,18 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
             ret = {'display':'Dr. Huxtable', 'stylesheet':self.stylesheet, 
                    'customer_id':1,
-                   'widgets': 
-                   {
-                       'topBanner':'#fixed-topA-1-1',
-                       'patientInfo':'#fixed-topB-1-1',
-                       'patientSearch':'#fixed-topB-1-1',
-                       'patientList':'#rowA-1-1',
-                       'encounterSummary':'#rowB-1-1',
-                       'orderList':'#rowC-1-1',
-                       'costdonut':'#rowD-1-1',
-                       'alertList':'#floating-right',                       
-                    }
-                   }
-
+                   'widgets': [
+                       ['#fixed-topA-1-1','topBanner','topBanner.html'],
+                       ['#fixed-topB-1-1','patientInfo'],
+                       ['#fixed-topB-1-1','patientSearch'],
+                       ['#rowA-1-1','patientList'],
+                       ['#rowB-1-1','encounterSummary'],
+                       ['#rowC-1-1','orderList'],
+                       ['#rowD-1-1','costdonut','costbreakdown.html'],
+                       ['#floating-right','alertList'],
+                   ]
+            }
+            
             try:
                 AK.check_authorization(user, info['password'], AUTH_LENGTH)
                 return (HTTP.OK_RESPONSE, json.dumps(ret), None)

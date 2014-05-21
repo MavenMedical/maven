@@ -16,13 +16,13 @@ define([
 
     patientCollection = new PatientCollection;
     if(contextModel.get('userAuth')) {
-	patientCollection.fetch({data:$.param(contextModel.toJSON())});
+	patientCollection.fetch({data:$.param(contextModel.toParams())});
     }
     contextModel.on('change', 
 		    // this will be needed once the context filters things
 		    function(cm) {
 			if(false && cm.get('userAuth')) {
-			    patientCollection.fetch({data:$.param(contextModel.toJSON())});
+			    patientCollection.fetch({data:$.param(contextModel.toParams())});
 			}
 		    }, patientCollection);
     return patientCollection;
