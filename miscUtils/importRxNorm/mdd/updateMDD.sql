@@ -33,4 +33,5 @@ DSSTox_RID	varchar(200) primary key
 ,ActivityCategory_MCASE_mg	varchar(200)
 ,Note_FDAMDD			varchar(2000)
 );
+alter table terminology.drugmaxdailydose owner to maven;
 \copy terminology.drugMaxDailydose from 'MDD.csv' delimiter ',' CSV

@@ -159,7 +159,9 @@ $BODY$
    language plpgsql;
 --select * from getalternativetable('00002323130')
 
-
+alter table terminology.rxnconso owner to maven;
+alter table terminology.rxnrel owner to maven;
+alter table terminology.rxnsat owner to maven;
 
 /****************Do not use********************
  CREATE OR REPLACE FUNCTION terminology.isRxCUIchild(vparentconcept numeric, vrxCui character varying)

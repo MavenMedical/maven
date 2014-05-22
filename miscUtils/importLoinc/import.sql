@@ -9,6 +9,7 @@ CREATE TABLE terminology.source_organization (
   url varchar(255) default null,
   primary key (copyright_id)
 ) ;
+alter table terminology.source_organization owner to maven;
 
 DROP  TABLE IF EXISTS terminology.loinc;
 CREATE TABLE terminology.loinc (
@@ -63,6 +64,7 @@ CREATE TABLE terminology.loinc (
   primary key (loinc_num)
 
 );
+alter table terminology.loinc owner to maven;
 
 DROP TABLE IF EXISTS terminology.map_to;
 CREATE TABLE terminology.map_to (
@@ -72,6 +74,7 @@ CREATE TABLE terminology.map_to (
   primary key (loinc, map_to)
 
 );
+alter table terminology.map_to owner to maven;
 
 \copy terminology.map_to from 'map_to2.csv' csv
 \copy terminology.loinc from 'loinc2.csv' csv

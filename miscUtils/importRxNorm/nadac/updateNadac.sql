@@ -39,8 +39,10 @@ begin
 			,primary key (ndc,fromdate,todate)
 		);
 		create index ixNadacArcNdcDt on nadacarchive(ndc,fromdate,todate);
+                alter table nadac owner to maven;
+                alter table nadacarchive owner to maven;
 	end if;
-	
+        	
 	update NadacArchive set todate=current_Date where todate='2100-01-01';
 	insert into nadacarchive (select *,current_date,date '2100-01-01' from nadac);
 		
