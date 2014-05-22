@@ -31,11 +31,10 @@ import pickle
 import asyncio
 from utils.database.database import AsyncConnectionPool, MappingUtilites
 import utils.database.fhir_database as FHIR_DB
-import utils.api.fhir as FHIR_API
+import utils.api.pyfhir.pyfhir as FHIR_API
+from utils.api.pyfhir.fhir_datatypes import Section
 import utils.streaming.stream_processor as SP
 import maven_config as MC
-import maven_logging as ML
-import decimal
 import datetime
 
 
@@ -88,7 +87,7 @@ class CompositionEvaluator(SP.StreamProcessor):
                     encounter_cost_breakdown.append([detail[1], float(result[0])])
                 cur.close()
 
-        return composition.section.append(FHIR_API.Section(title="Encounter Cost Breakdown", content=encounter_cost_breakdown))
+        return composition.section.append(Section(title="Encounter Cost Breakdown", content=encounter_cost_breakdown))
 
     @asyncio.coroutine
     def get_matching_sleuth_rules(self, composition):

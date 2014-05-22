@@ -2,6 +2,8 @@
 #Copyright (c) 2014 - Maven Medical
 #************************
 #AUTHOR:
+from utils.api.pyfhir.fhir_datatypes import Period, Identifier, Address, Section
+
 __author__='Yuki Uchino'
 #************************
 #DESCRIPTION:   This emr_parser.py contains the classes required to parse the incoming
@@ -22,7 +24,7 @@ import uuid
 
 import dateutil.parser
 
-import utils.api.fhir as api
+import utils.api.pyfhir.pyfhir as api
 
 
 class EpicParser():
@@ -38,13 +40,14 @@ class EpicParser():
             composition.subject = self.parse_demographics(xml_root)
 
         elif "Contact" in xml_root.tag:
-            composition.section.append(api.Section(title="Encounter", content=self.parse_encounter(xml_root)))
+            composition.section.append(Section(title="Encounter", content=self.parse_encounter(xml_root)))
 
         elif "ProblemsResult" in xml_root.tag:
-            composition.section.append(api.Section(title="Problem List", content=self.parse_problem_list(xml_prob_list=xml_root)))
+            composition.section.append(
+                Section(title="Problem List", content=self.parse_problem_list(xml_prob_list=xml_root)))
 
         elif "Orders" in xml_root.tag:
-            composition.section.append(api.Section(title="Encounter Orders", content=self.parse_orders(xml_root)))
+            composition.section.append(Section(title="Encounter Orders", content=self.parse_orders(xml_root)))
 
     def parse_demographics(self, xml_demog):
         """
@@ -71,8 +74,8 @@ class EpicParser():
             pat = api.Patient()
             pat.add_name(given=[self.firstName], family=[self.lastName])
             pat.add_maven_identifier(value=uuid.uuid1())
-            pat.identifier.append(api.Identifier(system='NationalIdentifier', value=self.patientId))
-            pat.address.append(api.Address(zip=self.zipcode))
+            pat.identifier.append(Identifier(system='NationalIdentifier', value=self.patientId))
+            pat.address.append(Address(zip=self.zipcode))
             pat.birthDate = self.birthDate
             pat.gender = self.gender
 
@@ -91,19 +94,19 @@ class EpicParser():
         try:
             root = ET.fromstring(xml_contact)
             contactDateTime = dateutil.parser.parse(root.findall(".//DateTime")[0].text)
-            pat_encounter.period = api.Period(start=contactDateTime)
+            pat_encounter.period = Period(start=contactDateTime)
             department = root.findall(".//DepartmentName")[0].text
             pat_encounter.department = api.Location(name=department)
             depids = root.findall(".//DepartmentIDs/IDType")
             for dp in depids:
                 if "internal" in dp.findall(".//Type")[0].text.lower():
                     id = dp.findall("ID")[0].text
-                    pat_encounter.department.identifier.append(api.Identifier(label="Internal", system="clientEMR", value=id))
+                    pat_encounter.department.identifier.append(Identifier(label="Internal", system="clientEMR", value=id))
             csns = root.findall(".//IDs/IDType")
             for csn in csns:
                 if "serial" in dp.findall(".//Type")[0].text.lower():
                     id = dp.findall("ID")[0].text
-                    pat_encounter.identifier.append(api.Identifier(system="clientEMR", label="serial", value=id))
+                    pat_encounter.identifier.append(Identifier(system="clientEMR", label="serial", value=id))
             pat_encounter.type = root.findall("./Type")[0].text
             patclass = root.findall("./PatientClass")[0].text
             if patclass == "E":
@@ -144,8 +147,8 @@ class EpicParser():
             procedure = api.Procedure()
             procedure.type = ord_type
             procedure.name = ord_name
-            procedure.identifier.append(api.Identifier(system="clientEMR", label="name", value=ord_name))
-            procedure.identifier.append(api.Identifier(system="clientEMR", label=ord_code_type, value=ord_code))
+            procedure.identifier.append(Identifier(system="clientEMR", label="name", value=ord_name))
+            procedure.identifier.append(Identifier(system="clientEMR", label=ord_code_type, value=ord_code))
 
             encounter_orders.append(api.Order(detail=[procedure], text=ord_name))
 
@@ -159,7 +162,8 @@ class EpicParser():
         # Loop through the dx ID's in this list until the internal one. Use that to instantiate a new DX Object
         for idtp in dxid:
             if "internal" in idtp.findall(".//Type")[0].text.lower():
-                prob.identifier.append(api.Identifier(label="Internal", system="clientEMR", value=idtp.findall(".//ID")[0].text))
+                prob.identifier.append(
+                    Identifier(label="Internal", system="clientEMR", value=idtp.findall(".//ID")[0].text))
                 #self.diagnosis = cliDiagnosis.cliDiagnosis(idtp.findall(".//ID")[0].text, config)
                 break
 
@@ -194,12 +198,12 @@ class VistaParser():
         for child in enc_root:
             if "EncID" in child.tag:
                 if composition.encounter is not None:
-                    composition.encounter.identifier.append(api.Identifier(system="clientEMR",
+                    composition.encounter.identifier.append(Identifier(system="clientEMR",
                                                                            label="Internal",
                                                                            value=child.text))
                 else:
                     composition.encounter = api.Encounter()
-                    composition.encounter.identifier.append(api.Identifier(system="clientEMR",
+                    composition.encounter.identifier.append(Identifier(system="clientEMR",
                                                                            label="Internal",
                                                                            value=child.text))
 
@@ -216,10 +220,10 @@ class VistaParser():
                 composition.subject = self.parse_demographics(child)
 
             elif "Orders" in child.tag:
-                composition.section.append(api.Section(title="Encounter Orders",
+                composition.section.append(Section(title="Encounter Orders",
                                                        content=self.parse_orders(child)))
             elif "ActiveProblems" in child.tag:
-                composition.section.append(api.Section(title="Problem List",
+                composition.section.append(Section(title="Problem List",
                                                        content=self.parse_problem_list(child)))
 
         return composition
@@ -260,10 +264,10 @@ class VistaParser():
             patient = api.Patient()
             patient.add_name(given=[firstName], family=[lastName])
             patient.add_maven_identifier(value=uuid.uuid1())
-            patient.identifier.append(api.Identifier(system='NationalIdentifier', value=patientSSN))
+            patient.identifier.append(Identifier(system='NationalIdentifier', value=patientSSN))
             if patientID is not None and patientIDType is not None:
-                patient.identifier.append(api.Identifier(system='clientEMR', label=patientIDType, value=patientID))
-            patient.address.append(api.Address(zip=zipcode, city=city,
+                patient.identifier.append(Identifier(system='clientEMR', label=patientIDType, value=patientID))
+            patient.address.append(Address(zip=zipcode, city=city,
                                            country=country, county=county,
                                            state=state, line=[street]))
             patient.birthDate = birthDate
@@ -294,7 +298,7 @@ class VistaParser():
                 procedure.type = ord_type
                 procedure.name = ord_name
                 procedure.date = ord_datetime
-                procedure.identifier.append(api.Identifier(system="clientEMR", label=ord_code_type, value=ord_code))
+                procedure.identifier.append(Identifier(system="clientEMR", label=ord_code_type, value=ord_code))
                 encounter_orders.append(api.Order(detail=[procedure], text=ord_name))
         except:
             raise Exception("Error parsing Vista Encounter Orders")
@@ -320,11 +324,12 @@ class VistaParser():
         # Loop through the dx ID's in this list until the internal one. Use that to instantiate a new DX Object
         for id in dx_IDs:
             if "internal" in id.findall(".//Type")[0].text.lower():
-                prob.identifier.append(api.Identifier(label="Internal", system="clientEMR", value=id.findall(".//ID")[0].text))
+                prob.identifier.append(
+                    Identifier(label="Internal", system="clientEMR", value=id.findall(".//ID")[0].text))
                 #self.diagnosis = cliDiagnosis.cliDiagnosis(idtp.findall(".//ID")[0].text, config)
 
             elif "icd" in id.findall(".//Type")[0].text.lower():
-                prob.identifier.append(api.Identifier(label="ICD", system="clientEMR", value=id.findall(".//ID")[0].text))
+                prob.identifier.append(Identifier(label="ICD", system="clientEMR", value=id.findall(".//ID")[0].text))
 
         prob.date_asserted = dateutil.parser.parse(xml_root.findall(".//NotedDate")[0].text)
 

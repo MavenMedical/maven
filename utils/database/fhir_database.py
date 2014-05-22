@@ -19,7 +19,7 @@ __author__='Yuki Uchino'
 import json
 import datetime
 import asyncio
-import utils.api.fhir as api
+import utils.api.pyfhir.pyfhir as api
 from utils.database.database import MappingUtilites
 
 DBMapper = MappingUtilites()

@@ -16,18 +16,17 @@ __author__='Yuki Uchino'
 #************************
 #LAST MODIFIED FOR JIRA ISSUE: MAV-65
 #*************************************************************************
+import asyncio
+import os
 import json
 import pickle
-
-import utils.streaming.stream_processor as SP
-import asyncio
-import utils.streaming.http_responder as HR
 import maven_config as MC
 import maven_logging as ML
+import utils.streaming.stream_processor as SP
+import utils.streaming.http_responder as HR
+import utils.api.pyfhir.pyfhir as FHIR_API
 from clientApp.module_webservice.emr_parser import VistaParser
-import utils.api.fhir as api
 import clientApp.notification_generator.notification_generator as NG
-import os
 
 
 class OutgoingToMavenMessageHandler(HR.HTTPReader):
@@ -82,8 +81,12 @@ class IncomingFromMavenMessageHandler(HR.HTTPWriter):
     @asyncio.coroutine
     def format_response(self, obj, _):
 
+        #TODO - Need to configure the logic below to load from JSON if Client-App is installed WITHIN hospital
+        #TODO - infrastructure b/c we cannot send pickles over the wire (but we can if Client-App is in cloud)
         #json_composition = json.loads(obj.decode())
         #composition = api.Composition().create_composition_from_json(json_composition)
+
+
         composition = pickle.loads(obj)
         notifications = yield from self.notification_generator.generate_alert_content(composition)
 
@@ -94,7 +97,7 @@ class IncomingFromMavenMessageHandler(HR.HTTPWriter):
                 alert_notification_content += str(notification_body)
                 #alert_notification_content += ""
 
-        ML.DEBUG(json.dumps(composition, default=api.jdefault, indent=4))
+        ML.DEBUG(json.dumps(composition, default=FHIR_API.jdefault, indent=4))
         ML.DEBUG("NOTIFY HTML BODY: " + alert_notification_content)
 
         return (HR.OK_RESPONSE, alert_notification_content, [], composition.maven_route_key[0])

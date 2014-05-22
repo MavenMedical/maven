@@ -1,11 +1,24 @@
 import uuid
 import datetime
+
 import dateutil.parser
+from utils.api.pyfhir.fhir_datatypes import Identifier, HumanName, Section, Period
+
+
+##########################################################################################
+##########################################################################################
+##########################################################################################
+#####
+##### RESOURCES DEFINED BY THE HL7 FHIR STANDARD
+#####
+##########################################################################################
+##########################################################################################
+##########################################################################################
 
 
 class Resource():
 
-    def __init__(self, customer_id=None, name_space=None, identifier=None, text=None, resourceType=None):
+    def __init__(self, customer_id=None, name_space=None, version_id=None, identifier=None, text=None, resourceType=None):
         self.customer_id = customer_id
         self.name_space = name_space
         self.id = uuid.uuid1()
@@ -527,8 +540,21 @@ class Alert(Resource):
 
 class Observation(Resource):
 
-    def __init__(self, subject=None, specimen=None, performer=None, related=None, reference_range=None):
+    def __init__(self, name=None, value=None, interpretation=None, comments=None, applies=None,
+                 issued=None, status=None, reliability=None, bodySite=None, method=None, subject=None,
+                 specimen=None, performer=None, related=None, reference_range=None):
         Resource.__init__(self)
+        self.name = name
+        if value is None:
+            self.value = []
+        self.interpretation = interpretation
+        self.comments = comments
+        self.applies = applies
+        self.issued = issued
+        self.status = status
+        self.reliability = reliability
+        self.bodySite = bodySite
+        self.method = method
         self.subject = subject
         self.specimen = specimen
         if performer is None:
@@ -558,7 +584,6 @@ class List(Resource):
 
         if entry is None:
             self.entry = []
-
 
     def add_entry(self, resource):
         self.entry.append(resource)
@@ -628,184 +653,39 @@ class SecurityEvent(Resource):
         self.outcomeDesc = outcomeDesc
 
 
-
+##########################################################################################
+##########################################################################################
+##########################################################################################
 #####
+##### TAGS, BUNDLES, COMPARTMENTS, AND BINARY RESOURCES
 #####
-#####
-#####
-##### DATA TYPES REFERENCED BY THE RESOURCES ABOVE. THESE ITEMS DO NOT INHERIT RESOURCE
-#####
-#####
-#####
-
-class Identifier():
-
-    def __init__(self, value, use=None, label=None, system=None, period=None, assigner=None):
-        self.use = use               # usual | official | temp | secondary (If known)
-        self.label = label             # Description of identifier
-        self.system = system
-        self.value = value
-        self.period = period
-        self.assigner = assigner
+##########################################################################################
+##########################################################################################
+##########################################################################################
 
 
-class Period():
+class Bundle():
 
-    def __init__(self, start=None, end=None):
-        self.start = start
-        self.end = end
-
-
-class Hospitalization():
-
-    def __init__(self, preAdmissionIdentifier=None, origin=None,
-                 period=None, destination=None,
-                 dischargeDiagnosis=None, reAdmission=False):
-
-        if preAdmissionIdentifier is None:
-            self.preAdmissionIdentifier = []
-        self.origin = origin
-        self.admitSource = None
-        self.period = period
-        self.destination = destination
-        self.dischargeDisposition = None
-        self.dischargeDiagnosis = dischargeDiagnosis
-        self.reAdmission = reAdmission
-        
-        
-class HumanName():
-
-    def __init__(self, use=None, text=None, family=None, given=None, prefix=None, suffix=None, period=None):
-        self.use = use
-        self.text = text
-        self.period = period
-
-        if family is None:
-            self.family = []
-        else:
-            self.family = family
-
-        if given is None:
-            self.given = []
-        else:
-            self.given = given
-
-        if prefix is None:
-            self.prefix = []
-
-        if suffix is None:
-            self.suffix = []
-
-
-class RelatedItem():
-
-    def __init__(self, type=None, target=None):
-        self.type = type
-        self.target = target
-
-
-class Accomodation():
-
-    def __init__(self):
-        self.bed = ""
-        self.period = ""
-
-
-class Address():
-
-    def __init__(self, use=None, text=None, line=None, city=None, state=None, zip=None, country=None, period=None, county=None):
-        self.use = use
-        self.text = text
-        if line is None:
-            self.line = []
-        self.city = city
-        self.state = state
-        self.zip = zip
-        self.country = country
-        self.period = period
-        self.county = county
-
-
-class Schedule():
-    def __init__(self, event=None, frequency=1):
-        self.event = event
-        self.frequency = frequency
-
-
-class Section():
-    def __init__(self, title=None, code=None, subject=None, content=None):
+    def __init__(self, resourceType="Bundle", title=None, updated=None, id=None, link=None, category=None, entry=None):
         self.title = title
-        self.code = code
-        self.subject = subject
-        self.content = content
-        #if content is None:
-        #    self.content = []
+        self.updated = updated
+        self.id = id
+        self.link = link
+        self.category = category
+        self.entry = entry
 
 
-class Event():
-    def __init__(self, type=None, subtype=None, action=None, dateTime=None, outcome=None, outcomeDesc=None):
-        self.type = type
-        self.subtype = subtype
-        self.action = action
-        self.dateTime = dateTime
-        self.outcome = outcome
-        self.outcomeDesc = outcomeDesc
+##########################################################################################
+##########################################################################################
+##########################################################################################
+#####
+##### CUSTOM MAVEN FHIR OBJECTS PROBABLY NOT FHIR-SERVER COMPATIBLE
+#####
+##########################################################################################
+##########################################################################################
+##########################################################################################
 
 
-class Participant():
-    def __init__(self, role=None, reference=None, userId=None, altId=None, name=None, requestor=False, media=None, network=None):
-        self.role = role
-        self.reference = reference
-        self.userId = userId
-        self.altId = altId
-        self.name = name
-        self.requestor = requestor
-        self.media = media
-        self.network = network
-
-
-class Object():
-    def __init__(self, identifier=None, reference=None, type=None, role=None, lifecycle=None,
-                 sensitivity=None, name=None, description=None, query=None, detail=None):
-        self.identifier = identifier
-        self.reference = reference
-        self.type = type
-        self.role = role
-        self.lifecycle = lifecycle
-        self.sensitivity = sensitivity
-        self.name = name
-        self.description = description
-        self.query = query
-        if detail is None:
-            self.detail = []
-
-
-class Source():
-    def __init__(self, site=None, identifier=None, type=None):
-        self.site = site
-        self.identifier = identifier
-        self.type = type
-
-
-class Network():
-    def __init__(self, identifier=None, type=None):
-        self.identifier = identifier
-        self.type = type
-
-
-def jdefault(o):
-    if isinstance(o, datetime.datetime):
-        return datetime.datetime.isoformat(o)
-    elif hasattr(o, 'hex'):
-        return o.hex
-    else:
-        if hasattr(o, '__dict__') and o is not None:
-            return o.__dict__
-
-
-##################################################################
-#CUSTOM MAVEN FHIR OBJECTS PROBABLY NOT FHIR-SERVER COMPATIBLE
-##################################################################
 class Rule(Resource):
 
     def __init__(self, customer_id=None, rule_id=None, code_trigger=None, code_trigger_type=None, dep_id=None, name=None, tag_line=None, description=None, rule_details=None):
@@ -851,3 +731,15 @@ class Rule(Resource):
 
             elif rule_detail['type'] == "drug_list":
                 self.drug_list_rules.append(rule_detail)
+
+
+def jdefault(o):
+    if isinstance(o, datetime.datetime):
+        return datetime.datetime.isoformat(o)
+    elif hasattr(o, 'hex'):
+        return o.hex
+    else:
+        if hasattr(o, '__dict__') and o is not None:
+            return o.__dict__
+
+
