@@ -1133,3 +1133,72 @@ $$
   COST 100;
 ALTER FUNCTION upsert_encounterdx(character varying(100), character varying(100), character varying(36), character varying(200), character varying(1), character varying(1), numeric(18,0))
   OWNER TO maven;
+
+create table public.eviRule
+(
+  ruleId int primary key,
+  name varchar(200) ,
+  minAge numeric(18,2),
+  maxAge numeric(18,2),
+  sex varchar(1),
+  codeType varchar(20),
+  details text,
+  comments text
+);
+alter table public.evirule owner to maven;
+create index ixEviRuleIdPk on eviRule(ruleId);
+create index ixEviRuleTypeAgeSex on eviRule(codeType,minAge,maxAge,sex);
+
+create table public.ruleTrigCodes
+(
+  ruleId int,
+  code varchar(50),
+  primary key (ruleId,code)
+);
+alter table public.ruleTrigCodes owner to maven;
+create index ixRuleTrigCodePk on ruleTrigCodes(ruleId,code);
+create index ixRuleTrigCodeCode on ruleTrigCodes(code,ruleId);
+
+create table public.ruleEncDx
+(
+  ruleId int,
+  snomed numeric(18,0),
+  primary key (ruleId,snomed)
+);
+alter table public.ruleEncDx owner to maven;
+create index ixRuleEncDxPk on ruleEncDx(ruleId,snomed);
+
+create table public.ruleProbList
+(
+  ruleId int,
+  snomed numeric(18,0),
+  primary key (ruleId, snomed)
+);
+alter table public.ruleProbList owner to maven;
+create index ixRuleProbListPk on ruleProbList(ruleId,snomed);
+
+create or replace function public.getMatchingRules(orderCode varchar, ordcodeType varchar, patAge numeric(18,2), patSex varchar, encSnomeds bigint[], problistSnomeds bigint[])
+returns table (ruleid int, name varchar,details text) as $$
+begin
+	return query select distinct a.ruleid,a.name,a.details 
+	from public.evirules a
+	inner join public.ruleTrigCodes b on a.ruleid=b.ruleid
+	left outer join public.ruleEncDx c on a.ruleid=c.ruleid
+	left outer join terminology.conceptancestry d on d.ancestor=c.snomed and d.child = any (encsnomeds)
+	left outer join public.ruleProbList e on a.ruleid=e.ruleid
+	left outer join terminology.conceptancestry f on d.ancestor=e.snomed and e.child = any (problistsnomeds)
+	where 
+	   a.codetype=ordcodeType
+	   and b.code=ordercode
+	   and a.minage<=patAge and a.maxage>=patAge
+	   and (a.sex=patSex  or a.sex='*')
+	   and (c.ruleid is null or d.child is not null)--either there are no enc restritions or the restricions match the encounter
+	   and (e.ruleid is null or f.child is not null)--either there are no problist restritions or the restricions match the patient
+	;
+	   
+end;
+$$
+language plpgsql;
+alter function public.getMatchingRules( varchar,  varchar,  numeric(18,2),  varchar,  bigint[],  bigint[]) owner to maven;
+
+
