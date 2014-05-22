@@ -1181,12 +1181,12 @@ create or replace function public.getMatchingRules(orderCode varchar, ordcodeTyp
 returns table (ruleid int, name varchar,details text) as $$
 begin
 	return query select distinct a.ruleid,a.name,a.details 
-	from public.evirules a
+	from public.evirule a
 	inner join public.ruleTrigCodes b on a.ruleid=b.ruleid
 	left outer join public.ruleEncDx c on a.ruleid=c.ruleid
 	left outer join terminology.conceptancestry d on d.ancestor=c.snomed and d.child = any (encsnomeds)
 	left outer join public.ruleProbList e on a.ruleid=e.ruleid
-	left outer join terminology.conceptancestry f on d.ancestor=e.snomed and e.child = any (problistsnomeds)
+	left outer join terminology.conceptancestry f on f.ancestor=e.snomed and f.child = any (problistsnomeds)
 	where 
 	   a.codetype=ordcodeType
 	   and b.code=ordercode
