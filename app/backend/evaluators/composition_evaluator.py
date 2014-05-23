@@ -76,6 +76,8 @@ class CompositionEvaluator(SP.StreamProcessor):
         """
         encounter_cost_breakdown = []
 
+        orders = composition.get_encounter_orders()
+
         # This block is the original code Yuki wrote.  It makes potentially many calls to the database.
         # I (Tom) re-wrote this to make a single sql query, but be functionally equivalent.  
         # Yuki's code is easier to follow, so I'm leaving it here
@@ -98,10 +100,10 @@ class CompositionEvaluator(SP.StreamProcessor):
             order.totalCost = 0.00
             order_details = composition.get_proc_supply_details(order)
             for detail in order_details:
-                ordersdict[detail[0]].append(detail)
-                detailsdict[detail[0]].append(order)
+                ordersdict[detail[0]].append(order)
+                detailsdict[detail[0]].append(detail)
 
-        cur = yield from self.conn.execute_single("SELECT cost_amt, billing_code FROM costmap WHERE billing_code IN %s", extra=tuple(ordersdict.keys()))
+        cur = yield from self.conn.execute_single("SELECT cost_amt, billing_code FROM costmap WHERE billing_code IN %s", extra=[tuple(ordersdict.keys())])
 
         # process the results
         for result in cur:
