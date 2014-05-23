@@ -51,8 +51,8 @@ class OutgoingToMavenMessageHandler(HR.HTTPReader):
                 message = body.decode()
                 composition = yield from self.create_composition(message)
                 if not 'MAVEN_TESTING' in os.environ:
-                    ML.PRINT(json.dumps(json.dumps([composition, key], default=api.jdefault,sort_keys=True),sort_keys=True))
-                self.write_object(json.dumps([composition, key], default=api.jdefault,sort_keys=True).encode(), self.wk)
+                    ML.PRINT(json.dumps(json.dumps([composition, key], default=FHIR_API.jdefault,sort_keys=True),sort_keys=True))
+                self.write_object(json.dumps([composition, key], default=FHIR_API.jdefault,sort_keys=True).encode(), self.wk)
         except HR.UnauthorizedRequest:
             try:
                 self.write_object(HR.wrap_response(HR.UNAUTHORIZED_RESPONSE,b'',None), key)
@@ -84,7 +84,7 @@ class IncomingFromMavenMessageHandler(HR.HTTPWriter):
         #TODO - Need to configure the logic below to load from JSON if Client-App is installed WITHIN hospital
         #TODO - infrastructure b/c we cannot send pickles over the wire (but we can if Client-App is in cloud)
         #json_composition = json.loads(obj.decode())
-        #composition = api.Composition().create_composition_from_json(json_composition)
+        #composition = FHIR_API.Composition().create_composition_from_json(json_composition)
 
 
         composition = pickle.loads(obj)

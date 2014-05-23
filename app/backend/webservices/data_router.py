@@ -20,7 +20,7 @@ import pickle
 from utils.streaming import stream_processor as SP
 import asyncio
 import maven_config as MC
-import utils.api.pyfhir.pyfhir as api
+import utils.api.pyfhir.pyfhir as FHIR_API
 import utils.crypto.authorization_key as AK
 ARGS = argparse.ArgumentParser(description='Maven Client Receiver Configs.')
 ARGS.add_argument(
@@ -42,7 +42,7 @@ class IncomingMessageHandler(SP.StreamProcessor):
         json_composition = obj_list[0]
         key1 = obj_list[1]
         if json_composition['type'] == "CostEvaluator":
-            composition = api.Composition().create_composition_from_json(json_composition)
+            composition = FHIR_API.Composition().create_composition_from_json(json_composition)
             composition.maven_route_key = [key1, key2]
             self.write_object(composition, writer_key="CostEval")
 

@@ -188,7 +188,7 @@ class HTTPProcessor(SP.StreamProcessor):
         except KeyError:
             raise MC.InvalidConfig(configname + " did not have sufficient parameters.")            
         
-        if CONFIG_SSLAUTH in self.config:
+        if self.config.get(CONFIG_SSLAUTH, None):
             self.sslauth = ssl_check
         else:
             self.sslauth = (lambda x: True)
@@ -351,7 +351,7 @@ class HTTPReader(SP.StreamProcessor):
         except KeyError:
             raise MC.InvalidConfig(configname + " did not have sufficient parameters.")            
         
-        if CONFIG_SSLAUTH in self.config:
+        if self.config.get(CONFIG_SSLAUTH, None):
             self.sslauth = ssl_check
         else:
             self.sslauth = (lambda x: True)
