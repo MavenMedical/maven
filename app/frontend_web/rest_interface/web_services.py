@@ -134,6 +134,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
             return (HTTP.BAD_RESPONSE, b'', None)
         else:
             user = info['user']
+            user_auth = AK.authorization_key(user,AUTH_LENGTH, LOGIN_TIMEOUT)
             if not self.stylesheet == 'original':
                 self.stylesheet = 'original'
 
@@ -148,17 +149,18 @@ class FrontendWebService(HTTP.HTTPProcessor):
                        ['#rowC-1-1','orderList'],
                        ['#rowD-1-1','costdonut','costbreakdown.html'],
                        ['#floating-right','alertList'],
-                   ]
+                   ],
+                   CONTEXT_KEY: user_auth,
             }
             
             try:
                 AK.check_authorization(user, info['password'], AUTH_LENGTH)
+                # this means that the password was a pre-authenticated link
                 return (HTTP.OK_RESPONSE, json.dumps(ret), None)
             except:
                 # allow bogus password authentication if there is no optional SSL (test environment) 
                 # or if the user has a proper client SSL cert
                 if header.get_headers().get('VERIFIED','SUCCESS') == 'SUCCESS': 
-                    user_auth = AK.authorization_key(user,AUTH_LENGTH, LOGIN_TIMEOUT)
                     ret[CONTEXT_KEY]=user_auth
                     return (HTTP.OK_RESPONSE,json.dumps(ret), None)
                 else:
