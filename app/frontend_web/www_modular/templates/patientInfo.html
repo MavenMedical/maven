@@ -1,0 +1,70 @@
+<div class="pat-nav">
+  <nav class="navbar navbar-default navbar-fixed-top navbar-lower" role="navigation">
+    <div class="container" style="display:table">
+      <div class="col-sm-2 divider pat-info">
+        <div class="row pat-title">
+          Patient Name:
+	</div>
+	<div class="row">
+          <span id="pat-name"><b><%= name %></b></span> 
+	  <span style="white-space:nowrap">(<%= gender %>, <%= DOB %>)</span>
+	</div>
+      </div>
+      <div class="col-sm-3 divider pat-info">
+	<div class="row pat-sub">
+	  Problem List:
+	</div>
+	<div class="row">
+	  <%= ProblemList %>
+	</div>
+      </div>
+      <div class="col-sm-2 divider pat-info">
+	<div class="row pat-sub">
+	  Allergies:
+	</div>
+	<div class="row">
+	  <%= Allergies %>
+	</div>
+      </div>
+      <div class="col-sm-1 divider pat-info" >
+	<div class="row pat-sub">
+	  Admission:
+	</div>
+	<div class="row">
+	  NOTVALID
+	</div>
+      </div>
+      <div class="col-sm-1 divider pat-info" >
+	<div class="row pat-sub">
+	  LOS:
+	</div>
+	<div class="row">
+	  -1
+	</div>
+      </div>
+      <div class="col-sm-2 pat-info">
+	<div class="row pat-sub">
+	  Past Encounters:
+	</div>
+	<div class="row">
+	  <div class="btn-group">
+	    <button type="button" class="btn btn-xs btn-default"><a href="#episode/<%= encounters[0][0] %>/patient/<%= id %>">Most Recent</a></button>
+	    <button type="button" class="btn btn-xs btn-default dropdown-toggle" data-toggle="dropdown">
+	      <span class="caret"></span>
+	      <span class="sr-only">Toggle Dropdown</span>
+	    </button>
+	    <ul class="dropdown-menu" role="menu">
+	      <% _.each(encounters, function(enc) { %>
+	      <li><a href="#episode/<%= enc[0] %>/patient/<%= id %>"><%= enc[1] %></a></li>
+	      <% }); %> 
+	      <!--<li class="divider"></li>
+	      <li><a href="#">Show more Encounters</a></li>-->
+	    </ul>
+	  </div>
+
+	</div>
+      </div>
+    </div>
+  </nav>
+</div>
+<!-- /Patient Header -->

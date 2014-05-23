@@ -1,0 +1,178 @@
+body{
+    height: 100%;
+  margin-top: 50px;
+  background-color: #fff6f6;
+}
+
+.main-header{
+    color: #f6a828;
+    background-color: #46bdec;
+
+}
+
+.brand{
+    color: #ffffff;
+    font-size: 30px;
+
+}
+
+.page-title{
+    margin-left: 8px;
+    color: #ffffff;
+    font-size: 20px;
+}
+
+.dr{
+    color: #ffffff;
+}
+
+.navbar-lower{
+    top: 50px;
+    width: 100%;
+    background-color: #dff5fd;
+}
+
+.navbar-nav{
+    color: #ffffff;
+}
+
+.pat-nav{
+  height: 50px;
+
+}
+
+.divide-text{
+    color:#fff;
+    line-height: 20px;
+    font-size:20px;
+    padding: 15px 0;
+}
+
+.pat-title{
+    color: #46bdec;
+    font-size: 10px;
+    padding-bottom: 3px;
+    padding-top: 3px;
+}
+
+.pat-sub{
+    color: #46bdec;
+    font-size: 10px;
+    padding-bottom: 3px;
+    padding-top: 5px;
+}
+
+#pat-name{
+    font-size: 18px;
+}
+
+.col-sm-3{
+    margin-left: 5px;
+}
+
+.col-sm-2{
+    margin-left: 5px;
+}
+
+.col-sm-1{
+    margin-left: 5px;
+}
+.divider{
+    border-right: 1px solid #46bdec;
+}
+
+.content{
+    margin-top: 8px ;
+    background-color: #ffffff;
+    box-shadow: 1px 3px 8px rgba(0, 0, 0, 0.2);
+    color: #465766;
+}
+
+.side{
+    margin-left: -2px;
+    margin-top: 8px;
+    min-height: 100%;
+    background-color: #fffafa;
+    box-shadow: 1px 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+.headings {
+    font-family: 'Maven Pro', sans-serif;
+}
+
+.enc-date{
+    font-size: 15px;
+    margin-top: -10px;
+    margin-bottom: 10px;
+}
+
+.enc-date a{
+    font-size: 10px;
+}
+
+.title{
+    font-size: 20px;
+}
+
+.cost-num{
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.badge{
+    float: right;
+    color: #465766;
+    background-color: transparent;
+}
+
+.panel-default > .panel-heading {
+    color: #465766;
+    background-color: #dff5fd;
+}
+
+
+.alerts{
+    color: #46bdec;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.impact{
+    font-weight: bold;
+}
+
+.alert-type{
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.alert-type img{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+.center{
+    display: block;
+    text-align: center;
+}
+
+.chart-div{
+    margin-top: -60px;
+    width: 100%;
+    height: 350px;
+
+}
+
+.modal-body{
+    background-color: #fff6f6;
+}
+
+/* adjust the contents on smaller devices */
+@media (max-width: 768px) {
+.chart-div{
+    margin-top: -60px;
+    width: 100%;
+    height: 350px;
+}
+}

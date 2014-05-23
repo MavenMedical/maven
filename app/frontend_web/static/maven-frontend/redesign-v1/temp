@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>chart created with amCharts | amCharts</title>
+		<meta name="description" content="chart created using amCharts live editor" />
+
+		<!-- amCharts javascript sources -->
+		<script src="http://cdn.amcharts.com/lib/3/amcharts.js" type="text/javascript"></script>
+		<script src="http://cdn.amcharts.com/lib/3/pie.js" type="text/javascript"></script>
+
+		<!-- amCharts javascript code -->
+		<script type="text/javascript">
+			AmCharts.makeChart("chartdiv",
+				{
+					"type": "pie",
+					"pathToImages": "http://cdn.amcharts.com/lib/3/images/",
+					"balloonText": "[[title]]<br><span style='font-size:14px'><b>[[value]]</b> ([[percents]]%)</span>",
+					"depth3D": 2,
+					"innerRadius": "50%",
+					"labelText": "[[title]] <br>$[[column-1]]",
+					"baseColor": "#46BDEC",
+					"brightnessStep": 117.3,
+					"outlineThickness": 12,
+					"titleField": "category",
+					"valueField": "column-1",
+					"allLabels": [],
+					"balloon": {},
+					"titles": [],
+					"dataProvider": [
+						{
+							"category": "Medicine",
+							"column-1": "450"
+						},
+						{
+							"category": "Consults",
+							"column-1": "200"
+						},
+						{
+							"category": "Lab Works",
+							"column-1": "150"
+						},
+						{
+							"category": "Imaging",
+							"column-1": "100"
+						},
+						{
+							"category": "Procedures",
+							"column-1": "120"
+						},
+						{
+							"category": "Other",
+							"column-1": "80"
+						}
+					]
+				}
+			);
+		</script>
+	</head>
+	<body>
+
+	</body>
+</html>

@@ -1,0 +1,6 @@
+Access with a regular key worked
+Access for a different user failed
+Access with an explicitly shorter key worked
+Access with a shorter key, but without being explicit about it failed
+Access with a timed key worked
+Access with a timed key failed after the timeout

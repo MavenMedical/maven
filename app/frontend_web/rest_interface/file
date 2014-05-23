@@ -1,0 +1,6 @@
+HTTP/1.0 200 OK
+Content-Type: application/json
+Connection: Keep-Alive
+Content-length: 590
+
+[{"id": 1, "DOB": "05/03/1987", "name": "Jordon Severt", "key": "YHxOpzEI6rnRTKCCxLrtA7lMi4muhAC3", "gender": "Male", "diagnosis": "Asthma"}, {"id": 2, "DOB": "03/06/1986", "name": "Adaline Malachi", "key": "0+8ac+YFZyW+d2FoYjfi64Ey6JpFkUiR", "gender": "Female", "diagnosis": "Coccidiosis"}, {"id": 3, "DOB": "08/03/1999", "name": "Jefferson Lariviere", "key": "EqH1ODNv5l+Z9SKGibmlZtl+j9x0Ugoo", "gender": "Male", "diagnosis": "Food poisoning"}, {"id": 4, "DOB": "11/07/1935", "name": "Beulah Gay", "key": "5xcD/R1BjciumgK9e5xNzgUvh3RCCZlk", "gender": "Female", "diagnosis": "Giardiasis"}]
