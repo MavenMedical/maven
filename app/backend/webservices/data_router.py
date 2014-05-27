@@ -38,13 +38,14 @@ class IncomingMessageHandler(SP.StreamProcessor):
 
     @asyncio.coroutine
     def read_object(self, obj, key2):
-        obj_list = json.loads(obj.decode())
-        json_composition = obj_list[0]
+        #obj_list = json.loads(obj.decode())
+        obj_list = pickle.loads(obj)
+        composition = obj_list[0]
         key1 = obj_list[1]
-        if json_composition['type'] == "CostEvaluator":
-            composition = FHIR_API.Composition().create_composition_from_json(json_composition)
-            composition.maven_route_key = [key1, key2]
-            self.write_object(composition, writer_key="CostEval")
+
+        #composition = api.Composition().create_composition_from_json(json_composition)
+        composition.write_key = [key1, key2]
+        self.write_object(composition, writer_key="CostEval")
 
 
 class OutgoingMessageHandler(SP.StreamProcessor):

@@ -33,10 +33,10 @@ class FHIR_PythonObjectGenerator():
         self.templateEnv = jinja2.Environment(loader=self.templateLoader)
 
         self.data_types_lib_template = self.templateEnv.get_template("pyfhir_datatypes_lib_template.jinja2")
-        self.complex_datatype_template = self.templateEnv.get_template("data_type.jinja2")
+        self.complex_datatype_template = self.templateEnv.get_template("data_type_template.jinja2")
 
         self.pyfhir_lib_template = self.templateEnv.get_template("pyfhir_lib_template.jinja2")
-        self.pyfhir_resource_template = self.templateEnv.get_template("pyfhir_resource.jinja2")
+        self.pyfhir_resource_template = self.templateEnv.get_template("pyfhir_resource_template.jinja2")
         self.compositionResourceCustomMethods = compositionResourceCustomMethods
         self.patientResourceCustomMethods = patientResourceCustomMethods
         self.encounterResourceCustomMethods = encounterResourceCustomMethods
@@ -116,6 +116,8 @@ class FHIR_PythonObjectGenerator():
             #o = type('referenceRange', (object,), {"low": None, "high": None, "meaning": None})
 
             if class_name != "DocumentReference":
+                if class_name == "Composition":
+                    pass
             
                 for attb in rsc_json['structure'][0]['element']:
                     nested_attb = attb['path'].split(".")
@@ -133,7 +135,7 @@ class FHIR_PythonObjectGenerator():
                         else:
                             attb_IS_LIST = False
 
-                        if "type" in attb_keys and attb_IS_LIST:
+                        if attb_IS_LIST:
                             if nested_attb_length == 2:
                                 attb_name = nested_attb[1].strip("[x]")
                                 if keyword.iskeyword(attb_name):
@@ -351,13 +353,14 @@ compositionResourceCustomMethods = """
         return problem_list
 
     def get_encounter_orders(self):
-        orders_list = []
+        enc_orders_section = self.get_section_by_coding("http://loinc.org", "46209-3")
+        return enc_orders_section.content
 
+    def get_section_by_coding(self, code_system, code_value):
         for sec in self.section:
-            if sec.title == "Encounter Orders":
-                for ord in sec.content:
-                    orders_list.append(ord)
-        return orders_list
+            for coding in sec.code.coding:
+                if coding.system == code_system and coding.code == code_value:
+                    return sec
 
     def get_proc_supply_details(self, order):
         proc_supply_list = []

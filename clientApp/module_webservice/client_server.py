@@ -33,6 +33,9 @@ class OutgoingToMavenMessageHandler(HR.HTTPReader):
 
     def __init__(self, configname, wk):
         HR.HTTPReader.__init__(self, configname)
+
+        #TODO - Need to change the EMR Parser based on config
+        #self.emr_parser = VistaParser()
         self.wk = wk
 
     @asyncio.coroutine
@@ -41,9 +44,8 @@ class OutgoingToMavenMessageHandler(HR.HTTPReader):
         param: obj is list of headers, body
         param: key is key
         """
-        header = obj[0]
+        #header = obj[0]
         try:
-            self.sslauth(header.get_headers())
             body = obj[1]
             if not len(body):
                 self.write_object(HR.wrap_response(HR.BAD_RESPONSE,b'',None), key)
@@ -52,12 +54,9 @@ class OutgoingToMavenMessageHandler(HR.HTTPReader):
                 composition = yield from self.create_composition(message)
                 if not 'MAVEN_TESTING' in os.environ:
                     ML.PRINT(json.dumps(json.dumps([composition, key], default=FHIR_API.jdefault,sort_keys=True),sort_keys=True))
-                self.write_object(json.dumps([composition, key], default=FHIR_API.jdefault,sort_keys=True).encode(), self.wk)
-        except HR.UnauthorizedRequest:
-            try:
-                self.write_object(HR.wrap_response(HR.UNAUTHORIZED_RESPONSE,b'',None), key)
-            except:
-                pass
+
+                #self.write_object(json.dumps([composition, key], default=FHIR_API.jdefault,sort_keys=True).encode(), self.wk)
+                self.write_object(pickle.dumps([composition, key]), self.wk)
 
         except:
             try:
@@ -179,7 +178,6 @@ def main(loop):
         sp_consumer.close()
         sp_producer.close()
         loop.close()
-
 
 if __name__ == '__main__':
     ML.DEBUG = ML.stdout_log
