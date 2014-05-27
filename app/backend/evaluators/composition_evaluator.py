@@ -36,6 +36,7 @@ from utils.api.pyfhir.fhir_datatypes import Section
 import utils.streaming.stream_processor as SP
 import maven_config as MC
 import datetime
+from collections import defaultdict
 
 
 class CompositionEvaluator(SP.StreamProcessor):
@@ -76,16 +77,41 @@ class CompositionEvaluator(SP.StreamProcessor):
         encounter_cost_breakdown = []
 
         orders = composition.get_encounter_orders()
+
+        # This block is the original code Yuki wrote.  It makes potentially many calls to the database.
+        # I (Tom) re-wrote this to make a single sql query, but be functionally equivalent.  
+        # Yuki's code is easier to follow, so I'm leaving it here
+        #orders = composition.get_encounter_orders()
+        #for order in orders:
+        #    order.totalCost = 0.00
+        #    order_details = composition.get_proc_supply_details(order)
+        #
+        #    for detail in order_details:
+        #        cur = yield from self.conn.execute_single("select cost_amt from costmap where billing_code=%s", extra=[detail[0]])
+        #        for result in cur:
+        #            order.totalCost += float(result[0])
+        #            encounter_cost_breakdown.append([detail[1], float(result[0])])
+        #        cur.close()
+
+        # build the query and maps
+        ordersdict = defaultdict(lambda: [])
+        detailsdict = defaultdict(lambda: [])
         for order in orders:
             order.totalCost = 0.00
             order_details = composition.get_proc_supply_details(order)
-
             for detail in order_details:
-                cur = yield from self.conn.execute_single("select cost_amt from costmap where billing_code=%s", extra=[detail[0]])
-                for result in cur:
-                    order.totalCost += float(result[0])
-                    encounter_cost_breakdown.append([detail[1], float(result[0])])
-                cur.close()
+                ordersdict[detail[0]].append(order)
+                detailsdict[detail[0]].append(detail)
+
+        cur = yield from self.conn.execute_single("SELECT cost_amt, billing_code FROM costmap WHERE billing_code IN %s", extra=[tuple(ordersdict.keys())])
+
+        # process the results
+        for result in cur:
+            cost = float(result[0])
+            for order in ordersdict[result[1]]:
+                order.totalCost += cost
+            for detail in detailsdict[result[1]]:
+                encounter_cost_breakdown.append([detail[1], cost])
 
         return composition.section.append(Section(title="Encounter Cost Breakdown", content=encounter_cost_breakdown))
 

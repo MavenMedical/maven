@@ -24,7 +24,7 @@ import uuid
 
 import dateutil.parser
 
-import utils.api.pyfhir.pyfhir as api
+import utils.api.pyfhir.pyfhir as FHIR_API
 
 
 class EpicParser():
@@ -34,7 +34,7 @@ class EpicParser():
         pass
 
     def create_composition(self, xml_root):
-        composition = api.Composition(type="CostEvaluator")
+        composition = FHIR_API.Composition(type="CostEvaluator")
 
         if "PatientDemographics" in xml_root.tag:
             composition.subject = self.parse_demographics(xml_root)
@@ -71,7 +71,7 @@ class EpicParser():
 
         try:
             #Create Patient from the API using data from above
-            pat = api.Patient()
+            pat = FHIR_API.Patient()
             pat.add_name(given=[self.firstName], family=[self.lastName])
             pat.add_maven_identifier(value=uuid.uuid1())
             pat.identifier.append(Identifier(system='NationalIdentifier', value=self.patientId))
@@ -89,14 +89,14 @@ class EpicParser():
         :param xml_contact: XML Encounter Contact from EPIC
         """
 
-        pat_encounter = api.Encounter()
+        pat_encounter = FHIR_API.Encounter()
 
         try:
             root = ET.fromstring(xml_contact)
             contactDateTime = dateutil.parser.parse(root.findall(".//DateTime")[0].text)
             pat_encounter.period = Period(start=contactDateTime)
             department = root.findall(".//DepartmentName")[0].text
-            pat_encounter.department = api.Location(name=department)
+            pat_encounter.department = FHIR_API.Location(name=department)
             depids = root.findall(".//DepartmentIDs/IDType")
             for dp in depids:
                 if "internal" in dp.findall(".//Type")[0].text.lower():
@@ -144,19 +144,19 @@ class EpicParser():
             ord_code_type = ord.findall(".//CodeType")[0].text
             ord_type = ord.findall(".//Type")[0].text
 
-            procedure = api.Procedure()
+            procedure = FHIR_API.Procedure()
             procedure.type = ord_type
             procedure.name = ord_name
             procedure.identifier.append(Identifier(system="clientEMR", label="name", value=ord_name))
             procedure.identifier.append(Identifier(system="clientEMR", label=ord_code_type, value=ord_code))
 
-            encounter_orders.append(api.Order(detail=[procedure], text=ord_name))
+            encounter_orders.append(FHIR_API.Order(detail=[procedure], text=ord_name))
 
         return encounter_orders
 
     def parse_medical_problem(self, xmlIn, pat, enc):
 
-        prob = api.Condition(encounter=enc.id, subject=pat.id)
+        prob = FHIR_API.Condition(encounter=enc.id, subject=pat.id)
         root = xmlIn
         dxid = root.findall(".//DiagnosisIDs/IDType")
         # Loop through the dx ID's in this list until the internal one. Use that to instantiate a new DX Object
@@ -191,7 +191,7 @@ class EpicParser():
 class VistaParser():
 
     def create_composition(self, xml_enc):
-        composition = api.Composition(type="CostEvaluator")
+        composition = FHIR_API.Composition(type="CostEvaluator")
         enc_root = ET.fromstring(xml_enc)
         composition.customer_id = 1
 
@@ -202,15 +202,15 @@ class VistaParser():
                                                                            label="Internal",
                                                                            value=child.text))
                 else:
-                    composition.encounter = api.Encounter()
+                    composition.encounter = FHIR_API.Encounter()
                     composition.encounter.identifier.append(Identifier(system="clientEMR",
                                                                            label="Internal",
                                                                            value=child.text))
 
             elif "ProvID" in child.tag:
                 if composition.encounter is None:
-                    composition.encounter = api.Encounter()
-                practitioner = api.Practitioner()
+                    composition.encounter = FHIR_API.Encounter()
+                practitioner = FHIR_API.Practitioner()
                 practitioner.add_identifier(system="clientEMR",
                                             label="Internal",
                                             value=child.text)
@@ -261,7 +261,7 @@ class VistaParser():
 
         try:
             #Create Patient from the API using data from above
-            patient = api.Patient()
+            patient = FHIR_API.Patient()
             patient.add_name(given=[firstName], family=[lastName])
             patient.add_maven_identifier(value=uuid.uuid1())
             patient.identifier.append(Identifier(system='NationalIdentifier', value=patientSSN))
@@ -294,12 +294,12 @@ class VistaParser():
                 ord_datetime = dateutil.parser.parse(datetime)
 
 
-                procedure = api.Procedure()
+                procedure = FHIR_API.Procedure()
                 procedure.type = ord_type
                 procedure.name = ord_name
                 procedure.date = ord_datetime
                 procedure.identifier.append(Identifier(system="clientEMR", label=ord_code_type, value=ord_code))
-                encounter_orders.append(api.Order(detail=[procedure], text=ord_name))
+                encounter_orders.append(FHIR_API.Order(detail=[procedure], text=ord_name))
         except:
             raise Exception("Error parsing Vista Encounter Orders")
 
@@ -319,7 +319,7 @@ class VistaParser():
         return problem_list
 
     def parse_condition(self, xml_root):
-        prob = api.Condition()
+        prob = FHIR_API.Condition()
         dx_IDs = xml_root.findall(".//DiagnosisIDs/IDType")
         # Loop through the dx ID's in this list until the internal one. Use that to instantiate a new DX Object
         for id in dx_IDs:
