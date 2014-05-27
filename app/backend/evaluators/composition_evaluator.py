@@ -56,6 +56,7 @@ class CompositionEvaluator(SP.StreamProcessor):
         #Look up prices via costmap and create new "Encounter Cost Breakdown" section that is added to Composition
         composition = pickle.loads(obj)
         yield from self.evaluate_encounter_cost(composition)
+        yield from self.evaluate_duplicate_labs(composition)
 
         #TODO Logic to check if recently alerted (will involved look-up in DB.This type of caching would be nice via REDIS)
 
@@ -114,6 +115,22 @@ class CompositionEvaluator(SP.StreamProcessor):
                 encounter_cost_breakdown.append([detail[1], cost])
 
         return composition.section.append(Section(title="Encounter Cost Breakdown", content=encounter_cost_breakdown))
+
+    @asyncio.coroutine
+    def evaluate_duplicate_labs(self):
+        #Check to see if there's been an exact duplicate lab ordered recently
+        yield from self.evaluate_recent_labs()
+
+        #Check to see if there are relevant lab components to be displayed
+        yield from self.evaluate_recent_lab_results()
+
+    @asyncio.coroutine
+    def evaluate_recent_labs(self):
+        pass
+
+    @asyncio.coroutine
+    def evaluate_recent_lab_results(self):
+        pass
 
     @asyncio.coroutine
     def get_matching_sleuth_rules(self, composition):

@@ -24,10 +24,10 @@ from utils.api.pyfhir.fhir_datatypes import *
 
 class Resource():
 
-    def __init__(self, customer_id=None, name_space=None, logicalId=None, versionId=1, lastModifiedDate=None, identifier=None, text=None, resourceType=None):
+    def __init__(self, customer_id=None, name_space=None, id=None, versionId=1, lastModifiedDate=None, identifier=None, text=None, resourceType=None):
         self.customer_id = customer_id
         self.name_space = name_space
-        if logicalId is None:
+        if id is None:
             self.id = uuid.uuid1()
         if versionId is None:
             self.version_id = versionId
@@ -88,3 +88,43 @@ def jdefault(o):
     else:
         if hasattr(o, '__dict__') and o is not None:
             return o.__dict__
+
+
+class Bundle(Resource):
+
+    def __init__(self,
+        customer_id=None,
+        name_space=None,
+        identifier=None,
+        versionId=None,
+        resourceType="Bundle",
+        title=None,
+        lastModifiedDate=None,
+        id=None,
+        link=None,
+        category=None,
+        entry=None,
+        totalResults=None):
+        Resource.__init__(self,
+                          customer_id=customer_id,
+                          name_space=name_space,
+                          identifier=identifier,
+                          versionId=versionId,
+                          id=id,
+                          resourceType=resourceType,
+                          lastModifiedDate=lastModifiedDate)
+        self.title = title
+        self.link = link
+        self.category = category
+        self.totalResults = totalResults
+
+        if entry is None:
+            self.entry = []
+        if category is None:
+            self.category = []
+
+
+class Section():
+
+    def __init__():
+

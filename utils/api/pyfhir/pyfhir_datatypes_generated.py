@@ -4,6 +4,14 @@ class Element():
         self.modifierExtension = modifierExtension
 
 
+class Section():
+
+    def __init__(self, title=None, code=None, subject=None, content=None):
+        self.title = title
+        self.code = code
+        self.subject = subject
+        self.content = content
+
 
 class Address(Element):
     """
