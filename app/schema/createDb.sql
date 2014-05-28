@@ -1134,6 +1134,39 @@ $$
 ALTER FUNCTION upsert_encounterdx(character varying(100), character varying(100), character varying(36), character varying(200), character varying(1), character varying(1), numeric(18,0))
   OWNER TO maven;
 
+
+
+
+CREATE TABLE condition
+(
+  pat_id character varying(100),
+  customer_id numeric(18,0),
+  encounter_id character varying(100),
+  dx_category character varying(25),
+  status character varying(25),
+  date_asserted timestamp without time zone,
+  date_resolved timestamp without time zone,
+  snomed_id bigint,
+  dx_code_id character varying(25),
+  dx_code_system character varying(255),
+  dx_text character varying,
+  is_principle boolean,
+  is_chronic boolean,
+  is_poa boolean -- True-False is the Diagnosis record Present on Arrival
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE condition
+  OWNER TO maven;
+COMMENT ON COLUMN condition.is_poa IS 'True-False is the Diagnosis record Present on Arrival';
+
+create index ixconditionpatdatsno on condition(customer_id,pat_id,date_asserted,snomed_id);
+create index ixconditionpatdates on condition(customer_id,pat_id,date_asserted,date_resolved);
+create index ixconditionpatstatus on condition(customer_id,pat_id,status);
+
+
+
 create schema rules ;
 
 create table rules.eviRule
@@ -1144,12 +1177,13 @@ create table rules.eviRule
   maxAge numeric(18,2),
   sex varchar(1),
   codeType varchar(20),
-  details text,
+  remainingDetails text,
+  fullspec text,
   comments text
 );
 alter table rules.evirule owner to maven;
-create index ixRulePk on eviRule(ruleId);
-create index ixRuleTypeAgeSex on eviRule(codeType,minAge,maxAge,sex);
+create index ixRulePk on rules.eviRule(ruleId);
+create index ixRuleTypeAgeSex on rules.eviRule(codeType,minAge,maxAge,sex);
 
 create table rules.trigCodes
 (
@@ -1167,20 +1201,27 @@ create table rules.codeLists
   ,listType varchar(20)
   ,isIntersect boolean
   ,intList bigint[]
+  ,framemin int
+  ,framemax int
 );
 alter table rules.codeLists owner to maven;
 create index ixruleCodeListsId on rules.codelists(ruleid);
 --CREATE INDEX rules.ixcodelistgin rules.codelists USING gin(intlist);
 
-create or replace function rules.comparisonArray(listType varchar(20),encSnomeds bigint[],probsnomeds bigint[],patid varchar(100))
+create or replace function rules.comparisonArray(listType varchar(20),encSnomeds bigint[],probsnomeds bigint[],patid varchar(100),framemin int,framemax int,customer int)
 returns bigint[] as $$
+declare rtn bigint[];
 begin
 	if listType='PL' then
 		return probsnomeds;
 	elsif listtype='ENC' then
 		return encSnomeds;
 	elsif listtype='DXHX' then
-		return encsnomeds||probsnomeds;
+		select encsnomeds||probsnomeds||array_agg(snomed_id) into rtn  
+			from public.condition a 
+			where a.pat_id=patid and a.customer_id=customer and  current_date+framemin<=date_asserted and current_date+framemax>=date_asserted
+			group by a.pat_id ;
+		return rtn;
 	else 
 		return null;
 	end if;
@@ -1188,11 +1229,12 @@ end;
 $$
 language plpgsql;
 
-create or replace function rules.evalRules(orderCode varchar, ordcodeType varchar, patAge numeric(18,2), patSex varchar, encSnomeds bigint[], probSnomeds bigint[],patid varchar(100))
+
+create or replace function rules.evalRules(orderCode varchar, ordcodeType varchar, patAge numeric(18,2), patSex varchar, encSnomeds bigint[], probSnomeds bigint[],patid varchar(100),customer int)
 returns table (ruleid int, name varchar,details text) as $$
 begin
                 return query execute
-                'select x.ruleid,x.name,x.details from 
+                'select x.ruleid,x.name,x.remainingDetails from 
                 (
                 select a.ruleid
                 from rules.eviRule a
@@ -1203,9 +1245,9 @@ begin
                    and a.minage<=$3 and a.maxage>=$3
                    and $4 like a.sex
                 group by a.ruleid
-                having min(case when c.isIntersect=(rules.comparisonArray(c.listType,$5,$6,$7)&&c.intList) then 1 else 0 end)=1 
+                having min(case when c.isIntersect=(rules.comparisonArray(c.listType,$5,$6,$7,c.framemin,c.framemax,$8)&&c.intList) then 1 else 0 end)=1 
                 ) sub inner join rules.evirule x on sub.ruleid=x.ruleid'
-                using orderCode , ordcodeType , patAge , patSex , encSnomeds , probSnomeds ,patid
+                using orderCode , ordcodeType , patAge , patSex , encSnomeds , probSnomeds ,patid,customer
                 ;
                    
 end;
