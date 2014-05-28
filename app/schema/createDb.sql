@@ -1134,7 +1134,9 @@ $$
 ALTER FUNCTION upsert_encounterdx(character varying(100), character varying(100), character varying(36), character varying(200), character varying(1), character varying(1), numeric(18,0))
   OWNER TO maven;
 
-create table public.eviRule
+create schema rules ;
+
+create table rules.eviRule
 (
   ruleId int primary key,
   name varchar(200) ,
@@ -1145,60 +1147,68 @@ create table public.eviRule
   details text,
   comments text
 );
-alter table public.evirule owner to maven;
-create index ixEviRuleIdPk on eviRule(ruleId);
-create index ixEviRuleTypeAgeSex on eviRule(codeType,minAge,maxAge,sex);
+alter table rules.evirule owner to maven;
+create index ixRulePk on eviRule(ruleId);
+create index ixRuleTypeAgeSex on eviRule(codeType,minAge,maxAge,sex);
 
-create table public.ruleTrigCodes
+create table rules.trigCodes
 (
   ruleId int,
   code varchar(50),
   primary key (ruleId,code)
 );
-alter table public.ruleTrigCodes owner to maven;
-create index ixRuleTrigCodePk on ruleTrigCodes(ruleId,code);
-create index ixRuleTrigCodeCode on ruleTrigCodes(code,ruleId);
+alter table rules.trigCodes owner to maven;
+create index ixTrigCodePk on rules.trigCodes(ruleId,code);
+create index ixTrigCodeCode on rules.trigCodes(code,ruleId);
 
-create table public.ruleEncDx
+create table rules.codeLists
 (
-  ruleId int,
-  snomed numeric(18,0),
-  primary key (ruleId,snomed)
+  ruleId int
+  ,listType varchar(20)
+  ,isIntersect boolean
+  ,intList bigint[]
 );
-alter table public.ruleEncDx owner to maven;
-create index ixRuleEncDxPk on ruleEncDx(ruleId,snomed);
+alter table rules.codeLists owner to maven;
+create index ixruleCodeListsId on rules.codelists(ruleid);
+--CREATE INDEX rules.ixcodelistgin rules.codelists USING gin(intlist);
 
-create table public.ruleProbList
-(
-  ruleId int,
-  snomed numeric(18,0),
-  primary key (ruleId, snomed)
-);
-alter table public.ruleProbList owner to maven;
-create index ixRuleProbListPk on ruleProbList(ruleId,snomed);
-
-create or replace function public.getMatchingRules(orderCode varchar, ordcodeType varchar, patAge numeric(18,2), patSex varchar, encSnomeds bigint[], problistSnomeds bigint[])
-returns table (ruleid int, name varchar,details text) as $$
+create or replace function rules.comparisonArray(listType varchar(20),encSnomeds bigint[],probsnomeds bigint[],patid varchar(100))
+returns bigint[] as $$
 begin
-	return query select distinct a.ruleid,a.name,a.details 
-	from public.evirule a
-	inner join public.ruleTrigCodes b on a.ruleid=b.ruleid
-	left outer join public.ruleEncDx c on a.ruleid=c.ruleid
-	left outer join terminology.conceptancestry d on d.ancestor=c.snomed and d.child = any (encsnomeds)
-	left outer join public.ruleProbList e on a.ruleid=e.ruleid
-	left outer join terminology.conceptancestry f on f.ancestor=e.snomed and f.child = any (problistsnomeds)
-	where 
-	   a.codetype=ordcodeType
-	   and b.code=ordercode
-	   and a.minage<=patAge and a.maxage>=patAge
-	   and (a.sex=patSex  or a.sex='*')
-	   and (c.ruleid is null or d.child is not null)--either there are no enc restritions or the restricions match the encounter
-	   and (e.ruleid is null or f.child is not null)--either there are no problist restritions or the restricions match the patient
-	;
-	   
+	if listType='PL' then
+		return probsnomeds;
+	elsif listtype='ENC' then
+		return encSnomeds;
+	elsif listtype='DXHX' then
+		return encsnomeds||probsnomeds;
+	else 
+		return null;
+	end if;
 end;
 $$
 language plpgsql;
-alter function public.getMatchingRules( varchar,  varchar,  numeric(18,2),  varchar,  bigint[],  bigint[]) owner to maven;
 
+create or replace function rules.evalRules(orderCode varchar, ordcodeType varchar, patAge numeric(18,2), patSex varchar, encSnomeds bigint[], probSnomeds bigint[],patid varchar(100))
+returns table (ruleid int, name varchar,details text) as $$
+begin
+                return query execute
+                'select x.ruleid,x.name,x.details from 
+                (
+                select a.ruleid
+                from rules.eviRule a
+		  inner join rules.trigCodes b on a.ruleId=b.ruleId and b.code=$1
+		  inner join rules.codeLists c on a.ruleId=c.ruleId
+                where 
+                   a.codetype=$2
+                   and a.minage<=$3 and a.maxage>=$3
+                   and $4 like a.sex
+                group by a.ruleid
+                having min(case when c.isIntersect=(rules.comparisonArray(c.listType,$5,$6,$7)&&c.intList) then 1 else 0 end)=1 
+                ) sub inner join rules.evirule x on sub.ruleid=x.ruleid'
+                using orderCode , ordcodeType , patAge , patSex , encSnomeds , probSnomeds ,patid
+                ;
+                   
+end;
+$$
+language plpgsql;
 
