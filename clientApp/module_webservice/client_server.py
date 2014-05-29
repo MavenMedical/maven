@@ -99,7 +99,7 @@ class IncomingFromMavenMessageHandler(HR.HTTPWriter):
         ML.DEBUG(json.dumps(composition, default=FHIR_API.jdefault, indent=4))
         ML.DEBUG("NOTIFY HTML BODY: " + alert_notification_content)
 
-        return (HR.OK_RESPONSE, alert_notification_content, [], composition.maven_route_key[0])
+        return (HR.OK_RESPONSE, alert_notification_content, [], composition.write_key[0])
 
 
 def main(loop):

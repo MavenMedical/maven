@@ -29,7 +29,7 @@ def write_composition_to_db(composition, conn):
     yield from write_composition_patient(composition, conn)
     yield from write_composition_encounter(composition, conn)
     yield from write_composition_json(composition, conn)
-    yield from write_composition_encounterdx(composition, conn)
+    yield from write_composition_conditions(composition, conn)
     yield from write_composition_encounter_orders(composition, conn)
 
 @asyncio.coroutine
@@ -58,7 +58,8 @@ def write_composition_encounter(composition, conn):
         pat_id = composition.subject.get_pat_id()
         encounter_type = "Emergency"
         encounter_date = "2014-03-24"
-        provider_id = composition.encounter.get_prov_id()
+        #provider_id = composition.encounter.get_prov_id()
+        provider_id = composition.get_author_id()
         bill_prov_id = "32209837"
         encounter_dep = 1235234
         encounter_admit_time = "2014-03-24T08:45:23"
@@ -86,15 +87,36 @@ def write_composition_json(composition, conn):
         raise Exception("Error inserting JSON composition into database")
 
 @asyncio.coroutine
-def write_composition_encounterdx(composition, conn):
+def write_composition_conditions(composition, conn):
     try:
         pat_id = composition.subject.get_pat_id()
         customer_id = composition.customer_id
-        encID = composition.encounter.get_csn()
-        problem_list = composition.get_encounter_problem_list()
-        for problem in problem_list:
-            dx_ID = problem.get_problem_ID().value
-            cur = conn.execute_single("SELECT upsert_encounterdx(%s, %s, %s, NULL, NULL, NULL, %s)", extra=[pat_id, encID, dx_ID, customer_id])
+        encounter_id = composition.encounter.get_csn()
+        condition_list = composition.get_encounter_conditions()
+        for condition in condition_list:
+            snomed_id = condition.get_snomed_id()
+            dx_code_id = condition.get_ICD9_id()
+            if dx_code_id is not None:
+                dx_code_system = "ICD-9"
+            else:
+                dx_code_system = None
+
+            columns = [pat_id,
+                       customer_id,
+                       encounter_id,
+                       condition.category,
+                       condition.status,
+                       condition.dateAsserted,
+                       condition.abatementDate,
+                       snomed_id,
+                       dx_code_id,
+                       dx_code_system,
+                       condition.text,
+                       condition.isPrincipal,
+                       condition.abatementBoolean,
+                       condition.presentOnArrival]
+            #dx_ID = condition.get_problem_ID().value
+            cur = yield from conn.execute_single("SELECT upsert_condition(%s, %s, %s, %s, %s, %s, %s, %s::bigint, %s, %s, %s, %s, %s, %s)", extra=columns)
             cur.close()
 
     except:
@@ -109,10 +131,10 @@ def write_composition_encounter_orders(composition, conn):
         order_datetime = datetime.datetime.now()
         orders = composition.get_encounter_orders()
         for order in orders:
-            order_name = order.detail[0].name
-            order_type = order.detail[0].type
-            order_code = order.detail[0].identifier[0].value
-            order_code_type = "maven"
+            order_name = order.detail[0].text
+            order_type = order.detail[0].resourceType
+            order_code = order.detail[0].type.coding[0].code
+            order_code_type = order.detail[0].type.coding[0].system
             order_cost = float(order.totalCost)
             active = True
 
