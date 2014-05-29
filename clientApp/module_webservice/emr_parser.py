@@ -263,7 +263,7 @@ class VistaParser():
             raise Exception('Error parsing XML demographics')
 
         try:
-            composition.subject.add_name(given=[firstName], family=[lastName])
+            composition.subject.add_name(given=firstName, family=lastName)
             composition.subject.birthDate = birthDate
             composition.subject.gender = gender
             composition.subject.maritalStatus = maritalStatus
@@ -297,7 +297,7 @@ class VistaParser():
             for enc_ord in xml_root.findall(".//Order"):
                 ord_id = enc_ord.findall(".//ID")[0].text
                 ord_name = enc_ord.findall(".//Name")[0].text
-                ord_code = enc_ord.findall(".//ProcedureCode")[0].text
+                procedure_code = enc_ord.findall(".//ProcedureCode")[0].text
                 ord_code_type = enc_ord.findall(".//CodeType")[0].text
                 if ord_code_type is None:
                     ord_code_type = "Internal"
@@ -309,12 +309,11 @@ class VistaParser():
                     if ord_type == "PROC":
                         fhir_identifier = FHIR_API.Identifier(system="clientEMR", value=ord_id, label="Internal")
                         fhir_codeableconcept = FHIR_API.CodeableConcept()
-                        fhir_codeableconcept.coding.append(FHIR_API.Coding(system=ord_code_type, code=ord_code))
+                        fhir_codeableconcept.coding.append(FHIR_API.Coding(system=ord_code_type, code=procedure_code))
+                        fhir_codeableconcept.text = "Procedure"
 
-                        procedure = FHIR_API.Procedure(date=ord_datetime,
-                                                       text=ord_name)
+                        procedure = FHIR_API.Procedure(date=ord_datetime, text=ord_name, type=fhir_codeableconcept)
                         procedure.identifier.append(fhir_identifier)
-                        procedure.type = fhir_codeableconcept
 
                         encounter_orders.append(FHIR_API.Order(detail=[procedure], text=ord_name))
 
@@ -325,7 +324,7 @@ class VistaParser():
                         pass
 
                 else:
-                    fhir_identifier = FHIR_API.Identifier(system="clientEMR", value=ord_code, label=ord_code_type)
+                    fhir_identifier = FHIR_API.Identifier(system="clientEMR", value=procedure_code, label=ord_code_type)
                     procedure = FHIR_API.Procedure(date=ord_datetime, text=ord_name)
                     procedure.identifier.append(fhir_identifier)
 
@@ -358,9 +357,11 @@ class VistaParser():
 
     def _parse_condition(self, xml_root):
         prob = FHIR_API.Condition()
-        dx_IDs = xml_root.findall(".//DiagnosisIDs/IDType")
+        prob.status = "confirmed"
+        prob.category = "encounter"
+        prob.dateAsserted = dateutil.parser.parse(xml_root.findall(".//NotedDate")[0].text)
 
-        for id in dx_IDs:
+        for id in xml_root.findall(".//DiagnosisIDs/IDType"):
             dx_code_type = id.findall(".//Type")[0].text.lower()
             dx_code_value = id.findall(".//ID")[0].text
 
@@ -372,11 +373,9 @@ class VistaParser():
                     prob.code = FHIR_API.CodeableConcept()
                 prob.code.coding.append(FHIR_API.Coding(system=dx_code_type, code=dx_code_value))
 
-        prob.dateAsserted = dateutil.parser.parse(xml_root.findall(".//NotedDate")[0].text)
-
         chron = xml_root.findall(".//IsChronic")[0].text
         if chron is not None and "true" in chron.lower():
-            prob.stage = "Chronic"
+            prob.abatementBoolean = False
 
         hosp = xml_root.findall(".//IsHospitalProblem")[0].text
         if hosp is not None and "true" in hosp.lower():
@@ -391,6 +390,12 @@ class VistaParser():
             prob.isPrincipal = True
 
         return prob
+
+
+class HL7_LabFeedParser():
+    def __init__(self):
+        pass
+
 
 def delete_none(d):
     for key, value in d.items():
