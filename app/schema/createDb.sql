@@ -1165,7 +1165,38 @@ create index ixconditionpatdatsno on condition(customer_id,pat_id,date_asserted,
 create index ixconditionpatdates on condition(customer_id,pat_id,date_asserted,date_resolved);
 create index ixconditionpatstatus on condition(customer_id,pat_id,status);
 
+CREATE TABLE observation
+(
+  customer_id numeric(18,0),
+  encounter_id character varying(100),
+  order_id numeric(18,0),
+  pat_id character varying(100),
+  status character varying (254),
+  result_time timestamp without time zone,
+  comments character varying(254),
+  numeric_result double precision,
+  units character varying (254),
+  reference_low character varying(50),
+  reference_high character varying(50),
+  reference_unit character varying(100),
+  method character varying (254),
+  loinc_code character varying(254),
+  snomed_id bigint,
+  code_id character varying (254),
+  code_system character varying (254),
+  name character varying(254),
+  component_id numeric(18,0),
+  external_name character varying(75),
+  base_name character varying(75),
+  common_name character varying(254)
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE observation
+  OWNER TO maven;
 
+ create index ixobsPatLoincDate on observation(customer_id,pat_id,loinc_code,result_time,numeric_result);
 
 create schema rules ;
 
@@ -1208,6 +1239,46 @@ alter table rules.codeLists owner to maven;
 create index ixruleCodeListsId on rules.codelists(ruleid);
 --CREATE INDEX rules.ixcodelistgin rules.codelists USING gin(intlist);
 
+create  table rules.labeval(
+	ruleid int
+	,loinc_codes varchar[]
+	,threshold double precision
+	,relation varchar(1)
+	,framemin int
+	,framemax int
+	,defaultval boolean
+);
+create  index ixlabevalRule on rules.labeval(ruleid,loinc_codes);
+
+ create or replace function rules.evalLabs(cust int, pat varchar(100),framemin int, framemax int, defval boolean,relation varchar(1),comparison double precision,loincs varchar[])
+ returns boolean
+ as $$
+ declare 
+	rtn int;
+ begin
+	if relation='<' then
+		select max(case when numeric_result<comparison then 1 else 0 end) into rtn
+		from public.observation a
+		where a.customer_id=cust and a.pat_id=pat and a.loinc_code=any(loincs) 
+		  and current_date+framemin<=result_time and current_date+framemax>=result_time;
+	elsif relation='>' then
+		select max(case when numeric_result>comparison then 1 else 0 end) into rtn
+		from public.observation a
+		where a.customer_id=cust and a.pat_id=pat and a.loinc_code=any(loincs) 
+		  and current_date+framemin<=result_time and current_date+framemax>=result_time;
+	elsif relation='=' then
+		select max(case when numeric_result=comparison then 1 else 0 end) into rtn
+		from public.observation a
+		where a.customer_id=cust and a.pat_id=pat and a.loinc_code=any(loincs) 
+		  and current_date+framemin<=result_time and current_date+framemax>=result_time;
+	else return defval;
+	end if;
+	return case when rtn=1 then true when rtn=0 then false else defval end;
+ end;
+ $$
+ language plpgsql;
+
+
 create or replace function rules.comparisonArray(listType varchar(20),encSnomeds bigint[],probsnomeds bigint[],patid varchar(100),framemin int,framemax int,customer int)
 returns bigint[] as $$
 declare rtn bigint[];
@@ -1246,11 +1317,12 @@ begin
                    and $4 like a.sex
                 group by a.ruleid
                 having min(case when c.isIntersect=(rules.comparisonArray(c.listType,$5,$6,$7,c.framemin,c.framemax,$8)&&c.intList) then 1 else 0 end)=1 
-                ) sub inner join rules.evirule x on sub.ruleid=x.ruleid'
+                ) sub inner join rules.evirule x on sub.ruleid=x.ruleid
+                left outer join rules.labEval y on x.ruleid=y.ruleid
+                where (y.ruleid is null or rules.evalLabs($8,$7,y.framemin,y.framemax,y.defaultval,y.relation,y.threshold,y.loinc_codes))'
                 using orderCode , ordcodeType , patAge , patSex , encSnomeds , probSnomeds ,patid,customer
                 ;
                    
 end;
 $$
 language plpgsql;
-
