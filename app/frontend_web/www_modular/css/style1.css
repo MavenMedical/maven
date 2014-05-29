@@ -16,7 +16,7 @@
 
 .chart-col-6 {
     width: 100%;
-    height:350px;
+    height: 350px;
 }
 
 .chart-col-12 {
@@ -24,215 +24,215 @@
     height: 400px;
 }
 
-
 html, body {
-    padding:0px;
-    margin:0px;
+    padding: 0px;
+    margin: 0px;
 }
 
 #fixed-top {
-    position:fixed;
-    top:0px;
-    left:0px;
-    right:0px;
-    z-index:10;
-    height: 130px; /*var-fixed-top-size*/
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    z-index: 10;
+    /*height: 130px; /*var-fixed-top-size*/
     background: #ffffff;
 }
 
 .pat-info {
-    height:80px;
-    display:table;
+    height: 50px;
+    display: table;
 }
 
 #fixed-bottom {
     display: none;
-    position:fixed;
-    bottom:0px;
-    left:0px;
-    right:0px;
-    z-index:10;
+    position: fixed;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    z-index: 10;
     height: 0px; /*var-fixed-bottom-size*/
 }
 
 #fixed-left {
-    display:none;
-    position:fixed;
+    display: none;
+    position: fixed;
     width: 20%; /*var-fixed-left-size*/
-    top:130px; /*var-fixed-top-size*/
+    top: 130px; /*var-fixed-top-size*/
     bottom: 0px; /*var-fixed-bottom-size*/
-    left:0px;
+    left: 0px;
 }
 
 #fixed-right {
-    position:fixed;
-    visibility:hidden;
-    width:20%; /*var-fixed-right-size*/
-    top: 130px;  /*var-fixed-top-size*/
+    position: fixed;
+    visibility: hidden;
+    width: 20%; /*var-fixed-right-size*/
+    top: 130px; /*var-fixed-top-size*/
     bottom: 0px; /*var-fixed-bottom-size*/
-    right:0px;
+    right: 0px;
+
 }
 
 #wrapper {
-    position:relative;
-    left:20%; /*var-fixed-left-size*/
-    width:60%;/*100% minus var-fixed-left-size minus var-fixed-right-size */;
-    bottom:0px;
-    z-index:1;
+    position: relative;
+    width: 70%; /*100% minus var-fixed-left-size minus var-fixed-right-size */;
+    bottom: 0px;
+    z-index: 1;
     margin-top: 130px; /*var-fixed-top-size*/
 }
 
 #floating-top {
-    position:relative;
-    top:0px;
-    left:0px;
-    right:0px;
-    display:none;
-    height:0px; /*var-floating-top-size*/
-    z-index:2;
+    position: relative;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    display: none;
+    height: 0px; /*var-floating-top-size*/
+    z-index: 2;
 }
 
 #floating-bottom {
-    display:none;
-    position:relative;
-    bottom:0px;
-    left:0px;
-    right:0px;
-    height:30px; /*var-floating-bottom-size*/
+    display: none;
+    position: relative;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    height: 30px; /*var-floating-bottom-size*/
     margin-bottom: 0px; /*var-fixed-bottom-size*/
-    z-index:2;
+    z-index: 2;
 }
 
 #floating-left {
-    position:relative;
-    visibility:hidden;
-    width:0px; /*var-floating-left-size*/
+    position: relative;
+    visibility: hidden;
+    width: 0px; /*var-floating-left-size*/
     float: left;
 }
 
 #floating-right {
-    position:relative;
-    float:right;
-    width:30%; /*var-floating-right-size*/
+    position: relative;
+    float: right;
+    width: 30%; /*var-floating-right-size*/
+    height: 700px;
 }
 
 #content {
-    overflow:hidden;
-    position:relative;
-    margin-left:0px; /*var-float-left-size*/
-    width:70%; /*100 minus var-float-left-size minus var-floating-right-size*/
+    overflow: hidden;
+    position: relative;
+    margin-left: 0px; /*var-float-left-size*/
+    width: 70%; /*100 minus var-float-left-size minus var-floating-right-size*/
 }
 
 .mavenpadding {
-    padding:10px;
-    clear:both;
+    padding: 10px;
+    clear: both;
 }
-
 
 /***************************************************************
  * The following customize the fonts and colors of the widgets *
  ***************************************************************/
 
 .full-height {
-    height:100%;
+    height: 100%;
 }
 
 .alert-type {
-    text-align:center;
-    font-size:20px;
+    text-align: center;
+    font-size: 20px;
 }
 
-body{
+body {
     height: 100%;
-  margin-top: 50px;
-  background-color: #fff6f6;
+    margin-top: 50px;
+    background-color: #fff6f6;
 }
 
-.main-header{
+.main-header {
     color: #f6a828;
     background-color: #46bdec;
 
 }
 
-.brand{
+.brand {
     color: #ffffff;
     font-size: 30px;
 
 }
 
-.page-title{
+.page-title {
     margin-left: 8px;
     color: #ffffff;
     font-size: 20px;
 }
 
-.dr{
+.dr {
     color: #ffffff;
 }
 
-.navbar-lower{
+.navbar-lower {
     top: 50px;
     width: 100%;
     background-color: #dff5fd;
 }
 
-.navbar-nav{
+.navbar-nav {
     color: #ffffff;
 }
 
-.pat-nav{
-  height: 100%;
+.pat-nav {
+    height: 100%;
 
 }
 
-.divide-text{
-    color:#fff;
+.divide-text {
+    color: #fff;
     line-height: 20px;
-    font-size:20px;
+    font-size: 20px;
     padding: 15px 0;
 }
 
-.pat-title{
+.pat-title {
     color: #46bdec;
     font-size: 10px;
     padding-bottom: 3px;
     padding-top: 3px;
 }
 
-.pat-sub{
+.pat-sub {
     color: #46bdec;
     font-size: 10px;
     padding-bottom: 3px;
     padding-top: 5px;
 }
 
-#pat-name{
+#pat-name {
     font-size: 18px;
 }
 
-.col-sm-3{
+.col-sm-3 {
     margin-left: 5px;
 }
 
-.col-sm-2{
+.col-sm-2 {
     margin-left: 5px;
 }
 
-.col-sm-1{
+.col-sm-1 {
     margin-left: 5px;
 }
-.divider{
+
+.divider {
     border-right: 1px solid #46bdec;
 }
 
-.content{
-    margin-top: 8px ;
+.content {
+    margin-top: 8px;
     background-color: #ffffff;
     box-shadow: 1px 3px 8px rgba(0, 0, 0, 0.2);
     color: #465766;
 }
 
-.side{
+.side {
     margin-left: -2px;
     margin-top: 8px;
     min-height: 100%;
@@ -244,26 +244,26 @@ body{
     font-family: 'Maven Pro', sans-serif;
 }
 
-.enc-date{
+.enc-date {
     font-size: 15px;
     margin-top: -10px;
     margin-bottom: 10px;
 }
 
-.enc-date a{
+.enc-date a {
     font-size: 10px;
 }
 
-.title{
+.title {
     font-size: 20px;
 }
 
-.cost-num{
+.cost-num {
     font-size: 20px;
     font-weight: bold;
 }
 
-.badge{
+.badge {
     float: right;
     color: #465766;
     background-color: transparent;
@@ -274,62 +274,105 @@ body{
     background-color: #dff5fd;
 }
 
-
-.alerts{
+.alerts {
     color: #46bdec;
     text-align: center;
     margin-bottom: 15px;
 }
 
-.impact{
+.impact {
     font-weight: bold;
 }
 
-.alert-type{
+.alert-type {
     width: 100%;
     margin-left: auto;
     margin-right: auto;
 }
 
-.alert-type img{
+.alert-type img {
     display: block;
     margin-left: auto;
     margin-right: auto;
 }
 
-.center{
+.center {
     display: block;
     text-align: center;
 }
 
-.chart-div{
+.chart-div {
     margin-top: -60px;
     width: 100%;
     height: 350px;
 
 }
 
-.modal-body{
+.modal-body {
     background-color: #fff6f6;
 }
 
 .search-box {
     display: table-cell;
     vertical-align: middle;
-    horizontal-align:middle;
+    horizontal-align: middle;
     margin: auto;
 }
 
 .alert-list-panel {
-        background-color: #c0c0c0;
+    background-color: #c0c0c0;
 }
 
 /* adjust the contents on smaller devices */
 @media (max-width: 768px) {
-    .chart-div{
-	margin-top: -60px;
-	width: 100%;
-	height: 350px;
+    #wrapper {
+        margin-top: 350px; /*var-fixed-top-size*/
+    }
+
+    #wrapper {
+        display: -webkit-box;
+        display: -moz-box;
+        display: -ms-flexbox;
+        display: -webkit-flex;
+        display: flex;
+        -webkit-box-orient: vertical;
+        -moz-box-orient: vertical;
+        -webkit-flex-direction: column;
+        -ms-flex-direction: column;
+        flex-direction: column;
+        -webkit-box-align: start;
+        -moz-box-align: start;
+        -ms-flex-align: start;
+        -webkit-align-items: flex-start;
+        align-items: flex-start;
+    }
+
+    #wrapper #floating-right {
+        -webkit-box-ordinal-group: 2;
+        -moz-box-ordinal-group: 2;
+        -ms-flex-order: 1;
+        -webkit-order: 1;
+        order: 1;
+    }
+
+    #content {
+        display: block;
+        width: 100%;
+    }
+
+    #floating-right {
+        display: block;
+        width: 100%;
+    }
+
+    .divider {
+        border-right: none;
+    }
+
+    .chart-div {
+        margin-top: -60px;
+        width: 100%;
+        height: 350px;
     }
 }
 

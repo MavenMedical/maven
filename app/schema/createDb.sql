@@ -1168,7 +1168,42 @@ ALTER FUNCTION upsert_condition(character varying(100),
   boolean)
   OWNER TO maven;
 
-create table public.eviRule
+
+
+
+CREATE TABLE condition
+(
+  pat_id character varying(100),
+  customer_id numeric(18,0),
+  encounter_id character varying(100),
+  dx_category character varying(25),
+  status character varying(25),
+  date_asserted timestamp without time zone,
+  date_resolved timestamp without time zone,
+  snomed_id bigint,
+  dx_code_id character varying(25),
+  dx_code_system character varying(255),
+  dx_text character varying,
+  is_principle boolean,
+  is_chronic boolean,
+  is_poa boolean -- True-False is the Diagnosis record Present on Arrival
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE condition
+  OWNER TO maven;
+COMMENT ON COLUMN condition.is_poa IS 'True-False is the Diagnosis record Present on Arrival';
+
+create index ixconditionpatdatsno on condition(customer_id,pat_id,date_asserted,snomed_id);
+create index ixconditionpatdates on condition(customer_id,pat_id,date_asserted,date_resolved);
+create index ixconditionpatstatus on condition(customer_id,pat_id,status);
+
+
+
+create schema rules ;
+
+create table rules.eviRule
 (
   ruleId int primary key,
   name varchar(200) ,
@@ -1176,63 +1211,80 @@ create table public.eviRule
   maxAge numeric(18,2),
   sex varchar(1),
   codeType varchar(20),
-  details text,
+  remainingDetails text,
+  fullspec text,
   comments text
 );
-alter table public.evirule owner to maven;
-create index ixEviRuleIdPk on eviRule(ruleId);
-create index ixEviRuleTypeAgeSex on eviRule(codeType,minAge,maxAge,sex);
+alter table rules.evirule owner to maven;
+create index ixRulePk on rules.eviRule(ruleId);
+create index ixRuleTypeAgeSex on rules.eviRule(codeType,minAge,maxAge,sex);
 
-create table public.ruleTrigCodes
+create table rules.trigCodes
 (
   ruleId int,
   code varchar(50),
   primary key (ruleId,code)
 );
-alter table public.ruleTrigCodes owner to maven;
-create index ixRuleTrigCodePk on ruleTrigCodes(ruleId,code);
-create index ixRuleTrigCodeCode on ruleTrigCodes(code,ruleId);
+alter table rules.trigCodes owner to maven;
+create index ixTrigCodePk on rules.trigCodes(ruleId,code);
+create index ixTrigCodeCode on rules.trigCodes(code,ruleId);
 
-create table public.ruleEncDx
+create table rules.codeLists
 (
-  ruleId int,
-  snomed numeric(18,0),
-  primary key (ruleId,snomed)
+  ruleId int
+  ,listType varchar(20)
+  ,isIntersect boolean
+  ,intList bigint[]
+  ,framemin int
+  ,framemax int
 );
-alter table public.ruleEncDx owner to maven;
-create index ixRuleEncDxPk on ruleEncDx(ruleId,snomed);
+alter table rules.codeLists owner to maven;
+create index ixruleCodeListsId on rules.codelists(ruleid);
+--CREATE INDEX rules.ixcodelistgin rules.codelists USING gin(intlist);
 
-create table public.ruleProbList
-(
-  ruleId int,
-  snomed numeric(18,0),
-  primary key (ruleId, snomed)
-);
-alter table public.ruleProbList owner to maven;
-create index ixRuleProbListPk on ruleProbList(ruleId,snomed);
-
-create or replace function public.getMatchingRules(orderCode varchar, ordcodeType varchar, patAge numeric(18,2), patSex varchar, encSnomeds bigint[], problistSnomeds bigint[])
-returns table (ruleid int, name varchar,details text) as $$
+create or replace function rules.comparisonArray(listType varchar(20),encSnomeds bigint[],probsnomeds bigint[],patid varchar(100),framemin int,framemax int,customer int)
+returns bigint[] as $$
+declare rtn bigint[];
 begin
-	return query select distinct a.ruleid,a.name,a.details 
-	from public.evirule a
-	inner join public.ruleTrigCodes b on a.ruleid=b.ruleid
-	left outer join public.ruleEncDx c on a.ruleid=c.ruleid
-	left outer join terminology.conceptancestry d on d.ancestor=c.snomed and d.child = any (encsnomeds)
-	left outer join public.ruleProbList e on a.ruleid=e.ruleid
-	left outer join terminology.conceptancestry f on f.ancestor=e.snomed and f.child = any (problistsnomeds)
-	where 
-	   a.codetype=ordcodeType
-	   and b.code=ordercode
-	   and a.minage<=patAge and a.maxage>=patAge
-	   and (a.sex=patSex  or a.sex='*')
-	   and (c.ruleid is null or d.child is not null)--either there are no enc restritions or the restricions match the encounter
-	   and (e.ruleid is null or f.child is not null)--either there are no problist restritions or the restricions match the patient
-	;
-	   
+	if listType='PL' then
+		return probsnomeds;
+	elsif listtype='ENC' then
+		return encSnomeds;
+	elsif listtype='DXHX' then
+		select encsnomeds||probsnomeds||array_agg(snomed_id) into rtn  
+			from public.condition a 
+			where a.pat_id=patid and a.customer_id=customer and  current_date+framemin<=date_asserted and current_date+framemax>=date_asserted
+			group by a.pat_id ;
+		return rtn;
+	else 
+		return null;
+	end if;
 end;
 $$
 language plpgsql;
-alter function public.getMatchingRules( varchar,  varchar,  numeric(18,2),  varchar,  bigint[],  bigint[]) owner to maven;
 
+
+create or replace function rules.evalRules(orderCode varchar, ordcodeType varchar, patAge numeric(18,2), patSex varchar, encSnomeds bigint[], probSnomeds bigint[],patid varchar(100),customer int)
+returns table (ruleid int, name varchar,details text) as $$
+begin
+                return query execute
+                'select x.ruleid,x.name,x.remainingDetails from 
+                (
+                select a.ruleid
+                from rules.eviRule a
+		  inner join rules.trigCodes b on a.ruleId=b.ruleId and b.code=$1
+		  inner join rules.codeLists c on a.ruleId=c.ruleId
+                where 
+                   a.codetype=$2
+                   and a.minage<=$3 and a.maxage>=$3
+                   and $4 like a.sex
+                group by a.ruleid
+                having min(case when c.isIntersect=(rules.comparisonArray(c.listType,$5,$6,$7,c.framemin,c.framemax,$8)&&c.intList) then 1 else 0 end)=1 
+                ) sub inner join rules.evirule x on sub.ruleid=x.ruleid'
+                using orderCode , ordcodeType , patAge , patSex , encSnomeds , probSnomeds ,patid,customer
+                ;
+                   
+end;
+$$
+language plpgsql;
 
