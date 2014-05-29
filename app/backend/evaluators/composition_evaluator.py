@@ -117,15 +117,15 @@ class CompositionEvaluator(SP.StreamProcessor):
         return composition.section.append(Section(title="Encounter Cost Breakdown", content=encounter_cost_breakdown))
 
     @asyncio.coroutine
-    def evaluate_duplicate_labs(self):
+    def evaluate_duplicate_labs(self, composition):
         #Check to see if there's been an exact duplicate lab ordered recently
-        yield from self.evaluate_recent_labs()
+        yield from self.evaluate_recent_lab_orders()
 
         #Check to see if there are relevant lab components to be displayed
         yield from self.evaluate_recent_lab_results()
 
     @asyncio.coroutine
-    def evaluate_recent_labs(self):
+    def evaluate_recent_lab_orders(self):
         pass
 
     @asyncio.coroutine

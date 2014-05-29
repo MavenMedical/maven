@@ -689,23 +689,16 @@ class Composition(Resource):
             print()
             pass
 
-    def get_encounter_problem_list(self):
-        problem_list = []
-
-        for sec in self.section:
-            if sec.title == "Problem List":
-                for problem in sec.content:
-                    problem_list.append(problem)
-
-        return problem_list
+    def get_encounter_conditions(self):
+        enc_conditions_section = self.get_section_by_coding("http://loinc.org", "11450-4")
+        return enc_conditions_section.content
 
     def get_encounter_dx_codes(self):
-        problem_list = self.get_encounter_problem_list()
-        problem_list_codes_IDs = []
 
-        for problem in problem_list:
-            for id in problem.identifier:
-                problem_list_codes_IDs.append(id.value)
+        problem_list_codes_IDs = []
+        for condition in self.get_encounter_conditions():
+            for coding in condition.code.coding:
+                problem_list_codes_IDs.append(coding.code)
 
         return problem_list_codes_IDs
 
@@ -723,12 +716,16 @@ class Composition(Resource):
         return alerts_section
 
     def get_encounter_cost_breakdown(self):
-
         for sec in self.section:
             if sec.title == "Encounter Cost Breakdown":
                 return sec
 
         return None
+
+    def get_author_id(self):
+        for id in self.author.identifier:
+            if id.system == "clientEMR":
+                return id.value
 
 
 class ConceptMap(Resource):
@@ -894,9 +891,9 @@ class Condition(Resource):
                  onsetdate=None,
                  onsetAge=None,
                  onset=None,
-                 abatementdate=None,
+                 abatementDate=None,
                  abatementAge=None,
-                 abatementboolean=None,
+                 abatementBoolean=False,
                  abatement=None,
                  stage=None,
                  stage_summary=None,
@@ -935,9 +932,9 @@ class Condition(Resource):
         self.onsetdate = onsetdate                                     # date, Estimated or actual date, or age
         self.onsetAge = onsetAge                                     # Age, Estimated or actual date, or age
         self.onset = onset                                     # , Estimated or actual date, or age
-        self.abatementdate = abatementdate                                     # date, If/when in resolution/remission
+        self.abatementDate = abatementDate                                     # date, If/when in resolution/remission
         self.abatementAge = abatementAge                                     # Age, If/when in resolution/remission
-        self.abatementboolean = abatementboolean                                     # boolean, If/when in resolution/remission
+        self.abatementBoolean = abatementBoolean                                     # boolean, If/when in resolution/remission
         self.abatement = abatement                                     # , If/when in resolution/remission
         self.stage = stage                                     # , Stage/grade, usually assessed formally
         self.stage_summary = stage_summary                                     # , Simple summary (disease specific)
@@ -962,10 +959,15 @@ class Condition(Resource):
         if relatedItem is None:
             self.relatedItem = []                                     # , { attb['short_desc'] }}
         
-    def get_problem_ID(self):
-        for id in self.identifier:
-            if id.label == "ICD":
-                return id
+    def get_ICD9_id(self):
+        for coding in self.code.coding:
+            if coding.system == "icd":
+                return coding.code
+
+    def get_snomed_id(self):
+        for coding in self.code.coding:
+            if coding.system == "":
+                return coding.code
 
 
 class Conformance(Resource):
@@ -2980,7 +2982,7 @@ class Observation(Resource):
     :param valueRatio: The information determined as a result of making the observation, if the information has a simple value.
     :param valuePeriod: The information determined as a result of making the observation, if the information has a simple value.
     :param valueSampledData: The information determined as a result of making the observation, if the information has a simple value.
-    :param valuestring: The information determined as a result of making the observation, if the information has a simple value.
+    :param valueString: The information determined as a result of making the observation, if the information has a simple value.
     :param value: The information determined as a result of making the observation, if the information has a simple value.
     :param interpretation: The assessment made based on the result of the observation.
     :param comments: May include statements about significant, unexpected or unreliable values, or information about the source of the value where this may be relevant to the interpretation of the result.
@@ -3021,7 +3023,7 @@ class Observation(Resource):
                  valueRatio=None,
                  valuePeriod=None,
                  valueSampledData=None,
-                 valuestring=None,
+                 valueString=None,
                  value=None,
                  interpretation=None,
                  comments=None,
@@ -3060,7 +3062,7 @@ class Observation(Resource):
         self.valueRatio = valueRatio                                     # Ratio, Actual result
         self.valuePeriod = valuePeriod                                     # Period, Actual result
         self.valueSampledData = valueSampledData                                     # SampledData, Actual result
-        self.valuestring = valuestring                                     # string, Actual result
+        self.valueString = valueString                                     # string, Actual result
         self.value = value                                     # , Actual result
         self.interpretation = interpretation                                     # , High, low, normal, etc.
         self.comments = comments                                     # , Comments about result
@@ -3178,6 +3180,7 @@ class Order(Resource):
                  when_code=None,
                  when_schedule=None,
                  detail=None,
+                 totalCost=None
                  ):
         Resource.__init__(self,
                           customer_id=customer_id,
@@ -3198,6 +3201,7 @@ class Order(Resource):
         self.when = when                                     # , When order should be fulfilled
         self.when_code = when_code                                     # , Code specifies when request should be done. The code may simply be a priority code
         self.when_schedule = when_schedule                                     # , A formal schedule
+        self.totalCost = totalCost
         
         if detail is None:
             self.detail = []                                     # , { attb['short_desc'] }}
@@ -3608,13 +3612,10 @@ class Patient(Resource):
         return "304923812"
 
     def add_name(self, given, family, use=None, text=None, prefix=None, suffix=None, period=None):
-        self.name.append(HumanName(use=use,
-                                   text=text,
-                                   family=family,
-                                   given=given,
-                                   prefix=prefix,
-                                   suffix=suffix,
-                                   period=period))
+        patient_name = HumanName()
+        patient_name.family.append(family)
+        patient_name.given.append(given)
+        self.name.append(patient_name)
 
     def get_name(self):
 

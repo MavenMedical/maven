@@ -1103,26 +1103,47 @@ ALTER FUNCTION upsert_encounter(character varying(100), character varying(100), 
 date, character varying(18), character varying(18), numeric(18,0), date, date, numeric(18,0))
   OWNER TO maven;
 
-CREATE OR REPLACE FUNCTION upsert_encounterdx(pat_id1 character varying(100),
-  csn1 character varying(100),
-  dx_id1 character varying(36),
-  annotation1 character varying(200),
-  primary_dx_yn1 character varying(1),
-  dx_chronic_yn1 character varying(1),
-  customer_id1 numeric(18,0))
+
+CREATE OR REPLACE FUNCTION upsert_condition(pat_id1 character varying(100),
+  customer_id1 numeric(18,0),
+  encounter_id1 character varying(100),
+  dx_category1 character varying(25),
+  status1 character varying(25),
+  date_asserted1 timestamp without time zone,
+  date_resolved1 timestamp without time zone,
+  snomed_id1 bigint,
+  dx_code_id1 character varying(25),
+  dx_code_system1 character varying(255),
+  dx_text1 character varying,
+  is_principle1 boolean,
+  is_chronic1 boolean,
+  is_poa1 boolean
+)
   RETURNS VOID AS
 $$
 BEGIN
   LOOP
-    UPDATE encounterdx SET pat_id=pat_id1, csn=csn1, annotation=annotation1, primary_dx_yn=primary_dx_yn1, dx_chronic_yn=dx_chronic_yn1,
-       customer_id=customer_id1 WHERE csn = csn1 AND customer_id = customer_id1 AND dx_id=dx_id1;
+    UPDATE condition
+    SET dx_category=dx_category1,
+      status=status1,
+      date_asserted=date_asserted1,
+      date_resolved=date_resolved1,
+      dx_text=dx_text1,
+      is_principle=is_principle1,
+      is_chronic=is_chronic1,
+      is_poa=is_poa1
+       WHERE encounter_id=encounter_id1 AND customer_id=customer_id1 AND (snomed_id=snomed_id1 OR (dx_code_id=dx_code_id1 AND dx_code_system=dx_code_system1)) ;
     IF found THEN
       RETURN;
     END IF;
     BEGIN
-      INSERT INTO encounterdx(pat_id, csn, dx_id, annotation, primary_dx_yn, dx_chronic_yn,
-            customer_id)
-        VALUES (pat_id1, csn1, dx_id1, annotation1, primary_dx_yn1, dx_chronic_yn1, customer_id1);
+      INSERT INTO condition(
+            pat_id, customer_id, encounter_id, dx_category, status, date_asserted,
+            date_resolved, snomed_id, dx_code_id, dx_code_system, dx_text,
+            is_principle, is_chronic, is_poa)
+        VALUES (pat_id1, customer_id1, encounter_id1, dx_category1, status1, date_asserted1,
+            date_resolved1, snomed_id1, dx_code_id1, dx_code_system1, dx_text1,
+            is_principle1, is_chronic1, is_poa1);
       RETURN;
     EXCEPTION WHEN unique_violation THEN
     END;
@@ -1131,7 +1152,20 @@ END;
 $$
   LANGUAGE plpgsql VOLATILE
   COST 100;
-ALTER FUNCTION upsert_encounterdx(character varying(100), character varying(100), character varying(36), character varying(200), character varying(1), character varying(1), numeric(18,0))
+ALTER FUNCTION upsert_condition(character varying(100),
+  numeric(18,0),
+  character varying(100),
+  character varying(25),
+  character varying(25),
+  timestamp without time zone,
+  timestamp without time zone,
+  bigint,
+  character varying(25),
+  character varying(255),
+  character varying,
+  boolean,
+  boolean,
+  boolean)
   OWNER TO maven;
 
 
