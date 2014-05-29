@@ -9,8 +9,11 @@ define([
     var Rule = Backbone.Model.extend({
         defaults: {'myTriggers':new TriggerSet({type: 'procedure'}), 'myDetails':new DetailsSet(), 'myName': "defaultName"},
         initialize: function(params){
-          if (params.name)
+
+          if (params.name){
               this.set('myName', params.name);
+              console.log(this.get('myName'));
+          }
         },
 
         addDetail: function(detailParams){},

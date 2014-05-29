@@ -12,7 +12,11 @@ define([
         initialize: function(params){
            this.type = params.type;
 
-            console.log(this);
+
+        },
+        addTrigger: function(params){
+            var toAdd = new Trigger({'type': this.type, code: params.code})
+            this.add(toAdd);
         }
 
     });

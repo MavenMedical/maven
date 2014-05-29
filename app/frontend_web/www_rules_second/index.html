@@ -18,6 +18,12 @@
 
     <!-- Load the require script-->
     <script data-main="js/main" src="js/libs/require/require.js"></script>
+    <script>
+
+        throwDeleteTrigger = function(ruleName){
+
+        }
+    </script>
     <!-- Load  FREE Amchart script
     <script src="js/libs/amchart/amcharts/amcharts.js" type="text/javascript"></script>
     <script src="js/libs/amchart/amcharts/serial.js" type="text/javascript"></script>
@@ -40,14 +46,9 @@
   <body style="background-color: white">
 
    <div style ="text-align: center; font-size:360%; color: #0000ff;">Maven Medical Rule Editor</div>
-   <div style= "float:left; position:relative; left:50px" id ='container'>
-        <div style="float: left; " id="centralPanel"></div>
-        <div style="min-width: 100px; float: left; min-height: 1px;" id='leftPadding'></div>
-        <div style="position:relative; left:60px; float:left; max-width:500px;">
-            <div style="float: left; min-width: 500px; min-height: 200px; border-style: solid" id = "basicsPanel"></div>
-            <br>
-            <div style="position:relative; top:15px; width: inherit; min-height:300px; border-style:solid; clear:both; float: none" id="triggerSelector"></div>
-        </div>
-        </div>
+   <div style= "float:left; position:relative; left:50px" id ='topLevelContainer'>
+        <div id="TopLevelPanel"></div>
+   </div>
+
   </body>
 </html>

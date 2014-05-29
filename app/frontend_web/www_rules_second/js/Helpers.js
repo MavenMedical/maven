@@ -8,9 +8,21 @@ define([
 ], function ($, _, Backbone) {
 
     var Helpers = {
+        detailID:0,
+        triggerID:0,
         CreateRule: function(){},
         AddTrigger: function(triggerToAdd, setToAddTo){
 
+        },
+        getNewDetailID:function(){
+            this.detailID ++;
+            return this.detailID;
+
+
+        },
+        getNewTriggerID:function(){
+            this.triggerID ++;
+            return this.triggerID;
         }
 
     };

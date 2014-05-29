@@ -1,32 +1,32 @@
-/**
- * Created by Asmaa Aljuhani on 3/11/14.
- */
 
 define([
     'jquery',
     'underscore',
     'backbone',
     'bootstrap',
-    'Views/BasicsPanelView',
-    'Models/TriggerItem',
-    'Views/RuleListView',
-    'Models/RuleItem',
-    'Views/TriggerEditorView',
+
+    //Models
+    'ScreenModels/Overview',
+
+    //Views
+    'Views/OverviewView',
+
+
     'Helpers'
 
 
-], function ($, _, Backbone, Bootstrap, BasicsPanelView, TriggerItem, RuleListView, RuleItemModel, TriggerEditorView, Helpers) {
+], function ($, _, Backbone, Bootstrap, /*Models*/Overview,/*Views*/ OverviewView,  Helpers) {
     var initialize = function () {
+        var testTopLevelModel = new Overview();
 
-        var testPanel = new BasicsPanelView();
-        var testItem1 = new RuleItemModel();
-        var testRuleList = new RuleListView();
-        var testTrigger = new TriggerItem();
-        testRuleList.render();
-        testPanel.model.addTrigger(testTrigger);
-        testPanel.render();
-        var testTEditor = new TriggerEditorView();
-        testTEditor.render();
+        testTopLevelModel.addRuleToRulePanel({name: "rule1"});
+        testTopLevelModel.addRuleToRulePanel({name: "rule4"});
+
+        var testTopLevel = new OverviewView({model: testTopLevelModel});
+
+        testTopLevel.render();
+        console.log(testTopLevel);
+
 
     };
 
