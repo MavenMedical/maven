@@ -718,6 +718,41 @@ CREATE INDEX ixmedorderpatid
   (pat_id COLLATE pg_catalog."default");
 
 
+-- Table: observation
+
+-- DROP TABLE observation;
+
+CREATE TABLE observation
+(
+  customer_id numeric(18,0),
+  encounter_id character varying(100),
+  order_id numeric(18,0),
+  pat_id character varying(100),
+  status character varying (254),
+  result_time timestamp without time zone,
+  comments character varying(254),
+  numeric_result double precision,
+  units character varying (254),
+  reference_low character varying(50),
+  reference_high character varying(50),
+  reference_unit character varying(100),
+  method character varying (254),
+  code_id character varying (254),
+  code_system character varying (254),
+  name character varying(254),
+  component_id numeric(18,0),
+  external_name character varying(75),
+  base_name character varying(75),
+  common_name character varying(254),
+  loinc_code character varying(254)
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE observation
+  OWNER TO maven;
+
+
 -- Table: override_indication
 
 -- DROP TABLE override_indication
