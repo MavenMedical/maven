@@ -18,7 +18,7 @@ class NotificationService(HR.HTTPProcessor):
     def __init__(self, configname):
         HR.HTTPProcessor.__init__(self,configname)
         self.add_handler(['GET'], '/poll', self.get_poll)
-        self.add_handler(['GET'], '/post', self.get_post)
+#        self.add_handler(['GET'], '/post', self.get_post)
         self.message_queues = defaultdict(asyncio.queues.Queue)
         self.queue_delay = self.config.get(CONFIG_QUEUEDELAY, 0)
         
@@ -49,16 +49,26 @@ class NotificationService(HR.HTTPProcessor):
         return (HR.OK_RESPONSE, b'', None)
     
     def _convert_message(self, message):
-        return {
-            RESPONSE_TEXT: message,
-            RESPONSE_LINK: 'http://www.google.com',
-            }
+        m = message.split('\n',1)
+        if len(m)==2:
+            return {
+                RESPONSE_TEXT: m[1],
+                RESPONSE_LINK: m[0],
+                }
+        else:
+            return {
+                RESPONSE_TEXT: message,
+                RESPONSE_LINK: 'http://www.google.com',
+                }
 
-    def send_messages(self, key, messages):
+    def send_messages(self, key, messages=None):
         if key in self.message_queues:
-            for message in messages:
-                self.message_queues[key].put_nowait(message)
-
+            if messages:
+                for message in messages:
+                    self.message_queues[key].put_nowait(message)
+            return True
+        else:
+            return False
                     
 if __name__ == '__main__':
     ML.DEBUG = ML.stdout_log

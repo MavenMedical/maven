@@ -20,6 +20,7 @@ import asyncio
 import os
 import json
 import pickle
+import traceback
 import maven_config as MC
 import maven_logging as ML
 import utils.streaming.stream_processor as SP
@@ -27,6 +28,7 @@ import utils.streaming.http_responder as HR
 import utils.api.pyfhir.pyfhir as FHIR_API
 from clientApp.module_webservice.emr_parser import VistaParser
 import clientApp.notification_generator.notification_generator as NG
+import clientApp.module_webservice.notification_service as NS
 
 
 class OutgoingToMavenMessageHandler(HR.HTTPReader):
@@ -61,6 +63,7 @@ class OutgoingToMavenMessageHandler(HR.HTTPReader):
         except:
             try:
                 self.write_object(HR.wrap_response(HR.ERROR_RESPONSE, b'', None), key)
+                traceback.print_exc()
             except:
                 pass
 
@@ -73,9 +76,10 @@ class OutgoingToMavenMessageHandler(HR.HTTPReader):
 
 class IncomingFromMavenMessageHandler(HR.HTTPWriter):
 
-    def __init__(self, configname, notification_generator):
+    def __init__(self, configname, notification_generator, notification_service=None):
         HR.HTTPWriter.__init__(self, configname)
         self.notification_generator = notification_generator
+        self.notification_service = notification_service
 
     @asyncio.coroutine
     def format_response(self, obj, _):
@@ -87,24 +91,35 @@ class IncomingFromMavenMessageHandler(HR.HTTPWriter):
 
 
         composition = pickle.loads(obj)
-        notifications = yield from self.notification_generator.generate_alert_content(composition)
 
-        alert_notification_content = ""
+        ### tom: this has no authentication yet
+        #composition.customer_id
+        user = composition.get_author_id()
+    
+        if self.notification_service.send_messages(user, None):
+            notifications = yield from self.notification_generator.generate_alert_content(composition, 'web', None)
+            self.notification_service.send_messages(user, notifications)
+            return (HR.OK_RESPONSE, b'', [], composition.write_key[0])
+        else:
+            notifications = yield from self.notification_generator.generate_alert_content(composition, 'vista', None)
+        
+            alert_notification_content = ""
 
-        if notifications is not None and len(notifications) > 0:
-            for notification_body in notifications:
-                alert_notification_content += str(notification_body)
-                #alert_notification_content += ""
+            if notifications is not None and len(notifications) > 0:
+                for notification_body in notifications:
+                    alert_notification_content += str(notification_body)
+                    #alert_notification_content += ""
 
-        ML.DEBUG(json.dumps(composition, default=FHIR_API.jdefault, indent=4))
-        ML.DEBUG("NOTIFY HTML BODY: " + alert_notification_content)
+            ML.DEBUG(json.dumps(composition, default=FHIR_API.jdefault, indent=4))
+            ML.DEBUG("NOTIFY HTML BODY: " + alert_notification_content)
 
-        return (HR.OK_RESPONSE, alert_notification_content, [], composition.write_key[0])
+            return (HR.OK_RESPONSE, alert_notification_content, [], composition.write_key[0])
 
 
 def main(loop):
     outgoingtomavenmessagehandler = 'client consumer socket'
     incomingfrommavenmessagehandler = 'client producer socket'
+    notificationservicename = 'client notification service'
     clientemrconfig = 'client emr config'
 
     MavenConfig = {
@@ -160,17 +175,27 @@ def main(loop):
             NG.DEBUG: True,
             NG.COST_ALERT_ICON: "/clientApp"
         },
-
+        notificationservicename:
+        {
+            SP.CONFIG_HOST: 'localhost',
+            SP.CONFIG_PORT: 8091,
+            SP.CONFIG_PARSERTIMEOUT: 120,
+            NS.CONFIG_QUEUEDELAY: 60,
+        },
     }
     MC.MavenConfig = MavenConfig
 
     notification_generator = NG.NotificationGenerator(clientemrconfig)
+    notification_service = NS.NotificationService(notificationservicename)
     sp_consumer = OutgoingToMavenMessageHandler(outgoingtomavenmessagehandler, 2)
-    sp_producer = IncomingFromMavenMessageHandler(incomingfrommavenmessagehandler, notification_generator)
+    sp_producer = IncomingFromMavenMessageHandler(incomingfrommavenmessagehandler,
+                                                  notification_generator,
+                                                  notification_service)
 
 
     reader = sp_consumer.schedule(loop)
     emr_writer = sp_producer.schedule(loop)
+    notification_service.schedule(loop)
 
     try:
         loop.run_forever()

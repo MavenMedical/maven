@@ -59,15 +59,15 @@ public class MavenNotifications extends Activity
 
         List<Map<String, String>> data = null;
         if (bundle != null) {
-         //   data = (List<Map<String,String>>)bundle.getSerializable(SAVED_LIST);
+            data = (List<Map<String,String>>)bundle.getSerializable(SAVED_LIST);
         }
         if (data == null) {
             data = new ArrayList<Map<String,String>>();
-            Map<String,String> map = new HashMap<String,String>();
-            map.put(NotificationAdapter.TEXT, "<a href='http://www.google.com>link</a>");
-            map.put(NotificationAdapter.LINK, "http://www.yahoo.com");
-            data.add(map);
-            Log.i(mTag, "added to adapter: "+data.toString());
+//            Map<String,String> map = new HashMap<String,String>();
+//            map.put(NotificationAdapter.TEXT, "<a href='http://www.google.com>link</a>");
+//            map.put(NotificationAdapter.LINK, "http://www.yahoo.com");
+//            data.add(map);
+  //          Log.i(mTag, "added to adapter: "+data.toString());
         }
         mAdap = new NotificationAdapter(this,R.layout.list_item, data);
         lView.setAdapter(mAdap);
@@ -77,7 +77,7 @@ public class MavenNotifications extends Activity
         lView.setDivider(null);
         lView.setDividerHeight(10);
         setContentView(lView);
-//        (new HttpGetTask(mGetId++)).execute();
+        (new HttpGetTask(mGetId++)).execute();
     }
 
     protected void onSaveInstanceState(Bundle bundle) {
@@ -96,10 +96,10 @@ public class MavenNotifications extends Activity
                 if (i==0) mAdap.insert(s,i);
                 i++;
             }
-            delay = 5 * 1000;
+            delay = 0;
             Log.i(mTag, "got results "+id+", make a shorter delay");
         } else {
-            delay = 60 * 1000;
+            delay = 30 * 1000;
             Log.i(mTag, "no results "+id+", make a longer delay");
         }
 
@@ -138,7 +138,7 @@ public class MavenNotifications extends Activity
 
     private class HttpGetTask extends AsyncTask<Void, Void, List<Map<String,String>>> {
         //private String deviceId ="123";
-        private String URL ="http://54.201.45.37:8087/patients";
+        private String URL ="http://23.251.150.28/broadcaster/poll?key=JHU1093124";
         private String tag="MavenMobile";
 
         AndroidHttpClient mClient = AndroidHttpClient.newInstance("");
@@ -187,11 +187,14 @@ public class MavenNotifications extends Activity
             List<Map<String,String>> result = new ArrayList<Map<String,String>>();
             String JSONResponse = new BasicResponseHandler()
                     .handleResponse(response);
+            if (JSONResponse == null) {
+                    return result;
+            }
             try {
 
                 // Get top-level JSON Object - a Map
-                JSONArray responseArray = (JSONArray) new JSONTokener(
-                        JSONResponse).nextValue();
+                JSONTokener tokener = new JSONTokener(JSONResponse);
+                JSONArray responseArray = (JSONArray) tokener.nextValue();
 
                 // Iterate over earthquakes list
                 for (int idx = 0; idx < responseArray.length(); idx++) {
