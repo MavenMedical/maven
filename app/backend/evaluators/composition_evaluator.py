@@ -112,7 +112,7 @@ class CompositionEvaluator(SP.StreamProcessor):
             for order in ordersdict[result[1]]:
                 order.totalCost += cost
             for detail in detailsdict[result[1]]:
-                encounter_cost_breakdown.append([detail[1], cost])
+                encounter_cost_breakdown.append([detail[2], cost])
 
         return composition.section.append(Section(title="Encounter Cost Breakdown", content=encounter_cost_breakdown))
 

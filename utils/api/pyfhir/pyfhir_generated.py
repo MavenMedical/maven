@@ -674,12 +674,12 @@ class Composition(Resource):
             if detail.resourceType == "Lab" or "Procedure" or "PROC":
                 for code in detail.type.coding:
                     if code.system == "clientEMR" or "maven" or "CPT4":
-                        proc_supply_list.append([code.code, code.system])
+                        proc_supply_list.append([code.code, code.system, code.display])
 
             elif detail.resourceType == "Med" or "Medication":
                 for code in detail.type.coding:
                     if code.system == "clientEMR" or "maven" or "NDC":
-                        proc_supply_list.append([code.code, code.system])
+                        proc_supply_list.append([code.code, code.system, code.display])
                         
         return proc_supply_list
 
