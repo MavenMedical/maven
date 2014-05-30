@@ -16,14 +16,14 @@ define([
 	    template: function() {return '';},
             initialize: function(){
                 patientCollection.bind('add', this.addPatient, this);
-		patientCollection.bind('reset', this.render, this);
-		contextModel.on('change', this.addAll, this);
-		this.addAll();
+                patientCollection.bind('reset', this.render, this);
+                contextModel.on('change', this.addAll, this);
+                this.addAll();
             },
             render: function(){
-		template= _.template(patientListTemplate, {display: contextModel.get('display')});
-		this.$el.html(template);
-		return this;
+                        template= _.template(patientListTemplate, {display: contextModel.get('display')});
+                        this.$el.html(template);
+                        return this;
             },
 	    addPatient: function(pat){
                 var patientrow = new PatientRow({

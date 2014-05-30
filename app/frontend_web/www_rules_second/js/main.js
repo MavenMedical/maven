@@ -29,9 +29,6 @@ require([
     'underscore',
     'backbone',
     'bootstrap',
-    'router',
-    'globalmodels/contextModel',
-    'globalmodels/patientModel',
     //    'globalmodels/spendingModel',
     //    'localmodels/patientRowModel',
     
