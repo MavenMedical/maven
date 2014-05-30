@@ -733,18 +733,19 @@ CREATE TABLE observation
   comments character varying(254),
   numeric_result double precision,
   units character varying (254),
-  reference_low character varying(50),
-  reference_high character varying(50),
+  reference_low double precision,
+  reference_high double precision,
   reference_unit character varying(100),
-  method character varying (254),
+  method character varying (265),
+  loinc_code character varying(254),
+  snomed_id bigint,
   code_id character varying (254),
   code_system character varying (254),
   name character varying(254),
   component_id numeric(18,0),
   external_name character varying(75),
   base_name character varying(75),
-  common_name character varying(254),
-  loinc_code character varying(254)
+  common_name character varying(254)
 )
 WITH (
   OIDS=FALSE

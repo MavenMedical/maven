@@ -99,3 +99,18 @@ INSERT INTO sleuth_evidence(
     VALUES (1, 1, 'Sinusitis', 'Choosing Wisely: Sinusitis', 'Viral infections cause the majo',
             'Choosing Wisely', 'http://www.choosingwisely.org/doctor-patient-lists/american-academy-of-allergy-asthma-immunology/');
 
+
+
+--
+-- Populate Observation table with some data (that would have come in from the historical dump as well as the HL7 Lab feed)
+--
+INSERT INTO observation(
+            customer_id, encounter_id, order_id, pat_id, status, result_time,
+            comments, numeric_result, units, reference_low, reference_high,
+            reference_unit, method, loinc_code, snomed_id, code_id, code_system,
+            name, component_id, external_name, base_name, common_name)
+    VALUES (1, '5|76|3140325', 3, '1235412', 'final', '2014-05-25T14:22:00',
+            'Hemoglobin A1c is relatively low for this patient', 7.4, '%', 1, 16,
+            '%', NULL, '4548-4', NULL, NULL, NULL,
+            'Hemoglobin A1c', 1209479872, 'Hb A1c', 'Hb A1c', 'Hemoglobin A1c');
+
