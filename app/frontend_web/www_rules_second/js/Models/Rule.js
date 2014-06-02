@@ -7,13 +7,15 @@ define([
 ], function($, _, Backbone, TriggerSet, DetailsSet) {
 
     var Rule = Backbone.Model.extend({
-        defaults: {'myTriggers':new TriggerSet({type: 'procedure'}), 'myDetails':new DetailsSet(), 'myName': "defaultName"},
+        defaults: {'myTriggers':new TriggerSet({type: 'procedure'}), 'myDetails':new DetailsSet(), 'myName': "other"},
         initialize: function(params){
 
-          if (params.name){
-              this.set('myName', params.name);
-              console.log(this.get('myName'));
+          if (params){
+            this.set('myName', params.name);
           }
+              this.set('myTriggers',new TriggerSet({type:'procedure'}));
+              var set = this.get('myTriggers');
+              set.remove(set.models[0]);
         },
 
         addDetail: function(detailParams){},

@@ -6,21 +6,25 @@ define([
     'ScreenModels/Overview',
 
     'Views/RuleListDisplayView',
+    'Views/RuleOverviewView',
     'text!../Templates/Overview.html',
 
 
-], function ($, _, Backbone, Overview, RuleListDisplayView, rTemplate) {
+], function ($, _, Backbone, Overview, RuleListDisplayView, RuleOverviewView, rTemplate) {
 
-    var RuleList = Backbone.View.extend({
+    var OverviewView = Backbone.View.extend({
 
         el: "#TopLevelPanel",
         template: _.template(rTemplate),
-        model: new Overview(),
+       //Model Type is Overview
 
         initialize: function(param){
             if (param.model){
                 this.model =  param.model;
             }
+            this.model.on('change:RuleOverview', function(){
+                this.render();
+            }, this)
 
         },
         render: function(){
@@ -28,15 +32,20 @@ define([
 
             this.$el.html(html);
             var ruleListView = new  RuleListDisplayView({model: this.model.get('RulePanel')});
-
             ruleListView.render();
 
+
+
+           if (this.model.get('RuleOverview')){
+                var temp = new RuleOverviewView({model: this.model.get('RuleOverview')});
+                temp.render();
+           }
         }
 
     });
 
 
-    return RuleList;
+    return OverviewView;
 
 
 });

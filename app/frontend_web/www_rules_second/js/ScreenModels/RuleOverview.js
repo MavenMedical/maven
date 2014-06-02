@@ -13,9 +13,8 @@ define([
     var RuleOverview = Backbone.Model.extend({
 
         defaults: {'curRule': null, 'RuleBasePanel': null, 'NameEditor': null, 'TriggerSelectorPanel': null},
-        loadRule: function(params){
-
-
+        initialize: function(ruleIn){
+            this.set('curRule', ruleIn);
         },
         editName: function(){
             var nameEditor = new NameEditor(this.get('curRule'));

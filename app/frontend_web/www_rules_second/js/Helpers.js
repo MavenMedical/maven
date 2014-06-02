@@ -21,7 +21,10 @@ define([
 
         },
         getNewTriggerID:function(){
+
             this.triggerID ++;
+              console.log('new trigger ID ' + this.triggerID + " requested");
+
             return this.triggerID;
         }
 

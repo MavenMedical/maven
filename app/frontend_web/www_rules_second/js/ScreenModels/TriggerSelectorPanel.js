@@ -15,11 +15,11 @@ define([
         initialize: function(ruleIn){
 
             this.set('SelectedTriggerSet', ruleIn.get('myTriggers'));
-            var testTriggerSet = new TriggerSet({type: "procedure"});
-
-            testTriggerSet.addTrigger({code: 100000});
-            testTriggerSet.addTrigger({code: 200000});
-
+            var testTriggerSet = new TriggerSet();
+            console.log(testTriggerSet);
+            testTriggerSet.addTrigger({code: 100000, type: "procedure"});
+            testTriggerSet.addTrigger({code: 200000, type: "procedure"});
+            testTriggerSet.addTrigger({code: 13, type: "drug"})
             this.set('AvailableTriggerSet', testTriggerSet);
 
 

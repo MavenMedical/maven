@@ -6,6 +6,7 @@ define([
     'bootstrap',
 
     //Models
+    'Models/Rule',
     'ScreenModels/Overview',
 
     //Views
@@ -15,17 +16,16 @@ define([
     'Helpers'
 
 
-], function ($, _, Backbone, Bootstrap, /*Models*/Overview,/*Views*/ OverviewView,  Helpers) {
+], function ($, _, Backbone, Bootstrap, Rule, /*Models*/Overview,/*Views*/ OverviewView,  Helpers) {
     var initialize = function () {
         var testTopLevelModel = new Overview();
 
-        testTopLevelModel.addRuleToRulePanel({name: "rule1"});
-        testTopLevelModel.addRuleToRulePanel({name: "rule4"});
+        testTopLevelModel.addRuleToRulePanel(new Rule({name: "rule1"}));
+        testTopLevelModel.addRuleToRulePanel(new Rule({name: "rule4"}));
 
         var testTopLevel = new OverviewView({model: testTopLevelModel});
 
         testTopLevel.render();
-        console.log(testTopLevel);
 
 
     };

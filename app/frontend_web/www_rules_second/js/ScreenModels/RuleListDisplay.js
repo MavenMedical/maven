@@ -8,18 +8,27 @@ define([
 
 ], function($, _, Backbone, RuleSet, Helpers) {
 
-    var RuleOverview = Backbone.Model.extend({
+    var RuleListDisplay = Backbone.Model.extend({
 
-        defaults: {'myRuleSet': new RuleSet()},
-        addRule: function(params){
-            this.get('myRuleSet').addRule(params);
+        defaults: {'myRuleSet': new RuleSet(), 'myOverview': null},
+        initialize: function(){
+            this.set('myRuleSet', new RuleSet);
+
+
+        },
+        addRule: function(ruleIn){
+            console.log("attempting to add a rule");
+            ruleIn.on('change:myName', function(){
+                this.trigger('happened');
+            },this)
+            this.get('myRuleSet').add(ruleIn);
         },
         deleteRule: function(toDelete){
-          console.log(this.get('myRuleSet').length);
+
           this.get('myRuleSet').remove(toDelete);
-          console.log(this.get('myRuleSet').length);
+
         }
     });
-    return RuleOverview;
+    return RuleListDisplay;
 
 });

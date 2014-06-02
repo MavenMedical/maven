@@ -7,14 +7,15 @@ define([
 ], function($, _, Backbone, Helpers) {
 
     var Trigger = Backbone.Model.extend({
-        defaults: {'code': null, 'triggerType': null},
+        defaults: {'code': null, 'triggerType': null, 'id':-1},
         initialize: function(params){
           this.set('triggerType', params.triggerType);
           this.set('code', params.code);
           if (params.id){
-              this.id = params.id;
+              this.set('id', params.id);
           } else {
-              this.id = Helpers.getNewTriggerID();
+              this.set('id', Helpers.getNewTriggerID());
+
           }
         },
         getDescription: function(){
