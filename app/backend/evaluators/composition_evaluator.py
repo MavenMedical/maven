@@ -186,13 +186,11 @@ class CompositionEvaluator(SP.StreamProcessor):
         #empty list to store any potential Alerts that get triggered
         alert_bundle = []
 
-        #get the encounter_dx codes as a list of ICD-9 codes
-        encounter_dx_codes = composition.get_encounter_dx_codes()
+        #Use the FHIR Database API to look up each Condition's codes (ICD-9) and add Snomed CT concepts to the Condition
+        yield from FHIR_DB.gather_related_snomeds(composition, self.conn)
 
-        #use the list of ICD-9 codes and retrieve all of the snomedIDs associated with those diagnoses
-        encounter_snomedIDs = yield from self.get_snomedIDs(encounter_dx_codes)
-
-
+        #Pull a list of all the SNOMED CT codes from all of the conditions in the composition
+        encounter_snomedIDs = composition.get_encounter_dx_snomeds()
 
         for rule in rules:
             #retrieve and evaluate the encounter_dx related rules from the rule FHIR object
@@ -336,24 +334,6 @@ class CompositionEvaluator(SP.StreamProcessor):
 
     def evaluator_response(self, obj, response):
         raise NotImplementedError
-
-    @asyncio.coroutine
-    def get_snomedIDs(self, encounter_dx_codes):
-        """
-        Looks up the snomed concept IDs for each of the ICD-9 codes in encounter_dx_codes
-
-        :param encounter_dx_codes: A list of ICD-9 codes extracted from the FHIR composition's Problem List section
-        """
-        encounter_dx_snomeds = []
-
-        for enc_dx in encounter_dx_codes:
-            column_map = ["snomedid"]
-            columns = self.DBMapper.select_rows_from_map(column_map)
-            cur = yield from self.conn.execute_single("select " + columns + " from terminology.codemap where code=%s", extra=[enc_dx])
-            for result in cur:
-                encounter_dx_snomeds.append(int(result[0]))
-            cur.close()
-        return encounter_dx_snomeds
 
 
 def run_composition_evaluator():

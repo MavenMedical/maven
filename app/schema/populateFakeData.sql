@@ -48,7 +48,6 @@ INSERT INTO patient(
 
 
 
-
 --
 -- Populate costmap table with data
 --

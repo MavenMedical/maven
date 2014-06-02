@@ -19,7 +19,7 @@ __author__='Yuki Uchino'
 import json
 import datetime
 import asyncio
-import utils.api.pyfhir.pyfhir as api
+import utils.api.pyfhir.pyfhir_generated as FHIR_API
 from utils.database.database import MappingUtilites
 
 DBMapper = MappingUtilites()
@@ -79,7 +79,7 @@ def write_composition_json(composition, conn):
         pat_id = composition.subject.get_pat_id()
         customer_id = composition.customer_id
         encID = composition.encounter.get_csn()
-        json_composition = json.dumps(composition, default=api.jdefault)
+        json_composition = json.dumps(composition, default=FHIR_API.jdefault)
         cur = yield from conn.execute_single("INSERT INTO composition (patient_id, encounter_id, customer_id, comp_body) VALUES (%s, %s, %s, %s)", extra=[pat_id, encID, customer_id, json_composition])
         cur.close()
 
@@ -167,3 +167,19 @@ def write_composition_alerts(alert_datetime, alert_bundle, conn):
                                             extra=[alert.customer_id, alert.subject, alert.provider_id, alert.encounter_id,
                                              alert.code_trigger, alert.sleuth_rule, alert_datetime, alert.short_title, alert.tag_line,
                                              alert.description, alert.saving])
+
+@asyncio.coroutine
+def gather_related_snomeds(composition, conn):
+
+    for condition in composition.get_encounter_conditions():
+        snomed_ids = []
+        for coding in condition.code.coding:
+            column_map = ["snomedid"]
+            columns = DBMapper.select_rows_from_map(column_map)
+            cur = yield from conn.execute_single("select " + columns + " from terminology.codemap where code=%s and codetype=%s", extra=[coding.code, coding.system])
+            for result in cur:
+                snomed_ids.append(int(result[0]))
+            cur.close()
+
+        for snomed_id in snomed_ids:
+            condition.code.coding.append(FHIR_API.Coding(system="SNOMED CT", code=snomed_id))

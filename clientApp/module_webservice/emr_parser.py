@@ -371,7 +371,8 @@ class VistaParser():
             elif dx_code_type in self.terminologies:
                 if prob.code is None:
                     prob.code = FHIR_API.CodeableConcept()
-                prob.code.coding.append(FHIR_API.Coding(system=dx_code_type, code=dx_code_value))
+                prob.code.coding.append(FHIR_API.Coding(system="ICD-9", code=dx_code_value))
+                #prob.code.coding.append(FHIR_API.Coding(system=dx_code_type, code=dx_code_value))
 
         chron = xml_root.findall(".//IsChronic")[0].text
         if chron is not None and "true" in chron.lower():

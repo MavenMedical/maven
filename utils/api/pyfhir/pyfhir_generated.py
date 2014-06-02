@@ -500,7 +500,8 @@ class Composition(Resource):
                  event_detail=None,
                  section=None,
                  section_section=None,
-                 write_key=None
+                 write_key=None,
+                 emr_type=None
                  ):
         Resource.__init__(self,
                           customer_id=customer_id,
@@ -528,6 +529,7 @@ class Composition(Resource):
         self.section_subject = section_subject                                     # , If section different to composition
         self.section_content = section_content                                     # , The actual data for the section
         self.write_key = write_key
+        self.emr_type = emr_type
         
         if author is None:
             self.author = []                                     # , { attb['short_desc'] }}
@@ -680,7 +682,6 @@ class Composition(Resource):
                 for code in detail.type.coding:
                     if code.system == "clientEMR" or "maven" or "NDC":
                         proc_supply_list.append([code.code, code.system, code.display])
-                        
         return proc_supply_list
 
     def _get_proc_supply_details(self, order):
@@ -693,14 +694,9 @@ class Composition(Resource):
         enc_conditions_section = self.get_section_by_coding("http://loinc.org", "11450-4")
         return enc_conditions_section.content
 
-    def get_encounter_dx_codes(self):
-
-        problem_list_codes_IDs = []
-        for condition in self.get_encounter_conditions():
-            for coding in condition.code.coding:
-                problem_list_codes_IDs.append(coding.code)
-
-        return problem_list_codes_IDs
+    def get_encounter_dx_snomeds(self):
+        rtn_snomed_list = [coding.code for condition in self.get_encounter_conditions() for coding in condition.code.coding if coding.system == "SNOMED CT"]
+        return rtn_snomed_list
 
     def get_encounter_meds(self):
         raise NotImplementedError
@@ -709,7 +705,6 @@ class Composition(Resource):
         for sec in self.section:
             if sec.title == "Maven Alerts":
                 return sec
-
         alerts_section = Section(title="Maven Alerts", content=[])
         self.section.append(alerts_section)
 
@@ -719,7 +714,6 @@ class Composition(Resource):
         for sec in self.section:
             if sec.title == "Encounter Cost Breakdown":
                 return sec
-
         return None
 
     def get_author_id(self):
