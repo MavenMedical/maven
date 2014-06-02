@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<body bgcolor=#FFFFFF style='font-family: Arial; color: #444; word-spacing: normal; text-align: left; letter-spacing: 0; font-size: 104%%;'>
+<table>
+    <col width=32px>
+    <col width=30%%>
+    <col width=10%%>
+    <col width=60%%>
+    <tr>
+        <td valign='top'>
+            <img src='/home/devel/maven/clientApp/notification_generator/img/evidence-28x35px.png' />
+        </td>
+
+        <td valign='top'>
+            <a href='{{ http_address }}/#/episode/{{ encounter_id }}/patient/{{ patient_id }}/login/{{ user }}/{{ user_auth }}'>
+                <b>Encounter Cost Details</b>
+            </a>
+            <br/>
+            <b>Total:</b> ${{ total_cost }}
+        </td>
+
+        <td>
+        </td>
+
+        <td valign='top' style='font-family: Arial; color: #444; word-spacing: normal; text-align: left; letter-spacing: 0; font-size: 104%%;'>
+            <table>
+                {% for order in order_list %}
+                    <tr><td>{{ order[0] }}</td><td>${{ order[1] }}</td></tr>
+                {% endfor %}
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

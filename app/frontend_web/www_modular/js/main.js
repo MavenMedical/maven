@@ -13,7 +13,7 @@ require.config({
         underscore: 'libs/underscore/underscore',
         backbone: 'libs/backbone/backbone',
         bootstrap: '../css/bootstrap/js/bootstrap.min',
-	templates: '../templates'
+	    templates: '../templates'
     },
     shim: {
         bootstrap :{

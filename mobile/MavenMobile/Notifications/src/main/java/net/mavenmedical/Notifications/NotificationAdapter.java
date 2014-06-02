@@ -47,7 +47,6 @@ public class NotificationAdapter extends ArrayAdapter<Map<String,String>> {
         TextView tv = (TextView)view.findViewById(R.id.item_text);
         //tv.setText(Html.fromHtml(data.get(TEXT)));
         tv.setText(data.get(TEXT));
-        Log.i(MavenNotifications.mTag, "returning a view for position " + position);
         if (data.containsKey(LINK)) {
             view.setOnClickListener(new LinkClickListener(data.get(LINK)));
         }

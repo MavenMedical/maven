@@ -195,7 +195,7 @@ class VistaParser():
     def create_composition(self, xml_enc):
         ###
         # Create the FHIR Bundle Object for bundling the FHIR Composition and it's Resources up.
-        fhir_bundle = FHIR_API.Bundle(title="Vista EMR Message")
+        #fhir_bundle = FHIR_API.Bundle(title="Vista EMR Message")
 
         ##
         # Create the FHIR Composition Object with a Type=LOINC coded version of
@@ -203,7 +203,7 @@ class VistaParser():
         composition = FHIR_API.Composition(type=FHIR_API.CodeableConcept())
         composition.type.coding.append(FHIR_API.Coding(system="http://loinc.org", code="74028-2"))
 
-        fhir_bundle.entry.append(composition)
+        #fhir_bundle.entry.append(composition)
 
         #TODO - Hardcoded customer id
         composition.customer_id = 1

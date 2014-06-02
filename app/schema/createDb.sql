@@ -1302,6 +1302,7 @@ create table rules.codeLists
   ,listType varchar(20)
   ,isIntersect boolean
   ,intList bigint[]
+  ,strList varchar[]
   ,framemin int
   ,framemax int
 );
@@ -1348,11 +1349,14 @@ create  index ixlabevalRule on rules.labeval(ruleid,loinc_codes);
  $$
  language plpgsql;
 
-
-create or replace function rules.comparisonArray(listType varchar(20),encSnomeds bigint[],probsnomeds bigint[],patid varchar(100),framemin int,framemax int,customer int)
+te or replace function rules.comparisonIntArray(listType varchar(20),encSnomeds bigint[],probsnomeds bigint[],patid varchar(100),framemin int,framemax int,customer int)
 returns bigint[] as $$
 declare rtn bigint[];
+	mn int;
+	mx int;
 begin
+	mn:=coalesce(framemin,-99999);
+	mx:=coalesce(framemin,1);
 	if listType='PL' then
 		return probsnomeds;
 	elsif listtype='ENC' then
@@ -1360,7 +1364,7 @@ begin
 	elsif listtype='DXHX' then
 		select encsnomeds||probsnomeds||array_agg(snomed_id) into rtn  
 			from public.condition a 
-			where a.pat_id=patid and a.customer_id=customer and  current_date+framemin<=date_asserted and current_date+framemax>=date_asserted
+			where a.pat_id=patid and a.customer_id=customer and  current_date+mn<=date_asserted and current_date+mx>=date_asserted
 			group by a.pat_id ;
 		return rtn;
 	else 
@@ -1370,6 +1374,28 @@ end;
 $$
 language plpgsql;
 
+create index ixordPatCptDt on public.mavenorder(customer_id,pat_id,proc_code,datetime,code_type) where code_type='CPT';
+
+create or replace function rules.comparisonStrArray(listType varchar(20),patid varchar(100),framemin int,framemax int,customer int)
+returns varchar[] as $$
+declare rtn varchar[];
+	mn int;
+	mx int;
+begin
+	mn:=coalesce(framemin,-99999);
+	mx:=coalesce(framemin,1);
+	if listType='HXPX' then
+		select array_agg(proc_code) into rtn  
+			from public.mavenorder a 
+			where a.pat_id=patid and a.customer_id=customer and code_type='CPT'and  current_date+mn<=datetime and current_date+mx>=datetime
+			group by a.pat_id ;
+		return rtn;
+	else 
+		return null;
+	end if;
+end;
+$$
+language plpgsql;
 
 create or replace function rules.evalRules(orderCode varchar, ordcodeType varchar, patAge numeric(18,2), patSex varchar, encSnomeds bigint[], probSnomeds bigint[],patid varchar(100),customer int)
 returns table (ruleid int, name varchar,details text) as $$
@@ -1386,7 +1412,12 @@ begin
                    and a.minage<=$3 and a.maxage>=$3
                    and $4 like a.sex
                 group by a.ruleid
-                having min(case when c.isIntersect=(rules.comparisonArray(c.listType,$5,$6,$7,c.framemin,c.framemax,$8)&&c.intList) then 1 else 0 end)=1 
+                having min(case when c.isIntersect=(
+			(intlist is not null and rules.comparisonIntArray(c.listType,$5,$6,$7,c.framemin,c.framemax,$8)&&c.intList)
+			or 
+			(strlist is not null and rules.comparisonStrArray(c.listType,$7,c.framemin,c.framemax,$8)&&c.strList)
+		      ) 
+		  then 1 else 0 end)=1 
                 ) sub inner join rules.evirule x on sub.ruleid=x.ruleid
                 left outer join rules.labEval y on x.ruleid=y.ruleid
                 where (y.ruleid is null or rules.evalLabs($8,$7,y.framemin,y.framemax,y.defaultval,y.relation,y.threshold,y.loinc_codes))'
@@ -1396,3 +1427,4 @@ begin
 end;
 $$
 language plpgsql;
+

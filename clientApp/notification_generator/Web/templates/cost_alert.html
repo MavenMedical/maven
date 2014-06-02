@@ -1,0 +1,4 @@
+{{ http_address }}/#/episode/{{ encounter_id }}/patient/{{ patient_id }}/login/{{ user }}/{{ user_auth }}
+Total: ${{ total_cost }}
+{% for order in order_list %} {{ order[0] }}: ${{ order[1] }}
+{% endfor %}
