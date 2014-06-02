@@ -13,13 +13,13 @@ __author__='Tom DuBois'
 
 import json
 import random
-import itertools
 import datetime
 from collections import defaultdict
 from utils.database.database import AsyncConnectionPool
 from utils.database.database import MappingUtilites as DBMapUtils
 import utils.streaming.stream_processor as SP
 import utils.streaming.http_responder as HTTP
+import utils.streaming.http_helper as HH
 import asyncio
 import dateutil.parser as prsr
 import utils.crypto.authorization_key as AK
@@ -43,57 +43,6 @@ CONTEXT_CUSTOMERID = 'customer_id'
 LOGIN_TIMEOUT = 60 * 60 # 1 hour
 AUTH_LENGTH = 44 # 44 base 64 encoded bits gives the entire 256 bites of SHA2 hash
 
-def prettify(s, type=None):
-    if type == "name":
-        name = s.split(",")
-        return (str.title(name[0]) + ", " + str.title(name[1]))
-
-    elif type == "sex":
-        return str.title(s)
-    
-    elif type == "date":
-        print(s)
-        #prsr = dateutil.parser()
-        d = prsr.parse(s)
-        return (d.strftime("%A, %B %d, %Y"))
-
-
-def copy_and_append(m, kv):
-    return dict(itertools.chain(m.items(),[kv]))
-
-def restrict_context(qs, required, available):
-    if not set(required).issubset(qs.keys()):
-        raise HTTP.IncompleteRequest('Request is incomplete.  Required arguments are: '+', '.join(required)+".\n")
-    # not implemented yet - making sure optional parameters are the right type
-
-    if not CONTEXT_KEY in qs:
-        raise HTTP.UnauthorizedRequest('User is not logged in.')
-    try:
-        AK.check_authorization(qs[CONTEXT_USER][0], qs[CONTEXT_KEY][0], AUTH_LENGTH)
-    except AK.UnauthorizedException as ue:
-        raise HTTP.UnauthorizedRequest(str(ue))
-
-    context = {}
-    for k, v in qs.items():
-        if k in available:
-            if available[k] is list:
-                context[k]=v
-            else:
-                if len(v) is 1:
-                    try:
-                        context[k] = available[k](v[0])
-                    except ValueError:
-                        raise HTTP.IncompleteRequest('Request has parameter %s which is of the wrong type.' % k)
-                else:
-                    raise HTTP.IncompleteRequest('Request requires exactly one instance of parameter %s.' % k)
-    return context
-
-def limit_clause(matches):
-    if len(matches)==2 and all(matches):
-        return " LIMIT %d OFFSET %d" % (matches[1]-matches[0], matches[0])
-    else:
-        return ""
-
 class FrontendWebService(HTTP.HTTPProcessor):
 
     def __init__(self, configname):
@@ -114,14 +63,11 @@ class FrontendWebService(HTTP.HTTPProcessor):
         self.add_handler(['GET'], '/orders(?:/(\d+)-(\d+)?)?', self.get_orders)  # REAL
         self.add_handler(['GET'], '/autocomplete', self.get_autocomplete)  # FAKE
         self.db = AsyncConnectionPool(db_configname)
-
+        self.helper = HHb.HTTPHelper(CONTEXT_USER, CONTEXT_KEY, AUTH_LENGTH)
+        
     def schedule(self, loop):
         HTTP.HTTPProcessor.schedule(self, loop)
         self.db.schedule(loop)
-
-    @asyncio.coroutine
-    def get_stub(self, _header, _body, _qs, _matches, _key):
-        return (HTTP.OK_RESPONSE, b'', None)
 
     @asyncio.coroutine
     def get_autocomplete(self, _header, _body, qs, _matches, _key):
@@ -202,8 +148,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
             for x in cur:
                 results.append({
                     'id': x[1], 
-                    'name': prettify(x[0], type="name"), 
-                    'gender': prettify(x[3], type="sex"), 
+                    'name': self.helper.prettify(x[0], type="name"), 
+                    'gender': self.helper.prettify(x[3], type="sex"), 
                     'DOB': str(x[2]), 
                     'diagnosis': 'NOT VALID YET', 
                     'key': AK.authorization_key((user, x[1]), AUTH_LENGTH), 
@@ -220,13 +166,13 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
     @asyncio.coroutine
     def get_patients(self, _header, _body, qs, matches, _key):
-        context = restrict_context(qs,
+        context = self.helper.restrict_context(qs,
                                    FrontendWebService.patients_required_contexts,
                                    FrontendWebService.patients_available_contexts)
         user = context[CONTEXT_USER]
         customerid = context[CONTEXT_CUSTOMERID]
         results = yield from self._get_patient_info(customerid, user, pat_id=None, 
-                                                    limit = limit_clause(matches), encounter_list=None)
+                                                    limit = self.helper.limit_clause(matches), encounter_list=None)
 
         return (HTTP.OK_RESPONSE, json.dumps(results), None)
 
@@ -240,7 +186,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         This method returns Patient Details which include the data in the header of the Encounter Page
             i.e. Allergies Problem List, Last Encounter, others.
         """
-        context = restrict_context(qs,
+        context = self.helper.restrict_context(qs,
                                    FrontendWebService.patient_required_contexts,
                                    FrontendWebService.patient_available_contexts)
         user = context[CONTEXT_USER]
@@ -264,7 +210,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
     @asyncio.coroutine
     def get_total_spend(self, _header, _body, qs, _matches, _key):
-        context = restrict_context(qs,
+        context = self.helper.restrict_context(qs,
                                    FrontendWebService.daily_required_contexts,
                                    FrontendWebService.daily_available_contexts)
         user = context[CONTEXT_USER]
@@ -315,7 +261,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
 #select count(orderid), max(order_name), date_trunc('day',datetime) as dt, order_type, sum(order_cost) from mavenorder join encounter on mavenorder.encounter_id=encounter.csn where encounter.visit_prov_id='JHU1093124' group by dt, order_type, proc_code;
     @asyncio.coroutine
     def get_daily_spending(self, _header, _body, qs, _matches, _key):
-        context = restrict_context(qs,
+        context = self.helper.restrict_context(qs,
                                    FrontendWebService.daily_required_contexts,
                                    FrontendWebService.daily_available_contexts)
         user = context[CONTEXT_USER]
@@ -358,8 +304,6 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
         return (HTTP.OK_RESPONSE, json.dumps(patient_dict), None)
 
-    #self.add_handler(['GET'], '/alerts(?:/(\d+)-(\d+)?)?', self.get_stub)
-
     alerts_required_contexts = [CONTEXT_USER, CONTEXT_CUSTOMERID]
     alerts_available_contexts = {CONTEXT_USER:str, CONTEXT_PATIENTLIST:list, 
                                  CONTEXT_CUSTOMERID:int, CONTEXT_ENCOUNTER:str}
@@ -367,13 +311,13 @@ class FrontendWebService(HTTP.HTTPProcessor):
     @asyncio.coroutine
     def get_alerts(self, _header, _body, qs, matches, _key):
 
-        context = restrict_context(qs,
+        context = self.helper.restrict_context(qs,
                                    FrontendWebService.alerts_required_contexts,
                                    FrontendWebService.alerts_available_contexts)
         user = context[CONTEXT_USER]
         patients = context.get(CONTEXT_PATIENTLIST,None)
         customer = context[CONTEXT_CUSTOMERID]
-        limit = limit_clause(matches)
+        limit = self.helper.limit_clause(matches)
 
         column_map = ["alerts.alert_id",
                       "alerts.pat_id",
@@ -416,12 +360,11 @@ class FrontendWebService(HTTP.HTTPProcessor):
     orders_available_contexts = {CONTEXT_USER:str, CONTEXT_PATIENTLIST:list, 
                                  CONTEXT_CUSTOMERID:int, CONTEXT_ENCOUNTER:str}
 
-    #self.add_handler(['GET'], '/orders(?:/(\d+)-(\d+)?)?', self.get_stub)
     @asyncio.coroutine
     def get_orders(self, _header, _body, qs, matches, _key):
-        context = restrict_context(qs,
-                                   FrontendWebService.orders_required_contexts,
-                                   FrontendWebService.orders_available_contexts)
+        context = self.helper.restrict_context(qs,
+                                               FrontendWebService.orders_required_contexts,
+                                               FrontendWebService.orders_available_contexts)
         user = context[CONTEXT_USER]
         patient_ids = context.get(CONTEXT_PATIENTLIST, None)
         if not patient_ids:
@@ -429,7 +372,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
         encounter = context.get(CONTEXT_ENCOUNTER, None)
         customer = context[CONTEXT_CUSTOMERID]
-        limit = limit_clause(matches)
+        limit = self.helper.limit_clause(matches)
         if not limit:
             limit='LIMIT 10'
         #auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
