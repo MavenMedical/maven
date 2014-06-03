@@ -31,8 +31,7 @@ import pickle
 import asyncio
 from utils.database.database import AsyncConnectionPool, MappingUtilites
 import utils.database.fhir_database as FHIR_DB
-import utils.api.pyfhir.pyfhir as FHIR_API
-from utils.api.pyfhir.fhir_datatypes import Section
+import utils.api.pyfhir.pyfhir_generated as FHIR_API
 import utils.streaming.stream_processor as SP
 import maven_config as MC
 import datetime
@@ -65,6 +64,16 @@ class CompositionEvaluator(SP.StreamProcessor):
         yield from FHIR_DB.write_composition_to_db(composition, self.conn)
         self.write_object(composition, writer_key='aggregate')
 
+    ##########################################################################################
+    ##########################################################################################
+    ##########################################################################################
+    #####
+    ##### EVALUATE ENCOUNTER COST
+    #####
+    ##########################################################################################
+    ##########################################################################################
+    ##########################################################################################
+
     @asyncio.coroutine
     def evaluate_encounter_cost(self, composition):
         """
@@ -78,6 +87,7 @@ class CompositionEvaluator(SP.StreamProcessor):
         encounter_cost_breakdown = []
 
         orders = composition.get_encounter_orders()
+        encounter_orders_code_summary = []
 
         # This block is the original code Yuki wrote.  It makes potentially many calls to the database.
         # I (Tom) re-wrote this to make a single sql query, but be functionally equivalent.  
@@ -97,10 +107,12 @@ class CompositionEvaluator(SP.StreamProcessor):
         # build the query and maps
         ordersdict = defaultdict(lambda: [])
         detailsdict = defaultdict(lambda: [])
+
         for order in orders:
             order.totalCost = 0.00
             order_details = composition.get_proc_supply_details(order)
             for detail in order_details:
+                encounter_orders_code_summary.append((detail[0], detail[1]))
                 ordersdict[detail[0]].append(order)
                 detailsdict[detail[0]].append(detail)
 
@@ -114,24 +126,50 @@ class CompositionEvaluator(SP.StreamProcessor):
             for detail in detailsdict[result[1]]:
                 encounter_cost_breakdown.append([detail[2], cost])
 
-        return composition.section.append(Section(title="Encounter Cost Breakdown", content=encounter_cost_breakdown))
+        composition.section.append(FHIR_API.Section(title="Encounter Orders Code Summary", content=encounter_orders_code_summary,
+                                                    code=FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(code="enc_ord_sum", system="maven")])))
+        return composition.section.append(FHIR_API.Section(title="Encounter Cost Breakdown", content=encounter_cost_breakdown))
 
+    ##########################################################################################
+    ##########################################################################################
+    ##########################################################################################
+    #####
+    ##### EVALUATE DUPLICATE LAB ORDERS
+    #####
+    ##########################################################################################
+    ##########################################################################################
+    ##########################################################################################
     @asyncio.coroutine
     def evaluate_duplicate_labs(self, composition):
-        #Check to see if there's been an exact duplicate lab ordered recently
-        yield from self.evaluate_recent_lab_orders()
+        #Check to see if there are exact duplicate orders
+        duplicate_orders = yield from FHIR_DB.gather_duplicate_orders(composition, self.conn)
 
         #Check to see if there are relevant lab components to be displayed
-        yield from self.evaluate_recent_lab_results()
+        yield from FHIR_DB.gather_observations_from_duplicate_orders(duplicate_orders, composition, self.conn)
 
+    ##########################################################################################
+    ##########################################################################################
+    ##########################################################################################
+    #####
+    ##### EVALUATE ALTERNATIVE MEDICATIONS
+    #####
+    ##########################################################################################
+    ##########################################################################################
+    ##########################################################################################
     @asyncio.coroutine
-    def evaluate_recent_lab_orders(self):
-        pass
+    def evaluate_alternative_meds(self, composition):
+        raise NotImplementedError
 
-    @asyncio.coroutine
-    def evaluate_recent_lab_results(self):
-        pass
 
+    ##########################################################################################
+    ##########################################################################################
+    ##########################################################################################
+    #####
+    ##### EVALUATE CHOOSING WISELY RULES
+    #####
+    ##########################################################################################
+    ##########################################################################################
+    ##########################################################################################
     @asyncio.coroutine
     def get_matching_sleuth_rules(self, composition):
         """

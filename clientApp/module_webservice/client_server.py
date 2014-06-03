@@ -25,7 +25,7 @@ import maven_config as MC
 import maven_logging as ML
 import utils.streaming.stream_processor as SP
 import utils.streaming.http_responder as HR
-import utils.api.pyfhir.pyfhir as FHIR_API
+import utils.api.pyfhir.pyfhir_generated as FHIR_API
 from clientApp.module_webservice.emr_parser import VistaParser
 import clientApp.notification_generator.notification_generator as NG
 import clientApp.module_webservice.notification_service as NS

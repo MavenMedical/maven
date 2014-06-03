@@ -19,6 +19,8 @@ __author__='Yuki Uchino'
 import json
 import datetime
 import asyncio
+from collections import defaultdict
+from dateutil.relativedelta import relativedelta
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
 from utils.database.database import MappingUtilites
 
@@ -170,16 +172,139 @@ def write_composition_alerts(alert_datetime, alert_bundle, conn):
 
 @asyncio.coroutine
 def gather_related_snomeds(composition, conn):
+    try:
+        for condition in composition.get_encounter_conditions():
+            snomed_ids = []
+            for coding in condition.code.coding:
+                column_map = ["snomedid"]
+                columns = DBMapper.select_rows_from_map(column_map)
+                cur = yield from conn.execute_single("select " + columns + " from terminology.codemap where code=%s and codetype=%s", extra=[coding.code, coding.system])
+                for result in cur:
+                    snomed_ids.append(int(result[0]))
+                cur.close()
 
-    for condition in composition.get_encounter_conditions():
-        snomed_ids = []
-        for coding in condition.code.coding:
-            column_map = ["snomedid"]
+            for snomed_id in snomed_ids:
+                condition.code.coding.append(FHIR_API.Coding(system="SNOMED CT", code=snomed_id))
+    except:
+        raise Exception("Error gathering SNOMED CT codes for Encounter Diagnoses")
+
+@asyncio.coroutine
+def gather_duplicate_orders(composition, conn):
+    """
+    This function takes the "Maven Encounter Order Summary" Composition section (a list of tuples(code, code system)),
+    runs a query against the database looking for orders up to a year ago, finds the intersection between the two,
+    and returns a dictionary with KEY=tuple(code, code system) VALUE=list(various data items that may wanted to be used)
+
+    :param composition: A composition object that contains the Encounter Order Summary section (note this is different from
+                        the full-fledged Encounter Orders section
+    :param conn: An asynchronous database connection with which to perform the SQL queries
+    """
+    try:
+        one_year_ago = datetime.datetime.now() - relativedelta(years=1)
+        enc_ord_summary_section = composition.get_section_by_coding("maven", "enc_ord_sum")
+        rtn_dup_orders = {}
+        prev_ord = {}
+
+        for order in enc_ord_summary_section.content:
+            column_map = ["proc_code",
+                          "code_type",
+                          "orderid",
+                          "encounter_id",
+                          "order_name",
+                          "datetime",
+                          "order_type"]
             columns = DBMapper.select_rows_from_map(column_map)
-            cur = yield from conn.execute_single("select " + columns + " from terminology.codemap where code=%s and codetype=%s", extra=[coding.code, coding.system])
-            for result in cur:
-                snomed_ids.append(int(result[0]))
-            cur.close()
+            cur = yield from conn.execute_single("select " + columns + " from mavenorder where customer_id=%s and pat_id=%s and proc_code=%s and code_type=%s and datetime > %s", extra=[composition.customer_id, composition.subject.get_pat_id(), order[0], order[1], one_year_ago])
 
-        for snomed_id in snomed_ids:
-            condition.code.coding.append(FHIR_API.Coding(system="SNOMED CT", code=snomed_id))
+            for result in cur:
+                prev_ord[(result[0], result[1])] = {"order_id": result[2],
+                                                    "encounter_id": result[3],
+                                                    "order_name": result[4],
+                                                    "date_time": result[5],
+                                                    "order_type": result[6]}
+
+        for ord in set(enc_ord_summary_section.content).intersection(set(list(prev_ord))):
+            rtn_dup_orders[ord] = prev_ord[ord]
+
+        return rtn_dup_orders
+
+    except:
+        raise Exception("Error finding duplicate procedure orders for the encounter")
+
+@asyncio.coroutine
+def gather_observations_from_duplicate_orders(duplicate_orders, composition, conn):
+    """
+
+    """
+    try:
+        customer_id = composition.customer_id
+        patient_id = composition.subject.get_pat_id()
+
+        for ord in list(duplicate_orders):
+            order_code = ord[0]
+            order_code_system = ord[1]
+            ord_detail = composition.get_encounter_order_detail_by_coding(code=order_code, code_system=order_code_system)
+            order_id = duplicate_orders[ord]["order_id"]
+            column_map = ["status",
+                          "result_time",
+                          "numeric_result",
+                          "units",
+                          "reference_low",
+                          "reference_high",
+                          "loinc_code",
+                          "name",
+                          "external_name"]
+            columns = DBMapper.select_rows_from_map(column_map)
+
+            cur = yield from conn.execute_single("select " + columns + " from observation where customer_id=%s and pat_id=%s and order_id=%s", extra=[customer_id, patient_id, order_id])
+            duplicate_orders[ord].update({"observations": []})
+            for result in cur:
+                duplicate_orders[ord]["observations"].append({"status": result[0],
+                                                              "result_time": result[1],
+                                                              "numeric_result": result[2],
+                                                              "units": result[3],
+                                                              "reference_low": result[4],
+                                                              "reference_high": result[5],
+                                                              "loinc_code": result[6],
+                                                              "name": result[7],
+                                                              "external_name": result[8]})
+
+                ord_detail.relatedItem.append(FHIR_API.Observation(status=result[0],
+                                                                   appliesdateTime=result[1],
+                                                                   valueQuantity=FHIR_API.Quantity(value=result[2], units=result[3]),
+                                                                   referenceRange_low=result[4],
+                                                                   referenceRange_high=result[5],
+                                                                   valueCodeableConcept=FHIR_API.CodeableConcept(coding=FHIR_API.Coding(system="http://loinc.org", code=result[6]),
+                                                                                                                 text=result[7]),
+                                                                   name=result[7]))
+
+        print(duplicate_orders)
+    except:
+        raise Exception("Error extracting observations from duplicate lab orders")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
