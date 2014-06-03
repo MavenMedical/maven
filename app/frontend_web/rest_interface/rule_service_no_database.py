@@ -30,6 +30,7 @@ CONTEXT_DISPLAY = 'display'
 CONTEXT_AUTH = 'auth'
 CONTEXT_USER = 'user'
 CONTEXT_RULEID = 'id'
+CONTEXT_PASSWORD = 'password'
 
 AUTH_LENGTH = 44
 LOGIN_TIMEOUT = 60 * 60  # 1 hour
@@ -53,15 +54,16 @@ class RuleService(HTTP.HTTPProcessor):
     @asyncio.coroutine
     def post_login(self, _header, body, _qs, _matches, _key):
         info = json.loads(body.decode('utf-8'))
-        if (not 'user' in info) or (not 'password' in info):
+        if (not CONTEXT_USER in info) or (not CONTEXT_PASSWORD in info):
             return (HTTP.BAD_RESPONSE, b'', None)
         else:
-            user = info['user']
+            user = info[CONTEXT_USER]
             user_auth = AK.authorization_key(user, AUTH_LENGTH, LOGIN_TIMEOUT)
 
         ret = {
             CONTEXT_DISPLAY: 'Dr. Huxtable',
             CONTEXT_AUTH: user_auth,
+            CONTEXT_USER: user,
             }
         return (HTTP.OK_RESPONSE, json.dumps(ret), None)
 
