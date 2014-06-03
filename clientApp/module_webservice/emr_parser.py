@@ -2,7 +2,6 @@
 #Copyright (c) 2014 - Maven Medical
 #************************
 #AUTHOR:
-from utils.api.pyfhir.fhir_datatypes import Period, Identifier, Address, Section
 
 __author__='Yuki Uchino'
 #************************
@@ -39,14 +38,14 @@ class EpicParser():
             composition.subject = self.parse_demographics(xml_root)
 
         elif "Contact" in xml_root.tag:
-            composition.section.append(Section(title="Encounter", content=self.parse_encounter(xml_root)))
+            composition.section.append(FHIR_API.Section(title="Encounter", content=self.parse_encounter(xml_root)))
 
         elif "ProblemsResult" in xml_root.tag:
             composition.section.append(
-                Section(title="Problem List", content=self.parse_problem_list(xml_prob_list=xml_root)))
+                FHIR_API.Section(title="Problem List", content=self.parse_problem_list(xml_prob_list=xml_root)))
 
         elif "Orders" in xml_root.tag:
-            composition.section.append(Section(title="Encounter Orders", content=self.parse_orders(xml_root)))
+            composition.section.append(FHIR_API.Section(title="Encounter Orders", content=self.parse_orders(xml_root)))
 
     def parse_demographics(self, xml_demog):
         """
@@ -73,8 +72,8 @@ class EpicParser():
             pat = FHIR_API.Patient()
             pat.add_name(given=[self.firstName], family=[self.lastName])
             pat.add_maven_identifier(value=uuid.uuid1())
-            pat.identifier.append(Identifier(system='NationalIdentifier', value=self.patientId))
-            pat.address.append(Address(zip=self.zipcode))
+            pat.identifier.append(FHIR_API.Identifier(system='NationalIdentifier', value=self.patientId))
+            pat.address.append(FHIR_API.Address(zip=self.zipcode))
             pat.birthDate = self.birthDate
             pat.gender = self.gender
 
@@ -93,19 +92,19 @@ class EpicParser():
         try:
             root = ET.fromstring(xml_contact)
             contactDateTime = dateutil.parser.parse(root.findall(".//DateTime")[0].text)
-            pat_encounter.period = Period(start=contactDateTime)
+            pat_encounter.period = FHIR_API.Period(start=contactDateTime)
             department = root.findall(".//DepartmentName")[0].text
             pat_encounter.department = FHIR_API.Location(name=department)
             depids = root.findall(".//DepartmentIDs/IDType")
             for dp in depids:
                 if "internal" in dp.findall(".//Type")[0].text.lower():
                     id = dp.findall("ID")[0].text
-                    pat_encounter.department.identifier.append(Identifier(label="Internal", system="clientEMR", value=id))
+                    pat_encounter.department.identifier.append(FHIR_API.Identifier(label="Internal", system="clientEMR", value=id))
             csns = root.findall(".//IDs/IDType")
             for csn in csns:
                 if "serial" in dp.findall(".//Type")[0].text.lower():
                     id = dp.findall("ID")[0].text
-                    pat_encounter.identifier.append(Identifier(system="clientEMR", label="serial", value=id))
+                    pat_encounter.identifier.append(FHIR_API.Identifier(system="clientEMR", label="serial", value=id))
             pat_encounter.type = root.findall("./Type")[0].text
             patclass = root.findall("./PatientClass")[0].text
             if patclass == "E":
@@ -146,8 +145,8 @@ class EpicParser():
             procedure = FHIR_API.Procedure()
             procedure.type = ord_type
             procedure.name = ord_name
-            procedure.identifier.append(Identifier(system="clientEMR", label="name", value=ord_name))
-            procedure.identifier.append(Identifier(system="clientEMR", label=ord_code_type, value=ord_code))
+            procedure.identifier.append(FHIR_API.Identifier(system="clientEMR", label="name", value=ord_name))
+            procedure.identifier.append(FHIR_API.Identifier(system="clientEMR", label=ord_code_type, value=ord_code))
 
             encounter_orders.append(FHIR_API.Order(detail=[procedure], text=ord_name))
 
@@ -162,7 +161,7 @@ class EpicParser():
         for idtp in dxid:
             if "internal" in idtp.findall(".//Type")[0].text.lower():
                 prob.identifier.append(
-                    Identifier(label="Internal", system="clientEMR", value=idtp.findall(".//ID")[0].text))
+                    FHIR_API.Identifier(label="Internal", system="clientEMR", value=idtp.findall(".//ID")[0].text))
                 #self.diagnosis = cliDiagnosis.cliDiagnosis(idtp.findall(".//ID")[0].text, config)
                 break
 
