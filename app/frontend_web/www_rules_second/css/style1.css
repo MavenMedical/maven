@@ -56,7 +56,6 @@ html, body {
 }
 
 #fixed-left {
-    display:none;
     position:fixed;
     width: 20%; /*var-fixed-left-size*/
     top:130px; /*var-fixed-top-size*/

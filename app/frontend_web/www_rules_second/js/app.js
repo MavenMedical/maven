@@ -5,28 +5,18 @@ define([
     'backbone',
     'bootstrap',
 
-    //Models
-    'Models/Rule',
-    'ScreenModels/Overview',
-
+    'models/contextModel',
     //Views
-    'Views/OverviewView',
-
-
-    'Helpers'
-
-
-], function ($, _, Backbone, Bootstrap, Rule, /*Models*/Overview,/*Views*/ OverviewView,  Helpers) {
+    'widgets/ruleList',
+], function ($, _, Backbone, Bootstrap, contextModel, RuleList) {
     var initialize = function () {
-        var testTopLevelModel = new Overview();
+        $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
+            options.url = 'rule_services' + options.url;
+        });
+ 
+	contextModel.setUser('tom', 'pw', '#');
 
-        testTopLevelModel.addRuleToRulePanel(new Rule({name: "rule1"}));
-        testTopLevelModel.addRuleToRulePanel(new Rule({name: "rule4"}));
-
-        var testTopLevel = new OverviewView({model: testTopLevelModel});
-
-        testTopLevel.render();
-
+	(new RuleList({el:$("#fixed-left")})).render();
 
     };
 
