@@ -171,6 +171,22 @@ def write_composition_alerts(alert_datetime, alert_bundle, conn):
                                              alert.description, alert.saving])
 
 @asyncio.coroutine
+def gather_encounter_order_cost_info(ordersdict, detailsdict, conn):
+
+        rtn_encounter_cost_breakdown = []
+        cur = yield from conn.execute_single("SELECT cost_amt, billing_code FROM costmap WHERE billing_code IN %s", extra=[tuple(ordersdict.keys())])
+
+        # process the results
+        for result in cur:
+            cost = float(result[0])
+            for order in ordersdict[result[1]]:
+                order.totalCost += cost
+            for detail in detailsdict[result[1]]:
+                rtn_encounter_cost_breakdown.append([detail[2], cost])
+
+        return rtn_encounter_cost_breakdown
+
+@asyncio.coroutine
 def gather_related_snomeds(composition, conn):
     try:
         for condition in composition.get_encounter_conditions():
@@ -189,7 +205,7 @@ def gather_related_snomeds(composition, conn):
         raise Exception("Error gathering SNOMED CT codes for Encounter Diagnoses")
 
 @asyncio.coroutine
-def gather_duplicate_orders(composition, conn):
+def gather_duplicate_orders(enc_ord_summary_section, composition, conn):
     """
     This function takes the "Maven Encounter Order Summary" Composition section (a list of tuples(code, code system)),
     runs a query against the database looking for orders up to a year ago, finds the intersection between the two,
@@ -200,10 +216,9 @@ def gather_duplicate_orders(composition, conn):
     :param conn: An asynchronous database connection with which to perform the SQL queries
     """
     try:
+        rtn_duplicate_orders = {}
+        twelve_hours_ago = datetime.datetime.now() - relativedelta(hours=12)
         one_year_ago = datetime.datetime.now() - relativedelta(years=1)
-        enc_ord_summary_section = composition.get_section_by_coding("maven", "enc_ord_sum")
-        rtn_dup_orders = {}
-        prev_ord = {}
 
         for order in enc_ord_summary_section.content:
             column_map = ["proc_code",
@@ -214,22 +229,22 @@ def gather_duplicate_orders(composition, conn):
                           "datetime",
                           "order_type"]
             columns = DBMapper.select_rows_from_map(column_map)
-            cur = yield from conn.execute_single("select " + columns + " from mavenorder where customer_id=%s and pat_id=%s and proc_code=%s and code_type=%s and datetime > %s", extra=[composition.customer_id, composition.subject.get_pat_id(), order[0], order[1], one_year_ago])
+            cur = yield from conn.execute_single("select " + columns + " from mavenorder where customer_id=%s and pat_id=%s and proc_code=%s and code_type=%s and datetime > %s AND datetime <= %s", extra=[composition.customer_id, composition.subject.get_pat_id(), order[0], order[1], one_year_ago, twelve_hours_ago])
 
             for result in cur:
-                prev_ord[(result[0], result[1])] = {"order_id": result[2],
+                rtn_duplicate_orders[(result[0], result[1])] = {"order_id": result[2],
                                                     "encounter_id": result[3],
                                                     "order_name": result[4],
                                                     "date_time": result[5],
                                                     "order_type": result[6]}
 
-        for ord in set(enc_ord_summary_section.content).intersection(set(list(prev_ord))):
-            rtn_dup_orders[ord] = prev_ord[ord]
+        #DOH Moment Below...I don't need the intersection b/c the DB query is only selecting the ones that match anyway.
+        #for ord in set(enc_ord_summary_section.content).intersection(set(list(previous_orders))):
+            #duplicate_orders[ord] = previous_orders[ord]
 
-        return rtn_dup_orders
-
+        return rtn_duplicate_orders
     except:
-        raise Exception("Error finding duplicate procedure orders for the encounter")
+        raise Exception("Error finding previous duplicate orders for this patient")
 
 @asyncio.coroutine
 def gather_observations_from_duplicate_orders(duplicate_orders, composition, conn):

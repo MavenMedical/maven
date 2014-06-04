@@ -55,7 +55,7 @@ class CompositionEvaluator(SP.StreamProcessor):
         #Look up prices via costmap and create new "Encounter Cost Breakdown" section that is added to Composition
         composition = pickle.loads(obj)
         yield from self.evaluate_encounter_cost(composition)
-        yield from self.evaluate_duplicate_labs(composition)
+        yield from self.evaluate_duplicate_orders(composition)
 
         #TODO Logic to check if recently alerted (will involved look-up in DB.This type of caching would be nice via REDIS)
 
@@ -84,7 +84,6 @@ class CompositionEvaluator(SP.StreamProcessor):
 
         :param composition: FHIR Composition object created using Maven's FHIR API
         """
-        encounter_cost_breakdown = []
 
         orders = composition.get_encounter_orders()
         encounter_orders_code_summary = []
@@ -116,33 +115,27 @@ class CompositionEvaluator(SP.StreamProcessor):
                 ordersdict[detail[0]].append(order)
                 detailsdict[detail[0]].append(detail)
 
-        cur = yield from self.conn.execute_single("SELECT cost_amt, billing_code FROM costmap WHERE billing_code IN %s", extra=[tuple(ordersdict.keys())])
-
-        # process the results
-        for result in cur:
-            cost = float(result[0])
-            for order in ordersdict[result[1]]:
-                order.totalCost += cost
-            for detail in detailsdict[result[1]]:
-                encounter_cost_breakdown.append([detail[2], cost])
+        encounter_cost_breakdown = yield from FHIR_DB.gather_encounter_order_cost_info(ordersdict, detailsdict, self.conn)
 
         composition.section.append(FHIR_API.Section(title="Encounter Orders Code Summary", content=encounter_orders_code_summary,
                                                     code=FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(code="enc_ord_sum", system="maven")])))
-        return composition.section.append(FHIR_API.Section(title="Encounter Cost Breakdown", content=encounter_cost_breakdown))
+
+        composition.section.append(FHIR_API.Section(title="Encounter Cost Breakdown", content=encounter_cost_breakdown))
 
     ##########################################################################################
     ##########################################################################################
     ##########################################################################################
     #####
-    ##### EVALUATE DUPLICATE LAB ORDERS
+    ##### EVALUATE DUPLICATE ORDERS
     #####
     ##########################################################################################
     ##########################################################################################
     ##########################################################################################
     @asyncio.coroutine
-    def evaluate_duplicate_labs(self, composition):
-        #Check to see if there are exact duplicate orders
-        duplicate_orders = yield from FHIR_DB.gather_duplicate_orders(composition, self.conn)
+    def evaluate_duplicate_orders(self, composition):
+        #Check to see if there are exact duplicate orders from within the last year
+        enc_ord_summary_section = composition.get_section_by_coding("maven", "enc_ord_sum")
+        duplicate_orders = yield from FHIR_DB.gather_duplicate_orders(enc_ord_summary_section, composition, self.conn)
 
         #Check to see if there are relevant lab components to be displayed
         yield from FHIR_DB.gather_observations_from_duplicate_orders(duplicate_orders, composition, self.conn)
