@@ -10,15 +10,16 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
+    'models/ruleCollection',
     'models/contextModel',
     'text!templates/ruleRow.html'
-], function ($, _, Backbone, contextModel, ruleRowTemplate) {
+], function ($, _, Backbone, ruleCollection, contextModel, ruleRowTemplate) {
     var ruleRow = Backbone.View.extend({
         tagName: 'tr',
         template: _.template(ruleRowTemplate),
         events:{
 	    'click .select-button': 'handleSelect',
-	    'click .remove-button': 'handleRemove',
+	    'click .remove-button': 'handleRemove'
         },
         render: function(){
             $(this.el).html(this.template(this.model.toJSON()));
@@ -28,12 +29,14 @@ define([
             //update context to have a current rule, 
 	    //that triggers everything else
 	    console.log('select this');
-            contextModel.set({ruleid:this.model.get("id"),
-			      ruleName:this.model.get("name")});
+
+            contextModel.set({id: this.model.get('id')});
+
+
         },
-	handleRemove: function() {
-	    console.log('remove this');
-	}
+    	handleRemove: function() {
+	        ruleCollection.remove(this.model);
+    	}
     });
 
     return ruleRow;
