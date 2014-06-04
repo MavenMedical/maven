@@ -20,10 +20,10 @@ define([
             stage: null,
             auth: null,
 	    user: null,
-	    ruleid: null
+	    id: null
         },
 	toParams: function() {
-	    var ret = _.pick(this.attributes,['user', 'auth', 'ruleid']);
+	    var ret = _.pick(this.attributes,['user', 'auth', 'id']);
 	    for(var x in ret) {
 		if(!ret[x]) {delete ret[x];}
 	    }

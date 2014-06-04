@@ -56,11 +56,6 @@ html, body {
 }
 
 #fixed-left {
-    position:fixed;
-    width: 20%; /*var-fixed-left-size*/
-    top:130px; /*var-fixed-top-size*/
-    bottom: 0px; /*var-fixed-bottom-size*/
-    left:0px;
 }
 
 #fixed-right {
@@ -83,13 +78,6 @@ html, body {
 }
 
 #floating-top {
-    position:relative;
-    top:0px;
-    left:0px;
-    right:0px;
-    display:none;
-    height:0px; /*var-floating-top-size*/
-    z-index:2;
 }
 
 #floating-bottom {
