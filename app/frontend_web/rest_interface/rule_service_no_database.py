@@ -24,20 +24,22 @@ import maven_config as MC
 
 JNAME = 'name'
 JDX = 'dx'
-JTRIGGER = 'cpt'
+JTRIGGER = 'triggers'
 
 CONTEXT_DISPLAY = 'display'
 CONTEXT_AUTH = 'auth'
 CONTEXT_USER = 'user'
 CONTEXT_RULEID = 'id'
+CONTEXT_RULENAME = 'name'
 CONTEXT_PASSWORD = 'password'
 
 AUTH_LENGTH = 44
 LOGIN_TIMEOUT = 60 * 60  # 1 hour
 
 rules = {
-    1: {JNAME: 'rule 1', JDX: '123', JTRIGGER: '456'},
-} 
+    1: {JNAME: 'rule 1', JDX: '123', JTRIGGER: [{'type': 'cpt', 'code': '456'}, {'type': 'snomed', 'code': '11'}]},
+    2: {JNAME: 'rule 2', JDX: '321', JTRIGGER: [{'type': 'cpt', 'code': '654'}]},
+}
 
 
 class RuleService(HTTP.HTTPProcessor):
@@ -49,6 +51,7 @@ class RuleService(HTTP.HTTPProcessor):
         self.add_handler(['POST'], '/update', self.post_update)
         self.add_handler(['GET'], '/list', self.get_list)
         self.add_handler(['GET'], '/rule', self.get_rule)
+        self.add_handler(['POST'], '/rule', self.post_rule)
         self.helper = HH.HTTPHelper(CONTEXT_USER, CONTEXT_AUTH, AUTH_LENGTH)
         
     @asyncio.coroutine
@@ -80,6 +83,23 @@ class RuleService(HTTP.HTTPProcessor):
         rules[context[CONTEXT_RULEID]] = info
         return (HTTP.OK_RESPONSE, b'', None)
 
+
+    add_required_contexts = [CONTEXT_USER, CONTEXT_RULENAME]
+    add_available_contexts = {CONTEXT_USER:str}
+
+
+
+    @asyncio.coroutine
+    def post_rule(self, _header, body, qs, _matches, _key):
+        print("***************ADD The Rule***************")
+        info = json.loads(body.decode('utf-8'))
+        context = self.helper.restrict_context(qs,
+                                               RuleService.add_required_contexts,
+                                               RuleService.add_available_contexts)
+        global rules
+        rules[context[CONTEXT_RULEID]] = info
+        return (HTTP.OK_RESPONSE, b'', None)
+
     list_required_context = [CONTEXT_USER]
     list_available_context = {CONTEXT_USER:str}
     
@@ -97,9 +117,11 @@ class RuleService(HTTP.HTTPProcessor):
 
     @asyncio.coroutine
     def get_rule(self, _header, body, qs, _matches, _key):
+        print("")
         context = self.helper.restrict_context(qs,
                                                RuleService.rule_required_context,
                                                RuleService.rule_available_context)
+
         return (HTTP.OK_RESPONSE, json.dumps(rules[context[CONTEXT_RULEID]]), None)
 
 
