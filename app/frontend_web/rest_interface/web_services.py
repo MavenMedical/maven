@@ -63,7 +63,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         self.add_handler(['GET'], '/orders(?:/(\d+)-(\d+)?)?', self.get_orders)  # REAL
         self.add_handler(['GET'], '/autocomplete', self.get_autocomplete)  # FAKE
         self.db = AsyncConnectionPool(db_configname)
-        self.helper = HHb.HTTPHelper(CONTEXT_USER, CONTEXT_KEY, AUTH_LENGTH)
+        self.helper = HH.HTTPHelper(CONTEXT_USER, CONTEXT_KEY, AUTH_LENGTH)
         
     def schedule(self, loop):
         HTTP.HTTPProcessor.schedule(self, loop)
@@ -319,28 +319,27 @@ class FrontendWebService(HTTP.HTTPProcessor):
         customer = context[CONTEXT_CUSTOMERID]
         limit = self.helper.limit_clause(matches)
 
-        column_map = ["alerts.alert_id",
-                      "alerts.pat_id",
-                      "alerts.encounter_date",
-                      "alerts.alert_date",
-                      "alerts.alert_title",
-                      "alerts.alert_msg",
-                      "alerts.action",
-                      "alerts.saving"]
+        column_map = ["alert.alert_id",
+                      "alert.pat_id",
+                      "alert.alert_datetime",
+                      "alert.long_title",
+                      "alert.description",
+                      "alert.outcome",
+                      "alert.saving"]
 
         columns = DBMapUtils().select_rows_from_map(column_map)
         cmd=[]
         cmdargs=[]
         cmd.append("SELECT")
         cmd.append(columns)
-        cmd.append("FROM alerts")
-        cmd.append("Where alerts.prov_id = %s and alerts.customer_id = %s")
+        cmd.append("FROM alert")
+        cmd.append("WHERE alert.provider_id = %s AND alert.customer_id = %s")
         cmdargs.append(user)
         cmdargs.append(customer)
         if patients:
-            cmd.append("AND alerts.pat_id in %s")
+            cmd.append("AND alert.pat_id IN %s")
             cmdargs.append(tuple(patients))
-        cmd.append("ORDER BY alerts.alert_date desc")
+        cmd.append("ORDER BY alert.alert_datetime DESC")
         if limit:
             cmd.append(limit)
 
@@ -348,7 +347,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
                 
         results = []
         for x in cur:
-            results.append({'id': x[0], 'patient': x[1], 'name':x[4], 'cost': x[7], 'html': x[5], 'date': str(x[2])})
+            results.append({'id': x[0], 'patient': x[1], 'name':x[3], 'cost': round(x[6]), 'html': x[4], 'date': str(x[2])})
             ML.DEBUG(json.dumps(results))
 
         #auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
