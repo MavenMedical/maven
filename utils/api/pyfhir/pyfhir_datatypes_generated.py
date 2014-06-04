@@ -10,7 +10,11 @@ class Section():
         self.title = title
         self.code = code
         self.subject = subject
-        self.content = content
+
+        if content is None:
+            self.content = []
+        else:
+            self.content = content
 
 
 class Address(Element):
@@ -148,6 +152,8 @@ class CodeableConcept(Element):
         
         if coding is None:
             self.coding = []                                     #Code defined by a terminology system
+        else:
+            self.coding = coding
         
 
 class Coding(Element):

@@ -1080,7 +1080,6 @@ BEGIN
     proc_code = proc_code1,
     code_type = code_type1,
     order_cost = order_cost1,
-    datetime = datetime1,
     active = active1
     WHERE encounter_id = encounter_id1 and customer_id = customer_id1 and proc_code = proc_code1;
     IF found THEN
@@ -1349,7 +1348,7 @@ create  index ixlabevalRule on rules.labeval(ruleid,loinc_codes);
  $$
  language plpgsql;
 
-te or replace function rules.comparisonIntArray(listType varchar(20),encSnomeds bigint[],probsnomeds bigint[],patid varchar(100),framemin int,framemax int,customer int)
+create or replace function rules.comparisonIntArray(listType varchar(20),encSnomeds bigint[],probsnomeds bigint[],patid varchar(100),framemin int,framemax int,customer int)
 returns bigint[] as $$
 declare rtn bigint[];
 	mn int;

@@ -192,7 +192,7 @@ class AdverseReaction(Resource):
             self.symptom = []                                     # , { attb['short_desc'] }}
         if exposure is None:
             self.exposure = []                                     # , { attb['short_desc'] }}
-        
+
 
 class Alert(Resource):
     """
@@ -206,37 +206,32 @@ class Alert(Resource):
     :param subject: The person who this alert concerns.
     :param author: The person or device that created the alert.
     :param note: The textual component of the alert to display to the user.
-    
-    
     """
-    def __init__(self,
-                 customer_id=None,
-                 name_space=None,
-                 id=None,
-                 identifier=None,
-                 versionId=None,
-                 resourceType="Alert",
-                 text=None,
-                 category=None,
-                 status=None,
-                 subject=None,
-                 author=None,
-                 note=None,
-                 ):
-        Resource.__init__(self,
-                          customer_id=customer_id,
-                          name_space=name_space,
-                          identifier=identifier,
-                          id=id,
-                          versionId=versionId,
-                          resourceType=resourceType)
-        self.text = text                                     # , Text summary of the resource, for human interpretation
-        self.category = category                                     # , Clinical, administrative, etc.
-        self.status = status                                     # , active | inactive | entered in error
-        self.subject = subject                                     # , Who is alert about?
-        self.author = author                                     # , Alert creator
-        self.note = note                                     # , Text of alert
-        
+
+    def __init__(self, customer_id, category=None, status=None, subject=None, author=None, provider_id=None, encounter_id=None,
+                 code_trigger=None, sleuth_rule=None, alert_datetime=None, short_title=None, long_title=None,
+                 tag_line=None, description=None, override_indications=None, outcome=None, saving=None):
+        Resource.__init__(self, customer_id=customer_id)
+        self.category = category
+        self.status = status
+        self.subject = subject
+        self.author = author
+        self.note = ""
+        self.provider_id = provider_id
+        self.encounter_id = encounter_id
+        self.code_trigger = code_trigger
+        self.sleuth_rule = sleuth_rule
+        self.alert_datetime = alert_datetime
+        self.short_title = short_title
+        self.long_title = long_title
+        self.tag_line = tag_line
+        self.description = description
+        if override_indications is None:
+            self.override_indications = []
+        else:
+            self.override_indications = override_indications
+        self.outcome = outcome
+        self.saving = saving
         
 
 class AllergyIntolerance(Resource):
@@ -720,6 +715,13 @@ class Composition(Resource):
         for id in self.author.identifier:
             if id.system == "clientEMR":
                 return id.value
+
+    def get_encounter_order_detail_by_coding(self, code=None, code_system=None):
+        for order in self.get_encounter_orders():
+            for detail in order.detail:
+                for coding in detail.type.coding:
+                    if coding.code == code and coding.system == code_system:
+                        return detail
 
 
 class ConceptMap(Resource):
@@ -3803,6 +3805,8 @@ class Procedure(Resource):
             self.complication = []                                     # , { attb['short_desc'] }}
         if relatedItem is None:
             self.relatedItem = []                                     # , { attb['short_desc'] }}
+        else:
+            self.relatedItem = relatedItem
         
 
 class Profile(Resource):

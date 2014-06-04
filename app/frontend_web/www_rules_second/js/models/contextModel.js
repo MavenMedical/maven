@@ -19,8 +19,11 @@ define([
         defaults: {
             stage: null,
             auth: null,
+
 	        user: null,
 	        id: null
+
+
         },
 	toParams: function() {
 	    var ret = _.pick(this.attributes,['user', 'auth', 'id']);
