@@ -19,13 +19,16 @@ define([
         defaults: {
             stage: null,
             auth: null,
-	    user: null,
-	    ruleid: null
+
+	        user: null,
+	        id: null
+
+
         },
 	toParams: function() {
-	    var ret = _.pick(this.attributes,['user', 'auth', 'ruleid']);
+	    var ret = _.pick(this.attributes,['user', 'auth', 'id']);
 	    for(var x in ret) {
-		if(!ret[x]) {delete ret[x];}
+    		if(!ret[x]) {delete ret[x];}
 	    }
 	    return ret;
 	},
@@ -37,7 +40,8 @@ define([
 		    data: JSON.stringify({user:user, password:pw}),
 		    type: 'POST',
 		    success: function() {
-			Backbone.history.loadUrl(route);
+                console.log("attempting to load url");
+			    Backbone.history.loadUrl(route);
 		    }
 		});
 	    }
