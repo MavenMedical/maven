@@ -84,10 +84,6 @@ class CompositionEvaluator(SP.StreamProcessor):
 
         :param composition: FHIR Composition object created using Maven's FHIR API
         """
-
-        orders = composition.get_encounter_orders()
-        encounter_orders_code_summary = []
-
         # This block is the original code Yuki wrote.  It makes potentially many calls to the database.
         # I (Tom) re-wrote this to make a single sql query, but be functionally equivalent.  
         # Yuki's code is easier to follow, so I'm leaving it here
@@ -103,6 +99,9 @@ class CompositionEvaluator(SP.StreamProcessor):
         #            encounter_cost_breakdown.append([detail[1], float(result[0])])
         #        cur.close()
 
+        orders = composition.get_encounter_orders()
+        encounter_orders_code_summary = []
+
         # build the query and maps
         ordersdict = defaultdict(lambda: [])
         detailsdict = defaultdict(lambda: [])
@@ -115,12 +114,12 @@ class CompositionEvaluator(SP.StreamProcessor):
                 ordersdict[detail[0]].append(order)
                 detailsdict[detail[0]].append(detail)
 
-        encounter_cost_breakdown = yield from FHIR_DB.gather_encounter_order_cost_info(ordersdict, detailsdict, self.conn)
-
         composition.section.append(FHIR_API.Section(title="Encounter Orders Code Summary", content=encounter_orders_code_summary,
                                                     code=FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(code="enc_ord_sum", system="maven")])))
 
-        composition.section.append(FHIR_API.Section(title="Encounter Cost Breakdown", content=encounter_cost_breakdown))
+        encounter_cost_breakdown = yield from FHIR_DB.gather_encounter_order_cost_info(ordersdict, detailsdict, self.conn)
+        return composition.section.append(FHIR_API.Section(title="Encounter Cost Breakdown", content=encounter_cost_breakdown,
+                                                    code=FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(system="maven", code="enc_cost_details")])))
 
     ##########################################################################################
     ##########################################################################################
@@ -133,6 +132,7 @@ class CompositionEvaluator(SP.StreamProcessor):
     ##########################################################################################
     @asyncio.coroutine
     def evaluate_duplicate_orders(self, composition):
+
         #Check to see if there are exact duplicate orders from within the last year
         enc_ord_summary_section = composition.get_section_by_coding("maven", "enc_ord_sum")
         duplicate_orders = yield from FHIR_DB.gather_duplicate_orders(enc_ord_summary_section, composition, self.conn)
@@ -218,7 +218,7 @@ class CompositionEvaluator(SP.StreamProcessor):
         alert_bundle = []
 
         #Use the FHIR Database API to look up each Condition's codes (ICD-9) and add Snomed CT concepts to the Condition
-        yield from FHIR_DB.gather_related_snomeds(composition, self.conn)
+        yield from FHIR_DB.gather_snomeds_append_to_encounter_dx(composition, self.conn)
 
         #Pull a list of all the SNOMED CT codes from all of the conditions in the composition
         encounter_snomedIDs = composition.get_encounter_dx_snomeds()
