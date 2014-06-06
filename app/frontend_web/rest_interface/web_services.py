@@ -124,12 +124,12 @@ class FrontendWebService(HTTP.HTTPProcessor):
         user = context[CONTEXT_USER]
         customerid = context[CONTEXT_CUSTOMERID]
         desired = {
-            WP.PatientInfo.name: 'name',
-            WP.PatientInfo.id: 'id',
-            WP.PatientInfo.sex: 'gender',
-            WP.PatientInfo.birthdate: 'DOB',
-            WP.PatientInfo.diagnosis: 'diagnosis',
-            WP.PatientInfo.cost: 'cost',
+            WP.Results.patientname: 'name',
+            WP.Results.patientid: 'id',
+            WP.Results.sex: 'gender',
+            WP.Results.birthdate: 'DOB',
+            WP.Results.diagnosis: 'diagnosis',
+            WP.Results.cost: 'cost',
             }
         results = yield from self.persistence_interface.patient_info(desired, user, customerid, 
                                                         limit = self.helper.limit_clause(matches))
@@ -156,15 +156,15 @@ class FrontendWebService(HTTP.HTTPProcessor):
          #   raise HTTP.IncompleteRequest('%s has not been authorized to view patient %s.' % (user, patient_id))
 
         desired = {
-            WP.PatientInfo.name: 'name',
-            WP.PatientInfo.id: 'id',
-            WP.PatientInfo.sex: 'gender',
-            WP.PatientInfo.birthdate: 'DOB',
-            WP.PatientInfo.diagnosis: 'diagnosis',
-            WP.PatientInfo.cost: 'cost',
-            WP.PatientInfo.encounter_list: 'encounters',
-            WP.PatientInfo.allergies: 'Allergies',
-            WP.PatientInfo.problems: 'ProblemList',
+            WP.Results.patientname: 'name',
+            WP.Results.patientid: 'id',
+            WP.Results.sex: 'gender',
+            WP.Results.birthdate: 'DOB',
+            WP.Results.diagnosis: 'diagnosis',
+            WP.Results.cost: 'cost',
+            WP.Results.encounter_list: 'encounters',
+            WP.Results.allergies: 'Allergies',
+            WP.Results.problems: 'ProblemList',
         }
         results = yield from self.persistence_interface.patient_info(desired, user, customerid, 
                                                         limit = self.helper.limit_clause(matches))
@@ -189,8 +189,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
         #auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
         
         desired = {
-            WP.TotalSpend.spending: 'spending',
-            WP.TotalSpend.savings: 'savings',
+            WP.Results.spending: 'spending',
+            WP.Results.savings: 'savings',
         }
             
         results = yield from self.persistence_interface.total_spend(desired, user, customer,
@@ -217,13 +217,13 @@ class FrontendWebService(HTTP.HTTPProcessor):
         patient_ids = context.get(CONTEXT_PATIENTLIST,None)
         #auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
         
-        desired = {x:x for x in [WP.DailySpend.date, WP.DailySpend.type, WP.DailySpend.spending]}
+        desired = {x:x for x in [WP.Results.date, WP.Results.ordertype, WP.Results.spending]}
         #if AK.check_authorization((user, patient_id), auth_keys[patient_id], AUTH_LENGTH):
         results = yield from self.persistence_interface.daily_spend(desired, user, customer,
                                                                     patients=patient_ids, encounter=encounter)
         
         for row in results:
-            patient_dict[row[WP.DailySpend.date]][row[WP.DailySpend.type]] += row[WP.DailySpend.spending]
+            patient_dict[row[WP.Results.date]][row[WP.Results.ordertype]] += row[WP.Results.spending]
 
         return (HTTP.OK_RESPONSE, json.dumps(patient_dict), None)
 
@@ -243,12 +243,12 @@ class FrontendWebService(HTTP.HTTPProcessor):
         limit = self.helper.limit_clause(matches)
 
         desired = {
-            WP.Alerts.id:'id',
-            WP.Alerts.patient:'patient',
-            WP.Alerts.datetime:'date',
-            WP.Alerts.title:'name',
-            WP.Alerts.description:'html',
-            WP.Alerts.savings:'cost',
+            WP.Results.alertid:'id',
+            WP.Results.patientid:'patient',
+            WP.Results.datetime:'date',
+            WP.Results.title:'name',
+            WP.Results.description:'html',
+            WP.Results.savings:'cost',
         }
 
         results = yield from self.persistence_interface.alerts(desired, user, customer,
@@ -279,12 +279,12 @@ class FrontendWebService(HTTP.HTTPProcessor):
         #auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
 
         desired = {
-            WP.Orders.name:'name',
-            WP.Orders.datetime:'date',
-            WP.Orders.active:'result',
-            WP.Orders.cost:'cost',
-            WP.Orders.category:'category',
-            WP.Orders.id:'id',
+            WP.Results.ordername:'name',
+            WP.Results.datetime:'date',
+            WP.Results.active:'result',
+            WP.Results.cost:'cost',
+            WP.Results.category:'category',
+            WP.Results.orderid:'id',
         }
                 
         results = yield from self.persistence_interface.orders(desired, customer, encounter, limit=limit)

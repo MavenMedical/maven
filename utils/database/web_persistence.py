@@ -10,11 +10,33 @@ from utils.database.database import MappingUtilites as DBMapUtils
 import maven_config as MC
 
 CONFIG_DATABASE = 'database'
-PatientInfo = Enum('PatientInfo','name id birthdate sex encounter_date encounter_list cost diagnosis allergies problems')
-TotalSpend = Enum('TotalSpend','spending savings')
-DailySpend = Enum('DailySpend','date type spending')
-Alerts = Enum('Alerts','id patient datetime title description outcome savings')
-Orders = Enum('Orders','id name datetime active cost category')
+
+Results = Enum('Results',
+"""
+    patientname
+    patientid
+    birthdate
+    sex
+    encounter_date
+    encounter_list
+    cost
+    diagnosis
+    allergies
+    problems
+    spending
+    savings
+    date
+    ordertype
+    orderid
+    ordername
+    alertid
+    datetime
+    title
+    description
+    outcome
+    active
+    category
+""")
 
 class InvalidRequest(Exception):
     pass
@@ -38,17 +60,29 @@ def _invalid_num(x):
 def _invalid_string(x):
     return "NOT VALID YET"
 
-_formattypes = {
-    # int: lambda x: x,
-    # str: lambda x: x,
-    Decimal: int,
-    date: str,
-    datetime: str,
-    type(None): _invalid_string,
-}
+def _build_format(override={}):
+    formatbytypemap = {
+        Decimal: int,
+        date: str,
+        datetime: str,
+        type(None): _invalid_string,
+    }
+    def formatbytype(x):
+        if type(x) in formatbytypemap:
+            return formatbytypemap[type(x)](x)
+        else:
+            return x
+        
+    formatbykeymap = {
+        Results.patientname: _prettify_name,
+        Results.sex: _prettify_sex,
+        Results.encounter_date: _prettify_date,
+    }        
+    formatter = defaultdict(lambda: formatbytype,
+                            formatbykeymap.items())
+    formatter.update(override)
+    return formatter
 
-def _defaultformat():
-    return lambda x:_formattypes.get(type(x), lambda x: x)(x)
 
 def build_columns(desired, available, defaults):
     extras= set(desired) - available.keys()
@@ -83,26 +117,23 @@ class WebPersistence():
         return results
 
     
-    _default_patient_info = set((PatientInfo.encounter_date,))
+    _default_patient_info = set((Results.encounter_date,))
     _available_patient_info = {
-        PatientInfo.name: "max(patient.patname)",
-        PatientInfo.id: "encounter.pat_id",
-        PatientInfo.birthdate: "max(patient.birthdate)",
-        PatientInfo.sex: "max(patient.sex)",
-        PatientInfo.encounter_date: "max(encounter.contact_date) as contact_date",
-        PatientInfo.encounter_list: "array_agg(encounter.csn || ' ' || encounter.contact_date)" ,
-        PatientInfo.cost: "NULL",
-        PatientInfo.diagnosis: "NULL",
-        PatientInfo.allergies: "NULL",
-        PatientInfo.problems: "NULL",
+        Results.patientname: "max(patient.patname)",
+        Results.patientid: "encounter.pat_id",
+        Results.birthdate: "max(patient.birthdate)",
+        Results.sex: "max(patient.sex)",
+        Results.encounter_date: "max(encounter.contact_date) as contact_date",
+        Results.encounter_list: "array_agg(encounter.csn || ' ' || encounter.contact_date)" ,
+        Results.cost: "NULL",
+        Results.diagnosis: "NULL",
+        Results.allergies: "NULL",
+        Results.problems: "NULL",
     }
-    _display_patient_info = defaultdict(_defaultformat, (
-        (PatientInfo.name, _prettify_name),
-        (PatientInfo.sex, _prettify_sex),
-        (PatientInfo.encounter_date, _prettify_date),
-        (PatientInfo.encounter_list, lambda x: list(map(lambda v: v.split(' '), x))),
-        (PatientInfo.cost, _invalid_num),
-    ))
+    _display_patient_info = _build_format({
+        Results.encounter_list: lambda x: list(map(lambda v: v.split(' '), x)),
+        Results.cost: _invalid_num,
+    })
         
     @asyncio.coroutine
     def patient_info(self, desired, user, customer, patients=[], limit=""):
@@ -137,10 +168,10 @@ class WebPersistence():
 
     _default_total_spend = set()
     _available_total_spend = {
-        TotalSpend.spending: "sum(order_cost)",
-        TotalSpend.savings: "NULL",
+        Results.spending: "sum(order_cost)",
+        Results.savings: "NULL",
     }
-    _display_total_spend = defaultdict(_defaultformat, ((TotalSpend.savings, lambda x: -1),))
+    _display_total_spend = _build_format({Results.savings: lambda x: -1})
         
     @asyncio.coroutine
     def total_spend(self, desired, provider, customer, patients=[], encounter=None):
@@ -173,11 +204,11 @@ class WebPersistence():
 
     _default_daily_spend = set()
     _available_daily_spend = {
-        DailySpend.date: "to_char(datetime,'Mon/DD/YYYY') as dt",
-        DailySpend.type: "order_type",
-        DailySpend.spending: "sum(order_cost)",
+        Results.date: "to_char(datetime,'Mon/DD/YYYY') as dt",
+        Results.ordertype: "order_type",
+        Results.spending: "sum(order_cost)",
     }
-    _display_daily_spend = defaultdict(_defaultformat)
+    _display_daily_spend = _build_format()
         
     @asyncio.coroutine
     def daily_spend(self, desired, provider, customer, patients=[], encounter=None):
@@ -205,17 +236,17 @@ class WebPersistence():
         results = yield from self.execute(cmd, cmdargs, self._display_daily_spend, desired)
         return results
 
-    _default_alerts = set((Alerts.datetime,))
+    _default_alerts = set((Results.datetime,))
     _available_alerts = {
-        Alerts.id:"alert.alert_id",
-        Alerts.patient:"alert.pat_id",
-        Alerts.datetime:"alert.alert_datetime",
-        Alerts.title:"alert.long_title",
-        Alerts.description:"alert.description",
-        Alerts.outcome:"alert.outcome",
-        Alerts.savings:"alert.saving",
+        Results.alertid:"alert.alert_id",
+        Results.patientid:"alert.pat_id",
+        Results.datetime:"alert.alert_datetime",
+        Results.title:"alert.long_title",
+        Results.description:"alert.description",
+        Results.outcome:"alert.outcome",
+        Results.savings:"alert.saving",
         }
-    _display_alerts = defaultdict(_defaultformat)
+    _display_alerts = _build_format()
 
     @asyncio.coroutine
     def alerts(self, desired, provider, customer, patients=[], limit=""):
@@ -241,16 +272,16 @@ class WebPersistence():
         return results
         
 
-    _default_orders = set((Orders.datetime,))
+    _default_orders = set((Results.datetime,))
     _available_orders = {
-        Orders.name:"mavenorder.order_name",
-        Orders.datetime:"mavenorder.datetime",
-        Orders.active:"mavenorder.active",
-        Orders.cost:"mavenorder.order_cost",
-        Orders.category:"NULL",
-        Orders.id:"mavenorder.orderid",
+        Results.ordername:"mavenorder.order_name",
+        Results.datetime:"mavenorder.datetime",
+        Results.active:"mavenorder.active",
+        Results.cost:"mavenorder.order_cost",
+        Results.category:"NULL",
+        Results.orderid:"mavenorder.orderid",
     }
-    _display_orders = defaultdict(_defaultformat)
+    _display_orders = _build_format()
     
     @asyncio.coroutine
     def orders(self, desired, customer, encounter, limit=""):
