@@ -124,7 +124,7 @@ class NotificationGenerator():
 
         cost_alert_order_list = []
         total_cost = 0.0
-        user = composition.user
+        user = composition.get_author_id()
         userAuth = composition.userAuth
         csn = urllib.parse.quote(composition.encounter.get_csn())
         patient_id = composition.subject.get_pat_id()
@@ -156,7 +156,7 @@ class NotificationGenerator():
         template_sleuth_alert = templateEnv.get_template( TEMPLATE_FILE )
 
         sleuth_alert_HTML_contents = []
-        user = composition.user
+        user = composition.get_author_id()
         userAuth = composition.userAuth
         csn = urllib.parse.quote(composition.encounter.get_csn())
         patient_id = composition.subject.get_pat_id()
@@ -215,7 +215,7 @@ class NotificationGenerator():
 
         cost_alert_order_list = []
         total_cost = 0.0
-        user = composition.user
+        user = composition.get_author_id()
         userAuth = composition.userAuth
         csn = urllib.parse.quote(composition.encounter.get_csn())
         patient_id = composition.subject.get_pat_id()
@@ -246,7 +246,7 @@ class NotificationGenerator():
         template_sleuth_alert = templateEnv.get_template( TEMPLATE_FILE )
 
         sleuth_alert_HTML_contents = []
-        user = composition.user
+        user = composition.get_author_id
         userAuth = composition.userAuth
         csn = urllib.parse.quote(composition.encounter.get_csn())
         patient_id = composition.subject.get_pat_id()
