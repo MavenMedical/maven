@@ -332,7 +332,7 @@ class CompositionEvaluator(SP.StreamProcessor):
 
         customer_id = composition.customer_id
         pat_id = composition.subject.get_pat_id()
-        provider_id = composition.encounter.get_prov_id()
+        provider_id = composition.get_author_id()
         encounter_id = composition.encounter.get_csn()
         code_trigger = rule.code_trigger
         sleuth_rule = rule.sleuth_rule_id
