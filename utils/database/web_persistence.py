@@ -2,6 +2,9 @@ import asyncio
 import dateutil
 from enum import Enum
 from collections import defaultdict
+from decimal import Decimal
+from datetime import date, datetime
+
 from utils.database.database import AsyncConnectionPool
 from utils.database.database import MappingUtilites as DBMapUtils
 import maven_config as MC
@@ -34,7 +37,19 @@ def _invalid_num(x):
 
 def _invalid_string(x):
     return "NOT VALID YET"
-    
+
+_formattypes = {
+    # int: lambda x: x,
+    # str: lambda x: x,
+    Decimal: int,
+    date: str,
+    datetime: str,
+    type(None): _invalid_string,
+}
+
+def _defaultformat():
+    return lambda x:_formattypes.get(type(x), lambda x: x)(x)
+
 def build_columns(desired, available, defaults):
     extras= set(desired) - available.keys()
     if extras:
@@ -62,6 +77,7 @@ class WebPersistence():
         
         results = []
         for row in cur:
+#            results.append({print((type(v),v, k, display[k], display[k](v))) or desired[k]: display[k](v) for k,v in zip(desired, row)})
             results.append({desired[k]: display[k](v) for k,v in zip(desired, row)})
             
         return results
@@ -80,16 +96,12 @@ class WebPersistence():
         PatientInfo.allergies: "NULL",
         PatientInfo.problems: "NULL",
     }
-    _display_patient_info = defaultdict(lambda: lambda x: x, (
+    _display_patient_info = defaultdict(_defaultformat, (
         (PatientInfo.name, _prettify_name),
         (PatientInfo.sex, _prettify_sex),
         (PatientInfo.encounter_date, _prettify_date),
-        (PatientInfo.birthdate, str),
         (PatientInfo.encounter_list, lambda x: list(map(lambda v: v.split(' '), x))),
         (PatientInfo.cost, _invalid_num),
-        (PatientInfo.diagnosis, _invalid_string),
-        (PatientInfo.allergies, _invalid_string),
-        (PatientInfo.problems, _invalid_string),
     ))
         
     @asyncio.coroutine
@@ -126,9 +138,9 @@ class WebPersistence():
     _default_total_spend = set()
     _available_total_spend = {
         TotalSpend.spending: "sum(order_cost)",
-        TotalSpend.savings: "-1",
+        TotalSpend.savings: "NULL",
     }
-    _display_total_spend = defaultdict(lambda: int, ())
+    _display_total_spend = defaultdict(_defaultformat, ((TotalSpend.savings, lambda x: -1),))
         
     @asyncio.coroutine
     def total_spend(self, desired, provider, customer, patients=[], encounter=None):
@@ -165,7 +177,7 @@ class WebPersistence():
         DailySpend.type: "order_type",
         DailySpend.spending: "sum(order_cost)",
     }
-    _display_daily_spend = defaultdict(lambda: str, ((DailySpend.spending,int),))
+    _display_daily_spend = defaultdict(_defaultformat)
         
     @asyncio.coroutine
     def daily_spend(self, desired, provider, customer, patients=[], encounter=None):
@@ -203,10 +215,7 @@ class WebPersistence():
         Alerts.outcome:"alert.outcome",
         Alerts.savings:"alert.saving",
         }
-    _display_alerts = defaultdict(lambda: lambda x:x, (
-        (Alerts.savings,int),
-        (Alerts.datetime,str),
-    ))
+    _display_alerts = defaultdict(_defaultformat)
 
     @asyncio.coroutine
     def alerts(self, desired, provider, customer, patients=[], limit=""):
@@ -241,13 +250,8 @@ class WebPersistence():
         Orders.category:"NULL",
         Orders.id:"mavenorder.orderid",
     }
-    _display_orders = defaultdict(lambda: lambda x:x, (
-        (Orders.cost,int),
-        (Orders.active,_invalid_string),
-        (Orders.category,_invalid_string),
-        (Orders.datetime,str),
-    ))
-
+    _display_orders = defaultdict(_defaultformat)
+    
     @asyncio.coroutine
     def orders(self, desired, customer, encounter, limit=""):
         columns = build_columns(desired.keys(), self._available_orders,
