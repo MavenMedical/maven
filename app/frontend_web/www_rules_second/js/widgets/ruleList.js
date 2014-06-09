@@ -58,6 +58,7 @@ define([
                if (name){
                    curRule.getNewRule(name);
 
+
                }
 	}
     });

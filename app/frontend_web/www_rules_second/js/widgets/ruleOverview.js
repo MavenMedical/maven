@@ -34,6 +34,9 @@ define([
         template: _.template(ruleOverviewTemplate),
 
         updateOverview: function(){
+
+            if (contextModel.get('id')) {
+                this.$el.show();
                 if (curRule.firstFlag && curRule.get('triggers')){
                     curRule.get('triggers').on('add', this.updateOverview, this)
                      curRule.get('triggers').on('remove', this.updateOverview, this)
@@ -41,6 +44,9 @@ define([
                 }
                this.render();
                this.addTriggers();
+            } else {
+                this.$el.hide();
+            }
 
 
         },
@@ -85,7 +91,6 @@ define([
 
         },
         addTriggers: function(){
-            console.log(curRule.get('triggers'));
             curRule.get('triggers').each(function(cur){
                 var trigger = new Backbone.Model(cur);
                 this.addTrigger(trigger);

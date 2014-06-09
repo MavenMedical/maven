@@ -13,6 +13,8 @@ define([
     // Specifically an AnonLiteralModel.  The lists are wrapped in a collection0
 
     // This model wraps literal attributes of a rule
+
+    /*
     var AnonLiteralModel = Backbone.Model.extend({
 	initialize: function(key, value) {
 	    this.toJSON = function() {
@@ -25,11 +27,34 @@ define([
 	    this.on('change', function() {ruleModel.propagate(that)}, ruleModel);
 	}
     });
-
+    */
     var RuleModel = Backbone.Model.extend({
 	url: function() {
 	    return '/rule?' + decodeURIComponent($.param(contextModel.toParams()));
 	},
+    rename: function(name){
+        this.set('name', name);
+
+
+    },
+    clearData: function(){
+      var trig_temp = ruleModel.get('triggers');
+      ruleModel.clear({silent:true});
+      trig_temp.set([], {silent:true});
+      ruleModel.set('triggers', trig_temp);
+
+
+    },
+    getNewRule: function(name){
+      var trig_temp = ruleModel.get('triggers');
+      trig_temp.set([], {silent:true});
+      ruleModel.clear({silent:true});
+      ruleModel.set({name:name}, {silent:true});
+      ruleModel.set('triggers', trig_temp);
+      ruleModel.save();
+
+    },
+
 	parse: function(response, options) {
 	    // when we get a JSON back from the server, turn each of it's values into 
 	    // a Collection or a AnonLiteralModel
@@ -37,14 +62,23 @@ define([
 	    _.each(response, function(value,key) {
 		var model;
 		if(typeof value != 'object') {
-		    model = new AnonLiteralModel(key, value);
+		    ret[key] =  value;
 		} else {
-		    model = new Backbone.Collection({type:key});
-		    model.set(value);
-		    model.on('change', function() {ruleModel.propagate(model)}, ruleModel);
-		}
-		ret[key] = model;
-	    });
+            if (ruleModel.get(key)){
+		        model = ruleModel.get(key);
+                console.log(value);
+
+            } else {
+                model = new Backbone.Collection();
+            }
+            model.on('change', function() {ruleModel.propagate(model)}, ruleModel);
+		    model.set(value)
+            ret[key] = model;
+
+        }
+		});
+        console.log("returning");
+        console.log(ret)
 	    return ret;
 	},
 	propagate: function(model) {
@@ -54,7 +88,8 @@ define([
 	    console.log("propagating: "+type+", "+JSON.stringify(model));
 	    // If users will explicitly save, delete this line and replace with a save button trigger.
 	    this.save();
-	},
+	}
+    /*
 	toJSON: function() {
 	    // I customize the toJSON so that AnonLiteralModels behave properly
 	    var ret = {};
@@ -63,31 +98,34 @@ define([
 	    });
 	    return ret;
 	}
+	*/
     });
 
     ruleModel = new RuleModel;
-
+    ruleModel.set('triggers', new Backbone.Collection);
+    console.log(ruleModel.get('triggers'));
     // if the ruleModel's id changes (on a POST), update the contextModel with that id
-    ruleModel.on('change:id', 
+    ruleModel.on('change:id',
 		 function() {
-		     contextModel.set({'id':ruleModel.get('id').get('id')})
+		     contextModel.set({'id':ruleModel.get('id')})
+             if (ruleModel.get('id')){
+                 contextModel.set('showDetails', true);
+             }
 		 }, contextModel);
 
     // if the context model's id changes, update the ruleModel
     contextModel.on('change:id', 
 		    function(cm) {
 			if(cm.get('auth')) { // make sure the user is logged in
-			    if(cm.get('id')) { // a rule was selected
-				// don't fetch if the ruleModel already has the right id
-				if(!('id' in ruleModel) || cm.get('id') != ruleModel.get('id').toJSON()) {
+					// don't fetch if the ruleModel already has the right id
+             if (contextModel.get('id')){
+				if(!('id' in ruleModel) || cm.get('id') != ruleModel.get('id')) {
+                    ruleModel.clearData();
 				    ruleModel.fetch();
-				}
-			    } else {
-				// create a new empty rule model
-				ruleModel.clear({silent:true});
-				var namemodel = new AnonLiteralModel("name", "New Rule");
-				ruleModel.set({name:namemodel});
-			    }
+				    console.log(ruleModel);
+                }
+             }
+
 			}
 		    }, ruleModel);
 

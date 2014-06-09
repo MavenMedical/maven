@@ -22,7 +22,8 @@ define([
             auth: null,
 	        user: null,
 	        id: null,
-            showTriggerEditor: false
+            showTriggerEditor: false,
+            showDetails: false
 
 
         },

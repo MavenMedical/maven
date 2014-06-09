@@ -20,6 +20,7 @@ define([
     if(contextModel.get('auth')) {
 
 
+
 	ruleCollection.newFetch();
     }
     contextModel.on('change:auth change:filter', 

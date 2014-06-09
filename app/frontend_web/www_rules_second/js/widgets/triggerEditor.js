@@ -73,7 +73,7 @@ define([
                   this.$el.hide();
               }
           }, this)
-          curRule.on('change:id', this.updateSelector, this)
+          contextModel.on('change:id', this.updateSelector, this)
 
         },
 

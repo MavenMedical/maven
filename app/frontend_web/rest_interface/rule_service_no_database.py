@@ -40,20 +40,13 @@ rules = {
 
     1: {
         JNAME: 'rule 1',
-        JDX: [{JDX:'123'}],
+        JDX: [{'code':'123', 'negative': 'false'}, {'code':'412', 'negative': 'true'}],
         JTRIGGER: [
             {'type': 'CPT', 'code':'456', 'id':1},
             {'type': 'snomed', 'code':'789', 'id':0},
             ]
         },
-    2: {
-        JNAME: 'rule 2',
-        JDX: [{JDX:'abc'}],
-        JTRIGGER: [
-            {JTRIGGER:'def'},
-            {JTRIGGER:'ghi'},
-            ]
-        },
+
     }
 triggers = [{'type': 'snomed', 'code': '456', 'id': 1}
             ,{'type': 'CPT', 'code': '789', 'id': 0}
@@ -71,7 +64,7 @@ class RuleService(HTTP.HTTPProcessor):
 
         self.add_handler(['PUT'], '/rule', self.put_update)
         self.add_handler(['POST'], '/rule', self.post_add)
-        self.add_handler(['DELETE'], ' /rule', self.delete_remove)
+        self.add_handler(['DELETE'], '/rule', self.delete_rule)
 
 
         self.add_handler(['GET'], '/trigger', self.get_triggers);
@@ -128,18 +121,18 @@ class RuleService(HTTP.HTTPProcessor):
         return (HTTP.OK_RESPONSE, json.dumps(info), None)
 
 
-    delete_required_contexts = [CONTEXT_USER, CONTEXT_RULEID]
-    delete_available_contexts = {CONTEXT_USER:str}
+    delete_required_context = [CONTEXT_USER, CONTEXT_RULEID]
+    delete_available_context = {CONTEXT_USER:str, CONTEXT_RULEID:int}
 
     @asyncio.coroutine
-    def delete_remove(selfself, _header, body, qs, _matches, _key):
-        info = json.loads(body.decode('utf-8'))
+    def delete_rule(self, _header, body, qs, _matches, _key):
+        print(rules)
         context = self.helper.restrict_context(qs,
-                                               RuleService.delete_required_contexts,
-                                               RuleService.delete_available_contexts)
-        global rules
-        ruleid = context.get(CONTEXT_RULEID)
-        rules.pop(ruleid)
+                                               RuleService.delete_required_context,
+                                               RuleService.delete_available_context)
+
+        ruleid = context[CONTEXT_RULEID]
+        rules.pop(ruleid);
         return (HTTP.OK_RESPONSE, json.dumps(""), None)
 
 
@@ -174,7 +167,7 @@ class RuleService(HTTP.HTTPProcessor):
 
     @asyncio.coroutine
     def get_rule(self, _header, body, qs, _matches, _key):
-        print("")
+        print(rules)
         context = self.helper.restrict_context(qs,
                                                RuleService.rule_required_context,
                                                RuleService.rule_available_context)
