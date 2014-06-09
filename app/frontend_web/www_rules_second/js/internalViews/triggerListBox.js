@@ -6,8 +6,8 @@ define([
     'backbone',    // lib/backbone/backbone
 
 
-    'text!templates/triggerListBox.html',
-    'text!templates/triggerSelectorRow.html'
+    'text!templates/triggerSelector/triggerListBox.html',
+    'text!templates/triggerSelector/triggerSelectorRow.html'
 ], function ($, _, Backbone, triggerListBox, triggerSelectorRow) {
     var TriggerEditor = Backbone.View.extend({
         template: _.template(triggerListBox),

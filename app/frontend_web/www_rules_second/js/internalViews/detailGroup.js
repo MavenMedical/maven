@@ -7,7 +7,7 @@ define([
 
 
 
-    'text!templates/detailSection.html'
+    'text!templates/detailPanel/detailSection.html'
 ], function ($, _, Backbone, detailSectionTemplate) {
 
     var DetailGroup = Backbone.View.extend({
@@ -17,16 +17,14 @@ define([
           this.lineTemplate = params.lineTemplate;
           this.heading= params.heading;
           this.list= params.list;;
-          console.log(this.list);
+
 
 
         },
         render: function(){
-            console.log()
             this.$el.html(this.template(this));
             this.list.each(function(cur) {
 
-                console.log(cur);
                 $('.items', this.$el).append(this.lineTemplate(cur.attributes))
 
 

@@ -8,7 +8,7 @@ define([
     'models/ruleModel',
     'models/ruleCollection',
     'text!templates/ruleOverview.html',
-    'text!templates/triggerRow.html'
+    'text!templates/triggerSelector/triggerRow.html'
 
 ], function ($, _, Backbone, contextModel, curRule, curCollection, ruleOverviewTemplate, triggerRowTemplate) {
     var showTriggerEditor = function(){
@@ -36,12 +36,7 @@ define([
         updateOverview: function(){
 
             if (contextModel.get('id')) {
-                this.$el.show();
-                if (curRule.firstFlag && curRule.get('triggers')){
-                    curRule.get('triggers').on('add', this.updateOverview, this)
-                     curRule.get('triggers').on('remove', this.updateOverview, this)
-                     curRule.firstFlag = false;
-                }
+               this.$el.show();
                this.render();
                this.addTriggers();
             } else {
@@ -54,8 +49,8 @@ define([
 
             curRule.on('change:id', this.updateOverview, this)
             curRule.on('change:name', this.updateOverview, this)
-
-
+            curRule.get('triggers').on('add', this.updateOverview, this)
+            curRule.get('triggers').on('remove', this.updateOverview, this)
             curCollection.on('remove', function(removed){
 
                 if (removed.get('id') == contextModel.get('id')){

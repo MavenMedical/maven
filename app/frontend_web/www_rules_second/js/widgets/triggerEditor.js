@@ -8,7 +8,7 @@ define([
     'models/ruleModel',
     'internalViews/triggerListBox',
 
-    'text!templates/triggerSelectorPanel.html'
+    'text!templates/triggerSelector/triggerSelectorPanel.html'
 ], function ($, _, Backbone, contextModel, curRule, TriggerListBox, ruleListTemplate) {
     var addSelected = function(){
 
@@ -23,7 +23,7 @@ define([
                 }
             }, this)
         }, this)
-        console.log(curRule);
+
         curRule.save();
 
     };
@@ -54,7 +54,9 @@ define([
         },
 
         initialize: function(){
-          this.$el.hide();
+
+
+            this.$el.hide();
 
 
             var panel = this;
@@ -63,10 +65,10 @@ define([
             searchedTriggers.fetch({data:$.param(contextModel.toParams()), success: function(){
 
                 panel.availModel = searchedTriggers;
-                console.log(panel.availModel);}
+             }
             });
 
-          contextModel.on('change:showTriggerEditor', function(newVal){
+             contextModel.on('change:showTriggerEditor', function(newVal){
               if (newVal.get('showTriggerEditor')){
                   this.$el.show()
               } else {

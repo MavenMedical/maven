@@ -17,7 +17,6 @@ define([
 
                 if (key!="name" && key!="id" && key!="triggers"){
                     this.get('groups').add(key);
-                     console.log(key);
                 }
 
             }

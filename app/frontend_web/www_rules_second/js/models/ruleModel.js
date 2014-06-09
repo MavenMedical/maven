@@ -41,7 +41,10 @@ define([
       var trig_temp = ruleModel.get('triggers');
       ruleModel.clear({silent:true});
       trig_temp.set([], {silent:true});
+      contextModel.set('showTriggerEditor', false);
       ruleModel.set('triggers', trig_temp);
+
+
 
 
     },
@@ -66,7 +69,7 @@ define([
 		} else {
             if (ruleModel.get(key)){
 		        model = ruleModel.get(key);
-                console.log(value);
+
 
             } else {
                 model = new Backbone.Collection();
@@ -77,8 +80,8 @@ define([
 
         }
 		});
-        console.log("returning");
-        console.log(ret)
+
+
 	    return ret;
 	},
 	propagate: function(model) {
@@ -103,7 +106,7 @@ define([
 
     ruleModel = new RuleModel;
     ruleModel.set('triggers', new Backbone.Collection);
-    console.log(ruleModel.get('triggers'));
+
     // if the ruleModel's id changes (on a POST), update the contextModel with that id
     ruleModel.on('change:id',
 		 function() {
@@ -122,7 +125,7 @@ define([
 				if(!('id' in ruleModel) || cm.get('id') != ruleModel.get('id')) {
                     ruleModel.clearData();
 				    ruleModel.fetch();
-				    console.log(ruleModel);
+
                 }
              }
 

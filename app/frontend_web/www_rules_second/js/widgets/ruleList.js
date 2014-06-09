@@ -25,7 +25,7 @@ define([
             this.addAll();
         },
         render: function(){
-	    //console.log(this.$el);
+
             this.$el.html(this.template({}));
             return this;
         },

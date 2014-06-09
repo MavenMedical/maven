@@ -8,11 +8,12 @@ define([
     'models/ruleModel',
 
     'internalViews/detailGroup',
+    'internalViews/detailSelector',
 
-    'text!/templates/detailsOverview.html',
-    'text!/templates/dxDetail.html'
+    'text!/templates/detailPanel/detailsOverview.html',
+    'text!/templates/individualDetails/dxDetail.html'
 
-], function ($, _, Backbone, contextModel, curRule, DetailGroup, detailsOverviewTemplate, dxDetailTemplate) {
+], function ($, _, Backbone, contextModel, curRule, DetailGroup, DetailSelector, detailsOverviewTemplate, dxDetailTemplate) {
 
 
 
@@ -21,7 +22,7 @@ define([
 
         template: _.template(detailsOverviewTemplate),
         lineTemplates: {'dx': dxDetailTemplate},
-        detailHeadings: {'dx': "Problem List Diagnosis Details"},
+        detailHeadings: {'dx': "Problem List Diagnosis"},
         initialize: function(){
 
              curRule.on('sync', this.render, this)
@@ -37,24 +38,31 @@ define([
         render: function(){
                 contextModel.set('showDetails', false)
                 this.template = _.template(detailsOverviewTemplate);
-                this.$el.show();
+
                 this.$el.html(this.template());
-                console.log(curRule);
+
                 for (var key in curRule.attributes){
-                    console.log(curRule.attributes);
+
                    if (key!="name" && key!="id" && key!="triggers"){
                         contextModel.set('showDetails', true);
                         var toTemplate = _.template(this.lineTemplates[key]);
 
                         var toHeading = this.detailHeadings[key];
                         var toList = curRule.get(key);
-                        console.log(toList);
+
                         var cur = new DetailGroup({heading: toHeading, lineTemplate:toTemplate, list: toList})
                         $('.detail-sections', this.$el).append(cur.render().$el);
 
                     }
 
                 }
+                var selector = new DetailSelector();
+
+                alert(13213123);
+            console.log(selector);
+                 $('.detail-selector', this.$el).append(selector.$el);
+
+
 
             },
 
