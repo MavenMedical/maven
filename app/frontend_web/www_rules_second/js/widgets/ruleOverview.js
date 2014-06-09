@@ -5,30 +5,52 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'models/contextModel',
-    'models/Rule',
+    'models/ruleModel',
     'models/ruleCollection',
     'text!templates/ruleOverview.html',
     'text!templates/triggerRow.html'
 
 ], function ($, _, Backbone, contextModel, curRule, curCollection, ruleOverviewTemplate, triggerRowTemplate) {
     var showTriggerEditor = function(){
-      console.log("show the trigger editor");
+        contextModel.set({showTriggerEditor: !contextModel.get('showTriggerEditor')});
+        if (contextModel.get('showTriggerEditor')){
+
+            $("#EditTriggersButton").html("Hide Trigger Editor");
+        } else {
+            $("#EditTriggersButton").html("Edit Triggers");
+        }
+
     };
+    var editName = function(){
+        var name = prompt("Enter The New Name");
+        if (name){
+            curRule.rename(name);
+            curRule.save();
+        }
+    }
 
     
     var RuleOverview = Backbone.View.extend({
         template: _.template(ruleOverviewTemplate),
+
         updateOverview: function(){
+                if (curRule.firstFlag && curRule.get('triggers')){
+                    curRule.get('triggers').on('add', this.updateOverview, this)
+                     curRule.get('triggers').on('remove', this.updateOverview, this)
+                     curRule.firstFlag = false;
+                }
                this.render();
                this.addTriggers();
+
 
         },
         initialize: function(){
 
+            curRule.on('change:id', this.updateOverview, this)
             curRule.on('change:name', this.updateOverview, this)
-            curRule.on('change:')
+
+
             curCollection.on('remove', function(removed){
-                console.log(contextModel);
 
                 if (removed.get('id') == contextModel.get('id')){
                     curRule.set('name', null);
@@ -54,28 +76,28 @@ define([
            var triggerDisp = Backbone.View.extend({
               template: _.template(triggerRowTemplate),
               render: function(){
-                  console.log(this.model.toJSON());
-                  this.$el.html(this.template({type:this.model.get('type'), code:this.model.get('code')}));
+                  this.$el.html(this.template(this.model.attributes.toJSON()));
                   return this;
               }
            });
-            var temp = new triggerDisp({model:trigger})
+              var temp = new triggerDisp({model:trigger})
               $('.trigger_list', this.$el).append(temp.render().el);
 
         },
         addTriggers: function(){
-            for (var i in curRule.get('triggers')){
-                var cur = curRule.get('triggers')[i];
+            console.log(curRule.get('triggers'));
+            curRule.get('triggers').each(function(cur){
                 var trigger = new Backbone.Model(cur);
                 this.addTrigger(trigger);
-            }
+            }, this);
 
 
         },
 
 
 	events: {
-	    "click #EditTriggersButton" : showTriggerEditor
+	    "click #EditTriggersButton" : showTriggerEditor,
+        "click #nameTag" : editName
 	}
     });
 

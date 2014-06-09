@@ -6,30 +6,26 @@ define([
     'backbone',    // lib/backbone/backbone
     'models/contextModel',
     'models/ruleCollection',
+    'models/ruleModel',
     'singleRow/ruleRow',
     'text!templates/ruleList.html',
     'text!templates/ruleRow.html'
-], function ($, _, Backbone, contextModel, ruleCollection, RuleRow, ruleListTemplate) {
+], function ($, _, Backbone, contextModel, ruleCollection, curRule, RuleRow, ruleListTemplate) {
 
 
-    var createRule = function() {
-	     var NewRule = Backbone.Model.extend({url: '/rule'});
-         var newRule = new NewRule({name:'default'});
-         ruleCollection.add(newRule);
 
-    }
 
     var RuleList = Backbone.View.extend({
         initialize: function(){
             this.template = _.template(ruleListTemplate);
             ruleCollection.on('add', this.addRule, this);
             ruleCollection.on('reset', this.render, this);
+            ruleCollection.on('remove', this.addAll, this);
 
             this.addAll();
         },
         render: function(){
 	    //console.log(this.$el);
-
             this.$el.html(this.template({}));
             return this;
         },
@@ -37,8 +33,13 @@ define([
             var rulerow = new RuleRow({
                 model: rule
             });
+            rule.on('change:name', function(){
+                rulerow.render();
+            }, this)
+            rule.on('destroy', function(){
+                ruleCollection.remove(rule);
 
-	        console.log('adding rule to list');
+            })
 
             $('.rule-table', this.$el).append(rulerow.render().el);
         },
@@ -52,7 +53,12 @@ define([
 	    "click #addRuleButton" : "createRule"
 	},
 	createRule: function() {
-	    contextModel.set({id:''})
+
+         var name = prompt('Enter the new name for the rule');
+               if (name){
+                   curRule.getNewRule(name);
+
+               }
 	}
     });
 

@@ -10,7 +10,7 @@ define([
 	    url: '/list',
 	    newFetch: function() {
 		this.fetch({
-		    data:$.param(contextModel.toParams()),
+		    data:$.param(contextModel.toParams())
 		});
 	    }
 	});
@@ -33,8 +33,14 @@ define([
     
     ruleModel.on('sync',
 		 function() {
-		     ruleCollection.add(new Backbone.Model({name:ruleModel.get('name').get('name'),
-							    id:ruleModel.get('id').get('id')}));
+             var toUpdate = ruleModel.get('id')
+		     ruleCollection.add(new Backbone.Model({name:ruleModel.get('name'),
+							    id:ruleModel.get('id')}));
+             _.each(ruleCollection.models, function(cur){
+                 if (cur.get('id')==toUpdate){
+                    cur.set({name: ruleModel.get('name')})
+                 }
+             }, this)
 		 }, 
 		 ruleCollection);
 
