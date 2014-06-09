@@ -35,7 +35,6 @@ Results = Enum('Results',
     description
     outcome
     active
-    category
 """)
 
 class InvalidRequest(Exception):
@@ -278,13 +277,13 @@ class WebPersistence():
         Results.datetime:"mavenorder.datetime",
         Results.active:"mavenorder.active",
         Results.cost:"mavenorder.order_cost",
-        Results.category:"NULL",
+        Results.ordertype:"mavenorder.order_type",
         Results.orderid:"mavenorder.orderid",
     }
     _display_orders = _build_format()
     
     @asyncio.coroutine
-    def orders(self, desired, customer, encounter, limit=""):
+    def orders(self, desired, customer, encounter, ordertypes=[], limit=""):
         columns = build_columns(desired.keys(), self._available_orders,
                                 self._default_orders)
 
@@ -299,6 +298,9 @@ class WebPersistence():
         if encounter:
             cmd.append("AND mavenorder.encounter_id = %s")
             cmdargs.append(encounter)
+        if ordertypes:
+            cmd.append("AND mavenorder.order_type in %s")
+            cmdargs.append(ordertypes)
         cmd.append("ORDER BY mavenorder.datetime desc")
         if limit:
             cmd.append(limit)
