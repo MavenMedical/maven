@@ -58,7 +58,7 @@ def _invalid_num(x):
     return -1
 
 def _invalid_string(x):
-    return "NOT VALID YET"
+    return "NOTVALIDYET"
 
 def _build_format(override={}):
     formatbytypemap = {
