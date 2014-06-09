@@ -39,21 +39,6 @@ class HTTPHelper:
                         raise HTTP.IncompleteRequest('Request requires exactly one instance of parameter %s.' % k)
         return context
 
-    def prettify(self, s, type=None):
-        if type == "name":
-            name = s.split(",")
-            return (str.title(name[0]) + ", " + str.title(name[1]))
-
-        elif type == "sex":
-            return str.title(s)
-    
-        elif type == "date":
-            print(s)
-            #prsr = dateutil.parser()
-            d = prsr.parse(s)
-            return (d.strftime("%A, %B %d, %Y"))
-
-
     def copy_and_append(self, m, kv):
         return dict(itertools.chain(m.items(),[kv]))
 

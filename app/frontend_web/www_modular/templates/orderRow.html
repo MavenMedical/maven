@@ -2,9 +2,11 @@
   <div class="panel-heading">
     <a data-toggle="collapse" data-parent="#orderaccordion" href="#collapse<%= id %>">
       <h4 class="panel-title">
-        <i class="glyphicon glyphicon-chevron-right"></i>
-        <span class="headings"><%= name %></span>
-        <span class="badge">$<%= cost %></span>
+        <i class="glyphicon glyphicon-chevron-right">
+	  <img src="images/<%= category %>-55x55px.jpg" alt="<%= category %>" height="40" width="40">
+	  </i>
+          <span class="headings"><%= name %></span>
+          <span class="badge">$<%= cost %></span>
       </h4>
     </a>
   </div>

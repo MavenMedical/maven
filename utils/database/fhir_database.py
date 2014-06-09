@@ -187,7 +187,18 @@ def gather_encounter_order_cost_info(ordersdict, detailsdict, conn):
         return rtn_encounter_cost_breakdown
 
 @asyncio.coroutine
-def gather_related_snomeds(composition, conn):
+def gather_snomeds_append_to_encounter_dx(composition, conn):
+    """
+    Pseudo-code description:
+    FOR EACH CONDITION,
+    FOR EACH CODING-ID IN EACH CONDITION,
+    LOOK-UP ANY AVAILABLE SNOMED CT CONCEPTS FROM DATABASE AND APPEND TO LIST
+    CREATE A NEW CODING-ID AND APPEND TO CONDITION TO HOLD EACH SNOMED CT FROM LIST
+
+    :param composition: FHIR Composition Object that MUST contain the "Encounter Diagnoses/Conditions" Composition Section
+    :param conn: Asynchronous database connection
+    """
+
     try:
         for condition in composition.get_encounter_conditions():
             snomed_ids = []
@@ -209,7 +220,7 @@ def gather_duplicate_orders(enc_ord_summary_section, composition, conn):
     """
     This function takes the "Maven Encounter Order Summary" Composition section (a list of tuples(code, code system)),
     runs a query against the database looking for orders up to a year ago, finds the intersection between the two,
-    and returns a dictionary with KEY=tuple(code, code system) VALUE=list(various data items that may wanted to be used)
+    and returns a dictionary with KEY=tuple(code, code-system) VALUE=list(various data items that may wanted to be used)
 
     :param composition: A composition object that contains the Encounter Order Summary section (note this is different from
                         the full-fledged Encounter Orders section
@@ -233,13 +244,13 @@ def gather_duplicate_orders(enc_ord_summary_section, composition, conn):
 
             for result in cur:
                 rtn_duplicate_orders[(result[0], result[1])] = {"order_id": result[2],
-                                                    "encounter_id": result[3],
-                                                    "order_name": result[4],
-                                                    "date_time": result[5],
-                                                    "order_type": result[6]}
+                                                                "encounter_id": result[3],
+                                                                "order_name": result[4],
+                                                                "date_time": result[5],
+                                                                "order_type": result[6]}
 
-        #DOH Moment Below...I don't need the intersection b/c the DB query is only selecting the ones that match anyway.
-        #for ord in set(enc_ord_summary_section.content).intersection(set(list(previous_orders))):
+        # DOH Moment Below...I don't need the intersection b/c the DB query is only selecting the ones that match anyway
+        # for ord in set(enc_ord_summary_section.content).intersection(set(list(previous_orders))):
             #duplicate_orders[ord] = previous_orders[ord]
 
         return rtn_duplicate_orders

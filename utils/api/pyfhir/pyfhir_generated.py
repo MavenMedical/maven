@@ -654,28 +654,29 @@ class Composition(Resource):
 
         return problem_list
 
-    def get_encounter_orders(self):
-        enc_orders_section = self.get_section_by_coding("http://loinc.org", "46209-3")
-        return enc_orders_section.content
-
     def get_section_by_coding(self, code_system, code_value):
         for sec in self.section:
             for coding in sec.code.coding:
                 if coding.system == code_system and coding.code == code_value:
                     return sec
 
+    def get_encounter_orders(self):
+        enc_orders_section = self.get_section_by_coding("http://loinc.org", "46209-3")
+        if enc_orders_section.content is not None:
+            return enc_orders_section.content
+
     def get_proc_supply_details(self, order):
         proc_supply_list = []
         for detail in order.detail:
             #TODO - Hardcoded array index look-up will need to change in order to accommodate multiple charges per order
-            if detail.resourceType == "Lab" or "Procedure" or "PROC":
+            if detail.resourceType in ["Lab", "Procedure", "PROC"]:
                 for code in detail.type.coding:
-                    if code.system == "clientEMR" or "maven" or "CPT4":
+                    if code.system in ["clientEMR", "maven", "CPT4"]:
                         proc_supply_list.append([code.code, code.system, code.display])
 
-            elif detail.resourceType == "Med" or "Medication":
+            elif detail.resourceType in ["Med", "Medication"]:
                 for code in detail.type.coding:
-                    if code.system == "clientEMR" or "maven" or "NDC":
+                    if code.system in ["clientEMR", "maven", "NDC"]:
                         proc_supply_list.append([code.code, code.system, code.display])
         return proc_supply_list
 

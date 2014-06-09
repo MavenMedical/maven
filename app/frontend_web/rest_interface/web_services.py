@@ -15,8 +15,7 @@ import json
 import random
 import datetime
 from collections import defaultdict
-from utils.database.database import AsyncConnectionPool
-from utils.database.database import MappingUtilites as DBMapUtils
+import utils.database.web_persistence as WP
 import utils.streaming.stream_processor as SP
 import utils.streaming.http_responder as HTTP
 import utils.streaming.http_helper as HH
@@ -27,7 +26,7 @@ import maven_logging as ML
 import maven_config as MC
 
 
-CONFIG_DATABASE = 'database'
+CONFIG_PERSISTENCE = 'persistence'
 
 CONTEXT_USER = 'user'
 CONTEXT_PROVIDER = 'provider'
@@ -48,7 +47,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
     def __init__(self, configname):
         HTTP.HTTPProcessor.__init__(self,configname)
         try:
-            db_configname = self.config[CONFIG_DATABASE]
+            persistence_name = self.config[CONFIG_PERSISTENCE]
         except KeyError:
             raise MC.InvalidConfig('some real error')
 
@@ -62,13 +61,13 @@ class FrontendWebService(HTTP.HTTPProcessor):
         self.add_handler(['GET'], '/alerts(?:/(\d+)-(\d+)?)?', self.get_alerts)  # REAL
         self.add_handler(['GET'], '/orders(?:/(\d+)-(\d+)?)?', self.get_orders)  # REAL
         self.add_handler(['GET'], '/autocomplete', self.get_autocomplete)  # FAKE
-        self.db = AsyncConnectionPool(db_configname)
         self.helper = HH.HTTPHelper(CONTEXT_USER, CONTEXT_KEY, AUTH_LENGTH)
-        
+        self.persistence_interface = WP.WebPersistence(persistence_name) 
+
     def schedule(self, loop):
         HTTP.HTTPProcessor.schedule(self, loop)
-        self.db.schedule(loop)
-
+        self.persistence_interface.schedule(loop)
+        
     @asyncio.coroutine
     def get_autocomplete(self, _header, _body, qs, _matches, _key):
         return (HTTP.OK_RESPONSE, json.dumps(['Maven']),None)
@@ -112,57 +111,10 @@ class FrontendWebService(HTTP.HTTPProcessor):
                 else:
                     raise HTTP.UnauthorizedRequest('User is not logged in.')
 
-    @asyncio.coroutine
-    def _get_patient_info(self, customerid, user, pat_id=None, limit="", encounter_list=None):
-        try:
-            column_map = [
-                "max(patient.patname)",
-                "encounter.pat_id",
-                "max(patient.birthdate)",
-                "max(patient.sex)",
-                "max(encounter.contact_date) as contact_date",
-                "array_agg(encounter.csn || ' ' || encounter.contact_date)" if encounter_list else None,
-                ]
-            columns = DBMapUtils().select_rows_from_map(column_map)
-            cmd = []
-            cmdargs=[]
-            cmd.append("SELECT")
-            cmd.append(columns)
-            cmd.append("FROM patient JOIN encounter")
-            cmd.append("ON (patient.pat_id = encounter.pat_id AND encounter.customer_id = patient.customer_id)")
-            cmd.append("WHERE encounter.customer_id = %s")
-            cmdargs.append(customerid)
-            cmd.append("AND encounter.visit_prov_id = %s")
-            cmdargs.append(user)
-            if pat_id:
-                cmd.append("AND encounter.pat_id = %s")
-                cmdargs.append(pat_id)
-            cmd.append("GROUP BY encounter.pat_id")
-            cmd.append("ORDER BY contact_date")
-            if limit:
-                cmd.append(limit)
-
-            cur = yield from self.db.execute_single(' '.join(cmd)+';',cmdargs)
-
-            results = []
-            for x in cur:
-                results.append({
-                    'id': x[1], 
-                    'name': self.helper.prettify(x[0], type="name"), 
-                    'gender': self.helper.prettify(x[3], type="sex"), 
-                    'DOB': str(x[2]), 
-                    'diagnosis': 'NOT VALID YET', 
-                    'key': AK.authorization_key((user, x[1]), AUTH_LENGTH), 
-                    'cost':-1,
-                    'encounters': list(map(lambda v: v.split(' '), x[5])) if encounter_list else None,
-                    })
-                ML.DEBUG(json.dumps(results))
-        except:
-            raise Exception('Error in front end webservices get_patients() call to database')
-        return results
-
     patients_required_contexts = [CONTEXT_USER, CONTEXT_CUSTOMERID]
     patients_available_contexts = {CONTEXT_USER:str, CONTEXT_CUSTOMERID: int}
+
+    ################ AK.authorization_key((user, x[1]), AUTH_LENGTH), 
 
     @asyncio.coroutine
     def get_patients(self, _header, _body, qs, matches, _key):
@@ -171,8 +123,16 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                    FrontendWebService.patients_available_contexts)
         user = context[CONTEXT_USER]
         customerid = context[CONTEXT_CUSTOMERID]
-        results = yield from self._get_patient_info(customerid, user, pat_id=None, 
-                                                    limit = self.helper.limit_clause(matches), encounter_list=None)
+        desired = {
+            WP.Results.patientname: 'name',
+            WP.Results.patientid: 'id',
+            WP.Results.sex: 'gender',
+            WP.Results.birthdate: 'DOB',
+            WP.Results.diagnosis: 'diagnosis',
+            WP.Results.cost: 'cost',
+            }
+        results = yield from self.persistence_interface.patient_info(desired, user, customerid, 
+                                                        limit = self.helper.limit_clause(matches))
 
         return (HTTP.OK_RESPONSE, json.dumps(results), None)
 
@@ -190,17 +150,26 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                    FrontendWebService.patient_required_contexts,
                                    FrontendWebService.patient_available_contexts)
         user = context[CONTEXT_USER]
-        patient_id = context[CONTEXT_PATIENTLIST]
-        auth_key = context[CONTEXT_KEY]
+        patientid = context[CONTEXT_PATIENTLIST]
         customerid = context[CONTEXT_CUSTOMERID]
         #if not auth_key == _authorization_key((user, patient_id), AUTH_LENGTH):
          #   raise HTTP.IncompleteRequest('%s has not been authorized to view patient %s.' % (user, patient_id))
 
-        results = yield from self._get_patient_info(customerid, user, pat_id=patient_id, encounter_list=True)
-        results = results[0]
+        desired = {
+            WP.Results.patientname: 'name',
+            WP.Results.patientid: 'id',
+            WP.Results.sex: 'gender',
+            WP.Results.birthdate: 'DOB',
+            WP.Results.diagnosis: 'diagnosis',
+            WP.Results.cost: 'cost',
+            WP.Results.encounter_list: 'encounters',
+            WP.Results.allergies: 'Allergies',
+            WP.Results.problems: 'ProblemList',
+        }
+        results = yield from self.persistence_interface.patient_info(desired, user, customerid, 
+                                                        limit = self.helper.limit_clause(matches))
 
-        results.update({'Allergies': ['NOT VALID'], 'ProblemList':['NOTVALID', 'NOTVALID']},)
-        return (HTTP.OK_RESPONSE, json.dumps(results), None)
+        return (HTTP.OK_RESPONSE, json.dumps(results[0]), None)
 
 
     totals_required_contexts = [CONTEXT_USER,CONTEXT_KEY,CONTEXT_CUSTOMERID]
@@ -219,38 +188,15 @@ class FrontendWebService(HTTP.HTTPProcessor):
         encounter = context.get(CONTEXT_ENCOUNTER, None)
         #auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
         
-        column_map = [
-            "sum(order_cost)",
-            ]
-        columns = DBMapUtils().select_rows_from_map(column_map)
-
-        #if AK.check_authorization((user, patient_id), auth_keys[patient_id], AUTH_LENGTH):
-        cmd = []
-        cmdargs=[]
-        cmd.append("SELECT")
-        cmd.append(columns)
-        cmd.append("FROM mavenorder JOIN encounter")
-        cmd.append("ON mavenorder.encounter_id = encounter.csn")
-        cmd.append("WHERE encounter.visit_prov_id = %s")
-        cmdargs.append(user)
-        cmd.append("AND mavenorder.customer_id = %s")
-        cmdargs.append(customer)
-        if patient_ids:
-            cmd.append("AND encounter.pat_id in %s")
-            cmdargs.append(tuple(patient_ids))
-        if encounter:
-            cmd.append("AND encounter.csn = %s")
-            cmdargs.append(encounter)
-        
-        cur = yield from self.db.execute_single(' '.join(cmd)+';',cmdargs)
-        try:
-            x = next(cur)
-            spend = int(x[0])
-        except StopIteration:
-            spend=0
-
-        ret = {'spending':spend, 'savings':-16}
-        return (HTTP.OK_RESPONSE, json.dumps(ret), None)
+        desired = {
+            WP.Results.spending: 'spending',
+            WP.Results.savings: 'savings',
+        }
+            
+        results = yield from self.persistence_interface.total_spend(desired, user, customer,
+                                                                    patients=patient_ids, encounter=encounter)
+            
+        return (HTTP.OK_RESPONSE, json.dumps(results), None)
 
 
     daily_required_contexts = [CONTEXT_USER, CONTEXT_KEY, CONTEXT_CUSTOMERID]
@@ -271,36 +217,13 @@ class FrontendWebService(HTTP.HTTPProcessor):
         patient_ids = context.get(CONTEXT_PATIENTLIST,None)
         #auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
         
-        column_map = [
-            "to_char(datetime,'Mon/DD/YYYY') as dt",
-            "order_type",
-            "sum(order_cost)",
-            ]
-        columns = DBMapUtils().select_rows_from_map(column_map)
-        
-
+        desired = {x:x for x in [WP.Results.date, WP.Results.ordertype, WP.Results.spending]}
         #if AK.check_authorization((user, patient_id), auth_keys[patient_id], AUTH_LENGTH):
-        cmd = []
-        cmdargs=[]
-        cmd.append("SELECT")
-        cmd.append(columns)
-        cmd.append("FROM mavenorder JOIN encounter")
-        cmd.append("ON mavenorder.encounter_id = encounter.csn")
-        cmd.append("WHERE encounter.visit_prov_id = %s")
-        cmdargs.append(user)
-        cmd.append("AND mavenorder.customer_id = %s")
-        cmdargs.append(customer)
-        if patient_ids:
-            cmd.append("AND encounter.pat_id in %s")
-            cmdargs.append(tuple(patient_ids))
-        if encounter:
-            cmd.append("AND encounter.csn = %s")
-            cmdargs.append(encounter)
-        cmd.append("GROUP BY dt, order_type")
-
-        cur = yield from self.db.execute_single(' '.join(cmd)+';',cmdargs)
-        for x in cur:
-            patient_dict[x[0]][x[1]] += int(x[2])
+        results = yield from self.persistence_interface.daily_spend(desired, user, customer,
+                                                                    patients=patient_ids, encounter=encounter)
+        
+        for row in results:
+            patient_dict[row[WP.Results.date]][row[WP.Results.ordertype]] += row[WP.Results.spending]
 
         return (HTTP.OK_RESPONSE, json.dumps(patient_dict), None)
 
@@ -319,38 +242,17 @@ class FrontendWebService(HTTP.HTTPProcessor):
         customer = context[CONTEXT_CUSTOMERID]
         limit = self.helper.limit_clause(matches)
 
-        column_map = ["alert.alert_id",
-                      "alert.pat_id",
-                      "alert.alert_datetime",
-                      "alert.long_title",
-                      "alert.description",
-                      "alert.outcome",
-                      "alert.saving"]
+        desired = {
+            WP.Results.alertid:'id',
+            WP.Results.patientid:'patient',
+            WP.Results.datetime:'date',
+            WP.Results.title:'name',
+            WP.Results.description:'html',
+            WP.Results.savings:'cost',
+        }
 
-        columns = DBMapUtils().select_rows_from_map(column_map)
-        cmd=[]
-        cmdargs=[]
-        cmd.append("SELECT")
-        cmd.append(columns)
-        cmd.append("FROM alert")
-        cmd.append("WHERE alert.provider_id = %s AND alert.customer_id = %s")
-        cmdargs.append(user)
-        cmdargs.append(customer)
-        if patients:
-            cmd.append("AND alert.pat_id IN %s")
-            cmdargs.append(tuple(patients))
-        cmd.append("ORDER BY alert.alert_datetime DESC")
-        if limit:
-            cmd.append(limit)
-
-        cur = yield from self.db.execute_single(' '.join(cmd)+';',cmdargs)
-                
-        results = []
-        for x in cur:
-            results.append({'id': x[0], 'patient': x[1], 'name':x[3], 'cost': round(x[6]), 'html': x[4], 'date': str(x[2])})
-            ML.DEBUG(json.dumps(results))
-
-        #auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
+        results = yield from self.persistence_interface.alerts(desired, user, customer,
+                                                               patients=patients)
 
         return (HTTP.OK_RESPONSE, json.dumps(results), None)
 
@@ -376,41 +278,22 @@ class FrontendWebService(HTTP.HTTPProcessor):
             limit='LIMIT 10'
         #auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
 
-        order_dict = {}
-
-        column_map = ["mavenorder.order_name",
-                      "mavenorder.datetime",
-                      "mavenorder.active",
-                      "mavenorder.order_cost"]
-        # need the category of the order to use it for the UI icon and order chart
-        
-        columns = DBMapUtils().select_rows_from_map(column_map)
-        cmd=[]
-        cmdargs =[]
-        cmd.append("SELECT")
-        cmd.append(columns)
-        cmd.append("FROM mavenorder")
-        cmd.append("WHERE mavenorder.customer_id = %s")
-        cmdargs.append(customer)
-        if encounter:
-            cmd.append("AND mavenorder.encounter_id = %s")
-            cmdargs.append(encounter)
-        cmd.append("ORDER BY mavenorder.datetime desc")
-        if limit:
-            cmd.append(limit)
-
-        cur = yield from self.db.execute_single(' '.join(cmd)+';',cmdargs)
-        results = []
-        y = 0
-        for x in cur:
-            results.append({'id': y, 'name': x[0], 'date': str(x[1]), 'result': "Active", 'cost': int(x[3]), 'category': 'med'})
-            y += 1
-            ML.DEBUG(x)
+        desired = {
+            WP.Results.ordername:'name',
+            WP.Results.datetime:'date',
+            WP.Results.active:'result',
+            WP.Results.cost:'cost',
+            WP.Results.category:'category',
+            WP.Results.orderid:'id',
+        }
+                
+        results = yield from self.persistence_interface.orders(desired, customer, encounter, limit=limit)
 
         return (HTTP.OK_RESPONSE, json.dumps(results), None)
 
 
 if __name__ == '__main__':
+    from utils.database.database import AsyncConnectionPool
     ML.DEBUG = ML.stdout_log
     MC.MavenConfig = \
         {
@@ -418,8 +301,9 @@ if __name__ == '__main__':
                 {
                     SP.CONFIG_HOST: 'localhost',
                     SP.CONFIG_PORT: 8087,
-                    CONFIG_DATABASE: "webservices conn pool",
+                    CONFIG_PERSISTENCE: "persistence layer",
                 },
+            'persistence layer': {WP.CONFIG_DATABASE: 'webservices conn pool',},
             'webservices conn pool': {
                 AsyncConnectionPool.CONFIG_CONNECTION_STRING: MC.dbconnection,
                 AsyncConnectionPool.CONFIG_MIN_CONNECTIONS: 4,

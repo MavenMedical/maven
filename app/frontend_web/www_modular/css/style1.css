@@ -70,12 +70,11 @@ html, body {
     top: 130px; /*var-fixed-top-size*/
     bottom: 0px; /*var-fixed-bottom-size*/
     right: 0px;
-
 }
 
 #wrapper {
     position: relative;
-    width: 70%; /*100% minus var-fixed-left-size minus var-fixed-right-size */;
+    min-width: 70%; /*100% minus var-fixed-left-size minus var-fixed-right-size */;
     bottom: 0px;
     z-index: 1;
     margin-top: 130px; /*var-fixed-top-size*/
@@ -114,6 +113,7 @@ html, body {
     float: right;
     width: 30%; /*var-floating-right-size*/
     height: 700px;
+    padding-left: 5px;
 }
 
 #content {
