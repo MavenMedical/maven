@@ -1,9 +1,13 @@
 <div class="row">
         <span class="title headings">
-            Orders
+	  <% if (typeFilter) { %> 
+	  <%= typeFilter %> only orders <a class='removefilter'><small>(show all)</small></a>
+	  <% } else { %> 
+          Orders
+	  <% } %>
         </span>
 
-    <div class="panel-group" id="orderaccordion">
+    <div class="panel-group orderaccordion">
     </div>
 </div>
 <div class="maven-padding"></div>

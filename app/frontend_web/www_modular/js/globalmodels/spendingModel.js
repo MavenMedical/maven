@@ -10,8 +10,8 @@ define([
 
     var SpendingModel = Backbone.Model.extend({
 	urlRoot: '/spending',
-	clickType: function(x) {
-	    this.set({title:x.dataItem.title});
+	clickType: function(type) {
+	    this.set({typeFilter:type});
 	},
 	clickDate: function(x) {
 	    var d=x.item.dataContext.date;
@@ -20,12 +20,12 @@ define([
 	    d.setMinutes(0);
 	    d.setSeconds(0);
 	    d.setMilliseconds(0);
-	    this.set({date:d});
+	    this.set({dateFilter:d});
 	}
     });
     
     var spendingModel = new SpendingModel;
-
+    spendingModel.set({'typeFilter':'', dateFilter:''});
     if(contextModel.get('userAuth')) {
 	spendingModel.fetch({data:$.param(contextModel.toParams())});
     }

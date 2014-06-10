@@ -29,13 +29,14 @@ Results = Enum('Results',
     ordertype
     orderid
     ordername
+    alerttype
     alertid
+    ruleid
     datetime
     title
     description
     outcome
     active
-    category
 """)
 
 class InvalidRequest(Exception):
@@ -58,7 +59,7 @@ def _invalid_num(x):
     return -1
 
 def _invalid_string(x):
-    return "NOT VALID YET"
+    return "NOTVALIDYET"
 
 def _build_format(override={}):
     formatbytypemap = {
@@ -245,6 +246,8 @@ class WebPersistence():
         Results.description:"alert.description",
         Results.outcome:"alert.outcome",
         Results.savings:"alert.saving",
+        Results.alerttype:"'Duplicate'",
+        Results.ruleid:"alert.sleuth_rule",
         }
     _display_alerts = _build_format()
 
@@ -278,13 +281,13 @@ class WebPersistence():
         Results.datetime:"mavenorder.datetime",
         Results.active:"mavenorder.active",
         Results.cost:"mavenorder.order_cost",
-        Results.category:"NULL",
+        Results.ordertype:"mavenorder.order_type",
         Results.orderid:"mavenorder.orderid",
     }
     _display_orders = _build_format()
     
     @asyncio.coroutine
-    def orders(self, desired, customer, encounter, limit=""):
+    def orders(self, desired, customer, encounter, ordertypes=[], limit=""):
         columns = build_columns(desired.keys(), self._available_orders,
                                 self._default_orders)
 
@@ -299,6 +302,9 @@ class WebPersistence():
         if encounter:
             cmd.append("AND mavenorder.encounter_id = %s")
             cmdargs.append(encounter)
+        if ordertypes:
+            cmd.append("AND mavenorder.order_type in %s")
+            cmdargs.append(ordertypes)
         cmd.append("ORDER BY mavenorder.datetime desc")
         if limit:
             cmd.append(limit)

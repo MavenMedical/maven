@@ -118,7 +118,10 @@ html, body {
     clear:both;
 }
 
+.detail-item {
+    font-size: 110%;
 
+}
 
 /***************************************************************
  * The following customize the fonts and colors of the widgets *

@@ -14,7 +14,8 @@ define([
     'backbone',    // lib/backbone/backbone,
     
     'globalmodels/contextModel',
-], function ($, _, Backbone, currentContext) {
+    'widgets/evidence',
+], function ($, _, Backbone, currentContext, Evidence) {
     
     var CheckLogin = function() {
 	if (!currentContext.get('user') || !currentContext.get('userAuth')) {
@@ -67,7 +68,7 @@ define([
 		currentContext.setUser(user,userAuth, Backbone.history.fragment);
 	    } else {
 		if(CheckLogin()) {
-		    var evidence = new Evidence(evi);
+		    var evidence = new Evidence({'evi':evi});
 		    $('#evidence-' + evi).modal();
 		}
 	    }
