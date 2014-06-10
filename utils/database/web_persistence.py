@@ -29,7 +29,9 @@ Results = Enum('Results',
     ordertype
     orderid
     ordername
+    alerttype
     alertid
+    ruleid
     datetime
     title
     description
@@ -244,6 +246,8 @@ class WebPersistence():
         Results.description:"alert.description",
         Results.outcome:"alert.outcome",
         Results.savings:"alert.saving",
+        Results.alerttype:"'Duplicate'",
+        Results.ruleid:"alert.sleuth_rule",
         }
     _display_alerts = _build_format()
 

@@ -89,6 +89,7 @@ define([
 		if(curSlice == null && !overlist) {
 		    orderList.slice = null;
 		    orderList.$el.hide();
+		    orderList.typeFilter = 'does not exist';
 		    overlist = false;
 		}
 	    }
@@ -103,7 +104,7 @@ define([
 	    $(this.el).mousestop(1000, function(e) {
 		if(curSlice) {
 		    orderList.$el[0].style.left = (mousepos.pageX+10)+'px';
-		    orderList.$el[0].style.top = mousepos.pageY+'px';
+		    orderList.$el[0].style.top = (mousepos.pageY-50)+'px';
 		    if(curSlice != orderList.slice) {
 			orderList.slice = curSlice;
 			orderList.typeFilter = curSlice.title;

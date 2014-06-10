@@ -1,17 +1,19 @@
 <div class="row">
   <div class="col-sm-12">
     <div class="alert-type">
-      <img src="images/duplicate-29x37.png"><br>
-      <span class="headings title center">Duplicates</span>
+      <img src="images/<%= alerttype.toLowerCase() %>-29x37.png"><br>
+      <span class="headings title center"><%= alerttype %></span>
     </div>
     <p>
       <b><%= name %></b>
       <%= html %> 
+      <% if(ruleid) { %>
       <span>
-	<a style='white-space:nowrap' href='javascript:showEvidence("<%= id %>")'>
+	<a style='white-space:nowrap' href='javascript:showEvidence("<%= ruleid %>")'>
 	  Show Evidence >
 	  </a>
       </span>
+      <% } %>
     </p>
     <!--<span class="headings">Impact:</span>
     <span class="impact">$16</span>-->

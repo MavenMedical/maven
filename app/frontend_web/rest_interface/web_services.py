@@ -249,6 +249,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
             WP.Results.title:'name',
             WP.Results.description:'html',
             WP.Results.savings:'cost',
+            WP.Results.alerttype:'alerttype',
+            WP.Results.ruleid:'ruleid',
         }
 
         results = yield from self.persistence_interface.alerts(desired, user, customer,

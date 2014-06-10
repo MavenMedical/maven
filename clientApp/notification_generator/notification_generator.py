@@ -174,6 +174,7 @@ class NotificationGenerator():
                                         "http_address" : MC.http_addr,
                                         "encounter_id" : csn,
                                         "patient_id" : patient_id,
+                                        "evi_id": alert.sleuth_rule,
                                         "user" : user,
                                         "user_auth" : userAuth}
 
@@ -264,6 +265,7 @@ class NotificationGenerator():
                                         "http_address" : MC.http_addr,
                                         "encounter_id" : csn,
                                         "patient_id" : patient_id,
+                                        "evi_id": alert.sleuth_rule,
                                         "user" : user,
                                         "user_auth" : userAuth}
 
