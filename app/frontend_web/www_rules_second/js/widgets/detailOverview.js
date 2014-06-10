@@ -34,6 +34,9 @@ define([
                  }
 
              }, this)
+             this.selector = new DetailSelector();
+             this.selector.searchedDetails.on('sync', this.render, this);
+
         },
         render: function(){
                 contextModel.set('showDetails', false)
@@ -56,18 +59,27 @@ define([
                     }
 
                 }
-                var selector = new DetailSelector();
 
-                alert(13213123);
-            console.log(selector);
-                 $('.detail-selector', this.$el).append(selector.$el);
 
+
+
+                $(".detail-selector").html(this.selector.el.innerHTML);
 
 
             },
 
-	events: {
+    searchDetails: function(){
+        alert("do a search");
 
+
+
+
+
+    },
+	events: {
+            "click #searchDetailsButton" : function(){
+                this.selector.search();
+            }
 	        }
     });
 

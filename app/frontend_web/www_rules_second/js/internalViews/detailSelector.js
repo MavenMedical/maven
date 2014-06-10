@@ -11,37 +11,36 @@ define([
 ], function ($, _, Backbone, contextModel, detailEntry) {
 
     var DetailSelector = Backbone.View.extend({
-
         template: _.template(detailEntry),
         initialize: function(){
-            alert("inti")
-            var panel = this;
+
+  var panel = this;
             var anon =  Backbone.Collection.extend( {url: '/details?'});
-            var searchedDetailTypes = new anon();
-            searchedDetailTypes.fetch({data:$.param(contextModel.toParams()), success: function(data){
-                console.log(data);
-                panel.availTypes = searchedDetailTypes;
-                console.log(searchedDetailTypes);
-                panel.render();
-            }
-            });
+            this.searchedDetails = new anon();
 
+        },
 
+        search: function(){
+            var panel = this
+            this.searchedDetails.fetch({data:$.param(contextModel.toParams()), success:function(){
+                 panel.render();
+            }})
 
         },
         render: function(){
             this.$el.html("");
-            _.each (this.availTypes.models, function(cur) {
-                console.log(cur);
-                this.$el.append(this.template(cur.toJSON));
+            var entryTemplate = _.template(detailEntry);
+            for (var i in this.searchedDetails.models){
+                var cur = this.searchedDetails.models[i]
+                this.$el.append(entryTemplate({id:cur.get('id'), type:cur.get('type')}));
+
+            }
 
 
-            } , this);
-            return this;
 
         }
+    })
 
-    });
 
     return DetailSelector;
 
