@@ -29,13 +29,13 @@ __author__='Yuki Uchino'
 #*************************************************************************
 import pickle
 import asyncio
+import datetime
+from collections import defaultdict
+import maven_config as MC
 from utils.database.database import AsyncConnectionPool, MappingUtilites
 import utils.database.fhir_database as FHIR_DB
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
 import utils.streaming.stream_processor as SP
-import maven_config as MC
-import datetime
-from collections import defaultdict
 
 
 class CompositionEvaluator(SP.StreamProcessor):
@@ -56,6 +56,11 @@ class CompositionEvaluator(SP.StreamProcessor):
         composition = pickle.loads(obj)
         yield from self.evaluate_encounter_cost(composition)
         yield from self.evaluate_duplicate_orders(composition)
+
+        #Use the FHIR Database API to look up each Condition's codes (ICD-9) and add Snomed CT concepts to the Condition
+        yield from FHIR_DB.gather_snomeds_append_to_encounter_dx(composition, self.conn)
+
+        #yield from self.get_matching_rules(composition)
 
         #TODO Logic to check if recently alerted (will involved look-up in DB.This type of caching would be nice via REDIS)
 
@@ -133,12 +138,13 @@ class CompositionEvaluator(SP.StreamProcessor):
     @asyncio.coroutine
     def evaluate_duplicate_orders(self, composition):
 
-        #Check to see if there are exact duplicate orders from within the last year
+        #Check to see if there are exact duplicate orders (order code AND order code type)from within the last year
         enc_ord_summary_section = composition.get_section_by_coding("maven", "enc_ord_sum")
         duplicate_orders = yield from FHIR_DB.gather_duplicate_orders(enc_ord_summary_section, composition, self.conn)
 
-        #Check to see if there are relevant lab components to be displayed
-        yield from FHIR_DB.gather_observations_from_duplicate_orders(duplicate_orders, composition, self.conn)
+        if duplicate_orders is not None and len(duplicate_orders) > 0:
+            #Check to see if there are relevant lab components to be displayed
+            yield from FHIR_DB.gather_observations_from_duplicate_orders(duplicate_orders, composition, self.conn)
 
     ##########################################################################################
     ##########################################################################################
@@ -153,7 +159,6 @@ class CompositionEvaluator(SP.StreamProcessor):
     def evaluate_alternative_meds(self, composition):
         raise NotImplementedError
 
-
     ##########################################################################################
     ##########################################################################################
     ##########################################################################################
@@ -163,6 +168,15 @@ class CompositionEvaluator(SP.StreamProcessor):
     ##########################################################################################
     ##########################################################################################
     ##########################################################################################
+    @asyncio.coroutine
+    def get_matching_rules(self, composition):
+        """
+
+        """
+        #Pull a list of all the SNOMED CT codes from all of the conditions in the composition
+        CDS_rules = yield from FHIR_DB.get_matching_CDS_rules(composition, self.conn)
+        #print(CDS_rules[0][0].split(","))
+
     @asyncio.coroutine
     def get_matching_sleuth_rules(self, composition):
         """
@@ -192,7 +206,7 @@ class CompositionEvaluator(SP.StreamProcessor):
 
                 for result in cur:
                     FHIR_rule = FHIR_API.Rule(rule_details=result[0],
-                                              rule_id=result[1],
+                                              CDS_rule_id=result[1],
                                               code_trigger=result[2],
                                               code_trigger_type=result[3],
                                               name=result[4],
@@ -216,9 +230,6 @@ class CompositionEvaluator(SP.StreamProcessor):
 
         #empty list to store any potential Alerts that get triggered
         alert_bundle = []
-
-        #Use the FHIR Database API to look up each Condition's codes (ICD-9) and add Snomed CT concepts to the Condition
-        yield from FHIR_DB.gather_snomeds_append_to_encounter_dx(composition, self.conn)
 
         #Pull a list of all the SNOMED CT codes from all of the conditions in the composition
         encounter_snomedIDs = composition.get_encounter_dx_snomeds()
@@ -299,7 +310,7 @@ class CompositionEvaluator(SP.StreamProcessor):
                       "sleuth_evidence.source",
                       "sleuth_evidence.source_url"]
         columns = self.DBMapper.select_rows_from_map(column_map)
-        cur = yield from self.conn.execute_single("select " + columns + " from sleuth_evidence where sleuth_rule=%s and customer_id=%s", extra=[rule.sleuth_rule_id, customer_id])
+        cur = yield from self.conn.execute_single("select " + columns + " from sleuth_evidence where sleuth_rule=%s and customer_id=%s", extra=[rule.CDS_rule_id, customer_id])
         for result in cur:
             evidence.append(result)
 
@@ -313,7 +324,7 @@ class CompositionEvaluator(SP.StreamProcessor):
 
         columns = self.DBMapper.select_rows_from_map(column_map)
 
-        cur = yield from self.conn.execute_single("select " + columns + " from override_indication where sleuth_rule=%s and customer_id=%s", extra=[rule.sleuth_rule_id, customer_id])
+        cur = yield from self.conn.execute_single("select " + columns + " from override_indication where sleuth_rule=%s and customer_id=%s", extra=[rule.CDS_rule_id, customer_id])
         for result in cur:
             override_indications.append(result)
 
@@ -335,7 +346,7 @@ class CompositionEvaluator(SP.StreamProcessor):
         provider_id = composition.get_author_id()
         encounter_id = composition.encounter.get_csn()
         code_trigger = rule.code_trigger
-        sleuth_rule = rule.sleuth_rule_id
+        CDS_rule = rule.CDS_rule_id
         alert_datetime = datetime.datetime.now()
         short_title = rule.name
         tag_line = rule.tag_line
@@ -344,7 +355,7 @@ class CompositionEvaluator(SP.StreamProcessor):
         saving = 807.12
 
         FHIR_alert = FHIR_API.Alert(customer_id=customer_id, subject=pat_id, provider_id=provider_id, encounter_id=encounter_id,
-                                    code_trigger=code_trigger, sleuth_rule=sleuth_rule, alert_datetime=alert_datetime,
+                                    code_trigger=code_trigger, CDS_rule=CDS_rule, alert_datetime=alert_datetime,
                                     short_title=short_title, tag_line=tag_line, description=description,
                                     override_indications=override_indications, saving=saving)
 

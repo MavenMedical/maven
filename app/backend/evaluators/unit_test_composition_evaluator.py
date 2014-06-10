@@ -60,6 +60,12 @@ class TestCompositionEvaluator(unittest.TestCase):
         check_observation = (ord_detail.relatedItem[0].name, ord_detail.relatedItem[0].valueQuantity.value, ord_detail.relatedItem[0].valueQuantity.units)
         self.assertEqual(check_observation, ('Hemoglobin A1c', 7.4, '%'))
 
+    def test_alternative_meds(self):
+        pass
+
+    def test_rule_engine(self):
+        pass
+
 testhandler = 'testmsghandler'
 MavenConfig = {
     testhandler:
