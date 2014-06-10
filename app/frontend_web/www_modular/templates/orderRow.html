@@ -1,6 +1,6 @@
 <div class="panel panel-default" style="margin-bottom:4px">
   <div class="panel-heading">
-    <a data-toggle="collapse" data-parent="#orderaccordion" href="#collapse<%= id %>">
+    <a data-toggle="collapse" data-parent=".orderaccordion" href="#collapse<%= viewid %>">
       <h4 class="panel-title">
         <i class="glyphicon glyphicon-chevron-right">
 	  <img src="images/<%= ordertype.toLowerCase() %>-55x55px.jpg" alt="<%= ordertype %>" height="40" width="40">
@@ -10,7 +10,7 @@
       </h4>
     </a>
   </div>
-  <div id="collapse<%= id %>" class="panel-collapse collapse">
+  <div id="collapse<%= viewid %>" class="panel-collapse collapse">
     <div class="panel-body">
       <div class="row">
         <div class="col-sm-6">

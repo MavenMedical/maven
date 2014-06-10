@@ -20,7 +20,7 @@ define([
         tagName: 'div',
         template: _.template(orderRowTemplate),
         render: function(){
-            $(this.el).html(this.template(this.model.toJSON()));
+            $(this.el).html(this.template($.extend({viewid:this.cid},this.model.toJSON())));
             return this;
         },
 
