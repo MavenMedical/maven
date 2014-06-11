@@ -19,6 +19,7 @@ __author__='Yuki Uchino'
 import uuid
 import datetime
 import dateutil.parser
+import math
 from decimal import Decimal
 import itertools
 from utils.api.pyfhir.pyfhir_datatypes_generated import *
@@ -92,6 +93,10 @@ def jdefault(o):
     else:
         if hasattr(o, '__dict__') and o is not None:
             return o.__dict__
+
+
+def round_up_five(x, base=5):
+    return int(base * int(math.ceil(x / base)))
 
 
 class Bundle(Resource):
@@ -428,7 +433,11 @@ class Section():
         self.title = title
         self.code = code
         self.subject = subject
-        self.content = content
+
+        if content is None:
+            self.content = []
+        else:
+            self.content = content
         
 
 class Composition(Resource):
@@ -666,6 +675,12 @@ class Composition(Resource):
         enc_orders_section = self.get_section_by_coding("http://loinc.org", "46209-3")
         if enc_orders_section.content is not None:
             return enc_orders_section.content
+
+    def get_alerts(self, type=None):
+        alerts_section = self.get_section_by_coding(code_system="maven", code_value="alerts")
+        for alert in alerts_section.content:
+            if alert['alert_type'] == type:
+                return alert
 
     def get_proc_supply_details(self, order):
         proc_supply_list = []

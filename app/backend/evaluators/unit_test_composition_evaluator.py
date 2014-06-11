@@ -38,20 +38,22 @@ class TestCompositionEvaluator(unittest.TestCase):
     def test_cost_evaluator(self):
         @asyncio.coroutine
         def go():
+            self.composition_evaluator._add_alerts_section(self.composition)
             yield from self.composition_evaluator.evaluate_encounter_cost(composition=self.composition)
         self.loop.run_until_complete(go())
 
         enc_ord_summary_section = self.composition.get_section_by_coding("maven", "enc_ord_sum")
         self.assertEqual(enc_ord_summary_section.content, [('76370', 'CPT4'), ('2', 'maven'), ('3', 'maven')])
 
-        enc_ord_details_section = self.composition.get_section_by_coding("maven", "enc_cost_details")
-        self.assertEqual(enc_ord_details_section.content, [['IMMUNOGLOBULINS', 16.14], ['CEFIXIME TAB ', 519.14], ['CT SINUS COMPLETE W/O CONTRAST', 807.0]])
+        enc_cost_alert = self.composition.get_alerts(type="cost")
+        self.assertEqual(enc_cost_alert['cost_details'], [['IMMUNOGLOBULINS', 20], ['CEFIXIME TAB ', 520], ['CT SINUS COMPLETE W/O CONTRAST', 810]])
 
     def test_duplicate_order(self):
         @asyncio.coroutine
         def go():
             #TODO - the duplicate orders functionality relies on a section that is added during cost evaluation
             #TODO - which we need to decouple (thats why the evaluate_encounter_cost method is run before below)
+            self.composition_evaluator._add_alerts_section(self.composition)
             yield from self.composition_evaluator.evaluate_encounter_cost(composition=self.composition)
             yield from self.composition_evaluator.evaluate_duplicate_orders(composition=self.composition)
         self.loop.run_until_complete(go())

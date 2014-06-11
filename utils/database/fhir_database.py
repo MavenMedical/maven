@@ -178,7 +178,7 @@ def gather_encounter_order_cost_info(ordersdict, detailsdict, conn):
 
         # process the results
         for result in cur:
-            cost = float(result[0])
+            cost = FHIR_API.round_up_five(result[0])
             for order in ordersdict[result[1]]:
                 order.totalCost += cost
             for detail in detailsdict[result[1]]:

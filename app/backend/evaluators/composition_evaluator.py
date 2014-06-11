@@ -30,6 +30,7 @@ __author__='Yuki Uchino'
 import pickle
 import asyncio
 import datetime
+import math
 from collections import defaultdict
 import maven_config as MC
 from utils.database.database import AsyncConnectionPool, MappingUtilites
@@ -54,13 +55,16 @@ class CompositionEvaluator(SP.StreamProcessor):
 
         #Look up prices via costmap and create new "Encounter Cost Breakdown" section that is added to Composition
         composition = pickle.loads(obj)
+        self._add_alerts_section(composition)
+
         yield from self.evaluate_encounter_cost(composition)
         yield from self.evaluate_duplicate_orders(composition)
 
         #Use the FHIR Database API to look up each Condition's codes (ICD-9) and add Snomed CT concepts to the Condition
         yield from FHIR_DB.gather_snomeds_append_to_encounter_dx(composition, self.conn)
 
-        #yield from self.get_matching_rules(composition)
+
+        yield from self.get_matching_rules(composition)
 
         #TODO Logic to check if recently alerted (will involved look-up in DB.This type of caching would be nice via REDIS)
 
@@ -68,6 +72,10 @@ class CompositionEvaluator(SP.StreamProcessor):
         yield from self.evaluate_sleuth_rules(composition, rules)
         yield from FHIR_DB.write_composition_to_db(composition, self.conn)
         self.write_object(composition, writer_key='aggregate')
+
+    def _add_alerts_section(self, composition):
+        composition.section.append(FHIR_API.Section(title="Maven Alerts", code=FHIR_API.CodeableConcept(text="Maven Alerts", coding=[FHIR_API.Coding(system="maven",
+                                                                                                                                                     code="alerts")])))
 
     ##########################################################################################
     ##########################################################################################
@@ -123,8 +131,18 @@ class CompositionEvaluator(SP.StreamProcessor):
                                                     code=FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(code="enc_ord_sum", system="maven")])))
 
         encounter_cost_breakdown = yield from FHIR_DB.gather_encounter_order_cost_info(ordersdict, detailsdict, self.conn)
-        return composition.section.append(FHIR_API.Section(title="Encounter Cost Breakdown", content=encounter_cost_breakdown,
-                                                    code=FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(system="maven", code="enc_cost_details")])))
+
+        if encounter_cost_breakdown is not None and len(encounter_cost_breakdown) > 0:
+            total_cost = 0.00
+            for cost in encounter_cost_breakdown:
+                total_cost += math.ceil(cost[1])
+
+            cost_alert = {"alert_type": "cost",
+                          "total_cost": total_cost,
+                          "cost_details": encounter_cost_breakdown}
+
+            alerts_section = composition.get_section_by_coding(code_system="maven", code_value="alerts")
+            alerts_section.content.append(cost_alert)
 
     ##########################################################################################
     ##########################################################################################
@@ -257,7 +275,9 @@ class CompositionEvaluator(SP.StreamProcessor):
         if alert_bundle is not None and len(alert_bundle) > 0:
             composition_alerts_section = composition.get_alerts_section()
             alert_datetime = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-            composition_alerts_section.content.append({alert_datetime: alert_bundle})
+            composition_alerts_section.content.append({"alert_type": "CDS_alerts",
+                                                       "alert_time": alert_datetime,
+                                                       "alert_list": alert_bundle})
             yield from FHIR_DB.write_composition_alerts(alert_datetime, alert_bundle, self.conn)
 
         else:
