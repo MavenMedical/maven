@@ -25,7 +25,7 @@ define([
 		var title = 'your patients';
 		if(contextModel.get('encounter')) {
 		    title = 'current encounter';
-		} else if(contextModel.get('patients')) {
+		} else if(patientModel.get('name')) {
 		    title = patientModel.get('name');
 		}
 		//console.log(title+": "+contextModel.get('encounter')+"  "+contextModel.get('patients'));

@@ -281,7 +281,8 @@ class WebPersistence():
         Results.datetime:"mavenorder.datetime",
         Results.active:"mavenorder.active",
         Results.cost:"mavenorder.order_cost",
-        Results.ordertype:"mavenorder.order_type",
+        Results.ordertype:"(ARRAY['Medication', 'Consultation', 'Lab-work', 'Procedure', 'Other', 'Imaging'])[floor(random() * 6.0) + 1]",
+#        Results.ordertype:"mavenorder.order_type",
         Results.orderid:"mavenorder.orderid",
     }
     _display_orders = _build_format()
