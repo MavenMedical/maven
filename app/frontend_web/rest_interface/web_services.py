@@ -92,7 +92,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
                        ['#rowA-1-1','patientList'],
                        ['#rowB-1-1','encounterSummary'],
                        ['#rowC-1-1','orderList'],
-                       ['#rowD-1-1','costdonut','costbreakdown.html'],
+                       ['#rowD-1-1','costtable','costbreakdown-table.html'],
                        ['#floating-right','alertList'],
                    ],
                    CONTEXT_KEY: user_auth,
@@ -249,6 +249,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
             WP.Results.title:'name',
             WP.Results.description:'html',
             WP.Results.savings:'cost',
+            WP.Results.alerttype:'alerttype',
+            WP.Results.ruleid:'ruleid',
         }
 
         results = yield from self.persistence_interface.alerts(desired, user, customer,

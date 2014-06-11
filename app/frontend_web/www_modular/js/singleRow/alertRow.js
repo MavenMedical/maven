@@ -36,8 +36,7 @@ define([
         },
         clickEvidenceSpan:function(){
             jQuery.noConflict();
-	    this.evidence = new Evidence({'evi': id});
-            $('#evidence'+this.model.get('id')).modal();
+	    this.evidence = new Evidence({'evi': this.model.get('ruleid')});
         },
         handleClick: function(){
 		var id = this.model.get('id');

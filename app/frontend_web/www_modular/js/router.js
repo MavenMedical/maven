@@ -14,11 +14,13 @@ define([
     'backbone',    // lib/backbone/backbone,
     
     'globalmodels/contextModel',
-], function ($, _, Backbone, currentContext) {
+    'widgets/evidence',
+    'widgets/login',
+], function ($, _, Backbone, currentContext, Evidence, Login) {
     
     var CheckLogin = function() {
 	if (!currentContext.get('user') || !currentContext.get('userAuth')) {
-	    currentContext.setUser('JHU1093124', 'notarealpassword', Backbone.history.fragment);  // hack for now
+	    new Login();
 	    return false;
 	}
 	return true;
@@ -45,6 +47,7 @@ define([
 	    "patient/:id(/login/:user/:userAuth)": 'showPatient',
 	    "episode/:id/patient/:id(/login/:user/:userAuth)": 'showEpisode',
 	    "evidence/:id/patient/:id/evi/:id(/login/:user/:userAuth)": 'showEvidence',
+	    "logout": 'logout',
 	    //default
 	    '*action': 'defaultAction'
 	},
@@ -67,10 +70,14 @@ define([
 		currentContext.setUser(user,userAuth, Backbone.history.fragment);
 	    } else {
 		if(CheckLogin()) {
-		    var evidence = new Evidence(evi);
-		    $('#evidence-' + evi).modal();
+		    var evidence = new Evidence({'evi':evi});
+		    //$('#evidence-' + evi).modal();
 		}
 	    }
+	},
+	logout: function() {
+	    currentContext.clear({silent:true});
+	    location.href="/index.html";
 	},
 	defaultAction: function (action) {
 	    console.log('No route:', action);
