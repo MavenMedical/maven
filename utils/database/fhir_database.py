@@ -265,6 +265,8 @@ def gather_observations_from_duplicate_orders(duplicate_orders, composition, con
     try:
         customer_id = composition.customer_id
         patient_id = composition.subject.get_pat_id()
+        rtn_duplicate_order_alerts = {"alert_type": "dup_orders",
+                                      "alert_list": []}
 
         for ord in list(duplicate_orders):
             order_code = ord[0]
@@ -283,28 +285,32 @@ def gather_observations_from_duplicate_orders(duplicate_orders, composition, con
             columns = DBMapper.select_rows_from_map(column_map)
 
             cur = yield from conn.execute_single("select " + columns + " from observation where customer_id=%s and pat_id=%s and order_id=%s", extra=[customer_id, patient_id, order_id])
-            duplicate_orders[ord].update({"observations": []})
-            for result in cur:
-                duplicate_orders[ord]["observations"].append({"status": result[0],
-                                                              "result_time": result[1],
-                                                              "numeric_result": result[2],
-                                                              "units": result[3],
-                                                              "reference_low": result[4],
-                                                              "reference_high": result[5],
-                                                              "loinc_code": result[6],
-                                                              "name": result[7],
-                                                              "external_name": result[8]})
 
-                ord_detail.relatedItem.append(FHIR_API.Observation(status=result[0],
+            duplicate_order_results = []
+            for result in cur:
+                duplicate_order_observation = FHIR_API.Observation(status=result[0],
                                                                    appliesdateTime=result[1],
                                                                    valueQuantity=FHIR_API.Quantity(value=result[2], units=result[3]),
                                                                    referenceRange_low=result[4],
                                                                    referenceRange_high=result[5],
                                                                    valueCodeableConcept=FHIR_API.CodeableConcept(coding=FHIR_API.Coding(system="http://loinc.org", code=result[6]),
                                                                                                                  text=result[7]),
-                                                                   name=result[7]))
+                                                                   name=result[7])
 
-        print(duplicate_orders)
+                ord_detail.relatedItem.append(duplicate_order_observation)
+                duplicate_order_results.append(duplicate_order_observation)
+
+            if len(duplicate_order_results) > 0:
+                FHIR_alert = FHIR_API.Alert(customer_id=customer_id, subject=patient_id, provider_id=composition.get_author_id(), encounter_id=composition.encounter.get_csn(),
+                                            code_trigger=order_code, code_trigger_type=order_code_system, alert_datetime=composition.lastModifiedDate,
+                                            short_title=("Duplicate Order: %s" % ord_detail.text), tag_line="Clinical observations are available for a duplicate order recently placed.", description="Clinical Observations are available for a duplicate order recently placed.",
+                                            saving=16.14,
+                                            related_observations=duplicate_order_results)
+                rtn_duplicate_order_alerts['alert_list'].append(FHIR_alert)
+
+        if len(rtn_duplicate_order_alerts['alert_list']) > 0:
+            return rtn_duplicate_order_alerts
+
     except:
         raise Exception("Error extracting observations from duplicate lab orders")
 
@@ -319,7 +325,7 @@ def get_matching_CDS_rules(composition, conn):
 
     matched_rules = []
     for enc_ord in enc_ord_summary_section.content:
-        cur = yield from conn.execute_single("select rules.evalrules(%s,%s,%s,%s,%s,%s,%s,%s)", extra=[enc_ord[0], enc_ord[1], patient_age, composition.subject.gender, encounter_snomedIDs, encounter_snomedIDs, composition.subject.get_pat_id(), composition.customer_id])
+        cur = yield from conn.execute_single("select * from rules.evalrules(%s,%s,%s,%s,%s,%s,%s,%s)", extra=[enc_ord[0], enc_ord[1], patient_age, composition.subject.gender, encounter_snomedIDs, encounter_snomedIDs, composition.subject.get_pat_id(), composition.customer_id])
 
         for result in cur:
             matched_rules.append(result)

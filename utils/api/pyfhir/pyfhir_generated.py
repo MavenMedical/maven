@@ -216,7 +216,7 @@ class Alert(Resource):
 
     def __init__(self, customer_id, category=None, status=None, subject=None, author=None, provider_id=None, encounter_id=None,
                  code_trigger=None, code_trigger_type=None, CDS_rule=None, alert_datetime=None, short_title=None, long_title=None,
-                 tag_line=None, description=None, override_indications=None, outcome=None, saving=None, resourceType="Alert"):
+                 tag_line=None, description=None, override_indications=None, outcome=None, saving=None, resourceType="Alert", related_observations=None):
         Resource.__init__(self, customer_id=customer_id, resourceType=resourceType)
         self.category = category
         self.status = status
@@ -239,6 +239,10 @@ class Alert(Resource):
             self.override_indications = override_indications
         self.outcome = outcome
         self.saving = saving
+        if related_observations is None:
+            self.related_observations = []
+        else:
+            self.related_observations = related_observations
         
 
 class AllergyIntolerance(Resource):
