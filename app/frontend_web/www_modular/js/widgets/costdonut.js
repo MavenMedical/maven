@@ -32,9 +32,8 @@ define([
  	    } else {
 		$('#costbd-restriction')[0].innerHTML='';
 	    }
-	    var colorArray = ["#0188BB", "#4C2694", "#79B32D", "#FF8500", "#00587A" ]
-	    //Palette URL: http://colorschemedesigner.com/#3q62mWSE5w0w0
 
+	    var colorArray = [];
 	    var gathered = {};
 	    var data = [];
 	    for (var d in spendingModel.attributes) {
@@ -57,7 +56,17 @@ define([
 	    }
 	    for (var k in gathered) {
 		data.push({order: k, cost: gathered[k]});
+		colorArray.push(findColor(k));
 	    };
+	    var fake = function(s) {
+		data.push({order:s, cost:300});
+		colorArray.push(findColor(s));
+	    }
+	    fake("Imaging");
+	    fake("Medication");
+	    fake("Consultation");
+	    fake("Lab-work");
+	    fake("Other");
 	    var chart = AmCharts.makeChart("cost-bd", {
 		"type": "pie",
 		"colors": colorArray,
@@ -71,6 +80,7 @@ define([
 		"radius": "25%",
 		"innerRadius": "60%",
 		"labelText": "[[title]]: $[[value]]",
+		"balloonText": "[[title]]<br>$[[value]]<br>[[percents]]%",
 	    });
 
 	    chart.addListener("pullOutSlice", function(v) {spendingModel.clickType(v.dataItem.title);}, spendingModel);

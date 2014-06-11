@@ -2,15 +2,22 @@
   <div class="container">
     <!-- Brand and toggle get grouped for better mobile display -->
     <div class="navbar-header">
-      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <a class="navbar-brand"><span class="brand"><b>maven</b></span>
-	            <span class="page-title"><%= page %> <!--<i class="glyphicon glyphicon-chevron-down"></i>--></span>
-            </a>
+      <div class="navbar-brand"><span class="brand"><b>maven</b></span>
+	<span class="page-title" onclick="location.href='#'">
+	  provider
+	</span>
+	<% if(patients) { %> 
+	<span>/</span>
+	<span class="page-title" onclick="location.href='#patient/<%= patients %>'">
+	  patient
+	</span>
+	<% if(encounter) { %>
+	<span>/<span>
+	<span class="page-title">
+	  encounter
+	</span>
+	<% } } %>
+      </div>
     </div>
 
     <!-- Collect the nav links, forms, and other content for toggling -->
@@ -22,13 +29,11 @@
                         <i class="glyphicon glyphicon-user"></i>
                         <span class="dr"><%= display %></span><b class="caret"></b></a>
                     <ul class="dropdown-menu" style='z-index:1035'>
-                        <li><a href="#">Action</a></li>
-                        <li><a href="#">Another action</a></li>
-                        <li><a href="#">Something else here</a></li>
+                        <li><a onclick="location.href='#'">Profile</a></li>
                         <li class="divider"></li>
-                        <li><a href="#">Separated link</a></li>
+                        <li><a onclick="location.href='#'">Settings</a></li>
                         <li class="divider"></li>
-                        <li><a href="#">One more separated link</a></li>
+                        <li><a onclick="location.href='#logout'">Log out</a></li>
                     </ul>
                 </li>
             </ul>

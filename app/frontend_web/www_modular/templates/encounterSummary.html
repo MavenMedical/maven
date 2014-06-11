@@ -3,20 +3,22 @@
 
     <div class="container row enc-date">
         <span>Today</span>
-        <a href="#">View time range <i class="glyphicon glyphicon-calendar"></i></a>
+        <a onclick="location.href='#'">View time range <i class="glyphicon glyphicon-calendar"></i></a>
     </div>
     <div class="row">
-        <div class="col-sm-4">
+        <div class="col-sm-6">
             <span class="headings title">Utilization total:</span>
-            <span class="cost-num">$<%= spending %></span>
+            <span class="cost-num">$ <%= spending %></span>
         </div>
-        <div class="col-sm-4">
+        <div class="col-sm-6">
             <span class="headings title">CDS impact:</span>
-            <span class="cost-num">$<%= savings %></span>
+            <span class="cost-num">$ <%= savings %></span>
         </div>
     </div>
 </div>
-<div class="maven-padding"></div>
+
 <div class="row">
-    <hr>
+    <div class="col-md-12">
+        <hr>
+    </div>
 </div>
