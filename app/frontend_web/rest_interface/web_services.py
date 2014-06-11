@@ -34,7 +34,7 @@ CONTEXT_DATE = 'date'
 CONTEXT_DATERANGE = 'daterange'
 CONTEXT_PATIENTLIST = 'patients'
 CONTEXT_DEPARTMENT = 'department'
-CONTEXT_CATEGORY = 'category'
+CONTEXT_ORDERTYPE = 'ordertype' 
 CONTEXT_KEY = 'userAuth'
 CONTEXT_ENCOUNTER = 'encounter'
 CONTEXT_CUSTOMERID = 'customer_id'
@@ -249,6 +249,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
             WP.Results.title:'name',
             WP.Results.description:'html',
             WP.Results.savings:'cost',
+            WP.Results.alerttype:'alerttype',
+            WP.Results.ruleid:'ruleid',
         }
 
         results = yield from self.persistence_interface.alerts(desired, user, customer,
@@ -259,7 +261,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
     orders_required_contexts = [CONTEXT_USER, CONTEXT_CUSTOMERID]
     orders_available_contexts = {CONTEXT_USER:str, CONTEXT_PATIENTLIST:list, 
-                                 CONTEXT_CUSTOMERID:int, CONTEXT_ENCOUNTER:str}
+                                 CONTEXT_CUSTOMERID:int, CONTEXT_ENCOUNTER:str,
+                                 CONTEXT_ORDERTYPE:str}
 
     @asyncio.coroutine
     def get_orders(self, _header, _body, qs, matches, _key):
@@ -267,6 +270,11 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                                FrontendWebService.orders_required_contexts,
                                                FrontendWebService.orders_available_contexts)
         user = context[CONTEXT_USER]
+        ordertype = context.get(CONTEXT_ORDERTYPE, None)
+        if ordertype:
+            ordertypes = [ordertype]
+        else:
+            ordertypes = []
         patient_ids = context.get(CONTEXT_PATIENTLIST, None)
         if not patient_ids:
             return (HTTP.OK_RESPONSE, b'', None)
@@ -283,11 +291,12 @@ class FrontendWebService(HTTP.HTTPProcessor):
             WP.Results.datetime:'date',
             WP.Results.active:'result',
             WP.Results.cost:'cost',
-            WP.Results.category:'category',
+            WP.Results.ordertype:CONTEXT_ORDERTYPE,
             WP.Results.orderid:'id',
         }
                 
-        results = yield from self.persistence_interface.orders(desired, customer, encounter, limit=limit)
+        results = yield from self.persistence_interface.orders(desired, customer, encounter,
+                                                               ordertypes=ordertypes, limit=limit)
 
         return (HTTP.OK_RESPONSE, json.dumps(results), None)
 

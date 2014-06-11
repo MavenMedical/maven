@@ -167,7 +167,7 @@ def write_composition_alerts(alert_datetime, alert_bundle, conn):
 
         cur = yield from conn.execute_single("INSERT INTO alert(" + columns + ") VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                                             extra=[alert.customer_id, alert.subject, alert.provider_id, alert.encounter_id,
-                                             alert.code_trigger, alert.sleuth_rule, alert_datetime, alert.short_title, alert.tag_line,
+                                             alert.code_trigger, alert.CDS_rule, alert_datetime, alert.short_title, alert.tag_line,
                                              alert.description, alert.saving])
 
 @asyncio.coroutine
@@ -178,7 +178,7 @@ def gather_encounter_order_cost_info(ordersdict, detailsdict, conn):
 
         # process the results
         for result in cur:
-            cost = float(result[0])
+            cost = FHIR_API.round_up_five(result[0])
             for order in ordersdict[result[1]]:
                 order.totalCost += cost
             for detail in detailsdict[result[1]]:
@@ -307,6 +307,24 @@ def gather_observations_from_duplicate_orders(duplicate_orders, composition, con
         print(duplicate_orders)
     except:
         raise Exception("Error extracting observations from duplicate lab orders")
+
+
+@asyncio.coroutine
+def get_matching_CDS_rules(composition, conn):
+
+    #Pull a list of all the SNOMED CT codes from all of the conditions in the composition
+    encounter_snomedIDs = composition.get_encounter_dx_snomeds()
+    enc_ord_summary_section = composition.get_section_by_coding("maven", "enc_ord_sum")
+    patient_age = composition.get_patient_age()
+
+    matched_rules = []
+    for enc_ord in enc_ord_summary_section.content:
+        cur = yield from conn.execute_single("select rules.evalrules(%s,%s,%s,%s,%s,%s,%s,%s)", extra=[enc_ord[0], enc_ord[1], patient_age, composition.subject.gender, encounter_snomedIDs, encounter_snomedIDs, composition.subject.get_pat_id(), composition.customer_id])
+
+        for result in cur:
+            matched_rules.append(result)
+
+    return matched_rules
 
 
 

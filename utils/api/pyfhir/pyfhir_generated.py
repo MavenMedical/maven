@@ -19,6 +19,8 @@ __author__='Yuki Uchino'
 import uuid
 import datetime
 import dateutil.parser
+import math
+from decimal import Decimal
 import itertools
 from utils.api.pyfhir.pyfhir_datatypes_generated import *
 
@@ -91,6 +93,10 @@ def jdefault(o):
     else:
         if hasattr(o, '__dict__') and o is not None:
             return o.__dict__
+
+
+def round_up_five(x, base=5):
+    return int(base * int(math.ceil(x / base)))
 
 
 class Bundle(Resource):
@@ -209,9 +215,9 @@ class Alert(Resource):
     """
 
     def __init__(self, customer_id, category=None, status=None, subject=None, author=None, provider_id=None, encounter_id=None,
-                 code_trigger=None, sleuth_rule=None, alert_datetime=None, short_title=None, long_title=None,
-                 tag_line=None, description=None, override_indications=None, outcome=None, saving=None):
-        Resource.__init__(self, customer_id=customer_id)
+                 code_trigger=None, code_trigger_type=None, CDS_rule=None, alert_datetime=None, short_title=None, long_title=None,
+                 tag_line=None, description=None, override_indications=None, outcome=None, saving=None, resourceType="Alert"):
+        Resource.__init__(self, customer_id=customer_id, resourceType=resourceType)
         self.category = category
         self.status = status
         self.subject = subject
@@ -220,7 +226,8 @@ class Alert(Resource):
         self.provider_id = provider_id
         self.encounter_id = encounter_id
         self.code_trigger = code_trigger
-        self.sleuth_rule = sleuth_rule
+        self.code_trigger_type = code_trigger_type
+        self.CDS_rule = CDS_rule
         self.alert_datetime = alert_datetime
         self.short_title = short_title
         self.long_title = long_title
@@ -426,7 +433,11 @@ class Section():
         self.title = title
         self.code = code
         self.subject = subject
-        self.content = content
+
+        if content is None:
+            self.content = []
+        else:
+            self.content = content
         
 
 class Composition(Resource):
@@ -665,6 +676,12 @@ class Composition(Resource):
         if enc_orders_section.content is not None:
             return enc_orders_section.content
 
+    def get_alerts(self, type=None):
+        alerts_section = self.get_section_by_coding(code_system="maven", code_value="alerts")
+        for alert in alerts_section.content:
+            if alert['alert_type'] == type:
+                return alert
+
     def get_proc_supply_details(self, order):
         proc_supply_list = []
         for detail in order.detail:
@@ -723,6 +740,11 @@ class Composition(Resource):
                 for coding in detail.type.coding:
                     if coding.code == code and coding.system == code_system:
                         return detail
+
+    def get_patient_age(self):
+        birthdate = self.subject.birthDate
+        now = datetime.datetime.now()
+        return Decimal((now - birthdate).days / 365.2425)
 
 
 class ConceptMap(Resource):
@@ -4752,9 +4774,9 @@ class ValueSet(Resource):
         
 class Rule(Resource):
 
-    def __init__(self, customer_id=None, rule_id=None, code_trigger=None, code_trigger_type=None, dep_id=None, name=None, tag_line=None, description=None, rule_details=None):
+    def __init__(self, customer_id=None, CDS_rule_id=None, code_trigger=None, code_trigger_type=None, dep_id=None, name=None, tag_line=None, description=None, rule_details=None):
         Resource.__init__(self, customer_id=customer_id)
-        self.sleuth_rule_id = rule_id
+        self.CDS_rule_id = CDS_rule_id
         self.code_trigger = code_trigger
         self.code_trigger_type = code_trigger_type
         self.dep_id = dep_id

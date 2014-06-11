@@ -16,12 +16,14 @@ define([
     
     var Context = Backbone.Model.extend({
 	urlRoot: '/login',
+
         defaults: {
             stage: null,
             auth: null,
-
 	        user: null,
-	        id: null
+	        id: null,
+            showTriggerEditor: false,
+            showDetails: false
 
 
         },
@@ -40,7 +42,6 @@ define([
 		    data: JSON.stringify({user:user, password:pw}),
 		    type: 'POST',
 		    success: function() {
-                console.log("attempting to load url");
 			    Backbone.history.loadUrl(route);
 		    }
 		});

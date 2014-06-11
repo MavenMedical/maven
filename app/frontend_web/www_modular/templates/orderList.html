@@ -1,11 +1,14 @@
 <div class="row" style="margin: 0px auto; width: 90%;">
         <span class="headings title">
-            Orders
+            <% if (typeFilter) { %> 
+	  <%= typeFilter %> only orders <a class='removefilter'><small>(show all)</small></a>
+	  <% } else { %> 
+          Orders
+	  <% } %>
         </span>
 
-    <div class="panel-group" id="orderaccordion">
+    <div class="panel-group orderaccordion">
     </div>
-
 </div>
 
 <div class="row">

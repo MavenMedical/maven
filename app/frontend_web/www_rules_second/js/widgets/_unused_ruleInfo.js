@@ -11,7 +11,7 @@ define([
     var RuleInfo = Backbone.View.extend({
         initialize: function(){
             this.template = _.template(ruleInfoTemplate);
-            ruleModel.on('change:name', this.setModel, this);
+            ruleModel.on('change:id', this.setModel, this);
         },
 	setModel: function() {
 	    var newmodel = ruleModel.get('name');
