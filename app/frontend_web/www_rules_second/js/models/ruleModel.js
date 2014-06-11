@@ -73,6 +73,8 @@ define([
 
             } else {
                 model = new Backbone.Collection();
+
+
             }
             model.on('change', function() {ruleModel.propagate(model)}, ruleModel);
 		    model.set(value)

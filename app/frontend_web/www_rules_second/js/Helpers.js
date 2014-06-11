@@ -8,25 +8,8 @@ define([
 ], function ($, _, Backbone) {
 
     var Helpers = {
-        detailID:0,
-        triggerID:0,
-        CreateRule: function(){},
-        AddTrigger: function(triggerToAdd, setToAddTo){
 
-        },
-        getNewDetailID:function(){
-            this.detailID ++;
-            return this.detailID;
-
-
-        },
-        getNewTriggerID:function(){
-
-            this.triggerID ++;
-              console.log('new trigger ID ' + this.triggerID + " requested");
-
-            return this.triggerID;
-        }
+        detailHeadings: {'pl_dx': "Problem List Diagnosis", 'hist_dx': "Historical Diagnosis", 'lab': "Lab Results"}
 
     };
 
