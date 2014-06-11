@@ -210,18 +210,14 @@ class NotificationGenerator():
         template = templateEnv.get_template(TEMPLATE_FILE)
         template2 = templateEnv.get_template(TEMPLATE2_FILE)
 
-        cost_alert_order_list = []
-        total_cost = 0.0
+        cost_alert = composition.get_alerts(type="cost")
+
+        cost_alert_order_list = cost_alert['cost_details']
+        total_cost = cost_alert['total_cost']
         user = composition.get_author_id()
         userAuth = composition.userAuth
         csn = urllib.parse.quote(composition.encounter.get_csn())
         patient_id = composition.subject.get_pat_id()
-        cost_breakdown = composition.get_encounter_cost_breakdown()
-
-        if cost_breakdown is not None:
-            for cost in cost_breakdown.content:
-                total_cost += math.ceil(cost[1])
-                cost_alert_order_list.append((cost[0], math.ceil(cost[1])))
 
         templateVars = {"order_list" : cost_alert_order_list,
                         "total_cost" : math.ceil(total_cost),
@@ -242,33 +238,34 @@ class NotificationGenerator():
         TEMPLATE_FILE = "sleuth_alert.html"
         template_sleuth_alert = templateEnv.get_template( TEMPLATE_FILE )
 
+
         sleuth_alert_HTML_contents = []
-        user = composition.get_author_id
+        user = composition.get_author_id()
         userAuth = composition.userAuth
         csn = urllib.parse.quote(composition.encounter.get_csn())
         patient_id = composition.subject.get_pat_id()
 
-        composition_alert_section = composition.get_alerts_section()
+        #composition_alert_section = composition.get_alerts_section()
+        CDS_alerts = composition.get_alerts(type="CDS_alerts")
 
         #check to see if there's anything in the list. Should probably move this to the FHIR api
-        if composition_alert_section is not None and len(composition_alert_section.content) > 0:
-            for alert_group in composition_alert_section.content:
-                for alert_list in alert_group.values():
-                    for alert in alert_list:
+        #if composition_alert_section is not None and len(composition_alert_section.content) > 0:
 
-                        templateVars = {"alert_tag_line" : alert.short_title,
-                                        "alert_description" : alert.description,
-                                        "http_address" : MC.http_addr,
-                                        "encounter_id" : csn,
-                                        "patient_id" : patient_id,
-                                        "evi_id": alert.sleuth_rule,
-                                        "user" : user,
-                                        "user_auth" : userAuth}
+        for alert in CDS_alerts['alert_list']:
 
-                        notification_body = template_sleuth_alert.render(templateVars)
-                        sleuth_alert_HTML_contents.append(notification_body)
+            templateVars = {"alert_tag_line" : alert.short_title,
+                            "alert_description" : alert.description,
+                            "http_address" : MC.http_addr,
+                            "encounter_id" : csn,
+                            "patient_id" : patient_id,
+                            "evi_id": alert.CDS_rule,
+                            "user" : user,
+                            "user_auth" : userAuth}
 
-            return sleuth_alert_HTML_contents
+            notification_body = template_sleuth_alert.render(templateVars)
+            sleuth_alert_HTML_contents.append(notification_body)
+
+        return sleuth_alert_HTML_contents
 
 
     ################################################################################################
