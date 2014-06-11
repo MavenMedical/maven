@@ -13,6 +13,7 @@ define([
     var DetailGroup = Backbone.View.extend({
 
         template: _.template(detailSectionTemplate),
+
         initialize: function(params){
           this.lineTemplate = params.lineTemplate;
           this.heading= params.heading;
@@ -22,6 +23,7 @@ define([
 
         },
         render: function(){
+
             this.$el.html(this.template(this));
             this.list.each(function(cur) {
 
@@ -29,6 +31,7 @@ define([
 
 
             } , this);
+
             return this;
 
         }

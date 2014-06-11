@@ -39,15 +39,15 @@ define([
 
         },
         render: function(){
-                contextModel.set('showDetails', false)
+
                 this.template = _.template(detailsOverviewTemplate);
 
                 this.$el.html(this.template());
-
+                $('.detail-sections', this.$el).hide();
                 for (var key in curRule.attributes){
 
                    if (key!="name" && key!="id" && key!="triggers"){
-                        contextModel.set('showDetails', true);
+                        $('.detail-sections', this.$el).show()
                         var toTemplate = _.template(this.lineTemplates[key]);
 
                         var toHeading = this.detailHeadings[key];
@@ -68,17 +68,11 @@ define([
 
             },
 
-    searchDetails: function(){
-        alert("do a search");
 
-
-
-
-
-    },
 	events: {
             "click #searchDetailsButton" : function(){
-                this.selector.search();
+
+                this.selector.search($('#detailSearch').val());
             }
 	        }
     });

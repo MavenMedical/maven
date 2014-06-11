@@ -45,6 +45,11 @@ define([
 
 
     };
+    var populateBySearch = function(){
+        var t = contextModel.toParams();
+        $.extend( t, {'search_param': $('#triggerSearch').val()})
+        this.availModel.fetch({data:$.param(t)})
+    }
     var TriggerEditor = Backbone.View.extend({
         template: _.template(ruleListTemplate),
         updateSelector: function(){
@@ -61,7 +66,7 @@ define([
 
             var panel = this;
             var anon =  Backbone.Collection.extend( {url: '/triggers?'});
-            var searchedTriggers = new anon();
+            searchedTriggers = new anon();
             searchedTriggers.fetch({data:$.param(contextModel.toParams()), success: function(){
 
                 panel.availModel = searchedTriggers;
@@ -95,7 +100,8 @@ define([
         },
         events: {
 	    "click #addTriggerButton" : addSelected,
-        "click #removeTriggerButton" : removeSelected
+        "click #removeTriggerButton" : removeSelected,
+        "click #searchTriggers" : populateBySearch
 	    }
     });
 

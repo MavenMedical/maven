@@ -20,9 +20,12 @@ define([
 
         },
 
-        search: function(){
+        search: function(search_param){
             var panel = this
-            this.searchedDetails.fetch({data:$.param(contextModel.toParams()), success:function(){
+            var t = contextModel.toParams();
+            console.log(t);
+            t = $.extend(t , {'search_param': search_param});
+            this.searchedDetails.fetch({data:$.param(t), success:function(){
                  panel.render();
             }})
 
