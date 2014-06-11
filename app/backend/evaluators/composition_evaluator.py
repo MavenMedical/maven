@@ -64,7 +64,7 @@ class CompositionEvaluator(SP.StreamProcessor):
         yield from FHIR_DB.gather_snomeds_append_to_encounter_dx(composition, self.conn)
 
 
-        yield from self.get_matching_rules(composition)
+        yield from self.evaluate_CDS_rules(composition)
 
         #TODO Logic to check if recently alerted (will involved look-up in DB.This type of caching would be nice via REDIS)
 
@@ -157,12 +157,15 @@ class CompositionEvaluator(SP.StreamProcessor):
     def evaluate_duplicate_orders(self, composition):
 
         #Check to see if there are exact duplicate orders (order code AND order code type)from within the last year
-        enc_ord_summary_section = composition.get_section_by_coding("maven", "enc_ord_sum")
+        enc_ord_summary_section = composition.get_section_by_coding(code_system="maven", code_value="enc_ord_sum")
         duplicate_orders = yield from FHIR_DB.gather_duplicate_orders(enc_ord_summary_section, composition, self.conn)
 
         if duplicate_orders is not None and len(duplicate_orders) > 0:
             #Check to see if there are relevant lab components to be displayed
-            yield from FHIR_DB.gather_observations_from_duplicate_orders(duplicate_orders, composition, self.conn)
+            duplicate_order_alerts = yield from FHIR_DB.gather_observations_from_duplicate_orders(duplicate_orders, composition, self.conn)
+
+            alerts_section = composition.get_section_by_coding(code_system="maven", code_value="alerts")
+            alerts_section.content.append(duplicate_order_alerts)
 
     ##########################################################################################
     ##########################################################################################
@@ -187,13 +190,15 @@ class CompositionEvaluator(SP.StreamProcessor):
     ##########################################################################################
     ##########################################################################################
     @asyncio.coroutine
-    def get_matching_rules(self, composition):
+    def evaluate_CDS_rules(self, composition):
         """
 
         """
-        #Pull a list of all the SNOMED CT codes from all of the conditions in the composition
         CDS_rules = yield from FHIR_DB.get_matching_CDS_rules(composition, self.conn)
-        #print(CDS_rules[0][0].split(","))
+
+        if CDS_rules is not None:
+            pass
+
 
     @asyncio.coroutine
     def get_matching_sleuth_rules(self, composition):

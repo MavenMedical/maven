@@ -98,12 +98,16 @@ class NotificationGenerator():
     ################################################################################################
     @asyncio.coroutine
     def _vista_alert_content_generator(self, composition, templateEnv):
+
         alert_contents = []
 
-        #creates the cost alert html. This may want to become more sophisticated over time to
-        #dynamically shorten the appearance of a very large active orders list
         cost_alert = yield from self._vista_cost_alert_generator(composition, templateEnv)
         alert_contents.append(cost_alert)
+
+        dup_order_alerts = yield from self._vista_duplicate_order_alert_generator(composition, templateEnv)
+        if dup_order_alerts is not None:
+            for dup_alert in dup_order_alerts:
+                alert_contents.append(dup_alert)
 
         sleuth_alerts = yield from self._vista_sleuth_alert_generator(composition, templateEnv)
         if sleuth_alerts is not None and len(sleuth_alerts) > 0:
@@ -117,10 +121,19 @@ class NotificationGenerator():
     @asyncio.coroutine
     def _vista_cost_alert_generator(self, composition, templateEnv):
 
+        #creates the cost alert html. This may want to become more sophisticated over time to
+        #dynamically shorten the appearance of a very large active orders list
         TEMPLATE_FILE = "cost_alert.html"
         TEMPLATE2_FILE = "cost_alert2.html"
         template = templateEnv.get_template(TEMPLATE_FILE)
         template2 = templateEnv.get_template(TEMPLATE2_FILE)
+        templateVars = self._generate_cost_alert_template_vars(composition)
+        notification_body = template.render(templateVars)
+        notification_body += template2.render(templateVars)
+
+        return notification_body
+
+    def _generate_cost_alert_template_vars(self, composition):
 
         cost_alert = composition.get_alerts(type="cost")
 
@@ -139,11 +152,7 @@ class NotificationGenerator():
                         "user" : user,
                         "user_auth" : userAuth}
 
-
-        notification_body = template.render(templateVars)
-        notification_body += template2.render(templateVars)
-
-        return notification_body
+        return templateVars
 
     @asyncio.coroutine
     def _vista_sleuth_alert_generator(self, composition, templateEnv):
@@ -179,6 +188,35 @@ class NotificationGenerator():
 
             return sleuth_alert_HTML_contents
 
+    @asyncio.coroutine
+    def _vista_duplicate_order_alert_generator(self, composition, templateEnv):
+
+        TEMPLATE_FILE = "duplicate_order_alert.html"
+        template_dup_order_alert = templateEnv.get_template(TEMPLATE_FILE)
+        duplicate_order_alert_contents = []
+
+        user = composition.get_author_id()
+        userAuth = composition.userAuth
+        csn = urllib.parse.quote(composition.encounter.get_csn())
+        patient_id = composition.subject.get_pat_id()
+
+        dup_order_alert_dict = composition.get_alerts(type="dup_orders")
+        for alert in dup_order_alert_dict['alert_list']:
+
+            templateVars = {"alert_tag_line" : alert.short_title,
+                            "alert_description" : alert.description,
+                            "http_address" : MC.http_addr,
+                            "encounter_id" : csn,
+                            "patient_id" : patient_id,
+                            "user" : user,
+                            "user_auth" : userAuth,
+                            "related_observations": alert.related_observations}
+
+            notification_body = template_dup_order_alert.render(templateVars)
+            duplicate_order_alert_contents.append(notification_body)
+
+            return duplicate_order_alert_contents
+
 
     ################################################################################################
     ################################################################################################
@@ -209,25 +247,8 @@ class NotificationGenerator():
         TEMPLATE2_FILE = "cost_alert2.html"
         template = templateEnv.get_template(TEMPLATE_FILE)
         template2 = templateEnv.get_template(TEMPLATE2_FILE)
-
         cost_alert = composition.get_alerts(type="cost")
-
-        cost_alert_order_list = cost_alert['cost_details']
-        total_cost = cost_alert['total_cost']
-        user = composition.get_author_id()
-        userAuth = composition.userAuth
-        csn = urllib.parse.quote(composition.encounter.get_csn())
-        patient_id = composition.subject.get_pat_id()
-
-        templateVars = {"order_list" : cost_alert_order_list,
-                        "total_cost" : math.ceil(total_cost),
-                        "http_address" : MC.http_addr,
-                        "encounter_id" : csn,
-                        "patient_id" : patient_id,
-                        "user" : user,
-                        "user_auth" : userAuth}
-
-
+        templateVars = self._generate_cost_alert_template_vars(composition)
         notification_body = template.render(templateVars)
 
         return notification_body
