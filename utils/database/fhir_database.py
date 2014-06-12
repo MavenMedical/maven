@@ -165,13 +165,15 @@ def write_composition_alerts(composition, conn):
                               "pat_id",
                               "provider_id",
                               "encounter_id",
-                              "sleuth_rule",
+                              "cds_rule",
                               "category",
                               "code_trigger",
                               "code_trigger_type",
                               "alert_datetime",
+                              "short_title",
                               "long_title",
-                              "description",
+                              "short_desc",
+                              "long_desc",
                               "saving"]
                 columns = DBMapper.select_rows_from_map(column_map)
 
@@ -185,13 +187,15 @@ def write_composition_alerts(composition, conn):
                            alert.code_trigger_type,
                            alert.alert_datetime,
                            alert.short_title,
-                           alert.description,
+                           alert.long_title,
+                           alert.short_description,
+                           alert.long_description,
                            alert.saving]
 
                 cmd = []
                 cmd.append("INSERT INTO alert")
                 cmd.append("(" + columns + ")")
-                cmd.append("VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
+                cmd.append("VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
 
                 cur = yield from conn.execute_single(' '.join(cmd)+';',cmdargs)
 
@@ -316,7 +320,7 @@ def gather_observations_from_duplicate_orders(duplicate_orders, composition, con
 
             cur = yield from conn.execute_single("select " + columns + " from observation where customer_id=%s and pat_id=%s and order_id=%s", extra=[customer_id, patient_id, order_id])
 
-            duplicate_order_results = []
+            duplicate_order_observations = []
             for result in cur:
                 duplicate_order_observation = FHIR_API.Observation(status=result[0],
                                                                    appliesdateTime=result[1],
@@ -328,14 +332,22 @@ def gather_observations_from_duplicate_orders(duplicate_orders, composition, con
                                                                    name=result[7])
 
                 ord_detail.relatedItem.append(duplicate_order_observation)
-                duplicate_order_results.append(duplicate_order_observation)
+                duplicate_order_observations.append(duplicate_order_observation)
 
-            if len(duplicate_order_results) > 0:
+            if len(duplicate_order_observations) > 0:
+                #Create a storeable text description of the related clinical observations list
+                long_description = ""
+                for observation in duplicate_order_observations:
+                    long_description += ("%s: %s %s (%s)" % (observation.name,
+                                                             observation.valueQuantity.value,
+                                                             observation.valueQuantity.units,
+                                                             observation.appliesdateTime))
+
                 FHIR_alert = FHIR_API.Alert(customer_id=customer_id, subject=patient_id, provider_id=composition.get_author_id(), encounter_id=composition.encounter.get_csn(),
                                             code_trigger=order_code, code_trigger_type=order_code_system, alert_datetime=composition.lastModifiedDate,
-                                            short_title=("Duplicate Order: %s" % ord_detail.text), tag_line="Clinical observations are available for a duplicate order recently placed.", description="Clinical Observations are available for a duplicate order recently placed.",
+                                            short_title=("Duplicate Order: %s" % ord_detail.text), short_description="Clinical observations are available for a duplicate order recently placed.", long_description=long_description,
                                             saving=16.14,
-                                            related_observations=duplicate_order_results)
+                                            related_observations=duplicate_order_observations)
                 rtn_duplicate_order_alerts['alert_list'].append(FHIR_alert)
 
         if len(rtn_duplicate_order_alerts['alert_list']) > 0:

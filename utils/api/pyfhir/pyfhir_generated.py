@@ -216,7 +216,7 @@ class Alert(Resource):
 
     def __init__(self, customer_id, category=None, status=None, subject=None, author=None, provider_id=None, encounter_id=None,
                  code_trigger=None, code_trigger_type=None, CDS_rule=None, alert_datetime=None, short_title=None, long_title=None,
-                 tag_line=None, description=None, override_indications=None, outcome=None, saving=None, resourceType="Alert",
+                 short_description=None, long_description=None, override_indications=None, outcome=None, saving=None, resourceType="Alert",
                  related_observations=None, cost_breakdown=None):
         Resource.__init__(self, customer_id=customer_id, resourceType=resourceType)
         self.category = category
@@ -232,8 +232,8 @@ class Alert(Resource):
         self.alert_datetime = alert_datetime
         self.short_title = short_title
         self.long_title = long_title
-        self.tag_line = tag_line
-        self.description = description
+        self.short_description = short_description
+        self.long_description = long_description
         if override_indications is None:
             self.override_indications = []
         else:
@@ -4783,15 +4783,18 @@ class ValueSet(Resource):
         
 class Rule(Resource):
 
-    def __init__(self, customer_id=None, CDS_rule_id=None, code_trigger=None, code_trigger_type=None, dep_id=None, name=None, tag_line=None, description=None, rule_details=None):
+    def __init__(self, customer_id=None, CDS_rule_id=None, code_trigger=None, code_trigger_type=None, dep_id=None, name=None, long_title=None,
+                 short_description=None, long_description=None, rule_details=None):
         Resource.__init__(self, customer_id=customer_id)
         self.CDS_rule_id = CDS_rule_id
         self.code_trigger = code_trigger
         self.code_trigger_type = code_trigger_type
         self.dep_id = dep_id
         self.name = name
-        self.tag_line = tag_line
-        self.description = description
+        self.short_title = name
+        self.long_title = long_title
+        self.short_description = short_description
+        self.long_description = long_description
         self.rule_details = rule_details['details']
         self.encounter_dx_rules = []
         self.historic_dx_rules = []

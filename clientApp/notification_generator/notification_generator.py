@@ -175,7 +175,7 @@ class NotificationGenerator():
         for alert in CDS_alerts['alert_list']:
 
             templateVars = {"alert_tag_line" : alert.short_title,
-                            "alert_description" : alert.description,
+                            "alert_description" : alert.long_description,
                             "http_address" : MC.http_addr,
                             "encounter_id" : csn,
                             "patient_id" : patient_id,
@@ -204,7 +204,7 @@ class NotificationGenerator():
         for alert in dup_order_alert_dict['alert_list']:
 
             templateVars = {"alert_tag_line" : alert.short_title,
-                            "alert_description" : alert.description,
+                            "alert_description" : alert.short_description,
                             "http_address" : MC.http_addr,
                             "encounter_id" : csn,
                             "patient_id" : patient_id,
@@ -275,7 +275,7 @@ class NotificationGenerator():
         for alert in CDS_alerts['alert_list']:
 
             templateVars = {"alert_tag_line" : alert.short_title,
-                            "alert_description" : alert.description,
+                            "alert_description" : alert.long_description,
                             "http_address" : MC.http_addr,
                             "encounter_id" : csn,
                             "patient_id" : patient_id,

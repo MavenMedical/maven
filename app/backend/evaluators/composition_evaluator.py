@@ -150,13 +150,13 @@ class CompositionEvaluator(SP.StreamProcessor):
             short_title = ("Encounter Cost: %s" % total_cost)
 
             #Create a storeable text description of the cost breakdown details list
-            description = ""
+            long_description = ""
             for cost_element in encounter_cost_breakdown:
-                description += ("%s: $%s\n" % (cost_element[0], cost_element[1]))
+                long_description += ("%s: $%s\n" % (cost_element[0], cost_element[1]))
 
 
             FHIR_alert = FHIR_API.Alert(customer_id=customer_id, subject=patient_id, provider_id=provider_id, encounter_id=encounter_id,
-                                        alert_datetime=alert_datetime, short_title=short_title, cost_breakdown=encounter_cost_breakdown, description=description)
+                                        alert_datetime=alert_datetime, short_title=short_title, cost_breakdown=encounter_cost_breakdown, long_description=long_description)
 
             cost_alert = {"alert_type": "cost",
                           "alert_time" : alert_datetime,
@@ -256,8 +256,8 @@ class CompositionEvaluator(SP.StreamProcessor):
                                               code_trigger=result[2],
                                               code_trigger_type=result[3],
                                               name=result[4],
-                                              description=result[5],
-                                              tag_line=result[6])
+                                              long_description=result[5],
+                                              long_title=result[6])
 
                     applicable_sleuth_rules.append(FHIR_rule)
         return applicable_sleuth_rules
@@ -397,15 +397,16 @@ class CompositionEvaluator(SP.StreamProcessor):
         CDS_rule = rule.CDS_rule_id
         alert_datetime = datetime.datetime.now()
         short_title = rule.name
-        tag_line = rule.tag_line
-        description = rule.description
+        long_title = rule.long_title
+        short_description = rule.short_description
+        long_description = rule.long_description
         override_indications = ['Select one of these override indications boink']
         saving = 807.12
         category = "cds"
 
         FHIR_alert = FHIR_API.Alert(customer_id=customer_id, subject=pat_id, provider_id=provider_id, encounter_id=encounter_id,
                                     code_trigger=code_trigger, CDS_rule=CDS_rule, alert_datetime=alert_datetime,
-                                    short_title=short_title, tag_line=tag_line, description=description,
+                                    short_title=short_title, long_title=long_title, short_description=short_description, long_description=long_description,
                                     override_indications=override_indications, saving=saving, category=category)
 
         return FHIR_alert

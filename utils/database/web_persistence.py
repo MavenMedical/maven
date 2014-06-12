@@ -243,11 +243,11 @@ class WebPersistence():
         Results.patientid:"alert.pat_id",
         Results.datetime:"alert.alert_datetime",
         Results.title:"alert.long_title",
-        Results.description:"alert.description",
+        Results.description:"alert.long_description",
         Results.outcome:"alert.outcome",
         Results.savings:"alert.saving",
         Results.alerttype:"'Duplicate'",
-        Results.ruleid:"alert.sleuth_rule",
+        Results.ruleid:"alert.cds_rule",
         }
     _display_alerts = _build_format()
 
