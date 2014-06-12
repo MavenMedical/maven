@@ -1,7 +1,11 @@
-<div class= "detail-item">
+<div class="detail-entry">
+    <a class="detail-item">
     <% if (negative == 'true') { %>
             Rule will be not be used if <%=code%> is in the problem list
     <%} else { %>
             Rule will be used only if  <%=code%> is in the the problem list
     <%}%>
+    </a>
+    <a style = "float: right" class="remove-detail">&#10006</a>
+
 </div>

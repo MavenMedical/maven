@@ -7,22 +7,28 @@ define([
 
     'models/contextModel',
 
+
+    'Helpers',
     'text!templates/detailPanel/detailChooserEntry.html'
-], function ($, _, Backbone, contextModel, detailEntry) {
+], function ($, _, Backbone, contextModel, Helpers, detailEntry) {
 
     var DetailSelector = Backbone.View.extend({
         template: _.template(detailEntry),
         initialize: function(){
 
-  var panel = this;
+    var panel = this;
             var anon =  Backbone.Collection.extend( {url: '/details?'});
             this.searchedDetails = new anon();
 
         },
+        detailHeadings: {'pl_dx': "Problem List Diagnosis", 'hist_dx': "Historical Diagnosis", 'lab': "Lab Results"},
 
-        search: function(){
+        search: function(search_param){
             var panel = this
-            this.searchedDetails.fetch({data:$.param(contextModel.toParams()), success:function(){
+            var t = contextModel.toParams();
+            console.log(t);
+            t = $.extend(t , {'search_param': search_param});
+            this.searchedDetails.fetch({data:$.param(t), success:function(){
                  panel.render();
             }})
 
@@ -32,7 +38,7 @@ define([
             var entryTemplate = _.template(detailEntry);
             for (var i in this.searchedDetails.models){
                 var cur = this.searchedDetails.models[i]
-                this.$el.append(entryTemplate({id:cur.get('id'), type:cur.get('type')}));
+                this.$el.append(entryTemplate({id:cur.get('id'), type:Helpers.detailHeadings[cur.get('type')]}));
 
             }
 

@@ -118,11 +118,19 @@ html, body {
     clear:both;
 }
 
-.detail-item {
+.detail-entry {
+    border-top:solid;
+    border-color: lightblue;
     font-size: 110%;
 
 }
 
+.detail-selector {
+    min-width: 100px;
+    min-width: 100px;
+
+
+}
 /***************************************************************
  * The following customize the fonts and colors of the widgets *
  ***************************************************************/
