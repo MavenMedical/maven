@@ -93,6 +93,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
                        ['#rowB-1-1','encounterSummary'],
                        ['#rowC-1-1','orderList'],
                        ['#rowD-1-1','costtable','costbreakdown-table.html'],
+                       #['#rowD-1-1','costdonut','costbreakdown-donut.html'],
                        ['#floating-right','alertList'],
                    ],
                    CONTEXT_KEY: user_auth,

@@ -1,0 +1,12 @@
+
+	      <div>
+         This rule will
+         <select class="neg-select">
+              <option value="true" <%if(!negative){ print("selected")}%>>be used only if </option>
+              <option value="false" <% if(negative){ print("selected")}%>> not be used if</option>
+          </select>
+		 The patients problem list contains the diagnosis with SNOMED code: <input  class="snomed" type="text" value=<%=code%> name="Snomed-Code" style="min-width:100px">
+	      </div>
+	      <div>
+		  <button class="confirm-detail-button">Add</button>
+	      </div>
