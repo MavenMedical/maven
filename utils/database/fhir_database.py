@@ -33,6 +33,7 @@ def write_composition_to_db(composition, conn):
     yield from write_composition_json(composition, conn)
     yield from write_composition_conditions(composition, conn)
     yield from write_composition_encounter_orders(composition, conn)
+    yield from write_composition_alerts(composition, conn)
 
 @asyncio.coroutine
 def write_composition_patient(composition, conn):
@@ -146,29 +147,56 @@ def write_composition_encounter_orders(composition, conn):
     except:
         raise Exception("Error inserting encounter orders into database")
 
+
 @asyncio.coroutine
-def write_composition_alerts(alert_datetime, alert_bundle, conn):
+def write_composition_alerts(composition, conn):
 
-    for alert in alert_bundle:
+    customer_id = composition.customer_id
+    patient_id = composition.subject.get_pat_id()
+    provider_id = composition.get_author_id()
+    encounter_id = composition.encounter.get_csn()
 
-        column_map = ["customer_id",
-                      "pat_id",
-                      "provider_id",
-                      "encounter_id",
-                      "code_trigger",
-                      "sleuth_rule",
-                      "alert_datetime",
-                      "short_title",
-                      "long_title",
-                      "description",
-                      "saving"]
+    for alert_group_type in composition.get_section_by_coding(code_system="maven", code_value="alerts").content:
 
-        columns = DBMapper.select_rows_from_map(column_map)
+        alert_category = alert_group_type['alert_type']
+        for alert in alert_group_type['alert_list']:
+            try:
+                column_map = ["customer_id",
+                              "pat_id",
+                              "provider_id",
+                              "encounter_id",
+                              "sleuth_rule",
+                              "category",
+                              "code_trigger",
+                              "code_trigger_type",
+                              "alert_datetime",
+                              "long_title",
+                              "description",
+                              "saving"]
+                columns = DBMapper.select_rows_from_map(column_map)
 
-        cur = yield from conn.execute_single("INSERT INTO alert(" + columns + ") VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-                                            extra=[alert.customer_id, alert.subject, alert.provider_id, alert.encounter_id,
-                                             alert.code_trigger, alert.CDS_rule, alert_datetime, alert.short_title, alert.tag_line,
-                                             alert.description, alert.saving])
+                cmdargs = [customer_id,
+                           patient_id,
+                           provider_id,
+                           encounter_id,
+                           alert.CDS_rule,
+                           alert_category,
+                           alert.code_trigger,
+                           alert.code_trigger_type,
+                           alert.alert_datetime,
+                           alert.short_title,
+                           alert.description,
+                           alert.saving]
+
+                cmd = []
+                cmd.append("INSERT INTO alert")
+                cmd.append("(" + columns + ")")
+                cmd.append("VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
+
+                cur = yield from conn.execute_single(' '.join(cmd)+';',cmdargs)
+
+            except:
+                raise Exception("Error inserting Alerts into the database")
 
 @asyncio.coroutine
 def gather_encounter_order_cost_info(ordersdict, detailsdict, conn):
@@ -265,7 +293,9 @@ def gather_observations_from_duplicate_orders(duplicate_orders, composition, con
     try:
         customer_id = composition.customer_id
         patient_id = composition.subject.get_pat_id()
-        rtn_duplicate_order_alerts = {"alert_type": "dup_orders",
+        alert_datetime = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+        rtn_duplicate_order_alerts = {"alert_type": "dup_ord",
+                                      "alert_time": alert_datetime,
                                       "alert_list": []}
 
         for ord in list(duplicate_orders):
