@@ -21,7 +21,7 @@ define([
 			    if(x.get('patients')) {
 				patientModel.fetch({data:$.param(x.toParams())});
 			    } else {
-				patientModel.set({id:''});
+				patientModel.set({id:'', name:''});
 			    }
 			}
 		    });

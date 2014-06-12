@@ -17,6 +17,7 @@ Results = Enum('Results',
     patientid
     birthdate
     sex
+    encounterid
     encounter_date
     encounter_list
     cost
@@ -38,6 +39,16 @@ Results = Enum('Results',
     outcome
     active
 """)
+
+def makelist(v):
+    if type(v) is list:
+        return tuple(v)
+    elif type(v) is tuple:
+        return v
+    elif type(v) is str:
+        return tuple([v])
+    else:
+        return tuple(v,)
 
 class InvalidRequest(Exception):
     pass
@@ -124,7 +135,7 @@ class WebPersistence():
         Results.patientid: "encounter.pat_id",
         Results.birthdate: "max(patient.birthdate)",
         Results.sex: "max(patient.sex)",
-        Results.encounter_date: "max(encounter.contact_date) as contact_date",
+        Results.encounter_date: "max(encounter.contact_date) AS contact_date",
         Results.encounter_list: "array_agg(encounter.csn || ' ' || encounter.contact_date)" ,
         Results.cost: "NULL",
         Results.diagnosis: "NULL",
@@ -152,11 +163,8 @@ class WebPersistence():
         cmd.append("AND encounter.visit_prov_id = %s")
         cmdargs.append(user)
         if patients:
-            if type(patients) is list:
-                cmd.append("AND encounter.pat_id in %s")
-            else:
-                cmd.append("AND encounter.pat_id = %s")
-            cmdargs.append(patients)
+            cmd.append("AND encounter.pat_id IN %s")
+            cmdargs.append(makelist(patients))
         cmd.append("GROUP BY encounter.pat_id")
         cmd.append("ORDER BY contact_date")
 
@@ -190,8 +198,8 @@ class WebPersistence():
         cmd.append("AND mavenorder.customer_id = %s")
         cmdargs.append(customer)
         if patients:
-            cmd.append("AND encounter.pat_id in %s")
-            cmdargs.append(tuple(patients))
+            cmd.append("AND encounter.pat_id IN %s")
+            cmdargs.append(makelist(patients))
         if encounter:
             cmd.append("AND encounter.csn = %s")
             cmdargs.append(encounter)
@@ -205,7 +213,7 @@ class WebPersistence():
 
     _default_daily_spend = set()
     _available_daily_spend = {
-        Results.date: "to_char(datetime,'Mon/DD/YYYY') as dt",
+        Results.date: "to_char(datetime,'Mon/DD/YYYY') AS dt",
         Results.ordertype: "order_type",
         Results.spending: "sum(order_cost)",
     }
@@ -227,8 +235,8 @@ class WebPersistence():
         cmd.append("AND mavenorder.customer_id = %s")
         cmdargs.append(customer)
         if patients:
-            cmd.append("AND encounter.pat_id in %s")
-            cmdargs.append(tuple(patients))
+            cmd.append("AND encounter.pat_id IN %s")
+            cmdargs.append(makelist(patients))
         if encounter:
             cmd.append("AND encounter.csn = %s")
             cmdargs.append(encounter)
@@ -266,7 +274,7 @@ class WebPersistence():
         cmdargs.append(customer)
         if patients:
             cmd.append("AND alert.pat_id IN %s")
-            cmdargs.append(tuple(patients))
+            cmdargs.append(makelist(patients))
         cmd.append("ORDER BY alert.alert_datetime DESC")
         if limit:
             cmd.append(limit)
@@ -292,7 +300,6 @@ class WebPersistence():
         columns = build_columns(desired.keys(), self._available_orders,
                                 self._default_orders)
 
-
         cmd=[]
         cmdargs =[]
         cmd.append("SELECT")
@@ -304,7 +311,7 @@ class WebPersistence():
             cmd.append("AND mavenorder.encounter_id = %s")
             cmdargs.append(encounter)
         if ordertypes:
-            cmd.append("AND mavenorder.order_type in %s")
+            cmd.append("AND mavenorder.order_type IN %s")
             cmdargs.append(ordertypes)
         cmd.append("ORDER BY mavenorder.datetime desc")
         if limit:
@@ -313,3 +320,42 @@ class WebPersistence():
         results = yield from self.execute(cmd, cmdargs, self._display_orders, desired)
         return results
         
+    _default_per_encounter = set((Results.encounterid,))
+    _available_per_encounter = {
+        Results.encounterid: "encounter.csn",
+        Results.spending: "sum(mavenorder.order_cost)",
+    }
+    _display_per_encounter = _build_format()
+        
+    @asyncio.coroutine
+    def per_encounter(self, desired, provider, customer, patients=[], encounter=None,
+                      startDate=None, endDate=None):
+        columns = build_columns(desired.keys(), self._available_per_encounter,
+                                self._default_per_encounter)
+
+        cmd = []
+        cmdargs=[]
+        cmd.append("SELECT")
+        cmd.append(columns)
+        cmd.append("FROM mavenorder JOIN encounter")
+        cmd.append("ON mavenorder.encounter_id = encounter.csn")
+        cmd.append("WHERE encounter.visit_prov_id IN %s")
+        cmdargs.append(makelist(provider))
+        cmd.append("AND mavenorder.customer_id = %s")
+        cmdargs.append(customer)
+        if patients:
+            cmd.append("AND encounter.pat_id IN %s")
+            cmdargs.append(makelist(patients))
+        if encounter:
+            cmd.append("AND encounter.csn = %s")
+            cmdargs.append(encounter)
+        if startDate:
+            cmd.append("AND encounter.hosp_admsn_time >= %s")
+            cmdargs.append(startDate)
+        if endDate:
+            cmd.append("AND encounter.hosp_disch_time <= %s")
+            cmdargs.append(endDate)
+        cmd.append("GROUP BY encounter.csn")
+
+        results = yield from self.execute(cmd, cmdargs, self._display_per_encounter, desired)
+        return results
