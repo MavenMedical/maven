@@ -167,7 +167,7 @@ class NotificationGenerator():
         patient_id = composition.subject.get_pat_id()
 
         #composition_alert_section = composition.get_alerts_section()
-        CDS_alerts = composition.get_alerts(type="CDS_alerts")
+        CDS_alerts = composition.get_alerts(type="cds")
 
         #check to see if there's anything in the list. Should probably move this to the FHIR api
         #if composition_alert_section is not None and len(composition_alert_section.content) > 0:
@@ -175,7 +175,7 @@ class NotificationGenerator():
         for alert in CDS_alerts['alert_list']:
 
             templateVars = {"alert_tag_line" : alert.short_title,
-                            "alert_description" : alert.description,
+                            "alert_description" : alert.long_description,
                             "http_address" : MC.http_addr,
                             "encounter_id" : csn,
                             "patient_id" : patient_id,
@@ -200,11 +200,11 @@ class NotificationGenerator():
         csn = urllib.parse.quote(composition.encounter.get_csn())
         patient_id = composition.subject.get_pat_id()
 
-        dup_order_alert_dict = composition.get_alerts(type="dup_orders")
+        dup_order_alert_dict = composition.get_alerts(type="dup_ord")
         for alert in dup_order_alert_dict['alert_list']:
 
             templateVars = {"alert_tag_line" : alert.short_title,
-                            "alert_description" : alert.description,
+                            "alert_description" : alert.short_description,
                             "http_address" : MC.http_addr,
                             "encounter_id" : csn,
                             "patient_id" : patient_id,
@@ -275,7 +275,7 @@ class NotificationGenerator():
         for alert in CDS_alerts['alert_list']:
 
             templateVars = {"alert_tag_line" : alert.short_title,
-                            "alert_description" : alert.description,
+                            "alert_description" : alert.long_description,
                             "http_address" : MC.http_addr,
                             "encounter_id" : csn,
                             "patient_id" : patient_id,

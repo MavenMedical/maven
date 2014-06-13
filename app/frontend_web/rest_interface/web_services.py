@@ -61,6 +61,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         self.add_handler(['GET'], '/alerts(?:/(\d+)-(\d+)?)?', self.get_alerts)  # REAL
         self.add_handler(['GET'], '/orders(?:/(\d+)-(\d+)?)?', self.get_orders)  # REAL
         self.add_handler(['GET'], '/autocomplete', self.get_autocomplete)  # FAKE
+        self.add_handler(['GET'], '/hist_spending', self.get_hist_spend)
         self.helper = HH.HTTPHelper(CONTEXT_USER, CONTEXT_KEY, AUTH_LENGTH)
         self.persistence_interface = WP.WebPersistence(persistence_name) 
 
@@ -93,6 +94,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
                        ['#rowB-1-1','encounterSummary'],
                        ['#rowC-1-1','orderList'],
                        ['#rowD-1-1','costtable','costbreakdown-table.html'],
+                       #['#rowD-1-1','costdonut','costbreakdown-donut.html'],
+                       ['#rowE-1-1', 'spend_histogram'],
                        ['#floating-right','alertList'],
                    ],
                    CONTEXT_KEY: user_auth,
@@ -300,6 +303,27 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
         return (HTTP.OK_RESPONSE, json.dumps(results), None)
 
+    hist_spend_required_contexts = [CONTEXT_USER, CONTEXT_CUSTOMERID]
+    hist_spend_available_contexts = {CONTEXT_USER:str, CONTEXT_PATIENTLIST:list,
+                                     CONTEXT_CUSTOMERID:int, CONTEXT_ENCOUNTER:str}
+
+    @asyncio.coroutine
+    def get_hist_spend(self, _header, _body, qs, matches, _key):
+        context = self.helper.restrict_context(qs,
+                                               FrontendWebService.hist_spend_required_contexts,
+                                               FrontendWebService.hist_spend_available_contexts)
+
+
+        desired = {WP.Results.spending: "spending"}
+        results = yield from self.persistence_interface.per_encounter(desired,
+                                                                      context.get(CONTEXT_USER),
+                                                                      context.get(CONTEXT_CUSTOMERID),
+                                                                      patients=context.get(CONTEXT_PATIENTLIST,None),
+                                                                      encounter=context.get(CONTEXT_ENCOUNTER, None),
+                                                                      startDate=None, endDate=None)
+        
+        return (HTTP.OK_RESPONSE, json.dumps(results), None)
+    
 
 if __name__ == '__main__':
     from utils.database.database import AsyncConnectionPool
