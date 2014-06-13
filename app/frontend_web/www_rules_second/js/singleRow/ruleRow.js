@@ -47,10 +47,14 @@ define([
         },
     	handleRemove: function() {
 
-           var temp;
-           temp = contextModel.toParams();
-           temp.id = this.model.get('id');
-            if (this.model.get('id')==ruleModel.get('id')) {ruleModel.clearData();}
+            var temp;
+            temp = contextModel.toParams();
+            temp.id = this.model.get('id');
+
+            if (this.model.get('id')==ruleModel.get('id')) {
+                                                            ruleModel.clearData();
+                                                            contextModel.set({showTriggers: false, showDetails:false})
+                                                           }
            this.model.url = "/rule?" + decodeURIComponent($.param(temp));
            this.model.destroy();
 

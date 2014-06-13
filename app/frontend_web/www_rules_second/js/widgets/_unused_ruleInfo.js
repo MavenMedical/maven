@@ -27,7 +27,7 @@ define([
         },
 	events: {
 	    "change input.rule-name-edit" : "updateName",
-	    "click .rule-name-display": "editName",
+	    "click .rule-name-display": "editName"
 	},
 	updateName: function(evt) {
 	    this.model.set("name",evt.currentTarget.value);

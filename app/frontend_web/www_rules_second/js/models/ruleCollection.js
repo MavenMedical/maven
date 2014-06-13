@@ -32,7 +32,7 @@ define([
 		    }, ruleCollection);
 
     
-    ruleModel.on('sync',
+        ruleModel.on('sync',
 		 function() {
              var toUpdate = ruleModel.get('id')
 		     ruleCollection.add(new Backbone.Model({name:ruleModel.get('name'),
