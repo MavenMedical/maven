@@ -113,3 +113,28 @@ INSERT INTO observation(
             '%', NULL, '4548-4', NULL, NULL, NULL,
             'Hemoglobin A1c', 1209479872, 'Hb A1c', 'Hb A1c', 'Hemoglobin A1c');
 
+
+--
+-- Populate alert table
+--
+INSERT INTO alert(
+            customer_id, provider_id, pat_id, encounter_id, category,
+            status, order_id, code_trigger, code_trigger_type, cds_rule,
+            alert_datetime, short_title, long_title, short_desc, long_desc,
+            outcome, saving)
+    VALUES (1,'JHU1093124','1235412','5|76|3140325','cost',NULL,NULL,NULL,NULL,NULL,'2014-06-12 17:23:49','Encounter Cost: 1350.0',NULL,NULL,'IMMUNOGLOBULINS: $20 CEFIXIME TAB : $520 CT SINUS COMPLETE W/O CONTRAST: $810',NULL,NULL);
+
+INSERT INTO alert(
+            customer_id, provider_id, pat_id, encounter_id, category,
+            status, order_id, code_trigger, code_trigger_type, cds_rule,
+            alert_datetime, short_title, long_title, short_desc, long_desc,
+            outcome, saving)
+    VALUES (1,'JHU1093124','1235412','5|76|3140325','dup_ord',NULL,NULL,'3','maven',NULL,'2014-06-12 17:23:49.835404','Duplicate Order: CEFIXIME TAB ','','Clinical observations are available for a duplicate order recently placed.','Hemoglobin A1c: 7.4 % (2014-05-25 14:22:00)',NULL,16.14);
+
+
+INSERT INTO alert(
+            customer_id, provider_id, pat_id, encounter_id, category,
+            status, order_id, code_trigger, code_trigger_type, cds_rule,
+            alert_datetime, short_title, long_title, short_desc, long_desc,
+            outcome, saving)
+    aVALUES (1,'JHU1093124','1235412','5|76|3140325','cds',NULL,NULL,'76370',NULL,1,'2014-06-12 17:23:49.908729','Sinusitis','Dont order CT Scans for uncomplicated acute sinusitis','','Viral infections cause the majority of acute rhinosinusitis and only 0.5-2 percent progress to bacterial infections',NULL,807.12);

@@ -601,6 +601,30 @@ CREATE INDEX ixmavenorder
   (encounter_id, customer_id);
 
 
+
+CREATE TYPE ord_event as ENUM('created', 'signed', 'modified', 'canceled');
+
+-- Table: order_event;
+
+-- DROP TABLE order_event;
+
+CREATE TABLE order_event
+(
+  customer_id numeric(18,0),
+  order_id integer,
+  provider_id character varying(100),
+  order_event ord_event,
+  event_datetime timestamp without time zone,
+  source character varying(25),
+  active_orders character varying
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE public.order_event
+  OWNER TO maven;
+
+
 -- Table: medicalprocedure
 
 -- DROP TABLE medicalprocedure;
