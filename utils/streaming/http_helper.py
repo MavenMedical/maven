@@ -5,8 +5,8 @@ import asyncio
 
 
 class HTTPHelper:
-    def __init__(self, context_user, context_key, auth_length):
-        self.context_user = context_user
+    def __init__(self, contexts_user, context_key, auth_length):
+        self.contexts_user = contexts_user
         self.context_key = context_key
         self.auth_length = auth_length
         
@@ -20,7 +20,8 @@ class HTTPHelper:
         if not self.context_key in qs:
             raise HTTP.UnauthorizedRequest('User is not logged in.')
         try:
-            AK.check_authorization(qs[self.context_user][0], qs[self.context_key][0], self.auth_length)
+            print([qs[x][0] for x in self.contexts_user])
+            AK.check_authorization([qs[x][0] for x in self.contexts_user], qs[self.context_key][0], self.auth_length)
         except AK.UnauthorizedException as ue:
             raise HTTP.UnauthorizedRequest(str(ue))
 

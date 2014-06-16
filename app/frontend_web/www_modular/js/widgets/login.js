@@ -28,7 +28,7 @@ define([
 	},
         render: function () {
 	    //currentContext.setUser('notarealpassword', Backbone.history.fragment);  // hack for now
-	    this.$el.html(this.template({user:'JHU1093124', password:''}));
+	    this.$el.html(this.template({user:'maven', password:'maven'}));
 	    $('#login-modal').modal();
 	    return this;
         },

@@ -36,6 +36,7 @@ CONTEXT_ORDERTYPE = 'ordertype'
 CONTEXT_KEY = 'userAuth'
 CONTEXT_ENCOUNTER = 'encounter'
 CONTEXT_CUSTOMERID = 'customer_id'
+CONTEXT_PROVIDER = 'provider'
 
 LOGIN_TIMEOUT = 60 * 60  # 1 hour
 AUTH_LENGTH = 44  # 44 base 64 encoded bits gives the entire 256 bites of SHA2 hash
@@ -64,7 +65,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         self.add_handler(['GET'], '/orders(?:/(\d+)-(\d+)?)?', self.get_orders)  # REAL
         self.add_handler(['GET'], '/autocomplete', self.get_autocomplete)  # FAKE
         self.add_handler(['GET'], '/hist_spending', self.get_hist_spend)
-        self.helper = HH.HTTPHelper(CONTEXT_USER, CONTEXT_KEY, AUTH_LENGTH)
+        self.helper = HH.HTTPHelper([CONTEXT_USER, CONTEXT_PROVIDER], CONTEXT_KEY, AUTH_LENGTH)
         self.persistence_interface = WP.WebPersistence(persistence_name)
 
     def schedule(self, loop):
@@ -116,14 +117,18 @@ class FrontendWebService(HTTP.HTTPProcessor):
                     method = 'local'
 
                 # at the point, the user has succeeded to login
-                user_auth = AK.authorization_key(user, AUTH_LENGTH, LOGIN_TIMEOUT)
+                user = str(user_info[WP.Results.userid])
+                provider = user_info[WP.Results.provid]
+                print([user, provider])
+                user_auth = AK.authorization_key([user, provider], AUTH_LENGTH, LOGIN_TIMEOUT)
                 if not self.stylesheet == 'original':
                     self.stylesheet = 'original'
 
                 ret = {CONTEXT_USER: user_info[WP.Results.userid], 'display': user_info[WP.Results.displayname],
                        'stylesheet': self.stylesheet, 'customer_id': user_info[WP.Results.customerid],
-                       'prov_id': user_info[WP.Results.provid],
-                       'widgets': [
+                       CONTEXT_PROVIDER: provider,
+                       CONTEXT_USER: user,
+                        'widgets': [
                            ['#fixed-topA-1-1', 'topBanner', 'topBanner.html'],
                            ['#fixed-topB-1-1', 'patientInfo'],
                            ['#fixed-topB-1-1', 'patientSearch'],
@@ -145,8 +150,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                                                    method, '1.2.3.4',
                                                                    password if method == 'forward' else None)
 
-    patients_required_contexts = [CONTEXT_USER, CONTEXT_CUSTOMERID]
-    patients_available_contexts = {CONTEXT_USER: str, CONTEXT_CUSTOMERID: int}
+    patients_required_contexts = [CONTEXT_PROVIDER, CONTEXT_CUSTOMERID]
+    patients_available_contexts = {CONTEXT_PROVIDER: str, CONTEXT_CUSTOMERID: int}
 
     ################ AK.authorization_key((user, x[1]), AUTH_LENGTH), 
 
@@ -155,7 +160,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         context = self.helper.restrict_context(qs,
                                                FrontendWebService.patients_required_contexts,
                                                FrontendWebService.patients_available_contexts)
-        user = context[CONTEXT_USER]
+        provider = context[CONTEXT_PROVIDER]
         customerid = context[CONTEXT_CUSTOMERID]
         desired = {
             WP.Results.patientname: 'name',
@@ -165,13 +170,13 @@ class FrontendWebService(HTTP.HTTPProcessor):
             WP.Results.diagnosis: 'diagnosis',
             WP.Results.cost: 'cost',
         }
-        results = yield from self.persistence_interface.patient_info(desired, user, customerid,
+        results = yield from self.persistence_interface.patient_info(desired, provider, customerid,
                                                                      limit=self.helper.limit_clause(matches))
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
-    patient_required_contexts = [CONTEXT_USER, CONTEXT_KEY, CONTEXT_PATIENTLIST, CONTEXT_CUSTOMERID]
-    patient_available_contexts = {CONTEXT_USER: str, CONTEXT_KEY: str, CONTEXT_PATIENTLIST: str,
+    patient_required_contexts = [CONTEXT_PROVIDER, CONTEXT_KEY, CONTEXT_PATIENTLIST, CONTEXT_CUSTOMERID]
+    patient_available_contexts = {CONTEXT_PROVIDER: str, CONTEXT_KEY: str, CONTEXT_PATIENTLIST: str,
                                   CONTEXT_CUSTOMERID: int, CONTEXT_ENCOUNTER: str}
 
     @asyncio.coroutine
@@ -183,11 +188,11 @@ class FrontendWebService(HTTP.HTTPProcessor):
         context = self.helper.restrict_context(qs,
                                                FrontendWebService.patient_required_contexts,
                                                FrontendWebService.patient_available_contexts)
-        user = context[CONTEXT_USER]
+        provider = context[CONTEXT_PROVIDER]
         patientid = context[CONTEXT_PATIENTLIST]
         customerid = context[CONTEXT_CUSTOMERID]
-        #if not auth_key == _authorization_key((user, patient_id), AUTH_LENGTH):
-        #   raise HTTP.IncompleteRequest('%s has not been authorized to view patient %s.' % (user, patient_id))
+        #if not auth_key == _authorization_key((provider, patient_id), AUTH_LENGTH):
+        #   raise HTTP.IncompleteRequest('%s has not been authorized to view patient %s.' % (provider, patient_id))
 
         desired = {
             WP.Results.patientname: 'name',
@@ -200,13 +205,13 @@ class FrontendWebService(HTTP.HTTPProcessor):
             WP.Results.allergies: 'Allergies',
             WP.Results.problems: 'ProblemList',
         }
-        results = yield from self.persistence_interface.patient_info(desired, user, customerid,
+        results = yield from self.persistence_interface.patient_info(desired, provider, customerid,
                                                                      limit=self.helper.limit_clause(matches))
 
         return HTTP.OK_RESPONSE, json.dumps(results[0]), None
 
-    totals_required_contexts = [CONTEXT_USER, CONTEXT_KEY, CONTEXT_CUSTOMERID]
-    totals_available_contexts = {CONTEXT_USER: str, CONTEXT_KEY: list,
+    totals_required_contexts = [CONTEXT_PROVIDER, CONTEXT_KEY, CONTEXT_CUSTOMERID]
+    totals_available_contexts = {CONTEXT_PROVIDER: str, CONTEXT_KEY: list,
                                  CONTEXT_PATIENTLIST: list, CONTEXT_ENCOUNTER: str,
                                  CONTEXT_CUSTOMERID: int}
 
@@ -215,7 +220,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         context = self.helper.restrict_context(qs,
                                                FrontendWebService.daily_required_contexts,
                                                FrontendWebService.daily_available_contexts)
-        user = context[CONTEXT_USER]
+        provider = context[CONTEXT_PROVIDER]
         patient_ids = context.get(CONTEXT_PATIENTLIST, None)
         customer = context[CONTEXT_CUSTOMERID]
         encounter = context.get(CONTEXT_ENCOUNTER, None)
@@ -226,13 +231,13 @@ class FrontendWebService(HTTP.HTTPProcessor):
             WP.Results.savings: 'savings',
         }
 
-        results = yield from self.persistence_interface.total_spend(desired, user, customer,
+        results = yield from self.persistence_interface.total_spend(desired, provider, customer,
                                                                     patients=patient_ids, encounter=encounter)
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
-    daily_required_contexts = [CONTEXT_USER, CONTEXT_KEY, CONTEXT_CUSTOMERID]
-    daily_available_contexts = {CONTEXT_USER: str, CONTEXT_KEY: list,
+    daily_required_contexts = [CONTEXT_PROVIDER, CONTEXT_KEY, CONTEXT_CUSTOMERID]
+    daily_available_contexts = {CONTEXT_PROVIDER: str, CONTEXT_KEY: list,
                                 CONTEXT_PATIENTLIST: list, CONTEXT_CUSTOMERID: int,
                                 CONTEXT_ENCOUNTER: str}
 
@@ -241,7 +246,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         context = self.helper.restrict_context(qs,
                                                FrontendWebService.daily_required_contexts,
                                                FrontendWebService.daily_available_contexts)
-        user = context[CONTEXT_USER]
+        provider = context[CONTEXT_PROVIDER]
         customer = context[CONTEXT_CUSTOMERID]
         patient_dict = defaultdict(lambda: defaultdict(int))
         encounter = context.get(CONTEXT_ENCOUNTER, None)
@@ -249,8 +254,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
         #auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
 
         desired = {x: x for x in [WP.Results.date, WP.Results.ordertype, WP.Results.spending]}
-        #if AK.check_authorization((user, patient_id), auth_keys[patient_id], AUTH_LENGTH):
-        results = yield from self.persistence_interface.daily_spend(desired, user, customer,
+        #if AK.check_authorization((provider, patient_id), auth_keys[patient_id], AUTH_LENGTH):
+        results = yield from self.persistence_interface.daily_spend(desired, provider, customer,
                                                                     patients=patient_ids, encounter=encounter)
 
         for row in results:
@@ -258,8 +263,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
         return HTTP.OK_RESPONSE, json.dumps(patient_dict), None
 
-    alerts_required_contexts = [CONTEXT_USER, CONTEXT_CUSTOMERID]
-    alerts_available_contexts = {CONTEXT_USER: str, CONTEXT_PATIENTLIST: list,
+    alerts_required_contexts = [CONTEXT_PROVIDER, CONTEXT_CUSTOMERID]
+    alerts_available_contexts = {CONTEXT_PROVIDER: str, CONTEXT_PATIENTLIST: list,
                                  CONTEXT_CUSTOMERID: int, CONTEXT_ENCOUNTER: str}
 
     @asyncio.coroutine
@@ -268,7 +273,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         context = self.helper.restrict_context(qs,
                                                FrontendWebService.alerts_required_contexts,
                                                FrontendWebService.alerts_available_contexts)
-        user = context[CONTEXT_USER]
+        provider = context[CONTEXT_PROVIDER]
         patients = context.get(CONTEXT_PATIENTLIST, None)
         customer = context[CONTEXT_CUSTOMERID]
         limit = self.helper.limit_clause(matches)
@@ -284,13 +289,13 @@ class FrontendWebService(HTTP.HTTPProcessor):
             WP.Results.ruleid: 'ruleid',
         }
 
-        results = yield from self.persistence_interface.alerts(desired, user, customer,
+        results = yield from self.persistence_interface.alerts(desired, provider, customer,
                                                                patients=patients)
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
-    orders_required_contexts = [CONTEXT_USER, CONTEXT_CUSTOMERID]
-    orders_available_contexts = {CONTEXT_USER: str, CONTEXT_PATIENTLIST: list,
+    orders_required_contexts = [CONTEXT_PROVIDER, CONTEXT_CUSTOMERID]
+    orders_available_contexts = {CONTEXT_PROVIDER: str, CONTEXT_PATIENTLIST: list,
                                  CONTEXT_CUSTOMERID: int, CONTEXT_ENCOUNTER: str,
                                  CONTEXT_ORDERTYPE: str}
 
@@ -299,7 +304,6 @@ class FrontendWebService(HTTP.HTTPProcessor):
         context = self.helper.restrict_context(qs,
                                                FrontendWebService.orders_required_contexts,
                                                FrontendWebService.orders_available_contexts)
-        user = context[CONTEXT_USER]
         ordertype = context.get(CONTEXT_ORDERTYPE, None)
         if ordertype:
             ordertypes = [ordertype]
@@ -330,8 +334,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
-    hist_spend_required_contexts = [CONTEXT_USER, CONTEXT_CUSTOMERID]
-    hist_spend_available_contexts = {CONTEXT_USER: str, CONTEXT_PATIENTLIST: list,
+    hist_spend_required_contexts = [CONTEXT_PROVIDER, CONTEXT_CUSTOMERID]
+    hist_spend_available_contexts = {CONTEXT_PROVIDER: str, CONTEXT_PATIENTLIST: list,
                                      CONTEXT_CUSTOMERID: int, CONTEXT_ENCOUNTER: str}
 
     @asyncio.coroutine
@@ -342,7 +346,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
         desired = {WP.Results.spending: "spending"}
         results = yield from self.persistence_interface.per_encounter(desired,
-                                                                      context.get(CONTEXT_USER),
+                                                                      context.get(CONTEXT_PROVIDER),
                                                                       context.get(CONTEXT_CUSTOMERID),
                                                                       patients=context.get(CONTEXT_PATIENTLIST, None),
                                                                       encounter=context.get(CONTEXT_ENCOUNTER, None),
