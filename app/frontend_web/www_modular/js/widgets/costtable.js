@@ -9,16 +9,21 @@ define([
     'backbone',    // lib/backbone/backbone
     'globalmodels/contextModel',
     'globalmodels/spendingModel',
+    'globalmodels/summaryModel', // current patient (if any)
     'widgets/orderList',
     'libs/jquery/jquery-mousestop-event',
-], function ($, _, Backbone, contextModel, spendingModel, OrderList) {
+], function ($, _, Backbone, contextModel, spendingModel, summaryModel, OrderList) {
 
     var CostBD = Backbone.View.extend({
         initialize: function (arg) {
             this.template = _.template(arg.template); // this must already be loaded
             this.$el.html(this.template({page: contextModel.get('page')}));
+	        summaryModel.on('change', this.update, this);
             spendingModel.on('change', this.update, this);
             this.update();
+        },
+        events:{
+            'click .progress-bar': 'handleClick'
         },
         update: function () {
             var datefilter = null;
@@ -36,6 +41,7 @@ define([
             var colorArray = [];
             var gathered = {};
             var data = [];
+
             for (var d in spendingModel.attributes) {
                 if (Date.parse(d)) {
                     var date = new Date(d);
@@ -68,12 +74,12 @@ define([
             fake("Consultation");
             fake("Lab-work");
             fake("Other");
-            console.log(data);
-            console.log(findColor("PROC"));
 
             //clear order-table before filling it
             $('#order-table-1').empty();
             $('#order-table-2').empty();
+            $('.progress').empty();
+
             var flag = true;
             data.forEach(function (entry) {
                 //fill order-table
@@ -100,46 +106,27 @@ define([
                     flag = true;
                 }
 
-            });
+                // fill progress-bar
+                var percentage = (entry.cost/summaryModel.get('spending')*100).toFixed(2);
 
-
-            var chart = AmCharts.makeChart("cost-bd", {
-                "type": "serial",
-                "theme": "none",
-                "dataProvider": data,
-                "valueAxes": [
-                    {
-                        "gridAlpha": 0,
-                        "dashLength": 0
-                    }
-                ],
-                "gridAboveGraphs": true,
-                "startDuration": 1,
-                "graphs": [
-                    {
-                        "balloonText": "[[category]]: <b>$[[value]]</b>",
-                        "colorField": "color",
-                        "fillAlphas": 0.8,
-                        "lineAlpha": 0.2,
-                        "type": "column",
-                        "valueField": "cost"
-                    }
-                ],
-                "chartCursor": {
-                    "categoryBalloonEnabled": false,
-                    "cursorAlpha": 0,
-                    "zoomable": true
-                },
-                //"rotate": true,
-                "categoryField": "order",
-                "categoryAxis": {
-                    "gridPosition": "start",
-                    "gridAlpha": 0
-                }
+                $('.progress').append(
+                    $('<div id="'+entry.order+'" class="progress-bar bgcolor-'+entry.order.toLowerCase()+'">')
+                        .attr('style','width: '+percentage+'%').append(percentage+'%'));
             });
-            chart.addListener("clickGraphItem", spendingModel.clickType, spendingModel);
-            chart.invalidateSize();
-//	    $('#cost-db').html('OTHER TEXT');
+        },
+        handleClick: function(e){
+            var element = $(e.currentTarget);
+            console.log(element.attr('id'));
+
+           /* var mousepos;
+	    var overlist = false;
+	    var orderList = new OrderList({
+		template:'<div class="panel-group orderaccordion"> </div>',
+		el:$('#mouse-target'),
+		typeFilter: 'doesnotexist',
+		slice: null,
+	    });*/
+
         }
     });
     return CostBD;

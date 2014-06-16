@@ -326,25 +326,43 @@ height: 350px;
 .color-procedure {
     color: #3598dc;
 }
+.bgcolor-procedure {
+    background-color: #3598dc;
+}
 
 .color-lab-work {
     color: #eb4b3b;
+}
+.bgcolor-lab-work {
+    background-color: #eb4b3b;
 }
 
 .color-consultation {
     color: #18bc9a;
 }
+.bgcolor-consultation {
+    background-color: #18bc9a;
+}
 
 .color-imaging {
     color: #36485c;
+}
+.bgcolor-imaging {
+    background-color: #36485c;
 }
 
 .color-medication {
     color: #9155ad;
 }
+.bgcolor-medication {
+    background-color: #9155ad;
+}
 
 .color-other {
     color: #f2c313;
+}
+.bgcolor-other {
+    background-color: #f2c313;
 }
 
 /* adjust the contents on smaller devices */

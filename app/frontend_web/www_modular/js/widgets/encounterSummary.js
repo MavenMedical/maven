@@ -20,6 +20,9 @@ define([
 	    contextModel.on('change:patients change:encounter', this.update, this);
 	    patientModel.on('change:name', this.update, this);
 	},
+        events:{
+            'click .enc-date a':'handleClick'
+        },
 	update: function(summary) {
 	    if(summaryModel.get('spending')) {
 		var title = 'your patients';
@@ -35,7 +38,10 @@ define([
 	    } else {
 		this.$el.hide();
 	    }
-	}
+	},
+        handleClick:function(){
+            alert('pickdate');
+        }
     });
     return Summary;
 });
