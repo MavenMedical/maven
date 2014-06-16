@@ -13,8 +13,9 @@ define([
     'widgets/ruleOverview',
     'widgets/triggerEditor',
     'widgets/detailOverview',
+    'widgets/evidenceEditor'
 //    'widgets/triggerList',
-], function ($, _, Backbone, Bootstrap, contextModel, curRule,  RuleList, RuleOverview, TriggerEditor, DetailOverview) {//, TriggerList) {
+], function ($, _, Backbone, Bootstrap, contextModel, curRule,  RuleList, RuleOverview, TriggerEditor, DetailOverview, EvidenceEditor) {//, TriggerList) {
     var initialize = function () {
         $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
             options.url = 'rule_services' + options.url;
@@ -26,9 +27,15 @@ define([
          new DetailOverview({el:$("#detail-list")});
 
 
-    contextModel.on('change:auth', function(){
 
+
+
+    contextModel.on('change:auth', function(){
+            console.log($('#evi-list'), $('#detail-list'));
+
+            new EvidenceEditor({el:$("#evi-list")});
             new TriggerEditor({el:$("#trigger-editor")});
+
 
         }, this);
 

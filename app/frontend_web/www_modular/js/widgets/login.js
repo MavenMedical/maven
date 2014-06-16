@@ -42,7 +42,6 @@ define([
 		contextModel.setUser(user, password, Backbone.history.fragment);
 		$("#login-modal").modal('hide');
 		$("#content").show();
-		this.destroy();
 	    }
 	},
 	stopCancel: function(e) {

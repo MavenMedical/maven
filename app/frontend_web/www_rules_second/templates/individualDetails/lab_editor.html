@@ -1,0 +1,27 @@
+
+	 <div class = 'detail-editor-heading'>Create/Edit Lab Result Detail</div>
+         <div>
+
+        This rule will be used if the patient had the observation that
+	<select class="detail-input" name="obs_type">
+		<option value="lipid_hdl">Lipid Panel HDL</option>
+		<option value="lipid_ldl">Lipid Panel LDL</option>	
+	</select>	
+	was 
+	<select class="detail-input" name="relation">
+		<option value="greater">Greater Than</option>
+		<option value="less">Less Than</option>	
+	</select>
+	<input  name="value" class="detail-input" type="text" value="0"  style="min-width:100px">
+	in the time frame between
+ 	<input  name="mindays" class="detail-input" type="text" value="0"  style="min-width:100px">
+	and
+	<input  name="maxdays" class="detail-input" type="text" value="0"  style="min-width:100px">
+	days from the present
+
+        	</div>
+	      <div>
+          	<br>
+	 	  <button class="confirm-detail-button">Confirm</button>
+        	  <button class="cancel-edit-button">Cancel</button>
+	      </div>

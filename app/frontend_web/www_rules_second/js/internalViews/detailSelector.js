@@ -14,17 +14,19 @@ define([
 
     var DetailSelector = Backbone.View.extend({
         template: _.template(detailEntry),
-        initialize: function(){
-
-    var panel = this;
+        initialize: function(param){
+            this.el = param.el;
+            console.log(this.$el);
             var anon =  Backbone.Collection.extend( {url: '/details?'});
             this.searchedDetails = new anon();
+            contextModel.on('change:auth', this.other, this);
 
         },
-        detailHeadings: {'pl_dx': "Problem List Diagnosis", 'hist_dx': "Historical Diagnosis", 'lab': "Lab Results"},
-
+        other:function(){
+            this.search("")
+        },
         search: function(search_param){
-            var panel = this
+            var panel = this;
             var t = contextModel.toParams();
             console.log(t);
             t = $.extend(t , {'search_param': search_param});

@@ -55,15 +55,20 @@ class CompositionEvaluator(SP.StreamProcessor):
 
         #Look up prices via costmap and create new "Encounter Cost Breakdown" section that is added to Composition
         composition = pickle.loads(obj)
+
+        #Add the alerts section so that the components below can add their respective alerts
         self._add_alerts_section(composition)
 
+        #Maven Transparency
         yield from self.evaluate_encounter_cost(composition)
+
+        #Maven Duplicate Orders (with related Clinical Observations) analysis
         yield from self.evaluate_duplicate_orders(composition)
 
         #Use the FHIR Database API to look up each Condition's codes (ICD-9) and add Snomed CT concepts to the Condition
         yield from FHIR_DB.gather_snomeds_append_to_encounter_dx(composition, self.conn)
 
-
+        #Analyze Choosing Wisely/CDS Rules
         yield from self.evaluate_CDS_rules(composition)
 
         #TODO Logic to check if recently alerted (will involved look-up in DB.This type of caching would be nice via REDIS)
@@ -133,13 +138,31 @@ class CompositionEvaluator(SP.StreamProcessor):
         encounter_cost_breakdown = yield from FHIR_DB.gather_encounter_order_cost_info(ordersdict, detailsdict, self.conn)
 
         if encounter_cost_breakdown is not None and len(encounter_cost_breakdown) > 0:
+            alert_datetime = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
             total_cost = 0.00
             for cost in encounter_cost_breakdown:
                 total_cost += math.ceil(cost[1])
 
+            customer_id = composition.customer_id
+            patient_id = composition.subject.get_pat_id()
+            provider_id = composition.get_author_id()
+            encounter_id = composition.encounter.get_csn()
+            short_title = ("Encounter Cost: %s" % total_cost)
+
+            #Create a storeable text description of the cost breakdown details list
+            long_description = ""
+            for cost_element in encounter_cost_breakdown:
+                long_description += ("%s: $%s\n" % (cost_element[0], cost_element[1]))
+
+
+            FHIR_alert = FHIR_API.Alert(customer_id=customer_id, subject=patient_id, provider_id=provider_id, encounter_id=encounter_id,
+                                        alert_datetime=alert_datetime, short_title=short_title, cost_breakdown=encounter_cost_breakdown, long_description=long_description)
+
             cost_alert = {"alert_type": "cost",
+                          "alert_time" : alert_datetime,
                           "total_cost": total_cost,
-                          "cost_details": encounter_cost_breakdown}
+                          "cost_details": encounter_cost_breakdown,
+                          "alert_list": [FHIR_alert]}
 
             alerts_section = composition.get_section_by_coding(code_system="maven", code_value="alerts")
             alerts_section.content.append(cost_alert)
@@ -233,8 +256,8 @@ class CompositionEvaluator(SP.StreamProcessor):
                                               code_trigger=result[2],
                                               code_trigger_type=result[3],
                                               name=result[4],
-                                              description=result[5],
-                                              tag_line=result[6])
+                                              long_description=result[5],
+                                              long_title=result[6])
 
                     applicable_sleuth_rules.append(FHIR_rule)
         return applicable_sleuth_rules
@@ -280,10 +303,10 @@ class CompositionEvaluator(SP.StreamProcessor):
         if alert_bundle is not None and len(alert_bundle) > 0:
             composition_alerts_section = composition.get_alerts_section()
             alert_datetime = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-            composition_alerts_section.content.append({"alert_type": "CDS_alerts",
+            composition_alerts_section.content.append({"alert_type": "cds",
                                                        "alert_time": alert_datetime,
                                                        "alert_list": alert_bundle})
-            yield from FHIR_DB.write_composition_alerts(alert_datetime, alert_bundle, self.conn)
+            #yield from FHIR_DB.write_composition_alerts(alert_datetime, alert_bundle, self.conn)
 
         else:
             return
@@ -374,15 +397,17 @@ class CompositionEvaluator(SP.StreamProcessor):
         CDS_rule = rule.CDS_rule_id
         alert_datetime = datetime.datetime.now()
         short_title = rule.name
-        tag_line = rule.tag_line
-        description = rule.description
+        long_title = rule.long_title
+        short_description = rule.short_description
+        long_description = rule.long_description
         override_indications = ['Select one of these override indications boink']
         saving = 807.12
+        category = "cds"
 
         FHIR_alert = FHIR_API.Alert(customer_id=customer_id, subject=pat_id, provider_id=provider_id, encounter_id=encounter_id,
                                     code_trigger=code_trigger, CDS_rule=CDS_rule, alert_datetime=alert_datetime,
-                                    short_title=short_title, tag_line=tag_line, description=description,
-                                    override_indications=override_indications, saving=saving)
+                                    short_title=short_title, long_title=long_title, short_description=short_description, long_description=long_description,
+                                    override_indications=override_indications, saving=saving, category=category)
 
         return FHIR_alert
 

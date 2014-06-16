@@ -14,12 +14,10 @@ define([
     var showTriggerEditor = function(){
         contextModel.set({showTriggerEditor: !contextModel.get('showTriggerEditor')});
         if (contextModel.get('showTriggerEditor')){
-
             $("#EditTriggersButton").html("Hide Trigger Editor");
         } else {
             $("#EditTriggersButton").html("Edit Triggers");
         }
-
     };
     var editName = function(){
         var name = prompt("Enter The New Name");
@@ -28,13 +26,9 @@ define([
             curRule.save();
         }
     }
-
-    
     var RuleOverview = Backbone.View.extend({
         template: _.template(ruleOverviewTemplate),
-
         updateOverview: function(){
-
             if (contextModel.get('id')) {
                this.$el.show();
                this.render();
@@ -42,28 +36,20 @@ define([
             } else {
                 this.$el.hide();
             }
-
-
         },
         initialize: function(){
-
             curRule.on('change:id', this.updateOverview, this)
             curRule.on('change:name', this.updateOverview, this)
             curRule.get('triggers').on('add', this.updateOverview, this)
             curRule.get('triggers').on('remove', this.updateOverview, this)
             curCollection.on('remove', function(removed){
-
                 if (removed.get('id') == contextModel.get('id')){
                     curRule.set('name', null);
                     this.$el.hide();
                 }
-
             }, this)
-
         },
         render: function(){
-
-
             if (curRule.get('name')){
                 this.$el.show();
                 this.$el.html(this.template(curRule.toJSON()));
@@ -90,11 +76,7 @@ define([
                 var trigger = new Backbone.Model(cur);
                 this.addTrigger(trigger);
             }, this);
-
-
         },
-
-
 	events: {
 	    "click #EditTriggersButton" : showTriggerEditor,
         "click #nameTag" : editName

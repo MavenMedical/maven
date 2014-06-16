@@ -1,0 +1,15 @@
+<div class="detail-entry">
+    <a class="detail-item">
+    Rule will be used only if the patient had the observation that <%=obs_type%> was
+     <% if (relation == "greater") { %>
+            greater than
+    <%} else { %>
+            less than
+    <%}%>
+    <%=value%>
+        <br>
+    in the time frame between <%=mindays%> and <%=maxdays%> days from the present
+    </a>
+    <a style = "float: right" class="remove-detail">&#10006</a>
+
+</div>
