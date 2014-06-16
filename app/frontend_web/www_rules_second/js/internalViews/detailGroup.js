@@ -7,8 +7,9 @@ define([
 
     'models/ruleModel',
 
+    'modalViews/'+'detailEditor',
     'text!templates/detailPanel/detailSection.html'
-], function ($, _, Backbone, curRule, detailSectionTemplate) {
+], function ($, _, Backbone, curRule, DetailEditor, detailSectionTemplate) {
 
     var DetailGroup = Backbone.View.extend({
 
@@ -26,20 +27,19 @@ define([
 
         },
         render: function(){
-            console.log(this.list);
 
             this.$el.html("");
             var type = this.type;
 
-
             this.list.each(function(cur) {
 
                 this.$el.append(this.lineTemplate(cur.attributes))
-                $('.detail-item', this.$el).last()[0].onclick = function(){
 
-                     require(['modalViews/'+type+'_editor.js'],
-		                     function(modalView) {
-		    	                var curView = new modalView({model: cur, el:$('#modal-target')});
+                $('.detail-item', this.$el).last()[0].onclick = function(){
+                     require(['text!/templates/individualDetails/' + type + '_editor.html'],
+		                     function(curTemplate) {
+		    	                var curView = new DetailEditor({model: cur, el:$('#modal-target'), template:_.template(curTemplate)});
+                                $('#detail-modal').modal('show');
 		                     }
                           );
                 }

@@ -10,68 +10,88 @@ define([
     'internalViews/detailGroup',
     'internalViews/detailSelector',
 
-
+    'modalViews/detailEditor',
     'Helpers',
+
     'text!/templates/detailPanel/detailsOverview.html',
-    'text!/templates/individualDetails/dxDetail.html',
+
     'text!/templates/detailPanel/detailSection.html'
 
-], function ($, _, Backbone, contextModel, curRule, DetailGroup, DetailSelector, Helpers, detailsOverviewTemplate, dxDetailTemplate, detailSection) {
+], function ($, _, Backbone,
+             contextModel, curRule,
+             DetailGroup, DetailSelector, DetailEditor,
+             Helpers,
+             detailsOverviewTemplate,  detailSection) {
     var createDetail = function(){
         var selected = $('.detail-selector').val();
-        console.log(selected);
-        if (selected == Helpers.detailHeadings['pl_dx']){
-            var new_pl_dx = new Backbone.Model({'negative':true, 'code': '0'});
-            require(['modalViews/' + 'pl_dx' + '_editor.js'],
-		       function(modalView) {
-		    	    var curView = new modalView({model: new_pl_dx, el:$('#modal-target'), newDetail: true});
-		        }
-            );
-        }
+        var text_code = _.invert(Helpers.detailHeadings)[selected];
+        require(['text!/templates/individualDetails/' + text_code + '_editor.html'],
+            function(curTemplate) {
+                  var newModel;
+                    newModel = new Backbone.Model({});
+                if (selected == Helpers.detailHeadings['pl_dx'])
+                     newModel = new Backbone.Model({'negative':'false', 'code': '0'});
+                  if (selected == Helpers.detailHeadings['hist_dx'])
+                     newModel = new Backbone.Model({'negative':'false', 'code': '0', 'minDays':'0', 'maxDays': '0'});
+
+                    console.log(toTemplate);
+                    var toTemplate = _.template(curTemplate);
+		    	    var curView = new DetailEditor({model: newModel, el:$('#modal-target'), newDetail: true, template: toTemplate, type: text_code});
+                    $('#detail-modal').modal('show');
+
+             }, this
+        );
     }
     var DetailOverview = Backbone.View.extend({
-
         template: _.template(detailsOverviewTemplate),
-        lineTemplates: {'pl_dx': dxDetailTemplate},
+
 
         initialize: function(){
+             this.$el.html(this.template());
 
-             curRule.on('sync', this.render, this)
+             //curRule.on('sync', this.render, this)
              curRule.on('change', this.render, this)
              contextModel.on('change:showDetails', function(){
                  if (contextModel.get('showDetails')){
+
                      this.$el.show();
                  } else {
                      this.$el.hide();
                  }
 
              }, this)
-             this.selector = new DetailSelector();
-             this.selector.searchedDetails.on('sync', this.render, this);
+             this.$el.hide();
+            contextModel.set('showDetails', false);
+            this.selector = new DetailSelector({el: $('.detail-selector')});
+
+             //this.selector.searchedDetails.on('sync', this.render, this);
 
         },
         render: function(){
+                $('.detail-sections').html("<div style='text-align: center; font-size: 240%'>Details</div>");
 
-                this.template = _.template(detailsOverviewTemplate);
-
-                this.$el.html(this.template());
                 $('.detail-sections', this.$el).hide();
                 for (var key in curRule.attributes){
-
-                   if (key!="name" && key!="id" && key!="triggers"){
+                   if (key!="name" && key!="id" && key!="triggers" && key!="evidence"){
                         $('.detail-sections', this.$el).show()
-                        var toTemplate = _.template(this.lineTemplates[key]);
-                        var toHeading = Helpers.detailHeadings[key];
-                        var toList = curRule.get(key);
-                        if (toList.length!=0){
-                            var sectionTemplate = _.template(detailSection);
-                            $('.detail-sections', this.$el).append(sectionTemplate({heading:toHeading}));
-                            var cur = new DetailGroup({el: $('.items', this.$el).last(), lineTemplate:toTemplate, list: toList, type: key})
-                            cur.render();
-                        }
-                    }
+                        var context = this;
+
+                        console.log("key", key);
+                        require (['text!/templates/individualDetails/' + key + 'Detail.html'], function(key) {return  function(curTemplate){
+                             var toList = curRule.get(key);
+                             var toHeading = Helpers.detailHeadings[key];
+                             var toTemplate = _.template(curTemplate);
+                                var sectionTemplate = _.template(detailSection);
+                                        $('.detail-sections', context.$el).append(sectionTemplate({heading:toHeading}));
+                                        var cur  = new DetailGroup({el: $('.items', context.$el).last(), lineTemplate:toTemplate, list: toList, type: key})
+                                        cur.render();
+
+
+                        };}(key));
+                   }
+
                 }
-                $(".detail-selector").html(this.selector.el.innerHTML);
+             //   $(".detail-selector").html(this.selector.el.innerHTML);
 
 
             },
@@ -83,9 +103,11 @@ define([
                 this.selector.search($('#detailSearch').val());
             },
             "click #addDetailButton": createDetail
-	        }
-    });
 
+    }
+
+
+    });
 
     return DetailOverview;
 
