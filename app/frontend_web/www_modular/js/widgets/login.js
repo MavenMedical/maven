@@ -11,11 +11,14 @@ define([
 ], function ($, _, Backbone, contextModel, loginTemplate) {
 
     var Login = Backbone.View.extend({
-        el: '#modal-target',
         initialize: function (options) {
-	    this.template=_.template(loginTemplate);
-	    this.cancancel=false;
-	    this.render();
+	    console.log(contextModel);
+	    var that=this;
+	    require(["text!../templates/"+contextModel.get('loginTemplate')], function(loginTemplate) {
+		that.template = _.template(loginTemplate);
+		that.cancancel=false;
+		that.render();
+	    });
         },
 	events: {
 	    'click #login-button': 'dologin',

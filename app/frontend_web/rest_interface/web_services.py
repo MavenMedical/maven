@@ -3,7 +3,7 @@
 #
 #************************
 #AUTHOR:
-__author__='Tom DuBois'
+__author__ = 'Tom DuBois'
 #************************
 #DESCRIPTION:
 # This file contains the core web services to deliver json objects to the
@@ -12,15 +12,13 @@ __author__='Tom DuBois'
 #*************************************************************************
 
 import json
-import random
-import datetime
 from collections import defaultdict
 import utils.database.web_persistence as WP
 import utils.streaming.stream_processor as SP
 import utils.streaming.http_responder as HTTP
 import utils.streaming.http_helper as HH
 import asyncio
-import dateutil.parser as prsr
+import bcrypt
 import utils.crypto.authorization_key as AK
 import maven_logging as ML
 import maven_config as MC
@@ -34,24 +32,28 @@ CONTEXT_DATE = 'date'
 CONTEXT_DATERANGE = 'daterange'
 CONTEXT_PATIENTLIST = 'patients'
 CONTEXT_DEPARTMENT = 'department'
-CONTEXT_ORDERTYPE = 'ordertype' 
+CONTEXT_ORDERTYPE = 'ordertype'
 CONTEXT_KEY = 'userAuth'
 CONTEXT_ENCOUNTER = 'encounter'
 CONTEXT_CUSTOMERID = 'customer_id'
 
-LOGIN_TIMEOUT = 60 * 60 # 1 hour
-AUTH_LENGTH = 44 # 44 base 64 encoded bits gives the entire 256 bites of SHA2 hash
+LOGIN_TIMEOUT = 60 * 60  # 1 hour
+AUTH_LENGTH = 44  # 44 base 64 encoded bits gives the entire 256 bites of SHA2 hash
+
+
+class LoginError(Exception):
+    pass
+
 
 class FrontendWebService(HTTP.HTTPProcessor):
-
     def __init__(self, configname):
-        HTTP.HTTPProcessor.__init__(self,configname)
+        HTTP.HTTPProcessor.__init__(self, configname)
         try:
             persistence_name = self.config[CONFIG_PERSISTENCE]
         except KeyError:
             raise MC.InvalidConfig('some real error')
 
-        self.stylesheet='original'
+        self.stylesheet = 'original'
         self.costbdtype = 'donut'  # this assignment isn't used yet
         self.add_handler(['POST'], '/login', self.post_login)  # FAKE
         self.add_handler(['GET'], '/patients(?:/(\d+)-(\d+)?)?', self.get_patients)  # REAL
@@ -63,67 +65,96 @@ class FrontendWebService(HTTP.HTTPProcessor):
         self.add_handler(['GET'], '/autocomplete', self.get_autocomplete)  # FAKE
         self.add_handler(['GET'], '/hist_spending', self.get_hist_spend)
         self.helper = HH.HTTPHelper(CONTEXT_USER, CONTEXT_KEY, AUTH_LENGTH)
-        self.persistence_interface = WP.WebPersistence(persistence_name) 
+        self.persistence_interface = WP.WebPersistence(persistence_name)
 
     def schedule(self, loop):
         HTTP.HTTPProcessor.schedule(self, loop)
         self.persistence_interface.schedule(loop)
-        
+
     @asyncio.coroutine
     def get_autocomplete(self, _header, _body, qs, _matches, _key):
-        return (HTTP.OK_RESPONSE, json.dumps(['Maven']),None)
+        return HTTP.OK_RESPONSE, json.dumps(['Maven']), None
 
     @asyncio.coroutine
     def post_login(self, header, body, _qs, _matches, _key):
         info = json.loads(body.decode('utf-8'))
-        if (not 'user' in info) or (not 'password' in info):
-            return (HTTP.BAD_RESPONSE, b'', None)
+        if (not CONTEXT_USER in info) or (not 'password' in info):
+            return HTTP.BAD_RESPONSE, b'', None
         else:
             user = info['user']
-            user_auth = AK.authorization_key(user,AUTH_LENGTH, LOGIN_TIMEOUT)
-            if not self.stylesheet == 'original':
-                self.stylesheet = 'original'
+            password = info['password']
+            desired = {k: k for k in [
+                WP.Results.userid,
+                WP.Results.customerid,
+                WP.Results.provid,
+                WP.Results.displayname,
+                WP.Results.password,
+                WP.Results.passworddate,
+                WP.Results.userstate,
+                #WP.Results.failedlogins,
+                #WP.Results.recentkeys,
+            ]}
 
-            ret = {'display':'Dr. Huxtable', 'stylesheet':self.stylesheet, 
-                   'customer_id':1,
-                   'widgets': [
-                       ['#fixed-topA-1-1','topBanner','topBanner.html'],
-                       ['#fixed-topB-1-1','patientInfo'],
-                       ['#fixed-topB-1-1','patientSearch'],
-                       ['#rowA-1-1','patientList'],
-                       ['#rowB-1-1','encounterSummary'],
-                       ['#rowC-1-1','orderList'],
-                       ['#rowD-1-1','costtable','costbreakdown-table.html'],
-                       #['#rowD-1-1','costdonut','costbreakdown-donut.html'],
-                       ['#rowE-1-1', 'spend_histogram'],
-                       ['#floating-right','alertList'],
-                   ],
-                   CONTEXT_KEY: user_auth,
-            }
-            
             try:
-                AK.check_authorization(user, info['password'], AUTH_LENGTH)
-                # this means that the password was a pre-authenticated link
-                return (HTTP.OK_RESPONSE, json.dumps(ret), None)
-            except:
-                # allow bogus password authentication if there is no optional SSL (test environment) 
-                # or if the user has a proper client SSL cert
-                if header.get_headers().get('VERIFIED','SUCCESS') == 'SUCCESS': 
-                    ret[CONTEXT_KEY]=user_auth
-                    return (HTTP.OK_RESPONSE,json.dumps(ret), None)
-                else:
-                    raise HTTP.UnauthorizedRequest('User is not logged in.')
+                user_info = yield from self.persistence_interface.pre_login(desired, user, keycheck='1m')
+                passhash = user_info[WP.Results.password].tobytes()
+
+                # make sure this user exists and is active
+                if not user_info[WP.Results.userstate] == 'active':
+                    raise LoginError
+                try:  # this means that the password was a pre-authenticated link
+                    AK.check_authorization(user, password, AUTH_LENGTH)
+                    method = 'forward'
+                    # was this auth key used recently
+                    if password in user_info[WP.Results.recentkeys]:
+                        raise LoginError
+                except AK.UnauthorizedException:
+                    # the password was not a pre-authenticated link, move onto other mechanisms
+                    #if header.get_headers().get('VERIFIED','SUCCESS') == 'SUCCESS': 
+                    if not passhash or bcrypt.hashpw(bytes(password, 'utf-8'), passhash[:29]) != passhash:
+                        raise LoginError
+                    method = 'local'
+
+                # at the point, the user has succeeded to login
+                user_auth = AK.authorization_key(user, AUTH_LENGTH, LOGIN_TIMEOUT)
+                if not self.stylesheet == 'original':
+                    self.stylesheet = 'original'
+
+                ret = {CONTEXT_USER: user_info[WP.Results.userid], 'display': user_info[WP.Results.displayname],
+                       'stylesheet': self.stylesheet, 'customer_id': user_info[WP.Results.customerid],
+                       'prov_id': user_info[WP.Results.provid],
+                       'widgets': [
+                           ['#fixed-topA-1-1', 'topBanner', 'topBanner.html'],
+                           ['#fixed-topB-1-1', 'patientInfo'],
+                           ['#fixed-topB-1-1', 'patientSearch'],
+                           ['#rowA-1-1', 'patientList'],
+                           ['#rowB-1-1', 'encounterSummary'],
+                           ['#rowC-1-1', 'orderList'],
+                           ['#rowD-1-1', 'costtable', 'costbreakdown-table.html'],
+                           #['#rowD-1-1','costdonut','costbreakdown-donut.html'],
+                           ['#rowE-1-1', 'spend_histogram'],
+                           ['#floating-right', 'alertList'],
+                       ], CONTEXT_KEY: user_auth}
+
+                return HTTP.OK_RESPONSE, json.dumps(ret), None
+            except (LoginError, IndexError):
+                method = 'failed'
+                return HTTP.OK_RESPONSE, json.dumps({'loginTemplate': "badLogin.html"}), None
+            finally:
+                yield from self.persistence_interface.record_login(user,
+                                                                   method, '1.2.3.4',
+                                                                   password if method == 'forward' else None)
 
     patients_required_contexts = [CONTEXT_USER, CONTEXT_CUSTOMERID]
-    patients_available_contexts = {CONTEXT_USER:str, CONTEXT_CUSTOMERID: int}
+    patients_available_contexts = {CONTEXT_USER: str, CONTEXT_CUSTOMERID: int}
 
     ################ AK.authorization_key((user, x[1]), AUTH_LENGTH), 
 
     @asyncio.coroutine
     def get_patients(self, _header, _body, qs, matches, _key):
         context = self.helper.restrict_context(qs,
-                                   FrontendWebService.patients_required_contexts,
-                                   FrontendWebService.patients_available_contexts)
+                                               FrontendWebService.patients_required_contexts,
+                                               FrontendWebService.patients_available_contexts)
         user = context[CONTEXT_USER]
         customerid = context[CONTEXT_CUSTOMERID]
         desired = {
@@ -133,15 +164,15 @@ class FrontendWebService(HTTP.HTTPProcessor):
             WP.Results.birthdate: 'DOB',
             WP.Results.diagnosis: 'diagnosis',
             WP.Results.cost: 'cost',
-            }
-        results = yield from self.persistence_interface.patient_info(desired, user, customerid, 
-                                                        limit = self.helper.limit_clause(matches))
+        }
+        results = yield from self.persistence_interface.patient_info(desired, user, customerid,
+                                                                     limit=self.helper.limit_clause(matches))
 
-        return (HTTP.OK_RESPONSE, json.dumps(results), None)
+        return HTTP.OK_RESPONSE, json.dumps(results), None
 
-    patient_required_contexts = [CONTEXT_USER,CONTEXT_KEY,CONTEXT_PATIENTLIST,CONTEXT_CUSTOMERID]
-    patient_available_contexts = {CONTEXT_USER:str,CONTEXT_KEY:str,CONTEXT_PATIENTLIST:str, 
-                                  CONTEXT_CUSTOMERID:int, CONTEXT_ENCOUNTER:str}
+    patient_required_contexts = [CONTEXT_USER, CONTEXT_KEY, CONTEXT_PATIENTLIST, CONTEXT_CUSTOMERID]
+    patient_available_contexts = {CONTEXT_USER: str, CONTEXT_KEY: str, CONTEXT_PATIENTLIST: str,
+                                  CONTEXT_CUSTOMERID: int, CONTEXT_ENCOUNTER: str}
 
     @asyncio.coroutine
     def get_patient_details(self, _header, _body, qs, matches, _key):
@@ -150,13 +181,13 @@ class FrontendWebService(HTTP.HTTPProcessor):
             i.e. Allergies Problem List, Last Encounter, others.
         """
         context = self.helper.restrict_context(qs,
-                                   FrontendWebService.patient_required_contexts,
-                                   FrontendWebService.patient_available_contexts)
+                                               FrontendWebService.patient_required_contexts,
+                                               FrontendWebService.patient_available_contexts)
         user = context[CONTEXT_USER]
         patientid = context[CONTEXT_PATIENTLIST]
         customerid = context[CONTEXT_CUSTOMERID]
         #if not auth_key == _authorization_key((user, patient_id), AUTH_LENGTH):
-         #   raise HTTP.IncompleteRequest('%s has not been authorized to view patient %s.' % (user, patient_id))
+        #   raise HTTP.IncompleteRequest('%s has not been authorized to view patient %s.' % (user, patient_id))
 
         desired = {
             WP.Results.patientname: 'name',
@@ -169,103 +200,99 @@ class FrontendWebService(HTTP.HTTPProcessor):
             WP.Results.allergies: 'Allergies',
             WP.Results.problems: 'ProblemList',
         }
-        results = yield from self.persistence_interface.patient_info(desired, user, customerid, 
-                                                        limit = self.helper.limit_clause(matches))
+        results = yield from self.persistence_interface.patient_info(desired, user, customerid,
+                                                                     limit=self.helper.limit_clause(matches))
 
-        return (HTTP.OK_RESPONSE, json.dumps(results[0]), None)
+        return HTTP.OK_RESPONSE, json.dumps(results[0]), None
 
-
-    totals_required_contexts = [CONTEXT_USER,CONTEXT_KEY,CONTEXT_CUSTOMERID]
-    totals_available_contexts = {CONTEXT_USER:str,CONTEXT_KEY:list,
-                                 CONTEXT_PATIENTLIST:list, CONTEXT_ENCOUNTER:str,
+    totals_required_contexts = [CONTEXT_USER, CONTEXT_KEY, CONTEXT_CUSTOMERID]
+    totals_available_contexts = {CONTEXT_USER: str, CONTEXT_KEY: list,
+                                 CONTEXT_PATIENTLIST: list, CONTEXT_ENCOUNTER: str,
                                  CONTEXT_CUSTOMERID: int}
 
     @asyncio.coroutine
     def get_total_spend(self, _header, _body, qs, _matches, _key):
         context = self.helper.restrict_context(qs,
-                                   FrontendWebService.daily_required_contexts,
-                                   FrontendWebService.daily_available_contexts)
+                                               FrontendWebService.daily_required_contexts,
+                                               FrontendWebService.daily_available_contexts)
         user = context[CONTEXT_USER]
         patient_ids = context.get(CONTEXT_PATIENTLIST, None)
         customer = context[CONTEXT_CUSTOMERID]
         encounter = context.get(CONTEXT_ENCOUNTER, None)
         #auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
-        
+
         desired = {
             WP.Results.spending: 'spending',
             WP.Results.savings: 'savings',
         }
-            
+
         results = yield from self.persistence_interface.total_spend(desired, user, customer,
                                                                     patients=patient_ids, encounter=encounter)
-            
-        return (HTTP.OK_RESPONSE, json.dumps(results), None)
 
+        return HTTP.OK_RESPONSE, json.dumps(results), None
 
     daily_required_contexts = [CONTEXT_USER, CONTEXT_KEY, CONTEXT_CUSTOMERID]
-    daily_available_contexts = {CONTEXT_USER: str, CONTEXT_KEY: list, 
+    daily_available_contexts = {CONTEXT_USER: str, CONTEXT_KEY: list,
                                 CONTEXT_PATIENTLIST: list, CONTEXT_CUSTOMERID: int,
                                 CONTEXT_ENCOUNTER: str}
 
-#select count(orderid), max(order_name), date_trunc('day',datetime) as dt, order_type, sum(order_cost) from mavenorder join encounter on mavenorder.encounter_id=encounter.csn where encounter.visit_prov_id='JHU1093124' group by dt, order_type, proc_code;
     @asyncio.coroutine
     def get_daily_spending(self, _header, _body, qs, _matches, _key):
         context = self.helper.restrict_context(qs,
-                                   FrontendWebService.daily_required_contexts,
-                                   FrontendWebService.daily_available_contexts)
+                                               FrontendWebService.daily_required_contexts,
+                                               FrontendWebService.daily_available_contexts)
         user = context[CONTEXT_USER]
         customer = context[CONTEXT_CUSTOMERID]
         patient_dict = defaultdict(lambda: defaultdict(int))
         encounter = context.get(CONTEXT_ENCOUNTER, None)
-        patient_ids = context.get(CONTEXT_PATIENTLIST,None)
+        patient_ids = context.get(CONTEXT_PATIENTLIST, None)
         #auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
-        
-        desired = {x:x for x in [WP.Results.date, WP.Results.ordertype, WP.Results.spending]}
+
+        desired = {x: x for x in [WP.Results.date, WP.Results.ordertype, WP.Results.spending]}
         #if AK.check_authorization((user, patient_id), auth_keys[patient_id], AUTH_LENGTH):
         results = yield from self.persistence_interface.daily_spend(desired, user, customer,
                                                                     patients=patient_ids, encounter=encounter)
-        
+
         for row in results:
             patient_dict[row[WP.Results.date]][row[WP.Results.ordertype]] += row[WP.Results.spending]
 
-        return (HTTP.OK_RESPONSE, json.dumps(patient_dict), None)
+        return HTTP.OK_RESPONSE, json.dumps(patient_dict), None
 
     alerts_required_contexts = [CONTEXT_USER, CONTEXT_CUSTOMERID]
-    alerts_available_contexts = {CONTEXT_USER:str, CONTEXT_PATIENTLIST:list, 
-                                 CONTEXT_CUSTOMERID:int, CONTEXT_ENCOUNTER:str}
+    alerts_available_contexts = {CONTEXT_USER: str, CONTEXT_PATIENTLIST: list,
+                                 CONTEXT_CUSTOMERID: int, CONTEXT_ENCOUNTER: str}
 
     @asyncio.coroutine
     def get_alerts(self, _header, _body, qs, matches, _key):
 
         context = self.helper.restrict_context(qs,
-                                   FrontendWebService.alerts_required_contexts,
-                                   FrontendWebService.alerts_available_contexts)
+                                               FrontendWebService.alerts_required_contexts,
+                                               FrontendWebService.alerts_available_contexts)
         user = context[CONTEXT_USER]
-        patients = context.get(CONTEXT_PATIENTLIST,None)
+        patients = context.get(CONTEXT_PATIENTLIST, None)
         customer = context[CONTEXT_CUSTOMERID]
         limit = self.helper.limit_clause(matches)
 
         desired = {
-            WP.Results.alertid:'id',
-            WP.Results.patientid:'patient',
-            WP.Results.datetime:'date',
-            WP.Results.title:'name',
-            WP.Results.description:'html',
-            WP.Results.savings:'cost',
-            WP.Results.alerttype:'alerttype',
-            WP.Results.ruleid:'ruleid',
+            WP.Results.alertid: 'id',
+            WP.Results.patientid: 'patient',
+            WP.Results.datetime: 'date',
+            WP.Results.title: 'name',
+            WP.Results.description: 'html',
+            WP.Results.savings: 'cost',
+            WP.Results.alerttype: 'alerttype',
+            WP.Results.ruleid: 'ruleid',
         }
 
         results = yield from self.persistence_interface.alerts(desired, user, customer,
                                                                patients=patients)
 
-        return (HTTP.OK_RESPONSE, json.dumps(results), None)
-
+        return HTTP.OK_RESPONSE, json.dumps(results), None
 
     orders_required_contexts = [CONTEXT_USER, CONTEXT_CUSTOMERID]
-    orders_available_contexts = {CONTEXT_USER:str, CONTEXT_PATIENTLIST:list, 
-                                 CONTEXT_CUSTOMERID:int, CONTEXT_ENCOUNTER:str,
-                                 CONTEXT_ORDERTYPE:str}
+    orders_available_contexts = {CONTEXT_USER: str, CONTEXT_PATIENTLIST: list,
+                                 CONTEXT_CUSTOMERID: int, CONTEXT_ENCOUNTER: str,
+                                 CONTEXT_ORDERTYPE: str}
 
     @asyncio.coroutine
     def get_orders(self, _header, _body, qs, matches, _key):
@@ -280,32 +307,32 @@ class FrontendWebService(HTTP.HTTPProcessor):
             ordertypes = []
         patient_ids = context.get(CONTEXT_PATIENTLIST, None)
         if not patient_ids:
-            return (HTTP.OK_RESPONSE, b'', None)
+            return HTTP.OK_RESPONSE, b'', None
 
         encounter = context.get(CONTEXT_ENCOUNTER, None)
         customer = context[CONTEXT_CUSTOMERID]
         limit = self.helper.limit_clause(matches)
         if not limit:
-            limit='LIMIT 10'
+            limit = 'LIMIT 10'
         #auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
 
         desired = {
-            WP.Results.ordername:'name',
-            WP.Results.datetime:'date',
-            WP.Results.active:'result',
-            WP.Results.cost:'cost',
-            WP.Results.ordertype:CONTEXT_ORDERTYPE,
-            WP.Results.orderid:'id',
+            WP.Results.ordername: 'name',
+            WP.Results.datetime: 'date',
+            WP.Results.active: 'result',
+            WP.Results.cost: 'cost',
+            WP.Results.ordertype: CONTEXT_ORDERTYPE,
+            WP.Results.orderid: 'id',
         }
-                
+
         results = yield from self.persistence_interface.orders(desired, customer, encounter,
                                                                ordertypes=ordertypes, limit=limit)
 
-        return (HTTP.OK_RESPONSE, json.dumps(results), None)
+        return HTTP.OK_RESPONSE, json.dumps(results), None
 
     hist_spend_required_contexts = [CONTEXT_USER, CONTEXT_CUSTOMERID]
-    hist_spend_available_contexts = {CONTEXT_USER:str, CONTEXT_PATIENTLIST:list,
-                                     CONTEXT_CUSTOMERID:int, CONTEXT_ENCOUNTER:str}
+    hist_spend_available_contexts = {CONTEXT_USER: str, CONTEXT_PATIENTLIST: list,
+                                     CONTEXT_CUSTOMERID: int, CONTEXT_ENCOUNTER: str}
 
     @asyncio.coroutine
     def get_hist_spend(self, _header, _body, qs, matches, _key):
@@ -313,20 +340,20 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                                FrontendWebService.hist_spend_required_contexts,
                                                FrontendWebService.hist_spend_available_contexts)
 
-
         desired = {WP.Results.spending: "spending"}
         results = yield from self.persistence_interface.per_encounter(desired,
                                                                       context.get(CONTEXT_USER),
                                                                       context.get(CONTEXT_CUSTOMERID),
-                                                                      patients=context.get(CONTEXT_PATIENTLIST,None),
+                                                                      patients=context.get(CONTEXT_PATIENTLIST, None),
                                                                       encounter=context.get(CONTEXT_ENCOUNTER, None),
                                                                       startDate=None, endDate=None)
-        
-        return (HTTP.OK_RESPONSE, json.dumps(results), None)
-    
+
+        return HTTP.OK_RESPONSE, json.dumps(results), None
+
 
 if __name__ == '__main__':
     from utils.database.database import AsyncConnectionPool
+
     ML.DEBUG = ML.stdout_log
     MC.MavenConfig = \
         {
@@ -336,7 +363,7 @@ if __name__ == '__main__':
                     SP.CONFIG_PORT: 8087,
                     CONFIG_PERSISTENCE: "persistence layer",
                 },
-            'persistence layer': {WP.CONFIG_DATABASE: 'webservices conn pool',},
+            'persistence layer': {WP.CONFIG_DATABASE: 'webservices conn pool', },
             'webservices conn pool': {
                 AsyncConnectionPool.CONFIG_CONNECTION_STRING: MC.dbconnection,
                 AsyncConnectionPool.CONFIG_MIN_CONNECTIONS: 4,

@@ -1,0 +1,19 @@
+<div id="login-modal" class="modal fade" role="login" >
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-body">
+	      <div style="color:red">Login failed</div>
+	      <div>Try again</div> 
+	      <div>
+		Username: <input id="login-user" type="text" name="user" value="<% if(user) print(user); %>">
+	      </div>
+	      <div>
+		Password: <input id="login-password" type="password" name="password">
+	      </div>
+	      <div>
+		<button id="login-button">Log in</button>
+	      </div>
+	    </div>
+	</div>
+    </div>
+</div>

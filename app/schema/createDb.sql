@@ -165,6 +165,33 @@ begin
 end;
 $$;
 
+create type userstate as enum ('active', 'disabled');
+create table users 
+(
+	user_id serial NOT NULL,
+	customer_id numeric(18,0),
+	prov_id character varying(18),
+	user_name character varying(100),
+	official_name character varying(100),
+	display_name character varying(100),
+	pw bytea,
+	pw_expiration timestamp,
+	old_passwords bytea[],
+	state userstate
+);
+
+create type authmethod as ENUM('local', 'forward', 'certificate', 'passthrough', 'failed', 'unverified');
+create table logins
+(
+	user_name character varying(100),
+	method authmethod,
+	logintime timestamp,
+	ip inet,
+	environment text,
+	authkey character varying(64)
+)
+
+
 -- Table: adt
 
 -- DROP TABLE: adt

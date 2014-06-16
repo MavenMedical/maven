@@ -20,7 +20,7 @@ define([
     
     var CheckLogin = function() {
 	if (!currentContext.get('user') || !currentContext.get('userAuth')) {
-	    new Login();
+	    new Login({el: '#modal-target'})
 	    return false;
 	}
 	return true;

@@ -1,3 +1,12 @@
+-- 
+-- Insert fake user
+--
+INSERT INTO users(
+       user_id, customer_id, prov_id, user_name, official_name, display_name, pw, pw_expiration, state)
+   VALUES (1, 1, 'JHU1093124', 'maven', 'Maven', 'Dr Maven', 
+           '$2a$04$LqzakxdEKR./kXcfQdTU/Of2TXiiJgDpWJRSs1QrJbOKh7al5h8l6', now() + '180 days'::INTERVAL, 'active');
+
+
 --
 -- Insert customer data
 --

@@ -37,6 +37,7 @@ define([
             department: null,
 	    searchPatient: null,
 	    searchDiagnosis: null,
+	    loginTemplate: 'login.html',
         },
 	toParams: function() {
 	    var ret = _.pick(this.attributes,['user','provider','date','daterange',
@@ -52,7 +53,9 @@ define([
 		//alert('setting user');
 		this.fetch({
 		    success: function (res) {
-			setActiveStyleSheet(res.get('stylesheet'));
+			if(res.get('stylesheet')) {
+			    setActiveStyleSheet(res.get('stylesheet'));
+			}
 			// each row is [html_id, viewfile, templatefile]
 			var widgetlist = res.get('widgets');
 			var viewlist = []; 

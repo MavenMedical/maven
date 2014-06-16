@@ -38,7 +38,18 @@ Results = Enum('Results',
     description
     outcome
     active
+    userid
+    username
+    customerid
+    provid
+    displayname
+    password
+    passworddate
+    userstate
+    failedlogins
+    recentkeys
 """)
+
 
 def makelist(v):
     if type(v) is list:
@@ -50,27 +61,33 @@ def makelist(v):
     else:
         return tuple(v,)
 
+
 class InvalidRequest(Exception):
     pass
 
 
 def _prettify_name(s):
     name = s.split(",")
-    return (str.title(name[0]) + ", " + str.title(name[1]))
+    return str.title(name[0]) + ", " + str.title(name[1])
+
 
 def _prettify_sex(s):
     return str.title(s)
 
+
 def _prettify_date(s):
     prsr = dateutil.parser()
     d = prsr.parse(s)
-    return (d.strftime("%A, %B %d, %Y"))
+    return d.strftime("%A, %B %d, %Y")
+
 
 def _invalid_num(x):
     return -1
 
+
 def _invalid_string(x):
     return "NOTVALIDYET"
+
 
 def _build_format(override={}):
     formatbytypemap = {
@@ -79,6 +96,7 @@ def _build_format(override={}):
         datetime: str,
         type(None): _invalid_string,
     }
+
     def formatbytype(x):
         if type(x) in formatbytypemap:
             return formatbytypemap[type(x)](x)
@@ -97,9 +115,9 @@ def _build_format(override={}):
 
 
 def build_columns(desired, available, defaults):
-    extras= set(desired) - available.keys()
+    extras = set(desired) - available.keys()
     if extras:
-        raise InvalidRequest("patient_info does not support these results: "+str(extras))
+        raise InvalidRequest("patient_info does not support these results: " + str(extras))
 
     #missing = required - set(desired)
     #if missing:
@@ -119,15 +137,49 @@ class WebPersistence():
 
     @asyncio.coroutine
     def execute(self, cmd, cmdargs, display, desired):
-        cur = yield from self.db.execute_single(' '.join(cmd)+';',cmdargs)
-        
+        cur = yield from self.db.execute_single(' '.join(cmd) + ';', cmdargs)
         results = []
-        for row in cur:
+        if cmd[0] in ['SELECT']:
+            for row in cur:
 #            results.append({print((type(v),v, k, display[k], display[k](v))) or desired[k]: display[k](v) for k,v in zip(desired, row)})
-            results.append({desired[k]: display[k](v) for k,v in zip(desired, row)})
+                results.append({desired[k]: display[k](v) for k,v in zip(desired, row)})
             
         return results
 
+    @asyncio.coroutine
+    def record_login(self, username, method, ip, authkey):
+        yield from self.execute(['INSERT INTO logins (user_name, method, logintime, ip, authkey) VALUES (%s, %s, now(), %s, %s);'],
+                                [username, method, ip, authkey], {}, {})
+
+    _default_pre_login = set((Results.username,))
+    _available_pre_login = {
+        Results.userid: 'users.user_id',
+        Results.username: 'users.user_name',
+        Results.customerid: 'users.customer_id',
+        Results.provid: 'users.prov_id',
+        Results.displayname: 'users.display_name',
+        Results.password: 'users.pw',
+        Results.passworddate: 'users.pw_datetime',
+        Results.userstate: 'users.state',
+#        Results.failedlogins: 'array_agg(logins.logintime)',
+#        Results.recentkeys: 'array_agg(logins.authkey),
+    }
+    _display_pre_login = _build_format()
+        
+    @asyncio.coroutine
+    def pre_login(self, desired, username, keycheck=None):
+        columns = build_columns(desired.keys(), self._available_pre_login,
+                                self._default_pre_login)
+        cmd = []
+        cmdargs = []
+        cmd.append("SELECT")
+        cmd.append(columns)
+        cmd.append("FROM users")
+        cmd.append("WHERE users.user_name = %s")
+        cmdargs.append(username)
+        
+        results = yield from self.execute(cmd, cmdargs, self._display_pre_login, desired)
+        return results[0]
     
     _default_patient_info = set((Results.encounter_date,))
     _available_patient_info = {
@@ -156,7 +208,7 @@ class WebPersistence():
         cmdargs=[]
         cmd.append("SELECT")
         cmd.append(columns)
-        cmd.append("FROM patient JOIN encounter")
+        cmd.append("FROM encounter JOIN patient")
         cmd.append("ON (patient.pat_id = encounter.pat_id AND encounter.customer_id = patient.customer_id)")
         cmd.append("WHERE encounter.customer_id = %s")
         cmdargs.append(customer)
@@ -171,7 +223,6 @@ class WebPersistence():
         if limit:
             cmd.append(limit)
 
-    
         results = yield from self.execute(cmd, cmdargs, self._display_patient_info, desired)
         return results
 
@@ -188,7 +239,7 @@ class WebPersistence():
                                 self._default_total_spend)
 
         cmd = []
-        cmdargs=[]
+        cmdargs = []
         cmd.append("SELECT")
         cmd.append(columns)
         cmd.append("FROM mavenorder JOIN encounter")
@@ -204,7 +255,7 @@ class WebPersistence():
             cmd.append("AND encounter.csn = %s")
             cmdargs.append(encounter)
         
-        cur = yield from self.db.execute_single(' '.join(cmd)+';',cmdargs)
+        cur = yield from self.db.execute_single(' '.join(cmd) + ';', cmdargs)
         results = yield from self.execute(cmd, cmdargs, self._display_total_spend, desired)
         if results:
             return results[0]
@@ -225,7 +276,7 @@ class WebPersistence():
                                 self._default_daily_spend)
 
         cmd = []
-        cmdargs=[]
+        cmdargs = []
         cmd.append("SELECT")
         cmd.append(columns)
         cmd.append("FROM mavenorder JOIN encounter")
@@ -247,15 +298,15 @@ class WebPersistence():
 
     _default_alerts = set((Results.datetime,))
     _available_alerts = {
-        Results.alertid:"alert.alert_id",
-        Results.patientid:"alert.pat_id",
-        Results.datetime:"alert.alert_datetime",
-        Results.title:"alert.long_title",
-        Results.description:"alert.long_description",
-        Results.outcome:"alert.outcome",
-        Results.savings:"alert.saving",
-        Results.alerttype:"'Duplicate'",
-        Results.ruleid:"alert.cds_rule",
+        Results.alertid: "alert.alert_id",
+        Results.patientid: "alert.pat_id",
+        Results.datetime: "alert.alert_datetime",
+        Results.title: "alert.long_title",
+        Results.description: "alert.long_description",
+        Results.outcome: "alert.outcome",
+        Results.savings: "alert.saving",
+        Results.alerttype: "'Duplicate'",
+        Results.ruleid: "alert.cds_rule",
         }
     _display_alerts = _build_format()
 
@@ -264,8 +315,8 @@ class WebPersistence():
         columns = build_columns(desired.keys(), self._available_alerts,
                                 self._default_alerts)
         
-        cmd=[]
-        cmdargs=[]
+        cmd = []
+        cmdargs = []
         cmd.append("SELECT")
         cmd.append(columns)
         cmd.append("FROM alert")
@@ -285,13 +336,13 @@ class WebPersistence():
 
     _default_orders = set((Results.datetime,))
     _available_orders = {
-        Results.ordername:"mavenorder.order_name",
-        Results.datetime:"mavenorder.datetime",
-        Results.active:"mavenorder.active",
-        Results.cost:"mavenorder.order_cost",
-        Results.ordertype:"(ARRAY['Medication', 'Consultation', 'Lab-work', 'Procedure', 'Other', 'Imaging'])[floor(random() * 6.0) + 1]",
-#        Results.ordertype:"mavenorder.order_type",
-        Results.orderid:"mavenorder.orderid",
+        Results.ordername: "mavenorder.order_name",
+        Results.datetime: "mavenorder.datetime",
+        Results.active: "mavenorder.active",
+        Results.cost: "mavenorder.order_cost",
+        Results.ordertype: "(ARRAY['Medication', 'Consultation', 'Lab-work', 'Procedure', 'Other', 'Imaging'])[floor(random() * 6.0) + 1]",
+#        Results.ordertype: "mavenorder.order_type",
+        Results.orderid: "mavenorder.orderid",
     }
     _display_orders = _build_format()
     
@@ -300,8 +351,8 @@ class WebPersistence():
         columns = build_columns(desired.keys(), self._available_orders,
                                 self._default_orders)
 
-        cmd=[]
-        cmdargs =[]
+        cmd = []
+        cmdargs = []
         cmd.append("SELECT")
         cmd.append(columns)
         cmd.append("FROM mavenorder")
