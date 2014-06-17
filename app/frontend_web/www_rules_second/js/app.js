@@ -27,15 +27,11 @@ define([
          new DetailOverview({el:$("#detail-list")});
 
 
-
-
-
     contextModel.on('change:auth', function(){
             console.log($('#evi-list'), $('#detail-list'));
 
             new EvidenceEditor({el:$("#evi-list")});
             new TriggerEditor({el:$("#trigger-editor")});
-
 
         }, this);
 

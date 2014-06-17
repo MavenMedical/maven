@@ -4,10 +4,11 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
+    'internalViews/detailSearchBox',
     'models/ruleModel'
 
 
-], function ($, _, Backbone,  curRule) {
+], function ($, _, Backbone,  detailSearchBox, curRule) {
 
     var DetailEditor = Backbone.View.extend({
 
@@ -20,6 +21,12 @@ define([
             this.template = param.template
             this.type = param.type;
             this.$el.html(this.template());
+            var searchEl = $('.search', this.$el)
+            if (searchEl.length!=0){
+                var anon =  Backbone.Collection.extend( {url: '/search'})
+                var searchBox = new detailSearchBox({collection: new anon(), type: this.type, el: searchEl})
+                searchBox.render();
+            }
             if (!this.newDetail){
                 this.fillTemplate();
             }
@@ -64,8 +71,8 @@ define([
              for (var i=0;i<inputs.length;i++){
                     var cur = inputs[i];
                     console.log(cur);
-                    cur.value =this.model.get(cur.name);
 
+                    cur.value =this.model.get(cur.name);
                 }
         }
 
