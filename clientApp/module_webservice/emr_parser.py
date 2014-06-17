@@ -308,7 +308,8 @@ class VistaParser():
                     if ord_type == "PROC":
                         fhir_identifier = FHIR_API.Identifier(system="clientEMR", value=ord_id, label="Internal")
                         fhir_codeableconcept = FHIR_API.CodeableConcept()
-                        fhir_codeableconcept.coding.append(FHIR_API.Coding(system=ord_code_type, code=procedure_code, display=ord_name))
+                        #fhir_codeableconcept.coding.append(FHIR_API.Coding(system=ord_code_type, code=procedure_code, display=ord_name))
+                        fhir_codeableconcept.coding.append(FHIR_API.Coding(system="clientEMR", code=procedure_code, display=ord_name))
                         fhir_codeableconcept.text = "Procedure"
 
                         procedure = FHIR_API.Procedure(date=ord_datetime, text=ord_name, type=fhir_codeableconcept)

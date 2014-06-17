@@ -691,26 +691,20 @@ class Composition(Resource):
             if alert['alert_type'] == type:
                 return alert
 
-    def get_proc_supply_details(self, order):
-        proc_supply_list = []
+    def get_order_details(self, order):
+        order_detail_list = []
         for detail in order.detail:
             #TODO - Hardcoded array index look-up will need to change in order to accommodate multiple charges per order
             if detail.resourceType in ["Lab", "Procedure", "PROC"]:
                 for code in detail.type.coding:
                     if code.system in ["clientEMR", "maven", "CPT4"]:
-                        proc_supply_list.append([code.code, code.system, code.display])
+                        order_detail_list.append([code.code, code.system, code.display])
 
             elif detail.resourceType in ["Med", "Medication"]:
                 for code in detail.type.coding:
                     if code.system in ["clientEMR", "maven", "NDC"]:
-                        proc_supply_list.append([code.code, code.system, code.display])
-        return proc_supply_list
-
-    def _get_proc_supply_details(self, order):
-        proc_supply_list = []
-        for detail in order.detail:
-            print()
-            pass
+                        order_detail_list.append([code.code, code.system, code.display])
+        return order_detail_list
 
     def get_encounter_conditions(self):
         enc_conditions_section = self.get_section_by_coding("http://loinc.org", "11450-4")
@@ -754,6 +748,11 @@ class Composition(Resource):
         birthdate = self.subject.birthDate
         now = datetime.datetime.now()
         return Decimal((now - birthdate).days / 365.2425)
+
+    def get_coding(self, codeable_concept=None, system=None):
+        for coding in codeable_concept.coding:
+            if coding.system == system:
+                return coding
 
 
 class ConceptMap(Resource):
@@ -3184,6 +3183,8 @@ class Order(Resource):
     :param when: When order should be fulfilled.
     :param when_code: Code specifies when request should be done. The code may simply be a priority code.
     :param when_schedule: A formal schedule.
+    :param totalCost
+    :param order_type
     
     :param detail: What action is being ordered.
     
@@ -3208,7 +3209,8 @@ class Order(Resource):
                  when_code=None,
                  when_schedule=None,
                  detail=None,
-                 totalCost=None
+                 totalCost=None,
+                 order_type=None
                  ):
         Resource.__init__(self,
                           customer_id=customer_id,
@@ -3230,6 +3232,7 @@ class Order(Resource):
         self.when_code = when_code                                     # , Code specifies when request should be done. The code may simply be a priority code
         self.when_schedule = when_schedule                                     # , A formal schedule
         self.totalCost = totalCost
+        self.order_type = order_type
         
         if detail is None:
             self.detail = []                                     # , { attb['short_desc'] }}
@@ -3770,6 +3773,7 @@ class Procedure(Resource):
     :param relatedItem_type: The nature of the relationship.
     :param relatedItem_target: The related item - e.g. a procedure.
     :param notes: Any other notes about the procedure - e.g. the operative notes.
+    :param base_cost: Base Cost as determined by the Orderables table
     
     :param bodySite: Detailed and structured anatomical location information. Multiple locations are allowed - e.g. multiple punch biopsies of a lesion.
     :param indication: The reason why the procedure was performed. This may be due to a Condition, may be coded entity of some type, or may simply be present as text.
@@ -3804,6 +3808,7 @@ class Procedure(Resource):
                  report=None,
                  complication=None,
                  relatedItem=None,
+                 base_cost=None
                  ):
         Resource.__init__(self,
                           customer_id=customer_id,
@@ -3824,6 +3829,8 @@ class Procedure(Resource):
         self.relatedItem_type = relatedItem_type                                     # , caused-by | because-of
         self.relatedItem_target = relatedItem_target                                     # , The related item - e.g. a procedure
         self.notes = notes                                     # , Additional information about procedure
+        self.base_cost = base_cost
+
         
         if bodySite is None:
             self.bodySite = []                                     # , { attb['short_desc'] }}

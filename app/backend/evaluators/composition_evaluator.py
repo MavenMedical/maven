@@ -30,6 +30,7 @@ __author__='Yuki Uchino'
 import pickle
 import asyncio
 import datetime
+import json
 import math
 from collections import defaultdict
 import maven_config as MC
@@ -59,6 +60,9 @@ class CompositionEvaluator(SP.StreamProcessor):
         #Add the alerts section so that the components below can add their respective alerts
         self._add_alerts_section(composition)
 
+        #Identify Encounter Orderables
+        yield from FHIR_DB.identify_encounter_orderables(composition, self.conn)
+
         #Maven Transparency
         yield from self.evaluate_encounter_cost(composition)
 
@@ -76,6 +80,7 @@ class CompositionEvaluator(SP.StreamProcessor):
         rules = yield from self.get_matching_sleuth_rules(composition)
         yield from self.evaluate_sleuth_rules(composition, rules)
         yield from FHIR_DB.write_composition_to_db(composition, self.conn)
+        print(json.dumps(composition, default=FHIR_API.jdefault, indent=4))
         self.write_object(composition, writer_key='aggregate')
 
     def _add_alerts_section(self, composition):
@@ -102,46 +107,22 @@ class CompositionEvaluator(SP.StreamProcessor):
 
         :param composition: FHIR Composition object created using Maven's FHIR API
         """
-        # This block is the original code Yuki wrote.  It makes potentially many calls to the database.
-        # I (Tom) re-wrote this to make a single sql query, but be functionally equivalent.  
-        # Yuki's code is easier to follow, so I'm leaving it here
-        #orders = composition.get_encounter_orders()
-        #for order in orders:
-        #    order.totalCost = 0.00
-        #    order_details = composition.get_proc_supply_details(order)
-        #
-        #    for detail in order_details:
-        #        cur = yield from self.conn.execute_single("select cost_amt from costmap where billing_code=%s", extra=[detail[0]])
-        #        for result in cur:
-        #            order.totalCost += float(result[0])
-        #            encounter_cost_breakdown.append([detail[1], float(result[0])])
-        #        cur.close()
 
-        orders = composition.get_encounter_orders()
-        encounter_orders_code_summary = []
-
-        # build the query and maps
-        ordersdict = defaultdict(lambda: [])
-        detailsdict = defaultdict(lambda: [])
-
-        for order in orders:
-            order.totalCost = 0.00
-            order_details = composition.get_proc_supply_details(order)
-            for detail in order_details:
-                encounter_orders_code_summary.append((detail[0], detail[1]))
-                ordersdict[detail[0]].append(order)
-                detailsdict[detail[0]].append(detail)
-
-        composition.section.append(FHIR_API.Section(title="Encounter Orders Code Summary", content=encounter_orders_code_summary,
-                                                    code=FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(code="enc_ord_sum", system="maven")])))
-
-        encounter_cost_breakdown = yield from FHIR_DB.gather_encounter_order_cost_info(ordersdict, detailsdict, self.conn)
+        encounter_cost_breakdown = []
+        for order in composition.get_encounter_orders():
+            total_cost = 0.00
+            for order_detail in order.detail:
+                total_cost += order_detail.base_cost
+                coding = composition.get_coding(codeable_concept=order_detail.type, system="clientEMR")
+                encounter_cost_breakdown.append({"order_name": coding.display,
+                                                 "order_cost": order_detail.base_cost,
+                                                 "order_type": order_detail.type.text})
 
         if encounter_cost_breakdown is not None and len(encounter_cost_breakdown) > 0:
             alert_datetime = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
             total_cost = 0.00
-            for cost in encounter_cost_breakdown:
-                total_cost += math.ceil(cost[1])
+            for cost_detail in encounter_cost_breakdown:
+                total_cost += math.ceil(cost_detail['order_cost'])
 
             customer_id = composition.customer_id
             patient_id = composition.subject.get_pat_id()
@@ -152,7 +133,7 @@ class CompositionEvaluator(SP.StreamProcessor):
             #Create a storeable text description of the cost breakdown details list
             long_description = ""
             for cost_element in encounter_cost_breakdown:
-                long_description += ("%s: $%s\n" % (cost_element[0], cost_element[1]))
+                long_description += ("%s: $%s\n" % (cost_element['order_name'], cost_element['order_cost']))
 
 
             FHIR_alert = FHIR_API.Alert(customer_id=customer_id, subject=patient_id, provider_id=provider_id, encounter_id=encounter_id,
@@ -236,7 +217,7 @@ class CompositionEvaluator(SP.StreamProcessor):
         applicable_sleuth_rules = []
 
         for order in orders:
-            order_details = composition.get_proc_supply_details(order)
+            order_details = composition.get_order_details(order)
 
             for detail in order_details:
                 column_map = ["sleuth_rule.rule_details",
