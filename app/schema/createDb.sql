@@ -1403,24 +1403,26 @@ create  index ixlabevalRule on rules.labeval(ruleid,loinc_codes);
 create or replace function rules.comparisonIntArray(listType varchar(20),encSnomeds bigint[],probsnomeds bigint[],patid varchar(100),framemin int,framemax int,customer int)
 returns bigint[] as $$
 declare rtn bigint[];
-	mn int;
-	mx int;
+        mn int;
+        mx int;
 begin
-	mn:=coalesce(framemin,-99999);
-	mx:=coalesce(framemin,1);
-	if listType='PL' then
-		return probsnomeds;
-	elsif listtype='ENC' then
-		return encSnomeds;
-	elsif listtype='DXHX' then
-		select encsnomeds||probsnomeds||array_agg(snomed_id) into rtn  
-			from public.condition a 
-			where a.pat_id=patid and a.customer_id=customer and  current_date+mn<=date_asserted and current_date+mx>=date_asserted
-			group by a.pat_id ;
-		return rtn;
-	else 
-		return null;
-	end if;
+        mn:=coalesce(framemin,-99999);
+        mx:=coalesce(framemin,1);
+        if listType='PL' then
+                return probsnomeds;
+        elsif listtype='ENC' then
+                return encSnomeds;
+        elsif listtype='PLENC' then
+                return encSnomeds||probsnomeds;
+        elsif listtype='DXHX' then
+                select encsnomeds||probsnomeds||array_agg(snomed_id) into rtn
+                        from public.condition a
+                        where a.pat_id=patid and a.customer_id=customer and  current_date+mn<=date_asserted and current_date+mx>=date_asserted
+                        group by a.pat_id ;
+                return rtn;
+        else
+                return null;
+        end if;
 end;
 $$
 language plpgsql;
