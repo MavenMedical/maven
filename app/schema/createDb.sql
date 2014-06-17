@@ -179,6 +179,7 @@ create table users
 	old_passwords bytea[],
 	state userstate
 );
+alter table users owner to maven;
 
 create type authmethod as ENUM('local', 'forward', 'certificate', 'passthrough', 'failed', 'unverified');
 create table logins
@@ -189,8 +190,8 @@ create table logins
 	ip inet,
 	environment text,
 	authkey character varying(64)
-)
-
+);
+alter table logins owner to maven;
 
 -- Table: adt
 
