@@ -146,4 +146,4 @@ INSERT INTO alert(
             status, order_id, code_trigger, code_trigger_type, cds_rule,
             alert_datetime, short_title, long_title, short_desc, long_desc,
             outcome, saving)
-    aVALUES (1,'JHU1093124','1235412','5|76|3140325','cds',NULL,NULL,'76370',NULL,1,'2014-06-12 17:23:49.908729','Sinusitis','Dont order CT Scans for uncomplicated acute sinusitis','','Viral infections cause the majority of acute rhinosinusitis and only 0.5-2 percent progress to bacterial infections',NULL,807.12);
+    VALUES (1,'JHU1093124','1235412','5|76|3140325','cds',NULL,NULL,'76370',NULL,1,'2014-06-12 17:23:49.908729','Sinusitis','Dont order CT Scans for uncomplicated acute sinusitis','','Viral infections cause the majority of acute rhinosinusitis and only 0.5-2 percent progress to bacterial infections',NULL,807.12);
