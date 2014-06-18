@@ -66,12 +66,8 @@ define([
 
             var panel = this;
             var anon =  Backbone.Collection.extend( {url: '/triggers?'});
-            searchedTriggers = new anon();
-            searchedTriggers.fetch({data:$.param(contextModel.toParams()), success: function(){
+            panel.availModel = new anon;
 
-                panel.availModel = searchedTriggers;
-             }
-            });
 
              contextModel.on('change:showTriggerEditor', function(newVal){
               if (newVal.get('showTriggerEditor')){

@@ -264,6 +264,11 @@ body{
     font-size: 20px;
 }
 
+.trigger-list {
+    font-size: 60%;
+
+
+}
 .cost-num{
     font-size: 20px;
     font-weight: bold;
