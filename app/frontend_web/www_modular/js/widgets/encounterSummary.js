@@ -20,13 +20,14 @@ define([
             summaryModel.on('change', this.update, this);
             contextModel.on('change:patients change:encounter', this.update, this);
             patientModel.on('change:name', this.update, this);
+            // Source for Date picker http://bootstrap-datepicker.readthedocs.org/en/release/index.html
             $('#datepicker').datepicker({
                 format: "mm/dd/yyyy",
                 autoclose: true,
             })
                 .on('changeDate', function (e) {
                     console.log('date change');
-                    console.log(e.date.toLocaleDateString());
+                    console.log(e.date.toLocaleDateString()); //get picked Date
                 });
 
            // $('#datepicker').datepicker('update', new Date()); // set the encounter date here
