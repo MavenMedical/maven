@@ -91,7 +91,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
                 WP.Results.provid,
                 WP.Results.displayname,
                 WP.Results.password,
-                WP.Results.passworddate,
+                WP.Results.passexpired,
                 WP.Results.userstate,
                 #WP.Results.failedlogins,
                 WP.Results.recentkeys,
@@ -104,7 +104,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
                 attempted = info['user']
                 user_info = yield from self.persistence_interface.pre_login(desired, username=attempted)
                 passhash = user_info[WP.Results.password].tobytes()
-                if not passhash or bcrypt.hashpw(bytes(info['password'], 'utf-8'), passhash[:29]) != passhash:
+                if not passhash or bcrypt.hashpw(bytes(info['password'], 'utf-8'), passhash[:29]) != passhash
+                    or user_info[WP.Results.passexpired]:
                     raise LoginError
                 method = 'local'
             else:
@@ -213,6 +214,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
             WP.Results.encounter_list: 'encounters',
             WP.Results.allergies: 'Allergies',
             WP.Results.problems: 'ProblemList',
+            WP.Results.admission: 'admitdate',
+            WP.Results.lengthofstay: 'LOS',
         }
         results = yield from self.persistence_interface.patient_info(desired, provider, customerid,
                                                                      limit=self.helper.limit_clause(matches))
