@@ -13,10 +13,14 @@ require.config({
         underscore: 'libs/underscore/underscore',
         backbone: 'libs/backbone/backbone',
         bootstrap: '../css/bootstrap/js/bootstrap.min',
+        datepicker: 'libs/datepicker/bootstrap-datepicker',
 	    templates: '../templates'
     },
     shim: {
         bootstrap :{
+            deps: ['jquery']
+        },
+        datepicker :{
             deps: ['jquery']
         }
     }
