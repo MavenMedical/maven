@@ -11,7 +11,7 @@ __author__='Tom DuBois'
 #*************************************************************************
 
 import json
-
+import utils.database.web_search as WS
 import utils.streaming.stream_processor as SP
 import asyncio
 
@@ -38,16 +38,7 @@ LOGIN_TIMEOUT = 60 * 60  # 1 hour
 static_id = 3
 rules = {
 
-    1: {
-        JNAME: 'rule 1',
-        JDX: [{'code':'123', 'negative': 'false'}, {'code':'412', 'negative': 'true'}],
-        JTRIGGER: [
-            {'type': 'CPT', 'code':'456', 'id':1},
-            {'type': 'snomed', 'code':'789', 'id':0},
-            ]
-        },
-
-    }
+}
 triggers = [{'type': 'snomed', 'code': '456', 'id': 1}
             ,{'type': 'CPT', 'code': '789', 'id': 0}
             ,{'type': 'CPT', 'code': '0123', 'id': 2}]
@@ -57,6 +48,8 @@ details = [{'type': 'pl_dx', 'id': '1'},
 class RuleService(HTTP.HTTPProcessor):
     
     def __init__(self, configname):
+
+
         HTTP.HTTPProcessor.__init__(self,configname)
 
         self.add_handler(['POST'], '/login', self.post_login)
@@ -68,9 +61,10 @@ class RuleService(HTTP.HTTPProcessor):
         self.add_handler(['DELETE'], '/rule', self.delete_rule)
 
         self.add_handler(['GET'], '/details', self.get_details)
-
+        self.add_handler(['GET'], '/search', self.search)
         self.add_handler(['GET'], '/trigger', self.get_triggers)
         self.helper = HH.HTTPHelper(CONTEXT_USER, CONTEXT_AUTH, AUTH_LENGTH)
+        self.search_interface = WS.web_search('search')
                 
     @asyncio.coroutine
     def post_login(self, _header, body, _qs, _matches, _key):
@@ -161,7 +155,22 @@ class RuleService(HTTP.HTTPProcessor):
                                                RuleService.triggers_available_context)
         global triggers
 
-        return (HTTP.OK_RESPONSE, json.dumps(triggers), None)
+        results = yield from self.search_interface.do_search(context[SEARCH_PARAM], 'conditions')
+
+        return (HTTP.OK_RESPONSE, json.dumps(results), None)
+
+    search_required_context = [CONTEXT_USER, SEARCH_PARAM, 'type']
+    search_available_context = {CONTEXT_USER:str, CONTEXT_RULEID:int, SEARCH_PARAM:str, 'type': str}
+
+    @asyncio.coroutine
+    def search(self, _header, body, qs, _matches, _key):
+        context = self.helper.restrict_context(qs,
+                                               RuleService.search_required_context,
+                                               RuleService.search_available_context)
+        print(context)
+        results = yield from self.search_interface.do_search(context[SEARCH_PARAM], context['type'])
+
+        return (HTTP.OK_RESPONSE, json.dumps(results), None)
 
 
     details_required_context = [CONTEXT_USER]
@@ -172,7 +181,6 @@ class RuleService(HTTP.HTTPProcessor):
         context = self.helper.restrict_context(qs,
                                                RuleService.details_required_context,
                                                RuleService.details_available_context)
-
 
 
         return (HTTP.OK_RESPONSE, json.dumps(details), None)
@@ -196,16 +204,28 @@ class RuleService(HTTP.HTTPProcessor):
 
 
 
+
+
+
 if __name__ == '__main__':
     ML.DEBUG = ML.stdout_log
+    print("python execution")
+    from utils.database.database import AsyncConnectionPool
+    print("python execution")
     MC.MavenConfig = {
-        "httpserver":
-            {
-            SP.CONFIG_HOST: 'localhost',
-            SP.CONFIG_PORT: 8092,
-            },
+            "httpserver":
+                {
+                    SP.CONFIG_HOST: 'localhost',
+                    SP.CONFIG_PORT: 8092,
+
+                },
+            'search': {WS.CONFIG_DATABASE: 'webservices conn pool'},
+            'webservices conn pool': {
+                AsyncConnectionPool.CONFIG_CONNECTION_STRING: MC.dbconnection,
+                AsyncConnectionPool.CONFIG_MIN_CONNECTIONS: 4,
+                AsyncConnectionPool.CONFIG_MAX_CONNECTIONS: 8
+            }
         }
-    
     hp = RuleService('httpserver')
     event_loop = asyncio.get_event_loop()
     hp.schedule(event_loop)
