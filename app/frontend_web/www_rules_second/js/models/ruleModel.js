@@ -40,10 +40,12 @@ define([
     },
     clearData: function(){
       var trig_temp = ruleModel.get('triggers');
+
       ruleModel.clear({silent:true});
       trig_temp.set([], {silent:true});
       contextModel.set('showTriggerEditor', false);
       ruleModel.set('triggers', trig_temp);
+      ruleModel.set({triggerType: 'proc', genders:'MF', minAge:'0', maxAge:'200'}, {silent:true});
 
 
 
@@ -54,6 +56,8 @@ define([
       ruleModel.clear({silent:true});
       ruleModel.set({name:name}, {silent:true});
       ruleModel.set('triggers', trig_temp);
+      ruleModel.set({triggerType: 'proc', genders:'MF', minAge:'0', maxAge:'200'}, {silent:true});
+
       ruleModel.save();
 
     },
@@ -102,9 +106,15 @@ define([
 
     ruleModel = new RuleModel;
     ruleModel.set('triggers', new Backbone.Collection);
+   ruleModel.set({triggerType: 'proc', genders:'MF', minAge:'0', maxAge:'200'}, {silent:true});
 
     // if the ruleModel's id changes (on a POST), update the contextModel with that id
+    ruleModel.on('change:triggerType', function(){
 
+        ruleModel.get('triggers').set([]);
+        ruleModel.save();
+
+    })
     ruleModel.on('change:id',
 		 function() {
 		     contextModel.set({'id':ruleModel.get('id')})

@@ -72,7 +72,7 @@ define([
 
                 $('.detail-sections', this.$el).hide();
                 for (var key in curRule.attributes){
-                   if (key!="name" && key!="id" && key!="triggers" && key!="evidence"){
+                   if (Helpers.notDetail.indexOf(key)==-1){
                         $('.detail-sections', this.$el).show()
                         var context = this;
 
