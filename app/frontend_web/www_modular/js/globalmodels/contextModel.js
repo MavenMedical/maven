@@ -47,44 +47,52 @@ define([
 	    }
 	    return ret;
 	},
-        setUser: function (user, pw, route) {
+	loginCallback: function (res) {
+		if(res.get('stylesheet')) {
+		    setActiveStyleSheet(res.get('stylesheet'));
+		}
+		// each row is [html_id, viewfile, templatefile]
+		var widgetlist = res.get('widgets');
+		var viewlist = []; 
+		var templatelist = [];
+		for (var ind in widgetlist) {
+		    var row = widgetlist[ind];
+		    viewlist.push('widgets/'+row[1]);
+		    if (row.length==3) {
+			templatelist.push('text!/templates/'+row[2]);
+		    } else {
+			templatelist.push('text!templates/'+row[1]+'.html');
+		    }
+		    console.log('adding view '+row[1]+' to element '+row[0]+
+				' with template '+templatelist[templatelist.length-1]);
+		}
+		require(viewlist.concat(templatelist),function () {
+			for(var i=0;i<viewlist.length;i++) {
+			    var view = new arguments[i]({el:$(widgetlist[i][0]),
+							 template:arguments[i+viewlist.length]});
+			}
+			$("#content").show();
+			Backbone.history.loadUrl(Backbone.history.fragment);
+		    })
+	    }, 
+        setUser: function (user, pw) {
 	    if (this.user != user || !this.userAuth) {
 		this.set('user', user);
 		//alert('setting user');
-		this.fetch({
-		    success: function (res) {
-			if(res.get('stylesheet')) {
-			    setActiveStyleSheet(res.get('stylesheet'));
-			}
-			// each row is [html_id, viewfile, templatefile]
-			var widgetlist = res.get('widgets');
-			var viewlist = []; 
-			var templatelist = [];
-			for (var ind in widgetlist) {
-			    var row = widgetlist[ind];
-			    viewlist.push('widgets/'+row[1]);
-			    if (row.length==3) {
-				templatelist.push('text!/templates/'+row[2]);
-			    } else {
-				templatelist.push('text!templates/'+row[1]+'.html');
-			    }
-			    console.log('adding view '+row[1]+' to element '+row[0]+
-					' with template '+templatelist[templatelist.length-1]);
-			}
-			require(viewlist.concat(templatelist),function () {
-			    for(var i=0;i<viewlist.length;i++) {
-				var view = new arguments[i]({el:$(widgetlist[i][0]),
-							     template:arguments[i+viewlist.length]});
-			    }
-			    Backbone.history.loadUrl(route);
-			});
-		    },
-		    data: JSON.stringify({user:user, password:pw}),
-		    type: 'POST'
-		});
+		this.fetch({success: this.loginCallback, 
+			    data: JSON.stringify({user:user, password:pw}),
+			    type: 'POST'});
 	    }
-	}
-    });
-
+	    },
+        setProvider: function (provider, customer, userAuth) {
+		//alert('setting user');
+		this.fetch({success: this.loginCallback, 
+			    data: JSON.stringify({provider:provider, 
+					customer: customer,
+					userAuth: userAuth}),
+			    type: 'POST'});
+	    },
+	});
+    
     return new Context;
 });

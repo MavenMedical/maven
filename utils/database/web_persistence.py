@@ -162,21 +162,28 @@ class WebPersistence():
         Results.passworddate: 'users.pw_expiration',
         Results.userstate: 'users.state',
 #        Results.failedlogins: 'array_agg(logins.logintime)',
-#        Results.recentkeys: 'array_agg(logins.authkey),
+        Results.recentkeys: 'NULL',
     }
     _display_pre_login = _build_format()
         
     @asyncio.coroutine
-    def pre_login(self, desired, username, keycheck=None):
+    def pre_login(self, desired, username=None, provider=[], keycheck=None):
         columns = build_columns(desired.keys(), self._available_pre_login,
                                 self._default_pre_login)
+        if not username and not provider:
+            [][0]
         cmd = []
         cmdargs = []
         cmd.append("SELECT")
         cmd.append(columns)
         cmd.append("FROM users")
-        cmd.append("WHERE users.user_name = %s")
-        cmdargs.append(username)
+        if username:
+            cmd.append("WHERE users.user_name = %s")
+            cmdargs.append(username)
+        else:
+            cmd.append("WHERE users.prov_id = %s AND users.customer_id = %s")
+            cmdargs.append(provider[0])
+            cmdargs.append(provider[1])
         
         results = yield from self.execute(cmd, cmdargs, self._display_pre_login, desired)
         return results[0]
