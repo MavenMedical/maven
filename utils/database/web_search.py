@@ -41,67 +41,132 @@ class web_search():
         cmd.append("ORDER BY")
         cmd.append("term")
         cmd.append("LIMIT 10")
-        print (cmd);
-        results = yield from self.execute((cmd), [])
-        return results
+        results = yield from self.db.execute_single((' '.join(cmd)), [])
+        print (results);
+        ret = []
+        for row in results:
+            ret.append({'id': int(row[0]), 'term': row[1], 'code': int(row[0]), 'type' : 'snomed'})
+        return ret
 
-    @asyncio.coroutine
-    def write_db(self, ruleJSON):
-        print (ruleJSON)
-        cmd = []
-        cmd.append("INSERT INTO")
-        cmd.append("rules.evirule")
-        cmd.append("(ruleid, name, minage, maxage, sex, codetype, fullspec)")
-        cmd.append("VALUES")
-        cmd.append("(" + str(ruleJSON['id'])+",")
-        cmd.append("'"+ str(ruleJSON['name'])+"',")
-        cmd.append(str(ruleJSON['minAge'])+",")
-        cmd.append(str(ruleJSON['maxAge'])+",")
-        cmd.append("'"+str(ruleJSON['genders'])+"',")
-        cmd.append("'"+str(ruleJSON['triggerType'])+"',")
-        cmd.append("'"+str(ruleJSON).replace("'", '"')+"')")
-
-        print(cmd)
-
-
-        return x
     @asyncio.coroutine
     def add_to_db(self, ruleJSON):
         print(ruleJSON)
         cmd = []
+        cmdArgs = []
         cmd.append("INSERT INTO")
         cmd.append("rules.evirule")
         cmd.append("(name, minage, maxage, sex, codetype, fullspec)")
-        cmd.append("VALUES(")
-        cmd.append("'"+ str(ruleJSON['name'])+"',")
-        cmd.append(str(ruleJSON['minAge'])+",")
-        cmd.append(str(ruleJSON['maxAge'])+",")
-        cmd.append("'"+str(ruleJSON['genders'])+"',")
-        cmd.append("'"+str(ruleJSON['triggerType'])+"',")
-        cmd.append("'"+str(ruleJSON).replace("'", '"')+"')")
+        cmd.append("VALUES(%s, %s, %s, %s, %s, %s)")
+        cmdArgs.append(str(ruleJSON['name']))
+        cmdArgs.append(str(ruleJSON['minAge']))
+        cmdArgs.append(str(ruleJSON['maxAge']))
+        cmdArgs.append(str(ruleJSON['genders']))
+        cmdArgs.append(str(ruleJSON['triggerType']))
+        cmdArgs.append(str(ruleJSON).replace("'", '"'))
+
+     #   cmd.append("'"+ str(ruleJSON['name'])+"',")
+     #   cmd.append(str(ruleJSON['minAge'])+",")
+     #   cmd.append(str(ruleJSON['maxAge'])+",")
+     #   cmd.append("'"+str(ruleJSON['genders'])+"',")
+     #   cmd.append("'"+str(ruleJSON['triggerType'])+"',")
+     #   cmd.append("'"+str(ruleJSON).replace("'", '"')+"')")
+
+
         cmd.append("RETURNING ruleid")
-        c = yield from self.db.execute_single(' '.join(cmd)+';', [])
+        c = yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
         return c.fetchone()[0]
 
     @asyncio.coroutine
     def update_db(self, ruleJSON):
         id = ruleJSON['id']
         cmd = []
+        cmdArgs = []
         cmd.append("UPDATE")
         cmd.append("rules.evirule")
         cmd.append("SET")
         cmd.append("(name, minage, maxage, sex, codetype, fullspec)")
-        cmd.append(" = (")
-        cmd.append("'"+ str(ruleJSON['name'])+"',")
-        cmd.append(str(ruleJSON['minAge'])+",")
-        cmd.append(str(ruleJSON['maxAge'])+",")
-        cmd.append("'"+str(ruleJSON['genders'])+"',")
-        cmd.append("'"+str(ruleJSON['triggerType'])+"',")
-        cmd.append("'"+str(ruleJSON).replace("'", '"')+"')")
+        cmd.append(" = (%s, %s, %s, %s, %s, %s)")
+        cmdArgs.append(str(ruleJSON['name']))
+        cmdArgs.append(str(ruleJSON['minAge']))
+        cmdArgs.append(str(ruleJSON['maxAge']))
+        cmdArgs.append(str(ruleJSON['genders']))
+        cmdArgs.append(str(ruleJSON['triggerType']))
+        cmdArgs.append(str(ruleJSON).replace("'", '"'))
         cmd.append("WHERE ruleid =")
         cmd.append(str(id));
+        yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
+        cmd = []
+
+        triggers = ruleJSON['triggers']
+        cmd.append("DELETE FROM rules.trigcodes * where ruleid = ")
+        cmd.append(str(id));
         yield from self.db.execute_single(' '.join(cmd)+';', [])
+
+        for cur in triggers:
+            cmd = [];
+            cmdArgs = []
+            cmd.append("INSERT INTO rules.trigcodes (ruleid, code) ")
+            cmd.append("VALUES")
+            cmd.append("(%s, %s)")
+            cmdArgs.append(str(id))
+            cmdArgs.append(cur['code']);
+            yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
+        cmd = []
+        cmd.append("DELETE FROM rules.codelists * WHERE ruleid = ")
+        cmd.append(str(id))
+        yield from self.db.execute_single(' '.join(cmd)+';', [])
+        yield from (self.writeExplicit('hist_dx', ruleJSON))
+        yield from self.writeExplicit('pl_dx', ruleJSON)
+        yield from self.writeExplicit('enc_dx', ruleJSON)
+
         return
+    @asyncio.coroutine
+    def writeExplicit(self, type, rule):
+        print("TESTTTTT")
+        list = rule.get(type, None)
+        id = rule['id']
+        if (list):
+            pos = []
+            neg = []
+            for cur in list:
+                if (cur['negative']):
+                    neg.append(cur['code'])
+                else:
+                    pos.append(cur['code'])
+
+            cmd = []
+            cmdArgs = []
+
+            cmd.append("INSERT INTO rules.codelists")
+            cmd.append("(ruleid, listtype, isintersect, intlist)")
+            cmd.append("VALUES")
+            cmd.append("(%s, %s, true, %s)")
+            cmdArgs.append(str(id))
+            cmdArgs.append(str(type))
+            cmdArgs.append(self.toSQLArray(neg))
+
+            yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
+
+            cmd = []
+            cmdArgs = []
+
+            cmd.append("INSERT INTO rules.codelists")
+            cmd.append("(ruleid, listtype, isintersect, intlist)")
+            cmd.append("VALUES")
+            cmd.append("(%s, %s, false, %s)")
+            cmdArgs.append(str(id))
+            cmdArgs.append(str(type))
+
+            cmdArgs.append(self.toSQLArray(pos))
+
+            yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
+            return
+
+    def toSQLArray(self, toChange):
+        ret =[]
+        for cur in toChange:
+            ret.append(cur)
+        return '{' + (' ,'.join(ret)) + '}'
 
     @asyncio.coroutine
     def fetch_rules(self):
@@ -120,6 +185,7 @@ class web_search():
         cmd.append("SELECT fullspec, ruleid FROM rules.evirule WHERE ruleid =")
         cmd.append(str(ruleid))
         row = yield from self.db.execute_single(' '.join(cmd) + ';', [])
+
         result = row.fetchone()
         return result
 
@@ -129,6 +195,14 @@ class web_search():
 
         cmd =[]
         cmd.append("DELETE FROM rules.evirule * WHERE ruleid =")
+        cmd.append(str(ruleid))
+        yield from self.db.execute_single(' '.join(cmd) + ';', [])
+        cmd =[]
+        cmd.append("DELETE FROM rules.trigCodes * WHERE ruleid =")
+        cmd.append(str(ruleid))
+        yield from self.db.execute_single(' '.join(cmd) + ';', [])
+        cmd =[]
+        cmd.append("DELETE FROM rules.codelists * WHERE ruleid =")
         cmd.append(str(ruleid))
         yield from self.db.execute_single(' '.join(cmd) + ';', [])
 
