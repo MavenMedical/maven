@@ -70,7 +70,7 @@ def database_log(x):
 
 PRINT = stdout_log_no_label
 DEBUG = no_logging
-INFO = no_logging
-WARN = no_logging
+INFO = stdout_log
+WARN = stdout_log
 ERROR = stdout_log
 

@@ -129,7 +129,6 @@ class FrontendWebService(HTTP.HTTPProcessor):
                 # at the point, the user has succeeded to login
             user = str(user_info[WP.Results.userid])
             provider = user_info[WP.Results.provid]
-            print([user, provider])
             user_auth = AK.authorization_key([user, provider], AUTH_LENGTH, LOGIN_TIMEOUT)
             if not self.stylesheet == 'original':
                 self.stylesheet = 'original'
@@ -370,7 +369,6 @@ class FrontendWebService(HTTP.HTTPProcessor):
 if __name__ == '__main__':
     from utils.database.database import AsyncConnectionPool
 
-    ML.DEBUG = ML.stdout_log
     MC.MavenConfig = \
         {
             "httpserver":
