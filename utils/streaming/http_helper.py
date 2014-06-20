@@ -20,7 +20,7 @@ class HTTPHelper:
         if not self.context_key in qs:
             raise HTTP.UnauthorizedRequest('User is not logged in.')
         try:
-            print([qs[x][0] for x in self.contexts_user])
+#            print([qs[x][0] for x in self.contexts_user])
             AK.check_authorization([qs[x][0] for x in self.contexts_user], qs[self.context_key][0], self.auth_length)
         except AK.UnauthorizedException as ue:
             raise HTTP.UnauthorizedRequest(str(ue))

@@ -140,6 +140,7 @@ class NotificationGenerator():
         cost_alert_order_list = cost_alert['cost_details']
         total_cost = cost_alert['total_cost']
         user = composition.get_author_id()
+        customer = composition.customer_id
         userAuth = composition.userAuth
         csn = urllib.parse.quote(composition.encounter.get_csn())
         patient_id = composition.subject.get_pat_id()
@@ -150,6 +151,7 @@ class NotificationGenerator():
                         "encounter_id" : csn,
                         "patient_id" : patient_id,
                         "user" : user,
+                        "customer" : customer,
                         "user_auth" : userAuth}
 
         return templateVars
@@ -162,12 +164,15 @@ class NotificationGenerator():
 
         sleuth_alert_HTML_contents = []
         user = composition.get_author_id()
+        customer = composition.customer_id
         userAuth = composition.userAuth
         csn = urllib.parse.quote(composition.encounter.get_csn())
         patient_id = composition.subject.get_pat_id()
 
         #composition_alert_section = composition.get_alerts_section()
         CDS_alerts = composition.get_alerts(type="cds")
+        if not CDS_alerts or not CDS_alerts['alert_list']:
+            return []
 
         #check to see if there's anything in the list. Should probably move this to the FHIR api
         #if composition_alert_section is not None and len(composition_alert_section.content) > 0:
@@ -181,12 +186,13 @@ class NotificationGenerator():
                             "patient_id" : patient_id,
                             "evi_id": alert.CDS_rule,
                             "user" : user,
+                            "customer" : customer,                        
                             "user_auth" : userAuth}
 
             notification_body = template_sleuth_alert.render(templateVars)
             sleuth_alert_HTML_contents.append(notification_body)
 
-            return sleuth_alert_HTML_contents
+        return sleuth_alert_HTML_contents
 
     @asyncio.coroutine
     def _vista_duplicate_order_alert_generator(self, composition, templateEnv):
@@ -196,11 +202,15 @@ class NotificationGenerator():
         duplicate_order_alert_contents = []
 
         user = composition.get_author_id()
+        customer = composition.customer_id
         userAuth = composition.userAuth
         csn = urllib.parse.quote(composition.encounter.get_csn())
         patient_id = composition.subject.get_pat_id()
 
         dup_order_alert_dict = composition.get_alerts(type="dup_ord")
+        if not dup_order_alert_dict or not dup_order_alert_dict['alert_list']:
+            return []
+
         for alert in dup_order_alert_dict['alert_list']:
 
             templateVars = {"alert_tag_line" : alert.short_title,
@@ -209,13 +219,14 @@ class NotificationGenerator():
                             "encounter_id" : csn,
                             "patient_id" : patient_id,
                             "user" : user,
+                            "customer" : customer,
                             "user_auth" : userAuth,
                             "related_observations": alert.related_observations}
 
             notification_body = template_dup_order_alert.render(templateVars)
             duplicate_order_alert_contents.append(notification_body)
 
-            return duplicate_order_alert_contents
+        return duplicate_order_alert_contents
 
 
     ################################################################################################
@@ -262,6 +273,7 @@ class NotificationGenerator():
 
         sleuth_alert_HTML_contents = []
         user = composition.get_author_id()
+        customer = composition.customer_id
         userAuth = composition.userAuth
         csn = urllib.parse.quote(composition.encounter.get_csn())
         patient_id = composition.subject.get_pat_id()
@@ -281,6 +293,7 @@ class NotificationGenerator():
                             "patient_id" : patient_id,
                             "evi_id": alert.CDS_rule,
                             "user" : user,
+                            "customer" : customer,
                             "user_auth" : userAuth}
 
             notification_body = template_sleuth_alert.render(templateVars)

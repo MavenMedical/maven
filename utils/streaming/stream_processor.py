@@ -466,7 +466,7 @@ class _RabbitReader():
             parser.eof_received()
             parser.connection_lost(None)
         except Exception as e:
-            ML.DEBUG("CAUGHT EXCEPTION" + e.args[0])
+            ML.INFO("CAUGHT EXCEPTION" + e.args[0])
 
     def close(self):
         try:

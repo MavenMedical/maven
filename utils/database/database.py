@@ -73,7 +73,7 @@ class AsyncConnectionPool():
     def schedule(self, loop):
         self.loop=loop
         [asyncio.Task(self._new_connection(), loop=loop) for _ in range(self.MIN_CONNECTIONS)]
-        ML.DEBUG('Starting %d connections' % self.pending)
+        ML.INFO('Starting %d connections' % self.pending)
 
     # noinspection PyArgumentList
     @asyncio.coroutine
@@ -86,7 +86,7 @@ class AsyncConnectionPool():
         :param extra: any extra arguments to the database
         :param future: a future to hold the result if we are calling form multiple_queries otherwise None
         """
-        ML.DEBUG('About to execute %s' % (cmd.split(' ', 1)[0]))
+        ML.INFO('About to execute %s' % str((cmd, extra)))
         conn = yield from self._get_connection()  # get a connection, blocking if necessary
         if conn == None:
             ML.ERROR("Error establishing a connection with database")
@@ -265,7 +265,7 @@ class AsyncConnectionPool():
                     # make the connection with async=1, and wait for it to be ready
                     connection = psycopg2.connect(self.CONNECTION_STRING, async=1)
                     yield from self._wait(connection)
-                    ML.DEBUG("Allocated a new connection")
+                    ML.INFO("Allocated a new connection")
                 
                     # add it to the ready queue, and wake up any waiting coroutine
                     self.ready.append(connection)
