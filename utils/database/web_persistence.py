@@ -330,6 +330,7 @@ class WebPersistence():
         }
     _display_alerts = _build_format({
         Results.title: lambda x: x or '',
+        Results.ruleid: lambda x: x,
         })
 
     @asyncio.coroutine

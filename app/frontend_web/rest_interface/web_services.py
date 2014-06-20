@@ -104,8 +104,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
                 attempted = info['user']
                 user_info = yield from self.persistence_interface.pre_login(desired, username=attempted)
                 passhash = user_info[WP.Results.password].tobytes()
-                if not passhash or bcrypt.hashpw(bytes(info['password'], 'utf-8'), passhash[:29]) != passhash
-                    or user_info[WP.Results.passexpired]:
+                if (not passhash or bcrypt.hashpw(bytes(info['password'], 'utf-8'), passhash[:29]) != passhash
+                   or user_info[WP.Results.passexpired]):
                     raise LoginError
                 method = 'local'
             else:
