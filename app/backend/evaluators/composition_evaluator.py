@@ -78,7 +78,7 @@ class CompositionEvaluator(SP.StreamProcessor):
         #Analyze Choosing Wisely/CDS Rules
         yield from self.evaluate_CDS_rules(composition)
 
-        #yield from FHIR_DB.write_composition_to_db(composition, self.conn)
+        yield from FHIR_DB.write_composition_to_db(composition, self.conn)
         self.write_object(composition, writer_key='aggregate')
 
     def _add_alerts_section(self, composition):

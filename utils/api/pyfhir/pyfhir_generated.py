@@ -988,12 +988,13 @@ class Condition(Resource):
         
     def get_ICD9_id(self):
         for coding in self.code.coding:
-            if coding.system == "icd":
-                return coding.code
+            if coding.system in ["ICD-9", "ICD9", "icd9", "icd-9"]:
+                return coding
 
     def get_snomed_id(self):
+
         for coding in self.code.coding:
-            if coding.system == "":
+            if coding.system == "SNOMED CT":
                 return coding.code
 
 

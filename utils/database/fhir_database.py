@@ -32,7 +32,7 @@ def write_composition_to_db(composition, conn):
     yield from write_composition_encounter(composition, conn)
     yield from write_composition_json(composition, conn)
     yield from write_composition_conditions(composition, conn)
-    #yield from write_composition_encounter_orders(composition, conn)
+    yield from write_composition_encounter_orders(composition, conn)
     yield from write_composition_alerts(composition, conn)
 
 @asyncio.coroutine
@@ -61,7 +61,6 @@ def write_composition_encounter(composition, conn):
         pat_id = composition.subject.get_pat_id()
         encounter_type = "Emergency"
         encounter_date = "2014-03-24"
-        #provider_id = composition.encounter.get_prov_id()
         provider_id = composition.get_author_id()
         bill_prov_id = "32209837"
         encounter_dep = 1235234
@@ -96,13 +95,12 @@ def write_composition_conditions(composition, conn):
         customer_id = composition.customer_id
         encounter_id = composition.encounter.get_csn()
         condition_list = composition.get_encounter_conditions()
+
         for condition in condition_list:
             snomed_id = condition.get_snomed_id()
-            dx_code_id = condition.get_ICD9_id()
-            if dx_code_id is not None:
-                dx_code_system = "ICD-9"
-            else:
-                dx_code_system = None
+            dx_coding = condition.get_ICD9_id()
+            dx_code_id = dx_coding.code
+            dx_code_system = dx_coding.system
 
             columns = [pat_id,
                        customer_id,
@@ -130,22 +128,27 @@ def write_composition_encounter_orders(composition, conn):
     try:
         pat_id = composition.subject.get_pat_id()
         customer_id = composition.customer_id
-        encID = composition.encounter.get_csn()
+        encounter_id = composition.encounter.get_csn()
         order_datetime = datetime.datetime.now()
         orders = composition.get_encounter_orders()
         for order in orders:
+            cmdargs = [customer_id,
+                       order.detail[0].type.coding[0].code,
+                       pat_id,
+                       encounter_id,
+                       composition.get_author_id(),
+                       composition.get_author_id(),
+                       order.detail[0].type.coding[0].code,
+                       "created",
+                       "webservice",
+                       order.detail[0].type.coding[0].code,
+                       "clientEMR",
+                       order.detail[0].text,
+                       order.detail[0].resourceType,
+                       float(order.totalCost),
+                       order_datetime]
 
-
-
-            order_name = order.detail[0].text
-            order_type = order.detail[0].resourceType
-            order_code = order.detail[0].type.coding[0].code
-            order_code_type = order.detail[0].type.coding[0].system
-            order_cost = float(order.totalCost)
-            active = True
-
-            cur = yield from conn.execute_single("SELECT upsert_enc_order(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-                                                extra=[pat_id, customer_id, encID, order_name, order_type, order_code, order_code_type, order_cost, order_datetime, active])
+            cur = yield from conn.execute_single("SELECT upsert_enc_order(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", extra=cmdargs)
 
     except:
         raise Exception("Error inserting encounter orders into database")
