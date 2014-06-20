@@ -34,26 +34,8 @@ define([
 	    }
 
 	    var colorArray = [];
-	    var gathered = {};
-	    var data = [];
-	    for (var d in spendingModel.attributes) {
-		if(Date.parse(d)) {
-		    var date = new Date(d);
-		    if(!datefilter || 
-		       (date.getFullYear()==datefilter.getFullYear() && 
-			date.getMonth()==datefilter.getMonth() &&
-			date.getDate()==datefilter.getDate())) {
-			var days_spend = spendingModel.get(d);
-			for (var t in days_spend) {
-			    var base = days_spend[t];
-			    if (t in gathered) {
-				base = base + gathered[t];
-			    }
-			    gathered[t]=base;
-			}
-		    }
-		}
-	    }
+	    var data = []
+	    var gathered = spendingModel.getGathered();
 	    for (var k in gathered) {
 		data.push({order: k, cost: gathered[k]});
 		colorArray.push(findColor(k));

@@ -21,6 +21,30 @@ define([
 	    d.setSeconds(0);
 	    d.setMilliseconds(0);
 	    this.set({dateFilter:d});
+	},
+	getGathered: function() {
+	    var gathered = {};
+	    var data = [];
+	    var datefilter = this.get('dateFilter');
+	    for (var d in this.attributes) {
+		if(Date.parse(d)) {
+		    var date = new Date(d);
+		    if(!datefilter || 
+		       (date.getFullYear()==datefilter.getFullYear() && 
+			date.getMonth()==datefilter.getMonth() &&
+			date.getDate()==datefilter.getDate())) {
+			var days_spend = spendingModel.get(d);
+			for (var t in days_spend) {
+			    var base = days_spend[t];
+			    if (t in gathered) {
+				base = base + gathered[t];
+			    }
+			    gathered[t]=base;
+			}
+		    }
+		}
+	    }
+	    return gathered;
 	}
     });
     
