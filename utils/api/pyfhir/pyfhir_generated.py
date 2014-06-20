@@ -645,7 +645,7 @@ class Composition(Resource):
             # medications, and supply items are stored.
             for deet in ord['detail']:
                 if deet['type'] == "Lab" or "Procedure" or "PROC":
-                    procedure = Procedure(name=deet['name'], type=deet['type'])
+                    procedure = Procedure(text=deet['name'], type=deet['type'])
 
                     for id in deet['identifier']:
                         procedure.add_identifier(label=id['label'], system=id['system'], value=id['value'])

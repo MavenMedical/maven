@@ -69,18 +69,16 @@ class CompositionEvaluator(SP.StreamProcessor):
         #Maven Duplicate Orders (with related Clinical Observations) analysis
         yield from self.evaluate_duplicate_orders(composition)
 
+        #Maven Alternative Meds
+        #yield from self.evaluate_alternative_meds(composition)
+
         #Use the FHIR Database API to look up each Condition's codes (ICD-9) and add Snomed CT concepts to the Condition
-        yield from FHIR_DB.gather_snomeds_append_to_encounter_dx(composition, self.conn)
+        yield from FHIR_DB.get_snomeds_and_append_to_encounter_dx(composition, self.conn)
 
         #Analyze Choosing Wisely/CDS Rules
         yield from self.evaluate_CDS_rules(composition)
 
-        #TODO Logic to check if recently alerted (will involved look-up in DB.This type of caching would be nice via REDIS)
-
-        rules = yield from self.get_matching_sleuth_rules(composition)
-        yield from self.evaluate_sleuth_rules(composition, rules)
-        yield from FHIR_DB.write_composition_to_db(composition, self.conn)
-        print(json.dumps(composition, default=FHIR_API.jdefault, indent=4))
+        #yield from FHIR_DB.write_composition_to_db(composition, self.conn)
         self.write_object(composition, writer_key='aggregate')
 
     def _add_alerts_section(self, composition):
@@ -162,11 +160,11 @@ class CompositionEvaluator(SP.StreamProcessor):
 
         #Check to see if there are exact duplicate orders (order code AND order code type)from within the last year
         enc_ord_summary_section = composition.get_section_by_coding(code_system="maven", code_value="enc_ord_sum")
-        duplicate_orders = yield from FHIR_DB.gather_duplicate_orders(enc_ord_summary_section, composition, self.conn)
+        duplicate_orders = yield from FHIR_DB.get_duplicate_orders(enc_ord_summary_section, composition, self.conn)
 
         if duplicate_orders is not None and len(duplicate_orders) > 0:
             #Check to see if there are relevant lab components to be displayed
-            duplicate_order_alerts = yield from FHIR_DB.gather_observations_from_duplicate_orders(duplicate_orders, composition, self.conn)
+            duplicate_order_alerts = yield from FHIR_DB.get_observations_from_duplicate_orders(duplicate_orders, composition, self.conn)
 
             alerts_section = composition.get_section_by_coding(code_system="maven", code_value="alerts")
             alerts_section.content.append(duplicate_order_alerts)
@@ -200,136 +198,74 @@ class CompositionEvaluator(SP.StreamProcessor):
         """
         CDS_rules = yield from FHIR_DB.get_matching_CDS_rules(composition, self.conn)
 
-        if CDS_rules is not None:
-            pass
+        cds_alerts = []
+        if CDS_rules is not None and len(CDS_rules) > 0:
+            for rule in CDS_rules:
+                rule_result = yield from self._evaluate_CDS_rule_details(composition, rule)
+                if rule_result:
+                    cds_alert = yield from self.generate_cds_alert(composition, rule)
+                    cds_alerts.append(cds_alert)
 
-
-    @asyncio.coroutine
-    def get_matching_sleuth_rules(self, composition):
-        """
-        This method returns a list of matching rules, and each returned rule is an array with the columns described below.
-        It selects from the sleuth_rule table using the CPT code and Customer_ID
-
-         :param composition: The FHIR composition that needs to contain a FHIR Section containing the Encounter Orders
-        """
-        orders = composition.get_encounter_orders()
-        customer_id = composition.customer_id
-        applicable_sleuth_rules = []
-
-        for order in orders:
-            order_details = composition.get_order_details(order)
-
-            for detail in order_details:
-                column_map = ["sleuth_rule.rule_details",
-                              "sleuth_rule.rule_id",
-                              "sleuth_rule.code_trigger",
-                              "sleuth_rule.code_trigger_type",
-                              "sleuth_rule.name",
-                              "sleuth_rule.description",
-                              "sleuth_rule.tag_line"]
-                columns = self.DBMapper.select_rows_from_map(column_map)
-
-                cur = yield from self.conn.execute_single("select " + columns + " from sleuth_rule where code_trigger=%s and customer_id=%s", extra=[detail[0], customer_id])
-
-                for result in cur:
-                    FHIR_rule = FHIR_API.Rule(rule_details=result[0],
-                                              CDS_rule_id=result[1],
-                                              code_trigger=result[2],
-                                              code_trigger_type=result[3],
-                                              name=result[4],
-                                              long_description=result[5],
-                                              long_title=result[6])
-
-                    applicable_sleuth_rules.append(FHIR_rule)
-        return applicable_sleuth_rules
-
-    @asyncio.coroutine
-    def evaluate_sleuth_rules(self, composition, rules):
-        """
-        PAY ATTENTION RULE ENGINE(TECHNO)LOGIC BELOW
-        Evaluates, one by one, each of the rules that was found to be applicable from the method get_matching_sleuth_rules()
-
-        :param composition: The FHIR composition object that is to be evaluated
-        :param rules: The list of rules (each rule a tuple returned from the DB) returned by the get_matching_sleuth_rules() method
-        """
-        #We use customer_id A LOT, as it's pretty much needed for every DB call
-        customer_id = composition.customer_id
-
-        #empty list to store any potential Alerts that get triggered
-        alert_bundle = []
-
-        #Pull a list of all the SNOMED CT codes from all of the conditions in the composition
-        encounter_snomedIDs = composition.get_encounter_dx_snomeds()
-
-        for rule in rules:
-            #retrieve and evaluate the encounter_dx related rules from the rule FHIR object
-            encounter_dx_rules = rule.encounter_dx_rules
-            enc_dx_results = yield from self.evaluate_encounter_dx(encounter_snomedIDs, encounter_dx_rules)
-
-            #retrieve and evaluate the lab related rules from the rule FHIR objec
-            lab_rules = rule.lab_rules
-            lab_results = yield from self.evaluate_encounter_labs()
-
-            #evaluate the med rules
-            med_results = yield from self.evaluate_encounter_meds()
-
-            #If the encounter, lab, med rules, evaluate to true, gather evidence and override indications and create the alert
-            if enc_dx_results and lab_results and med_results:
-                evidence = yield from self.gather_evidence(rule, customer_id)
-                override_indications = yield from self.get_override_indications(rule, customer_id)
-                alert = yield from self.generate_alert(composition, rule, evidence, alert_bundle, override_indications=override_indications)
-                alert_bundle.append(alert)
-
-        #If the alert_bundle has anything in it, append it, as a "bundle o' alerts", to the composition's "Maven Alerts" FHIR Section
-        if alert_bundle is not None and len(alert_bundle) > 0:
+        if cds_alerts is not None and len(cds_alerts) > 0:
             composition_alerts_section = composition.get_alerts_section()
-            alert_datetime = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
             composition_alerts_section.content.append({"alert_type": "cds",
-                                                       "alert_time": alert_datetime,
-                                                       "alert_list": alert_bundle})
-            #yield from FHIR_DB.write_composition_alerts(alert_datetime, alert_bundle, self.conn)
-
-        else:
-            return
-
+                                                       "alert_time": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                                                       "alert_list": cds_alerts})
 
     @asyncio.coroutine
-    def evaluate_encounter_dx(self, encounter_snomedIDs, dx_rules):
-        dx_rules_results = []
-        for dx_rule in dx_rules:
-            dx_rule_eval = False
+    def _evaluate_CDS_rule_details(self, composition, rule):
+        additional_dx_details_result = yield from self._evaluate_additional_dx_rule_details(composition, rule.encounter_dx_rules)
+        lab_rule_details_result = yield from self._evaluate_lab_rule_details(composition, rule.lab_rules)
+        med_rule_details_result = yield from self._evaluate_medication_rule_details(composition, None)
 
-            if dx_rule['exists'] == True:
-                for enc_dx in encounter_snomedIDs:
-                    dx_pass = False
-                    cur = yield from self.conn.execute_single("select issnomedchild(%s,%s)", extra=[dx_rule['snomed'], enc_dx])
-                    dx_pass = cur.fetchone()[0]
-                    if dx_pass == True:
-                        dx_rule_eval = True
-                        break
-
-            elif dx_rule['exists'] == False:
-                for enc_dx in encounter_snomedIDs:
-                    if enc_dx == dx_rule['snomed']:
-                        dx_rule_eval = False
-                        break
-                    else:
-                        dx_rule_eval = True
-
-            dx_rules_results.append(dx_rule_eval)
-
-        if False in dx_rules_results:
-            return False
-        else:
+        if additional_dx_details_result and lab_rule_details_result and med_rule_details_result:
             return True
+        else:
+            return False
 
     @asyncio.coroutine
-    def evaluate_encounter_labs(self):
+    def _evaluate_additional_dx_rule_details(self, composition, dx_rule_details):
         return True
 
     @asyncio.coroutine
-    def evaluate_encounter_meds(self):
+    def _evaluate_lab_rule_details(self, composition, lab_rule_details):
         return True
+
+    @asyncio.coroutine
+    def _evaluate_medication_rule_details(self, composition, med_rule_details):
+        return True
+
+    @asyncio.coroutine
+    def generate_cds_alert(self, composition, rule):
+        """
+        Generates an alert from the rule that evaluated to true, along with the evidence that supports that rule (from a clinical perspective)
+
+        :param composition: The composition that is being analyzed. This method attaches a new FHIR SECTION to the composition
+        :param rule: The sleuth_rule that evaluated to truec
+        :param evidence: A LIST of evidence that supports the rule.
+        """
+
+        customer_id = composition.customer_id
+        pat_id = composition.subject.get_pat_id()
+        provider_id = composition.get_author_id()
+        encounter_id = composition.encounter.get_csn()
+        code_trigger = rule.code_trigger
+        CDS_rule = rule.CDS_rule_id
+        alert_datetime = datetime.datetime.now()
+        short_title = rule.name
+        long_title = rule.name
+        short_description = rule.name
+        long_description = rule.name
+        override_indications = ['Select one of these override indications boink']
+        saving = 807.12
+        category = "cds"
+
+        FHIR_alert = FHIR_API.Alert(customer_id=customer_id, subject=pat_id, provider_id=provider_id, encounter_id=encounter_id,
+                                    code_trigger=code_trigger, CDS_rule=CDS_rule, alert_datetime=alert_datetime,
+                                    short_title=short_title, long_title=long_title, short_description=short_description, long_description=long_description,
+                                    override_indications=override_indications, saving=saving, category=category)
+
+        return FHIR_alert
 
     @asyncio.coroutine
     def gather_evidence(self, rule, customer_id):
@@ -358,55 +294,6 @@ class CompositionEvaluator(SP.StreamProcessor):
             override_indications.append(result)
 
         return override_indications
-
-
-    @asyncio.coroutine
-    def generate_alert(self, composition, rule, evidence, alert_group, override_indications=None):
-        """
-        Generates an alert from the rule that evaluated to true, along with the evidence that supports that rule (from a clinical perspective)
-
-        :param composition: The composition that is being analyzed. This method attaches a new FHIR SECTION to the composition
-        :param rule: The sleuth_rule that evaluated to truec
-        :param evidence: A LIST of evidence that supports the rule.
-        """
-
-        customer_id = composition.customer_id
-        pat_id = composition.subject.get_pat_id()
-        provider_id = composition.get_author_id()
-        encounter_id = composition.encounter.get_csn()
-        code_trigger = rule.code_trigger
-        CDS_rule = rule.CDS_rule_id
-        alert_datetime = datetime.datetime.now()
-        short_title = rule.name
-        long_title = rule.long_title
-        short_description = rule.short_description
-        long_description = rule.long_description
-        override_indications = ['Select one of these override indications boink']
-        saving = 807.12
-        category = "cds"
-
-        FHIR_alert = FHIR_API.Alert(customer_id=customer_id, subject=pat_id, provider_id=provider_id, encounter_id=encounter_id,
-                                    code_trigger=code_trigger, CDS_rule=CDS_rule, alert_datetime=alert_datetime,
-                                    short_title=short_title, long_title=long_title, short_description=short_description, long_description=long_description,
-                                    override_indications=override_indications, saving=saving, category=category)
-
-        return FHIR_alert
-
-    @asyncio.coroutine
-    def get_encounter_dx_rules(self, rule_details):
-        """
-        Extracts the encounter_dx-related rules from the whole set of rule_details
-
-        :param rule_details: The JSON-formatted rule details associated with each top-level rule
-        """
-        dx_rules = []
-        for rule_detail in rule_details:
-            if rule_detail['type'] == "encounter_dx":
-                dx_rules.append(rule_detail)
-        return dx_rules
-
-    def evaluator_response(self, obj, response):
-        raise NotImplementedError
 
 
 def run_composition_evaluator():

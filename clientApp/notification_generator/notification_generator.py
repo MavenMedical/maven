@@ -201,19 +201,20 @@ class NotificationGenerator():
         patient_id = composition.subject.get_pat_id()
 
         dup_order_alert_dict = composition.get_alerts(type="dup_ord")
-        for alert in dup_order_alert_dict['alert_list']:
+        if dup_order_alert_dict is not None and len(dup_order_alert_dict['alert_list']) > 0:
+            for alert in dup_order_alert_dict['alert_list']:
 
-            templateVars = {"alert_tag_line" : alert.short_title,
-                            "alert_description" : alert.short_description,
-                            "http_address" : MC.http_addr,
-                            "encounter_id" : csn,
-                            "patient_id" : patient_id,
-                            "user" : user,
-                            "user_auth" : userAuth,
-                            "related_observations": alert.related_observations}
+                templateVars = {"alert_tag_line" : alert.short_title,
+                                "alert_description" : alert.short_description,
+                                "http_address" : MC.http_addr,
+                                "encounter_id" : csn,
+                                "patient_id" : patient_id,
+                                "user" : user,
+                                "user_auth" : userAuth,
+                                "related_observations": alert.related_observations}
 
-            notification_body = template_dup_order_alert.render(templateVars)
-            duplicate_order_alert_contents.append(notification_body)
+                notification_body = template_dup_order_alert.render(templateVars)
+                duplicate_order_alert_contents.append(notification_body)
 
             return duplicate_order_alert_contents
 

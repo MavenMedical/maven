@@ -250,7 +250,7 @@ def identify_encounter_orderables(composition, conn):
 
 
 @asyncio.coroutine
-def gather_snomeds_append_to_encounter_dx(composition, conn):
+def get_snomeds_and_append_to_encounter_dx(composition, conn):
     """
     Pseudo-code description:
     FOR EACH CONDITION,
@@ -279,7 +279,7 @@ def gather_snomeds_append_to_encounter_dx(composition, conn):
         raise Exception("Error gathering SNOMED CT codes for Encounter Diagnoses")
 
 @asyncio.coroutine
-def gather_duplicate_orders(enc_ord_summary_section, composition, conn):
+def get_duplicate_orders(enc_ord_summary_section, composition, conn):
     """
     This function takes the "Maven Encounter Order Summary" Composition section (a list of tuples(code, code system)),
     runs a query against the database looking for orders up to a year ago, finds the intersection between the two,
@@ -313,7 +313,7 @@ def gather_duplicate_orders(enc_ord_summary_section, composition, conn):
             cmd.append("SELECT " + columns)
             cmd.append("FROM order_ord")
             cmd.append("JOIN orderable on order_ord.orderable_id = orderable.orderable_id")
-            cmd.append("WHERE order_ord.customer_id=%s and order_ord.pat_id=%s and order_ord.orderable_id=%s and order_ord.order_datetime > %s AND order_ord.order_datetime <= %s")
+            cmd.append("WHERE order_ord.customer_id=%s AND order_ord.pat_id=%s AND order_ord.orderable_id=%s AND order_ord.order_datetime > %s AND order_ord.order_datetime <= %s")
 
 
             cur = yield from conn.execute_single(' '.join(cmd), cmdargs)
@@ -334,7 +334,7 @@ def gather_duplicate_orders(enc_ord_summary_section, composition, conn):
         raise Exception("Error finding previous duplicate orders for this patient")
 
 @asyncio.coroutine
-def gather_observations_from_duplicate_orders(duplicate_orders, composition, conn):
+def get_observations_from_duplicate_orders(duplicate_orders, composition, conn):
     """
 
     """
@@ -410,14 +410,27 @@ def get_matching_CDS_rules(composition, conn):
     enc_ord_summary_section = composition.get_section_by_coding("maven", "enc_ord_sum")
     patient_age = composition.get_patient_age()
 
-    matched_rules = []
+    rtn_matched_rules = []
     for enc_ord in enc_ord_summary_section.content:
-        cur = yield from conn.execute_single("select * from rules.evalrules(%s,%s,%s,%s,%s,%s,%s,%s)", extra=[enc_ord['code'], enc_ord['system'], patient_age, composition.subject.gender, encounter_snomedIDs, encounter_snomedIDs, composition.subject.get_pat_id(), composition.customer_id])
+        args = [enc_ord['code'],
+                enc_ord['system'],
+                patient_age,
+                composition.subject.gender,
+                encounter_snomedIDs,
+                encounter_snomedIDs,
+                composition.subject.get_pat_id(),
+                composition.customer_id]
+
+        cur = yield from conn.execute_single("select * from rules.evalrules(%s,%s,%s,%s,%s,%s,%s,%s)", extra=args)
 
         for result in cur:
-            matched_rules.append(result)
+            rtn_matched_rules.append(FHIR_API.Rule(rule_details=result[2],
+                                               CDS_rule_id=result[0],
+                                               code_trigger=enc_ord['code'],
+                                               code_trigger_type=enc_ord['system'],
+                                               name=result[1]))
 
-    return matched_rules
+    return rtn_matched_rules
 
 
 
