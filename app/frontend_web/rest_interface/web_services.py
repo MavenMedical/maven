@@ -147,7 +147,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
                     ['#rowD-1-1', 'costtable', 'costbreakdown-table.html'],
                     #['#rowD-1-1','costdonut','costbreakdown-donut.html'],
                     ['#rowE-1-1', 'spend_histogram'],
-                    ['#floating-right', 'alertList'],
+                    ['#floating-right', 'alertList', 'alertScroll.html'],
                     ], CONTEXT_KEY: user_auth}
             
             return HTTP.OK_RESPONSE, json.dumps(ret), None
@@ -301,7 +301,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
         }
 
         results = yield from self.persistence_interface.alerts(desired, provider, customer,
-                                                               patients=patients)
+                                                               patients=patients,
+                                                               limit=limit)
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
