@@ -356,7 +356,12 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                                FrontendWebService.hist_spend_required_contexts,
                                                FrontendWebService.hist_spend_available_contexts)
 
-        desired = {WP.Results.spending: "spending"}
+        desired = {
+            WP.Results.spending: "spending",
+            WP.Results.startdate: "admission",
+            WP.Results.enddate: "discharge",
+            WP.Results.diagnosis: "diagnosis",
+        }
         results = yield from self.persistence_interface.per_encounter(desired,
                                                                       context.get(CONTEXT_PROVIDER),
                                                                       context.get(CONTEXT_CUSTOMERID),
