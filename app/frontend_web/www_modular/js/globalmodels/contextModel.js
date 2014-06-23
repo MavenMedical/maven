@@ -24,7 +24,39 @@ define([
 	}
     }
 
-    var Context = Backbone.Model.extend({
+    var contextModel;
+
+    var loginCallback = function (res) {
+	contextModel.set({'loginTemplate':null});
+	if(res.get('stylesheet')) {
+	    setActiveStyleSheet(res.get('stylesheet'));
+	}
+	// each row is [html_id, viewfile, templatefile]
+	var widgetlist = res.get('widgets');
+	var viewlist = []; 
+	var templatelist = [];
+	for (var ind in widgetlist) {
+	    var row = widgetlist[ind];
+	    viewlist.push('widgets/'+row[1]);
+	    if (row.length==3) {
+		templatelist.push('text!/templates/'+row[2]);
+	    } else {
+		templatelist.push('text!templates/'+row[1]+'.html');
+	    }
+	    console.log('adding view '+row[1]+' to element '+row[0]+
+			' with template '+templatelist[templatelist.length-1]);
+	}
+	require(viewlist.concat(templatelist),function () {
+	    for(var i=0;i<viewlist.length;i++) {
+		var view = new arguments[i]({el:$(widgetlist[i][0]),
+					     template:arguments[i+viewlist.length]});
+	    }
+	    $("#content").show();
+	    Backbone.history.loadUrl(Backbone.history.fragment);
+	})
+    }
+    
+    var ContextModel = Backbone.Model.extend({
 	urlRoot: '/login',
         defaults: {
             page: null,
@@ -47,52 +79,28 @@ define([
 	    }
 	    return ret;
 	},
-	loginCallback: function (res) {
-		if(res.get('stylesheet')) {
-		    setActiveStyleSheet(res.get('stylesheet'));
-		}
-		// each row is [html_id, viewfile, templatefile]
-		var widgetlist = res.get('widgets');
-		var viewlist = []; 
-		var templatelist = [];
-		for (var ind in widgetlist) {
-		    var row = widgetlist[ind];
-		    viewlist.push('widgets/'+row[1]);
-		    if (row.length==3) {
-			templatelist.push('text!/templates/'+row[2]);
-		    } else {
-			templatelist.push('text!templates/'+row[1]+'.html');
-		    }
-		    console.log('adding view '+row[1]+' to element '+row[0]+
-				' with template '+templatelist[templatelist.length-1]);
-		}
-		require(viewlist.concat(templatelist),function () {
-			for(var i=0;i<viewlist.length;i++) {
-			    var view = new arguments[i]({el:$(widgetlist[i][0]),
-							 template:arguments[i+viewlist.length]});
-			}
-			$("#content").show();
-			Backbone.history.loadUrl(Backbone.history.fragment);
-		    })
-	    }, 
         setUser: function (user, pw) {
 	    if (this.user != user || !this.userAuth) {
 		this.set('user', user);
-		//alert('setting user');
-		this.fetch({success: this.loginCallback, 
+		var that=this;
+		this.fetch({success: loginCallback,
+			    error: function(request, response) { that.set(response.responseJSON);},
 			    data: JSON.stringify({user:user, password:pw}),
 			    type: 'POST'});
 	    }
-	    },
+	},
         setProvider: function (provider, customer, userAuth) {
-		//alert('setting user');
-		this.fetch({success: this.loginCallback, 
-			    data: JSON.stringify({provider:provider, 
-					customer: customer,
-					userAuth: userAuth}),
-			    type: 'POST'});
-	    },
-	});
+	    var that=this;
+	    this.fetch({success: loginCallback, 
+			error: function(request, response) { that.set(response.responseJSON);},
+			data: JSON.stringify({provider:provider, 
+					      customer: customer,
+					      userAuth: userAuth}),
+			type: 'POST'});
+	},
+    });
+
+    contextModel = new ContextModel;
     
-    return new Context;
+    return contextModel;
 });

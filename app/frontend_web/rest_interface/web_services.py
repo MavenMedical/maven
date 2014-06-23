@@ -102,29 +102,33 @@ class FrontendWebService(HTTP.HTTPProcessor):
             #if header.get_headers().get('VERIFIED','SUCCESS') == 'SUCCESS': 
             if user_and_pw:
                 attempted = info['user']
-                user_info = yield from self.persistence_interface.pre_login(desired, username=attempted)
+                try:
+                    user_info = yield from self.persistence_interface.pre_login(desired, username=attempted)
+                except IndexError:
+                    raise LoginError('badLogin')
                 passhash = user_info[WP.Results.password].tobytes()
-                if (not passhash or bcrypt.hashpw(bytes(info['password'], 'utf-8'), passhash[:29]) != passhash
-                   or user_info[WP.Results.passexpired]):
-                    raise LoginError
+                if not passhash or bcrypt.hashpw(bytes(info['password'], 'utf-8'), passhash[:29]) != passhash:
+                    raise LoginError('badLogin')
+                if user_info[WP.Results.passexpired]:
+                    raise LoginError('expiredPassword')
                 method = 'local'
             else:
                 attempted = [info['provider'], info['customer']]
                 try:  # this means that the password was a pre-authenticated link
                     AK.check_authorization(attempted, info['userAuth'], AUTH_LENGTH)
                 except AK.UnauthorizedException:
-                    raise LoginError
+                    raise LoginError('badLogin')
                 user_info = yield from self.persistence_interface.pre_login(desired, 
                                                                             provider=attempted,
                                                                             keycheck='1m')
                 method = 'forward'
                 # was this auth key used recently
                 if info['userAuth'] in user_info[WP.Results.recentkeys]:
-                    raise LoginError
+                    raise LoginError('reusedLogin')
 
             # make sure this user exists and is active
             if not user_info[WP.Results.userstate] == 'active':
-                raise LoginError
+                raise LoginError('disabledUser')
 
                 # at the point, the user has succeeded to login
             user = str(user_info[WP.Results.userid])
@@ -151,9 +155,9 @@ class FrontendWebService(HTTP.HTTPProcessor):
                     ], CONTEXT_KEY: user_auth}
             
             return HTTP.OK_RESPONSE, json.dumps(ret), None
-        except (LoginError, IndexError):
+        except LoginError as err:
             method = 'failed'
-            return HTTP.UNAUTHORIZED_RESPONSE, json.dumps({'loginTemplate': "badLogin.html"}), None
+            return HTTP.UNAUTHORIZED_RESPONSE, json.dumps({'loginTemplate': err.args[0]+".html"}), None
         finally:
             yield from self.persistence_interface.record_login(attempted,
                                                                method, header.get_headers().get('X-Real-IP'),
