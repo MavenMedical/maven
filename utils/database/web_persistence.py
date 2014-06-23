@@ -154,8 +154,13 @@ class WebPersistence():
         return results
 
     @asyncio.coroutine
+    def update_password(self, user, newpw, timeout = '180d'):
+        yield from self.execute(["UPDATE users set (pw, pw_expiration) = (%s, now() + interval %s) where user_id = %s"],
+                                [newpw, timeout, user], {}, {})
+
+    @asyncio.coroutine
     def record_login(self, username, method, ip, authkey):
-        yield from self.execute(['INSERT INTO logins (user_name, method, logintime, ip, authkey) VALUES (%s, %s, now(), %s, %s);'],
+        yield from self.execute(['INSERT INTO logins (user_name, method, logintime, ip, authkey) VALUES (%s, %s, now(), %s, %s)'],
                                 [username, method, ip, authkey], {}, {})
 
     _default_pre_login = set((Results.username,))

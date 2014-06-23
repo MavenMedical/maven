@@ -77,6 +77,19 @@ class FrontendWebService(HTTP.HTTPProcessor):
         return HTTP.OK_RESPONSE, json.dumps(['Maven']), None
 
     @asyncio.coroutine
+    def hash_new_password(self, user, password):
+        if len(password) < 8:
+            raise LoginError('expiredPassword')
+        salt = bcrypt.gensalt(4)
+        ret = bcrypt.hashpw(bytes(password, 'utf-8'), salt)
+        try:
+            yield from self.persistence_interface.update_password(user, ret)
+        except:
+            import traceback
+            traceback.print_exc()
+            raise LoginError('expiredPassword')
+
+    @asyncio.coroutine
     def post_login(self, header, body, _qs, _matches, _key):
         info = json.loads(body.decode('utf-8'))
 
@@ -98,6 +111,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
                 ]}
         attempted=None
         try:
+            method = 'failed'
             user_info = {}
             #if header.get_headers().get('VERIFIED','SUCCESS') == 'SUCCESS': 
             if user_and_pw:
@@ -110,7 +124,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
                 if not passhash or bcrypt.hashpw(bytes(info['password'], 'utf-8'), passhash[:29]) != passhash:
                     raise LoginError('badLogin')
                 if user_info[WP.Results.passexpired]:
-                    raise LoginError('expiredPassword')
+                    yield from self.hash_new_password(user_info[WP.Results.userid], info.get('newpassword',''))
                 method = 'local'
             else:
                 attempted = [info['provider'], info['customer']]
@@ -156,7 +170,6 @@ class FrontendWebService(HTTP.HTTPProcessor):
             
             return HTTP.OK_RESPONSE, json.dumps(ret), None
         except LoginError as err:
-            method = 'failed'
             return HTTP.UNAUTHORIZED_RESPONSE, json.dumps({'loginTemplate': err.args[0]+".html"}), None
         finally:
             yield from self.persistence_interface.record_login(attempted,

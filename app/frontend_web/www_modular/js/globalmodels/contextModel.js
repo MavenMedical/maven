@@ -79,13 +79,16 @@ define([
 	    }
 	    return ret;
 	},
-        setUser: function (user, pw) {
+        setUser: function (user, pw, newpw) {
 	    if (this.user != user || !this.userAuth) {
 		this.set('user', user);
 		var that=this;
+		var data = {user:user, password:pw};
+		if(newpw)
+		    data.newpassword=newpw;
 		this.fetch({success: loginCallback,
 			    error: function(request, response) { that.set(response.responseJSON);},
-			    data: JSON.stringify({user:user, password:pw}),
+			    data: JSON.stringify(data),
 			    type: 'POST'});
 	    }
 	},

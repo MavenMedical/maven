@@ -41,13 +41,14 @@ define([
 	    }
 	},
 	fastlogin: function() {
-	    contextModel.setUser('maven','maven', Backbone.history.fragment);
+	    contextModel.setUser('maven','mavendevel', Backbone.history.fragment);
 	},
 	dologin: function() {
 	    var user = $("#login-user").val();
 	    var password = $("#login-password").val();
 	    if( user && password ) {
-		contextModel.setUser(user, password, Backbone.history.fragment);
+		var newpassword = $("#login-new-password").val();
+		contextModel.setUser(user, password, newpassword);
 	    }
 	},
     });
