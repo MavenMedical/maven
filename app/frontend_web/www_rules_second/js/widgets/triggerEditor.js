@@ -11,21 +11,17 @@ define([
     'text!templates/triggerSelector/triggerSelectorPanel.html'
 ], function ($, _, Backbone, contextModel, curRule, TriggerListBox, ruleListTemplate) {
     var addSelected = function(){
-
         var selected = $('.available-triggers option:selected');
         _.each(selected, function(cur){
             var id = cur.value;
             var toMove
             _.each(this.availableBox.collection.models, function(curModel){
                 if(cur.value == curModel.get('id')){
-
                     curRule.get('triggers').add(curModel);
                 }
             }, this)
         }, this)
-
         curRule.save();
-
     };
     var removeSelected = function(){
       var selected = $('.selected-triggers option:selected');
@@ -39,11 +35,7 @@ define([
                 }
             }, this)
         }, this)
-
         curRule.save();
-
-
-
     };
     var populateBySearch = function(){
         var t = contextModel.toParams();
@@ -53,29 +45,12 @@ define([
     var TriggerEditor = Backbone.View.extend({
         template: _.template(ruleListTemplate),
         updateSelector: function(){
-            contextModel.set('showTriggerEditor', false);
             this.render();
-
         },
-
         initialize: function(){
-
-
-            this.$el.hide();
-
-
             var panel = this;
             var anon =  Backbone.Collection.extend( {url: '/triggers?'});
             panel.availModel = new anon;
-
-
-             contextModel.on('change:showTriggerEditor', function(newVal){
-              if (newVal.get('showTriggerEditor')){
-                  this.$el.show()
-              } else {
-                  this.$el.hide();
-              }
-          }, this)
           contextModel.on('change:id', this.updateSelector, this)
 
         },
@@ -97,7 +72,8 @@ define([
         events: {
 	    "click #addTriggerButton" : addSelected,
         "click #removeTriggerButton" : removeSelected,
-        "click #searchTriggers" : populateBySearch
+        "click #searchTriggers" : populateBySearch,
+
 	    }
     });
 

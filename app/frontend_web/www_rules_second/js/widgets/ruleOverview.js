@@ -11,14 +11,6 @@ define([
     'text!templates/triggerSelector/triggerRow.html'
 
 ], function ($, _, Backbone, contextModel, curRule, curCollection, ruleOverviewTemplate, triggerRowTemplate) {
-    var showTriggerEditor = function(){
-        contextModel.set({showTriggerEditor: !contextModel.get('showTriggerEditor')});
-        if (contextModel.get('showTriggerEditor')){
-            $("#EditTriggersButton").html("Hide Trigger Editor");
-        } else {
-            $("#EditTriggersButton").html("Edit Triggers");
-        }
-    };
     var editName = function(){
         var name = prompt("Enter The New Name");
         if (name){
@@ -107,7 +99,6 @@ define([
             }, this);
         },
 	events: {
-	    "click #EditTriggersButton" : showTriggerEditor,
         "click #nameTag" : editName,
         "click #minAgeTag": editMinAge,
         "click #maxAgeTag": editMaxAge,

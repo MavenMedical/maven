@@ -1,24 +1,37 @@
 <div style="position:relative; min-width:300px;min-height:500px;">
-    <h1 style="text-align: center"> Add or Remove Triggers </h1>
-
-
     <div>
-        <div style = "float:left">
-            <div style="clear:both; text-align:center">Select Triggers from This List</div>
-            <div style="text-align: center"><input id="triggerSearch" style ="min-width:100"><br><button id="searchTriggers">Search Triggers</button></div>
+        <div style = "text-align: center; float:left">
+            <h3 style="clear:both; text-align:center">Select Triggers from This List</h3>
+
+
+
+
+                    <div class="col-lg-6">
+                    <div class="input-group">
+                        <input  class = "form-control" id="triggerSearch" style ="width:440px">
+                      <span class="input-group-btn">
+                        <button class="btn btn-default" id="searchTriggers">Search Triggers</button><
+                      </span>
+                    </div>
+                    </div>
+
             <div style = "clear:both" class="available-triggers trigger-list">The Available Triggers go Here</div>
+
             </div>
         <div style = "float:left; height:1px; width:15px"></div>
         <div style = "float:left;">
-            <div style = "clear:both; height:170px">.</div>
-            <button style = "vertical-align: middle; clear:both; width:70px"id="addTriggerButton">Add</button>
+            <div style = "clear:both; height:170px"></div>
+            <button class="btn btn-default" style = "vertical-align: middle; clear:both; width:70px"id="addTriggerButton">Add</button>
             <br>
-            <button style = "vertical-align: middle; clear:both "id="removeTriggerButton">Remove</button>
+            <button  class="btn btn-default" style = "vertical-align: middle; clear:both "id="removeTriggerButton">Remove</button>
 
         </div>
         <div style = "float:left; height:1px; width:15px;"></div>
         <div style = "float:left">
-             <div style="clear:both; text-align:center">Loaded Triggers</div>
+             <h3 style="clear:both; text-align:center">Loaded Triggers</h3>
+             <br>
+             <br>
+
              <div class="selected-triggers trigger-list">Currently Loaded Triggers go here</div></div>
         </div>
     <div style=" clear:both; height:15px"></div>

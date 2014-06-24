@@ -9,13 +9,35 @@ define([
     'text!templates/triggerSelector/triggerListBox.html',
     'text!templates/triggerSelector/triggerSelectorRow.html'
 ], function ($, _, Backbone, triggerListBox, triggerSelectorRow) {
+
     var TriggerEditor = Backbone.View.extend({
+
         template: _.template(triggerListBox),
         initialize: function(params){
 
             this.collection  = params.triggers;
             this.collection.on('add', this.render, this);
             this.collection.on('remove', this.render, this)
+            var that = this;
+            this.$el.on('contextmenu', function(){
+                that.loadParents($("option:selected", that.$el)[0].value)
+
+
+            })
+            this.$el.on('dblclick', function(){
+                that.loadChildren($("option:selected", that.$el)[0].value)
+
+
+            })
+        },
+        loadChildren: function(snomed){
+            console.log(snomed)
+
+
+        },
+        loadParents: function(snomed){
+            console.log(snomed)
+
         },
         render: function(){
 
@@ -38,8 +60,8 @@ define([
             this.$el.html(this.template({listEntries:text}));
             return this;
         }
-    });
 
+    });
     return TriggerEditor;
 
 });
