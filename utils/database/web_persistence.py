@@ -49,6 +49,8 @@ Results = Enum('Results',
     passexpired
     userstate
     failedlogins
+    startdate
+    enddate
     recentkeys
 """)
 
@@ -75,12 +77,6 @@ def _prettify_name(s):
 
 def _prettify_sex(s):
     return str.title(s)
-
-
-def _prettify_date(s):
-    prsr = dateutil.parser()
-    d = prsr.parse(s)
-    return d.strftime("%A, %B %d, %Y")
 
 
 def _prettify_lengthofstay(s):
@@ -116,7 +112,7 @@ def _build_format(override={}):
     formatbykeymap = {
         Results.patientname: _prettify_name,
         Results.sex: _prettify_sex,
-        Results.encounter_date: _prettify_date,
+        #Results.encounter_date: _prettify_date,
         Results.lengthofstay: _prettify_lengthofstay,
     }        
     formatter = defaultdict(lambda: formatbytype,
@@ -158,8 +154,13 @@ class WebPersistence():
         return results
 
     @asyncio.coroutine
+    def update_password(self, user, newpw, timeout = '180d'):
+        yield from self.execute(["UPDATE users set (pw, pw_expiration) = (%s, now() + interval %s) where user_id = %s"],
+                                [newpw, timeout, user], {}, {})
+
+    @asyncio.coroutine
     def record_login(self, username, method, ip, authkey):
-        yield from self.execute(['INSERT INTO logins (user_name, method, logintime, ip, authkey) VALUES (%s, %s, now(), %s, %s);'],
+        yield from self.execute(['INSERT INTO logins (user_name, method, logintime, ip, authkey) VALUES (%s, %s, now(), %s, %s)'],
                                 [username, method, ip, authkey], {}, {})
 
     _default_pre_login = set((Results.username,))
@@ -397,9 +398,14 @@ class WebPersistence():
     _default_per_encounter = set((Results.encounterid,))
     _available_per_encounter = {
         Results.encounterid: "encounter.csn",
+        Results.startdate: 'min(hosp_admsn_time)',
+        Results.enddate: 'max(hosp_disch_time)',
+        Results.diagnosis: "'diagnosis'",
         Results.spending: "sum(mavenorder.order_cost)",
     }
-    _display_per_encounter = _build_format()
+    _display_per_encounter = _build_format({
+        Results.enddate: lambda x: x and _prettify_date(x),
+        })
         
     @asyncio.coroutine
     def per_encounter(self, desired, provider, customer, patients=[], encounter=None,

@@ -321,7 +321,7 @@ class HTTPProcessor(SP.StreamProcessor):
 
         if 'GET' in methods and not 'HEAD' in methods:
             methods.append('HEAD')
-        regexp = '(?:'+'|'.join(methods)+')\s+'+regexpstring
+        regexp = '(?:'+'|'.join(methods)+')\s+'+regexpstring + '$'
         self.handlers.append((re.compile(regexp), fn))
         #print(regexp)
         #print(re.match(regexp,b'GET /users/1 HTTP/1.0'))

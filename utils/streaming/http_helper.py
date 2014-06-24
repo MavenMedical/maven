@@ -45,7 +45,7 @@ class HTTPHelper:
 
     def limit_clause(self, matches):
         if len(matches)==2 and all(matches):
-            return " LIMIT %d OFFSET %d" % (matches[1]-matches[0], matches[0])
+            return " LIMIT %d OFFSET %d" % (int(matches[1])-int(matches[0]), int(matches[0]))
         else:
             return ""
 

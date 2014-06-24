@@ -77,6 +77,19 @@ class FrontendWebService(HTTP.HTTPProcessor):
         return HTTP.OK_RESPONSE, json.dumps(['Maven']), None
 
     @asyncio.coroutine
+    def hash_new_password(self, user, password):
+        if len(password) < 8:
+            raise LoginError('expiredPassword')
+        salt = bcrypt.gensalt(4)
+        ret = bcrypt.hashpw(bytes(password, 'utf-8'), salt)
+        try:
+            yield from self.persistence_interface.update_password(user, ret)
+        except:
+            import traceback
+            traceback.print_exc()
+            raise LoginError('expiredPassword')
+
+    @asyncio.coroutine
     def post_login(self, header, body, _qs, _matches, _key):
         info = json.loads(body.decode('utf-8'))
 
@@ -98,33 +111,38 @@ class FrontendWebService(HTTP.HTTPProcessor):
                 ]}
         attempted=None
         try:
+            method = 'failed'
             user_info = {}
             #if header.get_headers().get('VERIFIED','SUCCESS') == 'SUCCESS': 
             if user_and_pw:
                 attempted = info['user']
-                user_info = yield from self.persistence_interface.pre_login(desired, username=attempted)
+                try:
+                    user_info = yield from self.persistence_interface.pre_login(desired, username=attempted)
+                except IndexError:
+                    raise LoginError('badLogin')
                 passhash = user_info[WP.Results.password].tobytes()
-                if (not passhash or bcrypt.hashpw(bytes(info['password'], 'utf-8'), passhash[:29]) != passhash
-                   or user_info[WP.Results.passexpired]):
-                    raise LoginError
+                if not passhash or bcrypt.hashpw(bytes(info['password'], 'utf-8'), passhash[:29]) != passhash:
+                    raise LoginError('badLogin')
+                if user_info[WP.Results.passexpired]:
+                    yield from self.hash_new_password(user_info[WP.Results.userid], info.get('newpassword',''))
                 method = 'local'
             else:
                 attempted = [info['provider'], info['customer']]
                 try:  # this means that the password was a pre-authenticated link
                     AK.check_authorization(attempted, info['userAuth'], AUTH_LENGTH)
                 except AK.UnauthorizedException:
-                    raise LoginError
+                    raise LoginError('badLogin')
                 user_info = yield from self.persistence_interface.pre_login(desired, 
                                                                             provider=attempted,
                                                                             keycheck='1m')
                 method = 'forward'
                 # was this auth key used recently
                 if info['userAuth'] in user_info[WP.Results.recentkeys]:
-                    raise LoginError
+                    raise LoginError('reusedLogin')
 
             # make sure this user exists and is active
             if not user_info[WP.Results.userstate] == 'active':
-                raise LoginError
+                raise LoginError('disabledUser')
 
                 # at the point, the user has succeeded to login
             user = str(user_info[WP.Results.userid])
@@ -147,13 +165,12 @@ class FrontendWebService(HTTP.HTTPProcessor):
                     ['#rowD-1-1', 'costtable', 'costbreakdown-table.html'],
                     #['#rowD-1-1','costdonut','costbreakdown-donut.html'],
                     ['#rowE-1-1', 'spend_histogram'],
-                    ['#floating-right', 'alertList'],
+                    ['#floating-right', 'alertList', 'alertScroll.html'],
                     ], CONTEXT_KEY: user_auth}
             
             return HTTP.OK_RESPONSE, json.dumps(ret), None
-        except (LoginError, IndexError):
-            method = 'failed'
-            return HTTP.UNAUTHORIZED_RESPONSE, json.dumps({'loginTemplate': "badLogin.html"}), None
+        except LoginError as err:
+            return HTTP.UNAUTHORIZED_RESPONSE, json.dumps({'loginTemplate': err.args[0]+".html"}), None
         finally:
             yield from self.persistence_interface.record_login(attempted,
                                                                method, header.get_headers().get('X-Real-IP'),
@@ -301,7 +318,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
         }
 
         results = yield from self.persistence_interface.alerts(desired, provider, customer,
-                                                               patients=patients)
+                                                               patients=patients,
+                                                               limit=limit)
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
@@ -355,7 +373,12 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                                FrontendWebService.hist_spend_required_contexts,
                                                FrontendWebService.hist_spend_available_contexts)
 
-        desired = {WP.Results.spending: "spending"}
+        desired = {
+            WP.Results.spending: "spending",
+            WP.Results.startdate: "admission",
+            WP.Results.enddate: "discharge",
+            WP.Results.diagnosis: "diagnosis",
+        }
         results = yield from self.persistence_interface.per_encounter(desired,
                                                                       context.get(CONTEXT_PROVIDER),
                                                                       context.get(CONTEXT_CUSTOMERID),
