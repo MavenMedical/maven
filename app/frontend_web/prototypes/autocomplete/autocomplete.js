@@ -1,5 +1,5 @@
 $(function() {
-	$("#searchb").autocomplete({
+	$("#srch-patient").autocomplete({
 		source: "/ac/autocomplete",
 		    crossDomain:true,
 		    minLength: 2,

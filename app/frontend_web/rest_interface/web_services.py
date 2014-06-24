@@ -36,7 +36,8 @@ CONTEXT_ORDERTYPE = 'ordertype'
 CONTEXT_KEY = 'userAuth'
 CONTEXT_ENCOUNTER = 'encounter'
 CONTEXT_CUSTOMERID = 'customer_id'
-CONTEXT_PROVIDER = 'provider'
+CONTEXT_DIAGNOSIS = 'diagnosis'
+CONTEXT_PATIENTNAME = 'patientname'
 
 LOGIN_TIMEOUT = 60 * 60  # 1 hour
 AUTH_LENGTH = 44  # 44 base 64 encoded bits gives the entire 256 bites of SHA2 hash
@@ -64,6 +65,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
         self.add_handler(['GET'], '/alerts(?:/(\d+)-(\d+)?)?', self.get_alerts)  # REAL
         self.add_handler(['GET'], '/orders(?:/(\d+)-(\d+)?)?', self.get_orders)  # REAL
         self.add_handler(['GET'], '/autocomplete', self.get_autocomplete)  # FAKE
+        self.add_handler(['GET'], '/autocomplete_patient', self.get_autocomplete_patient)  # FAKE
+        self.add_handler(['GET'], '/autocomplete_diagnosis', self.get_autocomplete_diagnosis)  # FAKE
         self.add_handler(['GET'], '/hist_spending', self.get_hist_spend)
         self.helper = HH.HTTPHelper([CONTEXT_USER, CONTEXT_PROVIDER], CONTEXT_KEY, AUTH_LENGTH)
         self.persistence_interface = WP.WebPersistence(persistence_name)
@@ -74,7 +77,36 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
     @asyncio.coroutine
     def get_autocomplete(self, _header, _body, qs, _matches, _key):
+        print(qs)
         return HTTP.OK_RESPONSE, json.dumps(['Maven']), None
+
+    patient_name_required_contexts = [CONTEXT_PATIENTNAME, CONTEXT_PROVIDER, CONTEXT_CUSTOMERID]
+    patient_name_available_contexts = {CONTEXT_PATIENTNAME: str, CONTEXT_PROVIDER: str, CONTEXT_CUSTOMERID: int}
+
+    @asyncio.coroutine
+    def get_autocomplete_patient(self, _header, _body, qs, matches, _key):
+        context = self.helper.restrict_context(qs,
+                                               FrontendWebService.patient_name_required_contexts,
+                                               FrontendWebService.patient_name_available_contexts)
+
+        provider = context[CONTEXT_PROVIDER]
+        patientname = context[CONTEXT_PATIENTNAME]
+        customerid = context[CONTEXT_CUSTOMERID]
+        desired = {
+            WP.Results.patientname: 'name',
+        }
+        results = yield from self.persistence_interface.patient_info(desired, provider, customerid,
+                                                                     limit=self.helper.limit_clause(matches),
+                                                                     patient_name=patientname)
+
+        return HTTP.OK_RESPONSE, json.dumps(results), None
+
+        #return HTTP.OK_RESPONSE, json.dumps(['Maven']), None
+
+    @asyncio.coroutine
+    def get_autocomplete_diagnosis(self, _header, _body, qs, _matches, _key):
+
+        return HTTP.OK_RESPONSE, json.dumps(['MAVEN']), None
 
     @asyncio.coroutine
     def post_login(self, header, body, _qs, _matches, _key):
