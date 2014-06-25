@@ -102,10 +102,27 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
         #return HTTP.OK_RESPONSE, json.dumps(['Maven']), None
 
-    @asyncio.coroutine
-    def get_autocomplete_diagnosis(self, _header, _body, qs, _matches, _key):
+    diagnosis_required_contexts = [CONTEXT_DIAGNOSIS, CONTEXT_PROVIDER, CONTEXT_CUSTOMERID]
+    diagnosis_available_contexts = {CONTEXT_DIAGNOSIS: str, CONTEXT_PROVIDER: str, CONTEXT_CUSTOMERID: int}
 
-        return HTTP.OK_RESPONSE, json.dumps(['MAVEN']), None
+    @asyncio.coroutine
+    def get_autocomplete_diagnosis(self, _header, _body, qs, matches, _key):
+        context = self.helper.restrict_context(qs,
+                                               FrontendWebService.diagnosis_required_contexts,
+                                               FrontendWebService.diagnosis_available_contexts)
+
+        provider = context[CONTEXT_PROVIDER]
+        diagnosis = context[CONTEXT_DIAGNOSIS]
+        customerid = context[CONTEXT_CUSTOMERID]
+        desired = {
+            WP.Results.diagnosis: 'diagnosis',
+        }
+        """ NOT READY YET:
+        results = yield from self.persistence_interface.diagnosis_info(desired, provider, customerid, diagnosis=diagnosis,
+                                                                     limit=self.helper.limit_clause(matches),)
+        """
+        #return HTTP.OK_RESPONSE, json.dumps(results), None
+        return HTTP.OK_RESPONSE, json.dumps(['Alzheimer\'s','Diabetes']), None
 
     @asyncio.coroutine
     def hash_new_password(self, user, newpassword):
