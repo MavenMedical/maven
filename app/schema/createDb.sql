@@ -22,6 +22,8 @@ CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 
 COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 
+CREATE SCHEMA public AUTHORIZATION maven;
+
 -- Table: adt
 -- DROP TABLE: adt
 CREATE TABLE adt (
@@ -61,7 +63,7 @@ ALTER TABLE public.adt OWNER TO maven;
 -- Table: alert
 -- DROP TABLE alert;
 CREATE TABLE alert (
-  alert_id integer NOT NULL,
+  alert_id serial,
   customer_id numeric(18,0),
   provider_id character varying(18),
   pat_id character varying(100),
@@ -589,7 +591,7 @@ ALTER FUNCTION public.upsert_condition(pat_id1 character varying, customer_id1 n
 --
 -- Name: upsert_enc_order(numeric, character varying, character varying, character varying, character varying, character varying, character varying, ord_event, ord_source, character varying, character varying, character varying, character varying, numeric, timestamp without time zone); Type: FUNCTION; Schema: public; Owner: maven
 --
-CREATE OR REPLACE FUNCTION upsert_enc_order(customer_id1 numeric, order_id1 character varying, pat_id1 character varying, encounter_id1 character varying, ordering_provider_id1 character varying, auth_provider_id1 character varying, orderable_id1 character varying, status1 ord_event, source1 ord_source, code_id1 character varying, code_system1 character varying, order_name1 character varying, order_type1 character varying, order_cost1 numeric, order_datetime1 timestamp without time zone) RETURNS void
+CREATE OR REPLACE FUNCTION upsert_enc_order(customer_id1 numeric, order_id1 character varying, pat_id1 character varying, encounter_id1 character varying, ordering_provider_id1 character varying, auth_provider_id1 character varying, orderable_id1 character varying, status1 character varying, source1 character varying, code_id1 character varying, code_system1 character varying, order_name1 character varying, order_type1 character varying, order_cost1 numeric, order_datetime1 timestamp without time zone) RETURNS void
     LANGUAGE plpgsql
     AS $$
 BEGIN
@@ -615,7 +617,7 @@ BEGIN
   END LOOP;
 END;
 $$;
-ALTER FUNCTION public.upsert_enc_order(customer_id1 numeric, order_id1 character varying, pat_id1 character varying, encounter_id1 character varying, ordering_provider_id1 character varying, auth_provider_id1 character varying, orderable_id1 character varying, status1 ord_event, source1 ord_source, code_id1 character varying, code_system1 character varying, order_name1 character varying, order_type1 character varying, order_cost1 numeric, order_datetime1 timestamp without time zone) OWNER TO maven;
+ALTER FUNCTION public.upsert_enc_order(customer_id1 numeric, order_id1 character varying, pat_id1 character varying, encounter_id1 character varying, ordering_provider_id1 character varying, auth_provider_id1 character varying, orderable_id1 character varying, status1 character varying, source1 character varying, code_id1 character varying, code_system1 character varying, order_name1 character varying, order_type1 character varying, order_cost1 numeric, order_datetime1 timestamp without time zone) OWNER TO maven;
 
 
 --
