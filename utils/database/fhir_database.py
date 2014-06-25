@@ -126,27 +126,26 @@ def write_composition_conditions(composition, conn):
 @asyncio.coroutine
 def write_composition_encounter_orders(composition, conn):
     try:
-        pat_id = composition.subject.get_pat_id()
-        customer_id = composition.customer_id
-        encounter_id = composition.encounter.get_csn()
-        order_datetime = datetime.datetime.now()
-        orders = composition.get_encounter_orders()
-        for order in orders:
-            cmdargs = [customer_id,
-                       order.detail[0].type.coding[0].code,
-                       pat_id,
-                       encounter_id,
+        for order in composition.get_encounter_orders():
+            if isinstance(order.detail[0], FHIR_API.Procedure):
+                code_id = order.detail[0].type.coding[0].code
+            elif isinstance(order.detail[0], FHIR_API.Medication):
+                code_id = order.detail[0].code.coding[0].code
+            cmdargs = [composition.customer_id,
+                       order.detail[0].identifier[0].value,
+                       composition.subject.get_pat_id(),
+                       composition.encounter.get_csn(),
                        composition.get_author_id(),
                        composition.get_author_id(),
-                       order.detail[0].type.coding[0].code,
+                       order.get_orderable_ID()[0],
                        "created",
                        "webservice",
-                       order.detail[0].type.coding[0].code,
+                       code_id,
                        "clientEMR",
                        order.detail[0].text,
                        order.detail[0].resourceType,
-                       float(order.totalCost),
-                       order_datetime]
+                       order.totalCost,
+                       composition.lastModifiedDate]
 
             cur = yield from conn.execute_single("SELECT upsert_enc_order(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", extra=cmdargs)
 
@@ -208,48 +207,111 @@ def write_composition_alerts(composition, conn):
                 raise Exception("Error inserting Alerts into the database")
 
 @asyncio.coroutine
-def identify_encounter_orderables(composition, conn):
-
-    orders = composition.get_encounter_orders()
-    encounter_orders_code_summary = []
-
-    for order in orders:
-        order.totalCost = 0.00
-        order_details = composition.get_order_details(order)
-        for detail in order_details:
-            encounter_orders_code_summary.append({"code": detail[0],
-                                                  "system": detail[1],
-                                                  "name": detail[2]})
-
-    composition.section.append(FHIR_API.Section(title="Encounter Orders Code Summary", content=encounter_orders_code_summary,
-                                                code=FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(code="enc_ord_sum", system="maven")])))
+def identify_encounter_orderable(item=None, order=None, composition=None, conn=None):
 
     try:
         column_map = ["orderable_id",
+                      "system",
                       "name",
                       "description",
                       "ord_type",
-                      "base_cost",
-                      "cpt_code",
-                      "cpt_version"]
-        columns = DBMapper.select_rows_from_map(column_map)
-        cmdargs = [tuple([x['code'] for x in encounter_orders_code_summary]), composition.customer_id]
-        cmd = []
-        cmd.append("SELECT " + columns)
-        cmd.append("FROM orderable")
-        cmd.append("WHERE orderable_id IN %s AND customer_id=%s")
+                      "base_cost"]
 
-        cur = yield from conn.execute_single(' '.join(cmd), cmdargs)
+        if isinstance(item, FHIR_API.CodeableConcept):
+            column_map.extend(["cpt_code", "cpt_version", "rx_rxnorm_id", "rx_generic_name"])
+            columns = DBMapper.select_rows_from_map(column_map)
+            cmdargs = [tuple([(coding.code) for coding in item.coding]), composition.customer_id]
+            cmd = []
+            cmd.append("SELECT " + columns)
+            cmd.append("FROM orderable")
+            cmd.append("WHERE orderable_id IN %s AND customer_id=%s")
 
-        for result in cur:
-            order_detail = composition.get_encounter_order_detail_by_coding(code=result[0], code_system="clientEMR")
-            order_detail.text = result[2]
-            order_detail.type.text = result[3]
-            order_detail.base_cost = FHIR_API.round_up_five(result[4])
-            order_detail.type.coding.append(FHIR_API.Coding(code=result[5], system=result[6], display=result[1]))
+            cur = yield from conn.execute_single(' '.join(cmd), cmdargs)
+
+            for result in cur:
+                orderable_id, system, name, description, order_type, base_cost = _get_base_order_elements_from_DB_cursor_result(result)
+
+                if order_type == "Medication":
+                    original_coding = FHIR_API.Coding(code=orderable_id, system=system, display=name)
+                    rxnorm_coding = FHIR_API.Coding(code=result[8], system="rxnorm", display=name)
+                    rtn_FHIR_medication = FHIR_API.Medication(text=name,
+                                                       identifier=order.identifier,
+                                                       name=name,
+                                                       base_cost=base_cost,
+                                                       code=FHIR_API.CodeableConcept(coding=[original_coding, rxnorm_coding],
+                                                                                     text=order_type))
+                    return rtn_FHIR_medication
+
+                elif order_type in ["Procedure", "Lab"]:
+                    original_coding = FHIR_API.Coding(code=orderable_id, system=system, display=name)
+                    procedure_coding = FHIR_API.Coding(code=result[6], system=result[7], display=name)
+                    rtn_FHIR_procedure = FHIR_API.Procedure(text=name,
+                                                      identifier=order.identifier,
+                                                      name=name,
+                                                      base_cost=base_cost,
+                                                      type=FHIR_API.CodeableConcept(coding=[original_coding, procedure_coding],
+                                                                                    text=order_type))
+                    return rtn_FHIR_procedure
+
+        elif isinstance(item, FHIR_API.Procedure):
+            column_map.extend(["cpt_code", "cpt_version"])
+            columns = DBMapper.select_rows_from_map(column_map)
+            cmdargs = [tuple([(coding.code) for coding in item.type.coding]), composition.customer_id]
+            cmd = []
+            cmd.append("SELECT " + columns)
+            cmd.append("FROM orderable")
+            cmd.append("WHERE cpt_code IN %s AND customer_id=%s")
+
+            cur = yield from conn.execute_single(' '.join(cmd), cmdargs)
+
+            for result in cur:
+                orderable_id, system, name, description, order_type, base_cost = _get_base_order_elements_from_DB_cursor_result(result)
+                del item.type.coding[:]
+                item.type.coding.append(FHIR_API.Coding(code=result[6], system=result[7], display=name))
+                item.type.coding.append(FHIR_API.Coding(code=orderable_id, system=system, display=name))
+                item.identifier = order.identifier
+                item.type.text = order_type
+                item.base_cost = base_cost
+                item.name = name
+
+            return item
+
+        elif isinstance(item, FHIR_API.Medication):
+            column_map.extend(["rx_rxnorm_id", "rx_generic_name"])
+            columns = DBMapper.select_rows_from_map(column_map)
+            cmdargs = [tuple([(coding.code) for coding in item.code.coding]), composition.customer_id]
+            cmd = []
+            cmd.append("SELECT " + columns)
+            cmd.append("FROM orderable")
+            cmd.append("WHERE cpt_code IN %s AND customer_id=%s")
+
+            cur = yield from conn.execute_single(' '.join(cmd), cmdargs)
+
+            for result in cur:
+                orderable_id, system, name, description, order_type, base_cost = _get_base_order_elements_from_DB_cursor_result(result)
+                del item.code.coding[:]
+                item.code.coding.append(FHIR_API.Coding(code=result[6], system=result[7], display=name))
+                item.code.coding.append(FHIR_API.Coding(code=orderable_id, system=system, display=name))
+                item.code.text = order_type
+                item.identifier = order.identifier
+                item.base_cost = base_cost
+                item.name = name
+
+            return item
 
     except:
         raise Exception("Error identifying orderables")
+
+def _get_base_order_elements_from_DB_cursor_result(result):
+    orderable_id = result[0]
+    system = result[1]
+    name = result[2]
+    description = result[3]
+    order_type = result[4]
+    base_cost = FHIR_API.round_up_five(result[5])
+
+    return orderable_id, system, name, description, order_type, base_cost
+
 
 
 @asyncio.coroutine
@@ -282,7 +344,7 @@ def get_snomeds_and_append_to_encounter_dx(composition, conn):
         raise Exception("Error gathering SNOMED CT codes for Encounter Diagnoses")
 
 @asyncio.coroutine
-def get_duplicate_orders(enc_ord_summary_section, composition, conn):
+def get_duplicate_orders(composition, conn):
     """
     This function takes the "Maven Encounter Order Summary" Composition section (a list of tuples(code, code system)),
     runs a query against the database looking for orders up to a year ago, finds the intersection between the two,
@@ -297,40 +359,40 @@ def get_duplicate_orders(enc_ord_summary_section, composition, conn):
         twelve_hours_ago = datetime.datetime.now() - relativedelta(hours=12)
         one_year_ago = datetime.datetime.now() - relativedelta(years=1)
 
-        for order in enc_ord_summary_section.content:
-            column_map = ["order_ord.orderable_id",
-                          "orderable.system",
-                          "order_ord.order_id",
-                          "order_ord.encounter_id",
-                          "order_ord.order_name",
-                          "order_ord.order_datetime",
-                          "order_ord.order_type"]
-            columns = DBMapper.select_rows_from_map(column_map)
+        orderable_IDs_list = []
+        for order in composition.get_encounter_orders():
+            orderable_IDs_list.extend(order.get_orderable_ID())
 
-            cmd = []
-            cmdargs = [composition.customer_id,
-                       composition.subject.get_pat_id(),
-                       order['code'],
-                       one_year_ago,
-                       twelve_hours_ago]
-            cmd.append("SELECT " + columns)
-            cmd.append("FROM order_ord")
-            cmd.append("JOIN orderable on order_ord.orderable_id = orderable.orderable_id")
-            cmd.append("WHERE order_ord.customer_id=%s AND order_ord.pat_id=%s AND order_ord.orderable_id=%s AND order_ord.order_datetime > %s AND order_ord.order_datetime <= %s")
+        #for order in enc_ord_summary_section.content:
+        column_map = ["order_ord.orderable_id",
+                      "orderable.system",
+                      "order_ord.order_id",
+                      "order_ord.encounter_id",
+                      "order_ord.order_name",
+                      "order_ord.order_datetime",
+                      "order_ord.order_type"]
+        columns = DBMapper.select_rows_from_map(column_map)
+
+        cmd = []
+        cmdargs = [composition.customer_id,
+                   composition.subject.get_pat_id(),
+                   tuple(orderable_IDs_list),
+                   one_year_ago,
+                   twelve_hours_ago]
+        cmd.append("SELECT " + columns)
+        cmd.append("FROM order_ord")
+        cmd.append("JOIN orderable on order_ord.orderable_id = orderable.orderable_id")
+        cmd.append("WHERE order_ord.customer_id=%s AND order_ord.pat_id=%s AND order_ord.orderable_id IN %s AND order_ord.order_datetime > %s AND order_ord.order_datetime <= %s")
 
 
-            cur = yield from conn.execute_single(' '.join(cmd), cmdargs)
+        cur = yield from conn.execute_single(' '.join(cmd), cmdargs)
 
-            for result in cur:
-                rtn_duplicate_orders[(result[0], result[1])] = {"order_id": result[2],
-                                                                "encounter_id": result[3],
-                                                                "order_name": result[4],
-                                                                "date_time": result[5],
-                                                                "order_type": result[6]}
-
-        # DOH Moment Below...I don't need the intersection b/c the DB query is only selecting the ones that match anyway
-        # for ord in set(enc_ord_summary_section.content).intersection(set(list(previous_orders))):
-            #duplicate_orders[ord] = previous_orders[ord]
+        for result in cur:
+            rtn_duplicate_orders[(result[0], result[1])] = {"order_id": result[2],
+                                                            "encounter_id": result[3],
+                                                            "order_name": result[4],
+                                                            "date_time": result[5],
+                                                            "order_type": result[6]}
 
         return rtn_duplicate_orders
     except:
@@ -344,15 +406,11 @@ def get_observations_from_duplicate_orders(duplicate_orders, composition, conn):
     try:
         customer_id = composition.customer_id
         patient_id = composition.subject.get_pat_id()
-        alert_datetime = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-        rtn_duplicate_order_alerts = {"alert_type": "dup_order",
-                                      "alert_time": alert_datetime,
-                                      "alert_list": []}
 
         for ord in list(duplicate_orders):
+            observations = []
             order_code = ord[0]
             order_code_system = ord[1]
-            ord_detail = composition.get_encounter_order_detail_by_coding(code=order_code, code_system="clientEMR")
             order_id = duplicate_orders[ord]["order_id"]
             column_map = ["status",
                           "result_time",
@@ -364,10 +422,11 @@ def get_observations_from_duplicate_orders(duplicate_orders, composition, conn):
                           "name",
                           "external_name"]
             columns = DBMapper.select_rows_from_map(column_map)
+            cmdargs = [customer_id,
+                       patient_id,
+                       order_id]
+            cur = yield from conn.execute_single("select " + columns + " from observation where customer_id=%s and pat_id=%s and order_id=%s", extra=cmdargs)
 
-            cur = yield from conn.execute_single("select " + columns + " from observation where customer_id=%s and pat_id=%s and order_id=%s", extra=[customer_id, patient_id, order_id])
-
-            duplicate_order_observations = []
             for result in cur:
                 duplicate_order_observation = FHIR_API.Observation(status=result[0],
                                                                    appliesdateTime=result[1],
@@ -377,29 +436,14 @@ def get_observations_from_duplicate_orders(duplicate_orders, composition, conn):
                                                                    valueCodeableConcept=FHIR_API.CodeableConcept(coding=FHIR_API.Coding(system="http://loinc.org", code=result[6]),
                                                                                                                  text=result[7]),
                                                                    name=result[7])
+                observations.append(duplicate_order_observation)
 
-                ord_detail.relatedItem.append(duplicate_order_observation)
-                duplicate_order_observations.append(duplicate_order_observation)
+            if len(observations) > 0:
+                duplicate_orders[ord]['related_observations'] = observations
+            else:
+                del duplicate_orders[ord]
 
-            if len(duplicate_order_observations) > 0:
-                #Create a storeable text description of the related clinical observations list
-                long_description = ""
-                for observation in duplicate_order_observations:
-                    long_description += ("%s: %s %s (%s)" % (observation.name,
-                                                             observation.valueQuantity.value,
-                                                             observation.valueQuantity.units,
-                                                             observation.appliesdateTime))
-
-                FHIR_alert = FHIR_API.Alert(customer_id=customer_id, subject=patient_id, provider_id=composition.get_author_id(), encounter_id=composition.encounter.get_csn(),
-                                            code_trigger=order_code, code_trigger_type=order_code_system, alert_datetime=composition.lastModifiedDate,
-                                            short_title=("Duplicate Order: %s" % ord_detail.text), short_description="Clinical observations are available for a duplicate order recently placed.", long_description=long_description,
-                                            saving=16.14,
-                                            related_observations=duplicate_order_observations,
-                                            category="dup_order")
-                rtn_duplicate_order_alerts['alert_list'].append(FHIR_alert)
-
-        if len(rtn_duplicate_order_alerts['alert_list']) > 0:
-            return rtn_duplicate_order_alerts
+        return duplicate_orders
 
     except:
         raise Exception("Error extracting observations from duplicate lab orders")
@@ -410,13 +454,17 @@ def get_matching_CDS_rules(composition, conn):
 
     #Pull a list of all the SNOMED CT codes from all of the conditions in the composition
     encounter_snomedIDs = composition.get_encounter_dx_snomeds()
-    enc_ord_summary_section = composition.get_section_by_coding("maven", "enc_ord_sum")
+
+    #TODO
     patient_age = composition.get_patient_age()
 
+
+
     rtn_matched_rules = []
-    for enc_ord in enc_ord_summary_section.content:
-        args = [enc_ord['code'],
-                enc_ord['system'],
+    for enc_ord in composition.get_encounter_orders():
+        trigger_code = enc_ord.get_procedure_id_coding()
+        args = [trigger_code.code,
+                trigger_code.system,
                 patient_age,
                 composition.subject.gender,
                 encounter_snomedIDs,
@@ -428,11 +476,10 @@ def get_matching_CDS_rules(composition, conn):
 
         for result in cur:
             rtn_matched_rules.append(FHIR_API.Rule(rule_details=result[2],
-                                               CDS_rule_id=result[0],
-                                               code_trigger=enc_ord['code'],
-                                               code_trigger_type=enc_ord['system'],
-                                               name=result[1]))
-
+                                                   CDS_rule_id=result[0],
+                                                   code_trigger=trigger_code.code,
+                                                   code_trigger_type=trigger_code.system,
+                                                   name=result[1]))
     return rtn_matched_rules
 
 

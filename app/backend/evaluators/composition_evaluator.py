@@ -61,7 +61,7 @@ class CompositionEvaluator(SP.StreamProcessor):
         self._add_alerts_section(composition)
 
         #Identify Encounter Orderables
-        yield from FHIR_DB.identify_encounter_orderables(composition, self.conn)
+        yield from self.identify_encounter_orderables(composition)
 
         #Maven Transparency
         yield from self.evaluate_encounter_cost(composition)
@@ -70,7 +70,7 @@ class CompositionEvaluator(SP.StreamProcessor):
         yield from self.evaluate_duplicate_orders(composition)
 
         #Maven Alternative Meds
-        #yield from self.evaluate_alternative_meds(composition)
+        yield from self.evaluate_alternative_meds(composition)
 
         #Use the FHIR Database API to look up each Condition's codes (ICD-9) and add Snomed CT concepts to the Condition
         yield from FHIR_DB.get_snomeds_and_append_to_encounter_dx(composition, self.conn)
@@ -78,12 +78,46 @@ class CompositionEvaluator(SP.StreamProcessor):
         #Analyze Choosing Wisely/CDS Rules
         yield from self.evaluate_CDS_rules(composition)
 
+        #Write everything to persistent DB storage
         yield from FHIR_DB.write_composition_to_db(composition, self.conn)
+
+        #Send message back to data_router (or aggregate)
         self.write_object(composition, writer_key='aggregate')
+
+        #Debug Message
+        comp_json = json.dumps(composition, default=FHIR_API.jdefault, indent=4)
+        print(json.dumps(FHIR_API.remove_none(json.loads(comp_json)), default=FHIR_API.jdefault, indent=4))
 
     def _add_alerts_section(self, composition):
         composition.section.append(FHIR_API.Section(title="Maven Alerts", code=FHIR_API.CodeableConcept(text="Maven Alerts", coding=[FHIR_API.Coding(system="maven",
                                                                                                                                                      code="alerts")])))
+    ##########################################################################################
+    ##########################################################################################
+    ##########################################################################################
+    #####
+    ##### IDENTIFY INCOMING ENCOUNTER ORDERABLES
+    #####
+    ##########################################################################################
+    ##########################################################################################
+    ##########################################################################################
+    @asyncio.coroutine
+    def identify_encounter_orderables(self, composition):
+
+        for order in composition.get_encounter_orders():
+            #order_code_summary = self.get_code_summary_from_order(order)
+            detail_orders = []
+            for item in order.detail:
+                orderable = yield from FHIR_DB.identify_encounter_orderable(item, order, composition, self.conn)
+                detail_orders.append(orderable)
+
+            #TODO - Check to make sure duplicate codes that reference the same orderable don't result in duplicate FHIR Procedures/Medications
+
+            #Remove the placeholder(s) CodeableConcept/FHIR Procedure/FHIR Medication from the order.detail list
+            del order.detail[:]
+
+            #Add the fully-matched FHIR Procedure/Medication(s) to the Composition Order
+            for orderable in detail_orders:
+                order.detail.append(orderable)
 
     ##########################################################################################
     ##########################################################################################
@@ -94,39 +128,31 @@ class CompositionEvaluator(SP.StreamProcessor):
     ##########################################################################################
     ##########################################################################################
     ##########################################################################################
-
     @asyncio.coroutine
     def evaluate_encounter_cost(self, composition):
         """
-        Takes a FHIR Composition object, iterates through the Orders found in the "Encounter Orders"
-        Composition.section object, checks the costmap table for the cost-look-up, and then adds a
-        NEW section to Composition.section labeled "Encounter Cost Breakdown," which is a list of
-        {"order name": 807.13} tuples with order name and the price.
-
-        :param composition: FHIR Composition object created using Maven's FHIR API
+        :param composition: FHIR Composition object with fully identified FHIR Order objects (i.e. already run through order identifier
         """
 
         encounter_cost_breakdown = []
+        encounter_total_cost = 0
         for order in composition.get_encounter_orders():
-            total_cost = 0.00
+            order_total_cost = 0
             for order_detail in order.detail:
-                total_cost += order_detail.base_cost
-                coding = composition.get_coding(codeable_concept=order_detail.type, system="clientEMR")
+                order_total_cost += order_detail.base_cost
+                if isinstance(order_detail, FHIR_API.Procedure):
+                    codeable_concept = order_detail.type
+                elif isinstance(order_detail, FHIR_API.Medication):
+                    codeable_concept = order_detail.code
+                coding = composition.get_coding_from_codeable_concept(codeable_concept=codeable_concept, system=["clientEMR", "CPT", "rxnorm"])
                 encounter_cost_breakdown.append({"order_name": coding.display,
                                                  "order_cost": order_detail.base_cost,
-                                                 "order_type": order_detail.type.text})
+                                                 "order_type": order_detail.resourceType})
+            encounter_total_cost += order_total_cost
 
         if encounter_cost_breakdown is not None and len(encounter_cost_breakdown) > 0:
             alert_datetime = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-            total_cost = 0.00
-            for cost_detail in encounter_cost_breakdown:
-                total_cost += math.ceil(cost_detail['order_cost'])
-
-            customer_id = composition.customer_id
-            patient_id = composition.subject.get_pat_id()
-            provider_id = composition.get_author_id()
-            encounter_id = composition.encounter.get_csn()
-            short_title = ("Encounter Cost: %s" % total_cost)
+            short_title = ("Encounter Cost: %s" % encounter_total_cost)
 
             #Create a storeable text description of the cost breakdown details list
             long_description = ""
@@ -134,12 +160,13 @@ class CompositionEvaluator(SP.StreamProcessor):
                 long_description += ("%s: $%s\n" % (cost_element['order_name'], cost_element['order_cost']))
 
 
-            FHIR_alert = FHIR_API.Alert(customer_id=customer_id, subject=patient_id, provider_id=provider_id, encounter_id=encounter_id,
+            FHIR_alert = FHIR_API.Alert(customer_id=composition.customer_id, subject=composition.subject.get_pat_id(),
+                                        provider_id=composition.get_author_id(), encounter_id=composition.encounter.get_csn(),
                                         alert_datetime=alert_datetime, short_title=short_title, cost_breakdown=encounter_cost_breakdown, long_description=long_description)
 
             cost_alert = {"alert_type": "cost",
                           "alert_time" : alert_datetime,
-                          "total_cost": total_cost,
+                          "total_cost": encounter_total_cost,
                           "cost_details": encounter_cost_breakdown,
                           "alert_list": [FHIR_alert]}
 
@@ -160,14 +187,49 @@ class CompositionEvaluator(SP.StreamProcessor):
 
         #Check to see if there are exact duplicate orders (order code AND order code type)from within the last year
         enc_ord_summary_section = composition.get_section_by_coding(code_system="maven", code_value="enc_ord_sum")
-        duplicate_orders = yield from FHIR_DB.get_duplicate_orders(enc_ord_summary_section, composition, self.conn)
+        duplicate_orders = yield from FHIR_DB.get_duplicate_orders(composition, self.conn)
 
         if duplicate_orders is not None and len(duplicate_orders) > 0:
             #Check to see if there are relevant lab components to be displayed
-            duplicate_order_alerts = yield from FHIR_DB.get_observations_from_duplicate_orders(duplicate_orders, composition, self.conn)
+            duplicate_orders_with_observations = yield from FHIR_DB.get_observations_from_duplicate_orders(duplicate_orders, composition, self.conn)
 
-            alerts_section = composition.get_section_by_coding(code_system="maven", code_value="alerts")
-            alerts_section.content.append(duplicate_order_alerts)
+            if duplicate_orders_with_observations is not None and len(duplicate_orders_with_observations) > 0:
+                self._generate_duplicate_order_alerts(composition, duplicate_orders_with_observations)
+
+    def _generate_duplicate_order_alerts(self, composition, dup_ords_with_obs):
+        customer_id = composition.customer_id
+        patient_id = composition.subject.get_pat_id()
+        alert_datetime = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+        duplicate_order_alerts = {"alert_type": "dup_order",
+                                  "alert_time": alert_datetime,
+                                  "alert_list": []}
+
+        for ord in list(dup_ords_with_obs):
+            order_code = ord[0]
+            order_code_system = ord[1]
+            order_id = dup_ords_with_obs[ord]["order_id"]
+            ord_detail = composition.get_encounter_order_detail_by_coding(code=order_code, code_system="clientEMR")
+
+            #Create a storeable text description of the related clinical observations list
+            long_description = ""
+            for observation in dup_ords_with_obs[ord]['related_observations']:
+                ord_detail.relatedItem.append(observation)
+                long_description += ("%s: %s %s (%s)" % (observation.name,
+                                                         observation.valueQuantity.value,
+                                                         observation.valueQuantity.units,
+                                                         observation.appliesdateTime))
+
+            FHIR_alert = FHIR_API.Alert(customer_id=customer_id, subject=patient_id, provider_id=composition.get_author_id(), encounter_id=composition.encounter.get_csn(),
+                                        code_trigger=order_code, code_trigger_type=order_code_system, alert_datetime=composition.lastModifiedDate,
+                                        short_title=("Duplicate Order: %s" % ord_detail.text), short_description="Clinical observations are available for a duplicate order recently placed.", long_description=long_description,
+                                        saving=16.14,
+                                        related_observations=dup_ords_with_obs[ord]['related_observations'],
+                                        category="dup_order")
+            duplicate_order_alerts['alert_list'].append(FHIR_alert)
+
+
+        alerts_section = composition.get_section_by_coding(code_system="maven", code_value="alerts")
+        alerts_section.content.append(duplicate_order_alerts)
 
     ##########################################################################################
     ##########################################################################################
@@ -180,7 +242,7 @@ class CompositionEvaluator(SP.StreamProcessor):
     ##########################################################################################
     @asyncio.coroutine
     def evaluate_alternative_meds(self, composition):
-        raise NotImplementedError
+        pass
 
     ##########################################################################################
     ##########################################################################################
@@ -207,10 +269,10 @@ class CompositionEvaluator(SP.StreamProcessor):
                     cds_alerts.append(cds_alert)
 
         if cds_alerts is not None and len(cds_alerts) > 0:
-            composition_alerts_section = composition.get_alerts_section()
-            composition_alerts_section.content.append({"alert_type": "cds",
-                                                       "alert_time": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
-                                                       "alert_list": cds_alerts})
+            alerts_section = composition.get_section_by_coding(code_system="maven", code_value="alerts")
+            alerts_section.content.append({"alert_type": "cds",
+                                           "alert_time": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                                           "alert_list": cds_alerts})
 
     @asyncio.coroutine
     def _evaluate_CDS_rule_details(self, composition, rule):

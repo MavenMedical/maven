@@ -24,14 +24,18 @@ from decimal import Decimal
 import itertools
 from utils.api.pyfhir.pyfhir_datatypes_generated import *
 
+PROCEDURE_CODE_TERMINOLOGY = ["CPT", "cpt", "CPT4", "cpt4"]
 
 class Resource():
 
-    def __init__(self, customer_id=None, name_space=None, id=None, versionId=1, lastModifiedDate=None, identifier=None, text=None, resourceType=None):
+    def __init__(self, customer_id=None, name_space=None, id=None, versionId=1, lastModifiedDate=None, identifier=None, text=None, resourceType=None, name=None):
         self.customer_id = customer_id
         self.name_space = name_space
+        self.name = name
         if id is None:
             self.id = uuid.uuid1()
+        else:
+            self.id = id
         if versionId is None:
             self.version_id = versionId
         if lastModifiedDate is None:
@@ -42,6 +46,8 @@ class Resource():
             self.text = ""
         if identifier is None:
             self.identifier = []
+        else:
+            self.identifier = identifier
 
     def add_identifier(self, use=None, label=None, system=None, value=None, period=None, assigner=None):
         """
@@ -85,7 +91,8 @@ class Resource():
 
 def jdefault(o):
     if o is None:
-        return "None"
+        del o
+        return
     elif isinstance(o, datetime.datetime):
         return datetime.datetime.isoformat(o)
     elif hasattr(o, 'hex'):
@@ -94,6 +101,17 @@ def jdefault(o):
         if hasattr(o, '__dict__') and o is not None:
             return o.__dict__
 
+def remove_none(obj):
+  if isinstance(obj, (tuple, set)):
+    return type(obj)(remove_none(x) for x in obj if x is not None)
+  elif isinstance(obj, list):
+    return type(obj)(remove_none(x) for x in obj if x is not None and len(obj) > 0)
+  elif isinstance(obj, dict):
+    return type(obj)((remove_none(k), remove_none(v))
+      for k, v in obj.items() if k is not None and v is not None)
+
+  else:
+    return obj
 
 def round_up_five(x, base=5):
     return int(base * int(math.ceil(x / base)))
@@ -685,26 +703,16 @@ class Composition(Resource):
         if enc_orders_section.content is not None:
             return enc_orders_section.content
 
-    def get_alerts(self, type=None):
+    def get_encounter_order_by_uuid(self, id):
+        for order in self.get_encounter_orders():
+            if order.get_order_uuid() == id:
+                return order
+
+    def get_alerts_by_type(self, type=None):
         alerts_section = self.get_section_by_coding(code_system="maven", code_value="alerts")
         for alert in alerts_section.content:
             if alert['alert_type'] == type:
                 return alert
-
-    def get_order_details(self, order):
-        order_detail_list = []
-        for detail in order.detail:
-            #TODO - Hardcoded array index look-up will need to change in order to accommodate multiple charges per order
-            if detail.resourceType in ["Lab", "Procedure", "PROC"]:
-                for code in detail.type.coding:
-                    if code.system in ["clientEMR", "maven", "CPT4"]:
-                        order_detail_list.append([code.code, code.system, code.display])
-
-            elif detail.resourceType in ["Med", "Medication"]:
-                for code in detail.type.coding:
-                    if code.system in ["clientEMR", "maven", "NDC"]:
-                        order_detail_list.append([code.code, code.system, code.display])
-        return order_detail_list
 
     def get_encounter_conditions(self):
         enc_conditions_section = self.get_section_by_coding("http://loinc.org", "11450-4")
@@ -717,21 +725,6 @@ class Composition(Resource):
     def get_encounter_meds(self):
         raise NotImplementedError
 
-    def get_alerts_section(self):
-        for sec in self.section:
-            if sec.title == "Maven Alerts":
-                return sec
-        alerts_section = Section(title="Maven Alerts", content=[])
-        self.section.append(alerts_section)
-
-        return alerts_section
-
-    def get_encounter_cost_breakdown(self):
-        for sec in self.section:
-            if sec.title == "Encounter Cost Breakdown":
-                return sec
-        return None
-
     def get_author_id(self):
         for id in self.author.identifier:
             if id.system == "clientEMR":
@@ -740,18 +733,23 @@ class Composition(Resource):
     def get_encounter_order_detail_by_coding(self, code=None, code_system=None):
         for order in self.get_encounter_orders():
             for detail in order.detail:
-                for coding in detail.type.coding:
-                    if coding.code == code and coding.system == code_system:
-                        return detail
+                if isinstance(detail, Procedure):
+                    for coding in detail.type.coding:
+                        if coding.code == code and coding.system == code_system:
+                            return detail
+                elif isinstance(detail, Medication):
+                    for coding in detail.code.coding:
+                        if coding.code == code and coding.system == code_system:
+                            return detail
 
     def get_patient_age(self):
         birthdate = self.subject.birthDate
         now = datetime.datetime.now()
         return Decimal((now - birthdate).days / 365.2425)
 
-    def get_coding(self, codeable_concept=None, system=None):
+    def get_coding_from_codeable_concept(self, codeable_concept=None, system=None):
         for coding in codeable_concept.coding:
-            if coding.system == system:
+            if coding.system in system:
                 return coding
 
 
@@ -2455,12 +2453,14 @@ class Medication(Resource):
                  package_content_amount=None,
                  product_ingredient=None,
                  package_content=None,
+                 base_cost=None
                  ):
         Resource.__init__(self,
                           customer_id=customer_id,
                           name_space=name_space,
                           identifier=identifier,
                           id=id,
+                          name=name,
                           versionId=versionId,
                           resourceType=resourceType)
         self.text = text                                     # , Text summary of the resource, for human interpretation
@@ -2477,6 +2477,7 @@ class Medication(Resource):
         self.package_container = package_container                                     # , E.g. box, vial, blister-pack
         self.package_content_item = package_content_item                                     # , A product in the package
         self.package_content_amount = package_content_amount                                     # , How many are in the package?
+        self.base_cost = base_cost
         
         if product_ingredient is None:
             self.product_ingredient = []                                     # , { attb['short_desc'] }}
@@ -3240,6 +3241,32 @@ class Order(Resource):
         else:
             self.detail = detail
         
+    def get_order_uuid(self):
+        for id in self.identifier:
+            if id.system == "clientEMR" and id.label == "Internal":
+                return id.value
+
+    def get_orderable_ID(self):
+        for detail in self.detail:
+            if isinstance(detail, Procedure):
+                for coding in detail.type.coding:
+                    if coding.system == "clientEMR":
+                        return coding.code
+            elif isinstance(detail, Medication):
+                for coding in detail.code.coding:
+                    if coding.system == "clientEMR":
+                        return coding.code
+
+    def get_procedure_id_coding(self):
+        if isinstance(self.detail[0], Procedure):
+            for coding in self.detail[0].type.coding:
+                if coding.system == "CPT":
+                    return coding
+        if isinstance(self.detail[0], Medication):
+            for coding in self.detail[0].code.coding:
+                if coding.system == "rxnorm":
+                    return coding
+
 
 class DiagnosticOrder(Resource):
     """
@@ -3788,6 +3815,7 @@ class Procedure(Resource):
                  customer_id=None,
                  name_space=None,
                  id=None,
+                 name=None,
                  identifier=None,
                  versionId=None,
                  resourceType="Procedure",
@@ -3816,6 +3844,7 @@ class Procedure(Resource):
                           name_space=name_space,
                           identifier=identifier,
                           id=id,
+                          name=name,
                           versionId=versionId,
                           resourceType=resourceType)
         self.text = text                                     # , Text summary of the resource, for human interpretation
@@ -4812,9 +4841,9 @@ class Rule(Resource):
         self.drug_list_rules = []
 
         #extract the rule_details JSON object into respective lists of each type
-        self.extract_rule_details(self.rule_details)
+        self._extract_rule_details(self.rule_details)
 
-    def extract_rule_details(self, rule_details):
+    def _extract_rule_details(self, rule_details):
 
         for rule_detail in rule_details:
 

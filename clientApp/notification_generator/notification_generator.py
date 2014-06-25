@@ -135,7 +135,7 @@ class NotificationGenerator():
 
     def _generate_cost_alert_template_vars(self, composition):
 
-        cost_alert = composition.get_alerts(type="cost")
+        cost_alert = composition.get_alerts_by_type(type="cost")
 
         cost_alert_order_list = cost_alert['cost_details']
         total_cost = cost_alert['total_cost']
@@ -167,7 +167,7 @@ class NotificationGenerator():
         patient_id = composition.subject.get_pat_id()
 
         #composition_alert_section = composition.get_alerts_section()
-        CDS_alerts = composition.get_alerts(type="cds")
+        CDS_alerts = composition.get_alerts_by_type(type="cds")
 
         #check to see if there's anything in the list. Should probably move this to the FHIR api
         #if composition_alert_section is not None and len(composition_alert_section.content) > 0:
@@ -200,7 +200,7 @@ class NotificationGenerator():
         csn = urllib.parse.quote(composition.encounter.get_csn())
         patient_id = composition.subject.get_pat_id()
 
-        dup_order_alert_dict = composition.get_alerts(type="dup_ord")
+        dup_order_alert_dict = composition.get_alerts_by_type(type="dup_order")
         if dup_order_alert_dict is not None and len(dup_order_alert_dict['alert_list']) > 0:
             for alert in dup_order_alert_dict['alert_list']:
 
@@ -248,7 +248,7 @@ class NotificationGenerator():
         TEMPLATE2_FILE = "cost_alert2.html"
         template = templateEnv.get_template(TEMPLATE_FILE)
         template2 = templateEnv.get_template(TEMPLATE2_FILE)
-        cost_alert = composition.get_alerts(type="cost")
+        cost_alert = composition.get_alerts_by_type(type="cost")
         templateVars = self._generate_cost_alert_template_vars(composition)
         notification_body = template.render(templateVars)
 
@@ -268,7 +268,7 @@ class NotificationGenerator():
         patient_id = composition.subject.get_pat_id()
 
         #composition_alert_section = composition.get_alerts_section()
-        CDS_alerts = composition.get_alerts(type="CDS_alerts")
+        CDS_alerts = composition.get_alerts_by_type(type="CDS_alerts")
 
         #check to see if there's anything in the list. Should probably move this to the FHIR api
         #if composition_alert_section is not None and len(composition_alert_section.content) > 0:
