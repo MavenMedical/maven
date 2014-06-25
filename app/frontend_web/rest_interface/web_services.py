@@ -22,7 +22,7 @@ import bcrypt
 import utils.crypto.authorization_key as AK
 import maven_logging as ML
 import maven_config as MC
-
+import re
 
 CONFIG_PERSISTENCE = 'persistence'
 
@@ -77,11 +77,11 @@ class FrontendWebService(HTTP.HTTPProcessor):
         return HTTP.OK_RESPONSE, json.dumps(['Maven']), None
 
     @asyncio.coroutine
-    def hash_new_password(self, user, password):
-        if len(password) < 8:
+    def hash_new_password(self, user, newpassword):
+        if len(newpassword) < 8 or not re.search("[0-9]",newpassword) or not re.search("[a-z]",newpassword) or not re.search("[A-Z]",newpassword):
             raise LoginError('expiredPassword')
         salt = bcrypt.gensalt(4)
-        ret = bcrypt.hashpw(bytes(password, 'utf-8'), salt)
+        ret = bcrypt.hashpw(bytes(newpassword, 'utf-8'), salt)
         try:
             yield from self.persistence_interface.update_password(user, ret)
         except:
@@ -123,7 +123,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
                 passhash = user_info[WP.Results.password].tobytes()
                 if not passhash or bcrypt.hashpw(bytes(info['password'], 'utf-8'), passhash[:29]) != passhash:
                     raise LoginError('badLogin')
-                if user_info[WP.Results.passexpired]:
+                if user_info[WP.Results.passexpired] or 'newpassword' in info:
                     yield from self.hash_new_password(user_info[WP.Results.userid], info.get('newpassword',''))
                 method = 'local'
             else:
