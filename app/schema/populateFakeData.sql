@@ -36,66 +36,12 @@ INSERT INTO department(
     VALUES (3049173412, 'JHU 4S MED/SURG', 'Med/Surg', 'Main Campus', 2);
 
 
-
-
---
--- Add some fake historical procedure data
---
-INSERT INTO medicalprocedure(
-            proc_id, customer_id, proc_name, cpt_code, base_charge, rvu_work_compon,
-            rvu_overhd_compon, rvu_malprac_compon, rvu_total_no_mod)
-    VALUES (900601, 2, 'JJB BLOOD DRAW A', '36415', '13.79', NULL,
-            NULL, NULL, NULL);
-
-
 --
 -- Add some fake historical patients
 --
 INSERT INTO patient(
             pat_id, customer_id, birthdate, sex, mrn, patname, cur_pcp_prov_id)
     VALUES ('1296573026', 2, '1982-10-02', 'Male', '157662', 'Aardvark, Adam', '');
-
-
-
---
--- Populate costmap table with data
---
-INSERT INTO costmap(dep_id, customer_id, billing_code, code_type, cost_amt,
-            cost_type)
-    VALUES (286, 1, '2', 'maven', 16.14,
-            'med');
-
-INSERT INTO costmap(dep_id, customer_id, billing_code, code_type, cost_amt,
-            cost_type)
-    VALUES (286, 1, '3', 'maven', 519.14,
-            'med');
-
-INSERT INTO costmap(dep_id, customer_id, billing_code, code_type, cost_amt,
-            cost_type)
-    VALUES (286, 1, '76370', 'maven', 807.00,
-            'imaging');
-
-
-INSERT INTO sleuth_rule(
-            rule_id, customer_id, dep_id, code_trigger, code_trigger_type,
-            name, tag_line, description, rule_details)
-    VALUES (1, 1, 286, '76370', 'CPT',
-            'Sinusitis', 'Dont order CT Scans for uncomplicated acute sinusitis', 'Viral infections cause the majority of acute rhinosinusitis and only 0.5-2 percent progress to bacterial infections', '{"details":
-    [
-        {"type": "encounter_dx", "exists": true, "snomed": 36971009},
-        {"type": "encounter_dx", "exists": false, "snomed": 40055000},
-        {"type": "encounter_dx", "exists": false, "snomed": 195788001},
-        {"type": "encounter_dx", "exists": false, "snomed": 425011002},
-        {"type": "encounter_dx", "exists": false, "snomed": 371127003},
-        {"type": "encounter_dx", "exists": false, "snomed": 232390009},
-        {"type": "encounter_dx", "exists": false, "snomed": 86406008},
-        {"type": "problemlist_dx", "exists": false, "snomed": 86406008},
-        {"type": "problemlist_dx", "exists": false, "snomed": 414030009},
-        {"type": "problemlist_dx", "exists": false, "snomed": 190905008},
-        {"type": "lab", "exists": true, "snomed": "43396009", "start": "-30", "end": "0", "operator": "<", "value": "8"},
-        {"type": "med", "exists": false, "rxnorm": "1"}
-    ]
-}');
 
 
 --
@@ -117,33 +63,47 @@ INSERT INTO observation(
             comments, numeric_result, units, reference_low, reference_high,
             reference_unit, method, loinc_code, snomed_id, code_id, code_system,
             name, component_id, external_name, base_name, common_name)
-    VALUES (1, '5|76|3140325', 3, '1235412', 'final', '2014-05-25T14:22:00',
+    VALUES (1, '5|76|3140325', '142', '1235412', 'final', '2014-05-25T14:22:00',
             'Hemoglobin A1c is relatively low for this patient', 7.4, '%', 1, 16,
             '%', NULL, '4548-4', NULL, NULL, NULL,
             'Hemoglobin A1c', 1209479872, 'Hb A1c', 'Hb A1c', 'Hemoglobin A1c');
 
 
 --
--- Populate alert table
+-- Populate Orderable table with some data
 --
-INSERT INTO alert(
-            customer_id, provider_id, pat_id, encounter_id, category,
-            status, order_id, code_trigger, code_trigger_type, cds_rule,
-            alert_datetime, short_title, long_title, short_desc, long_desc,
-            outcome, saving)
-    VALUES (1,'JHU1093124','1235412','5|76|3140325','cost',NULL,NULL,NULL,NULL,NULL,'2014-06-12 17:23:49','Encounter Cost: 1350.0',NULL,NULL,'IMMUNOGLOBULINS: $20 CEFIXIME TAB : $520 CT SINUS COMPLETE W/O CONTRAST: $810',NULL,NULL);
+INSERT INTO orderable(
+            customer_id, orderable_id, system, name, description, status,
+            ord_type, source, base_cost, cpt_code, cpt_version, proc_rvu_work_comp,
+            proc_rvu_overhd_comp, proc_rvu_malprac_comp, proc_rvu_total_no_mod,
+            rx_rxnorm_id, rx_generic_name, rx_strength, rx_form, rx_route,
+            rx_thera_class, rx_pharm_class, rx_pharm_subclass, rx_simple_generic)
+    VALUES (1, '5', 'clientEMR', 'CT SINUS COMPLETE W/O CONTRAST', NULL, 'active',
+            'Imaging', NULL, 807.00, '76370', 'CPT', NULL,
+            NULL, NULL, NULL,
+            NULL, NULL, NULL, NULL, NULL,
+            NULL, NULL, NULL, NULL);
 
-INSERT INTO alert(
-            customer_id, provider_id, pat_id, encounter_id, category,
-            status, order_id, code_trigger, code_trigger_type, cds_rule,
-            alert_datetime, short_title, long_title, short_desc, long_desc,
-            outcome, saving)
-    VALUES (1,'JHU1093124','1235412','5|76|3140325','dup_ord',NULL,NULL,'3','maven',NULL,'2014-06-12 17:23:49.835404','Duplicate Order: CEFIXIME TAB ','','Clinical observations are available for a duplicate order recently placed.','Hemoglobin A1c: 7.4 % (2014-05-25 14:22:00)',NULL,16.14);
+INSERT INTO orderable(
+            customer_id, orderable_id, system, name, description, status,
+            ord_type, source, base_cost, cpt_code, cpt_version, proc_rvu_work_comp,
+            proc_rvu_overhd_comp, proc_rvu_malprac_comp, proc_rvu_total_no_mod,
+            rx_rxnorm_id, rx_generic_name, rx_strength, rx_form, rx_route,
+            rx_thera_class, rx_pharm_class, rx_pharm_subclass, rx_simple_generic)
+    VALUES (1, '2', 'clientEMR', 'IMMUNOGLOBULINS', NULL, 'active',
+            'Lab', NULL, 16.14, '82784', 'CPT', NULL,
+            NULL, NULL, NULL,
+            NULL, NULL, NULL, NULL, NULL,
+            NULL, NULL, NULL, NULL);
 
-
-INSERT INTO alert(
-            customer_id, provider_id, pat_id, encounter_id, category,
-            status, order_id, code_trigger, code_trigger_type, cds_rule,
-            alert_datetime, short_title, long_title, short_desc, long_desc,
-            outcome, saving)
-    aVALUES (1,'JHU1093124','1235412','5|76|3140325','cds',NULL,NULL,'76370',NULL,1,'2014-06-12 17:23:49.908729','Sinusitis','Dont order CT Scans for uncomplicated acute sinusitis','','Viral infections cause the majority of acute rhinosinusitis and only 0.5-2 percent progress to bacterial infections',NULL,807.12);
+INSERT INTO orderable(
+            customer_id, orderable_id, system, name, description, status,
+            ord_type, source, base_cost, cpt_code, cpt_version, proc_rvu_work_comp,
+            proc_rvu_overhd_comp, proc_rvu_malprac_comp, proc_rvu_total_no_mod,
+            rx_rxnorm_id, rx_generic_name, rx_strength, rx_form, rx_route,
+            rx_thera_class, rx_pharm_class, rx_pharm_subclass, rx_simple_generic)
+    VALUES (1, '3', 'clientEMR', 'CEFIXIME TAB', NULL, 'active',
+            'Medication', NULL, 519.14, NULL, NULL, NULL,
+            NULL, NULL, NULL,
+            '25033', NULL, NULL, NULL, NULL,
+            NULL, NULL, NULL, NULL);
