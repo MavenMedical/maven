@@ -23,7 +23,7 @@
     <link href="css/style1.css" rel="stylesheet" type="text/css" title='original'>
   </head>
 
-  <body style="background-color: white">
+  <body>
 
    <div style ="text-align: center; font-size:360%; color: #0000ff;">Maven Medical Rule Editor</div>
     <div id="detail-modal" class="modal fade" role="edit" >
@@ -35,20 +35,22 @@
             </div>
          </div>
      </div>
-
-        <div style = "float:left"  id="rule-list"></div>
-        <div style ="float:left">
-             <div style= "clear:both" id="rule-overview"></div>
-             <div style= "clear:both" id="trigger-editor"></div>
+     <div style = "float: left" id="rule-list"></div>
+    <div style="">
+     <div class="bs-example bs-example-tabs center" style = "text-align: center; float: left">
+          <ul id="myTab"  class=" center nav nav-tabs">
+              <li class="active"><a id="hide-overview" href="#Overview-Tab" data-toggle="tab">Overview</a></li>
+              <li class=""><a id="hide-trigger" href="#Trigger-Editor-Tab" data-toggle="tab">Triggers</a></li>
+              <li class=""><a id="hide-detail" href="#Detail-Editor-Tab" data-toggle="tab">Details</a></li>
+              <li class=""><a id="hide-evidence" href="#Evidence-Editor-Tab" data-toggle="tab">Evidence</a></li>
+          </ul>
+        <div id="myTabContent" class="tab-content">
+             <div class="tab-pane fade active in" id="Overview-Tab"><div id="rule-overview"></div></div>
+             <div class="tab-pane fade active in" id="Trigger-Editor-Tab"><div id="trigger-editor"></div></div>
+             <div class="tab-pane fade active in" id="Detail-Editor-Tab"><div id="detail-list"></div></div>
+             <div class="tab-pane fade active in" id="Evidence-Editor-Tab"> <div id="evi-list"></div></div>
         </div>
-
-        <div style = "float:left" id="detail-list"></div>
-           <div style = "float:left" id="evi-list"></div>
-
-
-        </div>
-
-   <div id="main-content"></div>
-
+     </div>
+    </div>
   </body>
 </html>

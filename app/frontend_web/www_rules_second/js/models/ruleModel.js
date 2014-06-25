@@ -44,20 +44,15 @@ define([
       ruleModel.clear({silent:true});
       trig_temp.set([], {silent:true});
       contextModel.set('showTriggerEditor', false);
-      ruleModel.set('triggers', trig_temp);
+      ruleModel.set({triggers: trig_temp} , {silent: true});
       ruleModel.set({triggerType: 'proc', genders:'MF', minAge:'0', maxAge:'200'}, {silent:true});
 
 
 
     },
     getNewRule: function(name){
-      var trig_temp = ruleModel.get('triggers');
-      trig_temp.set([], {silent:true});
-      ruleModel.clear({silent:true});
-      ruleModel.set({name:name}, {silent:true});
-      ruleModel.set('triggers', trig_temp);
-      ruleModel.set({triggerType: 'proc', genders:'MF', minAge:'0', maxAge:'200'}, {silent:true});
-
+      ruleModel.clearData();
+      ruleModel.set({name: name}, {silent: true});
       ruleModel.save();
 
     },

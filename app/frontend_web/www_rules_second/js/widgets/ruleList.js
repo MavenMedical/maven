@@ -50,15 +50,16 @@ define([
 	    }
 	},
 	events: {
-	    "click #addRuleButton" : "createRule"
+	    "click #addRuleButton" : "createRule",
+        "contextmenu #addRuleButton": function(){
+            alert("21213");
+        }
 	},
 	createRule: function() {
 
          var name = prompt('Enter the new name for the rule');
                if (name){
                    curRule.getNewRule(name);
-
-
                }
 	}
     });
