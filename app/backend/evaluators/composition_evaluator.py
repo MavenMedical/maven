@@ -104,11 +104,8 @@ class CompositionEvaluator(SP.StreamProcessor):
     def identify_encounter_orderables(self, composition):
 
         for order in composition.get_encounter_orders():
-            #order_code_summary = self.get_code_summary_from_order(order)
-            detail_orders = []
-            for item in order.detail:
-                orderable = yield from FHIR_DB.identify_encounter_orderable(item, order, composition, self.conn)
-                detail_orders.append(orderable)
+
+            detail_orders = yield from [(yield from FHIR_DB.identify_encounter_orderable(item, order, composition, self.conn)) for item in order.detail]
 
             #TODO - Check to make sure duplicate codes that reference the same orderable don't result in duplicate FHIR Procedures/Medications
 
@@ -116,8 +113,7 @@ class CompositionEvaluator(SP.StreamProcessor):
             del order.detail[:]
 
             #Add the fully-matched FHIR Procedure/Medication(s) to the Composition Order
-            for orderable in detail_orders:
-                order.detail.append(orderable)
+            order.detail.extend(detail_orders)
 
     ##########################################################################################
     ##########################################################################################
@@ -186,7 +182,6 @@ class CompositionEvaluator(SP.StreamProcessor):
     def evaluate_duplicate_orders(self, composition):
 
         #Check to see if there are exact duplicate orders (order code AND order code type)from within the last year
-        enc_ord_summary_section = composition.get_section_by_coding(code_system="maven", code_value="enc_ord_sum")
         duplicate_orders = yield from FHIR_DB.get_duplicate_orders(composition, self.conn)
 
         if duplicate_orders is not None and len(duplicate_orders) > 0:
