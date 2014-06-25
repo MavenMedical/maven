@@ -22,7 +22,15 @@ CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 
 COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 
-CREATE SCHEMA public AUTHORIZATION maven;
+-- Schema: public
+
+-- DROP SCHEMA public;
+
+CREATE SCHEMA public
+  AUTHORIZATION postgres;
+
+GRANT ALL ON SCHEMA public TO maven;
+GRANT ALL ON SCHEMA public TO public;
 
 -- Table: adt
 -- DROP TABLE: adt
