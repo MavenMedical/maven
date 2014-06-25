@@ -20,16 +20,16 @@ define([
     
     var CheckLogin = function() {
 	if (!currentContext.get('user') || !currentContext.get('userAuth')) {
-	    new Login({el: '#modal-target'})
+	    new Login({el: '#login-modal'})
 	    return false;
 	}
 	return true;
     };
     
-    var showPage = function(user, userAuth) {
-	if(user && user != currentContext.get('user')) {
+    var showPage = function(provider, customer, userAuth) {
+	if(provider && !currentContext.get('user')) {
 	    console.log('pre-authenticated login');
-	    currentContext.setUser(user,userAuth, Backbone.history.fragment);
+	    currentContext.setProvider(provider, customer, userAuth);
 	} else {
 	    if (CheckLogin()) {
 		console.log('showing page '+currentContext.get('page'));
@@ -43,31 +43,31 @@ define([
     
     var AppRouter = Backbone.Router.extend({
 	routes: {
-	    "(/login/:user/:userAuth)": 'showHome',
-	    "patient/:id(/login/:user/:userAuth)": 'showPatient',
-	    "episode/:id/patient/:id(/login/:user/:userAuth)": 'showEpisode',
-	    "evidence/:id/patient/:id/evi/:id(/login/:user/:userAuth)": 'showEvidence',
+	    "(/login/:provider/:customer/:userAuth)": 'showHome',
+	    "patient/:id(/login/:provider/:customer/:userAuth)": 'showPatient',
+	    "episode/:id/patient/:id(/login/:provider/:customer/:userAuth)": 'showEpisode',
+	    "evidence/:id/patient/:id/evi/:id(/login/:provider/:customer/:userAuth)": 'showEvidence',
 	    "logout": 'logout',
 	    //default
 	    '*action': 'defaultAction'
 	},
-	showHome: function (user, userAuth) {
+	showHome: function (provider, customer, userAuth) {
 	    /* remove the current patient list, encounter, etc to revert the view to the doctor's user page */
 	    currentContext.set({page:'home',patients:null,encounter:null,patientName:null});
-	    showPage(user, userAuth);
+	    showPage(provider, customer, userAuth);
 	},
-	showPatient: function (patid, user, userAuth) {
+	showPatient: function (patid, provider, customer, userAuth) {
 	    currentContext.set({page:'patient', encounter:null, patients:patid});
-	    showPage(user, userAuth);
+	    showPage(provider, customer, userAuth);
 	},
-	showEpisode: function(enc, pat, user, userAuth){
+	showEpisode: function(enc, pat, provider, customer, userAuth){
 	    currentContext.set({page:'episode',encounter:enc,patients:pat});
-	    showPage(user, userAuth);
+	    showPage(provider, customer, userAuth);
 	},
-	showEvidence: function (enc, pat, evi, user, userAuth) {
+	showEvidence: function (enc, pat, evi, provider, customer, userAuth) {
 	    currentContext.set({page:'episode',encounter:enc,patients:pat});
-	    if(user && user != currentContext.get('user')) {
-		currentContext.setUser(user,userAuth, Backbone.history.fragment);
+	    if(provider && provider != currentContext.get('user')) {
+		currentContext.setProvider(provider, customer, userAuth);
 	    } else {
 		if(CheckLogin()) {
 		    var evidence = new Evidence({'evi':evi});

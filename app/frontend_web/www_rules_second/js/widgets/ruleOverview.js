@@ -26,6 +26,35 @@ define([
             curRule.save();
         }
     }
+    var editMinAge = function(){
+        var minAge = prompt("Enter The New Minimum Age");
+        if (minAge){
+            curRule.set('minAge', minAge);
+            curRule.save();
+        }
+    }
+    var editMaxAge = function(){
+        var maxAge = prompt("Enter The New Maximum Age");
+        if (maxAge){
+            curRule.set('maxAge', maxAge);
+            curRule.save();
+        }
+    }
+    var editGenders = function(){
+        var genders = prompt("Enter The New Genders (M, F, MF)");
+        if (genders){
+            curRule.set('genders', genders);
+            curRule.save();
+        }
+    }
+    var editTriggerType = function(){
+            var type = prompt("Enter the New Trigger Type (proc, drug) WARNING: Changing Type Will Clear All Triggers")
+            if ((type == 'proc' || type == 'drug') && type!=curRule.get('type')){
+                curRule.set('triggerType', type);
+               // curRule.save();
+
+            }
+    }
     var RuleOverview = Backbone.View.extend({
         template: _.template(ruleOverviewTemplate),
         updateOverview: function(){
@@ -38,8 +67,8 @@ define([
             }
         },
         initialize: function(){
-            curRule.on('change:id', this.updateOverview, this)
-            curRule.on('change:name', this.updateOverview, this)
+            curRule.on('change', this.updateOverview, this)
+
             curRule.get('triggers').on('add', this.updateOverview, this)
             curRule.get('triggers').on('remove', this.updateOverview, this)
             curCollection.on('remove', function(removed){
@@ -79,8 +108,12 @@ define([
         },
 	events: {
 	    "click #EditTriggersButton" : showTriggerEditor,
-        "click #nameTag" : editName
-	}
+        "click #nameTag" : editName,
+        "click #minAgeTag": editMinAge,
+        "click #maxAgeTag": editMaxAge,
+        "click #genderTag": editGenders,
+        "click #triggerTag": editTriggerType
+	    }
     });
 
     return RuleOverview;

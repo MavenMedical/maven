@@ -38,28 +38,9 @@ define([
                 $('#costbd-restriction')[0].innerHTML = '';
             }
 
-            var colorArray = [];
-            var gathered = {};
-            var data = [];
-
-            for (var d in spendingModel.attributes) {
-                if (Date.parse(d)) {
-                    var date = new Date(d);
-                    if (!datefilter ||
-                        (date.getFullYear() == datefilter.getFullYear() &&
-                            date.getMonth() == datefilter.getMonth() &&
-                            date.getDate() == datefilter.getDate())) {
-                        var days_spend = spendingModel.get(d);
-                        for (var t in days_spend) {
-                            var base = days_spend[t];
-                            if (t in gathered) {
-                                base = base + gathered[t];
-                            }
-                            gathered[t] = base;
-                        }
-                    }
-                }
-            }
+	    var colorArray = [];
+	    var data = [];
+	    var gathered = spendingModel.getGathered();
             for (var k in gathered) {
                 data.push({order: k, cost: gathered[k], color:findColor(k)});
                 colorArray.push(findColor(k));
@@ -80,6 +61,9 @@ define([
             $('#order-table-2').empty();
             $('.progress').empty();
 
+	    var curTitle = null;
+	    var overlist = false;
+	    var maybeHide;
             var flag = true;
             data.forEach(function (entry) {
                 //fill order-table
@@ -88,7 +72,9 @@ define([
                 var lable = $('<span>'+entry.order+'</span>');
                 var container = $('<div>').attr('class', 'row');
                 var subcontainer = $('<div>').attr('class', 'col-sm-2');
-
+		
+		container.mouseover(function() {curTitle = entry.order;});
+		container.mouseleave(function() {curTitle=null; setTimeout(maybeHide,500);});
                 //image
                 $('<div>').attr('class', 'col-sm-3').append(image).appendTo(container);
                 //cost
@@ -113,6 +99,43 @@ define([
                     $('<div id="'+entry.order+'" class="progress-bar bgcolor-'+entry.order.toLowerCase()+'">')
                         .attr('style','width: '+percentage+'%').append(percentage+'%'));
             });
+
+	    var mousepos;
+	    var orderList = new OrderList({
+		template:'<div class="panel-group orderaccordion"> </div>',
+		el:$('#mouse-target'),
+		typeFilter: 'doesnotexist',
+		title: null,
+	    });
+	    maybeHide = function() {
+		if(curTitle == null && !overlist) {
+		    orderList.title = null;
+		    orderList.$el.hide();
+		    orderList.typeFilter = 'does not exist';
+		    overlist = false;
+		}
+	    }
+	    //chart.addListener("rollOverSlice", function(evt) {curTitle = evt.dataItem;});
+	    //chart.addListener("rollOutSlice", function() {
+//		curTitle = null;
+//		setTimeout(maybeHide,500);
+//	    });
+	    $(orderList.el).mouseover(function() {overlist=true});
+	    $(orderList.el).mouseleave(function() {overlist=false; setTimeout(maybeHide,500);});
+	    $(this.el).mousemove(function(e) {mousepos=e;});
+	    $(this.el).mousestop(1000, function(e) {
+		if(curTitle) {
+		    orderList.$el[0].style.left = (mousepos.pageX+10)+'px';
+		    orderList.$el[0].style.top = (mousepos.pageY-50)+'px';
+		    if(curTitle != orderList.title) {
+			orderList.slice = curTitle;
+			orderList.typeFilter = curTitle;
+			orderList.addAll();
+		    }
+		}
+		    
+	    });
+
         },
         handleClick: function(e){
             var element = $(e.currentTarget);

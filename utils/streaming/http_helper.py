@@ -20,7 +20,7 @@ class HTTPHelper:
         if not self.context_key in qs:
             raise HTTP.UnauthorizedRequest('User is not logged in.')
         try:
-            print([qs[x][0] for x in self.contexts_user])
+#            print([qs[x][0] for x in self.contexts_user])
             AK.check_authorization([qs[x][0] for x in self.contexts_user], qs[self.context_key][0], self.auth_length)
         except AK.UnauthorizedException as ue:
             raise HTTP.UnauthorizedRequest(str(ue))
@@ -45,7 +45,7 @@ class HTTPHelper:
 
     def limit_clause(self, matches):
         if len(matches)==2 and all(matches):
-            return " LIMIT %d OFFSET %d" % (matches[1]-matches[0], matches[0])
+            return " LIMIT %d OFFSET %d" % (int(matches[1])-int(matches[0]), int(matches[0]))
         else:
             return ""
 

@@ -7,29 +7,32 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'globalmodels/contextModel',
-    'text!../templates/login.html',
-], function ($, _, Backbone, contextModel, loginTemplate) {
+], function ($, _, Backbone, contextModel) {
 
     var Login = Backbone.View.extend({
         initialize: function (options) {
-	    console.log(contextModel);
-	    var that=this;
-	    require(["text!../templates/"+contextModel.get('loginTemplate')], function(loginTemplate) {
-		that.template = _.template(loginTemplate);
-		that.cancancel=false;
-		that.render();
-	    });
+	    contextModel.on('change:loginTemplate', this.render, this);
+	    $("#login-modal").modal({'show':'true', 'backdrop':'static',keyboard:false});
+	    this.render();	    
         },
 	events: {
 	    'click #login-button': 'dologin',
+	    'click #fastlogin-button': 'fastlogin',
 	    'keyup #login-user':'doenterlogin',
 	    'keyup #login-password':'doenterlogin',
-	    'hide.bs.modal #login-modal': 'stopCancel',
 	},
         render: function () {
 	    //currentContext.setUser('notarealpassword', Backbone.history.fragment);  // hack for now
-	    this.$el.html(this.template({user:'maven', password:'maven'}));
-	    $('#login-modal').modal();
+	    if(contextModel.get('loginTemplate')) {
+		var that=this;
+		require(["text!../templates/"+contextModel.get('loginTemplate')], function(loginTemplate) {
+		    that.template = _.template(loginTemplate);
+		    that.$el.html(that.template({user:'maven', password:'maven'}));
+		});
+		
+	    } else {
+		$("#login-modal").modal('hide');
+	    }
 	    return this;
         },
 	doenterlogin: function(event){
@@ -37,22 +40,17 @@ define([
 		this.dologin();
 	    }
 	},
+	fastlogin: function() {
+	    contextModel.setUser('maven','mavendevel', Backbone.history.fragment);
+	},
 	dologin: function() {
 	    var user = $("#login-user").val();
 	    var password = $("#login-password").val();
 	    if( user && password ) {
-		this.cancancel=true;
-		contextModel.setUser(user, password, Backbone.history.fragment);
-		$("#login-modal").modal('hide');
-		$("#content").show();
+		var newpassword = $("#login-new-password").val();
+		contextModel.setUser(user, password, newpassword);
 	    }
 	},
-	stopCancel: function(e) {
-	    if(!this.cancancel) {
-		e.preventDefault();
-		return false;
-	    }
-	}
     });
     return Login;
 });

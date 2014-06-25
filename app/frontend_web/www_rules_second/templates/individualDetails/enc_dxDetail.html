@@ -1,0 +1,11 @@
+<div class="detail-entry">
+    <a class="detail-item">
+    <% if (negative == "true") { %>
+            Rule will not be used if <%=code%> is in the encounter diagnoses
+    <%} else { %>
+            Rule will be used only if  <%=code%> is in the the encounter diagnoses
+    <%}%>
+    </a>
+    <a style = "float: right" class="remove-detail">&#10006</a>
+
+</div>

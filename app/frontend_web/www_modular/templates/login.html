@@ -1,4 +1,3 @@
-<div id="login-modal" class="modal fade" role="login" >
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-body">
@@ -8,10 +7,23 @@
 	      <div>
 		Password: <input id="login-password" type="password" name="password">
 	      </div>
+	      <div id='new-password-container' style='display:none'>
+		<div> New passwords must contain:</div>
+		<b>New</b> Password: <input id="login-new-password" type="password" name="password"> 
+		<ul>
+		  <li>At least 8 characters <span id='pw-len-cb'>&#x2713;</span></li>
+		  <li>A lower-case character <i id='pw-len-cb' class='glyphicon icon-check'></i></li>
+		  <li>An upper-case character <i id='pw-len-cb'></i></li>
+		  <li>A special character<i id='pw-len-cb'></i></li>
+		</ul>
+	      </div>
+
 	      <div>
 		<button id="login-button">Log in</button>
+		<button id="fastlogin-button">(dev) Log in</button>
+		<button class='pull-right' onclick='$("#new-password-container").toggle();'>Change Password</button>
 	      </div>
 	    </div>
 	</div>
     </div>
-</div>
+

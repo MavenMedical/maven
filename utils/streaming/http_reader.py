@@ -113,7 +113,7 @@ class _HTTPStreamParser(SP.MappingParser):
         :param register_fn: when a new socket is opened, register a writer for it here
         """
         SP.MappingParser.__init__(self, configname, read_fn, lambda x: x, loop, register_fn)
-        ML.DEBUG("created a new http parser")
+        ML.INFO("created a new http parser")
         self.p = HttpParser()
         self.body = []
 
@@ -228,7 +228,7 @@ class HTTPProcessor(SP.StreamProcessor):
         #ML.DEBUG("errno: %s" % headers.get_errno())
         ML.DEBUG("header: %s" % headers.get_headers())
         ML.DEBUG("method: %s" % headers.get_method())
-        ML.DEBUG("path: %s" % headers.get_path())
+        ML.INFO("path: %s" % headers.get_path())
         #ML.DEBUG("status: %s" % headers.get_status_code())
         ML.DEBUG("body: %s" % body)
         req_line = headers.get_method()+' '+headers.get_path()
@@ -286,7 +286,7 @@ class HTTPProcessor(SP.StreamProcessor):
 
         if 'GET' in methods and not 'HEAD' in methods:
             methods.append('HEAD')
-        regexp = '(?:'+'|'.join(methods)+')\s+'+regexpstring
+        regexp = '(?:'+'|'.join(methods)+')\s+'+regexpstring + "$"
         self.handlers.append((re.compile(regexp), fn))
         #print(regexp)
         #print(re.match(regexp,b'GET /users/1 HTTP/1.0'))
@@ -367,7 +367,6 @@ class BackboneService(HTTPProcessor):
 SP._parser_map[CONFIGVALUE_HTTPPARSER] = _HTTPStreamParser
 
 if __name__ == '__main__':
-    ML.DEBUG = ML.stdout_log
     MC.MavenConfig = \
         {
             "httpserver":

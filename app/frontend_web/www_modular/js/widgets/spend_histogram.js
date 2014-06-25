@@ -13,6 +13,8 @@ define([
     var HistogramModel = Backbone.Model.extend({urlRoot: '/hist_spending'});
     var histogramModel = new HistogramModel;
 
+    var downloadorder = ['diagnosis', 'admission', 'discharge', 'spending'];
+
     if(contextModel.get('userAuth')) {
 	histogramModel.fetch({data:$.param(contextModel.toParams())});
     }
@@ -30,6 +32,16 @@ define([
 	    
 	    this.update();
 	},
+	events: {
+	    'click #histogram-download': 'downloadhist',
+	},
+	downloadhist: function() {
+	    var csvContent = ["data:text/csv;charset=utf-8," + downloadorder.join(',')];
+	    _.each(histogramModel.attributes, function(row) {
+		csvContent.push('"'+_.map(downloadorder,function(v) {return row[v];}) .join('","') + '"');
+	    });
+	    window.open(encodeURI(csvContent.join('\n')));
+	},
 	update: function() {
 	    if(histogramModel.attributes && contextModel.get('page')=='home') {
 		this.$el.html(this.template(contextModel.attributes));
@@ -37,13 +49,12 @@ define([
 		var max = _.max(values);
 		var min = _.min(values);
 		if(!this.binwidth) {
-		    this.binwidth = (max-min) / 10;
+		    this.binwidth = 100 * Math.floor((max-min) / 1000);
 		    if(!this.binwidth) {
 			this.binwidth = 1000;
 		    }
 		}
 		var binwidth = this.binwidth;
-		console.log(binwidth);
 		var start = binwidth * Math.floor(min/binwidth);
 		var buckets = []
 		for(var k=Math.floor((max-min)/binwidth); k>=0; k--) {
@@ -53,12 +64,11 @@ define([
 		    var bin = Math.floor((value-start)/binwidth);
 		    buckets[bin]++;
 		});
-		console.log(buckets);
 		buckets = _.map(buckets, function(v, k) {
-		    return {'center':(binwidth+.5)*k, 'value':v};
+		    var x = start + binwidth*k;
+		    return {'center':x + '-'+(x+binwidth), 'value':v};
 		});
-		console.log(buckets);
-		AmCharts.makeChart('spend-histogram', {
+		var chart = AmCharts.makeChart('spend-histogram', {
 		    "type": "serial",
 		    "categoryField":"center",
 		    "autoMarginOffset": 40,
@@ -87,6 +97,7 @@ define([
 		    "dataProvider":buckets,
 		});
 		this.$el.show();
+		chart.invalidateSize();
 	    } else {
 		this.$el.hide();
 	    }

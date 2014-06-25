@@ -3,7 +3,7 @@ import dateutil
 from enum import Enum
 from collections import defaultdict
 from decimal import Decimal
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 from utils.database.database import AsyncConnectionPool
 from utils.database.database import MappingUtilites as DBMapUtils
@@ -24,6 +24,8 @@ Results = Enum('Results',
     diagnosis
     allergies
     problems
+    admission
+    lengthofstay
     spending
     savings
     date
@@ -44,9 +46,11 @@ Results = Enum('Results',
     provid
     displayname
     password
-    passworddate
+    passexpired
     userstate
     failedlogins
+    startdate
+    enddate
     recentkeys
 """)
 
@@ -75,10 +79,12 @@ def _prettify_sex(s):
     return str.title(s)
 
 
-def _prettify_date(s):
-    prsr = dateutil.parser()
-    d = prsr.parse(s)
-    return d.strftime("%A, %B %d, %Y")
+def _prettify_lengthofstay(s):
+    days = s[0].days
+    if days>1:
+        return str(days)+" days"
+    else:
+        return (s[0].seconds // 3600) + " hours"
 
 
 def _invalid_num(x):
@@ -106,7 +112,8 @@ def _build_format(override={}):
     formatbykeymap = {
         Results.patientname: _prettify_name,
         Results.sex: _prettify_sex,
-        Results.encounter_date: _prettify_date,
+        #Results.encounter_date: _prettify_date,
+        Results.lengthofstay: _prettify_lengthofstay,
     }        
     formatter = defaultdict(lambda: formatbytype,
                             formatbykeymap.items())
@@ -147,8 +154,13 @@ class WebPersistence():
         return results
 
     @asyncio.coroutine
+    def update_password(self, user, newpw, timeout = '180d'):
+        yield from self.execute(["UPDATE users set (pw, pw_expiration) = (%s, now() + interval %s) where user_id = %s"],
+                                [newpw, timeout, user], {}, {})
+
+    @asyncio.coroutine
     def record_login(self, username, method, ip, authkey):
-        yield from self.execute(['INSERT INTO logins (user_name, method, logintime, ip, authkey) VALUES (%s, %s, now(), %s, %s);'],
+        yield from self.execute(['INSERT INTO logins (user_name, method, logintime, ip, authkey) VALUES (%s, %s, now(), %s, %s)'],
                                 [username, method, ip, authkey], {}, {})
 
     _default_pre_login = set((Results.username,))
@@ -159,24 +171,31 @@ class WebPersistence():
         Results.provid: 'users.prov_id',
         Results.displayname: 'users.display_name',
         Results.password: 'users.pw',
-        Results.passworddate: 'users.pw_expiration',
+        Results.passexpired: 'users.pw_expiration < now()',
         Results.userstate: 'users.state',
 #        Results.failedlogins: 'array_agg(logins.logintime)',
-#        Results.recentkeys: 'array_agg(logins.authkey),
+        Results.recentkeys: 'NULL',
     }
     _display_pre_login = _build_format()
         
     @asyncio.coroutine
-    def pre_login(self, desired, username, keycheck=None):
+    def pre_login(self, desired, username=None, provider=[], keycheck=None):
         columns = build_columns(desired.keys(), self._available_pre_login,
                                 self._default_pre_login)
+        if not username and not provider:
+            [][0]
         cmd = []
         cmdargs = []
         cmd.append("SELECT")
         cmd.append(columns)
         cmd.append("FROM users")
-        cmd.append("WHERE users.user_name = %s")
-        cmdargs.append(username)
+        if username:
+            cmd.append("WHERE users.user_name = %s")
+            cmdargs.append(username)
+        else:
+            cmd.append("WHERE users.prov_id = %s AND users.customer_id = %s")
+            cmdargs.append(provider[0])
+            cmdargs.append(provider[1])
         
         results = yield from self.execute(cmd, cmdargs, self._display_pre_login, desired)
         return results[0]
@@ -189,10 +208,12 @@ class WebPersistence():
         Results.sex: "max(patient.sex)",
         Results.encounter_date: "max(encounter.contact_date) AS contact_date",
         Results.encounter_list: "array_agg(encounter.csn || ' ' || encounter.contact_date)" ,
-        Results.cost: "NULL",
-        Results.diagnosis: "NULL",
-        Results.allergies: "NULL",
-        Results.problems: "NULL",
+        Results.cost: "0",
+        Results.diagnosis: "'None yet'",
+        Results.allergies: "'None'",
+        Results.problems: "'None yet'",
+        Results.admission: "max(encounter.hosp_admsn_time)",
+        Results.lengthofstay: 'array_agg(coalesce(encounter.hosp_disch_time, now()) - encounter.hosp_admsn_time)',
     }
     _display_patient_info = _build_format({
         Results.encounter_list: lambda x: list(map(lambda v: v.split(' '), x)),
@@ -338,7 +359,10 @@ class WebPersistence():
         Results.alerttype: "'Duplicate'",
         Results.ruleid: "alert.cds_rule",
         }
-    _display_alerts = _build_format()
+    _display_alerts = _build_format({
+        Results.title: lambda x: x or '',
+        Results.ruleid: lambda x: x,
+        })
 
     @asyncio.coroutine
     def alerts(self, desired, provider, customer, patients=[], limit=""):
@@ -404,9 +428,14 @@ class WebPersistence():
     _default_per_encounter = set((Results.encounterid,))
     _available_per_encounter = {
         Results.encounterid: "encounter.csn",
+        Results.startdate: 'min(hosp_admsn_time)',
+        Results.enddate: 'max(hosp_disch_time)',
+        Results.diagnosis: "'diagnosis'",
         Results.spending: "sum(mavenorder.order_cost)",
     }
-    _display_per_encounter = _build_format()
+    _display_per_encounter = _build_format({
+        Results.enddate: lambda x: x and _prettify_date(x),
+        })
         
     @asyncio.coroutine
     def per_encounter(self, desired, provider, customer, patients=[], encounter=None,

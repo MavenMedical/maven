@@ -14,12 +14,19 @@ define([
     var AlertList = Backbone.View.extend({
 	initialize: function(arg) {
 	    this.template = _.template(arg.template);
-	    this.$el.html(this.template());
+	    this.$el.html(this.template({height:$(window).height()-50+'px'}));
 	    alertCollection.bind('add', this.addAlert, this);
 	    alertCollection.bind('reset', this.reset, this);
 	    //alertCollection.bind('remove', this.remove, this);
 	    alertCollection.bind('sync', this.addAll, this);
 	    this.addAll();
+	    var alertlist = $('.alertlist', this.$el);
+	    alertlist.scrollTop(0);
+	    alertlist.scroll(function() {
+		if(alertlist.scrollTop() + alertlist.innerHeight() + 100 >= alertlist[0].scrollHeight) {
+		    alertCollection.more();
+		}
+	    });
 	},
 	addAlert: function(alert) {
 	    var alertrow = new AlertRow({model: alert});

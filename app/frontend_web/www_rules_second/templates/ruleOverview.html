@@ -1,6 +1,26 @@
 <div style=>
 <div  style="font-size:200%"> Editing Rule: <a id="nameTag" href="#"><%=name%></a></div>
-<div style="text-align:left; font-size:180%">Triggers:</div>
+<div class = 'standards' style="font-size: 150%">
+                          Rule Applies To:
+                                    <a id="genderTag" href="#">
+                                    <%if(genders=='MF'){%>      Both Genders
+                                    <%}else if(genders=='F'){%> Only Women
+                                    <%}else{%>                  Only Men
+                                    <%}%>
+                                    </a>
+                          <br>
+                          Min Age: <a id="minAgeTag" href="#"><%=minAge%></a>
+                          Max Age: <a id="maxAgeTag" href="#"><%=maxAge%></a>
+                          <br>
+                          Rule Triggers On:
+                                    <a id="triggerTag" href="#">
+                                    <%if(triggerType=='proc'){%> Procedures
+                                    <%}else if(triggerType=='drug'){%> Prescriptions
+
+                                    <%}%>
+                                    </a>
+</div>
+<div style="text-align:left; font-size:150%">Triggers:</div>
 <div class="trigger_list"></div>
 <br>
 <div style="text-align: center; font-size: 150%" ><button id="EditTriggersButton">Edit Triggers</button></div>

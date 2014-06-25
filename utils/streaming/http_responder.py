@@ -251,9 +251,9 @@ class HTTPProcessor(SP.StreamProcessor):
         headers = obj[0]
         body = obj[1]
         #ML.DEBUG("errno: %s" % headers.get_errno())
-        #ML.DEBUG("header: %s" % headers.get_headers())
+        ML.INFO("header: %s" % str((headers.get_path(), headers.get_query_string())))
         #ML.DEBUG("method: %s" % headers.get_method())
-        ML.DEBUG("path: %s" % headers.get_path())
+        #ML.INFO("path: %s" % headers.get_path())
         #ML.DEBUG("status: %s" % headers.get_status_code())
         #ML.DEBUG("body: %s" % body)
         req_line = headers.get_method()+' '+headers.get_path()
@@ -495,7 +495,6 @@ class BackboneService(HTTPProcessor):
 SP._parser_map[CONFIGVALUE_HTTPPARSER] = _HTTPStreamParser
 
 if __name__ == '__main__':
-    ML.DEBUG = ML.stdout_log
     MC.MavenConfig = \
         {
             "httpserver":

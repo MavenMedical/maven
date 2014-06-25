@@ -35,7 +35,7 @@ CONTEXT_PASSWORD = 'password'
 
 AUTH_LENGTH = 44
 LOGIN_TIMEOUT = 60 * 60  # 1 hour
-static_id = 3
+static_id = 4
 rules = {
 
 }
@@ -44,7 +44,8 @@ triggers = [{'type': 'snomed', 'code': '456', 'id': 1}
             ,{'type': 'CPT', 'code': '0123', 'id': 2}]
 details = [{'type': 'pl_dx', 'id': '1'},
            {'type': 'hist_dx', 'id': '2'},
-           {'type': "lab", 'id': '3'}]
+           {'type': "lab", 'id': '3'},
+           {'type': "enc_dx", 'id': '4'}]
 class RuleService(HTTP.HTTPProcessor):
     
     def __init__(self, configname):
@@ -63,7 +64,7 @@ class RuleService(HTTP.HTTPProcessor):
         self.add_handler(['GET'], '/details', self.get_details)
         self.add_handler(['GET'], '/search', self.search)
         self.add_handler(['GET'], '/trigger', self.get_triggers)
-        self.helper = HH.HTTPHelper(CONTEXT_USER, CONTEXT_AUTH, AUTH_LENGTH)
+        self.helper = HH.HTTPHelper([CONTEXT_USER], CONTEXT_AUTH, AUTH_LENGTH)
         self.search_interface = WS.web_search('search')
                 
     @asyncio.coroutine
@@ -73,7 +74,7 @@ class RuleService(HTTP.HTTPProcessor):
             return (HTTP.BAD_RESPONSE, b'', None)
         else:
             user = info[CONTEXT_USER]
-            user_auth = AK.authorization_key(user, AUTH_LENGTH, LOGIN_TIMEOUT)
+            user_auth = AK.authorization_key([user], AUTH_LENGTH, LOGIN_TIMEOUT)
 
         ret = {
             CONTEXT_DISPLAY: 'Dr. Huxtable',
@@ -91,10 +92,9 @@ class RuleService(HTTP.HTTPProcessor):
         context = self.helper.restrict_context(qs,
                                                RuleService.update_required_contexts,
                                                RuleService.update_available_contexts)
-        global rules
-        ruleid = context.get(CONTEXT_RULEID, 1+len(rules))
-        rules[ruleid] = info
-        info[CONTEXT_RULEID]=ruleid
+
+        yield from self.search_interface.update_db(info);
+
         return (HTTP.OK_RESPONSE, json.dumps(info), None)
 
 
@@ -108,12 +108,10 @@ class RuleService(HTTP.HTTPProcessor):
         context = self.helper.restrict_context(qs,
                                                RuleService.add_required_contexts,
                                                RuleService.add_available_contexts)
-        global rules
-        global static_id
-        ruleid = static_id
-        static_id = static_id + 1;
-        rules[ruleid] = info
-        info[CONTEXT_RULEID]=ruleid
+
+
+        n = yield from self.search_interface.add_to_db(info)
+        info[CONTEXT_RULEID]=n
         return (HTTP.OK_RESPONSE, json.dumps(info), None)
 
 
@@ -128,7 +126,7 @@ class RuleService(HTTP.HTTPProcessor):
                                                RuleService.delete_available_context)
 
         ruleid = context[CONTEXT_RULEID]
-        rules.pop(ruleid);
+        yield from self.search_interface.delete_rule(ruleid)
         return (HTTP.OK_RESPONSE, json.dumps(""), None)
 
 
@@ -141,9 +139,11 @@ class RuleService(HTTP.HTTPProcessor):
         context = self.helper.restrict_context(qs,
                                                RuleService.list_required_context,
                                                RuleService.list_available_context)
+
+        database_rules = yield from self.search_interface.fetch_rules()
         global rules
-        
-        return (HTTP.OK_RESPONSE, json.dumps([{CONTEXT_RULEID:k, JNAME:rules[k][JNAME]} for k in rules.keys()]), None)
+
+        return (HTTP.OK_RESPONSE, json.dumps([{CONTEXT_RULEID:k[0], JNAME:k[1]} for k in database_rules]), None)
 
     triggers_required_context = [CONTEXT_USER]
     triggers_available_context = {CONTEXT_USER:str, CONTEXT_RULEID:int, SEARCH_PARAM:str}
@@ -198,12 +198,10 @@ class RuleService(HTTP.HTTPProcessor):
                                                RuleService.rule_available_context)
 
         ruleid = context[CONTEXT_RULEID]
-        ret = dict(rules[ruleid])
-        ret[CONTEXT_RULEID]=ruleid
+        rule = yield from self.search_interface.fetch_rule(ruleid)
+        ret = json.loads(rule[0])
+        ret[CONTEXT_RULEID] = ruleid
         return (HTTP.OK_RESPONSE, json.dumps(ret), None)
-
-
-
 
 
 
