@@ -8,7 +8,7 @@ define([
     'globalmodels/contextModel'
 ], function ($, BackBone, contextModel) {
 
-    var PatientModel = Backbone.Model.extend({urlRoot: '/patient_details'});
+    var PatientModel = Backbone.Model.extend({url: '/patient_details'});
     var patientModel = new PatientModel;
 
     if(contextModel.get('patients') && contextModel.get('userAuth')) {
