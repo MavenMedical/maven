@@ -1,0 +1,30 @@
+#!/bin/bash
+RSYNC_SENDER_PREFIX="rsync --server --sender -logDtprze.iLs ."
+RSYNC_RECEIVER_PREFIX="rsync --server -logDtprze.iLs ."
+
+if [[ "$SSH_ORIGINAL_COMMAND" == "$RSYNC_SENDER_PREFIX"* ]]; then
+    AVAILABLE=(messages secure nginx)
+    MAPPING=(/var/log/messages /var/log/secure /var/log/nginx)
+    for (( x=0; $x<${#AVAILABLE[@]}; x++)); do
+	if [[ "$SSH_ORIGINAL_COMMAND" == "${RSYNC_SENDER_PREFIX} ${AVAILABLE[$x]}" ]]; then
+#	    echo $RSYNC_SENDER_PREFIX ${MAPPING[$x]} >> /home/logaccess/out
+	    $RSYNC_SENDER_PREFIX ${MAPPING[$x]}
+	    exit
+	fi
+    done
+    $RSYNC_SENDER_PREFIX /dev/null
+elif [[ "$SSH_ORIGINAL_COMMAND" == "startdatabase" ]]; then
+    ls /dev/sd*
+    df -h
+    echo enter database device
+    prompt DEVICE
+    echo enter database password
+    sudo truecrypt -t -k "" --protect-hidden=no ${DEVICE} ~postgres
+    sudo /etc/limited/restartpostgres
+elif [[ "$SSH_ORIGINAL_COMMAND" == "startnginx" ]]; then
+    echo enter nginx password
+    sudo /etc/limited/restartnginx
+else
+    echo $SSH_ORIGINAL_COMMAND >> /home/logaccess/out
+fi
+exit 0
