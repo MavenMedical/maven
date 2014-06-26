@@ -1,3 +1,5 @@
+echo "local0.*		  /var/log/postgresql" | sudo tee -a /etc/rsyslog.conf
+
 #truecrypt
 #truecrypt
 wget http://www.truecrypt.org/download/truecrypt-7.1a-linux-console-x64.tar.gz
@@ -28,6 +30,8 @@ sed -i.bak\
     -e 's/#ssl = off/ssl = on/' \
     -e "s/#ssl_ciphers.*/ssl_ciphers = 'ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256'/" \
     -e "s/#ssl_ca_file.*/ssl_ca_file = cacert.pem/" \
+    -e "s/log_destination = 'stderr'/log_destination = 'syslog'/" \
+    -e "s/#syslog_/syslog_/" \
 postgresql.conf
 
 echo "host   all    postgres          10.240.0.0/16   cert clientcert=1 map=chsli
@@ -47,3 +51,9 @@ echo 'PATH=/usr/pgsql-9.3/bin:${PATH}' >> .bashrc
 #Note - on google, EBS storage of a truecrypt encrypted partition passed the closest I can get to a "disk pull plug" test.  A single pass doesn't prove much - only that the system isn't horribly broken.  It was also getting around 120 writes/second (compared to amazon's 80).  The writes/second matches what happened without truecrypt, so I don't think encryption costs us anything.
 
 
+#using visudo, add %adm ALL=NOPASSWD: /usr/bin/truecrypt,/etc/limited/restartpostgres,/etc/limited/restartnginx
+
+sudo mkdir /etc/limited
+sudo echo "service postgresql-9.3 restart" > /etc/limited/restartpostgres
+sudo echo "service nginx restart" > /etc/limited/restartnginx
+sudo chmod -R 544 /etc/limited

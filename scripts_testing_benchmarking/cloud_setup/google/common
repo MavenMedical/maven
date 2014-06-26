@@ -1,6 +1,12 @@
 sudo yum update -y
 sudo yum install elinks screen git emacs kernel-headers fuse-libs fuse-devel fuse lvm2 wireshark nc tcptrack iotop iptraf iftop psacct pam-devel -y
 
+sudo useradd logaccess -G adm
+sudo sed -i -e 's/^create$/create 640 root adm/' /etc/logrotate.conf
+
+sudo chgrp -R adm /var/log
+sudo chmod -R g+r /var/log
+
 wget http://yum.postgresql.org/9.3/redhat/rhel-6-x86_64/pgdg-centos93-9.3-1.noarch.rpm
 sudo yum install pgdg-centos93-9.3-1.noarch.rpm -y
 
@@ -14,37 +20,4 @@ sudo yum install pgdg-centos93-9.3-1.noarch.rpm -y
 #sudo sed -i -e 's/ChallengeResponseAuthentication no/ChallengeResponseAuthentication yes/' /etc/ssh/sshd_config
 #sudo service sshd restart
 
-if [ 0 ]; do
-sudo useradd tom
-sudo su tom
-# begin as tom
-cd
-mkdir -m 700 .ssh
-cd .ssh
-echo ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAqCHiOtTO2dj9nySwNVwgSxeEmbla3C8ss5K+QyT2BjHR0Zag2Lkgenqla8sYkQSs3lEUEloL57c45JTGl62a00VOIBXrTqNZoxd+w0Pis5OLoLhzFE91N4CQq0ouybwMQgfaF50pRMmJ2RUEgI77EVW7mLXjjcqL8cerHHm/w9H4cCtWptrabOEWtUI6CmoVsodaA4JH82qvnIXHaEyjjE9i8wdGU5YsXKUvBxBO+lJdjAisUn2wSS81zvT4hrUJltzHaUYOxCKD8778WfBSj4nm/XJkcwh4BHaJyMYClwiHNkmlh2Z863tFZLBLpM/0tonAf/mbH/yMqrmvJI7M7w== id_rsa > authorized_keys
-chmod 600 authorized_keys
-exit
-# end as tom
 
-sudo useradd yuki
-sudo su yuki
-# begin as yuki
-cd
-mkdir -m 700 .ssh
-cd .ssh
-echo ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAuyrMSRCm3xJXN1/ZcbYs217T6INq4jjkVUWPbfUW/haNPzOSCtCg8huVoIev9Taey324D70qrZRKoyYPZ9d0SpkCah8YWAiCyGp474dVfV4pOhQXcGKHQ2XQxjYw24kJAaK2y1omG3UA3s5ZIQqCNU2yzmKKUIDbtAE2L8nEBh99hw+i2Msq3JKJENPAVWx/KQzBRXP1Cc0tSSompnTPsxBvYHrCGIqES6wqH0ndehZzbaD1+biVNRBx02uLejCF0fL9MOvIIwqIcFNRrFzG/myyt42DumxKHCOyXYUGWJ74cxyL7ldAIXU9JRa1TcACWwEwQcvP/3LMiD+V7ud8ww== devel@localhost.localdomain > authorized_keys
-chmod 600 authorized_keys
-exit
-# end as yuki
-
-sudo useradd dave
-sudo su dave
-# begin as dave
-cd
-mkdir -m 700 .ssh
-cd .ssh
-echo ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDWpkp7g4UnZ3G4Lz/j21zkZf4A6ITkSOTuyQ2czrfviGLz5U5kXHHTu5mwHFIIlGwKXqoZD2FIqY3ympPt2IO/AG5WTqndgHbQOOWeSKxms2FypluZiDMXiW68o76LzimLK1SJyd668qHKH5sLkr1pdOnP9G4idf8OgxZgk11psvd5khpFPoZ1nGS9WQ8/MXIpVn0NpxQ6i49qjfEGT3MihRL+7eEhjAdvZEfL1iSZuHCAeoZ8s2GvYgJLojqqq6/5Lz1jrKXCZCnfq2byIQ35iGZzq6+W6eXrTCA7Pb9IVPeGTzoFzhvgtCs9lnBWvw1uej3Yn3d/NmrEyDuGCKWt ec2-user@mavenmedical.net > authorized_keys
-chmod 600 authorized_keys
-exit
-#end as dave
-done
