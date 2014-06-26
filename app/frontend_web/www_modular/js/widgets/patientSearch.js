@@ -21,24 +21,7 @@ define([
 		// for now this is what we do when there is no patient selected
 	    } else {
 		    this.$el.html(this.template(contextModel.attributes));
-/*
-            $("#srch-diagnosis").autocomplete({
-                source: "/autocomplete",
-                minLength: 4,
-                select: function(event, ui) {
-                    var url = ui.item.id;
-                    console.log(patientCollection)
 
-                },
-                html: true, // optional (jquery.ui.autocomplete.html.js required)
-
-                // optional (if other layers overlap autocomplete list)
-                open: function(event, ui) {
-                $(".ui-autocomplete").css("z-index", 1000);
-
-                }
-            });
-*/
             $("#srch-diagnosis").autocomplete({
                 source: function(request, response) {
                 $.ajax({
@@ -48,11 +31,18 @@ define([
                     success: function(data) {
                         response(data);
                     }
-                });
-            },
-            minLength: 2
+                  });
+                },
+                minLength: 4,
+                select: function(event, ui) {
+                    if(ui.item){
+                        $(event.target).val(ui.item.value);
+                        $(event.target.form).submit();
+                    }
+                }
             });
 
+            var patients = new Array();
             $('#srch-patient').autocomplete({
                 source: function(request, response) {
                 $.ajax({
@@ -61,11 +51,22 @@ define([
                     patientname : $('#srch-patient').val(),
                     data:$.param(contextModel.toParams())+"&patientname="+request.term,
                     success: function(data) {
-                        response(data[0]);
+                        response(data);
                     }
-                });
-            },
-            minLength: 2
+                  });
+                },
+                minLength: 2,
+                select: function(event, ui) {
+                    event.preventDefault(); // prevent the "value" being written back after we've done our own changes
+
+                    if(ui.item){
+                        $(event.target).val(ui.item.label);
+                       // $(event.target.form).submit();
+                        contextModel.set({key:"",
+			                patients:ui.item.value,
+			                patientName:ui.item.label});
+                    }
+                }
             });
         }
 	}

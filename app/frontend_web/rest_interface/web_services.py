@@ -92,7 +92,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
         patientname = context[CONTEXT_PATIENTNAME]
         customerid = context[CONTEXT_CUSTOMERID]
         desired = {
-            WP.Results.patientname: 'name',
+            WP.Results.patientname: 'label',
+            WP.Results.patientid: 'value',
         }
         results = yield from self.persistence_interface.patient_info(desired, provider, customerid,
                                                                      limit=self.helper.limit_clause(matches),
