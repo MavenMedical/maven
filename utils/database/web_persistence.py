@@ -52,6 +52,7 @@ Results = Enum('Results',
     startdate
     enddate
     recentkeys
+    diagnosisid
 """)
 
 
@@ -219,9 +220,42 @@ class WebPersistence():
         Results.encounter_list: lambda x: list(map(lambda v: v.split(' '), x)),
         Results.cost: _invalid_num,
     })
+
+    _default_diagnosis_info = set((Results.diagnosis,))
+    _available_diagnosis_info = {
+        Results.diagnosis: "diagnosis.dx_name",
+        Results.diagnosisid: "diagnosis.dx_id",
+    }
+    _display_diagnosis_info = _build_format({})
+
+    @asyncio.coroutine
+    def diagnosis_info(self, desired, user, customer, diagnosis="", limit=""):
+
+        columns = build_columns(desired.keys(), self._available_diagnosis_info,
+                                self._default_diagnosis_info)
+
+        cmd = []
+        cmdargs=[]
+        cmd.append("SELECT")
+        cmd.append(columns)
+        cmd.append("FROM diagnosis")
+        #cmd.append("WHERE customer_id = %s")
+        #cmdargs.append(customer)
+        if diagnosis:
+            substring = "%" + diagnosis + "%"
+            cmd.append("WHERE UPPER(dx_name) LIKE UPPER(%s)")
+            cmdargs.append(substring)
+        cmd.append("ORDER BY dx_name")
+
+        if limit:
+            cmd.append(limit)
+
+        results = yield from self.execute(cmd, cmdargs, self._display_diagnosis_info, desired)
+        return []
+
         
     @asyncio.coroutine
-    def patient_info(self, desired, user, customer, patients=[], limit=""):
+    def patient_info(self, desired, user, customer, patients=[], limit="", patient_name=""):
         columns = build_columns(desired.keys(), self._available_patient_info,
                                 self._default_patient_info)
                 
@@ -235,6 +269,10 @@ class WebPersistence():
         cmdargs.append(customer)
         cmd.append("AND encounter.visit_prov_id = %s")
         cmdargs.append(user)
+        if patient_name:
+            substring = "%" + patient_name + "%"
+            cmd.append("AND UPPER(patient.patname) LIKE UPPER(%s)")
+            cmdargs.append(substring)
         if patients:
             cmd.append("AND encounter.pat_id IN %s")
             cmdargs.append(makelist(patients))

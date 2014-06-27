@@ -7,21 +7,24 @@
 	      <div>
 		Password: <input id="login-password" type="password" name="password">
 	      </div>
-	      <div id='new-password-container' style='display:none'>
-		<div> New passwords must contain:</div>
-		<b>New</b> Password: <input id="login-new-password" type="password" name="password"> 
-		<ul>
-		  <li>At least 8 characters <span id='pw-len-cb'>&#x2713;</span></li>
-		  <li>A lower-case character <i id='pw-len-cb' class='glyphicon icon-check'></i></li>
-		  <li>An upper-case character <i id='pw-len-cb'></i></li>
-		  <li>A special character<i id='pw-len-cb'></i></li>
-		</ul>
-	      </div>
-
-	      <div>
+	      <div id="login-buttons">
 		<button id="login-button">Log in</button>
 		<button id="fastlogin-button">(dev) Log in</button>
-		<button class='pull-right' onclick='$("#new-password-container").toggle();'>Change Password</button>
+		<button id="toggle-password" class='pull-right' onclick='$("#new-password-container").show();$("#login-buttons").hide();'>Change Password</button>
+	      </div>
+	      <div id='new-password-container' style='display:none'>
+		<b>New</b> Password: <input id="login-new-password" type="password" name="password"> 
+		<div> New passwords must contain:</div>
+		<ul>
+		  <li>At least 8 characters <i id='pw-len-cb'></i></li>
+		  <li>A lower-case character <i id='pw-low-cb'></i></li>
+		  <li>An upper-case character <i id='pw-up-cb'></i></li>
+		  <li>A number<i id='pw-num-cb'></i></li>
+		</ul>
+		<div> And it must be different from the old password <i id="pw-diff-cb"></i></div>
+		<div>
+		  <button id="update-password">Update Password</button>
+		</div>
 	      </div>
 	    </div>
 	</div>

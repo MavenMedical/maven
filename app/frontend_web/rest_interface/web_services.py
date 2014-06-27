@@ -22,7 +22,7 @@ import bcrypt
 import utils.crypto.authorization_key as AK
 import maven_logging as ML
 import maven_config as MC
-
+import re
 
 CONFIG_PERSISTENCE = 'persistence'
 
@@ -36,7 +36,8 @@ CONTEXT_ORDERTYPE = 'ordertype'
 CONTEXT_KEY = 'userAuth'
 CONTEXT_ENCOUNTER = 'encounter'
 CONTEXT_CUSTOMERID = 'customer_id'
-CONTEXT_PROVIDER = 'provider'
+CONTEXT_DIAGNOSIS = 'diagnosis'
+CONTEXT_PATIENTNAME = 'patientname'
 
 LOGIN_TIMEOUT = 60 * 60  # 1 hour
 AUTH_LENGTH = 44  # 44 base 64 encoded bits gives the entire 256 bites of SHA2 hash
@@ -64,6 +65,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
         self.add_handler(['GET'], '/alerts(?:/(\d+)-(\d+)?)?', self.get_alerts)  # REAL
         self.add_handler(['GET'], '/orders(?:/(\d+)-(\d+)?)?', self.get_orders)  # REAL
         self.add_handler(['GET'], '/autocomplete', self.get_autocomplete)  # FAKE
+        self.add_handler(['GET'], '/autocomplete_patient', self.get_autocomplete_patient)  # FAKE
+        self.add_handler(['GET'], '/autocomplete_diagnosis', self.get_autocomplete_diagnosis)  # FAKE
         self.add_handler(['GET'], '/hist_spending', self.get_hist_spend)  # REAL
         self.helper = HH.HTTPHelper([CONTEXT_USER, CONTEXT_PROVIDER], CONTEXT_KEY, AUTH_LENGTH)
         self.persistence_interface = WP.WebPersistence(persistence_name)
@@ -76,12 +79,57 @@ class FrontendWebService(HTTP.HTTPProcessor):
     def get_autocomplete(self, _header, _body, qs, _matches, _key):
         return HTTP.OK_RESPONSE, json.dumps(['Maven']), None
 
+    patient_name_required_contexts = [CONTEXT_PATIENTNAME, CONTEXT_PROVIDER, CONTEXT_CUSTOMERID]
+    patient_name_available_contexts = {CONTEXT_PATIENTNAME: str, CONTEXT_PROVIDER: str, CONTEXT_CUSTOMERID: int}
+
     @asyncio.coroutine
-    def hash_new_password(self, user, password):
-        if len(password) < 8:
+    def get_autocomplete_patient(self, _header, _body, qs, matches, _key):
+        context = self.helper.restrict_context(qs,
+                                               FrontendWebService.patient_name_required_contexts,
+                                               FrontendWebService.patient_name_available_contexts)
+
+        provider = context[CONTEXT_PROVIDER]
+        patientname = context[CONTEXT_PATIENTNAME]
+        customerid = context[CONTEXT_CUSTOMERID]
+        desired = {
+            WP.Results.patientname: 'name',
+        }
+        results = yield from self.persistence_interface.patient_info(desired, provider, customerid,
+                                                                     limit=self.helper.limit_clause(matches),
+                                                                     patient_name=patientname)
+
+        return HTTP.OK_RESPONSE, json.dumps(results), None
+
+        #return HTTP.OK_RESPONSE, json.dumps(['Maven']), None
+
+    diagnosis_required_contexts = [CONTEXT_DIAGNOSIS, CONTEXT_PROVIDER, CONTEXT_CUSTOMERID]
+    diagnosis_available_contexts = {CONTEXT_DIAGNOSIS: str, CONTEXT_PROVIDER: str, CONTEXT_CUSTOMERID: int}
+
+    @asyncio.coroutine
+    def get_autocomplete_diagnosis(self, _header, _body, qs, matches, _key):
+        context = self.helper.restrict_context(qs,
+                                               FrontendWebService.diagnosis_required_contexts,
+                                               FrontendWebService.diagnosis_available_contexts)
+
+        provider = context[CONTEXT_PROVIDER]
+        diagnosis = context[CONTEXT_DIAGNOSIS]
+        customerid = context[CONTEXT_CUSTOMERID]
+        desired = {
+            WP.Results.diagnosis: 'diagnosis',
+        }
+        """ NOT READY YET:
+        results = yield from self.persistence_interface.diagnosis_info(desired, provider, customerid, diagnosis=diagnosis,
+                                                                     limit=self.helper.limit_clause(matches),)
+        """
+        #return HTTP.OK_RESPONSE, json.dumps(results), None
+        return HTTP.OK_RESPONSE, json.dumps(['Alzheimer\'s','Diabetes']), None
+
+    @asyncio.coroutine
+    def hash_new_password(self, user, newpassword):
+        if len(newpassword) < 8 or not re.search("[0-9]",newpassword) or not re.search("[a-z]",newpassword) or not re.search("[A-Z]",newpassword):
             raise LoginError('expiredPassword')
         salt = bcrypt.gensalt(4)
-        ret = bcrypt.hashpw(bytes(password, 'utf-8'), salt)
+        ret = bcrypt.hashpw(bytes(newpassword, 'utf-8'), salt)
         try:
             yield from self.persistence_interface.update_password(user, ret)
         except:
@@ -123,7 +171,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
                 passhash = user_info[WP.Results.password].tobytes()
                 if not passhash or bcrypt.hashpw(bytes(info['password'], 'utf-8'), passhash[:29]) != passhash:
                     raise LoginError('badLogin')
-                if user_info[WP.Results.passexpired]:
+                if user_info[WP.Results.passexpired] or 'newpassword' in info:
                     yield from self.hash_new_password(user_info[WP.Results.userid], info.get('newpassword',''))
                 method = 'local'
             else:

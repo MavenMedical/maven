@@ -281,7 +281,8 @@ class HTTPProcessor(SP.StreamProcessor):
         except ValueError:
             traceback.print_exc()
             ret = wrap_response(BAD_RESPONSE, b'')
-        except IncompleteRequest as e :  # key error means an object isn't found
+        except IncompleteRequest as e:
+            traceback.print_exc()
             ret = wrap_response(BAD_RESPONSE, b'')
         except UnauthorizedRequest as e :
             ret = wrap_response(UNAUTHORIZED_RESPONSE, b'')
@@ -305,6 +306,7 @@ class HTTPProcessor(SP.StreamProcessor):
             try:
                 self.unregister_writer(key)
             except:
+                traceback.print_exc()
                 pass
             ML.WARN("connection to %s failed before write happened" % key)
 
