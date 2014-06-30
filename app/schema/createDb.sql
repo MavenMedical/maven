@@ -174,7 +174,6 @@ CREATE TABLE costmap (
   code character varying(36),
   code_type character varying(36),
   department character varying(255),
-  order_type character varying(36),
   cost_type character varying(255),
   orderable_id character varying(36),
   cost numeric(18,2)
@@ -186,7 +185,7 @@ ALTER TABLE public.costmap OWNER TO maven;
 CREATE INDEX ixcostmap
   ON public.costmap
   USING btree
-  (customer_id, code, code_type, department, order_type, cost_type);
+  (code, customer_id, department, code_type, cost_type);
 
 
 
@@ -197,7 +196,6 @@ CREATE TABLE costmap_historic (
   code character varying(36),
   code_type character varying(36),
   department character varying(255),
-  order_type character varying(36),
   cost_type character varying(255),
   orderable_id character varying(36),
   cost numeric(18,2),
@@ -211,7 +209,7 @@ ALTER TABLE public.costmap_historic OWNER TO maven;
 CREATE INDEX ixcostmaphx
   ON public.costmap_historic
   USING btree
-  (customer_id, orderable_id, department, order_type, cost_type);
+  (code, customer_id, department, code_type, cost_type);
 
 
 
