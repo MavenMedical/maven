@@ -63,6 +63,7 @@ define([
                         $(event.target).val(ui.item.label);
                        // $(event.target.form).submit();
                         contextModel.set({key:"",
+                            page:"patient",
 			                patients:ui.item.value,
 			                patientName:ui.item.label});
                     }

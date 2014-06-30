@@ -12,6 +12,7 @@ define([
 	initialize: function(arg) {
 	    this.typeFilter = arg.typeFilter;
 	    this.template = _.template(arg.template); // this must already be loaded
+        this.$el.html(this.template({height:$(window).height()-50+'px'}));
 	    orderCollection.bind('add', this.addOrder, this);
 	    orderCollection.bind('reset', this.reset, this);
 	    orderCollection.bind('sync', this.addAll, this);
@@ -19,6 +20,13 @@ define([
 		//this.render();
 	    //}, this);
 	    this.render();
+        var orderlist = $('.col-sm-12', this.$el);
+	    orderlist.scrollTop(0);
+	    orderlist.scroll(function() {
+		if(orderlist.scrollTop() + orderlist.innerHeight() + 100 >= orderlist[0].scrollHeight) {
+		    orderCollection.more();
+		}
+	    });
 	},
 	render: function() {
 	    this.$el.html(this.template(this));
@@ -45,6 +53,14 @@ define([
 	},
 	addOrder: function(order) {
 	    var orderrow = new OrderRow({model: order});
+	    $('.orderaccordion', this.$el).append(orderrow.render().el);
+	    this.$el.show();
+
+        var orderrow = new OrderRow({model: order});
+	    $('.orderaccordion', this.$el).append(orderrow.render().el);
+	    this.$el.show();
+
+        var orderrow = new OrderRow({model: order});
 	    $('.orderaccordion', this.$el).append(orderrow.render().el);
 	    this.$el.show();
 	},	

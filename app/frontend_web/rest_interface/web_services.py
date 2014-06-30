@@ -210,7 +210,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
                     ['#fixed-topB-1-1', 'patientSearch'],
                     ['#rowA-1-1', 'patientList'],
                     ['#rowB-1-1', 'encounterSummary'],
-                    ['#rowC-1-1', 'orderList'],
+                    ['#rowC-1-1', 'orderList','orderScroll.html'],
                     ['#rowD-1-1', 'costtable', 'costbreakdown-table.html'],
                     #['#rowD-1-1','costdonut','costbreakdown-donut.html'],
                     ['#rowE-1-1', 'spend_histogram'],
