@@ -8,21 +8,10 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'globalmodels/contextModel',
-], function ($, _, Backbone, contextModel) {
-
-    var HistogramModel = Backbone.Model.extend({urlRoot: '/hist_spending'});
-    var histogramModel = new HistogramModel;
+    'globalmodels/histogramModel'
+], function ($, _, Backbone, contextModel, histogramModel) {
 
     var downloadorder = ['diagnosis', 'admission', 'discharge', 'spending'];
-
-    if(contextModel.get('userAuth')) {
-	histogramModel.fetch({data:$.param(contextModel.toParams())});
-    }
-    contextModel.on('change:patients change:userAuth', 
-		    function(x) {
-			histogramModel.fetch({data:$.param(x.toParams())});
-		    });
-
 
     var HistogramView = Backbone.View.extend({
 	initialize: function(arg) {
