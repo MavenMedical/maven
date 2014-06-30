@@ -4,10 +4,12 @@ define ([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'models/ruleModel',
-    'text!/templates/evidenceEditor.html'],
+    'internalViews/SourceManager',
+    'text!/templates/evidenceEditor.html'
+    ],
 
 
-    function($, _, Backbone, curRule, editorTemplate){
+    function($, _, Backbone, curRule, SourceManager, editorTemplate){
 
         var EvidenceEditor = Backbone.View.extend({
            template: _.template(editorTemplate),
@@ -17,21 +19,28 @@ define ([
                this.$el.hide();
               curRule.on('change:evidence', this.render, this);
               curRule.on('change:id', this.handleRuleLoad, this);
-              $('#evidence-area')[0].onblur = function(){
-                  console.log($('#evidence-area')[0]);
+              $('.evidence-editor-text').on('blur', function(){
+                  var fields = $(".evidence-editor-text", this.$el);
+                  for (var c=0;c<fields.length;c++){
+                      curRule.get('evidence').set(fields[c].name, fields[c].value)
 
-                  curRule.set('evidence', $('#evidence-area').val());
-                  console.log(curRule);
+                  }
                   curRule.save();
-              };
+              });
 
            },
            render: function(){
+               var fields = $(".evidence-editor-text", this.$el);
+               if (!curRule.get('evidence')){
+                   curRule.set({'evidence': new Backbone.Model({'short-title': "", 'short-description': "", 'long-title': "", 'long-description': "", 'sources': ""})}, {silent:true});
 
-               console.log(curRule)
-               if (!curRule.get('evidence'))
-                   curRule.set('evidence', "Enter Evidence Here", {silent:true});
-               $('.evidence-editor-text').val(curRule.get('evidence'));
+                 }
+               for (var c=0;c<fields.length;c++){
+                   fields[c].value = curRule.get('evidence').get(fields[c].name);
+               }
+               console.log($('#source-manager'))
+               this.sourceView = new SourceManager({el: $('#source-manager', this.$el)})
+               console.log(this.sourceView)
 
 
            },

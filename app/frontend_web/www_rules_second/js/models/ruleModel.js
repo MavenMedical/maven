@@ -67,12 +67,18 @@ define([
 		    ret[key] =  value;
 		} else {
             if (ruleModel.get(key)){
+
+                console.log("length", value.length)
 		        model = ruleModel.get(key);
             } else {
-                model = new Backbone.Collection();
+                if (value.length!=0 && !value.length){
+                    model = new Backbone.Model
+                } else {
+                    model = new Backbone.Collection();
+                }
             }
             model.on('change', function() {ruleModel.propagate(model)}, ruleModel);
-		    model.set(value)
+		    model.set(value, {silent: true})
             ret[key] = model;
 
         }
@@ -82,10 +88,10 @@ define([
 	propagate: function(model) {
 	    // propagate is like change, but UI driven, and coming from descendents
 	    var type = model.get("type");
-	    ruleModel.trigger("propagate:"+type, ruleModel);
+	    //ruleModel.trigger("propagate:"+type, ruleModel);
 	    console.log("propagating: "+type+", "+JSON.stringify(model));
 	    // If users will explicitly save, delete this line and replace with a save button trigger.
-	    this.save();
+	  //  this.save();
 	}
     /*
 	toJSON: function() {
