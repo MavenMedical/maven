@@ -338,7 +338,7 @@ class WebPersistence():
     _available_orders = {
         Results.ordername: "order_ord.order_name",
         Results.datetime: "order_ord.order_datetime",
-        Results.active: "order_ord.active",
+        Results.active: "order_ord.status",
         Results.cost: "order_ord.order_cost",
         Results.ordertype: "(ARRAY['Medication', 'Consultation', 'Lab-work', 'Procedure', 'Other', 'Imaging'])[floor(random() * 6.0) + 1]",
 #        Results.ordertype: "order_ord.order_type",

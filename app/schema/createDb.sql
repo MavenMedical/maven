@@ -408,6 +408,7 @@ CREATE TABLE order_ord (
   order_name character varying(255),
   order_type character varying(255),
   order_cost numeric(18,2),
+  order_cost_type character varying(255),
   order_datetime timestamp without time zone
 );
 ALTER TABLE public.order_ord OWNER TO maven;
