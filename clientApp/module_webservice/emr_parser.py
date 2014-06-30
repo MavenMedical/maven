@@ -216,7 +216,7 @@ class VistaParser():
                                                                             label="Internal",
                                                                             value=child.text))
 
-            elif "ProvID" in child.tag:
+            elif "ProvID" in child.tag or "ProvId" in child.tag:
                 composition.author.identifier.append(FHIR_API.Identifier(system="clientEMR",
                                                                          label="Internal",
                                                                          value=child.text))
