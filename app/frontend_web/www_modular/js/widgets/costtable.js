@@ -45,16 +45,6 @@ define([
                 data.push({order: k, cost: gathered[k], color:findColor(k)});
                 colorArray.push(findColor(k));
             }
-            ;
-            var fake = function (s) {
-                data.push({order: s, cost: 300, color:findColor(s) });
-                colorArray.push(findColor(s));
-            }
-            fake("Imaging");
-            fake("Medication");
-            fake("Consultation");
-            fake("Lab-work");
-            fake("Other");
 
             //clear order-table before filling it
             $('#order-table-1').empty();
@@ -97,7 +87,7 @@ define([
 
                 $('.progress').append(
                     $('<div id="'+entry.order+'" class="progress-bar bgcolor-'+entry.order.toLowerCase()+'">')
-                        .attr('style','width: '+percentage+'%').append(percentage+'%'));
+                        .attr('style','width: '+percentage+'%').append(Math.round(percentage)+'%'));
             });
 
 	    var mousepos;
