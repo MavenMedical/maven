@@ -2,6 +2,8 @@ import utils.streaming.http_responder as HTTP
 import utils.crypto.authorization_key as AK
 import itertools
 import asyncio
+from datetime import date
+from dateutil.parser import parse
 
 
 class HTTPHelper:
@@ -42,6 +44,13 @@ class HTTPHelper:
 
     def copy_and_append(self, m, kv):
         return dict(itertools.chain(m.items(),[kv]))
+
+    def get_date(self, context, field):
+        d = context.get(field, None)
+        if d:
+            return parse(d).date()
+        else:
+            return None
 
     def limit_clause(self, matches):
         if len(matches)==2 and all(matches):

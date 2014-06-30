@@ -22,6 +22,7 @@ import bcrypt
 import utils.crypto.authorization_key as AK
 import maven_logging as ML
 import maven_config as MC
+from datetime import date
 import re
 
 CONFIG_PERSISTENCE = 'persistence'
@@ -38,6 +39,8 @@ CONTEXT_ENCOUNTER = 'encounter'
 CONTEXT_CUSTOMERID = 'customer_id'
 CONTEXT_DIAGNOSIS = 'diagnosis'
 CONTEXT_PATIENTNAME = 'patientname'
+CONTEXT_STARTDATE = 'startdate'
+CONTEXT_ENDDATE = 'enddate'
 
 LOGIN_TIMEOUT = 60 * 60  # 1 hour
 AUTH_LENGTH = 44  # 44 base 64 encoded bits gives the entire 256 bites of SHA2 hash
@@ -226,9 +229,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                                                info['userAuth'] if method == 'forward' else None)
 
     patients_required_contexts = [CONTEXT_PROVIDER, CONTEXT_CUSTOMERID]
-    patients_available_contexts = {CONTEXT_PROVIDER: str, CONTEXT_CUSTOMERID: int}
-
-    ################ AK.authorization_key((user, x[1]), AUTH_LENGTH), 
+    patients_available_contexts = {CONTEXT_PROVIDER: str, CONTEXT_CUSTOMERID: int,
+                                   CONTEXT_STARTDATE: date, CONTEXT_ENDDATE: date}
 
     @asyncio.coroutine
     def get_patients(self, _header, _body, qs, matches, _key):
@@ -237,6 +239,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                                FrontendWebService.patients_available_contexts)
         provider = context[CONTEXT_PROVIDER]
         customerid = context[CONTEXT_CUSTOMERID]
+        startdate = self.helper.get_date(context,CONTEXT_STARTDATE)
+        enddate = self.helper.get_date(context, CONTEXT_ENDDATE)
         desired = {
             WP.Results.patientname: 'name',
             WP.Results.patientid: 'id',
@@ -246,13 +250,15 @@ class FrontendWebService(HTTP.HTTPProcessor):
             WP.Results.cost: 'cost',
         }
         results = yield from self.persistence_interface.patient_info(desired, provider, customerid,
+                                                                     startdate=startdate, enddate=enddate,
                                                                      limit=self.helper.limit_clause(matches))
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
-
+    
     patient_required_contexts = [CONTEXT_PROVIDER, CONTEXT_KEY, CONTEXT_PATIENTLIST, CONTEXT_CUSTOMERID]
     patient_available_contexts = {CONTEXT_PROVIDER: str, CONTEXT_KEY: str, CONTEXT_PATIENTLIST: str,
-                                  CONTEXT_CUSTOMERID: int, CONTEXT_ENCOUNTER: str}
+                                  CONTEXT_CUSTOMERID: int, CONTEXT_ENCOUNTER: str,
+                                  CONTEXT_STARTDATE: date, CONTEXT_ENDDATE: date}
 
     @asyncio.coroutine
     def get_patient_details(self, _header, _body, qs, matches, _key):
@@ -266,6 +272,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
         provider = context[CONTEXT_PROVIDER]
         patientid = context[CONTEXT_PATIENTLIST]
         customerid = context[CONTEXT_CUSTOMERID]
+        startdate = self.helper.get_date(context,CONTEXT_STARTDATE)
+        enddate = self.helper.get_date(context, CONTEXT_ENDDATE)
         #if not auth_key == _authorization_key((provider, patient_id), AUTH_LENGTH):
         #   raise HTTP.IncompleteRequest('%s has not been authorized to view patient %s.' % (provider, patient_id))
 
@@ -283,6 +291,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
             WP.Results.lengthofstay: 'LOS',
         }
         results = yield from self.persistence_interface.patient_info(desired, provider, customerid,
+                                                                     startdate=startdate, enddate=enddate,
                                                                      limit=self.helper.limit_clause(matches))
 
         return HTTP.OK_RESPONSE, json.dumps(results[0]), None
@@ -290,7 +299,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
     totals_required_contexts = [CONTEXT_PROVIDER, CONTEXT_KEY, CONTEXT_CUSTOMERID]
     totals_available_contexts = {CONTEXT_PROVIDER: str, CONTEXT_KEY: list,
                                  CONTEXT_PATIENTLIST: list, CONTEXT_ENCOUNTER: str,
-                                 CONTEXT_CUSTOMERID: int}
+                                 CONTEXT_CUSTOMERID: int,
+                                 CONTEXT_STARTDATE: date, CONTEXT_ENDDATE: date}
 
     @asyncio.coroutine
     def get_total_spend(self, _header, _body, qs, _matches, _key):
@@ -301,6 +311,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
         patient_ids = context.get(CONTEXT_PATIENTLIST, None)
         customer = context[CONTEXT_CUSTOMERID]
         encounter = context.get(CONTEXT_ENCOUNTER, None)
+        startdate = self.helper.get_date(context,CONTEXT_STARTDATE)
+        enddate = self.helper.get_date(context, CONTEXT_ENDDATE)
         #auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
 
         desired = {
@@ -309,6 +321,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         }
 
         results = yield from self.persistence_interface.total_spend(desired, provider, customer,
+                                                                    startdate=startdate, enddate=enddate,        
                                                                     patients=patient_ids, encounter=encounter)
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
@@ -316,7 +329,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
     daily_required_contexts = [CONTEXT_PROVIDER, CONTEXT_KEY, CONTEXT_CUSTOMERID]
     daily_available_contexts = {CONTEXT_PROVIDER: str, CONTEXT_KEY: list,
                                 CONTEXT_PATIENTLIST: list, CONTEXT_CUSTOMERID: int,
-                                CONTEXT_ENCOUNTER: str}
+                                CONTEXT_ENCOUNTER: str,
+                                CONTEXT_STARTDATE: date, CONTEXT_ENDDATE: date}
 
     @asyncio.coroutine
     def get_daily_spending(self, _header, _body, qs, _matches, _key):
@@ -328,11 +342,14 @@ class FrontendWebService(HTTP.HTTPProcessor):
         patient_dict = defaultdict(lambda: defaultdict(int))
         encounter = context.get(CONTEXT_ENCOUNTER, None)
         patient_ids = context.get(CONTEXT_PATIENTLIST, None)
+        startdate = self.helper.get_date(context,CONTEXT_STARTDATE)
+        enddate = self.helper.get_date(context, CONTEXT_ENDDATE)
         #auth_keys = dict(zip(patient_ids,context[CONTEXT_KEY]))
 
         desired = {x: x for x in [WP.Results.date, WP.Results.ordertype, WP.Results.spending]}
         #if AK.check_authorization((provider, patient_id), auth_keys[patient_id], AUTH_LENGTH):
         results = yield from self.persistence_interface.daily_spend(desired, provider, customer,
+                                                                    startdate=startdate, enddate=enddate,
                                                                     patients=patient_ids, encounter=encounter)
 
         for row in results:
@@ -342,7 +359,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
     alerts_required_contexts = [CONTEXT_PROVIDER, CONTEXT_CUSTOMERID]
     alerts_available_contexts = {CONTEXT_PROVIDER: str, CONTEXT_PATIENTLIST: list,
-                                 CONTEXT_CUSTOMERID: int, CONTEXT_ENCOUNTER: str}
+                                 CONTEXT_CUSTOMERID: int, CONTEXT_ENCOUNTER: str,
+                                 CONTEXT_STARTDATE: date, CONTEXT_ENDDATE: date}
 
     @asyncio.coroutine
     def get_alerts(self, _header, _body, qs, matches, _key):
@@ -353,6 +371,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
         provider = context[CONTEXT_PROVIDER]
         patients = context.get(CONTEXT_PATIENTLIST, None)
         customer = context[CONTEXT_CUSTOMERID]
+        startdate = self.helper.get_date(context,CONTEXT_STARTDATE)
+        enddate = self.helper.get_date(context, CONTEXT_ENDDATE)
         limit = self.helper.limit_clause(matches)
 
         desired = {
@@ -368,6 +388,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
         results = yield from self.persistence_interface.alerts(desired, provider, customer,
                                                                patients=patients,
+                                                               startdate=startdate, enddate=enddate,
                                                                limit=limit)
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
@@ -375,7 +396,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
     orders_required_contexts = [CONTEXT_PROVIDER, CONTEXT_CUSTOMERID]
     orders_available_contexts = {CONTEXT_PROVIDER: str, CONTEXT_PATIENTLIST: list,
                                  CONTEXT_CUSTOMERID: int, CONTEXT_ENCOUNTER: str,
-                                 CONTEXT_ORDERTYPE: str}
+                                 CONTEXT_ORDERTYPE: str,
+                                 CONTEXT_STARTDATE: date, CONTEXT_ENDDATE: date}
 
     @asyncio.coroutine
     def get_orders(self, _header, _body, qs, matches, _key):
@@ -393,6 +415,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
         encounter = context.get(CONTEXT_ENCOUNTER, None)
         customer = context[CONTEXT_CUSTOMERID]
+        startdate = self.helper.get_date(context,CONTEXT_STARTDATE)
+        enddate = self.helper.get_date(context, CONTEXT_ENDDATE)
         limit = self.helper.limit_clause(matches)
         if not limit:
             limit = 'LIMIT 10'
@@ -408,19 +432,24 @@ class FrontendWebService(HTTP.HTTPProcessor):
         }
 
         results = yield from self.persistence_interface.orders(desired, customer, encounter,
+                                                               startdate=startdate, enddate=enddate,
                                                                ordertypes=ordertypes, limit=limit)
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
     hist_spend_required_contexts = [CONTEXT_PROVIDER, CONTEXT_CUSTOMERID]
     hist_spend_available_contexts = {CONTEXT_PROVIDER: str, CONTEXT_PATIENTLIST: list,
-                                     CONTEXT_CUSTOMERID: int, CONTEXT_ENCOUNTER: str}
+                                     CONTEXT_CUSTOMERID: int, CONTEXT_ENCOUNTER: str,
+                                     CONTEXT_STARTDATE: date, CONTEXT_ENDDATE: date}
 
     @asyncio.coroutine
     def get_hist_spend(self, _header, _body, qs, matches, _key):
         context = self.helper.restrict_context(qs,
                                                FrontendWebService.hist_spend_required_contexts,
                                                FrontendWebService.hist_spend_available_contexts)
+
+        startdate = self.helper.get_date(context,CONTEXT_STARTDATE)
+        enddate = self.helper.get_date(context, CONTEXT_ENDDATE)
 
         desired = {
             WP.Results.spending: "spending",
@@ -433,7 +462,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                                                       context.get(CONTEXT_CUSTOMERID),
                                                                       patients=context.get(CONTEXT_PATIENTLIST, None),
                                                                       encounter=context.get(CONTEXT_ENCOUNTER, None),
-                                                                      startDate=None, endDate=None)
+                                                                      startdate=startdate, enddate=enddate)
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
 

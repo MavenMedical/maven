@@ -33,9 +33,13 @@ define([
             //update context to have a current rule, that triggers everything else
             contextModel.set({id:this.model.get("id"),
 			                name:this.model.get("name")});
-	        ruleModel.on('propagate:name',
+                     this.$el.css({'font-size': "300%"})
+                     var that = this;
+            ruleModel.on('change:id', function(){if (contextModel.get('id') != that.model.get('id')) {that.$el.css({'font-size': '100%'});}})
+            ruleModel.on('propagate:name',
 			 function(model) {
 			     if(contextModel.get('id') == this.model.get('id')) {
+
 				 this.model.set({name: ruleModel.get('name')});
 				 this.render()
 			     } else {

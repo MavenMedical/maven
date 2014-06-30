@@ -40,15 +40,7 @@ define([
 		data.push({order: k, cost: gathered[k]});
 		colorArray.push(findColor(k));
 	    };
-	    var fake = function(s) {
-		data.push({order:s, cost:300});
-		colorArray.push(findColor(s));
-	    }
-	    fake("Imaging");
-	    fake("Medication");
-	    fake("Consultation");
-	    fake("Lab-work");
-	    fake("Other");
+
 	    var chart = AmCharts.makeChart("cost-bd", {
 		"type": "pie",
 		"colors": colorArray,

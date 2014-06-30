@@ -5,10 +5,10 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
 
-
+    'models/contextModel',
     'text!templates/triggerSelector/triggerListBox.html',
     'text!templates/triggerSelector/triggerSelectorRow.html'
-], function ($, _, Backbone, triggerListBox, triggerSelectorRow) {
+], function ($, _, Backbone, contextModel, triggerListBox, triggerSelectorRow) {
 
     var TriggerEditor = Backbone.View.extend({
 
@@ -32,7 +32,10 @@ define([
         },
         loadChildren: function(snomed){
             console.log(snomed)
-
+            var t = contextModel.toParams();
+            $.extend( t, {'search_param': snomed})
+            $.extend( t, {'type': "snomed_zoom_in"});
+            this.collection.fetch({data:$.param(t)})
 
         },
         loadParents: function(snomed){

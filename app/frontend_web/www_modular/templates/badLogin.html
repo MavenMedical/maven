@@ -1,14 +1,12 @@
-<div class="modal-dialog modal-lg">
+<div class="modal-dialog modal-lg" id="login">
   <div class="modal-content">
     <div class="modal-body">
+        <h3><span class="glyphicon glyphicon-repeat"></span>Try Again</h3>
       <div style="color:red">Login failed, either your username or password was incorrect.</div>
-      <div>Try again:</div> 
-      <div>
-	Username: <input id="login-user" type="text" name="user" value="<% if(user) print(user); %>">
-      </div>
-      <div>
-	Password: <input id="login-password" type="password" name="password">
-      </div>
+      <div class="container col-md-12">
+               <p><input id="login-user" type="text" name="user" placeholder="User name" value="<% if(user) print(user); %>" required autofocus></p>
+                <p><input id="login-password" type="password" placeholder="password" name="password"></p>
+            </div>
       <div>
 	<button id="login-button">Log in</button>
       </div>

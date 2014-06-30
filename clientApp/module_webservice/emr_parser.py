@@ -189,7 +189,7 @@ class EpicParser():
 class VistaParser():
 
     def __init__(self):
-        self.terminologies = ['icd', 'icd9', 'icd10', 'icd-9', 'icd-10', 'cpt', 'cpt4', 'cpt3', 'maven']
+        self.terminologies = ['icd', 'icd9', 'icd10', 'icd-9', 'icd-10', 'cpt', 'cpt4', 'cpt3']
 
     def create_composition(self, xml_enc):
         ###
@@ -294,27 +294,45 @@ class VistaParser():
 
             encounter_orders = []
             for enc_ord in xml_root.findall(".//Order"):
+
+                #Get Client EHR's UUID for Order_ID and store as Identifier
                 ord_id = enc_ord.findall(".//ID")[0].text
+
+                #Order Name
                 ord_name = enc_ord.findall(".//Name")[0].text
-                procedure_code = enc_ord.findall(".//ProcedureCode")[0].text
-                ord_code_type = enc_ord.findall(".//CodeType")[0].text
-                if ord_code_type is None:
-                    ord_code_type = "Internal"
+
+                #Order Type
                 ord_type = enc_ord.findall(".//Type")[0].text
-                datetime_raw = enc_ord.findall(".//OrderingDate")[0].text.replace('@', ' ')
-                ord_datetime = dateutil.parser.parse(datetime_raw)
+
+                #Procedure Code
+                if enc_ord.findall(".//ProcedureCode")[0].text:
+                    procedure_code = enc_ord.findall(".//ProcedureCode")[0].text
+
+                #Procedure Code Type
+                if enc_ord.findall(".//CodeType")[0].text:
+                    ord_code_type = enc_ord.findall(".//CodeType")[0].text
+                elif ord_code_type is None:
+                    ord_code_type = "Internal"
+
+                #Order Date
+                if enc_ord.findall(".//OrderingDate")[0].text.replace('@', ' '):
+                    datetime_raw = enc_ord.findall(".//OrderingDate")[0].text.replace('@', ' ')
+                    ord_datetime = dateutil.parser.parse(datetime_raw)
 
                 if ord_code_type.lower() in self.terminologies:
-                    if ord_type == "PROC":
-                        fhir_identifier = FHIR_API.Identifier(system="clientEMR", value=ord_id, label="Internal")
-                        fhir_codeableconcept = FHIR_API.CodeableConcept()
-                        fhir_codeableconcept.coding.append(FHIR_API.Coding(system=ord_code_type, code=procedure_code, display=ord_name))
-                        fhir_codeableconcept.text = "Procedure"
+                    if ord_type in ["PROC", "PROCEDURE", "procedure"]:
 
-                        procedure = FHIR_API.Procedure(date=ord_datetime, text=ord_name, type=fhir_codeableconcept)
-                        procedure.identifier.append(fhir_identifier)
+                        procedure = FHIR_API.Procedure(identifier=[FHIR_API.Identifier(system="clientEMR", value=ord_id, label="Internal")],
+                                                       date=ord_datetime,
+                                                       text=ord_name,
+                                                       type=FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(system=ord_code_type,
+                                                                                                             code=procedure_code,
+                                                                                                             display=ord_name)],
+                                                                                     text="Procedure"))
 
-                        encounter_orders.append(FHIR_API.Order(detail=[procedure], text=ord_name))
+                        encounter_orders.append(FHIR_API.Order(identifier=[FHIR_API.Identifier(system="clientEMR", value=ord_id, label="Internal")],
+                                                               detail=[procedure],
+                                                               text=ord_name))
 
                     elif ord_type == "MED":
                         pass
@@ -323,13 +341,12 @@ class VistaParser():
                         pass
 
                 else:
-                    fhir_identifier = FHIR_API.Identifier(system="clientEMR", value=procedure_code, label=ord_code_type)
-                    procedure = FHIR_API.Procedure(date=ord_datetime, text=ord_name)
-                    procedure.identifier.append(fhir_identifier)
-
-                    encounter_orders.append(FHIR_API.Order(detail=[procedure], text=ord_name))
-
-
+                    encounter_orders.append(FHIR_API.Order(identifier=[FHIR_API.Identifier(system="clientEMR", value=ord_id, label="Internal")],
+                                                           date=ord_datetime,
+                                                           detail=[FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(system=ord_code_type,
+                                                                                                                    code=procedure_code,
+                                                                                                                    display=ord_name)],
+                                                                                            text="Unknown")]))
             encounter_orders_section.content = encounter_orders
             composition.section.append(encounter_orders_section)
 
