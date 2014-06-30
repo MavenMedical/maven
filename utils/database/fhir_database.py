@@ -242,7 +242,7 @@ def identify_encounter_orderable(item=None, order=None, composition=None, conn=N
                                                                                      text=order_type))
                     return rtn_FHIR_medication
 
-                elif order_type in ["Procedure", "Lab"]:
+                elif order_type in ["Procedure", "Lab", "Imaging"]:
                     original_coding = FHIR_API.Coding(code=orderable_id, system=system, display=name)
                     procedure_coding = FHIR_API.Coding(code=result[6], system=result[7], display=name)
                     rtn_FHIR_procedure = FHIR_API.Procedure(text=name,

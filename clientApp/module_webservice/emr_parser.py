@@ -256,7 +256,12 @@ class VistaParser():
 
             patientIDType = None
             if (len(xml_root.findall(".//PatientIDType")) > 0):
-                patientIDType = xml_root.findall(".//PatientIDType")[0].text
+                id_type = xml_root.findall(".//PatientIDType")[0].text
+
+                if id_type.lower() in ["internal"]:
+                    patientIDType = "Internal"
+                else:
+                    patientIDType = id_type
 
         except:
             raise Exception('Error parsing XML demographics')
