@@ -170,7 +170,7 @@ class NotificationGenerator():
         patient_id = composition.subject.get_pat_id()
 
         #composition_alert_section = composition.get_alerts_section()
-        CDS_alerts = composition.get_alerts(type="cds")
+        CDS_alerts = composition.get_alerts_by_type(type="cds")
         if not CDS_alerts or not CDS_alerts['alert_list']:
             return []
 
