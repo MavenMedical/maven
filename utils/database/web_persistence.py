@@ -3,7 +3,7 @@ import dateutil
 from enum import Enum
 from collections import defaultdict
 from decimal import Decimal
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 
 from utils.database.database import AsyncConnectionPool
 from utils.database.database import MappingUtilites as DBMapUtils
@@ -24,8 +24,6 @@ Results = Enum('Results',
     diagnosis
     allergies
     problems
-    admission
-    lengthofstay
     spending
     savings
     date
@@ -46,13 +44,10 @@ Results = Enum('Results',
     provid
     displayname
     password
-    passexpired
+    passworddate
     userstate
     failedlogins
-    startdate
-    enddate
     recentkeys
-    diagnosisid
 """)
 
 
@@ -80,12 +75,10 @@ def _prettify_sex(s):
     return str.title(s)
 
 
-def _prettify_lengthofstay(s):
-    days = s[0].days
-    if days>1:
-        return str(days)+" days"
-    else:
-        return (s[0].seconds // 3600) + " hours"
+def _prettify_date(s):
+    prsr = dateutil.parser()
+    d = prsr.parse(s)
+    return d.strftime("%A, %B %d, %Y")
 
 
 def _invalid_num(x):
@@ -113,8 +106,7 @@ def _build_format(override={}):
     formatbykeymap = {
         Results.patientname: _prettify_name,
         Results.sex: _prettify_sex,
-        #Results.encounter_date: _prettify_date,
-        Results.lengthofstay: _prettify_lengthofstay,
+        Results.encounter_date: _prettify_date,
     }        
     formatter = defaultdict(lambda: formatbytype,
                             formatbykeymap.items())
@@ -155,13 +147,8 @@ class WebPersistence():
         return results
 
     @asyncio.coroutine
-    def update_password(self, user, newpw, timeout = '180d'):
-        yield from self.execute(["UPDATE users set (pw, pw_expiration) = (%s, now() + interval %s) where user_id = %s"],
-                                [newpw, timeout, user], {}, {})
-
-    @asyncio.coroutine
     def record_login(self, username, method, ip, authkey):
-        yield from self.execute(['INSERT INTO logins (user_name, method, logintime, ip, authkey) VALUES (%s, %s, now(), %s, %s)'],
+        yield from self.execute(['INSERT INTO logins (user_name, method, logintime, ip, authkey) VALUES (%s, %s, now(), %s, %s);'],
                                 [username, method, ip, authkey], {}, {})
 
     _default_pre_login = set((Results.username,))
@@ -172,31 +159,24 @@ class WebPersistence():
         Results.provid: 'users.prov_id',
         Results.displayname: 'users.display_name',
         Results.password: 'users.pw',
-        Results.passexpired: 'users.pw_expiration < now()',
+        Results.passworddate: 'users.pw_datetime',
         Results.userstate: 'users.state',
 #        Results.failedlogins: 'array_agg(logins.logintime)',
-        Results.recentkeys: 'NULL',
+#        Results.recentkeys: 'array_agg(logins.authkey),
     }
     _display_pre_login = _build_format()
         
     @asyncio.coroutine
-    def pre_login(self, desired, username=None, provider=[], keycheck=None):
+    def pre_login(self, desired, username, keycheck=None):
         columns = build_columns(desired.keys(), self._available_pre_login,
                                 self._default_pre_login)
-        if not username and not provider:
-            [][0]
         cmd = []
         cmdargs = []
         cmd.append("SELECT")
         cmd.append(columns)
         cmd.append("FROM users")
-        if username:
-            cmd.append("WHERE users.user_name = %s")
-            cmdargs.append(username)
-        else:
-            cmd.append("WHERE users.prov_id = %s AND users.customer_id = %s")
-            cmdargs.append(provider[0])
-            cmdargs.append(provider[1])
+        cmd.append("WHERE users.user_name = %s")
+        cmdargs.append(username)
         
         results = yield from self.execute(cmd, cmdargs, self._display_pre_login, desired)
         return results[0]
@@ -209,53 +189,18 @@ class WebPersistence():
         Results.sex: "max(patient.sex)",
         Results.encounter_date: "max(encounter.contact_date) AS contact_date",
         Results.encounter_list: "array_agg(encounter.csn || ' ' || encounter.contact_date)" ,
-        Results.cost: "0",
-        Results.diagnosis: "'None yet'",
-        Results.allergies: "'None'",
-        Results.problems: "'None yet'",
-        Results.admission: "max(encounter.hosp_admsn_time)",
-        Results.lengthofstay: 'array_agg(coalesce(encounter.hosp_disch_time, now()) - encounter.hosp_admsn_time)',
+        Results.cost: "NULL",
+        Results.diagnosis: "NULL",
+        Results.allergies: "NULL",
+        Results.problems: "NULL",
     }
     _display_patient_info = _build_format({
         Results.encounter_list: lambda x: list(map(lambda v: v.split(' '), x)),
         Results.cost: _invalid_num,
     })
-
-    _default_diagnosis_info = set((Results.diagnosis,))
-    _available_diagnosis_info = {
-        Results.diagnosis: "diagnosis.dx_name",
-        Results.diagnosisid: "diagnosis.dx_id",
-    }
-    _display_diagnosis_info = _build_format({})
-
-    @asyncio.coroutine
-    def diagnosis_info(self, desired, user, customer, diagnosis="", limit=""):
-
-        columns = build_columns(desired.keys(), self._available_diagnosis_info,
-                                self._default_diagnosis_info)
-
-        cmd = []
-        cmdargs=[]
-        cmd.append("SELECT")
-        cmd.append(columns)
-        cmd.append("FROM diagnosis")
-        #cmd.append("WHERE customer_id = %s")
-        #cmdargs.append(customer)
-        if diagnosis:
-            substring = "%" + diagnosis + "%"
-            cmd.append("WHERE UPPER(dx_name) LIKE UPPER(%s)")
-            cmdargs.append(substring)
-        cmd.append("ORDER BY dx_name")
-
-        if limit:
-            cmd.append(limit)
-
-        results = yield from self.execute(cmd, cmdargs, self._display_diagnosis_info, desired)
-        return []
-
         
     @asyncio.coroutine
-    def patient_info(self, desired, user, customer, patients=[], limit="", patient_name=""):
+    def patient_info(self, desired, user, customer, patients=[], limit=""):
         columns = build_columns(desired.keys(), self._available_patient_info,
                                 self._default_patient_info)
                 
@@ -269,10 +214,6 @@ class WebPersistence():
         cmdargs.append(customer)
         cmd.append("AND encounter.visit_prov_id = %s")
         cmdargs.append(user)
-        if patient_name:
-            substring = "%" + patient_name + "%"
-            cmd.append("AND UPPER(patient.patname) LIKE UPPER(%s)")
-            cmdargs.append(substring)
         if patients:
             cmd.append("AND encounter.pat_id IN %s")
             cmdargs.append(makelist(patients))
@@ -301,11 +242,11 @@ class WebPersistence():
         cmdargs = []
         cmd.append("SELECT")
         cmd.append(columns)
-        cmd.append("FROM mavenorder JOIN encounter")
-        cmd.append("ON mavenorder.encounter_id = encounter.csn")
+        cmd.append("FROM order_ord JOIN encounter")
+        cmd.append("ON order_ord.encounter_id = encounter.csn")
         cmd.append("WHERE encounter.visit_prov_id = %s")
         cmdargs.append(provider)
-        cmd.append("AND mavenorder.customer_id = %s")
+        cmd.append("AND order_ord.customer_id = %s")
         cmdargs.append(customer)
         if patients:
             cmd.append("AND encounter.pat_id IN %s")
@@ -338,11 +279,11 @@ class WebPersistence():
         cmdargs = []
         cmd.append("SELECT")
         cmd.append(columns)
-        cmd.append("FROM mavenorder JOIN encounter")
-        cmd.append("ON mavenorder.encounter_id = encounter.csn")
+        cmd.append("FROM order_ord JOIN encounter")
+        cmd.append("ON order_ord.encounter_id = encounter.csn")
         cmd.append("WHERE encounter.visit_prov_id = %s")
         cmdargs.append(provider)
-        cmd.append("AND mavenorder.customer_id = %s")
+        cmd.append("AND order_ord.customer_id = %s")
         cmdargs.append(customer)
         if patients:
             cmd.append("AND encounter.pat_id IN %s")
@@ -361,16 +302,13 @@ class WebPersistence():
         Results.patientid: "alert.pat_id",
         Results.datetime: "alert.alert_datetime",
         Results.title: "alert.long_title",
-        Results.description: "alert.long_desc",
+        Results.description: "alert.long_description",
         Results.outcome: "alert.outcome",
         Results.savings: "alert.saving",
         Results.alerttype: "'Duplicate'",
         Results.ruleid: "alert.cds_rule",
         }
-    _display_alerts = _build_format({
-        Results.title: lambda x: x or '',
-        Results.ruleid: lambda x: x,
-        })
+    _display_alerts = _build_format()
 
     @asyncio.coroutine
     def alerts(self, desired, provider, customer, patients=[], limit=""):
@@ -398,13 +336,13 @@ class WebPersistence():
 
     _default_orders = set((Results.datetime,))
     _available_orders = {
-        Results.ordername: "mavenorder.order_name",
-        Results.datetime: "mavenorder.datetime",
-        Results.active: "mavenorder.active",
-        Results.cost: "mavenorder.order_cost",
+        Results.ordername: "order_ord.order_name",
+        Results.datetime: "order_ord.order_datetime",
+        Results.active: "order_ord.active",
+        Results.cost: "order_ord.order_cost",
         Results.ordertype: "(ARRAY['Medication', 'Consultation', 'Lab-work', 'Procedure', 'Other', 'Imaging'])[floor(random() * 6.0) + 1]",
-#        Results.ordertype: "mavenorder.order_type",
-        Results.orderid: "mavenorder.orderid",
+#        Results.ordertype: "order_ord.order_type",
+        Results.orderid: "order_ord.order_id",
     }
     _display_orders = _build_format()
     
@@ -417,16 +355,16 @@ class WebPersistence():
         cmdargs = []
         cmd.append("SELECT")
         cmd.append(columns)
-        cmd.append("FROM mavenorder")
-        cmd.append("WHERE mavenorder.customer_id = %s")
+        cmd.append("FROM order_ord")
+        cmd.append("WHERE order_ord.customer_id = %s")
         cmdargs.append(customer)
         if encounter:
-            cmd.append("AND mavenorder.encounter_id = %s")
+            cmd.append("AND order_ord.encounter_id = %s")
             cmdargs.append(encounter)
         if ordertypes:
-            cmd.append("AND mavenorder.order_type IN %s")
+            cmd.append("AND order_ord.order_type IN %s")
             cmdargs.append(ordertypes)
-        cmd.append("ORDER BY mavenorder.datetime desc")
+        cmd.append("ORDER BY order_ord.order_datetime desc")
         if limit:
             cmd.append(limit)
 
@@ -436,14 +374,9 @@ class WebPersistence():
     _default_per_encounter = set((Results.encounterid,))
     _available_per_encounter = {
         Results.encounterid: "encounter.csn",
-        Results.startdate: 'min(hosp_admsn_time)',
-        Results.enddate: 'max(hosp_disch_time)',
-        Results.diagnosis: "'diagnosis'",
-        Results.spending: "sum(mavenorder.order_cost)",
+        Results.spending: "sum(order_ord.order_cost)",
     }
-    _display_per_encounter = _build_format({
-        Results.enddate: lambda x: x and _prettify_date(x),
-        })
+    _display_per_encounter = _build_format()
         
     @asyncio.coroutine
     def per_encounter(self, desired, provider, customer, patients=[], encounter=None,
@@ -455,11 +388,11 @@ class WebPersistence():
         cmdargs=[]
         cmd.append("SELECT")
         cmd.append(columns)
-        cmd.append("FROM mavenorder JOIN encounter")
-        cmd.append("ON mavenorder.encounter_id = encounter.csn")
+        cmd.append("FROM order_ord JOIN encounter")
+        cmd.append("ON order_ord.encounter_id = encounter.csn")
         cmd.append("WHERE encounter.visit_prov_id IN %s")
         cmdargs.append(makelist(provider))
-        cmd.append("AND mavenorder.customer_id = %s")
+        cmd.append("AND order_ord.customer_id = %s")
         cmdargs.append(customer)
         if patients:
             cmd.append("AND encounter.pat_id IN %s")

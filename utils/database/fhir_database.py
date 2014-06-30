@@ -144,7 +144,7 @@ def write_composition_encounter_orders(composition, conn):
                        "clientEMR",
                        order.detail[0].text,
                        order.detail[0].resourceType,
-                       order.totalCost,
+                       order.detail[0].base_cost,
                        composition.lastModifiedDate]
 
             cur = yield from conn.execute_single("SELECT upsert_enc_order(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", extra=cmdargs)
