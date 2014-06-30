@@ -13,24 +13,22 @@ CREATE DATABASE maven
 --
 -- Name: plpgsql; Type: EXTENSION; Schema: -; Owner:
 --
-
 CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 
 --
 -- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner:
 --
-
 COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 
+
 -- Schema: public
-
 -- DROP SCHEMA public;
-
 CREATE SCHEMA public
   AUTHORIZATION postgres;
 
 GRANT ALL ON SCHEMA public TO maven;
 GRANT ALL ON SCHEMA public TO public;
+
 
 -- Table: adt
 -- DROP TABLE: adt
@@ -166,6 +164,55 @@ CREATE INDEX ixconditionpatdatsno ON condition USING btree (customer_id, pat_id,
 -- Name: ixconditionpatstatus; Type: INDEX; Schema: public; Owner: maven; Tablespace:
 --
 CREATE INDEX ixconditionpatstatus ON condition USING btree (customer_id, pat_id, status);
+
+
+
+-- Table: costmap
+-- DROP TABLE costmap;
+CREATE TABLE costmap (
+  customer_id numeric(18,0),
+  code character varying(36),
+  code_type character varying(36),
+  department character varying(255),
+  order_type character varying(36),
+  cost_type character varying(255),
+  orderable_id character varying(36),
+  cost numeric(18,2)
+);
+ALTER TABLE public.costmap OWNER TO maven;
+
+-- Index: ixcostmap
+-- DROP INDEX ixcostmap;
+CREATE INDEX ixcostmap
+  ON public.costmap
+  USING btree
+  (customer_id, code, code_type, department, order_type, cost_type);
+
+
+
+-- Table: costmap
+-- DROP TABLE costmap;
+CREATE TABLE costmap_historic (
+  customer_id numeric(18,0),
+  code character varying(36),
+  code_type character varying(36),
+  department character varying(255),
+  order_type character varying(36),
+  cost_type character varying(255),
+  orderable_id character varying(36),
+  cost numeric(18,2),
+  source_info character varying,
+  exp_date timestamp without time zone
+);
+ALTER TABLE public.costmap_historic OWNER TO maven;
+
+-- Index: ixcostmaphx
+-- DROP INDEX ixcostmaphx;
+CREATE INDEX ixcostmaphx
+  ON public.costmap_historic
+  USING btree
+  (customer_id, orderable_id, department, order_type, cost_type);
+
 
 
 -- Table: customer
@@ -374,11 +421,11 @@ CREATE INDEX ixorder_ord ON order_ord USING btree (encounter_id, customer_id);
 CREATE TABLE orderable (
   customer_id numeric(18,0),
   orderable_id character varying(36),
+  ord_type character varying(36),
   system character varying(255),
   name character varying(255),
   description character varying,
   status character varying(255),
-  ord_type character varying(255),
   source character varying(255),
   base_cost numeric(18,2),
   cpt_code character varying(20),
