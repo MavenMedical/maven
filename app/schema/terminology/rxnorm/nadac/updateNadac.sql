@@ -53,3 +53,6 @@ $BODY$
 select updatenadacarchive();
 truncate table public.nadac;
 \copy nadac from 'NADAC.csv' delimiter ',' CSV
+delete from public.costmap where customer_id=-1 and code_type='NDC';
+insert into public.costmap (select -1,NDC,'NDC',-1,'NADAC '||units||' Cost',NDC,unitCost from NADAC);
+insert into public.orderable (customer_id,orderable_id,ord_type,name,description,base_cost) (Select -1,NDC,'Med',name,name,unitcost from NADAC);
