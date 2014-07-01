@@ -51,7 +51,7 @@ create index ixDrugClassAncestryReverse on terminology.drugclassancestry (inclas
 create index ixDrugClassAncestryNDC on terminology.drugclassancestry(ndc,classaui,inclassaui);
 
 
-insert into terminology.drugclassancestry(
+/*insert into terminology.drugclassancestry(
 select distinct  dc.rxaui ,ndc.rxaui ,max(coalesce(brand.str,member.str||' (generic)')) ,max(route.groupname),ndc.atv,max(dc.str),max(member.str)
 from terminology.drugclass dc
 inner join terminology.rxnrel a on a.rxaui1=dc.rxaui and a.rela='member_of'
@@ -67,8 +67,9 @@ inner join terminology.doseformgroups route on routerel.rxcui2=route.rxcui
 left outer join terminology.rxnrel brel on brel.rxcui1=ndc.rxcui and brel.rela='ingredient_of'
 left outer join terminology.rxnconso brand on brel.rxcui2=brand.rxcui and brand.tty='BN'
 group by dc.rxaui ,ndc.rxaui,ndc.atv
-);
+);*/
 
+\COPY terminology.drugclassancestry from 'drugclassancestry.csv' DELIMITER ',' CSV
 
 -- Starting from the granular NDC code, go up the hierarchy to the class, and get THAT Snomed ID
 create or replace function getClassSnomedFromNDC(v_ndc varchar(20))
