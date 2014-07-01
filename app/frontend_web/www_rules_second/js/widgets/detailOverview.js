@@ -29,10 +29,6 @@ define([
             function(curTemplate) {
                   var newModel;
                     newModel = new Backbone.Model({});
-                if (selected == Helpers.detailHeadings['pl_dx'])
-                     newModel = new Backbone.Model({'negative':'false', 'code': '0'});
-                  if (selected == Helpers.detailHeadings['hist_dx'])
-                     newModel = new Backbone.Model({'negative':'false', 'code': '0', 'minDays':'0', 'maxDays': '0'});
 
                     console.log(toTemplate);
                     var toTemplate = _.template(curTemplate);

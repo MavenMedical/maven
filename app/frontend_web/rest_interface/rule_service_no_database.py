@@ -45,7 +45,9 @@ triggers = [{'type': 'snomed', 'code': '456', 'id': 1}
 details = [{'type': 'pl_dx', 'id': '1'},
            {'type': 'hist_dx', 'id': '2'},
            {'type': "lab", 'id': '3'},
-           {'type': "enc_dx", 'id': '4'}]
+           {'type': "enc_dx", 'id': '4'},
+           {'type': "enc_pl_dx", 'id': '5'},
+           {'type': "hist_proc", 'id': '6'}]
 class RuleService(HTTP.HTTPProcessor):
     
     def __init__(self, configname):
@@ -63,7 +65,7 @@ class RuleService(HTTP.HTTPProcessor):
 
         self.add_handler(['GET'], '/details', self.get_details)
         self.add_handler(['GET'], '/search', self.search)
-        self.add_handler(['GET'], '/trigger', self.get_triggers)
+        self.add_handler(['GET'], '/triggers', self.search)
         self.helper = HH.HTTPHelper([CONTEXT_USER], CONTEXT_AUTH, AUTH_LENGTH)
         self.search_interface = WS.web_search('search')
                 
@@ -146,7 +148,7 @@ class RuleService(HTTP.HTTPProcessor):
         return (HTTP.OK_RESPONSE, json.dumps([{CONTEXT_RULEID:k[0], JNAME:k[1]} for k in database_rules]), None)
 
     triggers_required_context = [CONTEXT_USER]
-    triggers_available_context = {CONTEXT_USER:str, CONTEXT_RULEID:int, SEARCH_PARAM:str}
+    triggers_available_context = {CONTEXT_USER:str, CONTEXT_RULEID:int, SEARCH_PARAM:str, 'search_type': str}
 
     @asyncio.coroutine
     def get_triggers(self, _header, body, qs, _matches, _key):
@@ -154,8 +156,8 @@ class RuleService(HTTP.HTTPProcessor):
                                                RuleService.triggers_required_context,
                                                RuleService.triggers_available_context)
         global triggers
-
-        results = yield from self.search_interface.do_search(context[SEARCH_PARAM], 'conditions')
+        print("searching22")
+        results = yield from self.search_interface.do_search(context[SEARCH_PARAM], 'DX')
 
         return (HTTP.OK_RESPONSE, json.dumps(results), None)
 
@@ -164,6 +166,7 @@ class RuleService(HTTP.HTTPProcessor):
 
     @asyncio.coroutine
     def search(self, _header, body, qs, _matches, _key):
+        print (qs)
         context = self.helper.restrict_context(qs,
                                                RuleService.search_required_context,
                                                RuleService.search_available_context)

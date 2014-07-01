@@ -46,6 +46,14 @@ define([
                // curRule.save();
 
             }
+        }
+    var selectorType = function(){
+        curRule.set('triggerType', $('#trigger-type-selector').val())
+    }
+    var selectorGenders = function(){
+        curRule.set('genders', $('#gender-selector').val())
+                curRule.save()
+
     }
     var RuleOverview = Backbone.View.extend({
         template: _.template(ruleOverviewTemplate),
@@ -103,7 +111,9 @@ define([
         "click #minAgeTag": editMinAge,
         "click #maxAgeTag": editMaxAge,
         "click #genderTag": editGenders,
-        "click #triggerTag": editTriggerType
+        "click #triggerTag": editTriggerType,
+        "change #gender-selector": selectorGenders,
+        "change #trigger-type-selector": selectorType
 	    }
     });
 

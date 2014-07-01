@@ -7,7 +7,7 @@ define([
     'models/contextModel',
 
     'text!templates/individualDetails/detailSearch.html',
-    'text!templates/triggerSelector/triggerSelectorRow.html'
+    'text!templates/SearchSelectorRow/triggerSelectorRow.html'
 ], function ($, _, Backbone, contextModel, detailSearch, triggerSelectorRow) {
     var DetailSearchBox = Backbone.View.extend({
 
@@ -25,9 +25,20 @@ define([
 
                 var t = contextModel.toParams();
                 $.extend( t, {'search_param': $('#Detail-Search-Box').val()})
-                $.extend( t, {'type': panel.type});
+                $.extend( t, {'type': "snomed_basic"});
 
-             panel.collection.fetch({data:$.param(t)})
+                panel.collection.fetch({data:$.param(t)})
+            }
+            $('#zoom_button', this.$el)[0].onclick = function(){
+                var t = contextModel.toParams();
+                console.log($('#search_sesults').val())
+                $.extend( t, {'search_param': $('#search_results').val()})
+                $.extend( t, {'type': "snomed_zoom_in"});
+
+                panel.collection.fetch({data:$.param(t)})
+
+
+
             }
         },
         render: function(){

@@ -24,13 +24,11 @@ define([
             var panel = this;
             $('#add-source-button')[0].onclick = function(){
                 panel.collection.add({Name: $('#source-name-field').val(), Abbreviation: $('#source-abbrev-field').val(),Hyperlink: $('#source-hyperlink-field').val()});
-                console.log("collection", panel.collection)
             }
             this.render()
 
         },
         render: function(){
-                console.log("the collection", this.collection)
                 var listView = Backbone.View.extend({
 
                 template : _.template(rowTemplate),
