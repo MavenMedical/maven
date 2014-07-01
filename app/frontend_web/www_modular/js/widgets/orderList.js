@@ -20,7 +20,7 @@ define([
 		//this.render();
 	    //}, this);
 	    this.render();
-        var orderlist = $('.col-sm-12', this.$el);
+        var orderlist = $('.orderlist', this.$el);
 	    orderlist.scrollTop(0);
 	    orderlist.scroll(function() {
 		if(orderlist.scrollTop() + orderlist.innerHeight() + 100 >= orderlist[0].scrollHeight) {
@@ -53,14 +53,6 @@ define([
 	},
 	addOrder: function(order) {
 	    var orderrow = new OrderRow({model: order});
-	    $('.orderaccordion', this.$el).append(orderrow.render().el);
-	    this.$el.show();
-
-        var orderrow = new OrderRow({model: order});
-	    $('.orderaccordion', this.$el).append(orderrow.render().el);
-	    this.$el.show();
-
-        var orderrow = new OrderRow({model: order});
 	    $('.orderaccordion', this.$el).append(orderrow.render().el);
 	    this.$el.show();
 	},	
