@@ -318,8 +318,11 @@ class FrontendWebService(HTTP.HTTPProcessor):
             WP.Results.spending: 'spending',
             WP.Results.savings: 'savings',
         }
-
-        results = yield from self.persistence_interface.total_spend(desired, provider, customer,
+    
+        if patient_ids or encounter:
+            provider = None
+            
+        results = yield from self.persistence_interface.total_spend(desired, customer, provider=provider,
                                                                     startdate=startdate, enddate=enddate,        
                                                                     patients=patient_ids, encounter=encounter)
 
