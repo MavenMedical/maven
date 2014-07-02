@@ -1,14 +1,15 @@
 <div class="detail-entry">
     <a class="detail-item">
     Rule will be used only if the patient had the observation that the labs with codes <%=obs_type%> were
-     <% if (relation == "greater") { %>
+     <b><% if (relation == "greater") { %>
             greater than
     <%} else { %>
             less than
-    <%}%>
-    <%=value%>
+    <%}%></b>
+    <b><%=value%></b>
         <br>
-    in the time frame between <%=mindays%> and <%=maxdays%> days from the present
+    in the time frame between <b><%=mindays%></b> and <b><%=maxdays%></b> days from the present
+    <br> if no results for that test exist the rule <b><%if (defaultval=='true'){%>may still<%}else{%>may not<%}%></b> be used
     </a>
     <a style = "float: right" class="remove-detail">&#10006</a>
 
