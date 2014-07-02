@@ -17,9 +17,8 @@ define([
         initialize: function (arg) {
             this.template = _.template(arg.template); // this must already be loaded
             histogramModel.on('change', this.update, this);
-            contextModel.on('change page', this.update, this);
-
-            this.update();
+            contextModel.on('change:page', this.update, this);
+	    this.update();
         },
         events: {
             'click #histogram-download': 'downloadhist',
@@ -34,7 +33,7 @@ define([
             window.open(encodeURI(csvContent.join('\n')));
         },
         update: function () {
-            if (histogramModel.attributes && contextModel.get('page') == 'home') {
+            if (histogramModel.get(0) && contextModel.get('page') == 'home') {
                 this.$el.html(this.template(contextModel.attributes));
                 var values = _.pluck(histogramModel.attributes, 'spending');
                 var max = _.max(values);
