@@ -19,7 +19,7 @@ define([
             patientCollection.bind('reset', this.render, this);
             contextModel.on('change', this.addAll, this);
             this.addAll();
-            var patientlist = $('.table', this.$el);
+            var patientlist = $('.patientlist', this.$el);
             patientlist.scrollTop(0);
             patientlist.scroll(function() {
             if(patientlist.scrollTop() + patientlist.innerHeight() + 100 >= patientlist[0].scrollHeight) {
@@ -36,7 +36,23 @@ define([
             var patientrow = new PatientRow({
                 model: pat
             });
-            $('.table').append(patientrow.render().el);
+            $('.patienttable').append(patientrow.render().el);
+
+            patientrow = new PatientRow({
+                model: pat
+            });
+            $('.patienttable').append(patientrow.render().el);
+
+            patientrow = new PatientRow({
+                model: pat
+            });
+            $('.patienttable').append(patientrow.render().el);
+
+            patientrow = new PatientRow({
+                model: pat
+            });
+            $('.patienttable').append(patientrow.render().el);
+
         },
 	    addAll: function() {
 		    if(contextModel.get('patients')) {

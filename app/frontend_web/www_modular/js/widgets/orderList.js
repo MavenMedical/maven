@@ -20,7 +20,7 @@ define([
 		//this.render();
 	    //}, this);
 	    this.render();
-        var orderlist = $('.orderlist', this.$el);
+        var orderlist = $('.orderaccordion', this.$el);
 	    orderlist.scrollTop(0);
 	    orderlist.scroll(function() {
 		if(orderlist.scrollTop() + orderlist.innerHeight() + 100 >= orderlist[0].scrollHeight) {
