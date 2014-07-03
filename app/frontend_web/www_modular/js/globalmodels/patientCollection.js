@@ -29,14 +29,24 @@ define([
 
     patientCollection = new PatientCollection;
     if(contextModel.get('userAuth')) {
-	patientCollection.fetch({data:$.param(contextModel.toParams())});
+	//patientCollection.fetch({data:$.param(contextModel.toParams())});
+        this.tried = 0;
+        this.offset = 0;
+        patientCollection.fetch({
+            data:$.param(contextModel.toParams()),
+            remove:true});
     }
     contextModel.on('change', 
 		    // this will be needed once the context filters things
 		    function(cm) {
 			if(false && cm.get('userAuth')) {
-			    patientCollection.fetch({data:$.param(contextModel.toParams())});
-			}
+			    //patientCollection.fetch({data:$.param(contextModel.toParams())});
+                this.tried = 0;
+                this.offset = 0;
+                patientCollection.fetch({
+                    data:$.param(contextModel.toParams()),
+                    remove:true});
+			    } 
 		    }, patientCollection);
     return patientCollection;
 });
