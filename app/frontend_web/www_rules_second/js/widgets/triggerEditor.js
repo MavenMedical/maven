@@ -40,6 +40,7 @@ define([
     var populateBySearch = function(){
         var t = contextModel.toParams();
         $.extend( t, {'search_param': $('#triggerSearch').val()})
+        $.extend( t, {'type': "snomed_basic"})
         this.availModel.fetch({data:$.param(t)})
     }
     var TriggerEditor = Backbone.View.extend({

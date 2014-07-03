@@ -27,22 +27,22 @@ define ([
                   }
                   curRule.save();
               });
-
            },
            render: function(){
                var fields = $(".evidence-editor-text", this.$el);
                if (!curRule.get('evidence')){
-                   curRule.set({'evidence': new Backbone.Model({'short-title': "", 'short-description': "", 'long-title': "", 'long-description': "", 'sources': ""})}, {silent:true});
+                   curRule.set({'evidence': new Backbone.Model({'short-title': "", 'short-description': "", 'long-title': "", 'long-description': ""})}, {silent:true});
 
                  }
+               if (!curRule.get('sources')){
+                   curRule.set('sources', new Backbone.Collection())
+               }
                for (var c=0;c<fields.length;c++){
                    fields[c].value = curRule.get('evidence').get(fields[c].name);
                }
                console.log($('#source-manager'))
                this.sourceView = new SourceManager({el: $('#source-manager', this.$el)})
                console.log(this.sourceView)
-
-
            },
            handleRuleLoad: function(){
 
@@ -52,22 +52,11 @@ define ([
                } else {
                    this.$el.hide();
                }
-
-
            },
-
-
            events: {
                'onblur #evidence-area': 'saveEvidence'
-
-
            }
-
-
         });
          return EvidenceEditor;
-
-
-
     }
 );

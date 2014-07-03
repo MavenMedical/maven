@@ -26,27 +26,57 @@ class web_search():
 
     @asyncio.coroutine
     def do_search(self, search_str, search_type):
-        print(search_str)
         cmd = []
+        cmd_args = []
+        print("QUERYING")
+
+        if (search_type == "snomed_basic"):
+            print("QUERYING")
+            cmd.append("SET enable_seqscan = off;")
+            cmd.append("SELECT x.ancestor, min(x.term),count(*) FROM  (SELECT  b.ancestor,a.term FROM terminology.descriptions a, terminology.conceptancestry b")
+            cmd.append("where to_tsvector('maven',term) @@ %s")
+            cmd.append("and active=1 and languagecode='en'")
+            cmd.append("and a.conceptid=b.ancestor) as x")
+            cmd.append("GROUP BY")
+            cmd.append("x.ancestor")
+            cmd.append("ORDER BY count DESC")
+            cmd.append("LIMIT 25")
+            cmd_args.append(search_str)
+            results = yield from self.db.execute_single((' '.join(cmd)), cmd_args)
+            ret = []
+            for row in results:
+                 ret.append({'id': int(row[0]), 'term': row[1], 'code': int(row[0]), 'type' : 'snomed'})
+            return ret
+
+        if (search_type == "snomed_zoom_in"):
+            cmd.append("SET enable_seqscan = off;")
+            cmd.append("select distinct  a.conceptid, max(a.term), min(b.count) from terminology.descriptions as a, (select distinct CA.ancestor, count(*) from (select sourceid from terminology.relationships as CA  where destinationid = %s AND relationshipgroup = 0)  AS results,")
+            cmd.append("terminology.conceptancestry as CA WHERE results.sourceid = CA.ancestor")
+            cmd.append("GROUP BY CA.ancestor")
+            cmd.append(") as b")
+            cmd.append("WHERE b.ancestor = a.conceptid")
+            cmd.append("GROUP BY a.conceptid")
+            cmd.append("ORDER BY min(count) DESC")
+            cmd.append("LIMIT 30")
+            cmd_args.append(search_str)
+            ret = []
+            results = yield from self.db.execute_single((' '.join(cmd)), cmd_args)
+            for row in results:
+
+                ret.append({'id': int(row[0]), 'term': row[1], 'code': int(row[0]), 'type' : 'snomed'})
+            return ret
+        if (search_type == "loinc"):
+            cmd.append("SELECT loinc_num, component FROM terminology.loinc WHERE component @@ %s")
+            cmd_args.append(search_str)
+            ret = []
+            results = yield from self.db.execute_single(' '.join(cmd), cmd_args )
+            for row in results:
+                ret.append({'id': row[0], 'term': row[1]})
+            return ret
 
 
-        cmd.append("SELECT DISTINCT")
-        cmd.append("id, term")
-        cmd.append("FROM")
-        cmd.append("terminology.descriptions")
-        cmd.append("WHERE")
-        cmd.append("term")
-        cmd.append("like")
-        cmd.append("'%" + search_str + "%'")
-        cmd.append("ORDER BY")
-        cmd.append("term")
-        cmd.append("LIMIT 10")
-        results = yield from self.db.execute_single((' '.join(cmd)), [])
-        print (results);
-        ret = []
-        for row in results:
-            ret.append({'id': int(row[0]), 'term': row[1], 'code': int(row[0]), 'type' : 'snomed'})
-        return ret
+
+
 
     @asyncio.coroutine
     def add_to_db(self, ruleJSON):
@@ -118,49 +148,77 @@ class web_search():
         yield from (self.writeExplicit('hist_dx', ruleJSON))
         yield from self.writeExplicit('pl_dx', ruleJSON)
         yield from self.writeExplicit('enc_dx', ruleJSON)
+        yield from self.writeExplicit('enc_pl_dx', ruleJSON)
+        yield from self.writeExplicit('hist_proc', ruleJSON)
+        yield from self.writeExplicit('enc_proc', ruleJSON)
 
+        yield from self.writeLabs(ruleJSON)
         return
     @asyncio.coroutine
     def writeExplicit(self, type, rule):
-        print("TESTTTTT")
         list = rule.get(type, None)
         id = rule['id']
+
         if (list):
+            cmd = []
+            cmdArgs = []
             pos = []
             neg = []
             for cur in list:
-                if (cur['negative']):
-                    neg.append(cur['code'])
-                else:
-                    pos.append(cur['code'])
+                 cmd = []
+                 cmdArgs = []
+                 if (type.split('_')[0] == 'hist'):
+                     cmd.append("INSERT INTO rules.codelists")
+                     cmd.append("(ruleid, listtype, isintersect, intlist, framemin, framemax)")
+                     print (cmd)
+                     cmd.append("(SELECT %s, %s, %s, array_agg(child) , %s, %s FROM terminology.conceptancestry WHERE ancestor = %s)")
+                     cmdArgs.append(str(id))
+                     cmdArgs.append(str(type))
+                     cmdArgs.append(cur['negative'])
+                     cmdArgs.append(cur['minDays'])
+                     cmdArgs.append(cur['maxDays'])
+                     cmdArgs.append(cur['code'])
 
-            cmd = []
-            cmdArgs = []
+                 else:
+                     cmd.append("INSERT INTO rules.codelists")
+                     cmd.append("(ruleid, listtype, isintersect, intlist)")
+                     cmd.append("(SELECT %s, %s, %s, array_agg(child) FROM terminology.conceptancestry WHERE ancestor = %s)")
+                     cmdArgs.append(str(id))
+                     cmdArgs.append(str(type))
+                     cmdArgs.append(cur['negative'])
+                     cmdArgs.append(cur['code'])
+                 yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
 
-            cmd.append("INSERT INTO rules.codelists")
-            cmd.append("(ruleid, listtype, isintersect, intlist)")
-            cmd.append("VALUES")
-            cmd.append("(%s, %s, true, %s)")
-            cmdArgs.append(str(id))
-            cmdArgs.append(str(type))
-            cmdArgs.append(self.toSQLArray(neg))
 
-            yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
 
-            cmd = []
-            cmdArgs = []
+        return
+    @asyncio.coroutine
+    def writeLabs(self, rule):
+        labs =  rule.get('lab', None)
 
-            cmd.append("INSERT INTO rules.codelists")
-            cmd.append("(ruleid, listtype, isintersect, intlist)")
-            cmd.append("VALUES")
-            cmd.append("(%s, %s, false, %s)")
-            cmdArgs.append(str(id))
-            cmdArgs.append(str(type))
+        id = rule['id']
 
-            cmdArgs.append(self.toSQLArray(pos))
+        delete = "DELETE FROM rules.labeval * WHERE ruleid = %s;"
+        yield from self.db.execute_single(delete, [id])
+        if labs:
+            for lab in labs:
+                cmd =[]
+                cmdArgs =[]
+                cmd.append("INSERT INTO rules.labeval")
+                cmd.append("(ruleid, loinc_codes, threshold, relation, framemin, framemax, defaultval)")
+                cmd.append("(SELECT %s, %s, %s, %s, %s, %s, %s)")
+                cmdArgs.append(id)
+                print (lab['obs_type'])
+                cmdArgs.append(lab['obs_type'])
+                cmdArgs.append(lab['value'])
+                cmdArgs.append(lab['relation'])
+                cmdArgs.append(lab['mindays'])
+                cmdArgs.append(lab['maxdays'])
+                cmdArgs.append(lab['defaultval'])
+                yield from self.db.execute_single(' '.join(cmd) + ';', cmdArgs)
 
-            yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
-            return
+        return
+
 
     def toSQLArray(self, toChange):
         ret =[]
@@ -205,5 +263,8 @@ class web_search():
         cmd.append("DELETE FROM rules.codelists * WHERE ruleid =")
         cmd.append(str(ruleid))
         yield from self.db.execute_single(' '.join(cmd) + ';', [])
-
+        cmd =[]
+        cmd.append("DELETE FROM rules.labeval * WHERE ruleid =")
+        cmd.append(str(ruleid))
+        yield from self.db.execute_single(' '.join(cmd) + ';', [])
         return

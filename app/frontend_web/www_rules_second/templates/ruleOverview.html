@@ -1,7 +1,7 @@
 <div style=>
 <div  style="font-size:200%"> Editing Rule: <a id="nameTag" href="#"><%=name%></a></div>
 <div class = 'standards' style="font-size: 150%">
-                          Rule Applies To:
+  <!--                        Rule Applies To:
                                     <a id="genderTag" href="#">
                                     <%if(genders=='MF'){%>      Both Genders
                                     <%}else if(genders=='F'){%> Only Women
@@ -18,7 +18,22 @@
                                     <%}else if(triggerType=='drug'){%> Prescriptions
 
                                     <%}%>
-                                    </a>
+                                    </a> -->
+    Rule Applies to:
+    <select class ="form-control" id="gender-selector">
+        <option <%if (genders == 'M'){%> selected <%}%>value = "M">Men</option>
+        <option <%if (genders == 'F'){%> selected <%}%>value = "F">Women</option>
+        <option <%if (genders == 'MF'){%> selected <%}%>value ="MF">Both Men and Women</option>
+    </select>
+    Min Age: <a id="minAgeTag" href="#"><%=minAge%></a>
+    Max Age: <a id="maxAgeTag" href="#"><%=maxAge%></a>
+    <br>
+    Rule Triggers On:
+    <select class="form-control" id="trigger-type-selector">
+        <option <%if (triggerType == 'proc'){%> selected <%}%> value = 'proc'>Procedures</option>
+        <option <%if (triggerType == 'drug'){%> selected <%}%> value='drug'>Drugs</option>
+    </select>
+
 </div>
 <div style="text-align:left; font-size:150%">Triggers:</div>
 <div class="trigger_list"></div>

@@ -23,7 +23,7 @@ define([
           this.el = params.el;
           this.list.on('add', this.render, this)
           this.list.on('remove', this.render, this)
-
+          curRule.on('sync', this.render, this)
 
         },
         render: function(){

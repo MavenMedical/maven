@@ -68,13 +68,13 @@ define([
 		} else {
             if (ruleModel.get(key)){
 
-                console.log("length", value.length)
 		        model = ruleModel.get(key);
             } else {
                 if (value.length!=0 && !value.length){
                     model = new Backbone.Model
                 } else {
-                    model = new Backbone.Collection();
+                    if (!model)
+                       model = new Backbone.Collection();
                 }
             }
             model.on('change', function() {ruleModel.propagate(model)}, ruleModel);
