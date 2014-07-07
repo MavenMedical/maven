@@ -38,8 +38,14 @@ define([
             }, this)
             rule.on('destroy', function(){
                 ruleCollection.remove(rule);
-
+                rulerow.destroy()
             })
+            console.log('painting', rule, "current rule is", curRule.get('id') )
+            if (rule.get('id') == curRule.get('id')){
+                rulerow.$el.css({'font-size': '200%'});
+            } else {
+                rulerow.$el.css({'font-size': '100%'});
+            }
 
             $('.rule-table', this.$el).append(rulerow.render().el);
         },
@@ -54,6 +60,7 @@ define([
         "contextmenu #addRuleButton": function(){
             alert("21213");
         }
+
 	},
 	createRule: function() {
 

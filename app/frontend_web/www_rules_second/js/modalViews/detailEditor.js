@@ -76,21 +76,16 @@ define([
                     curRule.save()
                 }
                $('#detail-modal').modal('hide');
-
-
             }
-
             $('.cancel-edit-button', this.$el)[0].onclick = function(){
-
                 $('#detail-modal').modal('hide');
-
             }
+
         },
         fillTemplate: function(){
             var inputs = $('.detail-input');
              for (var i=0;i<inputs.length;i++){
                     var cur = inputs[i];
-                    console.log(cur);
                     cur.value =this.model.get(cur.name);
 
                 }

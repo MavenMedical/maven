@@ -46,14 +46,18 @@ define([
       contextModel.set('showTriggerEditor', false);
       ruleModel.set({triggers: trig_temp} , {silent: true});
       ruleModel.set({triggerType: 'proc', genders:'MF', minAge:'0', maxAge:'200'}, {silent:true});
+      ruleModel.trigger('cleared')
 
 
 
     },
     getNewRule: function(name){
+
       ruleModel.clearData();
       ruleModel.set({name: name}, {silent: true});
-      ruleModel.save();
+      ruleModel.save({}, {success: function(){
+          ruleModel.trigger('selected')}});
+
 
     },
 
@@ -120,9 +124,11 @@ define([
 		 function() {
 		     contextModel.set({'id':ruleModel.get('id')})
              if (ruleModel.get('id')){
-                 contextModel.set('showDetails', true);
+
+                 ruleModel.trigger('selected')
              } else {
-                 contextModel.set('showDetails', false)
+
+                 ruleModel.trigger('cleared')
              }
 		 }, contextModel);
 

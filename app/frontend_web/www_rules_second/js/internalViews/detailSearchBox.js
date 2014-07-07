@@ -19,14 +19,20 @@ define([
             this.el = params.el;
             this.type = params.type;
             this.collection.on('sync', this.render, this);
+
             console.log($('#searchButton', this.$el));
             var panel = this;
             $('#searchButton', this.$el)[0].onclick = function(){
 
                 var t = contextModel.toParams();
                 $.extend( t, {'search_param': $('#Detail-Search-Box').val()})
-                $.extend( t, {'type': "snomed_basic"});
-
+                if (panel.type.split("_")[1] == 'dx'){
+                     $.extend( t, {'type': "snomed_diagnosis"});
+                } else if (panel.type.split("_")[1] == 'drug'){
+                   $.extend( t, {'type': "snomed_drug"});
+                } else if (panel.type.split("_")[1] == 'proc'){
+                   $.extend( t, {'type': "CPT"});
+                }
                 panel.collection.fetch({data:$.param(t)})
             }
             $('#zoom_button', this.$el)[0].onclick = function(){
@@ -39,6 +45,20 @@ define([
 
 
 
+            }
+             $('#Detail-Search-Box', this.$el)[0].onkeydown = function(key){
+                if (key.keyCode == 13){
+                      var t = contextModel.toParams();
+                $.extend( t, {'search_param': $('#Detail-Search-Box').val()})
+                if (panel.type.split("_")[1] == 'dx'){
+                     $.extend( t, {'type': "snomed_diagnosis"});
+                } else if (panel.type.split("_")[1] == 'drug'){
+                   $.extend( t, {'type': "snomed_drug"});
+                } else if (panel.type.split("_")[1] == 'proc'){
+                   $.extend( t, {'type': "CPT"});
+                }
+                panel.collection.fetch({data:$.param(t)})
+                }
             }
         },
         render: function(){
