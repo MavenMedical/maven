@@ -37,22 +37,6 @@ define([
                 model: pat
             });
             $('.patienttable').append(patientrow.render().el);
-
-            patientrow = new PatientRow({
-                model: pat
-            });
-            $('.patienttable').append(patientrow.render().el);
-
-            patientrow = new PatientRow({
-                model: pat
-            });
-            $('.patienttable').append(patientrow.render().el);
-
-            patientrow = new PatientRow({
-                model: pat
-            });
-            $('.patienttable').append(patientrow.render().el);
-
         },
 	    addAll: function() {
 		    if(contextModel.get('patients')) {
