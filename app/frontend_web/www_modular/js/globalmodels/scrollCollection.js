@@ -11,24 +11,14 @@ define([
     ScrollModel = Backbone.Model;
 
     var ScrollCollection = Backbone.Collection.extend({
-    url: function() {return '/patients/'+this.offset+'-'+(this.offset+this.limit);},
+    url: function() {return '//';},
     limit: 3,
     tried: 0,
     offset: 0,
 	model: ScrollModel,
     context: function(){
 
-        contextModel.on('change:patients',
-		    // this will be needed once the context filters things
-		    function(cm) {
-			if(true && cm.get('userAuth')) {
-			    this.tried = 0;
-			    this.offset=0;
-			    this.fetch({
-				data:$.param(contextModel.toParams()),
-				remove:true});
-			}
-	    }, this);
+        //context change listener - this will need to be defined by the subclass
     },
 	initialize: function(){
 

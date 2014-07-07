@@ -11,6 +11,19 @@ define([
     patientCollection.url = function() {return '/patients/'+this.offset+'-'+(this.offset+this.limit);};
     patientCollection.model = PatientModel;
     patientCollection.limit = 10;
+    patientCollection.context = function(){
+      contextModel.on('change:patients',
+		    // this will be needed once the context filters things
+		    function(cm) {
+			if(true && cm.get('userAuth')) {
+			    this.tried = 0;
+			    this.offset=0;
+			    patientCollection.fetch({
+				data:$.param(contextModel.toParams()),
+				remove:true});
+			}
+	    }, this);
+    };
     patientCollection.initialize();
 
     return patientCollection;
