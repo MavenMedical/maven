@@ -11,7 +11,6 @@ define([
     ScrollModel = Backbone.Model;
 
     var ScrollCollection = Backbone.Collection.extend({
-	//url: '/orders',
     url: function() {return '/patients/'+this.offset+'-'+(this.offset+this.limit);},
     limit: 3,
     tried: 0,
