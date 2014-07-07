@@ -70,6 +70,7 @@ ALTER TABLE public.adt OWNER TO maven;
 -- DROP TABLE alert;
 CREATE TABLE alert (
   alert_id serial,
+  alert_uuid character varying(36),
   customer_id numeric(18,0),
   provider_id character varying(18),
   pat_id character varying(100),
