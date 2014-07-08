@@ -2,28 +2,29 @@ define([
     'jquery',
     'underscore',
     'backbone',
-    'globalmodels/contextModel'
-], function($, _, Backbone, contextModel){
+    'globalmodels/contextModel',
+    'globalmodels/scrollCollection'
+], function($, _, Backbone, contextModel, ScrollCollection){
     var PatientModel = Backbone.Model;
 
-    var PatientCollection = Backbone.Collection.extend({
-	url: '/patients',
-	model: PatientModel,
-	initialize: function(){
-            // nothing here yet
-        },
-    });
-
-    patientCollection = new PatientCollection;
-    if(contextModel.get('userAuth')) {
-	patientCollection.fetch({data:$.param(contextModel.toParams())});
-    }
-    contextModel.on('change', 
+    patientCollection = new ScrollCollection;
+    patientCollection.url = function() {return '/patients/'+this.offset+'-'+(this.offset+this.limit);};
+    patientCollection.model = PatientModel;
+    patientCollection.limit = 10;
+    patientCollection.context = function(){
+      contextModel.on('change:patients',
 		    // this will be needed once the context filters things
 		    function(cm) {
-			if(false && cm.get('userAuth')) {
-			    patientCollection.fetch({data:$.param(contextModel.toParams())});
+			if(true && cm.get('userAuth')) {
+			    this.tried = 0;
+			    this.offset=0;
+			    patientCollection.fetch({
+				data:$.param(contextModel.toParams()),
+				remove:true});
 			}
-		    }, patientCollection);
+	    }, this);
+    };
+    patientCollection.initialize();
+
     return patientCollection;
 });
