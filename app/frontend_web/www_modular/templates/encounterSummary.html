@@ -2,24 +2,8 @@
     <h2 class="headings">Overview of <%= title %></h2>
 
     <div class="container row enc-date">
-        <input type="text" id="datepicker-input">
-
-        <button class="glyphicon glyphicon-calendar popper" data-toggle="popover"></button>
-        <div id='popper' class="popper-content hide">
-            <div id="datepicker"><p>hello</p></div>
-        </div>
-
-        <script>
-            $('.popper').popover({
-                placement: 'right',//'bottom',
-                container: 'body',
-                html: true,
-                content: function () {
-                    return $('#popper').html();
-                }
-            });
-
-        </script>
+      <input type="text" id="datepicker-input">
+      <button class="glyphicon glyphicon-calendar" data-target="#datepicker-modal" data-toggle="modal"></button>
     </div>
 
     <div class="row">

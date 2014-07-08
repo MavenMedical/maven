@@ -16,7 +16,10 @@ define([
             this.template = _.template(arg.template); // this must already be loaded
             this.$el.html(this.template({page: contextModel.get('page')}));
             contextModel.on('change:patients change:encounter change:enc_date', this.update, this);
-
+	    this.update();
+	    $("#datepicker-modal").on('shown.bs.modal', function() {$("#calendar").fullCalendar('render')});
+        },
+        update: function () {
             var eventlist = [];
 
             for (var key in histogramModel.attributes) {
@@ -29,32 +32,21 @@ define([
                 console.log(enc['admission']);
             }
 
-
-            $('.popper').popover({
-                placement: 'right',//'bottom',
-                container: 'body',
-                html: true,
-                content: function () {
-                    return $('#calendar').fullCalendar({
-                        theme: true,
-                        header: {
-                            left: 'prev',
-                            center: 'title',
-                            right: 'next'
-                        },
-                        selectable: true,
-                       // selectHelper: true,
-
-                        defaultDate: contextModel.get('enc_date'),
-                        //editable: false,
-                        events: eventlist
-
-                    });
-                }
+            $('#calendar').fullCalendar({
+                theme: true,
+                header: {
+                    left: 'prev',
+                    center: 'title',
+                    right: 'next'
+                },
+                selectable: true,
+                // selectHelper: true,
+		
+                defaultDate: contextModel.get('enc_date'),
+                //editable: false,
+                events: eventlist
+		
             });
-
-        },
-        update: function () {
         }
     });
     return DatepickerCalendar;
