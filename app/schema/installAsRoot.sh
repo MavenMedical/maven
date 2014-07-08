@@ -3,3 +3,4 @@ cd data
 ./loadData.sh
 cd ..
 cat populateFakeData.sql | sudo sudo -u postgres psql -d maven
+cat createRulesDb.sql | sudo sudo -u postgres psql -d maven

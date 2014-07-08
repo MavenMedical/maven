@@ -20,8 +20,6 @@ define([
             console.log(histogramModel.attributes);
             this.$el.html(this.template(this));
             this.update();
-
-
         },
         update: function () {
 
@@ -68,8 +66,9 @@ define([
                 "dataProvider": data
             });
 
-             chart.addListener("clickGraphItem", function(e){console.log(e.item.dataContext);});
-
+            chart.addListener("clickGraphItem", function(e){console.log(e.item.dataContext);});
+	    $("#datepicker-modal").on('shown.bs.modal', function() {chart.invalidateSize();});
+	    
         }
     });
     return DatepickerChart;

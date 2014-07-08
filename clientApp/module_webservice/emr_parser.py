@@ -220,6 +220,9 @@ class VistaParser():
                 composition.author.identifier.append(FHIR_API.Identifier(system="clientEMR",
                                                                          label="Internal",
                                                                          value=child.text))
+            elif "DepartmentID" in child.tag:
+                composition.encounter.location.append(FHIR_API.Location(identifier=FHIR_API.Identifier(system="clientEMR",
+                                                                                                       value=child.text)))
 
             elif "PatientDemographics" in child.tag:
                 self.parse_demographics(child, composition)

@@ -106,13 +106,13 @@
    }
    if (textbox.value.length == oldvalue.length -1) {
      // user deleted a character (probably)
-     [l,c]=finddiff(oldvalue,textbox.value);
-     post([l,"-",c]);
+     var d=finddiff(oldvalue,textbox.value);
+     post([d[0],"-",d[1]]);
      
    } else if (textbox.value.length == oldvalue.length +1) {
      // user added a character (probably)
-     [l,c]=finddiff(textbox.value,oldvalue);
-     post([l,"+",c]);
+     var d=finddiff(textbox.value,oldvalue);
+     post([d[0],"+",d[1]]);
      
    } else if(textbox.value != oldvalue) {
      // something else, just send the entire string
