@@ -461,7 +461,7 @@ body {
 
 }
 
-#datepicker{
+#datepicker-input{
     -webkit-appearance:none;
     -moz-appearance:none;
     appearance:none;
@@ -469,6 +469,10 @@ body {
     border: transparent;
     font-weight: bold;
     margin-top: 10px;
+}
+
+.fc-header-title h2{
+    font-size: 20px;
 }
 
 /***************************************************************

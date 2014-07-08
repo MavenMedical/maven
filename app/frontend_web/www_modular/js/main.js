@@ -10,18 +10,20 @@
 require.config({
     paths: {
         jquery: 'libs/jquery/jquery-min',
+        jquery_ui: 'libs/fullCalendar/jquery-ui.custom.min',
         underscore: 'libs/underscore/underscore',
         backbone: 'libs/backbone/backbone',
         bootstrap: '../css/bootstrap/js/bootstrap.min',
-        datepicker: 'libs/datepicker/bootstrap-datepicker',
+        fullcalendar: 'libs/fullCalendar/fullcalendar.min',
+        moment: 'libs/fullCalendar/moment.min',
 	    templates: '../templates'
     },
     shim: {
         bootstrap :{
             deps: ['jquery']
         },
-        datepicker :{
-            deps: ['jquery']
+        fullCalendar :{
+            deps: ['jquery','moment', 'jquery_ui']
         }
     }
 });

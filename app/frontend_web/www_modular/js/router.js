@@ -45,7 +45,7 @@ define([
 	routes: {
 	    "(/login/:provider/:customer/:userAuth)": 'showHome',
 	    "patient/:id(/login/:provider/:customer/:userAuth)": 'showPatient',
-	    "episode/:id/patient/:id(/login/:provider/:customer/:userAuth)": 'showEpisode',
+	    "episode/:id/patient/:id/:date(/login/:provider/:customer/:userAuth)": 'showEpisode',
 	    "evidence/:id/patient/:id/evi/:id(/login/:provider/:customer/:userAuth)": 'showEvidence',
 	    "logout": 'logout',
 	    //default
@@ -60,8 +60,8 @@ define([
 	    currentContext.set({page:'patient', encounter:null, patients:patid});
 	    showPage(provider, customer, userAuth);
 	},
-	showEpisode: function(enc, pat, provider, customer, userAuth){
-	    currentContext.set({page:'episode',encounter:enc,patients:pat});
+	showEpisode: function(enc, pat, date, provider, customer, userAuth){
+	    currentContext.set({page:'episode',encounter:enc,patients:pat, enc_date:date});
 	    showPage(provider, customer, userAuth);
 	},
 	showEvidence: function (enc, pat, evi, provider, customer, userAuth) {
