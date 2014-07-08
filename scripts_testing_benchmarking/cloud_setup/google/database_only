@@ -1,14 +1,22 @@
 echo "local0.*		  /var/log/postgresql" | sudo tee -a /etc/rsyslog.conf
 
-#truecrypt
-#truecrypt
-wget http://www.truecrypt.org/download/truecrypt-7.1a-linux-console-x64.tar.gz
+#LUKS,install if nessecary 
+yum install cryptsetup 
 
-tar -xvzf truecrypt-7.1a-linux-console-x64.tar.gz
-sudo ./truecrypt-7.1a-setup-console-x64
 
-sudo truecrypt -t -c /dev/sdc                                                                                       
-# enter choices 1, 1, 2, 5, then a good password (feel free to choose "temporary" if in a dev environment)
+sudo cryptsetup -y -v luksFormat /dev/sdc                                           
+# type YES enter passphrase twice
+sudo cryptsetup luksOpen /dev/sdc maven_LUKS
+#enter password from before
+#Format the partition
+sudo dd if=/dev/zero of=/dev/mapper/maven_LUKS
+#create the file system
+sudo mkfs.ext4 /dev/mapper/maven_LUKS
+#mount the partition
+sudo mkdir /maven_LUKS
+sudo mount /dev/mapper/maven_LUKS /maven_LUKS
+sudo df -H
+cd /maven_LUKS
 
 sudo yum install postgresql-server9.3 -y 
 
