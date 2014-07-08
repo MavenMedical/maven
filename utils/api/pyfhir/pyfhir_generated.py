@@ -117,6 +117,36 @@ def round_up_five(x, base=5):
     return int(base * int(math.ceil(x / base)))
 
 
+class Cost(Resource):
+
+    def __init__(self,
+        customer_id=None,
+        name_space=None,
+        identifier=None,
+        versionId=None,
+        resourceType="Cost",
+        lastModifiedDate=None,
+        id=None,
+        code=None,
+        code_type=None,
+        department=None,
+        cost_type=None,
+        cost=None):
+        Resource.__init__(self,
+                          customer_id=customer_id,
+                          name_space=name_space,
+                          identifier=identifier,
+                          versionId=versionId,
+                          id=id,
+                          resourceType=resourceType,
+                          lastModifiedDate=lastModifiedDate)
+        self.code = code
+        self.code_type = code_type
+        self.department = department
+        self.cost_type = cost_type
+        self.cost = cost
+
+
 class Bundle(Resource):
 
     def __init__(self,
@@ -3256,6 +3286,7 @@ class Order(Resource):
                 for coding in detail.code.coding:
                     if coding.system == "clientEMR":
                         return coding.code
+        return None
 
     def get_procedure_id_coding(self):
         if isinstance(self.detail[0], Procedure):

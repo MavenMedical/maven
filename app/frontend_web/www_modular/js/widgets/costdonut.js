@@ -43,7 +43,9 @@ define([
 
 	    var chart = AmCharts.makeChart("cost-bd", {
 		"type": "pie",
-		"colors": colorArray,
+
+
+            "colors": colorArray,
 		
 		"dataProvider": data,
 		"titleField": "order",

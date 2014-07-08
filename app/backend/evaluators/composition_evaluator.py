@@ -54,7 +54,7 @@ class CompositionEvaluator(SP.StreamProcessor):
     @asyncio.coroutine
     def read_object(self, obj, _):
 
-        #Look up prices via costmap and create new "Encounter Cost Breakdown" section that is added to Composition
+        #Load the FHIR Composition from the pickle
         composition = pickle.loads(obj)
 
         #Add the alerts section so that the components below can add their respective alerts
@@ -81,12 +81,12 @@ class CompositionEvaluator(SP.StreamProcessor):
         #Write everything to persistent DB storage
         yield from FHIR_DB.write_composition_to_db(composition, self.conn)
 
-        #Send message back to data_router (or aggregate)
-        self.write_object(composition, writer_key='aggregate')
-
         #Debug Message
         comp_json = json.dumps(composition, default=FHIR_API.jdefault, indent=4)
         print(json.dumps(FHIR_API.remove_none(json.loads(comp_json)), default=FHIR_API.jdefault, indent=4))
+
+        #Send message back to data_router (or aggregate)
+        self.write_object(composition, writer_key='aggregate')
 
     def _add_alerts_section(self, composition):
         composition.section.append(FHIR_API.Section(title="Maven Alerts", code=FHIR_API.CodeableConcept(text="Maven Alerts", coding=[FHIR_API.Coding(system="maven",
@@ -129,7 +129,6 @@ class CompositionEvaluator(SP.StreamProcessor):
         """
         :param composition: FHIR Composition object with fully identified FHIR Order objects (i.e. already run through order identifier
         """
-
         encounter_cost_breakdown = []
         encounter_total_cost = 0
         for order in composition.get_encounter_orders():
@@ -237,7 +236,9 @@ class CompositionEvaluator(SP.StreamProcessor):
     ##########################################################################################
     @asyncio.coroutine
     def evaluate_alternative_meds(self, composition):
-        pass
+        for order in composition.get_encounter_orders():
+            if isinstance(order.detail[0], FHIR_API.Medication):
+                alt_meds = yield from FHIR_DB.get_alternative_meds(order, composition, self.conn)
 
     ##########################################################################################
     ##########################################################################################
