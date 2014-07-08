@@ -61,12 +61,12 @@ class FrontendWebService(HTTP.HTTPProcessor):
         self.stylesheet = 'original'
         self.costbdtype = 'donut'  # this assignment isn't used yet
         self.add_handler(['POST'], '/login', self.post_login)  # REAL
-        self.add_handler(['GET'], '/patients(?:/(\d+)-(\d+)?)?', self.get_patients)  # REAL
+        self.add_handler(['GET'], '/patients(?:(\d+)-(\d+)?)?', self.get_patients)  # REAL
         self.add_handler(['GET'], '/patient_details', self.get_patient_details)  # REAL
         self.add_handler(['GET'], '/total_spend', self.get_total_spend)  # REAL
         self.add_handler(['GET'], '/spending', self.get_daily_spending)  # REAL
-        self.add_handler(['GET'], '/alerts(?:/(\d+)-(\d+)?)?', self.get_alerts)  # REAL
-        self.add_handler(['GET'], '/orders(?:/(\d+)-(\d+)?)?', self.get_orders)  # REAL
+        self.add_handler(['GET'], '/alerts(?:(\d+)-(\d+)?)?', self.get_alerts)  # REAL
+        self.add_handler(['GET'], '/orders(?:(\d+)-(\d+)?)?', self.get_orders)  # REAL
         self.add_handler(['GET'], '/autocomplete', self.get_autocomplete)  # FAKE
         self.add_handler(['GET'], '/autocomplete_patient', self.get_autocomplete_patient)  # FAKE
         self.add_handler(['GET'], '/autocomplete_diagnosis', self.get_autocomplete_diagnosis)  # FAKE
@@ -218,8 +218,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
                     #['#rowD-1-1','costdonut','costbreakdown-donut.html'],
                     ['#rowE-1-1', 'spend_histogram'],
                     ['#floating-right', 'alertList', 'alertScroll.html'],
-                    #['#datepicker', 'datepicker-calendar']
-                    ['#rowF-1-1', 'datepicker-chart']
+                    #['#datepicker-modal', 'datepicker-calendar']
+                    ['#datepicker-modal', 'datepicker-chart']
                     ], CONTEXT_KEY: user_auth}
             
             return HTTP.OK_RESPONSE, json.dumps(ret), None

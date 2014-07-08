@@ -8,7 +8,7 @@ define([
     var PatientModel = Backbone.Model;
 
     patientCollection = new ScrollCollection;
-    patientCollection.url = function() {return '/patients/'+this.offset+'-'+(this.offset+this.limit);};
+    patientCollection.url = function() {return '/patients'+this.offset+'-'+(this.offset+this.limit);};
     patientCollection.model = PatientModel;
     patientCollection.limit = 10;
     patientCollection.context = function(){
