@@ -45,7 +45,7 @@ define([
       trig_temp.set([], {silent:true});
       contextModel.set('showTriggerEditor', false);
       ruleModel.set({triggers: trig_temp} , {silent: true});
-      ruleModel.set({triggerType: 'proc', genders:'MF', minAge:'0', maxAge:'200'}, {silent:true});
+      ruleModel.set({triggerType: 'proc', genders:'%', minAge:'0', maxAge:'200'}, {silent:true});
       ruleModel.trigger('cleared')
 
 
