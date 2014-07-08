@@ -29,10 +29,6 @@ define([
             function(curTemplate) {
                   var newModel;
                     newModel = new Backbone.Model({});
-                if (selected == Helpers.detailHeadings['pl_dx'])
-                     newModel = new Backbone.Model({'negative':'false', 'code': '0'});
-                  if (selected == Helpers.detailHeadings['hist_dx'])
-                     newModel = new Backbone.Model({'negative':'false', 'code': '0', 'minDays':'0', 'maxDays': '0'});
 
                     console.log(toTemplate);
                     var toTemplate = _.template(curTemplate);
@@ -51,17 +47,13 @@ define([
 
              //curRule.on('sync', this.render, this)
              curRule.on('change', this.render, this)
-             contextModel.on('change:showDetails', function(){
-                 if (contextModel.get('showDetails')){
-
-                     this.$el.show();
-                 } else {
-                     this.$el.hide();
-                 }
-
-             }, this)
-             this.$el.hide();
-            contextModel.set('showDetails', false);
+                 curRule.on('selected', function(){
+                  this.$el.show()
+              }, this)
+              curRule.on('cleared', function(){
+                 this.$el.hide()
+              }, this)
+            this.$el.hide();
             this.selector = new DetailSelector({el: $('.detail-selector')});
 
              //this.selector.searchedDetails.on('sync', this.render, this);

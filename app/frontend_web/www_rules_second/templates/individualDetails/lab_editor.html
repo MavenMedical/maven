@@ -3,14 +3,11 @@
          <div>
 
         This rule will be used if the patient had the observation that
-	<select class="detail-input form-control" name="obs_type">
-		<option value="lipid_hdl">Lipid Panel HDL</option>
-		<option value="lipid_ldl">Lipid Panel LDL</option>	
-	</select>	
+	<div class="multi-select-search" type="loinc" name = "obs_type"></div>
 	was 
 	<select class="detail-input form-control" name="relation">
-		<option value="greater">Greater Than</option>
-		<option value="less">Less Than</option>	
+		<option value=">">Greater Than</option>
+		<option value="<">Less Than</option>
 	</select>
 	<input  name="value" class="form-control detail-input" type="text" value="0"  style="min-width:100px">
 	in the time frame between
@@ -18,10 +15,16 @@
 	and
 	<input  name="maxdays" class="form-control detail-input" type="text" value="0"  style="min-width:100px">
 	days from the present
-
+    <br>
+    if there are no results of this type in the given time frame, this rule
+             <select class="detail-input form-control" name="defaultval">
+                 <option value = "true">Can still be used</option>
+                 <option value = "false">Can not be used</option>
+             </select>
         	</div>
 	      <div>
           	<br>
 	 	      <button class="btn btn-info confirm-detail-button">Confirm</button>
-        	  <button class="cancel-edit-button">Cancel</button>
+        	  <button class="btn btn-info cancel-edit-button">Cancel</button>
 	      </div>
+

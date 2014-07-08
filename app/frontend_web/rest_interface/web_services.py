@@ -95,7 +95,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
         patientname = context[CONTEXT_PATIENTNAME]
         customerid = context[CONTEXT_CUSTOMERID]
         desired = {
-            WP.Results.patientname: 'name',
+            WP.Results.patientname: 'label',
+            WP.Results.patientid: 'value',
         }
         results = yield from self.persistence_interface.patient_info(desired, provider, customerid,
                                                                      limit=self.helper.limit_clause(matches),
@@ -212,7 +213,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
                     ['#fixed-topB-1-1', 'patientSearch'],
                     ['#rowA-1-1', 'patientList'],
                     ['#rowB-1-1', 'encounterSummary'],
-                    ['#rowC-1-1', 'orderList'],
+                    ['#rowC-1-1', 'orderList','orderScroll.html'],
                     ['#rowD-1-1', 'costtable', 'costbreakdown-table.html'],
                     #['#rowD-1-1','costdonut','costbreakdown-donut.html'],
                     ['#rowE-1-1', 'spend_histogram'],
@@ -320,8 +321,11 @@ class FrontendWebService(HTTP.HTTPProcessor):
             WP.Results.spending: 'spending',
             WP.Results.savings: 'savings',
         }
-
-        results = yield from self.persistence_interface.total_spend(desired, provider, customer,
+    
+        if patient_ids or encounter:
+            provider = None
+            
+        results = yield from self.persistence_interface.total_spend(desired, customer, provider=provider,
                                                                     startdate=startdate, enddate=enddate,        
                                                                     patients=patient_ids, encounter=encounter)
 

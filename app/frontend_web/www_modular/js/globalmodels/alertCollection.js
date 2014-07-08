@@ -2,39 +2,17 @@ define([
     'jquery',
     'underscore',
     'backbone',
-    'globalmodels/contextModel'
-], function($, _, Backbone, contextModel) {
+    'globalmodels/contextModel',
+    'globalmodels/scrollCollection'
+], function($, _, Backbone, contextModel, ScrollCollection) {
     AlertModel = Backbone.Model;
 
-    var AlertCollection = Backbone.Collection.extend({
-	url: function() {return '/alerts/'+this.offset+'-'+(this.offset+this.limit);},
-	limit: 3,
-	tried: 0,
-	offset: 0,
-	model: AlertModel,
-	initialize: function(){
-            // nothing here yet
-        },
-	more: function() {
-	    if(this.tried <= this.models.length) {
-		this.offset = this.models.length;
-		this.tried = this.models.length+this.limit;
-		alertCollection.fetch({
-		    data:$.param(contextModel.toParams()),
-		    remove:false});
-	    }
-	}
-    });
-
-    alertCollection = new AlertCollection;
-    if(contextModel.get('userAuth')) {
-	this.tried = 0;
-	this.offset=0;
-	alertCollection.fetch({
-	    data:$.param(contextModel.toParams()),
-	    remove:true});
-    }
-    contextModel.on('change:patients', 
+    alertCollection = new ScrollCollection;
+    alertCollection.url = function() {return '/alerts/'+this.offset+'-'+(this.offset+this.limit);};
+    alertCollection.model = AlertModel;
+    alertCollection.limit = 5;
+    alertCollection.context = function(){
+      contextModel.on('change:patients',
 		    // this will be needed once the context filters things
 		    function(cm) {
 			if(true && cm.get('userAuth')) {
@@ -44,8 +22,9 @@ define([
 				data:$.param(contextModel.toParams()),
 				remove:true});
 			}
-		    }, alertCollection);
-    //alertCollection.on('all', function(en) { console.log('alertCollection: '+en);});
+	    }, this);
+    };
+    alertCollection.initialize();
 
     return alertCollection;
 });

@@ -300,7 +300,7 @@ class WebPersistence():
     _display_total_spend = _build_format({Results.savings: lambda x: -1})
         
     @asyncio.coroutine
-    def total_spend(self, desired, provider, customer, patients=[], encounter=None,
+    def total_spend(self, desired, customer, provider=None, patients=[], encounter=None,
                     startdate=None, enddate=None):
         columns = build_columns(desired.keys(), self._available_total_spend,
                                 self._default_total_spend)
@@ -311,10 +311,11 @@ class WebPersistence():
         cmd.append(columns)
         cmd.append("FROM order_ord JOIN encounter")
         cmd.append("ON order_ord.encounter_id = encounter.csn")
-        cmd.append("WHERE encounter.visit_prov_id = %s")
-        cmdargs.append(provider)
-        cmd.append("AND order_ord.customer_id = %s")
+        cmd.append("WHERE order_ord.customer_id = %s")
         cmdargs.append(customer)
+        if provider:
+            cmd.append("AND encounter.visit_prov_id = %s")
+            cmdargs.append(provider)
         if patients:
             cmd.append("AND encounter.pat_id IN %s")
             cmdargs.append(makelist(patients))

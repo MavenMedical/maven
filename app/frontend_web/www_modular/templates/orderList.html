@@ -1,13 +1,15 @@
 <div class="row" style="margin: 0px auto; width: 90%;">
         <span class="headings title">
-            <% if (typeFilter) { %> 
+            <% if (! (typeof typeFilter === 'undefined')) { %>
 	  <%= typeFilter %> only orders <a class='removefilter'><small>(show all)</small></a>
 	  <% } else { %> 
           Orders
 	  <% } %>
         </span>
+    <div class='row orderlist' >
 
-    <div class="panel-group orderaccordion">
+    <div class="panel-group orderaccordion" style="overflow-y:auto;max-height:500px; width:100%">
+    </div>
     </div>
 </div>
 

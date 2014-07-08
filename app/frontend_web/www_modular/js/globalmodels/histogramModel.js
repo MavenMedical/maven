@@ -16,8 +16,8 @@ define([
 	histogramModel.fetch({data:$.param(contextModel.toParams())});
     }
     contextModel.on('change:patients change:userAuth',
-		    function(x) {
-			histogramModel.fetch({data:$.param(x.toParams())});
+		    function() {
+			histogramModel.fetch({data:$.param(contextModel.toParams())});
 		    });
 
     return histogramModel;

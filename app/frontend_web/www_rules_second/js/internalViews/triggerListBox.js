@@ -6,8 +6,8 @@ define([
     'backbone',    // lib/backbone/backbone
 
     'models/contextModel',
-    'text!templates/triggerSelector/triggerListBox.html',
-    'text!templates/triggerSelector/triggerSelectorRow.html'
+    'text!templates/ListBox.html',
+    'text!templates/SearchSelectorRow/triggerSelectorRow.html'
 ], function ($, _, Backbone, contextModel, triggerListBox, triggerSelectorRow) {
 
     var TriggerEditor = Backbone.View.extend({
@@ -21,8 +21,6 @@ define([
             var that = this;
             this.$el.on('contextmenu', function(){
                 that.loadParents($("option:selected", that.$el)[0].value)
-
-
             })
             this.$el.on('dblclick', function(){
                 that.loadChildren($("option:selected", that.$el)[0].value)

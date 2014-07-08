@@ -7,9 +7,10 @@ define([
 
     'models/contextModel',
     'models/ruleModel',
+    'singleRow/sourceRow',
     'text!templates/sourceManager.html',
     'text!templates/sourceRow.html',
-], function ($, _, Backbone, contextModel, curRule, sourceManager, rowTemplate) {
+], function ($, _, Backbone, contextModel, curRule, sourceRow, sourceManager, rowTemplate) {
  sourceManager = Backbone.View.extend({
 
         template: _.template(sourceManager),
@@ -17,22 +18,21 @@ define([
         initialize: function(){
             this.$el.html(this.template())
             this.collection = curRule.get('sources');
-                        this.collection.on('add', this.render,this)
-                 //       this.collection.on('add', function(){curRule.save()}, this)
-                        this.collection.on('remove', this.render, this)
-                 //       this.collection.on('remove', function(){curRule.save()}, this)
+                        this.collection.on('add', function(){curRule.save()}, this)
+                        this.collection.on('remove', function(){curRule.save()}, this)
+                        curRule.on('sync', this.render, this)
             var panel = this;
-
             $('#add-source-button')[0].onclick = function(){
-                var toAdd = new Backbone.Model({Name: $('#source-name-field').val(),Abbreviation: $('#source-abbrev-field').val(),Hyperlink: $('#source-hyperlink-field').val()})
-                panel.collection.add(toAdd);
+                panel.collection.add({Name: $('#source-name-field').val(), Abbreviation: $('#source-abbrev-field').val(),Hyperlink: $('#source-hyperlink-field').val()});
+                $('.source-field', this.$el).val("")
+
             }
             this.render()
 
-
         },
         render: function(){
-            var listView = Backbone.View.extend({
+                var listView = Backbone.View.extend({
+
                 template : _.template(rowTemplate),
 
                 initialize: function(params){
@@ -41,19 +41,12 @@ define([
                         this.el = params.el
                 },
                 render: function(){
+
                     this.$el.html("");
+                    var that = this
                     _.each(this.collection.models, function(cur){
-                        console.log('cur', cur)
-                        this.$el.append(this.template(cur.attributes))
-                        var that = this
-
-                        $(".remove-button", this.$el).last()[0].onclick = function(){
-                            console.log("cur", cur)
-                            console.log(that.collection)
-                            that.collection.remove(cur)
-
-                        }
-                        console.log(this.$el);
+                        var curRow = new sourceRow({template : rowTemplate, model: cur, parent: that.collection})
+                        this.$el.append(curRow.render().el)
                     }, this)
 
                 }
@@ -62,7 +55,6 @@ define([
 
             var curView = new listView({collection: this.collection, el: $('#source-list', this.$el)})
             curView.render();
-            curRule.save();
 
         }
 
