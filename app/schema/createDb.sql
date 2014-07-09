@@ -112,6 +112,39 @@ CREATE INDEX ixprovider
   (provider_id, customer_id);
 
 
+-- Table: alert_config
+-- DROP TABLE alert_config;
+CREATE TABLE alert_config (
+  customer_id numeric(18,0),
+  department numeric(18,0),
+  category character varying(36),
+  method character varying(36)
+
+)
+  WITH (
+      OIDS=FALSE
+  );
+ALTER TABLE public.alert_config
+    OWNER TO maven;
+
+
+-- Table: alert_val
+-- DROP TABLE alert_val;
+CREATE TABLE alert_val (
+  customer_id numeric(18,0),
+  department numeric(18,0),
+  category character varying(36),
+  method character varying(36)
+
+)
+  WITH (
+      OIDS=FALSE
+  );
+ALTER TABLE public.alert_val
+    OWNER TO maven;
+
+
+
 -- Table: composition
 -- DROP TABLE composition;
 CREATE TABLE composition (
