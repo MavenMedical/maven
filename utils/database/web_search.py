@@ -28,11 +28,10 @@ class web_search():
     def do_search(self, search_str, search_type):
         cmd = []
         cmd_args = []
-        print("QUERYING")
         if (not search_str):
             return EMPTY_RETURN
         if (search_type == "CPT"):
-            cmd.append("SELECT a.cpt_code, a.name FROM public.orderable as a WHERE a.customer_id = -1 AND ord_type = 'Proc' AND a.name @@  %s")
+            cmd.append("SELECT a.cpt_code, a.name FROM public.orderable as a WHERE a.customer_id = -1 AND ord_type = 'Proc' AND to_tsvector('maven', a.name) @@  plainto_tsquery('english', %s) LIMIT 25")
             cmd_args.append(search_str)
             results = yield from self.db.execute_single((' '.join(cmd)), cmd_args)
             ret = []
@@ -47,7 +46,7 @@ class web_search():
         if (search_type == "snomed_basic"):
             cmd.append("SET enable_seqscan = off;")
             cmd.append("SELECT x.ancestor, min(x.term),count(*) FROM  (SELECT  b.ancestor,a.term FROM terminology.descriptions a, terminology.conceptancestry b")
-            cmd.append("where to_tsvector('maven',term) @@ %s")
+            cmd.append("where to_tsvector('maven',term) @@ plainto_tsquery('english', %s)")
             cmd.append("and active=1 and languagecode='en'")
             cmd.append("and a.conceptid=b.ancestor) as x")
             cmd.append("GROUP BY")
@@ -90,7 +89,7 @@ class web_search():
             print("QUERYING")
             cmd.append("SET enable_seqscan = off;")
             cmd.append("SELECT x.ancestor, min(x.term),count(*) FROM  (SELECT  b.ancestor,a.term FROM terminology.descriptions a, terminology.conceptancestry b")
-            cmd.append("WHERE to_tsvector('maven',term) @@ %s")
+            cmd.append("WHERE to_tsvector('maven',term) @@ plainto_tsquery('english', %s)")
             cmd.append("AND active=1 and languagecode='en'")
             cmd.append("AND a.conceptid  = b.ancestor")
             cmd.append("AND a.conceptid IN (SELECT child FROM terminology.conceptancestry b WHERE b.ancestor = %s)) AS x")
@@ -117,7 +116,7 @@ class web_search():
         if (search_type == "loinc"):
 
 
-            cmd.append("SELECT loinc_num, component FROM terminology.loinc WHERE to_tsvector('maven', component) @@ %s")
+            cmd.append("SELECT loinc_num, component FROM terminology.loinc WHERE to_tsvector('maven', component) @@ plainto_tsquery('english', %s)")
             cmd.append("LIMIT 50")
             cmd_args.append(search_str)
 
