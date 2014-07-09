@@ -10,7 +10,6 @@ define([
 	    url: '/list',
 
         newFetch: function() {
-	                alert("fetching")
 
 		  	    this.fetch({
 
