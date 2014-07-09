@@ -114,12 +114,7 @@ define([
    ruleModel.set({triggerType: 'proc', genders:'MF', minAge:'0', maxAge:'200'}, {silent:true});
 
     // if the ruleModel's id changes (on a POST), update the contextModel with that id
-    ruleModel.on('change:triggerType', function(){
 
-        ruleModel.get('triggers').set([]);
-        ruleModel.save();
-
-    })
     ruleModel.on('change:id',
 		 function() {
 		     contextModel.set({'id':ruleModel.get('id')})
