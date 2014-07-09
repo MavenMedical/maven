@@ -1721,8 +1721,12 @@ class Encounter(Resource):
         
         if type is None:
             self.type = []                                     # , { attb['short_desc'] }}
+        else:
+            self.type = type
         if participant is None:
             self.participant = []                                     # , { attb['short_desc'] }}
+        else:
+            self.participant = participant
         if participant_type is None:
             self.participant_type = []                                     # , { attb['short_desc'] }}
         if hospitalization_accomodation is None:
@@ -1733,6 +1737,8 @@ class Encounter(Resource):
             self.hospitalization_specialArrangement = []                                     # , { attb['short_desc'] }}
         if location is None:
             self.location = []                                     # , { attb['short_desc'] }}
+        else:
+            self.location = location
         
     def add_practitioner(self, practitioner):
         self.participant.append(practitioner)
@@ -2483,7 +2489,8 @@ class Medication(Resource):
                  package_content_amount=None,
                  product_ingredient=None,
                  package_content=None,
-                 base_cost=None
+                 cost=None,
+                 cost_type=None
                  ):
         Resource.__init__(self,
                           customer_id=customer_id,
@@ -2507,7 +2514,8 @@ class Medication(Resource):
         self.package_container = package_container                                     # , E.g. box, vial, blister-pack
         self.package_content_item = package_content_item                                     # , A product in the package
         self.package_content_amount = package_content_amount                                     # , How many are in the package?
-        self.base_cost = base_cost
+        self.cost = cost
+        self.cost_type = cost_type
         
         if product_ingredient is None:
             self.product_ingredient = []                                     # , { attb['short_desc'] }}
@@ -3291,7 +3299,7 @@ class Order(Resource):
     def get_procedure_id_coding(self):
         if isinstance(self.detail[0], Procedure):
             for coding in self.detail[0].type.coding:
-                if coding.system == "CPT":
+                if coding.system in  ["CPT", "HCPCS"]:
                     return coding
         if isinstance(self.detail[0], Medication):
             for coding in self.detail[0].code.coding:
@@ -3832,7 +3840,8 @@ class Procedure(Resource):
     :param relatedItem_type: The nature of the relationship.
     :param relatedItem_target: The related item - e.g. a procedure.
     :param notes: Any other notes about the procedure - e.g. the operative notes.
-    :param base_cost: Base Cost as determined by the Orderables table
+    :param cost: Base Cost as determined by the costmap table
+    :param cost_type: Cost Type as determined by the costmap table
     
     :param bodySite: Detailed and structured anatomical location information. Multiple locations are allowed - e.g. multiple punch biopsies of a lesion.
     :param indication: The reason why the procedure was performed. This may be due to a Condition, may be coded entity of some type, or may simply be present as text.
@@ -3868,7 +3877,8 @@ class Procedure(Resource):
                  report=None,
                  complication=None,
                  relatedItem=None,
-                 base_cost=None
+                 cost=None,
+                 cost_type=None
                  ):
         Resource.__init__(self,
                           customer_id=customer_id,
@@ -3890,8 +3900,8 @@ class Procedure(Resource):
         self.relatedItem_type = relatedItem_type                                     # , caused-by | because-of
         self.relatedItem_target = relatedItem_target                                     # , The related item - e.g. a procedure
         self.notes = notes                                     # , Additional information about procedure
-        self.base_cost = base_cost
-
+        self.cost = cost
+        self.cost_type = cost_type
         
         if bodySite is None:
             self.bodySite = []                                     # , { attb['short_desc'] }}

@@ -57,6 +57,10 @@ class CompositionEvaluator(SP.StreamProcessor):
         #Load the FHIR Composition from the pickle
         composition = pickle.loads(obj)
 
+        #Write the original composition that came across the wire for debugging purposes
+        #Eventually we'll want the DB write method below to update the composition as opposed to writing it again
+        yield from FHIR_DB.write_composition_json(composition, self.conn)
+
         #Add the alerts section so that the components below can add their respective alerts
         self._add_alerts_section(composition)
 
@@ -105,6 +109,7 @@ class CompositionEvaluator(SP.StreamProcessor):
 
         for order in composition.get_encounter_orders():
 
+            #Loop through each order_detail in each order to identify
             detail_orders = yield from [(yield from FHIR_DB.identify_encounter_orderable(item, order, composition, self.conn)) for item in order.detail]
 
             #TODO - Check to make sure duplicate codes that reference the same orderable don't result in duplicate FHIR Procedures/Medications
@@ -134,14 +139,15 @@ class CompositionEvaluator(SP.StreamProcessor):
         for order in composition.get_encounter_orders():
             order_total_cost = 0
             for order_detail in order.detail:
-                order_total_cost += order_detail.base_cost
+                yield from FHIR_DB.get_order_detail_cost(order_detail, composition, self.conn)
+                order_total_cost += order_detail.cost
                 if isinstance(order_detail, FHIR_API.Procedure):
                     codeable_concept = order_detail.type
                 elif isinstance(order_detail, FHIR_API.Medication):
                     codeable_concept = order_detail.code
                 coding = composition.get_coding_from_codeable_concept(codeable_concept=codeable_concept, system=["clientEMR", "CPT", "rxnorm"])
                 encounter_cost_breakdown.append({"order_name": coding.display,
-                                                 "order_cost": order_detail.base_cost,
+                                                 "order_cost": order_detail.cost,
                                                  "order_type": order_detail.resourceType})
             encounter_total_cost += order_total_cost
 

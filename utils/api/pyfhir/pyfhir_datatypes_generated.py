@@ -154,6 +154,11 @@ class CodeableConcept(Element):
             self.coding = []                                     #Code defined by a terminology system
         else:
             self.coding = coding
+
+    def get_coding_by_system(self, system):
+        for coding in self.coding:
+            if coding.system in system:
+                return coding
         
 
 class Coding(Element):

@@ -79,7 +79,7 @@ INSERT INTO orderable(
             rx_rxnorm_id, rx_generic_name, rx_strength, rx_form, rx_route,
             rx_thera_class, rx_pharm_class, rx_pharm_subclass, rx_simple_generic)
     VALUES (1, '5', 'clientEMR', 'CT SINUS COMPLETE W/O CONTRAST', NULL, 'active',
-            'Imaging', NULL, 807.00, '76370', 'CPT', NULL,
+            'Imaging', NULL, 807.00, '76370', 'HCPCS', NULL,
             NULL, NULL, NULL,
             NULL, NULL, NULL, NULL, NULL,
             NULL, NULL, NULL, NULL);
@@ -91,7 +91,7 @@ INSERT INTO orderable(
             rx_rxnorm_id, rx_generic_name, rx_strength, rx_form, rx_route,
             rx_thera_class, rx_pharm_class, rx_pharm_subclass, rx_simple_generic)
     VALUES (1, '2', 'clientEMR', 'IMMUNOGLOBULINS', NULL, 'active',
-            'Lab', NULL, 16.14, '82784', 'CPT', NULL,
+            'Lab', NULL, 16.14, '82784', 'HCPCS', NULL,
             NULL, NULL, NULL,
             NULL, NULL, NULL, NULL, NULL,
             NULL, NULL, NULL, NULL);
