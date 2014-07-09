@@ -23,7 +23,7 @@
     <select class ="form-control" id="gender-selector">
         <option <%if (genders == 'M'){%> selected <%}%>value = "M">Men</option>
         <option <%if (genders == 'F'){%> selected <%}%>value = "F">Women</option>
-        <option <%if (genders == 'MF'){%> selected <%}%>value ="MF">Both Men and Women</option>
+        <option <%if (genders == '%'){%> selected <%}%>value ="%">Both Men and Women</option>
     </select>
     Min Age: <a id="minAgeTag" href="#"><%=minAge%></a>
     Max Age: <a id="maxAgeTag" href="#"><%=maxAge%></a>
