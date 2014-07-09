@@ -64,11 +64,16 @@ define([
             panel.availModel = new anon;
             curRule.on('cleared', function(){
                 this.$el.hide()
+                this.availModel.reset();
             }, this)
             curRule.on('selected', function(){
-                this.$el.show()
+                this.$el.show();
+                this.availModel.reset();
                 this.render();
             }, this)
+            curRule.on('change:triggerType', function(){
+                this.availModel.reset();
+            })
 
         },
 
