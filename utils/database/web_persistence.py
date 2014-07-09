@@ -79,6 +79,9 @@ def _prettify_name(s):
 def _prettify_sex(s):
     return str.title(s)
 
+def _prettify_datetime(s):
+    return s.strftime("%Y-%m-%d %H:%M")
+
 
 def _prettify_lengthofstay(s):
     days = s[0].days
@@ -391,6 +394,7 @@ class WebPersistence():
     _display_alerts = _build_format({
         Results.title: lambda x: x or '',
         Results.ruleid: lambda x: x,
+        Results.datetime: lambda x: x and _prettify_datetime(x),
         })
 
     @asyncio.coroutine
@@ -434,8 +438,12 @@ class WebPersistence():
         Results.ordertype: "order_ord.order_type",
         Results.orderid: "order_ord.order_id",
     }
-    _display_orders = _build_format()
-    
+    #_display_orders = _build_format()
+
+    _display_orders = _build_format({
+        Results.datetime: lambda x: x and _prettify_datetime(x),
+        })
+
     @asyncio.coroutine
     def orders(self, desired, customer, encounter, ordertypes=[], limit="",
                startdate=None, enddate=None):
