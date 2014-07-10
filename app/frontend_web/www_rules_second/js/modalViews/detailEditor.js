@@ -6,10 +6,11 @@ define([
     'backbone',    // lib/backbone/backbone
     'internalViews/detailSearchBox',
     'internalViews/multiSelectSearch',
+    'internalViews/routeListBox',
     'models/ruleModel'
 
 
-], function ($, _, Backbone,  detailSearchBox, multiSelectSearch, curRule) {
+], function ($, _, Backbone,  detailSearchBox, multiSelectSearch, routeListBox, curRule) {
 
     var DetailEditor = Backbone.View.extend({
 
@@ -20,6 +21,7 @@ define([
             this.newDetail = param.newDetail
             this.$el = param.el;
             this.template = param.template
+            console.log("the parameter", param)
             this.type = param.type;
             this.$el.html(this.template());
             var searchEl = $('.search', this.$el)
@@ -35,7 +37,12 @@ define([
                 var anon =  Backbone.Collection.extend( {url: '/search'})
                 var searchBox = new multiSelectSearch({avail: new anon(), type: cur.getAttribute("type"), el: multiSearchEl, selected: new Backbone.Collection})
             })
-
+            var routeListEl = $('.route-list', this.$el)
+            console.log("where do we put the route list" , routeListEl)
+            $.each(routeListEl, function(a, cur){
+                console.log('cur', cur)
+                var listBox = new routeListBox({el: cur})
+            })
             if (!this.newDetail){
                 this.fillTemplate();
             }
@@ -86,7 +93,7 @@ define([
             var inputs = $('.detail-input');
              for (var i=0;i<inputs.length;i++){
                     var cur = inputs[i];
-                    cur.value =this.model.get(cur.name);
+                    cur.value = this.model.get(cur.name);
 
                 }
         }

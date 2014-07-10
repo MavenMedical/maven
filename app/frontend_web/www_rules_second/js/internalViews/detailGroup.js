@@ -38,7 +38,7 @@ define([
                 $('.detail-item', this.$el).last()[0].onclick = function(){
                      require(['text!/templates/individualDetails/' + type + '_editor.html'],
 		                     function(curTemplate) {
-		    	                var curView = new DetailEditor({model: cur, el:$('#modal-target'), template:_.template(curTemplate)});
+		    	                var curView = new DetailEditor({model: cur, el:$('#modal-target'), template:_.template(curTemplate), type: type});
                                 $('#detail-modal').modal('show');
 		                     }
                           );

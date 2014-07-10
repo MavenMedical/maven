@@ -1,6 +1,6 @@
 <div class="detail-entry">
     <a class="detail-item">
-   <% if (negative == "true") { %>
+   <% if (exists == "false") { %>
             Rule will <b>not be used</b> if the subject underwent the procedure with CPT <b><%=code%></b>
             <br>in the time frame <%=minDays%> to <%=maxDays%> days from the present
     <%} else { %>
