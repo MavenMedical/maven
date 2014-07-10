@@ -150,7 +150,7 @@ create or replace function rules.evalRules(orderCode varchar, ordcodeType varcha
 returns table (ruleid int, name varchar,details text,status int) as $$
 begin
                 return query execute
-                'select x.ruleid,x.name,x.remainingDetails,d.category from
+                'select x.ruleid,x.name,x.remainingDetails,d.validation_status from
                 (
                 select a.ruleid
                 from rules.eviRule a
@@ -169,7 +169,7 @@ begin
                       )
                   then 1 else 0 end)=1
                 ) sub inner join rules.evirule x on sub.ruleid=x.ruleid
-                inner join public.alert_config d on d.rule_id=sub.ruleId and d.customer_id=$8 and d.category>0
+                inner join public.alert_config d on d.rule_id=sub.ruleId and d.customer_id=$8 and d.validation_status>0
                 left outer join rules.labEval y on x.ruleid=y.ruleid
                 where (y.ruleid is null or rules.evalLabs($8,$7,y.framemin,y.framemax,y.defaultval,y.relation,y.threshold,y.loinc_codes,y.onlychecklast))'
                 using orderCode , ordcodeType , patAge , patSex , encSnomeds , probSnomeds ,patid,customer,curMedList

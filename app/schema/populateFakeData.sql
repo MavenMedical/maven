@@ -167,3 +167,10 @@ INSERT INTO rules.evirule(
             remainingdetails)
     VALUES (5, 'ACR 5', 0.00, 200.00, '%', 'CPT', '{"details":[{"id":0,"type":"historic_dx","exists":false,"snomed":445039006, "frame_min":-100000, "frame_max":0},{"id":1,Age:15:200}]}', NULL,
             '{"details":[{"id":0,"type":"encounter_dx","exists":false, "snomed":95659007},{"id":1,"type":"encounter_dx","exists":false, "snomed":95660002},{"id":2,"type":"encounter_dx","exists":false, "snomed":41413006},{"id":3,"type":"historic_dx","exists":false,"snomed":26544005, "frame_min":-100000, "frame_max":0},{"id":4,"type":"historic_dx","exists":false,"snomed":87486003, "frame_min":-100000, "frame_max":0},{"id":5,"type":"historic_dx","exists":false,"snomed": 80910005 , "frame_min":-100000, "frame_max":0},{"id":6,"type":"historic_dx","exists":false,"snomed":74732009, "frame_min":-100000, "frame_max":0},{"id":7,"type":"historic_dx","exists":false,"snomed":20262006, "frame_min":-100000, "frame_max":0},{"id":8,"type":"historic_dx","exists":false,"snomed":128613002, "frame_min":-100000, "frame_max":0},{"id":9,"type":"historic_dx","exists":false,"snomed":15758002, "frame_min":-100000, "frame_max":0},{"id":10,"type":"historic_dx","exists":false,"snomed":106150003, "frame_min":-100000, "frame_max":0},{"id":11,"type":"historic_dx","exists":false,"snomed":55342001, "frame_min":-100000, "frame_max":0},{"id":12,"type":"problem_list","exists":false,"snomed":118185001},{"id":13,"type":"problem_list","exists":false,"snomed":86406008},{"id":14,"type":"problem_list","exists":false,"snomed":271730003},{"id":15,"type":"encounter_dx","exists":false,"snomed": 386661006},{"id":16,"type":"encounter_dx","exists":false,"snomed": 82271004},{"id":17,"type":"lab","result":55,"relation":"<","default":true, "loinc": "43402-7","frame_min":-1, "frame_max":0}]}');
+
+
+INSERT INTO alert_config(
+            customer_id, department, category, rule_id, validation_status,
+            provide_optouts)
+    VALUES (1, NULL, 'cds', 5, 100,
+            NULL);
