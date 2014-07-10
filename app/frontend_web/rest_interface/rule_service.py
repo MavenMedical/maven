@@ -21,7 +21,7 @@ import utils.crypto.authorization_key as AK
 
 import maven_logging as ML
 import maven_config as MC
-
+EMPTY_RETURN = [{'id':000000, 'term':"No Results Found", 'code':000000, 'type':'none'}]
 JNAME = 'name'
 JDX = 'pl_dx'
 JTRIGGER = 'triggers'
@@ -166,7 +166,9 @@ class RuleService(HTTP.HTTPProcessor):
 
     @asyncio.coroutine
     def search(self, _header, body, qs, _matches, _key):
-        print (qs)
+        hasSearch = qs.get(SEARCH_PARAM, None)
+        if (not hasSearch):
+         return (HTTP.OK_RESPONSE, json.dumps(EMPTY_RETURN), None);
         context = self.helper.restrict_context(qs,
                                                RuleService.search_required_context,
                                                RuleService.search_available_context)

@@ -50,6 +50,84 @@ create index ixDrugClassAncestryPK on terminology.drugclassancestry (classaui,in
 create index ixDrugClassAncestryReverse on terminology.drugclassancestry (inclassaui,classaui,ndc);
 create index ixDrugClassAncestryNDC on terminology.drugclassancestry(ndc,classaui,inclassaui);
 
+-- Table: terminology.rxsnomeds
+
+-- DROP TABLE terminology.rxsnomeds;
+
+CREATE TABLE terminology.rxsnomeds
+(
+  rxcui character varying(8),
+  snomed bigint,
+  term character varying(3000),
+  ndc character varying(4000),
+  drugname character varying(3000)
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE terminology.rxsnomeds
+  OWNER TO maven;
+
+-- Index: terminology.rxsnocui
+
+-- DROP INDEX terminology.rxsnocui;
+
+CREATE INDEX rxsnocui
+  ON terminology.rxsnomeds
+  USING btree
+  (rxcui);
+
+-- Index: terminology.rxsnondc
+
+-- DROP INDEX terminology.rxsnondc;
+
+CREATE INDEX rxsnondc
+  ON terminology.rxsnomeds
+  USING btree
+  (ndc);
+
+-- Index: terminology.rxsnosno
+
+-- DROP INDEX terminology.rxsnosno;
+
+CREATE INDEX rxsnosno
+  ON terminology.rxsnomeds
+  USING btree
+  (snomed);
+
+/*
+drop table test.rxsnomeds;
+create table test.rxSnomeds tablespace disk2 as(
+select distinct a.rxcui,cast(a.code as bigint) snomed,a.str term, b.atv ndc,c.str drugname 
+from terminology.rxnconso  a
+inner join  terminology.rxnsat b on a.rxcui=b.rxcui and b.atn='NDC'
+inner join terminology.rxnconso c on c.rxaui=b.rxaui
+where a.sab like 'SNOMED%CT%'  and a.tty='PT' ) ;
+create index rxsnocui on test.rxsnomeds(rxcui);
+create index rxsnondc on test.rxsnomeds(ndc);
+create index rxsnosno on test.rxsnomeds(snomed);
+
+
+insert into test.rxsnomeds(
+select a.rxcui1,snomed,term,d.atv,e.str from terminology.rxnrel a 
+inner join terminology.rxnrel b on a.rxcui2=b.rxcui1 and a.rela='constitutes'
+inner join test.rxsnomeds c on b.rxcui2=c.rxcui and b.rela='ingredient_of'
+inner join terminology.rxnsat d on d.atn ='NDC' and a.rxcui1=d.rxcui
+inner join terminology.rxnconso e on d.rxaui=e.rxaui
+inner join (select distinct a.rxcui
+from terminology.rxnsat a
+left outer join test.rxsnomeds b on a.rxcui=b.rxcui
+where a.atn='NDC' and b.rxcui is null 
+) x on a.rxcui1=x.rxcui
+);
+create table terminology.rxSnomeds as select distinct * from test.rxsnomeds;
+create index rxsnocui on terminology.rxsnomeds(rxcui);
+create index rxsnondc on terminology.rxsnomeds(ndc);
+create index rxsnosno on terminology.rxsnomeds(snomed);
+*/
+
+truncate table terminology.rxsnomeds;
+\COPY terminology.rxsnomeds from 'rxsnomeds.csv' DELIMITER ',' CSV
 
 /*insert into terminology.drugclassancestry(
 select distinct  dc.rxaui ,ndc.rxaui ,max(coalesce(brand.str,member.str||' (generic)')) ,max(route.groupname),ndc.atv,max(dc.str),max(member.str)

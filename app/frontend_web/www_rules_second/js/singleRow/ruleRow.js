@@ -29,13 +29,26 @@ define([
             $(this.el).html(this.template(this.model.toJSON()));
             return this;
         },
+        initialize: function(){
+            ruleModel.on('selected', function(){
+                if (ruleModel.get('id')!=this.model.get('id'))
+                    this.$el.css({'font-size': '100%'})
+            }, this)
+
+        },
         handleSelect: function() {
             //update context to have a current rule, that triggers everything else
             contextModel.set({id:this.model.get("id"),
 			                name:this.model.get("name")});
-                     this.$el.css({'font-size': "300%"})
                      var that = this;
-            ruleModel.on('change:id', function(){if (contextModel.get('id') != that.model.get('id')) {that.$el.css({'font-size': '100%'});}})
+            this.$el.css({'font-size': '200%'});
+            ruleModel.on('selected', function(){
+
+                if (this.model.get('id') != ruleModel.get('id')){
+                 this.$el.css({'font-size': '100%'});
+                }
+
+            }, this)
             ruleModel.on('propagate:name',
 			 function(model) {
 			     if(contextModel.get('id') == this.model.get('id')) {

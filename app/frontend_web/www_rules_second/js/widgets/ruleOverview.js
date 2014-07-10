@@ -68,7 +68,6 @@ define([
         },
         initialize: function(){
             curRule.on('change', this.updateOverview, this)
-
             curRule.get('triggers').on('add', this.updateOverview, this)
             curRule.get('triggers').on('remove', this.updateOverview, this)
             curCollection.on('remove', function(removed){

@@ -50,6 +50,14 @@ define([
                 $.extend( t, {'type': panel.type});
                 panel.avail.fetch({data:$.param(t)})
             }
+            $('.search-input', this.$el)[0].onkeypress = function(key){
+                if (key.keyCode == 13){
+                    var t = contextModel.toParams();
+                    $.extend( t, {'search_param': $('.search-input', panel.$el).val()})
+                    $.extend( t, {'type': panel.type});
+                    panel.avail.fetch({data:$.param(t)})
+                }
+            }
             this.render()
         },
         render: function(){

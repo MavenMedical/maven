@@ -34,12 +34,10 @@ define([
 
             var text = "";
             var panel = this
-            console.log("this is ", this)
             _.each(this.collection.models, function(cur){
 
                 var entryview = Backbone.View.extend({
                         render: function(){
-                        console.log(panel.lineTemplate)
                         this.$el.html(panel.lineTemplate(this.model.toJSON()));
                         return this;
                     }

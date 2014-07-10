@@ -19,6 +19,10 @@ define ([
                this.$el.hide();
               curRule.on('change:evidence', this.render, this);
               curRule.on('change:id', this.handleRuleLoad, this);
+               curRule.on('cleared', function(){
+                    this.$el.hide()
+
+               }, this)
               $('.evidence-editor-text').on('blur', function(){
                   var fields = $(".evidence-editor-text", this.$el);
                   for (var c=0;c<fields.length;c++){
@@ -29,6 +33,7 @@ define ([
               });
            },
            render: function(){
+               this.$el.show()
                var fields = $(".evidence-editor-text", this.$el);
                if (!curRule.get('evidence')){
                    curRule.set({'evidence': new Backbone.Model({'short-title': "", 'short-description': "", 'long-title': "", 'long-description': ""})}, {silent:true});

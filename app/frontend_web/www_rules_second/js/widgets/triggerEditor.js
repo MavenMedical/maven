@@ -37,22 +37,43 @@ define([
         }, this)
         curRule.save();
     };
-    var populateBySearch = function(){
-        var t = contextModel.toParams();
-        $.extend( t, {'search_param': $('#triggerSearch').val()})
-        $.extend( t, {'type': "snomed_basic"})
-        this.availModel.fetch({data:$.param(t)})
-    }
+
     var TriggerEditor = Backbone.View.extend({
-        template: _.template(ruleListTemplate),
-        updateSelector: function(){
-            this.render();
+        keyDownSearch: function(key){
+            if (key.keyCode == 13)
+                this.populateBySearch()
         },
+        populateBySearch: function(){
+
+            var t = contextModel.toParams();
+            $.extend( t, {'search_param': $('#triggerSearch').val()})
+            if (curRule.get('triggerType')=='drug')
+                $.extend( t, {'type': "snomed_drug"})
+            else
+                $.extend( t, {'type': "CPT"})
+            this.availModel.fetch({data:$.param(t)})
+        },
+
+
+
+
+        template: _.template(ruleListTemplate),
         initialize: function(){
             var panel = this;
             var anon =  Backbone.Collection.extend( {url: '/triggers?'});
             panel.availModel = new anon;
-          contextModel.on('change:id', this.updateSelector, this)
+            curRule.on('cleared', function(){
+                this.$el.hide()
+                this.availModel.reset();
+            }, this)
+            curRule.on('selected', function(){
+                this.$el.show();
+                this.availModel.reset();
+                this.render();
+            }, this)
+            curRule.on('change:triggerType', function(){
+                this.availModel.reset();
+            })
 
         },
 
@@ -73,7 +94,8 @@ define([
         events: {
 	    "click #addTriggerButton" : addSelected,
         "click #removeTriggerButton" : removeSelected,
-        "click #searchTriggers" : populateBySearch,
+        "click #searchTriggers" : 'populateBySearch',
+        "keypress #triggerSearch": 'keyDownSearch'
 
 	    }
     });

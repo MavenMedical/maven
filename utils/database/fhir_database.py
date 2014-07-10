@@ -129,22 +129,24 @@ def write_composition_encounter_orders(composition, conn):
         for order in composition.get_encounter_orders():
             if isinstance(order.detail[0], FHIR_API.Procedure):
                 code_id = order.detail[0].type.coding[0].code
+                order_type = order.detail[0].type.text
             elif isinstance(order.detail[0], FHIR_API.Medication):
                 code_id = order.detail[0].code.coding[0].code
+                order_type = order.detail[0].code.text
             cmdargs = [composition.customer_id,
                        order.detail[0].identifier[0].value,
                        composition.subject.get_pat_id(),
                        composition.encounter.get_csn(),
                        composition.get_author_id(),
                        composition.get_author_id(),
-                       order.get_orderable_ID()[0],
+                       order.get_orderable_ID(),
                        "created",
                        "webservice",
                        code_id,
                        "clientEMR",
                        order.detail[0].text,
-                       order.detail[0].resourceType,
-                       order.detail[0].base_cost,
+                       order_type,
+                       order.detail[0].cost,
                        composition.lastModifiedDate]
 
             cur = yield from conn.execute_single("SELECT upsert_enc_order(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", extra=cmdargs)
@@ -208,14 +210,12 @@ def write_composition_alerts(composition, conn):
 
 @asyncio.coroutine
 def identify_encounter_orderable(item=None, order=None, composition=None, conn=None):
-
     try:
         column_map = ["orderable_id",
                       "system",
                       "name",
                       "description",
-                      "ord_type",
-                      "base_cost"]
+                      "ord_type"]
 
         if isinstance(item, FHIR_API.CodeableConcept):
             column_map.extend(["cpt_code", "cpt_version", "rx_rxnorm_id", "rx_generic_name"])
@@ -229,26 +229,24 @@ def identify_encounter_orderable(item=None, order=None, composition=None, conn=N
             cur = yield from conn.execute_single(' '.join(cmd), cmdargs)
 
             for result in cur:
-                orderable_id, system, name, description, order_type, base_cost = _get_base_order_elements_from_DB_cursor_result(result)
+                orderable_id, system, name, description, order_type = _get_base_order_elements_from_DB_cursor_result(result)
 
-                if order_type == "Medication":
+                if order_type in ["Med", "Medication"]:
                     original_coding = FHIR_API.Coding(code=orderable_id, system=system, display=name)
-                    rxnorm_coding = FHIR_API.Coding(code=result[8], system="rxnorm", display=name)
+                    rxnorm_coding = FHIR_API.Coding(code=result[7], system="rxnorm", display=name)
                     rtn_FHIR_medication = FHIR_API.Medication(text=name,
                                                        identifier=order.identifier,
                                                        name=name,
-                                                       base_cost=base_cost,
                                                        code=FHIR_API.CodeableConcept(coding=[original_coding, rxnorm_coding],
                                                                                      text=order_type))
                     return rtn_FHIR_medication
 
-                elif order_type in ["Procedure", "Lab", "Imaging"]:
+                elif order_type in ["Procedure", "Lab", "Imaging", "Proc"]:
                     original_coding = FHIR_API.Coding(code=orderable_id, system=system, display=name)
-                    procedure_coding = FHIR_API.Coding(code=result[6], system=result[7], display=name)
+                    procedure_coding = FHIR_API.Coding(code=result[5], system=result[6], display=name)
                     rtn_FHIR_procedure = FHIR_API.Procedure(text=name,
                                                       identifier=order.identifier,
                                                       name=name,
-                                                      base_cost=base_cost,
                                                       type=FHIR_API.CodeableConcept(coding=[original_coding, procedure_coding],
                                                                                     text=order_type))
                     return rtn_FHIR_procedure
@@ -265,13 +263,12 @@ def identify_encounter_orderable(item=None, order=None, composition=None, conn=N
             cur = yield from conn.execute_single(' '.join(cmd), cmdargs)
 
             for result in cur:
-                orderable_id, system, name, description, order_type, base_cost = _get_base_order_elements_from_DB_cursor_result(result)
+                orderable_id, system, name, description, order_type = _get_base_order_elements_from_DB_cursor_result(result)
                 del item.type.coding[:]
-                item.type.coding.append(FHIR_API.Coding(code=result[6], system=result[7], display=name))
+                item.type.coding.append(FHIR_API.Coding(code=result[5], system=result[6], display=name))
                 item.type.coding.append(FHIR_API.Coding(code=orderable_id, system=system, display=name))
                 item.identifier = order.identifier
                 item.type.text = order_type
-                item.base_cost = base_cost
                 item.name = name
 
             return item
@@ -288,13 +285,12 @@ def identify_encounter_orderable(item=None, order=None, composition=None, conn=N
             cur = yield from conn.execute_single(' '.join(cmd), cmdargs)
 
             for result in cur:
-                orderable_id, system, name, description, order_type, base_cost = _get_base_order_elements_from_DB_cursor_result(result)
+                orderable_id, system, name, description, order_type = _get_base_order_elements_from_DB_cursor_result(result)
                 del item.code.coding[:]
-                item.code.coding.append(FHIR_API.Coding(code=result[6], system=result[7], display=name))
+                item.code.coding.append(FHIR_API.Coding(code=result[5], system=result[6], display=name))
                 item.code.coding.append(FHIR_API.Coding(code=orderable_id, system=system, display=name))
                 item.code.text = order_type
                 item.identifier = order.identifier
-                item.base_cost = base_cost
                 item.name = name
 
             return item
@@ -308,11 +304,57 @@ def _get_base_order_elements_from_DB_cursor_result(result):
     name = result[2]
     description = result[3]
     order_type = result[4]
-    base_cost = FHIR_API.round_up_five(result[5])
 
-    return orderable_id, system, name, description, order_type, base_cost
+    return orderable_id, system, name, description, order_type
 
 
+@asyncio.coroutine
+def get_order_detail_cost(order_detail, composition, conn):
+
+    column_map = ["cost",
+                  "cost_type",
+                  "customer_id",
+                  "department",
+                  "code",
+                  "code_type",
+                  "orderable_id"]
+    columns = DBMapper.select_rows_from_map(column_map)
+
+    cmd = []
+    cmd.append("SELECT " + columns)
+    cmd.append("FROM costmap")
+    cmd.append("WHERE code=%s")
+    cmd.append("AND code_type=%s")
+    cmd.append("AND (customer_id=%s or customer_id=-1)")
+    cmd.append("AND (department=%s or department='-1')")
+    cmd.append("AND (cost_type LIKE 'Charged%%' OR cost_type = 'Procedure Cost')")
+    cmd.append("ORDER BY (customer_id, department) DESC")
+    cmd.append("LIMIT 1;")
+
+    if composition.encounter.location[0]:
+        department = composition.encounter.location[0].identifier[0].value
+    else:
+        department = ""
+
+    if isinstance(order_detail, FHIR_API.Procedure):
+        proc_coding = order_detail.type.get_coding_by_system(["HCPCS", "CPT"])
+        cmdargs = [proc_coding.code,
+                   proc_coding.system,
+                   composition.customer_id,
+                   department]
+
+    elif isinstance(order_detail, FHIR_API.Medication):
+        med_coding = order_detail.code.get_coding_by_system(["rxnorm"])
+        cmdargs = [med_coding.code,
+                   med_coding.system,
+                   composition.customer_id,
+                   department]
+
+    cur = yield from conn.execute_single(' '.join(cmd), cmdargs)
+
+    for result in cur:
+        order_detail.cost = FHIR_API.round_up_five(result[0])
+        order_detail.cost_type = result[1]
 
 @asyncio.coroutine
 def get_snomeds_and_append_to_encounter_dx(composition, conn):
@@ -361,7 +403,8 @@ def get_duplicate_orders(composition, conn):
 
         orderable_IDs_list = []
         for order in composition.get_encounter_orders():
-            orderable_IDs_list.extend(order.get_orderable_ID())
+            if order.get_orderable_ID():
+                orderable_IDs_list.extend(order.get_orderable_ID())
 
         #for order in enc_ord_summary_section.content:
         column_map = ["order_ord.orderable_id",
@@ -482,6 +525,11 @@ def get_matching_CDS_rules(composition, conn):
                                                    name=result[1]))
     return rtn_matched_rules
 
+
+@asyncio.coroutine
+def get_alternative_meds(order, composition, conn):
+
+    return []
 
 
 

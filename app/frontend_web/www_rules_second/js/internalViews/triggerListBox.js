@@ -21,8 +21,6 @@ define([
             var that = this;
             this.$el.on('contextmenu', function(){
                 that.loadParents($("option:selected", that.$el)[0].value)
-
-
             })
             this.$el.on('dblclick', function(){
                 that.loadChildren($("option:selected", that.$el)[0].value)

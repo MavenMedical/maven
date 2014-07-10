@@ -45,15 +45,19 @@ define([
       trig_temp.set([], {silent:true});
       contextModel.set('showTriggerEditor', false);
       ruleModel.set({triggers: trig_temp} , {silent: true});
-      ruleModel.set({triggerType: 'proc', genders:'MF', minAge:'0', maxAge:'200'}, {silent:true});
+      ruleModel.set({triggerType: 'proc', genders:'%', minAge:'0', maxAge:'200'}, {silent:true});
+      ruleModel.trigger('cleared')
 
 
 
     },
     getNewRule: function(name){
+
       ruleModel.clearData();
       ruleModel.set({name: name}, {silent: true});
-      ruleModel.save();
+      ruleModel.save({}, {success: function(){
+          ruleModel.trigger('selected')}});
+
 
     },
 
@@ -110,19 +114,16 @@ define([
    ruleModel.set({triggerType: 'proc', genders:'MF', minAge:'0', maxAge:'200'}, {silent:true});
 
     // if the ruleModel's id changes (on a POST), update the contextModel with that id
-    ruleModel.on('change:triggerType', function(){
 
-        ruleModel.get('triggers').set([]);
-        ruleModel.save();
-
-    })
     ruleModel.on('change:id',
 		 function() {
 		     contextModel.set({'id':ruleModel.get('id')})
              if (ruleModel.get('id')){
-                 contextModel.set('showDetails', true);
+
+                 ruleModel.trigger('selected')
              } else {
-                 contextModel.set('showDetails', false)
+
+                 ruleModel.trigger('cleared')
              }
 		 }, contextModel);
 

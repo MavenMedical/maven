@@ -23,9 +23,7 @@ define([
 	        user: null,
 	        id: null,
             showDetails: false
-
-
-        },
+    },
 	toParams: function() {
 	    var ret = _.pick(this.attributes,['user', 'auth', 'id']);
 	    for(var x in ret) {

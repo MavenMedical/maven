@@ -116,8 +116,8 @@ begin
 	mx:=coalesce(framemin,1);
 	if listType='HXPX' then
 		select array_agg(proc_code) into rtn
-			from public.mavenorder a
-			where a.pat_id=patid and a.customer_id=customer and code_type='CPT'and  current_date+mn<=datetime and current_date+mx>=datetime
+			from public.order_ord a
+			where a.pat_id=patid and a.customer_id=customer and code_type='CPT' and current_date+mn<=datetime and current_date+mx>=datetime
 			group by a.pat_id ;
 		return rtn;
 	else

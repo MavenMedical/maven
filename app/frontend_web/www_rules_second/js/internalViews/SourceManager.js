@@ -24,6 +24,8 @@ define([
             var panel = this;
             $('#add-source-button')[0].onclick = function(){
                 panel.collection.add({Name: $('#source-name-field').val(), Abbreviation: $('#source-abbrev-field').val(),Hyperlink: $('#source-hyperlink-field').val()});
+                $('.source-field', this.$el).val("")
+
             }
             this.render()
 

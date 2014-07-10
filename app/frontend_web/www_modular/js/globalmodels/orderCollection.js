@@ -8,7 +8,7 @@ define([
     OrderModel = Backbone.Model;
 
     orderCollection = new ScrollCollection;
-    orderCollection.url = function() {return '/orders/'+this.offset+'-'+(this.offset+this.limit);};
+    orderCollection.url = function() {return '/orders'+this.offset+'-'+(this.offset+this.limit);};
     orderCollection.model = OrderModel;
     orderCollection.limit = 3;
     orderCollection.context = function(){

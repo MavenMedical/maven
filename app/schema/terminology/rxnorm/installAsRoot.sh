@@ -1,3 +1,4 @@
+gunzip rxsnomeds.csv.gz
 read -p "Path to the rrf directory from RxNorm Download: " rrf
 read -p "Path to the scripts directory from RxNorm Download: " scripts
 su postgres -c 'psql -f drop.sql'
@@ -33,3 +34,4 @@ cd nadac
 ./importNADAC.sh
 cd ../mdd
 ./importMDD.sh
+gzip rxsnomeds.csv
