@@ -90,6 +90,18 @@ INSERT INTO orderable(
             proc_rvu_overhd_comp, proc_rvu_malprac_comp, proc_rvu_total_no_mod,
             rx_rxnorm_id, rx_generic_name, rx_strength, rx_form, rx_route,
             rx_thera_class, rx_pharm_class, rx_pharm_subclass, rx_simple_generic)
+    VALUES (1, '18724', 'clientEMR', 'CT Scan Head', NULL, 'active',
+            'Imaging', NULL, NULL, '70470', 'HCPCS', NULL,
+            NULL, NULL, NULL,
+            NULL, NULL, NULL, NULL, NULL,
+            NULL, NULL, NULL, NULL);
+
+INSERT INTO orderable(
+            customer_id, orderable_id, system, name, description, status,
+            ord_type, source, base_cost, cpt_code, cpt_version, proc_rvu_work_comp,
+            proc_rvu_overhd_comp, proc_rvu_malprac_comp, proc_rvu_total_no_mod,
+            rx_rxnorm_id, rx_generic_name, rx_strength, rx_form, rx_route,
+            rx_thera_class, rx_pharm_class, rx_pharm_subclass, rx_simple_generic)
     VALUES (1, '2', 'clientEMR', 'IMMUNOGLOBULINS', NULL, 'active',
             'Lab', NULL, 16.14, '82784', 'HCPCS', NULL,
             NULL, NULL, NULL,
@@ -125,6 +137,12 @@ INSERT INTO costmap(
             cost)
     VALUES (1, '76370', 'HCPCS', '286', 'Procedure Cost', '5',
             807.00);
+
+INSERT INTO costmap(
+            customer_id, code, code_type, department, cost_type, orderable_id,
+            cost)
+    VALUES (1, '70470', 'HCPCS', '-1', 'Procedure Cost', '18724',
+            792.78);
 
 INSERT INTO costmap(
             customer_id, code, code_type, department, cost_type, orderable_id,
