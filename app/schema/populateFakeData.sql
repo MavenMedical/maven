@@ -90,8 +90,32 @@ INSERT INTO orderable(
             proc_rvu_overhd_comp, proc_rvu_malprac_comp, proc_rvu_total_no_mod,
             rx_rxnorm_id, rx_generic_name, rx_strength, rx_form, rx_route,
             rx_thera_class, rx_pharm_class, rx_pharm_subclass, rx_simple_generic)
+    VALUES (1, '18724', 'clientEMR', 'CT Scan Head', NULL, 'active',
+            'Imaging', NULL, NULL, '70470', 'HCPCS', NULL,
+            NULL, NULL, NULL,
+            NULL, NULL, NULL, NULL, NULL,
+            NULL, NULL, NULL, NULL);
+
+INSERT INTO orderable(
+            customer_id, orderable_id, system, name, description, status,
+            ord_type, source, base_cost, cpt_code, cpt_version, proc_rvu_work_comp,
+            proc_rvu_overhd_comp, proc_rvu_malprac_comp, proc_rvu_total_no_mod,
+            rx_rxnorm_id, rx_generic_name, rx_strength, rx_form, rx_route,
+            rx_thera_class, rx_pharm_class, rx_pharm_subclass, rx_simple_generic)
     VALUES (1, '2', 'clientEMR', 'IMMUNOGLOBULINS', NULL, 'active',
             'Lab', NULL, 16.14, '82784', 'HCPCS', NULL,
+            NULL, NULL, NULL,
+            NULL, NULL, NULL, NULL, NULL,
+            NULL, NULL, NULL, NULL);
+
+INSERT INTO orderable(
+            customer_id, orderable_id, system, name, description, status,
+            ord_type, source, base_cost, cpt_code, cpt_version, proc_rvu_work_comp,
+            proc_rvu_overhd_comp, proc_rvu_malprac_comp, proc_rvu_total_no_mod,
+            rx_rxnorm_id, rx_generic_name, rx_strength, rx_form, rx_route,
+            rx_thera_class, rx_pharm_class, rx_pharm_subclass, rx_simple_generic)
+    VALUES (1, '7', 'clientEMR', 'CT Pelvic w/ Contrast', NULL, 'active',
+            'Imaging', NULL, 16.14, '72191', 'HCPCS', NULL,
             NULL, NULL, NULL,
             NULL, NULL, NULL, NULL, NULL,
             NULL, NULL, NULL, NULL);
@@ -108,3 +132,38 @@ INSERT INTO orderable(
             '25033', NULL, NULL, NULL, NULL,
             NULL, NULL, NULL, NULL);
 
+INSERT INTO costmap(
+            customer_id, code, code_type, department, cost_type, orderable_id,
+            cost)
+    VALUES (1, '76370', 'HCPCS', '286', 'Procedure Cost', '5',
+            807.00);
+
+INSERT INTO costmap(
+            customer_id, code, code_type, department, cost_type, orderable_id,
+            cost)
+    VALUES (1, '70470', 'HCPCS', '-1', 'Procedure Cost', '18724',
+            792.78);
+
+INSERT INTO costmap(
+            customer_id, code, code_type, department, cost_type, orderable_id,
+            cost)
+    VALUES (1, '72191', 'HCPCS', '286', 'Procedure Cost', '72191',
+            742.79);
+
+INSERT INTO costmap(
+            customer_id, code, code_type, department, cost_type, orderable_id,
+            cost)
+    VALUES (1, '25033', 'rxnorm', '-1', 'Procedure Cost', '3',
+            519.14);
+
+INSERT INTO costmap(
+            customer_id, code, code_type, department, cost_type, orderable_id,
+            cost)
+    VALUES (1, '82784', 'HCPCS', '286', 'Procedure Cost', '2',
+            16.14);
+
+INSERT INTO rules.evirule(
+            ruleid, name, minage, maxage, sex, codetype, fullspec, comments,
+            remainingdetails)
+    VALUES (5, 'ACR 5', 0.00, 200.00, '%', 'CPT', '{"details":[{"id":0,"type":"historic_dx","exists":false,"snomed":445039006, "frame_min":-100000, "frame_max":0},{"id":1,Age:15:200}]}', NULL,
+            '{"details":[{"id":0,"type":"encounter_dx","exists":false, "snomed":95659007},{"id":1,"type":"encounter_dx","exists":false, "snomed":95660002},{"id":2,"type":"encounter_dx","exists":false, "snomed":41413006},{"id":3,"type":"historic_dx","exists":false,"snomed":26544005, "frame_min":-100000, "frame_max":0},{"id":4,"type":"historic_dx","exists":false,"snomed":87486003, "frame_min":-100000, "frame_max":0},{"id":5,"type":"historic_dx","exists":false,"snomed": 80910005 , "frame_min":-100000, "frame_max":0},{"id":6,"type":"historic_dx","exists":false,"snomed":74732009, "frame_min":-100000, "frame_max":0},{"id":7,"type":"historic_dx","exists":false,"snomed":20262006, "frame_min":-100000, "frame_max":0},{"id":8,"type":"historic_dx","exists":false,"snomed":128613002, "frame_min":-100000, "frame_max":0},{"id":9,"type":"historic_dx","exists":false,"snomed":15758002, "frame_min":-100000, "frame_max":0},{"id":10,"type":"historic_dx","exists":false,"snomed":106150003, "frame_min":-100000, "frame_max":0},{"id":11,"type":"historic_dx","exists":false,"snomed":55342001, "frame_min":-100000, "frame_max":0},{"id":12,"type":"problem_list","exists":false,"snomed":118185001},{"id":13,"type":"problem_list","exists":false,"snomed":86406008},{"id":14,"type":"problem_list","exists":false,"snomed":271730003},{"id":15,"type":"encounter_dx","exists":false,"snomed": 386661006},{"id":16,"type":"encounter_dx","exists":false,"snomed": 82271004},{"id":17,"type":"lab","result":55,"relation":"<","default":true, "loinc": "43402-7","frame_min":-1, "frame_max":0}]}');
