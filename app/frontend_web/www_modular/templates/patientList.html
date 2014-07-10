@@ -2,8 +2,22 @@
         <h2 class="headings">
           <%= display %>'s Recent Patients
         </h2>
-    <div class='patientlist' style="overflow-y:auto;max-height:100px; width:100%; padding:0;">
-    <table class="table table-condensed table-hover patienttable" style="width:100%;">
+    <div class='patientlist' style=" width:100%; padding:0; max-height:100px; overflow-y:auto;">
+    <table class="table table-condensed table-hover patienttable" style="width:100%; padding: 0;">
+        <col width="20%">
+        <col width="20%">
+        <col width="20%">
+        <col width="20%">
+        <col width="20%">
+        <thead>
+            <tr>
+                <th align="left" id="pat_name">Name</th>
+                <th align="left" id="pat_gender">Gender</th>
+                <th align="left" id="pat_dob">Date of Birth</th>
+                <th align="left" id="pat_diagnosis">Diagnosis</th>
+                <th align="left" id="pat_cost">Cost</th>
+            </tr>
+        </thead>
         <tbody>
         </tbody>
     </table>
