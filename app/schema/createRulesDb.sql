@@ -48,6 +48,7 @@ create  table rules.labeval(
 	,framemin int
 	,framemax int
 	,defaultval boolean
+        ,onlyCheckLast boolean
 );
 create index ixlabevalRule on rules.labeval(ruleid,loinc_codes);
 
