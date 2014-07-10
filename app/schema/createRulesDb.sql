@@ -48,33 +48,37 @@ create  table rules.labeval(
 	,framemin int
 	,framemax int
 	,defaultval boolean
+        ,onlyCheckLast boolean
 );
 create index ixlabevalRule on rules.labeval(ruleid,loinc_codes);
 
- create or replace function rules.evalLabs(cust int, pat varchar(100),framemin int, framemax int, defval boolean,relation varchar(1),comparison double precision,loincs varchar[])
+create or replace function rules.evalLabs(cust int, pat varchar(100),framemin int, framemax int, defval boolean,relation varchar(1),comparison double precision,loincs varchar[],onlylast boolean)
  returns boolean
  as $$
  declare
-	rtn int;
+        rtn int;
  begin
-	if relation='<' then
-		select max(case when numeric_result<comparison then 1 else 0 end) into rtn
-		from public.observation a
-		where a.customer_id=cust and a.pat_id=pat and a.loinc_code=any(loincs)
-		  and current_date+framemin<=result_time and current_date+framemax>=result_time;
-	elsif relation='>' then
-		select max(case when numeric_result>comparison then 1 else 0 end) into rtn
-		from public.observation a
-		where a.customer_id=cust and a.pat_id=pat and a.loinc_code=any(loincs)
-		  and current_date+framemin<=result_time and current_date+framemax>=result_time;
-	elsif relation='=' then
-		select max(case when numeric_result=comparison then 1 else 0 end) into rtn
-		from public.observation a
-		where a.customer_id=cust and a.pat_id=pat and a.loinc_code=any(loincs)
-		  and current_date+framemin<=result_time and current_date+framemax>=result_time;
-	else return defval;
-	end if;
-	return case when rtn=1 then true when rtn=0 then false else defval end;
+        if relation='<' then
+                select max(case when numeric_result<comparison then 1 else 0 end) into rtn
+                from (select numeric_result from public.observation a
+                where a.customer_id=cust and a.pat_id=pat and a.loinc_code=any(loincs)
+                  and current_date+framemin<=result_time and current_date+framemax>=result_time
+                order by result_time desc limit case when onlylast then 1 else 9999999 end ) a;
+        elsif relation='>' then
+                select max(case when numeric_result>comparison then 1 else 0 end) into rtn
+                from (select numeric_result from public.observation a
+                where a.customer_id=cust and a.pat_id=pat and a.loinc_code=any(loincs)
+                  and current_date+framemin<=result_time and current_date+framemax>=result_time
+                order by result_time desc limit case when onlylast then 1 else 9999999 end ) a;
+        elsif relation='=' then
+                select max(case when numeric_result=comparison then 1 else 0 end) into rtn
+                from (select numeric_result from public.observation a
+                where a.customer_id=cust and a.pat_id=pat and a.loinc_code=any(loincs)
+                  and current_date+framemin<=result_time and current_date+framemax>=result_time
+                order by result_time desc limit case when onlylast then 1 else 9999999 end ) a;
+        else return defval;
+        end if;
+        return case when rtn=1 then true when rtn=0 then false else defval end;
  end;
  $$
  language plpgsql;
@@ -87,11 +91,11 @@ declare rtn bigint[];
 begin
 	mn:=coalesce(framemin,-99999);
 	mx:=coalesce(framemin,1);
-	if listType='PL' then
+	if listType='pl_dx' then
 		return probsnomeds;
-	elsif listtype='ENC' then
+	elsif listtype='enc_dx' then
 		return encSnomeds;
-	elsif listtype='DXHX' then
+	elsif listtype='hist_dx' then
 		select encsnomeds||probsnomeds||array_agg(snomed_id) into rtn
 			from public.condition a
 			where a.pat_id=patid and a.customer_id=customer and  current_date+mn<=date_asserted and current_date+mx>=date_asserted
@@ -114,7 +118,7 @@ declare rtn varchar[];
 begin
 	mn:=coalesce(framemin,-99999);
 	mx:=coalesce(framemin,1);
-	if listType='HXPX' then
+	if listType='hist_proc' then
 		select array_agg(proc_code) into rtn
 			from public.order_ord a
 			where a.pat_id=patid and a.customer_id=customer and code_type='CPT' and current_date+mn<=datetime and current_date+mx>=datetime
@@ -135,26 +139,25 @@ begin
                 (
                 select a.ruleid
                 from rules.eviRule a
-		  inner join rules.trigCodes b on a.ruleId=b.ruleId and b.code=$1
-		  inner join rules.codeLists c on a.ruleId=c.ruleId
+                  inner join rules.trigCodes b on a.ruleId=b.ruleId and b.code=$1
+                  inner join rules.codeLists c on a.ruleId=c.ruleId
                 where
                    a.codetype=$2
                    and a.minage<=$3 and a.maxage>=$3
                    and $4 like a.sex
                 group by a.ruleid
                 having min(case when c.isIntersect=(
-			(intlist is not null and rules.comparisonIntArray(c.listType,$5,$6,$7,c.framemin,c.framemax,$8)&&c.intList)
-			or
-			(strlist is not null and rules.comparisonStrArray(c.listType,$7,c.framemin,c.framemax,$8)&&c.strList)
-		      )
-		  then 1 else 0 end)=1
+                        (intlist is not null and rules.comparisonIntArray(c.listType,$5,$6,$7,c.framemin,c.framemax,$8)&&c.intList)
+                        or
+                        (strlist is not null and rules.comparisonStrArray(c.listType,$7,c.framemin,c.framemax,$8)&&c.strList)
+                      )
+                  then 1 else 0 end)=1
                 ) sub inner join rules.evirule x on sub.ruleid=x.ruleid
                 left outer join rules.labEval y on x.ruleid=y.ruleid
-                where (y.ruleid is null or rules.evalLabs($8,$7,y.framemin,y.framemax,y.defaultval,y.relation,y.threshold,y.loinc_codes))'
+                where (y.ruleid is null or rules.evalLabs($8,$7,y.framemin,y.framemax,y.defaultval,y.relation,y.threshold,y.loinc_codes,y.onlychecklast))'
                 using orderCode , ordcodeType , patAge , patSex , encSnomeds , probSnomeds ,patid,customer
                 ;
 
 end;
 $$
 language plpgsql;
-
