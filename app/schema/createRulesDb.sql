@@ -122,9 +122,9 @@ begin
 	mn:=coalesce(framemin,-99999);
 	mx:=coalesce(framemin,1);
 	if listType='hist_proc' then
-		select array_agg(proc_code) into rtn
+		select array_agg(code_id) into rtn
 			from public.order_ord a
-			where a.pat_id=patid and a.customer_id=customer and code_type='CPT' and current_date+mn<=datetime and current_date+mx>=datetime
+			where a.pat_id=patid and a.customer_id=customer and code_system='HCPCS' and current_date+mn<=order_datetime and current_date+mx>=order_datetime
 			group by a.pat_id ;
 		return rtn;
 	elsif listType='drug_list' then 
