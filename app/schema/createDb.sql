@@ -118,7 +118,7 @@ CREATE TABLE alert_config (
   customer_id numeric(18,0),
   department numeric(18,0),
   category character varying(36),
-  rule_id numeric(18,0),
+  rule_id integer,
   validation_status character varying(36),
   provide_optouts character varying(36)[]
 )
