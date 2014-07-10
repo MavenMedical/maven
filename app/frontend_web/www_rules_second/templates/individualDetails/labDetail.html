@@ -1,6 +1,6 @@
 <div class="detail-entry">
     <a class="detail-item">
-    Rule will be used only if the patient had the observation that the labs with codes <%=obs_type%> were
+    Rule will be used only if the patient had the observation that the labs with codes <b><%=obs_type%></b> were
      <b><% if (relation == "greater") { %>
             greater than
     <%} else { %>
@@ -9,6 +9,7 @@
     <b><%=value%></b>
         <br>
     in the time frame between <b><%=mindays%></b> and <b><%=maxdays%></b> days from the present
+    <br> the rule will look <b><%if (lastlab=='true'){%>only for the most recent lab within the time frame<%}else{%>any lab within the time frame<%}%></b>
     <br> if no results for that test exist the rule <b><%if (defaultval=='true'){%>may still<%}else{%>may not<%}%></b> be used
     </a>
     <a style = "float: right" class="remove-detail">&#10006</a>

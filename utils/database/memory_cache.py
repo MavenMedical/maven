@@ -27,8 +27,8 @@ class MemoryCache():
         self.periods = []
         self.delays = []
         self.fallback_handlers = []
-                                
-    def schedule(self, loop):
+
+    def schedule(self, loop=None):
         """ schedule places all of the handlers on an event loop.
         call this only after adding the handlers you want
         :param loop: typically asyncio.get_event_loop()
