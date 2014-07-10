@@ -388,7 +388,7 @@ class WebPersistence():
         Results.description: "alert.long_description",
         Results.outcome: "alert.outcome",
         Results.savings: "alert.saving",
-        Results.alerttype: "'Duplicate'",
+        Results.alerttype: "'Recent Event'",
         Results.ruleid: "alert.cds_rule",
         }
     _display_alerts = _build_format({
