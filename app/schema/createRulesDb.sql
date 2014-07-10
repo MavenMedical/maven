@@ -91,11 +91,11 @@ declare rtn bigint[];
 begin
 	mn:=coalesce(framemin,-99999);
 	mx:=coalesce(framemin,1);
-	if listType='PL' then
+	if listType='pl_dx' then
 		return probsnomeds;
-	elsif listtype='ENC' then
+	elsif listtype='enc_dx' then
 		return encSnomeds;
-	elsif listtype='DXHX' then
+	elsif listtype='hist_dx' then
 		select encsnomeds||probsnomeds||array_agg(snomed_id) into rtn
 			from public.condition a
 			where a.pat_id=patid and a.customer_id=customer and  current_date+mn<=date_asserted and current_date+mx>=date_asserted
@@ -118,7 +118,7 @@ declare rtn varchar[];
 begin
 	mn:=coalesce(framemin,-99999);
 	mx:=coalesce(framemin,1);
-	if listType='HXPX' then
+	if listType='hist_proc' then
 		select array_agg(proc_code) into rtn
 			from public.order_ord a
 			where a.pat_id=patid and a.customer_id=customer and code_type='CPT' and current_date+mn<=datetime and current_date+mx>=datetime
