@@ -73,7 +73,7 @@ define([
             }, this)
             curRule.on('change:triggerType', function(){
                 this.availModel.reset();
-            })
+            }, this)
 
         },
 

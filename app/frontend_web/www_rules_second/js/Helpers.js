@@ -10,7 +10,8 @@ define([
     var Helpers = {
 
         detailHeadings: {'enc_pl_dx': "Encounter or Problem List Diagnosis", 'pl_dx': "Problem List Diagnosis",
-            'hist_dx': "Historical Diagnosis", 'lab': "Lab Results", 'enc_dx': "Encounter Diagnosis", 'hist_proc': "Historic Procedure", 'enc_proc':"Encounter Procedure"},
+            'hist_dx': "Historical Diagnosis", 'lab': "Lab Results", 'enc_dx': "Encounter Diagnosis", 'hist_proc': "Historic Procedure",
+            'enc_proc':"Encounter Procedure", 'ml_med' : "Medication List"},
         notDetail: ['id', 'evidence','genders', 'minAge', 'maxAge', 'name', 'triggers', 'triggerType', 'sources']
     };
 
