@@ -34,6 +34,7 @@ CONTEXT_DATERANGE = 'daterange'
 CONTEXT_PATIENTLIST = 'patients'
 CONTEXT_DEPARTMENT = 'department'
 CONTEXT_ORDERTYPE = 'ordertype'
+CONTEXT_ORDERID = 'order_id'
 CONTEXT_KEY = 'userAuth'
 CONTEXT_ENCOUNTER = 'encounter'
 CONTEXT_CUSTOMERID = 'customer_id'
@@ -365,7 +366,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
     alerts_required_contexts = [CONTEXT_PROVIDER, CONTEXT_CUSTOMERID]
     alerts_available_contexts = {CONTEXT_PROVIDER: str, CONTEXT_PATIENTLIST: list,
                                  CONTEXT_CUSTOMERID: int, CONTEXT_ENCOUNTER: str,
-                                 CONTEXT_STARTDATE: date, CONTEXT_ENDDATE: date}
+                                 CONTEXT_STARTDATE: date, CONTEXT_ENDDATE: date, CONTEXT_ORDERID: str}
 
     @asyncio.coroutine
     def get_alerts(self, _header, _body, qs, matches, _key):
@@ -376,6 +377,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
         provider = context[CONTEXT_PROVIDER]
         patients = context.get(CONTEXT_PATIENTLIST, None)
         customer = context[CONTEXT_CUSTOMERID]
+        orderid = context.get(CONTEXT_ORDERID, None)
+
         startdate = self.helper.get_date(context,CONTEXT_STARTDATE)
         enddate = self.helper.get_date(context, CONTEXT_ENDDATE)
         limit = self.helper.limit_clause(matches)
@@ -394,7 +397,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         results = yield from self.persistence_interface.alerts(desired, provider, customer,
                                                                patients=patients,
                                                                startdate=startdate, enddate=enddate,
-                                                               limit=limit)
+                                                               limit=limit, orderid=orderid)
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
 

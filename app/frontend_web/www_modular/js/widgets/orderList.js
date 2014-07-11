@@ -55,6 +55,7 @@ define([
 	    var orderrow = new OrderRow({model: order});
 	    $('.orderaccordion', this.$el).append(orderrow.render().el);
 	    this.$el.show();
+        orderrow.events();
 	},	
 	reset: function() {
 	    $('.orderaccordion', this.$el).empty();

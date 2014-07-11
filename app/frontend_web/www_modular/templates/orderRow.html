@@ -1,6 +1,6 @@
 <div class="panel panel-default" style="margin-bottom:4px">
   <div>
-    <a data-toggle="collapse" data-parent=".orderaccordion" data-target="#collapse<%= viewid %>">
+    <a data-toggle="collapse" data-parent=".orderaccordion" data-target="#collapse<%= viewid %>" class="orderlink" id="order<%= viewid %>">
       <h4 class="panel-title">
         <i class="glyphicon glyphicon-chevron-right color-<%= ordertype.toLowerCase() %>">
 	  <img title="<%= ordertype %>" src="images/<%= ordertype.toLowerCase() %>-55x55px.jpg" alt="<%= ordertype %>" height="40" width="40">
@@ -20,6 +20,7 @@
           <%= name %> ($<%= cost %>) on <span style="white-space:nowrap"><%= date.substr(0,19) %></span>
         </div>
       </div>
+      <div class="row orderalerts" ></div>
     </div>
   </div>
 </div>
