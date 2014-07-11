@@ -457,6 +457,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         enddate = self.helper.get_date(context, CONTEXT_ENDDATE)
 
         desired = {
+            WP.Results.encounterid: "encounterid",
             WP.Results.spending: "spending",
             WP.Results.startdate: "admission",
             WP.Results.enddate: "discharge",
