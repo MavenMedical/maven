@@ -7,22 +7,11 @@ define([
     'models/contextModel',
     'models/ruleModel',
     'internalViews/triggerListBox',
+    'internalViews/routeListBox',
 
     'text!templates/triggerSelector/triggerSelectorPanel.html'
-], function ($, _, Backbone, contextModel, curRule, TriggerListBox, ruleListTemplate) {
-    var addSelected = function(){
-        var selected = $('.available-triggers option:selected');
-        _.each(selected, function(cur){
-            var id = cur.value;
-            var toMove
-            _.each(this.availableBox.collection.models, function(curModel){
-                if(cur.value == curModel.get('id')){
-                    curRule.get('triggers').add(curModel);
-                }
-            }, this)
-        }, this)
-        curRule.save();
-    };
+], function ($, _, Backbone, contextModel, curRule, TriggerListBox, routeListBox,  ruleListTemplate) {
+
     var removeSelected = function(){
       var selected = $('.selected-triggers option:selected');
         _.each(selected, function(cur){
@@ -39,6 +28,24 @@ define([
     };
 
     var TriggerEditor = Backbone.View.extend({
+    addSelected: function(){
+        var selected = $('.available-triggers option:selected');
+        _.each(selected, function(cur){
+            var id = cur.value;
+            var toMove
+            _.each(this.availableBox.collection.models, function(curModel){
+                if(cur.value == curModel.get('id')){
+                    var otherModel = new Backbone.Model(curModel.attributes)
+                    if (curRule.get("triggerType")=="NDC"){
+                        otherModel.set("route", $('.entries', this.$el).val())
+                        otherModel.set("id", curModel.get('id') + otherModel.get('route'))
+                    }
+                    curRule.get('triggers').add(otherModel);
+                }
+            }, this)
+        }, this)
+        curRule.save();
+    },
         keyDownSearch: function(key){
             if (key.keyCode == 13)
                 this.populateBySearch()
@@ -47,7 +54,7 @@ define([
 
             var t = contextModel.toParams();
             $.extend( t, {'search_param': $('#triggerSearch').val()})
-            if (curRule.get('triggerType')=='drug')
+            if (curRule.get('triggerType')=='NDC')
                 $.extend( t, {'type': "snomed_drug"})
             else
                 $.extend( t, {'type': "CPT"})
@@ -59,6 +66,7 @@ define([
 
         template: _.template(ruleListTemplate),
         initialize: function(){
+              this.$el.html(this.template());
             var panel = this;
             var anon =  Backbone.Collection.extend( {url: '/triggers?'});
             panel.availModel = new anon;
@@ -69,30 +77,41 @@ define([
             curRule.on('selected', function(){
                 this.$el.show();
                 this.availModel.reset();
-                this.render();
             }, this)
+             this.routeBox = new routeListBox({el: $('.route-list',  this.el)});
+             console.log("route Box", this.routeBox)
             curRule.on('change:triggerType', function(){
-                this.availModel.reset();
+                if (curRule.get('triggerType')=='NDC'){
+                     this.routeBox.$el.show()
+                } else {
+                     this.routeBox.$el.hide()
+                 }
             }, this)
+            this.$el.hide()
+            this.render()
 
         },
 
         render: function(){
             var panel = this;
-            this.$el.html(this.template());
 
-            this.availableBox = new TriggerListBox({triggers: this.availModel});
-            $('.available-triggers', this.$el).html(this.availableBox.render().$el);
+            if (curRule.get('triggerType')=='NDC')
+                this.routeBox.$el.show();
+            else
+                if (this.routeBox.$el.hide())
+            availEl = $('.available-triggers', this.$el)
+            this.availableBox = new TriggerListBox({triggers: this.availModel, el: availEl});
+            this.availableBox.render()
+            selectedEl = $('.selected-triggers', this.$el)
+            this.selectedBox = new TriggerListBox({triggers: curRule.get('triggers'), el: selectedEl});
+            this.selectedBox.render()
 
-            this.selectedBox = new TriggerListBox({triggers: curRule.get('triggers')});
 
-            var result = this.selectedBox.render().$el;
-            $('.selected-triggers', this.$el).html(result);
 
             return this;
         },
         events: {
-	    "click #addTriggerButton" : addSelected,
+	    "click #addTriggerButton" : 'addSelected',
         "click #removeTriggerButton" : removeSelected,
         "click #searchTriggers" : 'populateBySearch',
         "keypress #triggerSearch": 'keyDownSearch'

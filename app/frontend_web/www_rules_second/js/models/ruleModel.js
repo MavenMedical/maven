@@ -45,7 +45,7 @@ define([
       trig_temp.set([], {silent:true});
       contextModel.set('showTriggerEditor', false);
       ruleModel.set({triggers: trig_temp} , {silent: true});
-      ruleModel.set({triggerType: 'proc', genders:'%', minAge:'0', maxAge:'200'}, {silent:true});
+      ruleModel.set({triggerType: 'HCPCS', genders:'%', minAge:'0', maxAge:'200'})//, {silent:true});
       ruleModel.trigger('cleared')
 
 
@@ -111,7 +111,7 @@ define([
 
     ruleModel = new RuleModel;
     ruleModel.set('triggers', new Backbone.Collection);
-   ruleModel.set({triggerType: 'proc', genders:'MF', minAge:'0', maxAge:'200'}, {silent:true});
+    ruleModel.set({triggerType: 'HCPCS', genders:'MF', minAge:'0', maxAge:'200'}, {silent:true});
 
     // if the ruleModel's id changes (on a POST), update the contextModel with that id
 

@@ -25,7 +25,7 @@ define([
 
         },
         render: function(){
-               $('.entries', this.$el).html("");
+               $('.entries', this.$el).html("<option value = '%' selected>ANY ROUTE</option> ");
                var entryview = Backbone.View.extend({
                     template: _.template(drugRouteRow),
                     render: function(){
@@ -38,6 +38,7 @@ define([
                 $('.entries', this.$el).append(curentry.render().el.innerHTML);
 
             }, this);
+
             return this;
         }
     });
