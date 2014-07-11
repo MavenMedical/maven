@@ -113,7 +113,7 @@ language plpgsql;
 
 create index ixordPatCptDt on public.order_ord(customer_id,pat_id,code_id,order_datetime,code_system) where code_system='CPT';
 
-create or replace function rules.comparisonStrArray(listType varchar(20),patid varchar(100),framemin int,framemax int,customer int)
+create or replace function rules.comparisonStrArray(listType varchar(20),patid varchar(100),framemin int,framemax int,customer int,druglist varchar[])
 returns varchar[] as $$
 declare rtn varchar[];
 	mn int;
@@ -127,12 +127,15 @@ begin
 			where a.pat_id=patid and a.customer_id=customer and code_type='CPT' and current_date+mn<=datetime and current_date+mx>=datetime
 			group by a.pat_id ;
 		return rtn;
+	elsif listType='drug_list' then 
+		return druglist;
 	else
 		return null;
 	end if;
 end;
 $$
 language plpgsql;
+
 
 /***********************************************************
 Things to know about this function:
@@ -143,7 +146,7 @@ Things to know about this function:
 Author: Dave. 
 People to ask: Dave, Bruce, Yuki
 ************************************************************/
-create or replace function rules.evalRules(orderCode varchar, ordcodeType varchar, patAge numeric(18,2), patSex varchar, encSnomeds bigint[], probSnomeds bigint[],patid varchar(100),customer int)
+create or replace function rules.evalRules(orderCode varchar, ordcodeType varchar, patAge numeric(18,2), patSex varchar, encSnomeds bigint[], probSnomeds bigint[],patid varchar(100),customer int, curMedList varchar[])
 returns table (ruleid int, name varchar,details text,status int) as $$
 begin
                 return query execute
@@ -162,16 +165,17 @@ begin
                 having min(case when c.isIntersect=(
                         (intlist is not null and rules.comparisonIntArray(c.listType,$5,$6,$7,c.framemin,c.framemax,$8)&&c.intList)
                         or
-                        (strlist is not null and rules.comparisonStrArray(c.listType,$7,c.framemin,c.framemax,$8)&&c.strList)
+                        (strlist is not null and rules.comparisonStrArray(c.listType,$7,c.framemin,c.framemax,$8,$9)&&c.strList)
                       )
                   then 1 else 0 end)=1
                 ) sub inner join rules.evirule x on sub.ruleid=x.ruleid
                 inner join public.alert_config d on d.rule_id=sub.ruleId and d.customer_id=$8 and d.category>0
                 left outer join rules.labEval y on x.ruleid=y.ruleid
                 where (y.ruleid is null or rules.evalLabs($8,$7,y.framemin,y.framemax,y.defaultval,y.relation,y.threshold,y.loinc_codes,y.onlychecklast))'
-                using orderCode , ordcodeType , patAge , patSex , encSnomeds , probSnomeds ,patid,customer
+                using orderCode , ordcodeType , patAge , patSex , encSnomeds , probSnomeds ,patid,customer,curMedList
                 ;
 
 end;
 $$
 language plpgsql;
+

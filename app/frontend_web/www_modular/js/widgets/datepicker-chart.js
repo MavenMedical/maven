@@ -26,7 +26,6 @@ define([
             var data = [];
             for (var key in histogramModel.attributes) {
                 var enc = histogramModel.attributes[key];
-                console.log(enc);
                 data.push(enc);
             }
 
@@ -66,7 +65,26 @@ define([
                 "dataProvider": data
             });
 
-            chart.addListener("clickGraphItem", function(e){console.log(e.item.dataContext);});
+            chart.addListener("clickGraphItem", function(e){
+                var eventData = e.item.dataContext ;
+
+                console.log(eventData);
+
+                var URL;
+
+                    if (contextModel.get('patients')) {  // patient id must be available
+                        URL = "episode/" + eventData['id'] + "/";
+                        URL += "patient/" + contextModel.get('patients') + "/";
+                        URL += eventData['admission'];
+
+                        // navigate to the chosen encounter
+                        Backbone.history.navigate(URL, true);
+
+                        // hide the modal
+                        $('#datepicker-modal').modal('hide');
+                    }
+
+            });
 	    $("#datepicker-modal").on('shown.bs.modal', function() {chart.invalidateSize();});
 	    
         }
