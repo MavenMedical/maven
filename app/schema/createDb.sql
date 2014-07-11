@@ -25,9 +25,17 @@ COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 -- DROP SCHEMA public;
 CREATE SCHEMA public
   AUTHORIZATION postgres;
-
 GRANT ALL ON SCHEMA public TO maven;
 GRANT ALL ON SCHEMA public TO public;
+
+
+-- Schema: categories
+-- DROP SCHEMA categories;
+CREATE SCHEMA categories
+  AUTHORIZATION maven;
+GRANT ALL ON SCHEMA categories to maven;
+
+
 
 
 -- Table: adt
@@ -127,6 +135,32 @@ CREATE TABLE alert_config (
   );
 ALTER TABLE public.alert_config
     OWNER TO maven;
+
+
+-- Table: categories.cost_type
+-- DROP TABLE categories.cost_type;
+CREATE TABLE categories.cost_type (
+  value integer,
+  name character varying(255)
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE categories.cost_type
+  OWNER TO maven;
+
+
+-- Table: categories.cost_type
+-- DROP TABLE categories.cost_type;
+CREATE TABLE categories.validation_status (
+  value integer,
+  name character varying(255)
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE categories.validation_status
+  OWNER TO maven;
 
 
 -- Table: composition
