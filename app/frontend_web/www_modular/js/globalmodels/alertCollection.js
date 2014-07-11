@@ -12,10 +12,10 @@ define([
     alertCollection.model = AlertModel;
     alertCollection.limit = 5;
     alertCollection.context = function(){
-      contextModel.on('change:patients',
+      contextModel.on('change:patients change:encounter',
 		    // this will be needed once the context filters things
 		    function(cm) {
-			if(true && cm.get('userAuth')) {
+			if(cm.get('userAuth')) {
 			    this.tried = 0;
 			    this.offset=0;
 			    alertCollection.fetch({

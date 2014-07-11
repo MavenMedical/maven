@@ -447,7 +447,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
     hist_spend_required_contexts = [CONTEXT_PROVIDER, CONTEXT_CUSTOMERID]
     hist_spend_available_contexts = {CONTEXT_PROVIDER: str, CONTEXT_PATIENTLIST: list,
-                                     CONTEXT_CUSTOMERID: int, CONTEXT_ENCOUNTER: str,
+                                     CONTEXT_CUSTOMERID: int,
                                      CONTEXT_STARTDATE: date, CONTEXT_ENDDATE: date}
 
     @asyncio.coroutine
@@ -470,7 +470,6 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                                                       context.get(CONTEXT_PROVIDER),
                                                                       context.get(CONTEXT_CUSTOMERID),
                                                                       patients=context.get(CONTEXT_PATIENTLIST, None),
-                                                                      encounter=context.get(CONTEXT_ENCOUNTER, None),
                                                                       startdate=startdate, enddate=enddate)
 
         return HTTP.OK_RESPONSE, json.dumps(results), None

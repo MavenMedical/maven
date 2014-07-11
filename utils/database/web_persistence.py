@@ -300,7 +300,10 @@ class WebPersistence():
         Results.spending: "sum(order_cost)",
         Results.savings: "NULL",
     }
-    _display_total_spend = _build_format({Results.savings: lambda x: -1})
+    _display_total_spend = _build_format({
+        Results.savings: lambda x: -1,
+        Results.spending: lambda x: (x and int(x)) or 0,
+    })
         
     @asyncio.coroutine
     def total_spend(self, desired, customer, provider=None, patients=[], encounter=None,
