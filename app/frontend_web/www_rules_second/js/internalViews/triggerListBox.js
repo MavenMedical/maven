@@ -6,18 +6,25 @@ define([
     'backbone',    // lib/backbone/backbone
 
     'models/contextModel',
+    'models/ruleModel',
     'text!templates/ListBox.html',
     'text!templates/SearchSelectorRow/triggerSelectorRow.html'
-], function ($, _, Backbone, contextModel, triggerListBox, triggerSelectorRow) {
+], function ($, _, Backbone, contextModel, curRule, triggerListBox, triggerSelectorRow) {
 
     var TriggerEditor = Backbone.View.extend({
 
         template: _.template(triggerListBox),
         initialize: function(params){
-
+            this.el = params.el
             this.collection  = params.triggers;
             this.collection.on('add', this.render, this);
             this.collection.on('remove', this.render, this)
+            this.collection.on('reset', this.render, this)
+
+            curRule.on('change:id', this.render, this)
+            curRule.on('typeChange', function(){
+              this.collection.reset()
+            }, this)
             var that = this;
             this.$el.on('contextmenu', function(){
                 that.loadParents($("option:selected", that.$el)[0].value)
@@ -41,14 +48,15 @@ define([
 
         },
         render: function(){
-
             var text = "";
             _.each(this.collection.models, function(cur){
 
                 var entryview = Backbone.View.extend({
                     template: _.template(triggerSelectorRow),
                     render: function(){
-
+                        if (!this.model.get('route')){
+                            this.model.set("route", "")
+                         }
                         this.$el.html(this.template(this.model.toJSON()));
                         return this;
 

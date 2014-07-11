@@ -1,6 +1,6 @@
 <div class="detail-entry">
     <a class="detail-item">
-    <% if (negative == "true") { %>
+    <% if (exists == "false") { %>
             Rule will <b>not be used</b> if the subject had the diagnosis with SNOMED <b><%=code%></b>
             <br>in the time frame <b><%=minDays%></b> to <b><%=maxDays%></b> days from the present
     <%} else { %>

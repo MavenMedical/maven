@@ -41,15 +41,19 @@ define([
     }
     var editTriggerType = function(){
             var type = prompt("Enter the New Trigger Type (proc, drug) WARNING: Changing Type Will Clear All Triggers")
-            if ((type == 'proc' || type == 'drug') && type!=curRule.get('type')){
+            if ((type == 'HCPCS' || type == 'NDC') && type!=curRule.get('type')){
                 curRule.set('triggerType', type);
-               // curRule.save();
+                curRule.save();
 
             }
         }
     var selectorType = function(){
         curRule.set('triggerType', $('#trigger-type-selector').val())
+        curRule.trigger('typeChange')
+        curRule.save();
+
     }
+
     var selectorGenders = function(){
         curRule.set('genders', $('#gender-selector').val())
                 curRule.save()
@@ -70,6 +74,7 @@ define([
             curRule.on('change', this.updateOverview, this)
             curRule.get('triggers').on('add', this.updateOverview, this)
             curRule.get('triggers').on('remove', this.updateOverview, this)
+            curRule.get('triggers').on('reset', this.updateOverview, this)
             curCollection.on('remove', function(removed){
                 if (removed.get('id') == contextModel.get('id')){
                     curRule.set('name', null);

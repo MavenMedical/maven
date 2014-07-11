@@ -10,6 +10,8 @@
 ##############################################################################
 import asyncio
 
+
+
 class MemoryCache():
     """
     Many database lookups come from a read-only, or very rarely changing part of the database.
@@ -27,23 +29,20 @@ class MemoryCache():
         self.periods = []
         self.delays = []
         self.fallback_handlers = []
-                                
-    def schedule(self, loop):
-        """ schedule places all of the handlers on an event loop.
-        call this only after adding the handlers you want
-        :param loop: typically asyncio.get_event_loop()
-        """
-        @asyncio.coroutine
-        def loop(fn, ind, period_seconds, delay_seconds):
-            if delay_seconds:
-                yield from asyncio.sleep(delay_seconds)
-            self.data[ind] = yield from fn()
-            while period_seconds:
-                yield from asyncio.sleep(period_seconds)
-                self.data[ind] = yield from fn()
 
-        for i in range(len(self.handlers)):
-            asyncio.Task(loop(self.handlers[i], i, self.periods[i], self.delays[i]))
+
+
+    @asyncio.coroutine
+    def loop(self, fn, ind, period_seconds, delay_seconds):
+         if delay_seconds:
+             yield from asyncio.sleep(delay_seconds)
+         self.data[ind] = yield from fn()
+         while period_seconds:
+             yield from asyncio.sleep(period_seconds)
+         self.data[ind] = yield from fn()
+
+
+
 
     def add_cache(self, update_function, fallback_function, period_seconds, delay_seconds):
         """ Register a "table" with the memory cache.
@@ -65,7 +64,10 @@ class MemoryCache():
         self.periods.append(period_seconds)
         self.delays.append(delay_seconds)
         self.fallback_handlers.append(fallback_function)
-        return len(self.data)-1
+        i=len(self.data)-1
+        asyncio.Task(self.loop(update_function, i, period_seconds, delay_seconds))
+
+        return i
         
     @asyncio.coroutine
     def lookup(self, index, key):

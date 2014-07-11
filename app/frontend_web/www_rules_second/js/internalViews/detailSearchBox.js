@@ -28,9 +28,9 @@ define([
                 $.extend( t, {'search_param': $('#Detail-Search-Box').val()})
                 if (panel.type.split("_")[1] == 'dx'){
                      $.extend( t, {'type': "snomed_diagnosis"});
-                } else if (panel.type.split("_")[1] == 'drug'){
+                } else if (panel.type.split("_")[1] == 'NDC' || panel.type.split("_")[1] == 'med'){
                    $.extend( t, {'type': "snomed_drug"});
-                } else if (panel.type.split("_")[1] == 'proc'){
+                } else if (panel.type.split("_")[1] == 'HCPCS'){
                    $.extend( t, {'type': "CPT"});
                 }
                 panel.collection.fetch({data:$.param(t)})
@@ -47,14 +47,15 @@ define([
 
             }
              $('#Detail-Search-Box', this.$el)[0].onkeydown = function(key){
+
                 if (key.keyCode == 13){
                       var t = contextModel.toParams();
                 $.extend( t, {'search_param': $('#Detail-Search-Box').val()})
                 if (panel.type.split("_")[1] == 'dx'){
                      $.extend( t, {'type': "snomed_diagnosis"});
-                } else if (panel.type.split("_")[1] == 'drug'){
+                } else if (panel.type.split("_")[1] == 'NDC' || panel.type.split("_")[1] == 'med'){
                    $.extend( t, {'type': "snomed_drug"});
-                } else if (panel.type.split("_")[1] == 'proc'){
+                } else if (panel.type.split("_")[1] == 'HCPCS'){
                    $.extend( t, {'type': "CPT"});
                 }
                 panel.collection.fetch({data:$.param(t)})
@@ -64,7 +65,7 @@ define([
         render: function(){
 
                $('.entries', this.$el).html("");
-              var entryview = Backbone.View.extend({
+               var entryview = Backbone.View.extend({
                     template: _.template(triggerSelectorRow),
                     render: function(){
                         this.$el.html(this.template(this.model.toJSON()));

@@ -13,11 +13,17 @@ CONFIG_DATABASE = 'database'
 CONFIG_PERSISTENCE = 'search'
 EMPTY_RETURN = [{'id':000000, 'term':"No Results Found", 'code':000000, 'type':'none'}]
 class web_search():
+
     @asyncio.coroutine
-    def execute(self, cmd, cmdargs):
-
-
-        return results
+    def get_routes(self):
+        cmd = []
+        cmd_args = []
+        cmd.append("SELECT DISTINCT routename FROM terminology.drugclassancestry ORDER BY routename ASC")
+        results = yield from self.db.execute_single((' '.join(cmd)), cmd_args)
+        arr = []
+        for row in results:
+            arr.append({'term': row[0]})
+        return arr
 
     def __init__(self, configname):
         print(MC.MavenConfig);
@@ -31,7 +37,7 @@ class web_search():
         if (not search_str):
             return EMPTY_RETURN
         if (search_type == "CPT"):
-            cmd.append("SELECT a.cpt_code, a.name FROM public.orderable as a WHERE a.customer_id = -1 AND ord_type = 'Proc' AND to_tsvector('maven', a.name) @@  plainto_tsquery('english', %s) LIMIT 25")
+            cmd.append("SELECT a.cpt_code, a.name FROM public.orderable as a WHERE a.customer_id = -1 AND ord_type = 'Proc' AND to_tsvector('maven', a.name) @@  plainto_tsquery('maven', %s) LIMIT 25")
             cmd_args.append(search_str)
             results = yield from self.db.execute_single((' '.join(cmd)), cmd_args)
             ret = []
@@ -46,7 +52,7 @@ class web_search():
         if (search_type == "snomed_basic"):
             cmd.append("SET enable_seqscan = off;")
             cmd.append("SELECT x.ancestor, min(x.term),count(*) FROM  (SELECT  b.ancestor,a.term FROM terminology.descriptions a, terminology.conceptancestry b")
-            cmd.append("where to_tsvector('maven',term) @@ plainto_tsquery('english', %s)")
+            cmd.append("where to_tsvector('maven',term) @@ plainto_tsquery('maven', %s)")
             cmd.append("and active=1 and languagecode='en'")
             cmd.append("and a.conceptid=b.ancestor) as x")
             cmd.append("GROUP BY")
@@ -89,7 +95,7 @@ class web_search():
             print("QUERYING")
             cmd.append("SET enable_seqscan = off;")
             cmd.append("SELECT x.ancestor, min(x.term),count(*) FROM  (SELECT  b.ancestor,a.term FROM terminology.descriptions a, terminology.conceptancestry b")
-            cmd.append("WHERE to_tsvector('maven',term) @@ plainto_tsquery('english', %s)")
+            cmd.append("WHERE to_tsvector('maven',term) @@ plainto_tsquery('maven', %s)")
             cmd.append("AND active=1 and languagecode='en'")
             cmd.append("AND a.conceptid  = b.ancestor")
             cmd.append("AND a.conceptid IN (SELECT child FROM terminology.conceptancestry b WHERE b.ancestor = %s)) AS x")
@@ -116,7 +122,7 @@ class web_search():
         if (search_type == "loinc"):
 
 
-            cmd.append("SELECT loinc_num, component FROM terminology.loinc WHERE to_tsvector('maven', component) @@ plainto_tsquery('english', %s)")
+            cmd.append("SELECT loinc_num, component FROM terminology.loinc WHERE to_tsvector('maven', component) @@ plainto_tsquery('maven', %s)")
             cmd.append("LIMIT 50")
             cmd_args.append(search_str)
 
@@ -190,12 +196,13 @@ class web_search():
         yield from (self.writeExplicitSnomed('hist_dx', ruleJSON))
         yield from self.writeExplicitSnomed('pl_dx', ruleJSON)
         yield from self.writeExplicitSnomed('enc_dx', ruleJSON)
-        yield from self.writeExplicitSnomed('enc_pl_dx', ruleJSON)
+        yield from self.writeExplicitSnomed('enc_dx', ruleJSON)
+        yield from self.writeExplicitNDC('ml_med', ruleJSON)
         yield from self.writeExplicitCPT('hist_proc', ruleJSON)
         yield from self.writeExplicitCPT('enc_proc', ruleJSON)
-        if (ruleJSON['triggerType'] == 'drug'):
+        if (ruleJSON['triggerType'] == 'NDC'):
             yield from self.writeDrugTriggers(ruleJSON)
-        elif (ruleJSON['triggerType'] == 'proc'):
+        elif (ruleJSON['triggerType'] == 'HCPCS'):
             yield from self.writeCPTTriggers(ruleJSON)
         yield from self.writeLabs(ruleJSON)
         return
@@ -219,7 +226,7 @@ class web_search():
                      cmd.append("(SELECT %s, %s, %s, array_agg(child) , %s, %s FROM terminology.conceptancestry WHERE ancestor = %s)")
                      cmdArgs.append(str(id))
                      cmdArgs.append(str(type))
-                     cmdArgs.append(cur['negative']=='true')
+                     cmdArgs.append(cur['exists']=='true')
                      cmdArgs.append(cur['minDays'])
                      cmdArgs.append(cur['maxDays'])
                      cmdArgs.append(cur['code'])
@@ -229,11 +236,9 @@ class web_search():
                      cmd.append("(SELECT %s, %s, %s, array_agg(child) FROM terminology.conceptancestry WHERE ancestor = %s)")
                      cmdArgs.append(str(id))
                      cmdArgs.append(str(type))
-                     cmdArgs.append(cur['negative']=='true')
+                     cmdArgs.append(cur['exists']=='true')
                      cmdArgs.append(cur['code'])
                  yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
-
-
 
         return
     @asyncio.coroutine
@@ -255,7 +260,7 @@ class web_search():
                      cmd.append("(SELECT %s, %s, %s, %s, %s, %s)")
                      cmdArgs.append(str(id))
                      cmdArgs.append(str(type))
-                     cmdArgs.append(cur['negative']=='true')
+                     cmdArgs.append(cur['exists']=='true')
                      cmdArgs.append([int(cur['code'])])
                      cmdArgs.append(cur['minDays'])
                      cmdArgs.append(cur['maxDays'])
@@ -266,8 +271,36 @@ class web_search():
                      cmdArgs.append(str(id))
                      cmdArgs.append(str(type))
                      cmdArgs.append([int(cur['code'])])
-                     cmdArgs.append(cur['negative']=='true')
+                     cmdArgs.append(cur['exists']=='true')
+
                  yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
+
+    @asyncio.coroutine
+    def writeExplicitNDC(self, type, rule):
+        list = rule.get(type, None)
+        id = rule['id']
+
+        if (list):
+            cmd = []
+            cmdArgs = []
+            pos = []
+            neg = []
+            for cur in list:
+                 cmd = []
+                 cmdArgs = []
+
+                 cmd.append("INSERT INTO rules.codelists")
+                 cmd.append("(ruleid, listtype, strlist, isintersect)")
+                 cmd.append("(SELECT DISTINCT  %s, %s, array_agg(ndc), %s FROM "
+		                    "(SELECT b.child FROM terminology.descriptions a inner join terminology.conceptancestry b on a.conceptid = b.ancestor where a.conceptid = %s) x "
+			                "inner join terminology.rxsnomeds c ON x.child = c.snomed)")
+                 cmdArgs.append(id)
+                 cmdArgs.append(str(type))
+
+                 cmdArgs.append(cur['exists']=='true')
+                 cmdArgs.append(cur['code'])
+                 yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
+
 
 
 
@@ -279,12 +312,12 @@ class web_search():
             cmdArgs = []
             NDC = []
             cmd.append("INSERT INTO rules.trigcodes (ruleid, code) ")
-            cmd.append("(select distinct %s ndc from terminology.drugclassancestry a "
-                       "inner join terminology.drugclass b on a.classaui=b.rxaui "
-                       "inner join terminology.conceptancestry c on b.snomedid=c.child "
-                       "where c.ancestor=%s)")
-            cmdArgs.append(str(rule['id']))
+            cmd.append("(SELECT DISTINCT %s, ndc FROM ((SELECT * FROM terminology.rxnrel routerel INNER JOIN terminology.doseformgroups route ON routerel.rxcui2 = route.rxcui WHERE routerel.rela='dose_form_of' ) AS drugmaps INNER JOIN"
+	                    "(SELECT DISTINCT  rxcui, ndc FROM (SELECT b.child FROM terminology.descriptions a INNER JOIN terminology.conceptancestry b ON a.conceptid = b.ancestor WHERE a.conceptid = %s) AS x INNER JOIN terminology.rxsnomeds AS c ON x.child = c.snomed) AS rxcui"
+	                    " ON drugmaps.rxcui1 = rxcui.rxcui) WHERE drugmaps.groupname like %s) ")
+            cmdArgs.append(rule['id'])
             cmdArgs.append(cur['code'])
+            cmdArgs.append(cur['route'])
 
             yield from self.db.execute_single(' '.join(cmd)+";", cmdArgs)
           return
@@ -314,8 +347,8 @@ class web_search():
                 cmd =[]
                 cmdArgs =[]
                 cmd.append("INSERT INTO rules.labeval")
-                cmd.append("(ruleid, loinc_codes, threshold, relation, framemin, framemax, defaultval)")
-                cmd.append("(SELECT %s, %s, %s, %s, %s, %s, %s)")
+                cmd.append("(ruleid, loinc_codes, threshold, relation, framemin, framemax, defaultval, onlyCheckLast)")
+                cmd.append("(SELECT %s, %s, %s, %s, %s, %s, %s, %s)")
                 cmdArgs.append(id)
                 print (lab['obs_type'])
                 cmdArgs.append(lab['obs_type'])
@@ -324,6 +357,7 @@ class web_search():
                 cmdArgs.append(lab['mindays'])
                 cmdArgs.append(lab['maxdays'])
                 cmdArgs.append(lab['defaultval'])
+                cmdArgs.append(lab['lastlab'])
                 yield from self.db.execute_single(' '.join(cmd) + ';', cmdArgs)
 
         return

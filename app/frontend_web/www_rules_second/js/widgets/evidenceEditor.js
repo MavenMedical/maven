@@ -17,8 +17,8 @@ define ([
 
             this.$el.html(this.template());
                this.$el.hide();
-              curRule.on('change:evidence', this.render, this);
-              curRule.on('change:id', this.handleRuleLoad, this);
+               curRule.on('change:evidence', this.render, this);
+               curRule.on('change:id', this.handleRuleLoad, this);
                curRule.on('cleared', function(){
                     this.$el.hide()
 
@@ -45,9 +45,7 @@ define ([
                for (var c=0;c<fields.length;c++){
                    fields[c].value = curRule.get('evidence').get(fields[c].name);
                }
-               console.log($('#source-manager'))
                this.sourceView = new SourceManager({el: $('#source-manager', this.$el)})
-               console.log(this.sourceView)
            },
            handleRuleLoad: function(){
 
