@@ -478,7 +478,6 @@ CREATE TABLE orderable (
   description character varying,
   status character varying(255),
   source character varying(255),
-  base_cost numeric(18,2),
   cpt_code character varying(20),
   cpt_version character varying(20),
   proc_rvu_work_comp numeric(18,2),
