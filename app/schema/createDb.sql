@@ -25,9 +25,17 @@ COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 -- DROP SCHEMA public;
 CREATE SCHEMA public
   AUTHORIZATION postgres;
-
 GRANT ALL ON SCHEMA public TO maven;
 GRANT ALL ON SCHEMA public TO public;
+
+
+-- Schema: categories
+-- DROP SCHEMA categories;
+CREATE SCHEMA categories
+  AUTHORIZATION maven;
+GRANT ALL ON SCHEMA categories to maven;
+
+
 
 
 -- Table: adt
@@ -118,8 +126,9 @@ CREATE TABLE alert_config (
   customer_id numeric(18,0),
   department numeric(18,0),
   category character varying(36),
-  method character varying(36)
-
+  rule_id integer,
+  validation_status integer,
+  provide_optouts character varying(36)[]
 )
   WITH (
       OIDS=FALSE
@@ -128,21 +137,30 @@ ALTER TABLE public.alert_config
     OWNER TO maven;
 
 
--- Table: alert_val
--- DROP TABLE alert_val;
-CREATE TABLE alert_val (
-  customer_id numeric(18,0),
-  department numeric(18,0),
-  category character varying(36),
-  method character varying(36)
-
+-- Table: categories.cost_type
+-- DROP TABLE categories.cost_type;
+CREATE TABLE categories.cost_type (
+  value integer,
+  name character varying(255)
 )
-  WITH (
-      OIDS=FALSE
-  );
-ALTER TABLE public.alert_val
-    OWNER TO maven;
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE categories.cost_type
+  OWNER TO maven;
 
+
+-- Table: categories.cost_type
+-- DROP TABLE categories.cost_type;
+CREATE TABLE categories.validation_status (
+  value integer,
+  name character varying(255)
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE categories.validation_status
+  OWNER TO maven;
 
 
 -- Table: composition
@@ -460,7 +478,6 @@ CREATE TABLE orderable (
   description character varying,
   status character varying(255),
   source character varying(255),
-  base_cost numeric(18,2),
   cpt_code character varying(20),
   cpt_version character varying(20),
   proc_rvu_work_comp numeric(18,2),

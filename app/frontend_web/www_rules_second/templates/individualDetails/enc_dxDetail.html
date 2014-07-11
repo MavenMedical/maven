@@ -1,6 +1,6 @@
 <div class="detail-entry">
     <a class="detail-item">
-    <% if (negative == "true") { %>
+    <% if (exists == "false") { %>
             Rule will <b>not be used</b> if <b><%=code%></b> is in the encounter diagnoses
     <%} else { %>
             Rule will <b>be used only</b> if  <b><%=code%></b> is in the the encounter diagnoses

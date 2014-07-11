@@ -331,7 +331,7 @@ def get_order_detail_cost(order_detail, composition, conn):
     cmd.append("ORDER BY (customer_id, department) DESC")
     cmd.append("LIMIT 1;")
 
-    if composition.encounter.location[0]:
+    if len(composition.encounter.location) > 0:
         department = composition.encounter.location[0].identifier[0].value
     else:
         department = ""
@@ -496,12 +496,12 @@ def get_observations_from_duplicate_orders(duplicate_orders, composition, conn):
 def get_matching_CDS_rules(composition, conn):
 
     #Pull a list of all the SNOMED CT codes from all of the conditions in the composition
+    #It's important the the list/array of problem list/encounter DXs is an empty list as opposed to being null
     encounter_snomedIDs = composition.get_encounter_dx_snomeds()
-
-    #TODO
     patient_age = composition.get_patient_age()
 
-
+    #TODO - Need to replace this placeholder list of meds with the real meds
+    patient_meds = []
 
     rtn_matched_rules = []
     for enc_ord in composition.get_encounter_orders():
@@ -513,13 +513,15 @@ def get_matching_CDS_rules(composition, conn):
                 encounter_snomedIDs,
                 encounter_snomedIDs,
                 composition.subject.get_pat_id(),
-                composition.customer_id]
+                composition.customer_id,
+                patient_meds]
 
-        cur = yield from conn.execute_single("select * from rules.evalrules(%s,%s,%s,%s,%s,%s,%s,%s)", extra=args)
+        cur = yield from conn.execute_single("select * from rules.evalrules(%s,%s,%s,%s,%s,%s,%s,%s,%s)", extra=args)
 
         for result in cur:
             rtn_matched_rules.append(FHIR_API.Rule(rule_details=result[2],
                                                    CDS_rule_id=result[0],
+                                                   CDS_rule_status=result[3],
                                                    code_trigger=trigger_code.code,
                                                    code_trigger_type=trigger_code.system,
                                                    name=result[1]))
