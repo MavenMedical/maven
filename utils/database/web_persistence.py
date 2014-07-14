@@ -402,7 +402,7 @@ class WebPersistence():
 
     @asyncio.coroutine
     def alerts(self, desired, provider, customer, patients=[], limit="",
-               startdate=None, enddate=None, orderid=None):
+               startdate=None, enddate=None, orderid=None, categories=[]):
         columns = build_columns(desired.keys(), self._available_alerts,
                                 self._default_alerts)
         
@@ -417,6 +417,9 @@ class WebPersistence():
         if patients:
             cmd.append("AND alert.pat_id IN %s")
             cmdargs.append(makelist(patients))
+        if categories:
+            cmd.append("AND alert.category IN %s")
+            cmdargs.append(makelist(categories))
         if orderid:
             cmd.append("AND alert.order_id = %s")
             cmdargs.append(orderid)

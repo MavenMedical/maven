@@ -42,6 +42,7 @@ CONTEXT_DIAGNOSIS = 'diagnosis'
 CONTEXT_PATIENTNAME = 'patientname'
 CONTEXT_STARTDATE = 'startdate'
 CONTEXT_ENDDATE = 'enddate'
+CONTEXT_CATEGORIES = 'categories'
 
 LOGIN_TIMEOUT = 60 * 60  # 1 hour
 AUTH_LENGTH = 44  # 44 base 64 encoded bits gives the entire 256 bites of SHA2 hash
@@ -366,7 +367,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
     alerts_required_contexts = [CONTEXT_PROVIDER, CONTEXT_CUSTOMERID]
     alerts_available_contexts = {CONTEXT_PROVIDER: str, CONTEXT_PATIENTLIST: list,
                                  CONTEXT_CUSTOMERID: int, CONTEXT_ENCOUNTER: str,
-                                 CONTEXT_STARTDATE: date, CONTEXT_ENDDATE: date, CONTEXT_ORDERID: str}
+                                 CONTEXT_STARTDATE: date, CONTEXT_ENDDATE: date,
+                                 CONTEXT_ORDERID: str, CONTEXT_CATEGORIES: list}
 
     @asyncio.coroutine
     def get_alerts(self, _header, _body, qs, matches, _key):
@@ -378,6 +380,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         patients = context.get(CONTEXT_PATIENTLIST, None)
         customer = context[CONTEXT_CUSTOMERID]
         orderid = context.get(CONTEXT_ORDERID, None)
+        categories = context.get(CONTEXT_CATEGORIES, None)
 
         startdate = self.helper.get_date(context,CONTEXT_STARTDATE)
         enddate = self.helper.get_date(context, CONTEXT_ENDDATE)
@@ -397,7 +400,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
         results = yield from self.persistence_interface.alerts(desired, provider, customer,
                                                                patients=patients,
                                                                startdate=startdate, enddate=enddate,
-                                                               limit=limit, orderid=orderid)
+                                                               limit=limit, orderid=orderid,
+                                                               categories=categories)
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
