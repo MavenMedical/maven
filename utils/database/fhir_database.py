@@ -294,66 +294,70 @@ def identify_encounter_orderable(item=None, order=None, composition=None, conn=N
                 item.name = name
 
             return item
-
     except:
         raise Exception("Error identifying orderables")
 
 def _get_base_order_elements_from_DB_cursor_result(result):
-    orderable_id = result[0]
-    system = result[1]
-    name = result[2]
-    description = result[3]
-    order_type = result[4]
+    try:
+        orderable_id = result[0]
+        system = result[1]
+        name = result[2]
+        description = result[3]
+        order_type = result[4]
 
-    return orderable_id, system, name, description, order_type
+        return orderable_id, system, name, description, order_type
+    except:
+        raise Exception("Error extracting base order elements from orderable table query")
 
 
 @asyncio.coroutine
 def get_order_detail_cost(order_detail, composition, conn):
+    try:
+        column_map = ["cost",
+                      "cost_type",
+                      "customer_id",
+                      "department",
+                      "code",
+                      "code_type",
+                      "orderable_id"]
+        columns = DBMapper.select_rows_from_map(column_map)
 
-    column_map = ["cost",
-                  "cost_type",
-                  "customer_id",
-                  "department",
-                  "code",
-                  "code_type",
-                  "orderable_id"]
-    columns = DBMapper.select_rows_from_map(column_map)
+        cmd = []
+        cmd.append("SELECT " + columns)
+        cmd.append("FROM costmap")
+        cmd.append("WHERE code=%s")
+        cmd.append("AND code_type=%s")
+        cmd.append("AND (customer_id=%s or customer_id=-1)")
+        cmd.append("AND (department=%s or department='-1')")
+        cmd.append("ORDER BY (customer_id, department, cost_type) DESC")
+        cmd.append("LIMIT 1;")
 
-    cmd = []
-    cmd.append("SELECT " + columns)
-    cmd.append("FROM costmap")
-    cmd.append("WHERE code=%s")
-    cmd.append("AND code_type=%s")
-    cmd.append("AND (customer_id=%s or customer_id=-1)")
-    cmd.append("AND (department=%s or department='-1')")
-    cmd.append("ORDER BY (customer_id, department, cost_type) DESC")
-    cmd.append("LIMIT 1;")
+        if len(composition.encounter.location) > 0:
+            department = composition.encounter.location[0].identifier[0].value
+        else:
+            department = ""
 
-    if len(composition.encounter.location) > 0:
-        department = composition.encounter.location[0].identifier[0].value
-    else:
-        department = ""
+        if isinstance(order_detail, FHIR_API.Procedure):
+            proc_coding = order_detail.type.get_coding_by_system(["HCPCS", "CPT"])
+            cmdargs = [proc_coding.code,
+                       proc_coding.system,
+                       composition.customer_id,
+                       department]
 
-    if isinstance(order_detail, FHIR_API.Procedure):
-        proc_coding = order_detail.type.get_coding_by_system(["HCPCS", "CPT"])
-        cmdargs = [proc_coding.code,
-                   proc_coding.system,
-                   composition.customer_id,
-                   department]
+        elif isinstance(order_detail, FHIR_API.Medication):
+            med_coding = order_detail.code.get_coding_by_system(["rxnorm"])
+            cmdargs = [med_coding.code,
+                       med_coding.system,
+                       composition.customer_id,
+                       department]
 
-    elif isinstance(order_detail, FHIR_API.Medication):
-        med_coding = order_detail.code.get_coding_by_system(["rxnorm"])
-        cmdargs = [med_coding.code,
-                   med_coding.system,
-                   composition.customer_id,
-                   department]
+        cur = yield from conn.execute_single(' '.join(cmd), cmdargs)
 
-    cur = yield from conn.execute_single(' '.join(cmd), cmdargs)
-
-    for result in cur:
-        order_detail.cost = FHIR_API.round_up_five(result[0])
-        order_detail.cost_type = result[1]
+        for result in cur:
+            order_detail.cost = FHIR_API.round_up_five(result[0])
+            order_detail.cost_type = result[1]
+    except:
+        raise Exception("Error querying the costmap table")
 
 @asyncio.coroutine
 def get_snomeds_and_append_to_encounter_dx(composition, conn):
@@ -493,39 +497,40 @@ def get_observations_from_duplicate_orders(duplicate_orders, composition, conn):
 
 @asyncio.coroutine
 def get_matching_CDS_rules(composition, conn):
+    try:
+        #Pull a list of all the SNOMED CT codes from all of the conditions in the composition
+        #It's important the the list/array of problem list/encounter DXs is an empty list as opposed to being null
+        encounter_snomedIDs = composition.get_encounter_dx_snomeds()
+        patient_age = composition.get_patient_age()
 
-    #Pull a list of all the SNOMED CT codes from all of the conditions in the composition
-    #It's important the the list/array of problem list/encounter DXs is an empty list as opposed to being null
-    encounter_snomedIDs = composition.get_encounter_dx_snomeds()
-    patient_age = composition.get_patient_age()
+        #TODO - Need to replace this placeholder list of meds with the real meds
+        patient_meds = []
 
-    #TODO - Need to replace this placeholder list of meds with the real meds
-    patient_meds = []
+        rtn_matched_rules = []
+        for enc_ord in composition.get_encounter_orders():
+            trigger_code = enc_ord.get_procedure_id_coding()
+            args = [trigger_code.code,
+                    trigger_code.system,
+                    patient_age,
+                    composition.subject.gender,
+                    encounter_snomedIDs,
+                    encounter_snomedIDs,
+                    composition.subject.get_pat_id(),
+                    composition.customer_id,
+                    patient_meds]
 
-    rtn_matched_rules = []
-    for enc_ord in composition.get_encounter_orders():
-        trigger_code = enc_ord.get_procedure_id_coding()
-        args = [trigger_code.code,
-                trigger_code.system,
-                patient_age,
-                composition.subject.gender,
-                encounter_snomedIDs,
-                encounter_snomedIDs,
-                composition.subject.get_pat_id(),
-                composition.customer_id,
-                patient_meds]
+            cur = yield from conn.execute_single("select * from rules.evalrules(%s,%s,%s,%s,%s,%s,%s,%s,%s)", extra=args)
 
-        cur = yield from conn.execute_single("select * from rules.evalrules(%s,%s,%s,%s,%s,%s,%s,%s,%s)", extra=args)
-
-        for result in cur:
-            rtn_matched_rules.append(FHIR_API.Rule(rule_details=result[2],
-                                                   CDS_rule_id=result[0],
-                                                   CDS_rule_status=result[3],
-                                                   code_trigger=trigger_code.code,
-                                                   code_trigger_type=trigger_code.system,
-                                                   name=result[1]))
-    return rtn_matched_rules
-
+            for result in cur:
+                rtn_matched_rules.append(FHIR_API.Rule(rule_details=result[2],
+                                                       CDS_rule_id=result[0],
+                                                       CDS_rule_status=result[3],
+                                                       code_trigger=trigger_code.code,
+                                                       code_trigger_type=trigger_code.system,
+                                                       name=result[1]))
+        return rtn_matched_rules
+    except:
+        raise Exception("Error extracting CDS rules from database")
 
 @asyncio.coroutine
 def get_alternative_meds(order, composition, conn):
