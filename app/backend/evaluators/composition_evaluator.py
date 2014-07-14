@@ -287,6 +287,8 @@ class CompositionEvaluator(SP.StreamProcessor):
         else:
             return False
 
+
+
     @asyncio.coroutine
     def _evaluate_additional_dx_rule_details(self, composition, dx_rule_details):
         return True

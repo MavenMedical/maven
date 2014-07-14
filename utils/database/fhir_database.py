@@ -327,8 +327,7 @@ def get_order_detail_cost(order_detail, composition, conn):
     cmd.append("AND code_type=%s")
     cmd.append("AND (customer_id=%s or customer_id=-1)")
     cmd.append("AND (department=%s or department='-1')")
-    cmd.append("AND (cost_type LIKE 'Charged%%' OR cost_type = 'Procedure Cost')")
-    cmd.append("ORDER BY (customer_id, department) DESC")
+    cmd.append("ORDER BY (customer_id, department, cost_type) DESC")
     cmd.append("LIMIT 1;")
 
     if len(composition.encounter.location) > 0:
