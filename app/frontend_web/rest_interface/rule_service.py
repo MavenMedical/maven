@@ -15,9 +15,12 @@ import utils.database.web_search as WS
 import utils.streaming.stream_processor as SP
 import asyncio
 
+
 import utils.streaming.http_responder as HTTP
 import utils.streaming.http_helper as HH
 import utils.crypto.authorization_key as AK
+
+from utils.database.memory_cache import MemoryCache
 
 import maven_logging as ML
 import maven_config as MC
@@ -39,6 +42,7 @@ static_id = 4
 rules = {
 
 }
+
 triggers = [{'type': 'snomed', 'code': '456', 'id': 1}
             ,{'type': 'CPT', 'code': '789', 'id': 0}
             ,{'type': 'CPT', 'code': '0123', 'id': 2}]
@@ -47,14 +51,16 @@ details = [{'type': 'pl_dx', 'id': '1'},
            {'type': "lab", 'id': '3'},
            {'type': "enc_dx", 'id': '4'},
            {'type': "enc_pl_dx", 'id': '5'},
-           {'type': "hist_proc", 'id': '6'}]
+           {'type': "hist_proc", 'id': '6'},
+           {'type': "ml_med", 'id': '7'}]
 class RuleService(HTTP.HTTPProcessor):
     
     def __init__(self, configname):
+        self.mc = MemoryCache()
+        self.routes = self.mc.add_cache(self.get_med_routes, None, 60*60*24, 0)
 
 
         HTTP.HTTPProcessor.__init__(self,configname)
-
         self.add_handler(['POST'], '/login', self.post_login)
         self.add_handler(['GET'], '/list', self.get_list)
         self.add_handler(['GET'], '/rule', self.get_rule)
@@ -66,9 +72,15 @@ class RuleService(HTTP.HTTPProcessor):
         self.add_handler(['GET'], '/details', self.get_details)
         self.add_handler(['GET'], '/search', self.search)
         self.add_handler(['GET'], '/triggers', self.search)
+        self.add_handler(['GET'], '/routes', self.get_routes)
         self.helper = HH.HTTPHelper([CONTEXT_USER], CONTEXT_AUTH, AUTH_LENGTH)
         self.search_interface = WS.web_search('search')
-                
+    @asyncio.coroutine
+    def get_med_routes(self):
+         route_list = yield from self.search_interface.get_routes();
+         return {'routes': route_list}
+
+
     @asyncio.coroutine
     def post_login(self, _header, body, _qs, _matches, _key):
         info = json.loads(body.decode('utf-8'))
@@ -190,6 +202,17 @@ class RuleService(HTTP.HTTPProcessor):
 
         return (HTTP.OK_RESPONSE, json.dumps(details), None)
 
+    routes_required_context = [CONTEXT_USER]
+    routes_available_context = {CONTEXT_USER:str, CONTEXT_RULEID:int, SEARCH_PARAM:str}
+
+    @asyncio.coroutine
+    def get_routes(self, _header, body, qs, _matches, _key):
+        context = self.helper.restrict_context(qs,
+                                               RuleService.routes_required_context,
+                                               RuleService.routes_available_context)
+
+        result = yield from self.mc.lookup(self.routes, 'routes')
+        return (HTTP.OK_RESPONSE, json.dumps(result), None)
 
     rule_required_context = [CONTEXT_USER, CONTEXT_RULEID]
     rule_available_context = {CONTEXT_USER:str, CONTEXT_RULEID:int}

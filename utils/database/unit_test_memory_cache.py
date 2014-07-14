@@ -26,7 +26,7 @@ def update():
 mc = MemoryCache()
 ind1=mc.add_cache(update, default, .09, 0)
 loop = asyncio.get_event_loop()
-mc.schedule(loop)
+
 
 @asyncio.coroutine
 def queries(prefix, ind, sleep_time, initial_sleep):

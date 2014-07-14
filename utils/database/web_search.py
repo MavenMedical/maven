@@ -18,7 +18,7 @@ class web_search():
     def get_routes(self):
         cmd = []
         cmd_args = []
-        cmd.append("SELECT DISTINCT routename FROM terminology.drugclassancestry")
+        cmd.append("SELECT DISTINCT routename FROM terminology.drugclassancestry ORDER BY routename ASC")
         results = yield from self.db.execute_single((' '.join(cmd)), cmd_args)
         arr = []
         for row in results:
@@ -200,9 +200,9 @@ class web_search():
         yield from self.writeExplicitNDC('ml_med', ruleJSON)
         yield from self.writeExplicitCPT('hist_proc', ruleJSON)
         yield from self.writeExplicitCPT('enc_proc', ruleJSON)
-        if (ruleJSON['triggerType'] == 'drug'):
+        if (ruleJSON['triggerType'] == 'NDC'):
             yield from self.writeDrugTriggers(ruleJSON)
-        elif (ruleJSON['triggerType'] == 'proc'):
+        elif (ruleJSON['triggerType'] == 'HCPCS'):
             yield from self.writeCPTTriggers(ruleJSON)
         yield from self.writeLabs(ruleJSON)
         return
@@ -312,12 +312,12 @@ class web_search():
             cmdArgs = []
             NDC = []
             cmd.append("INSERT INTO rules.trigcodes (ruleid, code) ")
-            cmd.append("(select distinct %s ndc from terminology.drugclassancestry a "
-                       "inner join terminology.drugclass b on a.classaui=b.rxaui "
-                       "inner join terminology.conceptancestry c on b.snomedid=c.child "
-                       "where c.ancestor=%s)")
-            cmdArgs.append(str(rule['id']))
+            cmd.append("(SELECT DISTINCT %s, ndc FROM ((SELECT * FROM terminology.rxnrel routerel INNER JOIN terminology.doseformgroups route ON routerel.rxcui2 = route.rxcui WHERE routerel.rela='dose_form_of' ) AS drugmaps INNER JOIN"
+	                    "(SELECT DISTINCT  rxcui, ndc FROM (SELECT b.child FROM terminology.descriptions a INNER JOIN terminology.conceptancestry b ON a.conceptid = b.ancestor WHERE a.conceptid = %s) AS x INNER JOIN terminology.rxsnomeds AS c ON x.child = c.snomed) AS rxcui"
+	                    " ON drugmaps.rxcui1 = rxcui.rxcui) WHERE drugmaps.groupname like %s) ")
+            cmdArgs.append(rule['id'])
             cmdArgs.append(cur['code'])
+            cmdArgs.append(cur['route'])
 
             yield from self.db.execute_single(' '.join(cmd)+";", cmdArgs)
           return

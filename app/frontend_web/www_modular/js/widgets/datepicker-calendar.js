@@ -16,36 +16,59 @@ define([
             this.template = _.template(arg.template); // this must already be loaded
             this.$el.html(this.template({page: contextModel.get('page')}));
             contextModel.on('change:patients change:encounter change:enc_date', this.update, this);
-	    this.update();
-	    $("#datepicker-modal").on('shown.bs.modal', function() {$("#calendar").fullCalendar('render')});
+            this.update();
+            $("#datepicker-modal").on('shown.bs.modal', function () {
+                $("#calendar").fullCalendar('render')
+            });
         },
         update: function () {
             var eventlist = [];
 
             for (var key in histogramModel.attributes) {
                 var enc = histogramModel.attributes[key];
-                eventlist.push({id: null,
+                eventlist.push({
+                    id: enc['encounterid'],
                     title: enc['diagnosis'] + " $" + enc['spending'],
                     start: enc['admission'],
-                    end: "2014-03-29", //enc['discharge'],
+                    end: enc['discharge'],
                     className: 'admission'});
-                console.log(enc['admission']);
             }
 
+
             $('#calendar').fullCalendar({
-                theme: true,
                 header: {
-                    left: 'prev',
+                    left: 'prev,next today',
                     center: 'title',
-                    right: 'next'
+                    right: 'month,agendaWeek,agendaDay'
                 },
-                selectable: true,
-                // selectHelper: true,
-		
                 defaultDate: contextModel.get('enc_date'),
-                //editable: false,
+
+                eventClick: function (event) {
+                    eventData = {
+                        id: event.id,
+                        title: event.title,
+                        start: event.start,
+                        end: event.end
+                    }
+
+                    var URL;
+
+                    if (contextModel.get('patients')) {  // patient id must be available
+                        URL = "episode/" + eventData['id'] + "/";
+                        URL += "patient/" + contextModel.get('patients') + "/";
+                        URL += eventData['start'].format();
+
+                        // navigate to the chosen encounter
+                        Backbone.history.navigate(URL, true);
+
+                        // hide the modal
+                        $('#datepicker-modal').modal('hide');
+
+                    }
+
+
+                },
                 events: eventlist
-		
             });
         }
     });

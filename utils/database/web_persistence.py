@@ -300,7 +300,10 @@ class WebPersistence():
         Results.spending: "sum(order_cost)",
         Results.savings: "NULL",
     }
-    _display_total_spend = _build_format({Results.savings: lambda x: -1})
+    _display_total_spend = _build_format({
+        Results.savings: lambda x: -1,
+        Results.spending: lambda x: (x and int(x)) or 0,
+    })
         
     @asyncio.coroutine
     def total_spend(self, desired, customer, provider=None, patients=[], encounter=None,
@@ -399,7 +402,7 @@ class WebPersistence():
 
     @asyncio.coroutine
     def alerts(self, desired, provider, customer, patients=[], limit="",
-               startdate=None, enddate=None):
+               startdate=None, enddate=None, orderid=None):
         columns = build_columns(desired.keys(), self._available_alerts,
                                 self._default_alerts)
         
@@ -414,6 +417,9 @@ class WebPersistence():
         if patients:
             cmd.append("AND alert.pat_id IN %s")
             cmdargs.append(makelist(patients))
+        if orderid:
+            cmd.append("AND alert.order_id = %s")
+            cmdargs.append(orderid)
         cmd.append("ORDER BY alert.alert_datetime DESC")
         if startdate:
             cmd.append("AND alert.alert_datetime >= %s")

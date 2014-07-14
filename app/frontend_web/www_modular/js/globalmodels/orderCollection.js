@@ -12,7 +12,7 @@ define([
     orderCollection.model = OrderModel;
     orderCollection.limit = 3;
     orderCollection.context = function(){
-        contextModel.on('change:patients',
+        contextModel.on('change:patients change:encounter',
 		    // this will be needed once the context filters things
 		    function(cm) {
 			if(true && cm.get('userAuth')) {

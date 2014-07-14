@@ -1,1 +1,4 @@
-<option value="<%=id%>"><%=term%> (<%=type%>: <%=code%>)</option>
+<option value="<%=id%>"><%=term%> (<%=type%>: <%=code%>)
+
+
+    <%if (route!=""){%> route: <%if (route =='%'){%>ANY<%}else{%><%=route%><%}}%> </option>

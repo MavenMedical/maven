@@ -24,20 +24,16 @@ define([
 
         },
         update: function (summary) {
-            if (summaryModel.get('spending')) {
-                var title = 'your patients';
-                if (contextModel.get('encounter')) {
-                    title = 'current encounter';
-                } else if (patientModel.get('name')) {
-                    title = patientModel.get('name');
-                }
-                 $('#datepicker-input').val(contextModel.get('enc_date'));
-
-                this.$el.html(this.template($.extend({}, summaryModel.attributes, {'title': title})));
-                this.$el.show();
-            } else {
-                this.$el.hide();
+            var title = 'your patients';
+	    var date = contextModel.get('enc_date');
+            if (contextModel.get('encounter')) {
+                title = 'encounter including ' + date;;
+            } else if (patientModel.get('name')) {
+                title = patientModel.get('name');
             }
+            $('#datepicker-input').val(date);
+	    
+            this.$el.html(this.template($.extend({}, summaryModel.attributes, {'title': title})));
         }
     });
     return Summary;

@@ -28,9 +28,9 @@ define([
                 $.extend( t, {'search_param': $('#Detail-Search-Box').val()})
                 if (panel.type.split("_")[1] == 'dx'){
                      $.extend( t, {'type': "snomed_diagnosis"});
-                } else if (panel.type.split("_")[1] == 'drug' || panel.type.split("_")[1] == 'med'){
+                } else if (panel.type.split("_")[1] == 'NDC' || panel.type.split("_")[1] == 'med'){
                    $.extend( t, {'type': "snomed_drug"});
-                } else if (panel.type.split("_")[1] == 'proc'){
+                } else if (panel.type.split("_")[1] == 'HCPCS'){
                    $.extend( t, {'type': "CPT"});
                 }
                 panel.collection.fetch({data:$.param(t)})
@@ -53,9 +53,9 @@ define([
                 $.extend( t, {'search_param': $('#Detail-Search-Box').val()})
                 if (panel.type.split("_")[1] == 'dx'){
                      $.extend( t, {'type': "snomed_diagnosis"});
-                } else if (panel.type.split("_")[1] == 'drug' || panel.type.split("_")[1] == 'med'){
+                } else if (panel.type.split("_")[1] == 'NDC' || panel.type.split("_")[1] == 'med'){
                    $.extend( t, {'type': "snomed_drug"});
-                } else if (panel.type.split("_")[1] == 'proc'){
+                } else if (panel.type.split("_")[1] == 'HCPCS'){
                    $.extend( t, {'type': "CPT"});
                 }
                 panel.collection.fetch({data:$.param(t)})

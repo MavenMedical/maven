@@ -53,10 +53,21 @@ define([
     if(contextModel.get('userAuth')) {
 	spendingModel.fetch({data:$.param(contextModel.toParams())});
     }
-    contextModel.on('change:patients change:userAuth', 
+    contextModel.on('change:patients change:userAuth change:encounter', 
 		    function(x) {
 			if(x.get('userAuth')) {
-			    spendingModel.fetch({data:$.param(x.toParams())});
+			    spendingModel.fetch({
+				data:$.param(x.toParams()),
+				success: function(m,r) {
+				    var old={
+					'typeFilter':spendingModel.get('typeFilter'),
+					'dateFilter':spendingModel.get('dateFilter')
+				    };
+				    spendingModel.clear({silent:true});
+				    spendingModel.set($.extend(old,r));
+				    console.log(spendingModel.attributes);
+				},
+			    });
 			}
 		    });
 

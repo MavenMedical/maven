@@ -72,7 +72,7 @@ define([
 	    loginTemplate: 'login.html',
         },
 	toParams: function() {
-	    var ret = _.pick(this.attributes,['user','provider','date','daterange',
+	    var ret = _.pick(this.attributes,['user','provider','date','daterange','encounter',
 		 			      'patients','department','userAuth', 'customer_id']);
 	    for(var x in ret) {
 		if(!ret[x]) {delete ret[x];}
