@@ -491,7 +491,7 @@ class WebPersistence():
         Results.spending: "sum(order_ord.order_cost)",
     }
     _display_per_encounter = _build_format({
-        Results.enddate: lambda x: x and _prettify_date(x),
+        Results.enddate: lambda x: x and _prettify_datetime(x),
         })
         
     @asyncio.coroutine
