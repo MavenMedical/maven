@@ -80,9 +80,10 @@ define([
 
                     }
                     console.log(curRule)
-                    curRule.save()
                 }
                $('#detail-modal').modal('hide');
+               curRule.needsSave = true;
+            curRule.trigger("needsSave")
             }
             $('.cancel-edit-button', this.$el)[0].onclick = function(){
                 $('#detail-modal').modal('hide');

@@ -17,10 +17,19 @@ define([
 
         initialize: function(){
             this.$el.html(this.template())
+
             this.collection = curRule.get('sources');
-                        this.collection.on('add', function(){curRule.save()}, this)
-                        this.collection.on('remove', function(){curRule.save()}, this)
-                        curRule.on('sync', this.render, this)
+                        this.collection.on('add', function(){
+                            curRule.needsSave = true;
+                            curRule.trigger("needsSave")
+                            this.render()
+                        }, this)
+                        this.collection.on('remove', function(){
+                            curRule.needsSave = true;
+                            curRule.trigger("needsSave")
+                            this.render()
+                        }, this)
+
             var panel = this;
             $('#add-source-button')[0].onclick = function(){
                 panel.collection.add({Name: $('#source-name-field').val(), Abbreviation: $('#source-abbrev-field').val(),Hyperlink: $('#source-hyperlink-field').val()});

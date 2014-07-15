@@ -29,8 +29,9 @@ define ([
                       curRule.get('evidence').set(fields[c].name, fields[c].value)
 
                   }
-                  curRule.save();
               });
+               curRule.needsSave = true;
+              curRule.trigger("needsSave")
            },
            render: function(){
                this.$el.show()

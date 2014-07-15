@@ -313,11 +313,13 @@ class web_search():
             NDC = []
             cmd.append("INSERT INTO rules.trigcodes (ruleid, code) ")
             cmd.append("(SELECT DISTINCT %s, ndc FROM ((SELECT * FROM terminology.rxnrel routerel INNER JOIN terminology.doseformgroups route ON routerel.rxcui2 = route.rxcui WHERE routerel.rela='dose_form_of' ) AS drugmaps INNER JOIN"
-	                    "(SELECT DISTINCT  rxcui, ndc FROM (SELECT b.child FROM terminology.descriptions a INNER JOIN terminology.conceptancestry b ON a.conceptid = b.ancestor WHERE a.conceptid = %s) AS x INNER JOIN terminology.rxsnomeds AS c ON x.child = c.snomed) AS rxcui"
-	                    " ON drugmaps.rxcui1 = rxcui.rxcui) WHERE drugmaps.groupname like %s) ")
+                        "(SELECT DISTINCT  rxcui, ndc FROM (SELECT b.child FROM terminology.descriptions a INNER JOIN terminology.conceptancestry b ON a.conceptid = b.ancestor WHERE a.conceptid = %s) AS x INNER JOIN terminology.rxsnomeds AS c ON x.child = c.snomed) AS rxcui"
+                        " ON drugmaps.rxcui1 = rxcui.rxcui) AS t LEFT OUTER JOIN rules.trigcodes as r ON t.ndc = r.code where (r.ruleid ISNULL OR NOT r.ruleid = %s) AND groupname like %s ) ")
             cmdArgs.append(rule['id'])
             cmdArgs.append(cur['code'])
+            cmdArgs.append(rule['id'])
             cmdArgs.append(cur['route'])
+
 
             yield from self.db.execute_single(' '.join(cmd)+";", cmdArgs)
           return
