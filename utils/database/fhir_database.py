@@ -501,6 +501,7 @@ def get_matching_CDS_rules(composition, conn):
         #Pull a list of all the SNOMED CT codes from all of the conditions in the composition
         #It's important the the list/array of problem list/encounter DXs is an empty list as opposed to being null
         encounter_snomedIDs = composition.get_encounter_dx_snomeds()
+        problem_list_snomedIDs = composition.get_problem_list_dx_snomeds()
         patient_age = composition.get_patient_age()
 
         #TODO - Need to replace this placeholder list of meds with the real meds
@@ -514,7 +515,7 @@ def get_matching_CDS_rules(composition, conn):
                     patient_age,
                     composition.subject.gender,
                     encounter_snomedIDs,
-                    encounter_snomedIDs,
+                    problem_list_snomedIDs,
                     composition.subject.get_pat_id(),
                     composition.customer_id,
                     patient_meds]

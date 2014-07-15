@@ -750,7 +750,11 @@ class Composition(Resource):
         return enc_conditions_section.content
 
     def get_encounter_dx_snomeds(self):
-        rtn_snomed_list = [coding.code for condition in self.get_encounter_conditions() for coding in condition.code.coding if coding.system == "SNOMED CT"]
+        rtn_snomed_list = [coding.code for condition in self.get_encounter_conditions() for coding in condition.code.coding if coding.system == "SNOMED CT" and condition.category == "Encounter"]
+        return rtn_snomed_list
+
+    def get_problem_list_dx_snomeds(self):
+        rtn_snomed_list = [coding.code for condition in self.get_encounter_conditions() for coding in condition.code.coding if coding.system == "SNOMED CT" and condition.category == "Problem List"]
         return rtn_snomed_list
 
     def get_encounter_meds(self):
