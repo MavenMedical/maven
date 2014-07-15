@@ -22,10 +22,20 @@ import asyncio
 from collections import defaultdict
 from dateutil.relativedelta import relativedelta
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
+import utils.enums as ENUMS
 from utils.database.database import MappingUtilites
 
 DBMapper = MappingUtilites()
 
+##########################################################################################
+##########################################################################################
+##########################################################################################
+#####
+##### WRITE FHIR OBJECTS TO DATABASE
+#####
+##########################################################################################
+##########################################################################################
+##########################################################################################
 @asyncio.coroutine
 def write_composition_to_db(composition, conn):
     yield from write_composition_patient(composition, conn)
@@ -208,6 +218,74 @@ def write_composition_alerts(composition, conn):
             except:
                 raise Exception("Error inserting Alerts into the database")
 
+
+##########################################################################################
+##########################################################################################
+##########################################################################################
+#####
+##### CONSTRUCT FHIR OBJECTS FROM DATABASE
+#####
+##########################################################################################
+##########################################################################################
+##########################################################################################
+@asyncio.coroutine
+def construct_encounter_orders_from_db(composition, conn):
+    rtn_encounter_orders = []
+
+    try:
+        column_map = ["customer_id",          #0
+                      "order_id",             #1
+                      "pat_id",               #2
+                      "encounter_id",         #3
+                      "order_provider_id",    #4
+                      "auth_provider_id",     #5
+                      "orderable_id",         #6
+                      "status",               #7
+                      "source",               #8
+                      "code_id",              #9
+                      "code_system",          #10
+                      "order_name",           #11
+                      "order_type",           #12
+                      "order_cost",           #13
+                      "order_cost_type",      #14
+                      "order_datetime"]       #15
+        columns = DBMapper.select_rows_from_map(column_map)
+
+        cmd = []
+        cmd.append("SELECT " + columns)
+        cmd.append("FROM order_ord")
+        cmd.append("WHERE encounter_id=%s")
+        cmd.append("AND customer_id=%s")
+
+        cmdargs = [composition.encounter.get_csn(), composition.customer_id]
+
+        cur = yield from conn.execute_single(' '.join(cmd), cmdargs)
+
+        for result in cur:
+            order_type = result[12]
+
+            if order_type.lower() in ENUMS.PROCEDURE_ORDER_TYPES.__members__:
+                FHIR_procedure = FHIR_API.Procedure(text=result[11],
+                                                    identifier=FHIR_API.Identifier(system="clientEMR",
+                                                                                   value=result[1]),
+                                                    name=result[11],
+                                                    type=FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(system=result[10],
+                                                                                                          code=result[9])],
+                                                                                    text="Procedure"))
+
+
+    except:
+        raise Exception("Error constructing encounter order list from database")
+
+##########################################################################################
+##########################################################################################
+##########################################################################################
+#####
+##### COMPOSITION EVALUATOR(S) HELPER FUNCTIONS
+#####
+##########################################################################################
+##########################################################################################
+##########################################################################################
 @asyncio.coroutine
 def identify_encounter_orderable(item=None, order=None, composition=None, conn=None):
     try:

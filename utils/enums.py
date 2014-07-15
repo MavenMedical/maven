@@ -40,6 +40,17 @@ class ORDER_TYPES(Enum):
     Procedure = "General Medical Procedure"
 
 
+class PROCEDURE_ORDER_TYPES(Enum):
+    proc = "General Medical Procedure"
+    procs = "General Medical Procedure"
+    procedure = "General Medical Procedure"
+    procedures = "General Medical Procedure"
+    lab = "Laboratory Procedure"
+    labs = "Laboratory Procedures"
+    imaging = "Radiological Procedure"
+
+
+
 class ORDER_STATUS(Enum):
     ER = "Error, order not found"
     SC = "In process, scheduled"
