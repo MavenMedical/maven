@@ -50,6 +50,12 @@ class PROCEDURE_ORDER_TYPES(Enum):
     imaging = "Radiological Procedure"
 
 
+class MEDICATION_ORDER_TYPES(Enum):
+    med = "Medication"
+    meds = "Medication"
+    medication = "Medication"
+    medications = "Medication"
+
 
 class ORDER_STATUS(Enum):
     ER = "Error, order not found"

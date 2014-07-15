@@ -237,7 +237,7 @@ def construct_encounter_orders_from_db(composition, conn):
                       "order_id",             #1
                       "pat_id",               #2
                       "encounter_id",         #3
-                      "order_provider_id",    #4
+                      "ordering_provider_id",    #4
                       "auth_provider_id",     #5
                       "orderable_id",         #6
                       "status",               #7
@@ -272,7 +272,19 @@ def construct_encounter_orders_from_db(composition, conn):
                                                     type=FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(system=result[10],
                                                                                                           code=result[9])],
                                                                                     text="Procedure"))
+                rtn_encounter_orders.append(FHIR_procedure)
 
+            elif order_type.lower() in ENUMS.MEDICATION_ORDER_TYPES.__members__:
+                FHIR_medication = FHIR_API.Medication(text=result[11],
+                                                      identifier=FHIR_API.Identifier(system="clientEMR",
+                                                                                     value=result[1]),
+                                                      name=result[1],
+                                                      code=FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(system=result[10],
+                                                                                                            code=result[9])],
+                                                                                    text="Medication"))
+                rtn_encounter_orders.append(FHIR_medication)
+
+        return rtn_encounter_orders
 
     except:
         raise Exception("Error constructing encounter order list from database")
