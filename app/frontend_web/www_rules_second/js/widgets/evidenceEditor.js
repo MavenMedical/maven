@@ -29,6 +29,8 @@ define ([
                       curRule.get('evidence').set(fields[c].name, fields[c].value)
 
                   }
+                  curRule.needsSave = true;
+                 curRule.trigger("needsSave")
               });
                curRule.needsSave = true;
               curRule.trigger("needsSave")
