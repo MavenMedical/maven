@@ -226,7 +226,7 @@ CREATE TABLE costmap (
   code character varying(36),
   code_type character varying(36),
   department character varying(255),
-  cost_type character varying(255),
+  cost_type integer,
   orderable_id character varying(36),
   cost numeric(18,2)
 );
@@ -248,7 +248,7 @@ CREATE TABLE costmap_historic (
   code character varying(36),
   code_type character varying(36),
   department character varying(255),
-  cost_type character varying(255),
+  cost_type integer,
   orderable_id character varying(36),
   cost numeric(18,2),
   source_info character varying,

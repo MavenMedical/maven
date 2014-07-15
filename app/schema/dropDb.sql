@@ -1,2 +1,3 @@
-Drop database maven;
-drop user maven;
+DROP SCHEMA public CASCADE;
+DROP SCHEMA rules CASCADE;
+DROP SCHEMA categories CASCADE;
