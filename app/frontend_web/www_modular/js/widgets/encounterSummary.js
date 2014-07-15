@@ -25,15 +25,17 @@ define([
         },
         update: function (summary) {
             var title = 'your patients';
-	    var date = contextModel.get('enc_date');
+	        var date = new Date().toLocaleDateString();
             if (contextModel.get('encounter')) {
-                title = 'encounter including ' + date;;
+                title = 'encounter';//including ' + date;
+                date = contextModel.get('enc_date');
             } else if (patientModel.get('name')) {
                 title = patientModel.get('name');
+
             }
             $('#datepicker-input').val(date);
 	    
-            this.$el.html(this.template($.extend({}, summaryModel.attributes, {'title': title})));
+            this.$el.html(this.template($.extend({}, summaryModel.attributes, {'title': title, 'encounterdate': date, 'page': contextModel.get('page')})));
         }
     });
     return Summary;

@@ -484,6 +484,7 @@ class WebPersistence():
         
     _default_per_encounter = set((Results.encounterid,))
     _available_per_encounter = {
+        Results.patientid: "encounter.pat_id",
         Results.encounterid: "encounter.csn",
         Results.startdate: 'min(hosp_admsn_time)',
         Results.enddate: 'max(hosp_disch_time)',
@@ -491,7 +492,7 @@ class WebPersistence():
         Results.spending: "sum(order_ord.order_cost)",
     }
     _display_per_encounter = _build_format({
-        Results.enddate: lambda x: x and _prettify_date(x),
+        Results.enddate: lambda x: x and _prettify_datetime(x),
         })
         
     @asyncio.coroutine
@@ -522,7 +523,8 @@ class WebPersistence():
         if enddate:
             cmd.append("AND encounter.hosp_disch_time <= %s")
             cmdargs.append(enddate)
-        cmd.append("GROUP BY encounter.csn")
+        cmd.append("GROUP BY encounter.csn, encounter.pat_id")
+        #TODO : encounter.pat_id is added to the Group by, need test to make sure we are not losing data
 
         results = yield from self.execute(cmd, cmdargs, self._display_per_encounter, desired)
         return results

@@ -475,6 +475,16 @@ body {
     font-size: 20px;
 }
 
+.calendar-modal, #chart-modal{
+    height: 340px;
+    width: 530px;
+}
+
+
+#calendar{
+    margin: 20px;
+}
+
 /***************************************************************
  * The following adjust the contents on smaller devices *
  ***************************************************************/

@@ -17,7 +17,6 @@ define([
             histogramModel.on('change', this.update, this);
             contextModel.on('change page', this.update, this);
 
-            console.log(histogramModel.attributes);
             this.$el.html(this.template(this));
             this.update();
         },
@@ -30,9 +29,9 @@ define([
             }
 
             var chart = AmCharts.makeChart("datepicker-chart", {
-
                 "type": "serial",
                 "theme": "light",
+                "dataDateFormat": "YYYY-MM-DD",
                 "pathToImages": "http://cdn.amcharts.com/lib/3/images/",
                 "categoryField": "admission",
                 "startDuration": 1,
@@ -48,7 +47,8 @@ define([
                         "id": "AmGraph-1",
                         "title": "graph 1",
                         "type": "column",
-                        "valueField": "spending"
+                        "valueField": "spending",
+                        "balloonText": "[[diagnosis]] <br /><b>$[[value]]</b>",
                     }
                 ],
                 "guides": [],
@@ -61,32 +61,56 @@ define([
                 "allLabels": [],
                 "balloon": {
                 },
-
-                "dataProvider": data
+                "chartScrollbar": {
+                    //"autoGridCount": true,
+                    "graph": "AmGraph-1",
+                    "scrollbarHeight": 20
+                },
+                "dataProvider": data,
+                periodSelector: {
+                    position: "left",
+                    periods: [
+                        {
+                            period: "MM",
+                            selected: true,
+                            count: 1,
+                            label: "1 month"
+                        },
+                        {
+                            period: "YYYY",
+                            count: 1,
+                            label: "1 year"
+                        },
+                        {
+                            period: "YTD",
+                            label: "YTD"
+                        },
+                        {
+                            period: "MAX",
+                            label: "MAX"
+                        }
+                    ]
+                }
             });
 
-            chart.addListener("clickGraphItem", function(e){
-                var eventData = e.item.dataContext ;
-
-                console.log(eventData);
+            chart.addListener("clickGraphItem", function (e) {
+                var eventData = e.item.dataContext;
 
                 var URL;
+                URL = "episode/" + eventData['encounterid'] + "/";
+                URL += "patient/" + eventData['patientid'] + "/";
+                URL += eventData['admission'];
 
-                    if (contextModel.get('patients')) {  // patient id must be available
-                        URL = "episode/" + eventData['id'] + "/";
-                        URL += "patient/" + contextModel.get('patients') + "/";
-                        URL += eventData['admission'];
+                // navigate to the chosen encounter
+                Backbone.history.navigate(URL, true);
 
-                        // navigate to the chosen encounter
-                        Backbone.history.navigate(URL, true);
-
-                        // hide the modal
-                        $('#datepicker-modal').modal('hide');
-                    }
-
+                // hide the modal
+                $('#datepicker-modal').modal('hide');
             });
-	    $("#datepicker-modal").on('shown.bs.modal', function() {chart.invalidateSize();});
-	    
+            $("#datepicker-modal").on('shown.bs.modal', function () {
+                chart.invalidateSize();
+            });
+
         }
     });
     return DatepickerChart;

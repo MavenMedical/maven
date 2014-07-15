@@ -26,12 +26,14 @@ define([
 
             for (var key in histogramModel.attributes) {
                 var enc = histogramModel.attributes[key];
+                console.log(enc);
                 eventlist.push({
                     id: enc['encounterid'],
                     title: enc['diagnosis'] + " $" + enc['spending'],
                     start: enc['admission'],
                     end: enc['discharge'],
-                    className: 'admission'});
+                    className: 'admission',
+                    url: "#episode/"+ enc['encounterid'] + "/patient/"+ enc['patientid'] + "/"+ enc['admission'] });
             }
 
 
@@ -44,29 +46,13 @@ define([
                 defaultDate: contextModel.get('enc_date'),
 
                 eventClick: function (event) {
-                    eventData = {
-                        id: event.id,
-                        title: event.title,
-                        start: event.start,
-                        end: event.end
-                    }
-
-                    var URL;
-
-                    if (contextModel.get('patients')) {  // patient id must be available
-                        URL = "episode/" + eventData['id'] + "/";
-                        URL += "patient/" + contextModel.get('patients') + "/";
-                        URL += eventData['start'].format();
-
-                        // navigate to the chosen encounter
-                        Backbone.history.navigate(URL, true);
-
+                    if(event.url){
+                         // navigate to the chosen encounter
+                        Backbone.history.navigate(event.url, true);
                         // hide the modal
                         $('#datepicker-modal').modal('hide');
 
                     }
-
-
                 },
                 events: eventlist
             });
