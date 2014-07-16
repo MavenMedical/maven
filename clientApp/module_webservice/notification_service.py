@@ -71,7 +71,6 @@ class NotificationService(HR.HTTPProcessor):
             return False
                     
 if __name__ == '__main__':
-    ML.DEBUG = ML.stdout_log
     MC.MavenConfig = {
         'notificationserver':
         {

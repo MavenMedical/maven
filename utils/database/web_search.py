@@ -37,7 +37,7 @@ class web_search():
         if (not search_str):
             return EMPTY_RETURN
         if (search_type == "CPT"):
-            cmd.append("SELECT a.cpt_code, a.name FROM public.orderable as a WHERE a.customer_id = -1 AND ord_type = 'Proc' AND to_tsvector('maven', a.name) @@  plainto_tsquery('maven', %s) LIMIT 25")
+            cmd.append("SELECT DISTINCT a.cpt_code, a.name FROM public.orderable as a WHERE a.customer_id = -1 AND ord_type = 'Proc' AND to_tsvector('maven', a.name) @@  plainto_tsquery('maven', %s) LIMIT 100")
             cmd_args.append(search_str)
             results = yield from self.db.execute_single((' '.join(cmd)), cmd_args)
             ret = []
@@ -196,7 +196,7 @@ class web_search():
         yield from (self.writeExplicitSnomed('hist_dx', ruleJSON))
         yield from self.writeExplicitSnomed('pl_dx', ruleJSON)
         yield from self.writeExplicitSnomed('enc_dx', ruleJSON)
-        yield from self.writeExplicitSnomed('enc_dx', ruleJSON)
+        yield from self.writeExplicitSnomed('enc_pl_dx', ruleJSON)
         yield from self.writeExplicitNDC('ml_med', ruleJSON)
         yield from self.writeExplicitCPT('hist_proc', ruleJSON)
         yield from self.writeExplicitCPT('enc_proc', ruleJSON)
@@ -313,11 +313,13 @@ class web_search():
             NDC = []
             cmd.append("INSERT INTO rules.trigcodes (ruleid, code) ")
             cmd.append("(SELECT DISTINCT %s, ndc FROM ((SELECT * FROM terminology.rxnrel routerel INNER JOIN terminology.doseformgroups route ON routerel.rxcui2 = route.rxcui WHERE routerel.rela='dose_form_of' ) AS drugmaps INNER JOIN"
-	                    "(SELECT DISTINCT  rxcui, ndc FROM (SELECT b.child FROM terminology.descriptions a INNER JOIN terminology.conceptancestry b ON a.conceptid = b.ancestor WHERE a.conceptid = %s) AS x INNER JOIN terminology.rxsnomeds AS c ON x.child = c.snomed) AS rxcui"
-	                    " ON drugmaps.rxcui1 = rxcui.rxcui) WHERE drugmaps.groupname like %s) ")
+                        "(SELECT DISTINCT  rxcui, ndc FROM (SELECT b.child FROM terminology.descriptions a INNER JOIN terminology.conceptancestry b ON a.conceptid = b.ancestor WHERE a.conceptid = %s) AS x INNER JOIN terminology.rxsnomeds AS c ON x.child = c.snomed) AS rxcui"
+                        " ON drugmaps.rxcui1 = rxcui.rxcui) AS t LEFT OUTER JOIN rules.trigcodes as r ON t.ndc = r.code where (r.ruleid ISNULL OR NOT r.ruleid = %s) AND groupname like %s ) ")
             cmdArgs.append(rule['id'])
             cmdArgs.append(cur['code'])
+            cmdArgs.append(rule['id'])
             cmdArgs.append(cur['route'])
+
 
             yield from self.db.execute_single(' '.join(cmd)+";", cmdArgs)
           return

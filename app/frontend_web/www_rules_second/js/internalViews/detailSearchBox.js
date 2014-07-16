@@ -27,7 +27,7 @@ define([
                 var t = contextModel.toParams();
                 $.extend( t, {'search_param': $('#Detail-Search-Box').val()})
                 if (panel.type.split("_")[1] == 'dx'){
-                     $.extend( t, {'type': "snomed_diagnosis"});
+                     $.extend( t, {'type': "snomed_diagnosis"})
                 } else if (panel.type.split("_")[1] == 'NDC' || panel.type.split("_")[1] == 'med'){
                    $.extend( t, {'type': "snomed_drug"});
                 } else if (panel.type.split("_")[1] == 'HCPCS'){
@@ -39,7 +39,7 @@ define([
                 var t = contextModel.toParams();
                 console.log($('#search_sesults').val())
                 $.extend( t, {'search_param': $('#search_results').val()})
-                $.extend( t, {'type': "snomed_zoom_in"});
+                $.extend( t, {'type': "snomed_zoom_in"})
 
                 panel.collection.fetch({data:$.param(t)})
 
@@ -51,10 +51,11 @@ define([
                 if (key.keyCode == 13){
                       var t = contextModel.toParams();
                 $.extend( t, {'search_param': $('#Detail-Search-Box').val()})
-                if (panel.type.split("_")[1] == 'dx'){
-                     $.extend( t, {'type': "snomed_diagnosis"});
+                var ty = panel.type.split("_")
+                if (ty[ty.length-1] == 'dx'){
+                     $.extend( t, {'type': "snomed_diagnosis"})
                 } else if (panel.type.split("_")[1] == 'NDC' || panel.type.split("_")[1] == 'med'){
-                   $.extend( t, {'type': "snomed_drug"});
+                   $.extend( t, {'type': "snomed_drug"})
                 } else if (panel.type.split("_")[1] == 'HCPCS'){
                    $.extend( t, {'type': "CPT"});
                 }
@@ -68,6 +69,9 @@ define([
                var entryview = Backbone.View.extend({
                     template: _.template(triggerSelectorRow),
                     render: function(){
+                        if (!this.model.get('route')){
+                            this.model.set('route', "")
+                        }
                         this.$el.html(this.template(this.model.toJSON()));
                         return this;
                     }

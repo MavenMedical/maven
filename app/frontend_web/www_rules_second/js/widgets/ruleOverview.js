@@ -15,49 +15,56 @@ define([
         var name = prompt("Enter The New Name");
         if (name){
             curRule.rename(name);
-            curRule.save();
         }
+        curRule.needsSave = true;
+        curRule.trigger("needsSave")
     }
     var editMinAge = function(){
         var minAge = prompt("Enter The New Minimum Age");
         if (minAge){
             curRule.set('minAge', minAge);
-            curRule.save();
         }
+        curRule.needsSave = true;
+        curRule.trigger("needsSave")
     }
     var editMaxAge = function(){
         var maxAge = prompt("Enter The New Maximum Age");
         if (maxAge){
             curRule.set('maxAge', maxAge);
-            curRule.save();
         }
+        curRule.needsSave = true;
+        curRule.trigger("needsSave")
     }
     var editGenders = function(){
         var genders = prompt("Enter The New Genders (M, F, MF)");
         if (genders){
             curRule.set('genders', genders);
-            curRule.save();
+
         }
+        curRule.needsSave = true;
+        curRule.trigger("needsSave")
     }
     var editTriggerType = function(){
             var type = prompt("Enter the New Trigger Type (proc, drug) WARNING: Changing Type Will Clear All Triggers")
             if ((type == 'HCPCS' || type == 'NDC') && type!=curRule.get('type')){
                 curRule.set('triggerType', type);
-                curRule.save();
 
             }
+        curRule.needsSave = true;
+        curRule.trigger("needsSave")
         }
     var selectorType = function(){
         curRule.set('triggerType', $('#trigger-type-selector').val())
         curRule.trigger('typeChange')
-        curRule.save();
+        curRule.needsSave = true;
+        curRule.trigger("needsSave")
 
     }
 
     var selectorGenders = function(){
         curRule.set('genders', $('#gender-selector').val())
-                curRule.save()
-
+        curRule.needsSave = true;
+        curRule.trigger("needsSave")
     }
     var RuleOverview = Backbone.View.extend({
         template: _.template(ruleOverviewTemplate),

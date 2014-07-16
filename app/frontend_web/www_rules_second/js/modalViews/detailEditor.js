@@ -38,7 +38,6 @@ define([
                 var searchBox = new multiSelectSearch({avail: new anon(), type: cur.getAttribute("type"), el: multiSearchEl, selected: new Backbone.Collection})
             })
             var routeListEl = $('.route-list', this.$el)
-            console.log("where do we put the route list" , routeListEl)
             $.each(routeListEl, function(a, cur){
                 console.log('cur', cur)
                 var listBox = new routeListBox({el: cur})
@@ -54,7 +53,21 @@ define([
                 var inputs = $('.detail-input');
                 for (var i=0;i<inputs.length;i++){
                     var cur = inputs[i];
+                    console.log("cur", cur)
+                    if ($(cur).hasClass('hasTerm')){
+
+                        _.each(cur, function(current){
+                            if (current.selected){
+                                _.each(current.attributes, function(curAttrib){
+                                    console.log("setting", curAttrib.name, curAttrib.value)
+                                    panel.model.set(curAttrib.name, curAttrib.value);
+                                })
+                            }
+                        })
+                    }
+
                     panel.model.set(cur.name, cur.value);
+
 
                 }
                 var multi = $('.multi-select-search', this.$el)
@@ -65,9 +78,7 @@ define([
                     _.each(selectedItems, function(cur){
                         idList.push(cur.value)
                     })
-                    console.log("cur", cur.getAttribute('name'))
                     panel.model.set(cur.getAttribute('name'), idList);
-                    console.log(panel.model)
                 }, this)
                 console.log(panel.model)
                 if (panel.newDetail){
@@ -80,9 +91,10 @@ define([
 
                     }
                     console.log(curRule)
-                    curRule.save()
                 }
                $('#detail-modal').modal('hide');
+               curRule.needsSave = true;
+            curRule.trigger("needsSave")
             }
             $('.cancel-edit-button', this.$el)[0].onclick = function(){
                 $('#detail-modal').modal('hide');

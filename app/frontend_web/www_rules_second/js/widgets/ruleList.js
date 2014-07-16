@@ -8,20 +8,24 @@ define([
     'models/ruleCollection',
     'models/ruleModel',
     'singleRow/ruleRow',
+    'modalViews/savingModal',
     'text!templates/ruleList.html',
-    'text!templates/ruleRow.html'
-], function ($, _, Backbone, contextModel, ruleCollection, curRule, RuleRow, ruleListTemplate) {
+], function ($, _, Backbone, contextModel, ruleCollection, curRule, RuleRow, savingModal, ruleListTemplate) {
 
 
 
 
     var RuleList = Backbone.View.extend({
+
         initialize: function(){
             this.template = _.template(ruleListTemplate);
             ruleCollection.on('add', this.addRule, this);
             ruleCollection.on('reset', this.render, this);
             ruleCollection.on('remove', this.addAll, this);
+            curRule.on("needsSave", function(){
+                $("#saveRuleButton").attr('disabled', false)
 
+            })
             this.addAll();
         },
         render: function(){
@@ -29,6 +33,18 @@ define([
             this.$el.html(this.template({}));
             return this;
         },
+        saveRule: function(){
+          var saveMod = new savingModal();
+          curRule.save({}, {success: function(){
+            $("#saveRuleButton").attr('disabled', true)
+            curRule.needsSave=false;
+            $("#detail-modal").modal('hide');
+          }});
+
+
+
+        },
+
 	    addRule: function(rule){
             var rulerow = new RuleRow({
                 model: rule
@@ -57,9 +73,7 @@ define([
 	},
 	events: {
 	    "click #addRuleButton" : "createRule",
-        "contextmenu #addRuleButton": function(){
-            alert("21213");
-        }
+        "click #saveRuleButton": "saveRule"
 
 	},
 	createRule: function() {
