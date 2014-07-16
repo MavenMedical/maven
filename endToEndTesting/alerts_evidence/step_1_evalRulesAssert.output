@@ -1,0 +1,61 @@
+ ruleid | name  | minage | maxage | sex | codetype | remainingdetails | fullspec | comments 
+--------+-------+--------+--------+-----+----------+------------------+----------+----------
+   5809 | AAO 1 |   0.00 | 200.00 | %   | HCPCS    | {"details":[]}   |          | 
+(1 row)
+
+ ruleid | code  
+--------+-------
+   5809 | 70470
+(1 row)
+
+ ruleid | listtype  | isintersect |  intlist   | strlist | framemin | framemax 
+--------+-----------+-------------+------------+---------+----------+----------
+   5809 | enc_dx    | t           | {79471008} |         |   -99999 |        0
+   5809 | enc_pl_dx | f           | {16397004} |         |   -99999 |        0
+(2 rows)
+
+TRUNCATE TABLE
+ tst_01_alertconfigforcustomer_fail 
+------------------------------------
+ t
+(1 row)
+
+INSERT 0 1
+ tst_02_noalertconfiggtzero_fail 
+---------------------------------
+ t
+(1 row)
+
+UPDATE 1
+ tst_03_alertconfigtrigcodelistmatch_assert 
+--------------------------------------------
+ t
+(1 row)
+
+ tst_04_nullencounter_fail 
+---------------------------
+ t
+(1 row)
+
+ tst_05_matchencounter_fail 
+----------------------------
+ t
+(1 row)
+
+ tst_06_nullproblemmatch_assert 
+--------------------------------
+ t
+(1 row)
+
+ tst_07_problemmatch_fail 
+--------------------------
+ t
+(1 row)
+
+UPDATE 1
+ tst_08_enc_in_enc_pl_match_fail 
+---------------------------------
+ t
+(1 row)
+
+UPDATE 1
