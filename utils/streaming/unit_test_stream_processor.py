@@ -18,7 +18,7 @@ import asyncio
 
 import maven_config as MC
 import utils.streaming.stream_processor as SP
-
+import maven_logging as ML
 
 explicitteststreamname = 'test stream explicit'
 rabbittestproducername = 'test producer rabbit'
@@ -149,10 +149,6 @@ def single_test():
     loop.run_until_complete(asyncio.sleep(.01))
         #loop.run_until_complete(asyncio.wait(asyncio.Task.all_tasks(loop)))
 
-import maven_logging as ML
-ML.DEBUG = ML.stdout_log_with_time
-#ML.PRINT = ML.no_logging
-
 def rabbit_test():
     sp_producer = ConcatenateStreamProcessor(rabbittestproducername)
     sp_consumer = IdentityStreamProcessor(rabbittestconsumername)
@@ -175,7 +171,6 @@ def rabbit_test():
     sp_producer.close()
     sp_consumer.close()
 
-
 def tripple_test():
     loop = asyncio.get_event_loop()
     sp_consumer = IdentityStreamProcessor(trippletestconsumername)
@@ -197,7 +192,8 @@ def tripple_test():
     loop.run_until_complete(asyncio.sleep(.1))
         
     tasks = asyncio.Task.all_tasks(loop)
-    while len(tasks) > 1:
+    while any([not t.done() for t in tasks]):
+#        print(tasks)
         loop.run_until_complete(asyncio.wait(asyncio.Task.all_tasks(loop)))
         tasks = asyncio.Task.all_tasks(loop)
 
@@ -207,3 +203,5 @@ def tripple_test():
 
 #single_test()
 tripple_test()
+if __name__ == '__main__':
+    print(ML.get_results())

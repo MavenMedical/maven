@@ -39,14 +39,14 @@ define([
                      require(['text!/templates/individualDetails/' + type + '_editor.html'],
 		                     function(curTemplate) {
 		    	                var curView = new DetailEditor({model: cur, el:$('#modal-target'), template:_.template(curTemplate), type: type});
-                                $('#detail-modal').modal('show');
+                                 $("#detail-modal").modal('show')
 		                     }
                           );
                 }
                 $('.remove-detail', this.$el).last()[0].onclick = function(){
                     curRule.get(type).remove(cur);
-                    curRule.save();
-
+                    curRule.needsSave = true;
+                    curRule.trigger("needsSave")
 
                 }
 

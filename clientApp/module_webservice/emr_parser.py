@@ -404,7 +404,9 @@ class VistaParser():
 
         hosp = xml_root.findall(".//IsHospitalProblem")[0].text
         if hosp is not None and "true" in hosp.lower():
-            prob.category = "Hospital Problem"
+            prob.category = "Problem List"
+        else:
+            prob.category = "Encounter"
 
         poa = xml_root.findall(".//IsPresentOnAdmission")[0].text
         if poa is not None and "true" in poa.lower():

@@ -22,16 +22,20 @@ define([
             });
         },
         update: function () {
+            console.log('update calendar');
             var eventlist = [];
 
             for (var key in histogramModel.attributes) {
                 var enc = histogramModel.attributes[key];
+
                 eventlist.push({
                     id: enc['encounterid'],
                     title: enc['diagnosis'] + " $" + enc['spending'],
                     start: enc['admission'],
                     end: enc['discharge'],
-                    className: 'admission'});
+                    className: 'admission',
+                    allDay: true,
+                    url: "#episode/" + enc['encounterid'] + "/patient/" + enc['patientid'] + "/" + enc['admission'] });
             }
 
 
@@ -42,31 +46,30 @@ define([
                     right: 'month,agendaWeek,agendaDay'
                 },
                 defaultDate: contextModel.get('enc_date'),
-
-                eventClick: function (event) {
-                    eventData = {
-                        id: event.id,
-                        title: event.title,
-                        start: event.start,
-                        end: event.end
-                    }
-
-                    var URL;
-
-                    if (contextModel.get('patients')) {  // patient id must be available
-                        URL = "episode/" + eventData['id'] + "/";
-                        URL += "patient/" + contextModel.get('patients') + "/";
-                        URL += eventData['start'].format();
+                selectable: true,
+                selectHelper: true,
+                select: function (start, end, jsEvent) {
+                    console.log(jsEvent);
+                    if (contextModel.get('patients')) {
+                        contextModel.set('startdate', start.format());
+                        contextModel.set('enddate', end.format());
 
                         // navigate to the chosen encounter
-                        Backbone.history.navigate(URL, true);
+                        Backbone.history.navigate("patient/" + contextModel.get('patients'), true);
+                        // hide the modal
+                        $('#datepicker-modal').modal('hide');
+                    }
+                    $('#calendar').fullCalendar('unselect');
+                },
 
+                eventClick: function (event) {
+                    if (event.url) {
+                        // navigate to the chosen encounter
+                        Backbone.history.navigate(event.url, true);
                         // hide the modal
                         $('#datepicker-modal').modal('hide');
 
                     }
-
-
                 },
                 events: eventlist
             });

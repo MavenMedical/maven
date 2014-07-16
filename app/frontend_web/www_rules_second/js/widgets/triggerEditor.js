@@ -24,7 +24,8 @@ define([
                 }
             }, this)
         }, this)
-        curRule.save();
+           curRule.needsSave = true;
+           curRule.trigger("needsSave")
     };
 
     var TriggerEditor = Backbone.View.extend({
@@ -44,7 +45,8 @@ define([
                 }
             }, this)
         }, this)
-        curRule.save();
+        curRule.needsSave = true;
+        curRule.trigger("needsSave")
     },
         keyDownSearch: function(key){
             if (key.keyCode == 13)

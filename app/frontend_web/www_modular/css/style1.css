@@ -393,6 +393,11 @@ body {
     margin: auto;
 }
 
+.white {
+    color: #ffffff;
+    font-size: 15px;
+}
+
 .alert-list-panel {
     background-color: #c0c0c0;
 }
@@ -473,6 +478,16 @@ body {
 
 .fc-header-title h2{
     font-size: 20px;
+}
+
+.calendar-modal, #chart-modal{
+    height: 340px;
+    width: 530px;
+}
+
+
+#calendar{
+    margin: 20px;
 }
 
 /***************************************************************

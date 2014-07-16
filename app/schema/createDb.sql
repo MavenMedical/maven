@@ -226,7 +226,7 @@ CREATE TABLE costmap (
   code character varying(36),
   code_type character varying(36),
   department character varying(255),
-  cost_type character varying(255),
+  cost_type integer,
   orderable_id character varying(36),
   cost numeric(18,2)
 );
@@ -248,7 +248,7 @@ CREATE TABLE costmap_historic (
   code character varying(36),
   code_type character varying(36),
   department character varying(255),
-  cost_type character varying(255),
+  cost_type integer,
   orderable_id character varying(36),
   cost numeric(18,2),
   source_info character varying,
@@ -427,11 +427,11 @@ create index ixobsPatLoincDate on observation(customer_id,pat_id,loinc_code,resu
 -- DROP TABLE order_event;
 CREATE TABLE order_event (
   customer_id numeric(18,0),
-  order_id integer,
+  order_id character varying(36),
   provider_id character varying(100),
-  order_event character varying(255),
+  order_event character varying(2),
   event_datetime timestamp without time zone,
-  source character varying(25),
+  source character varying(255),
   active_orders character varying
 )
 WITH (
@@ -716,6 +716,11 @@ BEGIN
         VALUES (customer_id1, order_id1, pat_id1, encounter_id1, ordering_provider_id1,
                 auth_provider_id1, orderable_id1, status1, source1, code_id1, code_system1,
                 order_name1, order_type1, order_cost1, order_datetime1);
+      INSERT INTO order_event(
+            customer_id, order_id, provider_id, order_event, event_datetime,
+            source, active_orders)
+        VALUES (customer_id1, order_id1, pat_id1, 'IP', order_datetime1,
+                'Webservice', NULL);
       RETURN;
     EXCEPTION WHEN unique_violation THEN
     END;

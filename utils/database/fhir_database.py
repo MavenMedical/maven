@@ -22,10 +22,20 @@ import asyncio
 from collections import defaultdict
 from dateutil.relativedelta import relativedelta
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
+import utils.enums as ENUMS
 from utils.database.database import MappingUtilites
 
 DBMapper = MappingUtilites()
 
+##########################################################################################
+##########################################################################################
+##########################################################################################
+#####
+##### WRITE FHIR OBJECTS TO DATABASE
+#####
+##########################################################################################
+##########################################################################################
+##########################################################################################
 @asyncio.coroutine
 def write_composition_to_db(composition, conn):
     yield from write_composition_patient(composition, conn)
@@ -208,6 +218,93 @@ def write_composition_alerts(composition, conn):
             except:
                 raise Exception("Error inserting Alerts into the database")
 
+
+##########################################################################################
+##########################################################################################
+##########################################################################################
+#####
+##### CONSTRUCT FHIR OBJECTS FROM DATABASE
+#####
+##########################################################################################
+##########################################################################################
+##########################################################################################
+@asyncio.coroutine
+def construct_encounter_orders_from_db(composition, conn):
+    rtn_encounter_orders = []
+
+    try:
+        column_map = ["oo.customer_id",          #0
+                      "oo.order_id",
+                      "oo.pat_id",
+                      "oo.encounter_id",         #3
+                      "oo.ordering_provider_id",
+                      "oo.auth_provider_id",
+                      "oo.orderable_id",         #6
+                      "oo.status",
+                      "oo.source",
+                      "oo.code_id",              #9
+                      "oo.code_system",
+                      "oo.order_name",
+                      "oo.order_type",           #12
+                      "oo.order_cost",
+                      "oo.order_cost_type",
+                      "oo.order_datetime",       #15
+                      "od.cpt_code",
+                      "od.cpt_version",
+                      "od.rx_rxnorm_id"]         #18
+        columns = DBMapper.select_rows_from_map(column_map)
+
+        cmd = []
+        cmd.append("SELECT " + columns)
+        cmd.append("FROM order_ord oo")
+        cmd.append("JOIN orderable od ON oo.customer_id=od.customer_id and oo.orderable_id=od.orderable_id")
+        cmd.append("WHERE oo.encounter_id=%s")
+        cmd.append("AND oo.customer_id=%s")
+
+        cmdargs = [composition.encounter.get_csn(), composition.customer_id]
+
+        cur = yield from conn.execute_single(' '.join(cmd), cmdargs)
+
+        for result in cur:
+            order_type = result[12]
+
+            if order_type.lower() in ENUMS.PROCEDURE_ORDER_TYPES.__members__:
+                FHIR_procedure = FHIR_API.Procedure(text=result[11],
+                                                    name=result[11],
+                                                    type=FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(system=result[17],
+                                                                                                          code=result[16])],
+                                                                                  text="Procedure"))
+                rtn_encounter_orders.append(FHIR_API.Order(identifier=[FHIR_API.Identifier(system="clientEMR",
+                                                                                           value=result[1],
+                                                                                           label="Internal"),],
+                                                           date=result[15],
+                                                           detail=[FHIR_procedure]))
+
+            elif order_type.lower() in ENUMS.MEDICATION_ORDER_TYPES.__members__:
+                FHIR_medication = FHIR_API.Medication(text=result[11],
+                                                      name=result[1],
+                                                      code=FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(system="rxnorm",
+                                                                                                            code=result[18])],
+                                                                                    text="Medication"))
+                rtn_encounter_orders.append(FHIR_API.Order(detail=[FHIR_medication],
+                                                           date=result[15],
+                                                           identifier=[FHIR_API.Identifier(system="clientEMR",
+                                                                                           value=result[1],
+                                                                                           label="Internal"),]))
+        return rtn_encounter_orders
+
+    except:
+        raise Exception("Error constructing encounter order list from database")
+
+##########################################################################################
+##########################################################################################
+##########################################################################################
+#####
+##### COMPOSITION EVALUATOR(S) HELPER FUNCTIONS
+#####
+##########################################################################################
+##########################################################################################
+##########################################################################################
 @asyncio.coroutine
 def identify_encounter_orderable(item=None, order=None, composition=None, conn=None):
     try:
@@ -294,67 +391,70 @@ def identify_encounter_orderable(item=None, order=None, composition=None, conn=N
                 item.name = name
 
             return item
-
     except:
         raise Exception("Error identifying orderables")
 
 def _get_base_order_elements_from_DB_cursor_result(result):
-    orderable_id = result[0]
-    system = result[1]
-    name = result[2]
-    description = result[3]
-    order_type = result[4]
+    try:
+        orderable_id = result[0]
+        system = result[1]
+        name = result[2]
+        description = result[3]
+        order_type = result[4]
 
-    return orderable_id, system, name, description, order_type
+        return orderable_id, system, name, description, order_type
+    except:
+        raise Exception("Error extracting base order elements from orderable table query")
 
 
 @asyncio.coroutine
 def get_order_detail_cost(order_detail, composition, conn):
+    try:
+        column_map = ["cost",
+                      "cost_type",
+                      "customer_id",
+                      "department",
+                      "code",
+                      "code_type",
+                      "orderable_id"]
+        columns = DBMapper.select_rows_from_map(column_map)
 
-    column_map = ["cost",
-                  "cost_type",
-                  "customer_id",
-                  "department",
-                  "code",
-                  "code_type",
-                  "orderable_id"]
-    columns = DBMapper.select_rows_from_map(column_map)
+        cmd = []
+        cmd.append("SELECT " + columns)
+        cmd.append("FROM costmap")
+        cmd.append("WHERE code=%s")
+        cmd.append("AND code_type=%s")
+        cmd.append("AND (customer_id=%s or customer_id=-1)")
+        cmd.append("AND (department=%s or department='-1')")
+        cmd.append("ORDER BY (customer_id, department, cost_type) DESC")
+        cmd.append("LIMIT 1;")
 
-    cmd = []
-    cmd.append("SELECT " + columns)
-    cmd.append("FROM costmap")
-    cmd.append("WHERE code=%s")
-    cmd.append("AND code_type=%s")
-    cmd.append("AND (customer_id=%s or customer_id=-1)")
-    cmd.append("AND (department=%s or department='-1')")
-    cmd.append("AND (cost_type LIKE 'Charged%%' OR cost_type = 'Procedure Cost')")
-    cmd.append("ORDER BY (customer_id, department) DESC")
-    cmd.append("LIMIT 1;")
+        if len(composition.encounter.location) > 0:
+            department = composition.encounter.location[0].identifier[0].value
+        else:
+            department = ""
 
-    if len(composition.encounter.location) > 0:
-        department = composition.encounter.location[0].identifier[0].value
-    else:
-        department = ""
+        if isinstance(order_detail, FHIR_API.Procedure):
+            proc_coding = order_detail.type.get_coding_by_system(["HCPCS", "CPT"])
+            cmdargs = [proc_coding.code,
+                       proc_coding.system,
+                       composition.customer_id,
+                       department]
 
-    if isinstance(order_detail, FHIR_API.Procedure):
-        proc_coding = order_detail.type.get_coding_by_system(["HCPCS", "CPT"])
-        cmdargs = [proc_coding.code,
-                   proc_coding.system,
-                   composition.customer_id,
-                   department]
+        elif isinstance(order_detail, FHIR_API.Medication):
+            med_coding = order_detail.code.get_coding_by_system(["rxnorm"])
+            cmdargs = [med_coding.code,
+                       med_coding.system,
+                       composition.customer_id,
+                       department]
 
-    elif isinstance(order_detail, FHIR_API.Medication):
-        med_coding = order_detail.code.get_coding_by_system(["rxnorm"])
-        cmdargs = [med_coding.code,
-                   med_coding.system,
-                   composition.customer_id,
-                   department]
+        cur = yield from conn.execute_single(' '.join(cmd), cmdargs)
 
-    cur = yield from conn.execute_single(' '.join(cmd), cmdargs)
-
-    for result in cur:
-        order_detail.cost = FHIR_API.round_up_five(result[0])
-        order_detail.cost_type = result[1]
+        for result in cur:
+            order_detail.cost = FHIR_API.round_up_five(result[0])
+            order_detail.cost_type = result[1]
+    except:
+        raise Exception("Error querying the costmap table")
 
 @asyncio.coroutine
 def get_snomeds_and_append_to_encounter_dx(composition, conn):
@@ -494,39 +594,41 @@ def get_observations_from_duplicate_orders(duplicate_orders, composition, conn):
 
 @asyncio.coroutine
 def get_matching_CDS_rules(composition, conn):
+    try:
+        #Pull a list of all the SNOMED CT codes from all of the conditions in the composition
+        #It's important the the list/array of problem list/encounter DXs is an empty list as opposed to being null
+        encounter_snomedIDs = composition.get_encounter_dx_snomeds()
+        problem_list_snomedIDs = composition.get_problem_list_dx_snomeds()
+        patient_age = composition.get_patient_age()
 
-    #Pull a list of all the SNOMED CT codes from all of the conditions in the composition
-    #It's important the the list/array of problem list/encounter DXs is an empty list as opposed to being null
-    encounter_snomedIDs = composition.get_encounter_dx_snomeds()
-    patient_age = composition.get_patient_age()
+        #TODO - Need to replace this placeholder list of meds with the real meds
+        patient_meds = []
 
-    #TODO - Need to replace this placeholder list of meds with the real meds
-    patient_meds = []
+        rtn_matched_rules = []
+        for enc_ord in composition.get_encounter_orders():
+            trigger_code = enc_ord.get_procedure_id_coding()
+            args = [trigger_code.code,
+                    trigger_code.system,
+                    patient_age,
+                    composition.subject.gender,
+                    encounter_snomedIDs,
+                    problem_list_snomedIDs,
+                    composition.subject.get_pat_id(),
+                    composition.customer_id,
+                    patient_meds]
 
-    rtn_matched_rules = []
-    for enc_ord in composition.get_encounter_orders():
-        trigger_code = enc_ord.get_procedure_id_coding()
-        args = [trigger_code.code,
-                trigger_code.system,
-                patient_age,
-                composition.subject.gender,
-                encounter_snomedIDs,
-                encounter_snomedIDs,
-                composition.subject.get_pat_id(),
-                composition.customer_id,
-                patient_meds]
+            cur = yield from conn.execute_single("select * from rules.evalrules(%s,%s,%s,%s,%s,%s,%s,%s,%s)", extra=args)
 
-        cur = yield from conn.execute_single("select * from rules.evalrules(%s,%s,%s,%s,%s,%s,%s,%s,%s)", extra=args)
-
-        for result in cur:
-            rtn_matched_rules.append(FHIR_API.Rule(rule_details=result[2],
-                                                   CDS_rule_id=result[0],
-                                                   CDS_rule_status=result[3],
-                                                   code_trigger=trigger_code.code,
-                                                   code_trigger_type=trigger_code.system,
-                                                   name=result[1]))
-    return rtn_matched_rules
-
+            for result in cur:
+                rtn_matched_rules.append(FHIR_API.Rule(rule_details=result[2],
+                                                       CDS_rule_id=result[0],
+                                                       CDS_rule_status=result[3],
+                                                       code_trigger=trigger_code.code,
+                                                       code_trigger_type=trigger_code.system,
+                                                       name=result[1]))
+        return rtn_matched_rules
+    except:
+        raise Exception("Error extracting CDS rules from database")
 
 @asyncio.coroutine
 def get_alternative_meds(order, composition, conn):

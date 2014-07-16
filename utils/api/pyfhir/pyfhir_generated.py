@@ -22,6 +22,7 @@ import dateutil.parser
 import math
 from decimal import Decimal
 import itertools
+import json
 from utils.api.pyfhir.pyfhir_datatypes_generated import *
 
 PROCEDURE_CODE_TERMINOLOGY = ["CPT", "cpt", "CPT4", "cpt4"]
@@ -735,7 +736,7 @@ class Composition(Resource):
 
     def get_encounter_order_by_uuid(self, id):
         for order in self.get_encounter_orders():
-            if order.get_order_uuid() == id:
+            if order.get_clientEMR_uuid() == id:
                 return order
 
     def get_alerts_by_type(self, type=None):
@@ -749,7 +750,11 @@ class Composition(Resource):
         return enc_conditions_section.content
 
     def get_encounter_dx_snomeds(self):
-        rtn_snomed_list = [coding.code for condition in self.get_encounter_conditions() for coding in condition.code.coding if coding.system == "SNOMED CT"]
+        rtn_snomed_list = [coding.code for condition in self.get_encounter_conditions() for coding in condition.code.coding if coding.system == "SNOMED CT" and condition.category == "Encounter"]
+        return rtn_snomed_list
+
+    def get_problem_list_dx_snomeds(self):
+        rtn_snomed_list = [coding.code for condition in self.get_encounter_conditions() for coding in condition.code.coding if coding.system == "SNOMED CT" and condition.category == "Problem List"]
         return rtn_snomed_list
 
     def get_encounter_meds(self):
@@ -3279,7 +3284,7 @@ class Order(Resource):
         else:
             self.detail = detail
         
-    def get_order_uuid(self):
+    def get_clientEMR_uuid(self):
         for id in self.identifier:
             if id.system == "clientEMR" and id.label == "Internal":
                 return id.value
@@ -4874,7 +4879,7 @@ class Rule(Resource):
         self.long_title = long_title
         self.short_description = short_description
         self.long_description = long_description
-        self.rule_details = rule_details['details']
+        self.rule_details = rule_details
         self.encounter_dx_rules = []
         self.historic_dx_rules = []
         self.encounter_proc_rules = []
@@ -4887,19 +4892,30 @@ class Rule(Resource):
 
     def _extract_rule_details(self, rule_details):
 
-        for rule_detail in rule_details:
+        json_rule_details = json.loads(rule_details)
 
-            if rule_detail['type'] == "encounter_dx":
-                self.encounter_dx_rules.append(rule_detail)
+        for rule_detail in json_rule_details['details']:
 
-            elif rule_detail['type'] == "historic_dx":
-                self.historic_dx_rules.append(rule_detail)
+            try:
+                rule_type = rule_detail['type']
 
-            elif rule_detail['type'] == "encounter_proc":
-                self.encounter_proc_rules.append(rule_detail)
+                if rule_type == "encounter_dx":
+                    self.encounter_dx_rules.append(rule_detail)
 
-            elif rule_detail['type'] == "lab":
-                self.lab_rules.append(rule_detail)
+                elif rule_type == "historic_dx":
+                    self.historic_dx_rules.append(rule_detail)
 
-            elif rule_detail['type'] == "drug_list":
-                self.drug_list_rules.append(rule_detail)
+                elif rule_detail == "encounter_proc":
+                    self.encounter_proc_rules.append(rule_detail)
+
+                elif rule_detail == "lab":
+                    self.lab_rules.append(rule_detail)
+
+                elif rule_detail == "drug_list":
+                    self.drug_list_rules.append(rule_detail)
+
+            except:
+                raise Exception("Rule Detail needs a TYPE")
+
+
+

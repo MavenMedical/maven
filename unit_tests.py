@@ -15,21 +15,13 @@
 
 import fnmatch
 import os
+os.environ['MAVEN_TESTING']=''
 import importlib
 import re
 import traceback
 import difflib
 import subprocess
-import maven_config
 import maven_logging
-import time
-from sys import exit
-maven_logging.DEBUG = maven_logging.results_var_log
-maven_logging.WARN = maven_logging.results_var_log
-maven_logging.INFO = maven_logging.results_var_log
-maven_logging.ERROR = maven_logging.results_var_log
-maven_logging.PRINT = maven_logging.results_var_log_no_label
-
 
 def find_files(directory, pattern):
     for root, dirnames, filenames in os.walk(directory):
@@ -74,8 +66,9 @@ for f in find_files('.', 'unit_test_*.py'):
         try:
             with open(re.sub('py$', 'output', f)) as golden:
                 gold = golden.read().strip()
+                test_result = maven_logging.get_results()
                 #print("gold: "+gold+"G")
-                diff = difflib.unified_diff(gold.splitlines(True), maven_logging.get_results().splitlines(True))
+                diff = list(difflib.unified_diff(gold.splitlines(True), test_result.splitlines(True)))
                 d = ''.join(diff)
                 if not d == '':
                     print(d)

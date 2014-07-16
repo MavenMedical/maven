@@ -410,7 +410,6 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
 
 if __name__ == '__main__':
-    ML.DEBUG = ML.stdout_log
     MC.MavenConfig = {
         "httpserver":
             {

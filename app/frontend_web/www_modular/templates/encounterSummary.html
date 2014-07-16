@@ -2,8 +2,11 @@
     <h2 class="headings">Overview of <%= title %></h2>
 
     <div class="container row enc-date">
-      <input type="text" id="datepicker-input">
-      <button class="glyphicon glyphicon-calendar" data-target="#datepicker-modal" data-toggle="modal"></button>
+            <span class="headings title blue" style="margin-top: 10px;">
+                <%=  encounterdate %>
+            </span>
+            <!--<input type="text" id="datepicker-input" value="<%= encounterdate %>">-->
+            <button class="glyphicon glyphicon-calendar" data-target="#datepicker-modal" data-toggle="modal"></button>
     </div>
 
     <div class="row">
