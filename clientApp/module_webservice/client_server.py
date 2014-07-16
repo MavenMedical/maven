@@ -205,7 +205,6 @@ def main(loop):
         loop.close()
 
 if __name__ == '__main__':
-    ML.DEBUG = ML.stdout_log
     loop = asyncio.get_event_loop()
     main(loop)
 

@@ -10,8 +10,6 @@
 ##############################################################################
 import asyncio
 
-
-
 class MemoryCache():
     """
     Many database lookups come from a read-only, or very rarely changing part of the database.
@@ -29,20 +27,17 @@ class MemoryCache():
         self.periods = []
         self.delays = []
         self.fallback_handlers = []
-
-
+        self.cancelled = False
 
     @asyncio.coroutine
     def loop(self, fn, ind, period_seconds, delay_seconds):
-         if delay_seconds:
-             yield from asyncio.sleep(delay_seconds)
-         self.data[ind] = yield from fn()
-         while period_seconds:
-             yield from asyncio.sleep(period_seconds)
-         self.data[ind] = yield from fn()
-
-
-
+        if delay_seconds:
+            yield from asyncio.sleep(delay_seconds)
+        self.data[ind] = yield from fn()
+        while period_seconds and not self.cancelled:
+            yield from asyncio.sleep(period_seconds)
+            if not self.cancelled:
+                self.data[ind] = yield from fn()
 
     def add_cache(self, update_function, fallback_function, period_seconds, delay_seconds):
         """ Register a "table" with the memory cache.
@@ -65,7 +60,7 @@ class MemoryCache():
         self.delays.append(delay_seconds)
         self.fallback_handlers.append(fallback_function)
         i=len(self.data)-1
-        asyncio.Task(self.loop(update_function, i, period_seconds, delay_seconds))
+        self.looptask = asyncio.Task(self.loop(update_function, i, period_seconds, delay_seconds))
 
         return i
         
@@ -84,3 +79,5 @@ class MemoryCache():
             data[key] = ret
             return ret
 
+    def cancel(self):
+        self.cancelled = True

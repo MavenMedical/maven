@@ -4,7 +4,6 @@ import sys
 import traceback
 
 import maven_logging as ML
-ML.DEBUG=ML.stdout_log_with_time
 
 class SocketReadyFuture(asyncio.Future):
     read = True

@@ -234,7 +234,6 @@ class RuleService(HTTP.HTTPProcessor):
 
 
 if __name__ == '__main__':
-    ML.DEBUG = ML.stdout_log
     print("python execution")
     from utils.database.database import AsyncConnectionPool
     print("python execution")

@@ -64,7 +64,6 @@ class MessagingWebService(HTTP.HTTPProcessor):
 #        return (HTTP.OK_RESPONSE, b'some text', None)
 
 if __name__ == '__main__':
-    ML.DEBUG = ML.stdout_log
     MC.MavenConfig = {
         "httpserver":
             {
