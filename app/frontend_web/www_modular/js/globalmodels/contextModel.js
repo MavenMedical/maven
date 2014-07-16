@@ -70,6 +70,7 @@ define([
 	    searchPatient: null,
 	    searchDiagnosis: null,
 	    loginTemplate: 'login.html',
+        settingsTemplate: 'settings.html',
         },
 	toParams: function() {
 	    var ret = _.pick(this.attributes,['user','provider','date','daterange','encounter',

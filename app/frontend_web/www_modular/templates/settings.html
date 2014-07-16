@@ -1,0 +1,33 @@
+<div class="modal-dialog modal-lg" id="settings" xmlns="http://www.w3.org/1999/html">
+    <div class="modal-content">
+        <div class="modal-body">
+            <h3><b>User Settings</b></h3>
+            <div class="container col-md-12">
+            </div>
+            <div style="clear:both; overflow: auto;">
+                <h5><b>Change Password</b></h5>
+
+                <div style="width:49%; float:left;">
+                <p><b>Old</b> Password: <input id="login-password" type="password" placeholder="password" name="password" autofocus></p>
+                <p><b>New</b> Password: <input id="login-new-password" type="password" name="password" placeholder="password"></p>
+                <p><b>Confirm New</b> Password: <input id="login-new-password2" type="password" name="password" placeholder="password"></p>
+                </div>
+
+                <div style="width:49%; float:left;">
+                    <div> New passwords must contain:</div>
+                    <ul>
+                        <li>At least 8 characters <i id='pw-len-cb'></i></li>
+                        <li>A lower-case character <i id='pw-low-cb'></i></li>
+                        <li>An upper-case character <i id='pw-up-cb'></i></li>
+                        <li>A number<i id='pw-num-cb'></i></li>
+                    </ul>
+                    <div> And it must be different from the old password <i id="pw-diff-cb"></i></div>
+                    <div>
+                        <button id="update-password">Update Password</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
