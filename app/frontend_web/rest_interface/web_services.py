@@ -219,8 +219,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
                     #['#rowD-1-1','costdonut','costbreakdown-donut.html'],
                     ['#rowE-1-1', 'spend_histogram'],
                     ['#floating-right', 'alertList', 'alertScroll.html'],
-                    #['#datepicker-modal', 'datepicker-calendar']
-                    ['#datepicker-modal', 'datepicker-chart']
+                    ['#datepicker-modal', 'datepicker-calendar']
+                    #['#datepicker-modal', 'datepicker-chart']
                     ], CONTEXT_KEY: user_auth}
             
             return HTTP.OK_RESPONSE, json.dumps(ret), None
