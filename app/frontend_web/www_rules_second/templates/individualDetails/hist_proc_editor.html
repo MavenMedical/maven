@@ -1,17 +1,20 @@
 	     <div class = 'detail-editor-heading'>Create/Edit Historical Procedure Detail</div>
          <div>
-         This rule will
-         <select class="detail-input form-control" name="exists">
-              <option value="true" selected> be used only if </option>
-              <option value="false"> not be used if</option>
+
+         <select class="detail-input form-control attn-text" name="exists">
+              <option value="true" selected>only alert the clinician if</option>
+              <option value="false"> do not alert the clinician if</option>
+
           </select>
              <br>
-		 The subject underwent the procedure <span style="clear:both" class = 'search'></span>
+		 <p class="attn-text">The subject underwent the procedure </p><span style="clear:both" class = 'attn-text search'></span>
          <div style="clear: both; min-height: 30px;"></div>
-          in the time frame from <input name = "minDays" class="form-control detail-input" type="text" value="0"> till <input name = "maxDays"  class ="form-control detail-input" type="text" value="0"> days from the present
+          <p class="attn-text">in the time frame from</p><input name = "minDays" class="form-control detail-input" type="text" value="0"><p class="attn-text">till</p><input name = "maxDays"  class ="form-control detail-input" type="text" value="0"> days from the present
 	      </div>
-	      <div>
+	      <div style = "clear:both">
           <br>
-		  <button class="btn btn-info confirm-detail-button">Confirm</button>
-          <button class="btn btn-info cancel-edit-button">Cancel</button>
+		    <button style = "float:left" class="btn btn-info cancel-edit-button">Cancel</button>
+            <button style = "float:right" class="btn btn-info confirm-detail-button">Confirm</button>
 	      </div>
+          <div style = "clear:both"></div>
+

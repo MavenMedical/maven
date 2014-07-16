@@ -2,7 +2,7 @@
 	 <div class = 'detail-editor-heading'>Create/Edit Lab Result Detail</div>
          <div>
 
-        This rule will be used if the patient had the observation that
+        Alert the physician only if the patient had the observation that
 	<div class="multi-select-search" type="loinc" name = "obs_type"></div>
 	was 
 	<select class="detail-input form-control" name="relation">
@@ -20,10 +20,10 @@
         <option value = "true">This rule will only look at the last lab</option>
         <option value = "false" selected>This rule will look for any lab in the given time frame</option>
     </select>
-    if there are no results of this type in the given time frame, this rule
+    if there are no results of this type in the given time frame, this alert
              <select class="detail-input form-control" name="defaultval">
-                 <option value = "true">Can still be used</option>
-                 <option value = "false">Can not be used</option>
+                 <option value = "true">should still be fired</option>
+                 <option value = "false">should not be fired</option>
              </select>
         	</div>
 	      <div>

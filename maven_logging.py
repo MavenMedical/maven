@@ -18,6 +18,8 @@ import logging
 import logging.config
 import sys
 import io
+import time
+import asyncio
 
 _results = io.StringIO()
 def get_results():
@@ -45,7 +47,60 @@ def set_debug(filename=None):
     handler.setFormatter(logging.Formatter(
         '%(asctime)s     %(levelname)s\t%(process)d\t%(filename)s:%(lineno)d\t%(message)s'))
     log.addHandler(handler)
-            
+
+def trace(write=print, initial=False, timing=False):
+    """
+    Decorator to log the inputs and results of a function.  After the function completes, it
+    will output the function, its arguments, and its return value
+    :param write: the function to send the strings containing logging information
+                  the default value is "print" however "logging.root.debug" or similar are also good choices
+    :param initial: a boolean, if true it will log when the function starts as well as when it finishes
+    :param timing: a boolean, if true the function and return value will be printed along with the amount
+                   of wall clock time it took in seconds
+    usage is: @trace()
+              def somefunc(arg):
+                  return True
+
+    when calling somefunc(1), it will print "somefunc((1,), {}) -> True"
+    """
+    def trace_inner(func):
+        def inner(*args, **kwargs):
+            if initial:
+                write("%s(%s, %s) started" % (func.__name__, args, kwargs))
+            if timing:
+                starttime = time.perf_counter()
+                ret = func(*args, **kwargs)
+                totaltime = time.perf_counter() - starttime
+                write("%s(%s, %s) -> %s took %s" % (func.__name__, args, kwargs, ret, totaltime))
+            else:
+                ret = func(*args, **kwargs)
+                write("%s(%s, %s) -> %s" % (func.__name__, args, kwargs, ret))
+            return ret
+        return inner
+    return trace_inner
+
+def coroutine_trace(write=print, initial=None, timing=False):
+    """
+    The semantics are the same as trace, but for coroutines
+    """
+    def trace_inner(func):
+        co_func = asyncio.coroutine(func)
+        @asyncio.coroutine
+        def inner(*args, **kwargs):
+            if initial:
+                write("%s(%s, %s) started" % (func.__name__, args, kwargs))
+            if timing:
+                starttime = time.perf_counter()
+                ret = yield from co_func(*args, **kwargs)
+                totaltime = time.perf_counter() - starttime
+                write("%s(%s, %s) -> %s took %s" % (func.__name__, args, kwargs, ret, totaltime))
+            else:
+                ret = yield from co_func(*args, **kwargs)
+                write("%s(%s, %s) -> %s" % (func.__name__, args, kwargs, ret))
+            return ret
+        return inner
+    return trace_inner
+                
 root = logging.root
 if not 'MAVEN_TESTING' in os.environ:
     if os.path.isfile('/etc/mavenmedical/logging.config'):
@@ -67,4 +122,3 @@ DEBUG = root.debug
 INFO = root.info
 WARN = root.warn
 ERROR = root.error
-

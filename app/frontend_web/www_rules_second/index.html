@@ -39,18 +39,18 @@
     <div style="">
      <div class="bs-example bs-example-tabs center" style = "text-align: center; float: left">
           <ul id="myTab"  class=" center nav nav-tabs">
-              <li class="active"><a id="hide-overview" href="#Overview-Tab" data-toggle="tab">Overview</a></li>
-              <li class=""><a id="hide-trigger" href="#Trigger-Editor-Tab" data-toggle="tab">Triggers</a></li>
-              <li class=""><a id="hide-detail" href="#Detail-Editor-Tab" data-toggle="tab">Details</a></li>
-              <li class=""><a id="hide-evidence" href="#Evidence-Editor-Tab" data-toggle="tab">Evidence</a></li>
-              <li class=""><a id="hide-tree" href="#Tree-View-Tab" data-toggle="tab">Tree View</a></li>
+              <li class="active overview-tab tab"><a href="#Overview-Tab" data-toggle="tab">Overview</a></li>
+              <li class="trigger-tab tab-pane"><a id="hide-trigger" href="#Trigger-Editor-Tab" data-toggle="tab">Triggers</a></li>
+              <li class="detail-tab tab-pane"><a id="hide-detail" href="#Detail-Editor-Tab" data-toggle="tab">Details</a></li>
+              <li class="evi-tab tab-pane"><a id="hide-evidence" href="#Evidence-Editor-Tab" data-toggle="tab">Evidence</a></li>
+              <li class="tree-tab tab-pane"><a id="hide-tree" href="#Tree-View-Tab" data-toggle="tab">Tree View</a></li>
           </ul>
         <div id="myTabContent" class="tab-content">
-             <div class="active tab-pane fade in" id="Overview-Tab"><div id="rule-overview"></div></div>
-             <div class="tab-pane fade in" id="Trigger-Editor-Tab"><div id="trigger-editor"></div></div>
-             <div class="tab-pane fade in" id="Detail-Editor-Tab"><div id="detail-list"></div></div>
-             <div class="tab-pane fade in" id="Evidence-Editor-Tab"> <div id="evi-list"></div></div>
-             <div class="tab-pane fade in" id="Tree-View-Tab"> <div id="tree-view"></div></div>
+             <div class="active tab-pane fade in overview-tab" id="Overview-Tab"><div id="rule-overview"></div><div id="evi-list"></div></div>
+             <div class="tab-pane fade in trigger-tab" id="Trigger-Editor-Tab"><div id="trigger-editor"></div></div>
+             <div class="tab-pane fade in detail-tab" id="Detail-Editor-Tab"><div id="detail-list"></div></div>
+             <div class="tab-pane fade in evi-tab" id="Evidence-Editor-Tab">  <div style = "float: left; min-width: 400px"id="source-manager"></div> </div>
+             <div class="tab-pane fade in tree-tab" id="Tree-View-Tab"> <div id="tree-view"></div></div>
         </div>
      </div>
     </div>

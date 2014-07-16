@@ -13,9 +13,10 @@ define([
     'widgets/ruleOverview',
     'widgets/triggerEditor',
     'widgets/detailOverview',
-    'widgets/evidenceEditor'
+    'widgets/evidenceEditor',
+    'widgets/SourceManager'
 //    'widgets/triggerList',
-], function ($, _, Backbone, Bootstrap, contextModel, curRule,  RuleList, RuleOverview, TriggerEditor, DetailOverview, EvidenceEditor) {//, TriggerList) {
+], function ($, _, Backbone, Bootstrap, contextModel, curRule,  RuleList, RuleOverview, TriggerEditor, DetailOverview, EvidenceEditor, SourceManager) {//, TriggerList) {
     var initialize = function () {
         $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
             options.url = 'rule_services' + options.url;
@@ -28,8 +29,10 @@ define([
 
 
          contextModel.on('change:auth', function(){
+             console.log($('#evi-list'))
             new EvidenceEditor({el:$("#evi-list")});
             new TriggerEditor({el:$("#trigger-editor")});
+            new SourceManager({el: $('#source-manager', this.$el)})
          }, this);
 
     };
