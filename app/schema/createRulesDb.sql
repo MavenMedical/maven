@@ -111,7 +111,7 @@ $$
 language plpgsql;
 
 
-create index ixordPatCptDt on public.order_ord(customer_id,pat_id,code_id,order_datetime,code_system) where code_system='CPT';
+--create index ixordPatCptDt on public.order_ord(customer_id,pat_id,code_id,order_datetime,code_system) where code_system='CPT';
 
 create or replace function rules.comparisonStrArray(listType varchar(20),patid varchar(100),framemin int,framemax int,customer int,druglist varchar[])
 returns varchar[] as $$
