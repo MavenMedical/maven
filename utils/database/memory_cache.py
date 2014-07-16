@@ -39,7 +39,7 @@ class MemoryCache():
             if not self.cancelled:
                 self.data[ind] = yield from fn()
 
-    def add_cache(self, update_function, fallback_function, period_seconds, delay_seconds):
+    def register_cache(self, update_function, fallback_function, period_seconds, delay_seconds):
         """ Register a "table" with the memory cache.
         :return: an id for this table.  use this id as the index in lookup
         :param update_function: this function is called initially, and periodically afterwards

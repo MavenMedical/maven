@@ -136,6 +136,7 @@ class CompositionEvaluator(SP.StreamProcessor):
         missing_orders = [old_order for old_order in old_orders_clientEMR_IDs if old_order not in new_orders_clientEMR_IDs]
 
 
+
     ##########################################################################################
     ##########################################################################################
     ##########################################################################################

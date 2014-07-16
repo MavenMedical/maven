@@ -24,7 +24,9 @@ def update():
     return {1:2}
 
 mc = MemoryCache()
-ind1=mc.add_cache(update, default, .2, 0)
+
+ind1=mc.register_cache(update, default, .2, 0)
+
 loop = asyncio.get_event_loop()
 
 

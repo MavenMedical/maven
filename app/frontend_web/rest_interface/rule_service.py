@@ -57,7 +57,7 @@ class RuleService(HTTP.HTTPProcessor):
     
     def __init__(self, configname):
         self.mc = MemoryCache()
-        self.routes = self.mc.add_cache(self.get_med_routes, None, 60*60*24, 0)
+        self.routes = self.mc.register_cache(self.get_med_routes, None, 60*60*24, 0)
 
 
         HTTP.HTTPProcessor.__init__(self,configname)
