@@ -233,29 +233,33 @@ def construct_encounter_orders_from_db(composition, conn):
     rtn_encounter_orders = []
 
     try:
-        column_map = ["customer_id",          #0
-                      "order_id",             #1
-                      "pat_id",               #2
-                      "encounter_id",         #3
-                      "ordering_provider_id",    #4
-                      "auth_provider_id",     #5
-                      "orderable_id",         #6
-                      "status",               #7
-                      "source",               #8
-                      "code_id",              #9
-                      "code_system",          #10
-                      "order_name",           #11
-                      "order_type",           #12
-                      "order_cost",           #13
-                      "order_cost_type",      #14
-                      "order_datetime"]       #15
+        column_map = ["oo.customer_id",          #0
+                      "oo.order_id",
+                      "oo.pat_id",
+                      "oo.encounter_id",         #3
+                      "oo.ordering_provider_id",
+                      "oo.auth_provider_id",
+                      "oo.orderable_id",         #6
+                      "oo.status",
+                      "oo.source",
+                      "oo.code_id",              #9
+                      "oo.code_system",
+                      "oo.order_name",
+                      "oo.order_type",           #12
+                      "oo.order_cost",
+                      "oo.order_cost_type",
+                      "oo.order_datetime",       #15
+                      "od.cpt_code",
+                      "od.cpt_version",
+                      "od.rx_rxnorm_id"]         #18
         columns = DBMapper.select_rows_from_map(column_map)
 
         cmd = []
         cmd.append("SELECT " + columns)
-        cmd.append("FROM order_ord")
-        cmd.append("WHERE encounter_id=%s")
-        cmd.append("AND customer_id=%s")
+        cmd.append("FROM order_ord oo")
+        cmd.append("JOIN orderable od ON oo.customer_id=od.customer_id and oo.orderable_id=od.orderable_id")
+        cmd.append("WHERE oo.encounter_id=%s")
+        cmd.append("AND oo.customer_id=%s")
 
         cmdargs = [composition.encounter.get_csn(), composition.customer_id]
 
@@ -266,24 +270,27 @@ def construct_encounter_orders_from_db(composition, conn):
 
             if order_type.lower() in ENUMS.PROCEDURE_ORDER_TYPES.__members__:
                 FHIR_procedure = FHIR_API.Procedure(text=result[11],
-                                                    identifier=FHIR_API.Identifier(system="clientEMR",
-                                                                                   value=result[1]),
                                                     name=result[11],
-                                                    type=FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(system=result[10],
-                                                                                                          code=result[9])],
-                                                                                    text="Procedure"))
-                rtn_encounter_orders.append(FHIR_procedure)
+                                                    type=FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(system=result[17],
+                                                                                                          code=result[16])],
+                                                                                  text="Procedure"))
+                rtn_encounter_orders.append(FHIR_API.Order(identifier=[FHIR_API.Identifier(system="clientEMR",
+                                                                                           value=result[1],
+                                                                                           label="Internal"),],
+                                                           date=result[15],
+                                                           detail=[FHIR_procedure]))
 
             elif order_type.lower() in ENUMS.MEDICATION_ORDER_TYPES.__members__:
                 FHIR_medication = FHIR_API.Medication(text=result[11],
-                                                      identifier=FHIR_API.Identifier(system="clientEMR",
-                                                                                     value=result[1]),
                                                       name=result[1],
-                                                      code=FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(system=result[10],
-                                                                                                            code=result[9])],
+                                                      code=FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(system="rxnorm",
+                                                                                                            code=result[18])],
                                                                                     text="Medication"))
-                rtn_encounter_orders.append(FHIR_medication)
-
+                rtn_encounter_orders.append(FHIR_API.Order(detail=[FHIR_medication],
+                                                           date=result[15],
+                                                           identifier=[FHIR_API.Identifier(system="clientEMR",
+                                                                                           value=result[1],
+                                                                                           label="Internal"),]))
         return rtn_encounter_orders
 
     except:

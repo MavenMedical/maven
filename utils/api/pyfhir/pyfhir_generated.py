@@ -736,7 +736,7 @@ class Composition(Resource):
 
     def get_encounter_order_by_uuid(self, id):
         for order in self.get_encounter_orders():
-            if order.get_order_uuid() == id:
+            if order.get_clientEMR_uuid() == id:
                 return order
 
     def get_alerts_by_type(self, type=None):
@@ -3284,7 +3284,7 @@ class Order(Resource):
         else:
             self.detail = detail
         
-    def get_order_uuid(self):
+    def get_clientEMR_uuid(self):
         for id in self.identifier:
             if id.system == "clientEMR" and id.label == "Internal":
                 return id.value

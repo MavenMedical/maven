@@ -67,6 +67,9 @@ class CompositionEvaluator(SP.StreamProcessor):
         #Identify Encounter Orderables
         yield from self.identify_encounter_orderables(composition)
 
+        #Detect deleted/removed/canceled orders from new set
+        yield from self.detect_canceled_deleted_orders(composition)
+
         #Maven Transparency
         yield from self.evaluate_encounter_cost(composition)
 
@@ -119,6 +122,19 @@ class CompositionEvaluator(SP.StreamProcessor):
 
             #Add the fully-matched FHIR Procedure/Medication(s) to the Composition Order
             order.detail.extend(detail_orders)
+
+    @asyncio.coroutine
+    def detect_canceled_deleted_orders(self, composition):
+
+        #Build a list of FHIR_API.Orders encounter orders in the database.order_ord
+        orders_from_db = yield from FHIR_DB.construct_encounter_orders_from_db(composition, self.conn)
+
+        #FIRST CHECK: Check the internal IDs to see if there's overlap (this won't work for VistA, which reuses internal order IDs)
+        new_orders_clientEMR_IDs = [(order.get_clientEMR_uuid()) for order in composition.get_encounter_orders()]
+        old_orders_clientEMR_IDs = [(order.get_clientEMR_uuid()) for order in orders_from_db]
+
+        missing_orders = [old_order for old_order in old_orders_clientEMR_IDs if old_order not in new_orders_clientEMR_IDs]
+
 
     ##########################################################################################
     ##########################################################################################
