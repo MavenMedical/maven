@@ -10,9 +10,9 @@ define([
     orderCollection = new ScrollCollection;
     orderCollection.url = function() {return '/orders'+this.offset+'-'+(this.offset+this.limit);};
     orderCollection.model = OrderModel;
-    orderCollection.limit = 3;
+    orderCollection.limit = 10;
     orderCollection.context = function(){
-        contextModel.on('change:patients change:encounter',
+        contextModel.on('change:patients change:encounter change:startdate change:enddate',
 		    // this will be needed once the context filters things
 		    function(cm) {
 			if(true && cm.get('userAuth')) {

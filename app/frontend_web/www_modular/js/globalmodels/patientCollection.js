@@ -12,7 +12,7 @@ define([
     patientCollection.model = PatientModel;
     patientCollection.limit = 10;
     patientCollection.context = function(){
-      contextModel.on('change:patients',
+      contextModel.on('change:patients change:startdate change:enddate',
 		    // this will be needed once the context filters things
 		    function(cm) {
 			if(true && cm.get('userAuth')) {

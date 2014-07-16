@@ -61,7 +61,8 @@ define([
 	    showPage(provider, customer, userAuth);
 	},
 	showEpisode: function(enc, pat, date, provider, customer, userAuth){
-	    currentContext.set({page:'episode',encounter:enc,patients:pat, enc_date:date});
+	    currentContext.set({page:'episode',encounter:enc,patients:pat, enc_date:date, 
+				startdate:null, enddate:null});
 	    showPage(provider, customer, userAuth);
 	},
 	showEvidence: function (enc, pat, evi, provider, customer, userAuth) {

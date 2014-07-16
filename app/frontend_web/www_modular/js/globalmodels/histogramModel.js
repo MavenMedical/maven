@@ -15,6 +15,7 @@ define([
     if(contextModel.get('userAuth')) {
 	histogramModel.fetch({data:$.param(contextModel.toParams())});
     }
+    // histogrammodel explicitly ignores start/end dates
     contextModel.on('change:patients change:userAuth',
 		    function() {
 			histogramModel.fetch({data:$.param(contextModel.toParams())});

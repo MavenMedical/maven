@@ -27,12 +27,15 @@ define([
 
             for (var key in histogramModel.attributes) {
                 var enc = histogramModel.attributes[key];
-
+		var discharge = enc['discharge'];
+		if (!discharge) {
+		    discharge = (new Date()).toISOString().substring(0,10);
+		}
                 eventlist.push({
                     id: enc['encounterid'],
                     title: enc['diagnosis'] + " $" + enc['spending'],
                     start: enc['admission'],
-                    end: enc['discharge'],
+                    end: discharge,
                     className: 'admission',
                     allDay: true,
                     url: "#episode/" + enc['encounterid'] + "/patient/" + enc['patientid'] + "/" + enc['admission'] });
@@ -49,11 +52,10 @@ define([
                 selectable: true,
                 selectHelper: true,
                 select: function (start, end, jsEvent) {
-                    console.log(jsEvent);
                     if (contextModel.get('patients')) {
-                        contextModel.set('startdate', start.format());
-                        contextModel.set('enddate', end.format());
-
+                        contextModel.set({'enc':null, 'enc_date': null,
+					  'startdate': start.format(),
+					  'enddate': end.format()});
                         // navigate to the chosen encounter
                         Backbone.history.navigate("patient/" + contextModel.get('patients'), true);
                         // hide the modal

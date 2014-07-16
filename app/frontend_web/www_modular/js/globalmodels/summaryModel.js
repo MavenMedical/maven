@@ -14,7 +14,7 @@ define([
     if(contextModel.get('userAuth')) {
 	summaryModel.fetch({data:$.param(contextModel.toParams())});
     }
-    contextModel.on('change:patients change:userAuth change:encounter', 
+    contextModel.on('change:patients change:userAuth change:encounter change:startdate change:enddate', 
 		    function(x) {
 			summaryModel.fetch({data:$.param(x.toParams())});
 		    });

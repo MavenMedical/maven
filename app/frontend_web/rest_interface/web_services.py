@@ -22,7 +22,6 @@ import bcrypt
 import utils.crypto.authorization_key as AK
 import maven_logging as ML
 import maven_config as MC
-from datetime import date
 import re
 
 CONFIG_PERSISTENCE = 'persistence'
@@ -50,6 +49,7 @@ AUTH_LENGTH = 44  # 44 base 64 encoded bits gives the entire 256 bites of SHA2 h
 class LoginError(Exception):
     pass
 
+date = str
 
 class FrontendWebService(HTTP.HTTPProcessor):
     def __init__(self, configname):
@@ -418,8 +418,6 @@ class FrontendWebService(HTTP.HTTPProcessor):
         else:
             ordertypes = []
         patient_ids = context.get(CONTEXT_PATIENTLIST, None)
-        if not patient_ids:
-            return HTTP.OK_RESPONSE, b'', None
 
         encounter = context.get(CONTEXT_ENCOUNTER, None)
         customer = context[CONTEXT_CUSTOMERID]
@@ -438,8 +436,9 @@ class FrontendWebService(HTTP.HTTPProcessor):
             WP.Results.ordertype: CONTEXT_ORDERTYPE,
             WP.Results.orderid: 'id',
         }
-
-        results = yield from self.persistence_interface.orders(desired, customer, encounter,
+        
+        results = yield from self.persistence_interface.orders(desired, customer, encounter=encounter,
+                                                               patientid=patient_ids,
                                                                startdate=startdate, enddate=enddate,
                                                                ordertypes=ordertypes, limit=limit)
 
@@ -447,17 +446,13 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
     hist_spend_required_contexts = [CONTEXT_PROVIDER, CONTEXT_CUSTOMERID]
     hist_spend_available_contexts = {CONTEXT_PROVIDER: str, CONTEXT_PATIENTLIST: list,
-                                     CONTEXT_CUSTOMERID: int,
-                                     CONTEXT_STARTDATE: date, CONTEXT_ENDDATE: date}
+                                     CONTEXT_CUSTOMERID: int}
 
     @asyncio.coroutine
     def get_hist_spend(self, _header, _body, qs, matches, _key):
         context = self.helper.restrict_context(qs,
                                                FrontendWebService.hist_spend_required_contexts,
                                                FrontendWebService.hist_spend_available_contexts)
-
-        startdate = self.helper.get_date(context,CONTEXT_STARTDATE)
-        enddate = self.helper.get_date(context, CONTEXT_ENDDATE)
 
         desired = {
             WP.Results.patientid: "patientid",
@@ -470,8 +465,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         results = yield from self.persistence_interface.per_encounter(desired,
                                                                       context.get(CONTEXT_PROVIDER),
                                                                       context.get(CONTEXT_CUSTOMERID),
-                                                                      patients=context.get(CONTEXT_PATIENTLIST, None),
-                                                                      startdate=startdate, enddate=enddate)
+                                                                      patients=context.get(CONTEXT_PATIENTLIST, None))
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
