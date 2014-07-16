@@ -1,15 +1,18 @@
 	     <div class = 'detail-editor-heading'>Create/Edit Encounter or Problem List Diagnosis Detail</div>
          <div>
 
-         This rule will
-         <select class="detail-input form-control" style="width: 100px" name="exists">
-              <option value="true" selected>be used only if </option>
-              <option value="false"> not be used if</option>
+
+         <select class="detail-input form-control attn-txt" style="clear:both" name="exists">
+                     <option value="true" selected>only alert the clinician if</option>
+                     <option value="false"> do not alert the clinician if</option>
+
           </select>
-		 The patients Encounter or Problem List contains the diagnosis <span style="clear:both" class = 'search'></span>
+		 <p class="attn-text">The patients Encounter or Problem List contains the diagnosis</p> <span style="clear:both" class = 'search'></span>
 	      </div>
-	      <div>
+	      <div style = "clear:both">
           <br>
-		  <button class="btn btn-info confirm-detail-button">Confirm</button>
-          <button class="btn btn-info cancel-edit-button">Cancel</button>
+		    <button style = "float:left" class="btn btn-info cancel-edit-button">Cancel</button>
+            <button style = "float:right" class="btn btn-info confirm-detail-button">Confirm</button>
 	      </div>
+          <div style = "clear:both"></div>
+

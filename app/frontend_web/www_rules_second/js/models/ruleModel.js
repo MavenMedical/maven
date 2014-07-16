@@ -55,11 +55,16 @@ define([
 
       ruleModel.clearData();
       ruleModel.set({name: name}, {silent: true});
+      $('.tab-pane').removeClass('active')
+        console.log($('#Overview-Tab'))
+      $('a[href="#Overview-Tab"]').tab('show');
+      $('.overview-tab').addClass('active')
       ruleModel.save({}, {success: function(){
           ruleModel.trigger('selected')}});
 
 
     },
+
 
 	parse: function(response, options) {
 	    // when we get a JSON back from the server, turn each of it's values into 

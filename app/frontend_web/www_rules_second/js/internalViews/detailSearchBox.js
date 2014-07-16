@@ -26,7 +26,8 @@ define([
 
                 var t = contextModel.toParams();
                 $.extend( t, {'search_param': $('#Detail-Search-Box').val()})
-                if (panel.type.split("_")[1] == 'dx'){
+                var t = panel.type.split("_");
+                if (t[t.length-1] == 'dx'){
                      $.extend( t, {'type': "snomed_diagnosis"})
                 } else if (panel.type.split("_")[1] == 'NDC' || panel.type.split("_")[1] == 'med'){
                    $.extend( t, {'type': "snomed_drug"});

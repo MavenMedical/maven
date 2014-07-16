@@ -37,7 +37,7 @@ class web_search():
         if (not search_str):
             return EMPTY_RETURN
         if (search_type == "CPT"):
-            cmd.append("SELECT DISTINCT a.cpt_code, a.name FROM public.orderable as a WHERE a.customer_id = -1 AND ord_type = 'Proc' AND to_tsvector('maven', a.name) @@  plainto_tsquery('maven', %s) LIMIT 100")
+            cmd.append("SELECT DISTINCT a.cpt_code, a.name FROM public.orderable as a WHERE a.customer_id = -1 AND ord_type = 'Proc' AND to_tsvector('maven', a.name) @@  plainto_tsquery('maven', %s) ORDER BY a.name ASC LIMIT 100 ")
             cmd_args.append(search_str)
             results = yield from self.db.execute_single((' '.join(cmd)), cmd_args)
             ret = []

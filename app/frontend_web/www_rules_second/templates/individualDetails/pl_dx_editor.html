@@ -1,15 +1,16 @@
 	     <div class = 'detail-editor-heading'>Create/Edit Problem List Diagnosis Detail</div>
          <div>
 
-         This rule will
-         <select class="detail-input form-control" name="exists">
-              <option value="true" selected>be used only if </option>
-              <option value="False"> not be used if</option>
+
+         <select class="detail-input form-control attn-text" style ="min-width: 200px" name="exists">
+              <option value="true" selected>Alert the clinician only if </option>
+              <option value="false"> Do not alert the clinician if</option>
           </select>
-		 The patient's problem list contains the diagnosis <span class = 'search' role = 'snomed'></span>
+		    <p class = "attn-text"> The patient's problem list contains the diagnosis </p><span class = 'search' role = 'snomed'></span>
 	      </div>
-	      <div>
-          <br>
-		  <button class="btn btn-info confirm-detail-button">Confirm</button>
-          <button class="btn btn-info cancel-edit-button">Cancel</button>
+	      <div style = "clear:both">
+              <br>
+		    <button style = "float:left" class="btn btn-info cancel-edit-button">Cancel</button>
+            <button style = "float:right" class="btn btn-info confirm-detail-button">Confirm</button>
 	      </div>
+          <div style = "clear:both"></div>

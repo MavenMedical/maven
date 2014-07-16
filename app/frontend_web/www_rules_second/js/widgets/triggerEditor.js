@@ -62,7 +62,10 @@ define([
                 $.extend( t, {'type': "CPT"})
             this.availModel.fetch({data:$.param(t)})
         },
-
+        loadAvailChildren: function(){
+            console.log(this.availModel)
+            this.availableBox.loadChildren()
+        },
 
 
 
@@ -113,11 +116,12 @@ define([
             return this;
         },
         events: {
-	    "click #addTriggerButton" : 'addSelected',
-        "click #removeTriggerButton" : removeSelected,
-        "click #searchTriggers" : 'populateBySearch',
-        "keypress #triggerSearch": 'keyDownSearch'
-
+            "click #addTriggerButton" : 'addSelected',
+            "click #removeTriggerButton" : removeSelected,
+            "click #searchTriggers" : 'populateBySearch',
+            "keypress #triggerSearch": 'keyDownSearch',
+            "dblclick .available-triggers": 'addSelected',
+            "click #zoom-in-button": 'loadAvailChildren'
 	    }
     });
 
