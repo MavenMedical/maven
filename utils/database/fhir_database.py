@@ -272,7 +272,9 @@ def construct_encounter_orders_from_db(composition, conn):
                 FHIR_procedure = FHIR_API.Procedure(text=result[11],
                                                     name=result[11],
                                                     type=FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(system=result[17],
-                                                                                                          code=result[16])],
+                                                                                                          code=result[16]),
+                                                                                          FHIR_API.Coding(system="clientEMR",
+                                                                                                          code=result[6])],
                                                                                   text="Procedure"))
                 rtn_encounter_orders.append(FHIR_API.Order(identifier=[FHIR_API.Identifier(system="clientEMR",
                                                                                            value=result[1],
@@ -284,7 +286,9 @@ def construct_encounter_orders_from_db(composition, conn):
                 FHIR_medication = FHIR_API.Medication(text=result[11],
                                                       name=result[1],
                                                       code=FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(system="rxnorm",
-                                                                                                            code=result[18])],
+                                                                                                            code=result[18]),
+                                                                                            FHIR_API.Coding(system="clientEMR",
+                                                                                                            code=result[6])],
                                                                                     text="Medication"))
                 rtn_encounter_orders.append(FHIR_API.Order(detail=[FHIR_medication],
                                                            date=result[15],

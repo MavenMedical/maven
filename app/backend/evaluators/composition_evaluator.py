@@ -34,6 +34,7 @@ import json
 import math
 from collections import defaultdict
 import maven_config as MC
+import maven_logging as ML
 from utils.database.database import AsyncConnectionPool, MappingUtilites
 import utils.database.fhir_database as FHIR_DB
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
@@ -90,7 +91,7 @@ class CompositionEvaluator(SP.StreamProcessor):
 
         #Debug Message
         comp_json = json.dumps(composition, default=FHIR_API.jdefault, indent=4)
-        print(json.dumps(FHIR_API.remove_none(json.loads(comp_json)), default=FHIR_API.jdefault, indent=4))
+        ML.DEBUG(json.dumps(FHIR_API.remove_none(json.loads(comp_json)), default=FHIR_API.jdefault, indent=4))
 
         #Send message back to data_router (or aggregate)
         self.write_object(composition, writer_key='aggregate')
@@ -98,6 +99,8 @@ class CompositionEvaluator(SP.StreamProcessor):
     def _add_alerts_section(self, composition):
         composition.section.append(FHIR_API.Section(title="Maven Alerts", code=FHIR_API.CodeableConcept(text="Maven Alerts", coding=[FHIR_API.Coding(system="maven",
                                                                                                                                                      code="alerts")])))
+
+
     ##########################################################################################
     ##########################################################################################
     ##########################################################################################
@@ -123,6 +126,16 @@ class CompositionEvaluator(SP.StreamProcessor):
             #Add the fully-matched FHIR Procedure/Medication(s) to the Composition Order
             order.detail.extend(detail_orders)
 
+
+    ##########################################################################################
+    ##########################################################################################
+    ##########################################################################################
+    #####
+    ##### DETECT ORDER EVENTS (REMOVED/CANCELED/COMPLETED/ETC)
+    #####
+    ##########################################################################################
+    ##########################################################################################
+    ##########################################################################################
     @asyncio.coroutine
     def detect_canceled_deleted_orders(self, composition):
 
@@ -130,11 +143,10 @@ class CompositionEvaluator(SP.StreamProcessor):
         orders_from_db = yield from FHIR_DB.construct_encounter_orders_from_db(composition, self.conn)
 
         #FIRST CHECK: Check the internal IDs to see if there's overlap (this won't work for VistA, which reuses internal order IDs)
-        new_orders_clientEMR_IDs = [(order.get_clientEMR_uuid()) for order in composition.get_encounter_orders()]
-        old_orders_clientEMR_IDs = [(order.get_clientEMR_uuid()) for order in orders_from_db]
+        new_orders_clientEMR_IDs = [(order.get_clientEMR_uuid(), order.get_orderable_ID()) for order in composition.get_encounter_orders()]
+        old_orders_clientEMR_IDs = [(order.get_clientEMR_uuid(), order.get_orderable_ID()) for order in orders_from_db]
 
         missing_orders = [old_order for old_order in old_orders_clientEMR_IDs if old_order not in new_orders_clientEMR_IDs]
-
 
 
     ##########################################################################################
@@ -413,7 +425,7 @@ def run_composition_evaluator():
         {
             SP.CONFIG_HOST:'localhost',
             SP.CONFIG_QUEUE:'logger_work_queue',
-            SP.CONFIG_EXCHANGE:'maven_exchange',
+            SP.CONFIG_EXCHANGE:'fanout_evaluator',
             SP.CONFIG_KEY:'logging',
             SP.CONFIG_WRITERKEY:'logging',
         },

@@ -771,6 +771,10 @@ class _RabbitWriter(_BaseWriter):
         try:
             self.conn = amqp.Connection(self.host)
             self.chan = self.conn.channel()
+
+            if self.exchange == 'fanout_evaluator':
+                self.chan.exchange_declare(exchange=self.exchange,
+                                           type='fanout')
         except:
             traceback.print_exc()
             raise
