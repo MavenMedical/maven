@@ -106,7 +106,7 @@ if not 'MAVEN_TESTING' in os.environ:
     if os.path.isfile('/etc/mavenmedical/logging.config'):
         logging.config.fileConfig('/etc/mavenmedical/logging.config')
     else:
-        root.setLevel(logging.DEBUG)
+        root.setLevel(logging.INFO)
         handler = logging.StreamHandler()
         handler.setFormatter(logging.Formatter(
             '%(asctime)s     %(levelname)s\t%(process)d\t%(filename)s:%(lineno)d\t%(message)s'))
