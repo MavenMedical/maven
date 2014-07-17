@@ -1,4 +1,4 @@
-  -- Step 1:  Confirm database backend evalRules function configured for customer
+ -- Step 1:  Confirm database backend evalRules function configured for customer
  -- Step 2:  Send HTML message matching any of Step 1s ASSERT configurations (alerts fired)
  --
  --     these tests back_end function rules.evalrules is matching/returning Choosing Wisely Alerts
@@ -19,12 +19,18 @@
 --   $6   [probSnomeds]
 --   $7   patient
 --   $8   customer
- --
- --
- -- assumes rules.evirules has row with name='AAO 1', and corresponding rows in rules.trigcodes and rules.codelists
- --   display content of key tables before testing rules to confirm test environment contains expected values
- -- 
-  -- evirule contents
+--
+--  submit bug report for composition evaluator to pass F not female
+--
+--  ICD 388.2 is encounter diagnosis in HTML testing file....79471008 encSnomed in this test
+--  ICD 959.01 is PL in HTML file probSnomed 16397004 in problem list
+-- assumes rules.evirules has row with name='AAO 1', and corresponding rows in rules.trigcodes and rules.codelists
+--   display content of key tables before testing rules to confirm test environment contains expected values
+-- 
+SELECT NOW() as Start;
+-- terminology.codemap contents...for endToEnd crosswalk with  EHR-HTML
+SELECT  * from terminology.codemap where code in ('388.2','959.01'); /* EXPECT  79471008,ICD-9,388.2     82271004,ICD-9,959.01 */
+-- evirule contents
 SELECT * from rules.evirule where name='AAO 1';      /* EXPECT 5809;,AAO 1",0.00,200.00,%,HCPCS,{"details":[]} */
  --
  -- trigcodes contents
@@ -37,25 +43,28 @@ SELECT * from rules.codelists where ruleid=(select ruleid from rules.evirule whe
  --
  -- alert_config contents…truncate table
  -- 
+-- reset enc_pl_dx
+UPDATE rules.codelists set intlist=ARRAY[16397004,82271004] where ruleid=(select ruleid from rules.evirule where name='AAO 1') and listtype='enc_pl_dx';
+--
 TRUNCATE alert_config;
   -- All Tests should return boolean of T
-SELECT (count(*)=0)  as tst_01_AlertConfigForCustomer_Fail from rules.evalrules('70470', 'HCPCS', '11.52', 'FEMALE', ARRAY[79471008], ARRAY[1], '1235412', 1, ARRAY[]::CHARACTER[]);
+SELECT (count(*)=0)  as tst_01_AlertConfigForCustomer_Fail from rules.evalrules('70470', 'HCPCS', '11.52', 'F', ARRAY[79471008], ARRAY[1], '1235412', 1, ARRAY[]::CHARACTER[]);
  --
  -- add row to alert_config with -1 validation status
 INSERT INTO alert_config(customer_id, category, rule_id, validation_status)   VALUES (1, 'CDS', (select ruleid from rules.evirule where name='AAO 1'), -1);
-SELECT (count(*)=0)  as tst_02_noAlertConfigGTzero_Fail from rules.evalrules('70470', 'HCPCS', '11.52', 'FEMALE', ARRAY[79471008], ARRAY[1], '1235412', 1, ARRAY[]::CHARACTER[]);
+SELECT (count(*)=0)  as tst_02_noAlertConfigGTzero_Fail from rules.evalrules('70470', 'HCPCS', '11.52', 'F', ARRAY[79471008], ARRAY[1], '1235412', 1, ARRAY[]::CHARACTER[]);
  -- set alert_config validation status to 400…now reportable in workflow
  --
 UPDATE alert_config set validation_status=100 where rule_id=(select ruleid from rules.evirule where name='AAO 1');
-SELECT (count(*)=1) as tst_03_AlertConfigTrigCodelistMatch_Assert from rules.evalrules('70470', 'HCPCS', '11.52', 'FEMALE', ARRAY[79471008], ARRAY[1], '1235412', 1, ARRAY[]::CHARACTER[]);
-SELECT (count(*)=0) as tst_04_nullEncounter_Fail from rules.evalrules('70470', 'HCPCS', '11.52', 'FEMALE', ARRAY[]::integer[], ARRAY[1], '1235412', 1, ARRAY[]::CHARACTER[]);
-SELECT (count(*)=0) as tst_05_matchEncounter_Fail from rules.evalrules('70470', 'HCPCS', '11.52', 'FEMALE', ARRAY[1], ARRAY[1], '1235412', 1, ARRAY[]::CHARACTER[]);
-SELECT (count(*)=1) as tst_06_nullProblemMatch_Assert  from rules.evalrules('70470', 'HCPCS', '11.52', 'FEMALE', ARRAY[79471008], ARRAY[]::integer[], '1235412', 1, ARRAY[]::CHARACTER[]);
-SELECT (count(*)=0) as tst_07_ProblemMatch_Fail from rules.evalrules('70470', 'HCPCS', '11.52', 'FEMALE', ARRAY[79471008], ARRAY[16397004], '1235412', 1, ARRAY[]::CHARACTER[]);
+SELECT (count(*)=1) as tst_03_AlertConfigTrigCodelistMatch_Assert from rules.evalrules('70470', 'HCPCS', '11.52', 'F', ARRAY[79471008], ARRAY[1], '1235412', 1, ARRAY[]::CHARACTER[]);
+SELECT (count(*)=0) as tst_04_nullEncounter_Fail from rules.evalrules('70470', 'HCPCS', '11.52', 'F', ARRAY[]::integer[], ARRAY[1], '1235412', 1, ARRAY[]::CHARACTER[]);
+SELECT (count(*)=0) as tst_05_matchEncounter_Fail from rules.evalrules('70470', 'HCPCS', '11.52', 'F', ARRAY[1], ARRAY[1], '1235412', 1, ARRAY[]::CHARACTER[]);
+SELECT (count(*)=1) as tst_06_nullProblemMatch_Assert  from rules.evalrules('70470', 'HCPCS', '11.52', 'F', ARRAY[79471008], ARRAY[]::integer[], '1235412', 1, ARRAY[]::CHARACTER[]);
+SELECT (count(*)=0) as tst_07_ProblemMatch_Fail from rules.evalrules('70470', 'HCPCS', '11.52', 'F', ARRAY[79471008], ARRAY[82271004], '1235412', 1, ARRAY[]::CHARACTER[]);
  -- add diagnostic SNOMED to enc_pl_dx (fails if encounter OR problem list dx)
  --
-UPDATE rules.codelists set intlist=ARRAY[16397004,79471008] where ruleid=(select ruleid from rules.evirule where name='AAO 1') and listtype='enc_pl_dx';
-SELECT (count(*)=0) as tst_08_enc_in_enc_pl_Match_Fail from rules.evalrules('70470', 'HCPCS', '11.52', 'FEMALE', ARRAY[79471008], ARRAY[1], '1235412', 1, ARRAY[]::CHARACTER[]);
+UPDATE rules.codelists set intlist=ARRAY[79471008,16397004,82271004] where ruleid=(select ruleid from rules.evirule where name='AAO 1') and listtype='enc_pl_dx';
+SELECT (count(*)=0) as tst_08_enc_in_enc_pl_Match_Fail from rules.evalrules('70470', 'HCPCS', '11.52', 'F', ARRAY[79471008], ARRAY[1], '1235412', 1, ARRAY[]::CHARACTER[]);
  -- reset enc_pl_dx
-UPDATE rules.codelists set intlist=ARRAY[16397004] where ruleid=(select ruleid from rules.evirule where name='AAO 1') and listtype='enc_pl_dx';
-
+UPDATE rules.codelists set intlist=ARRAY[16397004,82271004] where ruleid=(select ruleid from rules.evirule where name='AAO 1') and listtype='enc_pl_dx';
+SELECT NOW() as Finish;

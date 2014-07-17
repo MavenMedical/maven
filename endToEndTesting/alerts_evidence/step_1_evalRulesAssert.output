@@ -1,3 +1,14 @@
+             start             
+-------------------------------
+ 2014-07-17 15:32:47.996876-04
+(1 row)
+
+ snomedid | codetype |  code  
+----------+----------+--------
+ 79471008 | ICD-9    | 388.2
+ 82271004 | ICD-9    | 959.01
+(2 rows)
+
  ruleid | name  | minage | maxage | sex | codetype | remainingdetails | fullspec | comments 
 --------+-------+--------+--------+-----+----------+------------------+----------+----------
    5809 | AAO 1 |   0.00 | 200.00 | %   | HCPCS    | {"details":[]}   |          | 
@@ -8,12 +19,13 @@
    5809 | 70470
 (1 row)
 
- ruleid | listtype  | isintersect |  intlist   | strlist | framemin | framemax 
---------+-----------+-------------+------------+---------+----------+----------
-   5809 | enc_dx    | t           | {79471008} |         |   -99999 |        0
-   5809 | enc_pl_dx | f           | {16397004} |         |   -99999 |        0
+ ruleid | listtype  | isintersect |       intlist       | strlist | framemin | framemax 
+--------+-----------+-------------+---------------------+---------+----------+----------
+   5809 | enc_dx    | t           | {79471008}          |         |   -99999 |        0
+   5809 | enc_pl_dx | f           | {16397004,82271004} |         |   -99999 |        0
 (2 rows)
 
+UPDATE 1
 TRUNCATE TABLE
  tst_01_alertconfigforcustomer_fail 
 ------------------------------------
@@ -59,3 +71,8 @@ UPDATE 1
 (1 row)
 
 UPDATE 1
+            finish             
+-------------------------------
+ 2014-07-17 15:32:48.299407-04
+(1 row)
+
