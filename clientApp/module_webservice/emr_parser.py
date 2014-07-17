@@ -403,7 +403,7 @@ class VistaParser():
             prob.abatementBoolean = False
 
         hosp = xml_root.findall(".//IsHospitalProblem")[0].text
-        if hosp is not None and "true" in hosp.lower():
+        if hosp is not None and hosp.lower() == "false":
             prob.category = "Problem List"
         else:
             prob.category = "Encounter"
