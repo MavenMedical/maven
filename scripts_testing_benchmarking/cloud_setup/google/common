@@ -20,4 +20,10 @@ sudo yum install pgdg-centos93-9.3-1.noarch.rpm -y
 #sudo sed -i -e 's/ChallengeResponseAuthentication no/ChallengeResponseAuthentication yes/' /etc/ssh/sshd_config
 #sudo service sshd restart
 
+sudo usermod -a -G adm devel
+echo "/var/log/audit /var/log/messages /var/log/secure /tmp/maven" | sudo tee /etc/mavenmedical/logs
 
+# user crontab -e to run this once (or more often) per day
+#env PATH=/usr/bin:/usr/local/bin gsutil cp -R -z -n `cat /etc/mavenmedical/logs` gs://maven-medical/logs/
+
+# next, setup default logging and configuration scripts
