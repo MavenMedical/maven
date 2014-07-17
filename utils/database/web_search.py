@@ -90,6 +90,19 @@ class web_search():
                 ret.append({'id': int(row[0]), 'term': row[1], 'code': int(row[0]), 'type' : 'snomed'})
             return ret
 
+        if (search_type == "snomed_zoom_out"):
+            cmd_args = []
+            cmd = []
+            cmd.append("SELECT DISTINCT max(conceptid) as code, max(term) as term FROM terminology.descriptions AS a INNER JOIN terminology.relationships as b on a.conceptid = b.destinationid WHERE b.sourceid = %s AND b.relationshipgroup = 0 GROUP BY conceptid")
+            cmd_args.append(search_str)
+            ret = []
+            results = yield from self.db.execute_single((' '.join(cmd)), cmd_args)
+            if(results.rowcount == 0):
+                return EMPTY_RETURN
+            for row in results:
+                ret.append({'id': int(row[0]), 'term': row[1], 'code': int(row[0]), 'type' : 'snomed'})
+            return ret
+
         elif (search_type.split("_")[0] == "snomed" ):
 
             print("QUERYING")

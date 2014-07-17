@@ -56,7 +56,6 @@ define([
       ruleModel.clearData();
       ruleModel.set({name: name}, {silent: true});
       $('.tab-pane').removeClass('active')
-        console.log($('#Overview-Tab'))
       $('a[href="#Overview-Tab"]').tab('show');
       $('.overview-tab').addClass('active')
       ruleModel.save({}, {success: function(){
@@ -98,7 +97,6 @@ define([
 	    // propagate is like change, but UI driven, and coming from descendents
 	    var type = model.get("type");
 	    //ruleModel.trigger("propagate:"+type, ruleModel);
-	    console.log("propagating: "+type+", "+JSON.stringify(model));
 	    // If users will explicitly save, delete this line and replace with a save button trigger.
 	  //  this.save();
 	}

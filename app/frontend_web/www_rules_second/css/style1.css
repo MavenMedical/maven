@@ -27,6 +27,17 @@
 .attn-text{
     font-size: 200%;
     height: auto;
+    width: auto;
+}
+.detail-input{
+    width: auto;
+     font-size: 130%;
+    height: auto;
+}
+.attn-text-small{
+    font-size: 130%;
+    height: auto;
+    width: auto
 }
 html, body {
     padding:0px;

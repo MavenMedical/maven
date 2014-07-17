@@ -63,10 +63,12 @@ define([
             this.availModel.fetch({data:$.param(t)})
         },
         loadAvailChildren: function(){
-            console.log(this.availModel)
             this.availableBox.loadChildren()
         },
-
+        loadAvailParents: function(){
+            alert('load avail parents')
+            this.availableBox.loadParents()
+        },
 
 
         template: _.template(ruleListTemplate),
@@ -84,7 +86,6 @@ define([
                 this.availModel.reset();
             }, this)
              this.routeBox = new routeListBox({el: $('.route-list',  this.el)});
-             console.log("route Box", this.routeBox)
             curRule.on('change:triggerType', function(){
                 if (curRule.get('triggerType')=='NDC'){
                      this.routeBox.$el.show()
@@ -121,7 +122,8 @@ define([
             "click #searchTriggers" : 'populateBySearch',
             "keypress #triggerSearch": 'keyDownSearch',
             "dblclick .available-triggers": 'addSelected',
-            "click #zoom-in-button": 'loadAvailChildren'
+            "click #zoom-in-button": 'loadAvailChildren',
+            "click #zoom-out-button": "loadAvailParents"
 	    }
     });
 

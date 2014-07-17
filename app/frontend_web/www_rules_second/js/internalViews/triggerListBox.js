@@ -44,7 +44,11 @@ define([
 
         },
         loadParents: function(snomed){
-            console.log(snomed)
+            var snomed = $("option:selected", this.$el)[0].value
+            var t = contextModel.toParams();
+            $.extend( t, {'search_param': snomed})
+            $.extend( t, {'type': "snomed_zoom_out"});
+            this.collection.fetch({data:$.param(t)})
 
         },
         render: function(){

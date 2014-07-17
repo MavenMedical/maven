@@ -33,7 +33,6 @@ define([
             return this;
         },
     	handleRemove: function() {
-            console.log("parent", this.parent, "this", this.model)
 
             this.parent.remove(this.model);
     	}

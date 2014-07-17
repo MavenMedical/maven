@@ -41,8 +41,6 @@ define([
 
             };
             var editRow = function(toEdit){
-                console.log("edit row called")
-                console.log(toEdit);
                 that.model.get('myOverview').set('RuleOverview' ,new RuleOverview(toEdit));
 
 
@@ -50,7 +48,6 @@ define([
             var html = this.template({});
             this.$el.html(html);
             $("#addRuleButton")[0].onclick = function(){
-                console.log("add rule activated by click?");
                 that.model.addRule(new Rule());
                 that.render();
 

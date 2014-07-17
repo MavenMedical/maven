@@ -24,13 +24,12 @@ define([
              detailsOverviewTemplate,  detailSection) {
     var createDetail = function(){
         var selected = $('.detail-selector').val();
-        var text_code = _.invert(Helpers.detailHeadings)[selected];
+        var text_code = _.invert(Helpers.detailDescriptions)[selected];
         require(['text!/templates/individualDetails/' + text_code + '_editor.html'],
             function(curTemplate) {
                   var newModel;
                     newModel = new Backbone.Model({});
 
-                    console.log(toTemplate);
                     var toTemplate = _.template(curTemplate);
 		    	    var curView = new DetailEditor({model: newModel, el:$('#modal-target'), newDetail: true, template: toTemplate, type: text_code});
                     $('#detail-modal').modal('show');
@@ -68,7 +67,6 @@ define([
                         $('.detail-sections', this.$el).show()
                         var context = this;
 
-                        console.log("key", key);
                         require (['text!/templates/individualDetails/' + key + 'Detail.html'], function(key) {return  function(curTemplate){
                              var toList = curRule.get(key);
                              var toHeading = Helpers.detailHeadings[key];
