@@ -167,6 +167,10 @@ class WebPersistence():
     def update_password(self, user, newpw, timeout = '180d'):
         yield from self.execute(["UPDATE users set (pw, pw_expiration) = (%s, now() + interval %s) where user_id = %s"],
                                 [newpw, timeout, user], {}, {})
+    @asyncio.coroutine
+    def update_user_settings(self, user, officialname,displayname):
+        yield from self.execute(["UPDATE users set (official_name, display_name) = (%s, %s) where user_id = %s"],
+                                [officialname, displayname, user], {}, {})
 
     @asyncio.coroutine
     def record_login(self, username, method, ip, authkey):

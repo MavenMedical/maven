@@ -42,6 +42,8 @@ CONTEXT_PATIENTNAME = 'patientname'
 CONTEXT_STARTDATE = 'startdate'
 CONTEXT_ENDDATE = 'enddate'
 CONTEXT_CATEGORIES = 'categories'
+CONTEXT_OFFICIALNAME = 'official_name'
+CONTEXT_DISPLAYNAME = 'display_name'
 
 LOGIN_TIMEOUT = 60 * 60  # 1 hour
 AUTH_LENGTH = 44  # 44 base 64 encoded bits gives the entire 256 bites of SHA2 hash
@@ -144,9 +146,27 @@ class FrontendWebService(HTTP.HTTPProcessor):
             traceback.print_exc()
             raise LoginError('expiredPassword')
 
+    settings_required_contexts = [CONTEXT_USER, CONTEXT_CUSTOMERID, CONTEXT_OFFICIALNAME, CONTEXT_DISPLAYNAME]
+    settings_available_contexts = {CONTEXT_USER: str, CONTEXT_CUSTOMERID: int, CONTEXT_OFFICIALNAME:str, CONTEXT_DISPLAYNAME:str}
+
     @asyncio.coroutine
     def save_user_settings(self, _header, _body, qs, _matches, _key):
-        return HTTP.OK_RESPONSE, json.dumps(['SETTINGS']), None
+        context = self.helper.restrict_context(qs,
+                                               FrontendWebService.settings_required_contexts,
+                                               FrontendWebService.settings_available_contexts)
+
+        userid = context[CONTEXT_USER]
+        customerid = context[CONTEXT_CUSTOMERID]
+        officialname = context[CONTEXT_OFFICIALNAME]
+        displayname = context[CONTEXT_DISPLAYNAME]
+
+        result = yield from self.persistence_interface.update_user_settings(userid,
+                                                                          officialname, displayname)
+        if result:
+            return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
+        else:
+            return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
+
 
     @asyncio.coroutine
     def post_login(self, header, body, _qs, _matches, _key):
