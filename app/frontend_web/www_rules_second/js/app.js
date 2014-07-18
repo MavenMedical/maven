@@ -14,10 +14,13 @@ define([
     'widgets/triggerEditor',
     'widgets/detailOverview',
     'widgets/evidenceEditor',
-    'widgets/SourceManager'
+    'widgets/SourceManager',
+    'libs/slider/bootstrap-slider'
+
 //    'widgets/triggerList',
-], function ($, _, Backbone, Bootstrap, contextModel, curRule,  RuleList, RuleOverview, TriggerEditor, DetailOverview, EvidenceEditor, SourceManager) {//, TriggerList) {
+], function ($, _, Backbone, Bootstrap, contextModel, curRule,  RuleList, RuleOverview, TriggerEditor, DetailOverview, EvidenceEditor, SourceManager, Slider) {//, TriggerList) {
     var initialize = function () {
+
         $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
             options.url = 'rule_services' + options.url;
         });

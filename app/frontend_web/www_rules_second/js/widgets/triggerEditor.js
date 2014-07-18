@@ -66,7 +66,6 @@ define([
             this.availableBox.loadChildren()
         },
         loadAvailParents: function(){
-            alert('load avail parents')
             this.availableBox.loadParents()
         },
 

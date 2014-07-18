@@ -67,8 +67,9 @@ define([
                             }
                         })
                     }
+                    console.log(cur.getAttribute('name'))
+                    panel.model.set(cur.getAttribute('name'), cur.value);
 
-                    panel.model.set(cur.name, cur.value);
 
 
                 }

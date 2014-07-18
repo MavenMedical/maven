@@ -1,35 +1,31 @@
-<div style="position:relative; min-height:300px;">
-    <div>
-        <div style = "text-align: center; float:left">
+<div id = "parentbox" style ="clear: both">
+    <div id="availselectorbox" style=" float:left; height: 100%; width: 40%">
             <h3 style="clear:both; text-align:center">Select from This List</h3>
-                    <div class="col-lg-6">
+                    <div class="col-lg-6" style = "width:100%">
                     <div class="input-group">
-                        <input  class = "form-control search-input"  style ="width:440px">
+                        <input  class = "form-control search-input" >
                       <span class="input-group-btn">
                         <button class="btn btn-default search-button">Search Loinc</button>
                       </span>
                     </div>
                     </div>
+            <div style = "clear:both; width:100%" class="available-items search-list loinc-list-box">The Available Items go Here</div>
 
-            <div style = "clear:both" class="available-items search-list">The Available Items go Here</div>
+         </div>
+                <div style="float:left; width:3%"></div>
 
-            </div>
-        <div style = "float:left; height:1px; width:15px"></div>
-        <div style = "float:left;">
-            <div style = "clear:both; height:170px"></div>
-            <button class="btn btn-default add-item-button" style = "vertical-align: middle; clear:both; width:70px">Add</button>
-            <br>
-            <button  class="btn btn-default remove-item-button" style = "vertical-align: middle; clear:both "i>Remove</button>
+        <div id ="buttonsbox" style = "text-align:center; float:left; width:15%">
+            <div style="height:100px; clear:both"></div>
+            <button class="btn btn-default add-item-button" style = "vertical-align: middle; width:70px">Add</button>
+            <button  class="btn btn-default remove-item-button" style = "vertical-align: middle;">Remove</button>
 
         </div>
-        <div style = "float:left; height:1px; width:15px;"></div>
-        <div style = "float:left">
+                    <div style="float:left; width:3%"></div>
+
+        <div id = "selecteditemsbox" style = "float:left; width:40%; height:100%">
              <h3 style="clear:both; text-align:center">Selected Items</h3>
-             <br>
-             <br>
-
-             <div class="selected-items search-list">Currently Loaded Items go here</div></div>
+            <br>
+             <div style ="float: left; width:100%"class="selected-items search-list loinc-list-box">Currently Loaded Items go here</div>
         </div>
-    <div style=" clear:both; height:15px"></div>
 
 </div>

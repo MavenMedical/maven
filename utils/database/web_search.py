@@ -37,7 +37,8 @@ class web_search():
         if (not search_str):
             return EMPTY_RETURN
         if (search_type == "CPT"):
-            cmd.append("SELECT DISTINCT a.cpt_code, a.name FROM public.orderable as a WHERE a.customer_id = -1 AND ord_type = 'Proc' AND to_tsvector('maven', a.name) @@  plainto_tsquery('maven', %s) ORDER BY a.name ASC LIMIT 100 ")
+            cmd.append("SELECT DISTINCT a.cpt_code, a.name FROM public.orderable as a WHERE a.customer_id = -1 AND ord_type = 'Proc' AND (to_tsvector('maven', a.name) @@  plainto_tsquery('maven', %s) OR a.cpt_code = %s) ORDER BY a.name ASC LIMIT 100 ")
+            cmd_args.append(search_str)
             cmd_args.append(search_str)
             results = yield from self.db.execute_single((' '.join(cmd)), cmd_args)
             ret = []
@@ -52,13 +53,14 @@ class web_search():
         if (search_type == "snomed_basic"):
             cmd.append("SET enable_seqscan = off;")
             cmd.append("SELECT x.ancestor, min(x.term),count(*) FROM  (SELECT  b.ancestor,a.term FROM terminology.descriptions a, terminology.conceptancestry b")
-            cmd.append("where to_tsvector('maven',term) @@ plainto_tsquery('maven', %s)")
-            cmd.append("and active=1 and languagecode='en'")
-            cmd.append("and a.conceptid=b.ancestor) as x")
+            cmd.append("WHERE (to_tsvector('maven',term) @@ plainto_tsquery('maven', %s) OR conceptid = %s)")
+            cmd.append("AND active=1 and languagecode='en'")
+            cmd.append("AND a.conceptid=b.ancestor) as x")
             cmd.append("GROUP BY")
             cmd.append("x.ancestor")
             cmd.append("ORDER BY count DESC")
             cmd.append("LIMIT 25")
+            cmd_args.append(search_str)
             cmd_args.append(search_str)
             results = yield from self.db.execute_single((' '.join(cmd)), cmd_args)
             if(results.rowcount == 0):
@@ -108,7 +110,7 @@ class web_search():
             print("QUERYING")
             cmd.append("SET enable_seqscan = off;")
             cmd.append("SELECT x.ancestor, min(x.term),count(*) FROM  (SELECT  b.ancestor,a.term FROM terminology.descriptions a, terminology.conceptancestry b")
-            cmd.append("WHERE to_tsvector('maven',term) @@ plainto_tsquery('maven', %s)")
+            cmd.append("WHERE (to_tsvector('maven',term) @@ plainto_tsquery('maven', %s))")
             cmd.append("AND active=1 and languagecode='en'")
             cmd.append("AND a.conceptid  = b.ancestor")
             cmd.append("AND a.conceptid IN (SELECT child FROM terminology.conceptancestry b WHERE b.ancestor = %s)) AS x")
@@ -135,10 +137,10 @@ class web_search():
         if (search_type == "loinc"):
 
 
-            cmd.append("SELECT loinc_num, component FROM terminology.loinc WHERE to_tsvector('maven', component) @@ plainto_tsquery('maven', %s)")
+            cmd.append("SELECT loinc_num, component FROM terminology.loinc WHERE to_tsvector('maven', component) @@ plainto_tsquery('maven', %s) OR loinc_num = %s ")
             cmd.append("LIMIT 50")
             cmd_args.append(search_str)
-
+            cmd_args.append(search_str)
             ret = []
             results = yield from self.db.execute_single(' '.join(cmd), cmd_args )
             if(results.rowcount == 0):

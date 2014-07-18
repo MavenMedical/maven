@@ -43,7 +43,7 @@ define([
             this.collection.fetch({data:$.param(t)})
 
         },
-        loadParents: function(snomed){
+        loadParents: function(){
             var snomed = $("option:selected", this.$el)[0].value
             var t = contextModel.toParams();
             $.extend( t, {'search_param': snomed})

@@ -114,7 +114,7 @@ define([
 
     ruleModel = new RuleModel;
     ruleModel.set('triggers', new Backbone.Collection);
-    ruleModel.set({triggerType: 'HCPCS', genders:'MF', minAge:'0', maxAge:'200'}, {silent:true});
+    ruleModel.set({triggerType: 'HCPCS', genders:'%', minAge:'0', maxAge:'200'}, {silent:true});
 
     // if the ruleModel's id changes (on a POST), update the contextModel with that id
 
