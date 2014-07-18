@@ -623,15 +623,20 @@ def get_matching_CDS_rules(composition, conn):
                     composition.customer_id,
                     patient_meds]
 
-            cur = yield from conn.execute_single("select * from rules.evalrules(%s,%s,%s,%s,%s,%s,%s,%s,%s)", extra=args)
+            cur = yield from conn.execute_single("SELECT * FROM rules.evalrules(%s,%s,%s,%s,%s,%s,%s,%s,%s)", extra=args)
 
             for result in cur:
+                full_spec = json.loads(result[4])
                 rtn_matched_rules.append(FHIR_API.Rule(rule_details=result[2],
                                                        CDS_rule_id=result[0],
                                                        CDS_rule_status=result[3],
                                                        code_trigger=trigger_code.code,
                                                        code_trigger_type=trigger_code.system,
-                                                       name=result[1]))
+                                                       name=result[1],
+                                                       short_title=full_spec['evidence']['short-title'],
+                                                       short_description=full_spec['evidence']['short-description'],
+                                                       long_title=full_spec['evidence']['long-title'],
+                                                       long_description=full_spec['evidence']['long-description']))
         return rtn_matched_rules
     except:
         raise Exception("Error extracting CDS rules from database")
