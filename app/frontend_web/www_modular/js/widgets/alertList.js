@@ -41,7 +41,7 @@ define([
 	    var alertlist = $('.alertlist', this.$el);
         setTimeout(function() {
             var alertHeight = alertlist.innerHeight();
-            if (alertHeight > 0 && orderHeight < parseInt(alertlist.css('max-height'))) {
+            if (alertHeight > 0 && alertHeight < parseInt(alertlist.css('max-height'))) {
                 alertCollection.more();
             }
         },500);
