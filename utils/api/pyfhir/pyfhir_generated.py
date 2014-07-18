@@ -4866,8 +4866,9 @@ class ValueSet(Resource):
         
 class Rule(Resource):
 
-    def __init__(self, customer_id=None, CDS_rule_id=None, CDS_rule_status=None, code_trigger=None, code_trigger_type=None, dep_id=None, name=None, long_title=None,
-                 short_description=None, long_description=None, rule_details=None):
+    def __init__(self, customer_id=None, CDS_rule_id=None, CDS_rule_status=None, code_trigger=None, code_trigger_type=None,
+                 dep_id=None, name=None, short_title=None, long_title=None, short_description=None, long_description=None,
+                 rule_details=None):
         Resource.__init__(self, customer_id=customer_id)
         self.CDS_rule_id = CDS_rule_id
         self.CDS_rule_status = CDS_rule_status
@@ -4875,7 +4876,7 @@ class Rule(Resource):
         self.code_trigger_type = code_trigger_type
         self.dep_id = dep_id
         self.name = name
-        self.short_title = name
+        self.short_title = short_title
         self.long_title = long_title
         self.short_description = short_description
         self.long_description = long_description

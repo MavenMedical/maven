@@ -22,6 +22,7 @@ import maven_config as MC
 import maven_logging as ML
 import urllib
 import urllib.parse
+import html
 import math
 import jinja2
 from utils.enums import CDS_ALERT_STATUS
@@ -185,8 +186,8 @@ class NotificationGenerator():
             if alert.status < CDS_ALERT_STATUS.debug_alert.value:
                 break
 
-            templateVars = {"alert_tag_line" : alert.short_title,
-                            "alert_description" : alert.long_description,
+            templateVars = {"alert_tag_line" : html.escape(alert.short_title),
+                            "alert_description" : html.escape(alert.short_description),
                             "http_address" : MC.http_addr,
                             "encounter_id" : csn,
                             "patient_id" : patient_id,
@@ -217,8 +218,8 @@ class NotificationGenerator():
         if dup_order_alert_dict is not None and len(dup_order_alert_dict['alert_list']) > 0:
             for alert in dup_order_alert_dict['alert_list']:
 
-                templateVars = {"alert_tag_line" : alert.short_title,
-                                "alert_description" : alert.short_description,
+                templateVars = {"alert_tag_line" : html.escape(alert.short_title),
+                                "alert_description" : html.escape(alert.short_description),
                                 "http_address" : MC.http_addr,
                                 "encounter_id" : csn,
                                 "patient_id" : patient_id,

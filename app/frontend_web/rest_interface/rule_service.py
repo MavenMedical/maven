@@ -52,7 +52,13 @@ details = [{'type': 'pl_dx', 'id': '1'},
            {'type': "enc_dx", 'id': '4'},
            {'type': "enc_pl_dx", 'id': '5'},
            {'type': "hist_proc", 'id': '6'},
-           {'type': "ml_med", 'id': '7'}]
+           {'type': "ml_med", 'id': '7'},
+           {'type': "vitals", 'id': '8'}]
+
+@cache.cache_lookup(__name__)
+def get_med_routes(key):
+    raise KeyError(key)
+
 class RuleService(HTTP.HTTPProcessor):
     
     def __init__(self, configname):
@@ -76,11 +82,8 @@ class RuleService(HTTP.HTTPProcessor):
     @cache.cache_update(__name__, period_seconds=60*60*24, message_fn=lambda: ML.EXCEPTION("Failed to get med routes"))
     def update_med_routes(self):
         route_list = yield from self.search_interface.get_routes();
+        print("XXXXXXXXX")
         return {'routes': route_list}
-
-    @cache.cache_lookup(__name__)
-    def get_med_routes(self, key):
-        raise KeyError(key)
 
     @asyncio.coroutine
     def post_login(self, _header, body, _qs, _matches, _key):
@@ -212,7 +215,7 @@ class RuleService(HTTP.HTTPProcessor):
                                                RuleService.routes_required_context,
                                                RuleService.routes_available_context)
 
-        result = yield from self.get_med_routes('routes')
+        result = yield from get_med_routes('routes')
         return (HTTP.OK_RESPONSE, json.dumps(result), None)
 
     rule_required_context = [CONTEXT_USER, CONTEXT_RULEID]

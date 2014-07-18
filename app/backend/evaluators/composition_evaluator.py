@@ -352,10 +352,10 @@ class CompositionEvaluator(SP.StreamProcessor):
         code_trigger = rule.code_trigger
         CDS_rule = rule.CDS_rule_id
         alert_datetime = datetime.datetime.now()
-        short_title = rule.name
-        long_title = rule.name
-        short_description = rule.name
-        long_description = rule.name
+        short_title = rule.short_title
+        long_title = rule.long_title
+        short_description = rule.short_description
+        long_description = rule.long_description
         override_indications = ['Select one of these override indications boink']
         saving = 807.12
         category = "cds"
