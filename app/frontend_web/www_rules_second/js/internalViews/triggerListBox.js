@@ -29,22 +29,26 @@ define([
             this.$el.on('contextmenu', function(){
                 that.loadParents($("option:selected", that.$el)[0].value)
             })
-            this.$el.on('dblclick', function(){
-                that.loadChildren($("option:selected", that.$el)[0].value)
-
-
-            })
+//           this.$el.on('dblclick', function(){
+//               that.loadChildren(e)
+//
+//
+//            })
         },
-        loadChildren: function(snomed){
-            console.log(snomed)
+        loadChildren: function(){
+            var snomed = $("option:selected", this.$el)[0].value
             var t = contextModel.toParams();
             $.extend( t, {'search_param': snomed})
             $.extend( t, {'type': "snomed_zoom_in"});
             this.collection.fetch({data:$.param(t)})
 
         },
-        loadParents: function(snomed){
-            console.log(snomed)
+        loadParents: function(){
+            var snomed = $("option:selected", this.$el)[0].value
+            var t = contextModel.toParams();
+            $.extend( t, {'search_param': snomed})
+            $.extend( t, {'type': "snomed_zoom_out"});
+            this.collection.fetch({data:$.param(t)})
 
         },
         render: function(){

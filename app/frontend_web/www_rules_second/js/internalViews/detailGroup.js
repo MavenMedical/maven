@@ -32,7 +32,6 @@ define([
             var type = this.type;
 
             this.list.each(function(cur) {
-
                 this.$el.append(this.lineTemplate(cur.attributes))
 
                 $('.detail-item', this.$el).last()[0].onclick = function(){

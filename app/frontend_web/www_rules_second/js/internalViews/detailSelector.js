@@ -16,7 +16,6 @@ define([
         template: _.template(detailEntry),
         initialize: function(param){
             this.el = param.el;
-            console.log(this.$el);
             var anon =  Backbone.Collection.extend( {url: '/details?'});
             this.searchedDetails = new anon();
             contextModel.on('change:auth', this.other, this);
@@ -28,7 +27,6 @@ define([
         search: function(search_param){
             var panel = this;
             var t = contextModel.toParams();
-            console.log(t);
             t = $.extend(t , {'search_param': search_param});
             this.searchedDetails.fetch({data:$.param(t), success:function(){
                  panel.render();
@@ -40,7 +38,7 @@ define([
             var entryTemplate = _.template(detailEntry);
             for (var i in this.searchedDetails.models){
                 var cur = this.searchedDetails.models[i]
-                this.$el.append(entryTemplate({id:cur.get('id'), type:Helpers.detailHeadings[cur.get('type')]}));
+                this.$el.append(entryTemplate({id:cur.get('id'), type:Helpers.detailDescriptions[cur.get('type')]}));
 
             }
 

@@ -97,6 +97,7 @@ Create Index ixRelationships on terminology.Relationships(SourceId,TypeId,Destin
 create index ixRelationshipsDest on terminology.Relationships(destinationId,typeid,SourceId);
 Create index ixDescriptionsConcept on terminology.Descriptions(ConceptId,Active);
 Create index ixConceptAncestry on terminology.conceptAncestry(ancestor,child);
+Create index ixConceptAncestry_rev on terminology.conceptAncestry(child,ancestor);
 
 CREATE or replace FUNCTION terminology.isicd10child(vparentconcept numeric, vchildcode character varying) RETURNS boolean
     LANGUAGE plpgsql

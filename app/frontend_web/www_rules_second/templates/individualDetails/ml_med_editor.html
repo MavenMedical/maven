@@ -1,16 +1,18 @@
-<div class = 'detail-editor-heading'>Create/Edit Med List Drug Detail</div>
+<div class = 'detail-editor-heading'>Create/Edit Med List Drug Constraint</div>
 <div>
-This rule will
-<select class="detail-input form-control" name="exists">
-<option value="true" selected>be used only if </option>
-<option value="false"> not be used if</option>
+
+<select class="detail-input form-control attn-text" name="exists">
+<option value="true" selected>Alert the clinician only if </option>
+<option value="false"> do not alert the clinician if</option>
 </select>
-The patients medication list contains the drug <span  class = 'search' role="med"></span>
-    <p style = "float: left">Via The route:  </p><div style = "float: left" class = "route-list"></div>
+<p class = "attn-text"> The patients medication list contains the drug</p> <span  class = 'search' role="med"></span>
+    <p class = "attn-text" style = "float: left">Via The route:  </p><div style = "float: left" class = "route-list"></div>
+
 
 </div>
-<div style="clear: both">
-<br>
-<button class="btn btn-info confirm-detail-button">Confirm</button>
-<button class="btn btn-info cancel-edit-button">Cancel</button>
-</div>
+          <div style = "clear:both">
+          <br>
+		    <button style = "float:left" class="btn btn-info cancel-edit-button">Cancel</button>
+            <button style = "float:right" class="btn btn-info confirm-detail-button">Confirm</button>
+	      </div>
+          <div style = "clear:both"></div>

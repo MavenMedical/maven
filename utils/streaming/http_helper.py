@@ -5,6 +5,9 @@ import asyncio
 from datetime import date
 from dateutil.parser import parse
 
+import maven_logging as ML
+logger = ML.get_logger()
+ML.set_debug('/tmp/http_helper.log')
 
 class HTTPHelper:
     def __init__(self, contexts_user, context_key, auth_length):
@@ -35,6 +38,7 @@ class HTTPHelper:
                 else:
                     if len(v) is 1:
                         try:
+#                            logger.debug(k+"\t"+str(available[k])+"\t"+str(v))
                             context[k] = available[k](v[0])
                         except ValueError:
                             raise HTTP.IncompleteRequest('Request has parameter %s which is of the wrong type.' % k)

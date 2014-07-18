@@ -1,4 +1,5 @@
 @import url('../css/bootstrap/css/bootstrap.min.css');
+@import url('../css/bootstrap/css/slider.css');
 
 /* sadly css variables aren't supported by much of anything, so we'll do this with copy and paste.
  * Here is a list of all of the values which can be modified
@@ -24,7 +25,30 @@
     height: 400px;
 }
 
+.attn-text{
+    font-size: 200%;
+    height: auto;
+    width: auto;
+}
+.detail-input{
+    font-size: 130%;
+    height: auto;
+}
+.attn-text-small{
+    font-size: 130%;
+    height: auto;
+    width: auto
+}
+.loinc-list-box{
+    width:300px;
+    height: 200px;
 
+}
+.trigger-list-box{
+    width:45%;
+    height:400px;
+    font-size: 150%;
+}
 html, body {
     padding:0px;
     margin:0px;

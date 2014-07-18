@@ -190,7 +190,8 @@ def write_composition_alerts(composition, conn):
                               "long_title",
                               "short_description",
                               "long_description",
-                              "saving"]
+                              "saving",
+                              "status"]
                 columns = DBMapper.select_rows_from_map(column_map)
 
                 cmdargs = [customer_id,
@@ -206,12 +207,13 @@ def write_composition_alerts(composition, conn):
                            alert.long_title,
                            alert.short_description,
                            alert.long_description,
-                           alert.saving]
+                           alert.saving,
+                           alert.status]
 
                 cmd = []
                 cmd.append("INSERT INTO alert")
                 cmd.append("(" + columns + ")")
-                cmd.append("VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
+                cmd.append("VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
 
                 cur = yield from conn.execute_single(' '.join(cmd)+';',cmdargs)
 
@@ -272,7 +274,9 @@ def construct_encounter_orders_from_db(composition, conn):
                 FHIR_procedure = FHIR_API.Procedure(text=result[11],
                                                     name=result[11],
                                                     type=FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(system=result[17],
-                                                                                                          code=result[16])],
+                                                                                                          code=result[16]),
+                                                                                          FHIR_API.Coding(system="clientEMR",
+                                                                                                          code=result[6])],
                                                                                   text="Procedure"))
                 rtn_encounter_orders.append(FHIR_API.Order(identifier=[FHIR_API.Identifier(system="clientEMR",
                                                                                            value=result[1],
@@ -284,7 +288,9 @@ def construct_encounter_orders_from_db(composition, conn):
                 FHIR_medication = FHIR_API.Medication(text=result[11],
                                                       name=result[1],
                                                       code=FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(system="rxnorm",
-                                                                                                            code=result[18])],
+                                                                                                            code=result[18]),
+                                                                                            FHIR_API.Coding(system="clientEMR",
+                                                                                                            code=result[6])],
                                                                                     text="Medication"))
                 rtn_encounter_orders.append(FHIR_API.Order(detail=[FHIR_medication],
                                                            date=result[15],

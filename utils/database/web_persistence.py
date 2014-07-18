@@ -8,6 +8,10 @@ from datetime import date, datetime, timedelta
 from utils.database.database import AsyncConnectionPool
 from utils.database.database import MappingUtilites as DBMapUtils
 import maven_config as MC
+import maven_logging as ML
+
+logger = ML.get_logger()
+ML.set_debug('/tmp/web_persistence.log')
 
 CONFIG_DATABASE = 'database'
 
@@ -155,7 +159,8 @@ class WebPersistence():
             for row in cur:
 #            results.append({print((type(v),v, k, display[k], display[k](v))) or desired[k]: display[k](v) for k,v in zip(desired, row)})
                 results.append({desired[k]: display[k](v) for k,v in zip(desired, row)})
-            
+
+        logger.debug(str(cmd) + " " +str(cmdargs) +" -> " + str(results))
         return results
 
     @asyncio.coroutine
@@ -253,7 +258,7 @@ class WebPersistence():
             cmd.append("AND encounter.hosp_admsn_time >= %s")
             cmdargs.append(startdate)
         if enddate:
-            cmd.append("AND encounter.hosp_disch_time <= %s")
+            cmd.append("AND encounter.hosp_disch_time < %s")
             cmdargs.append(enddate)
         cmd.append("GROUP BY encounter.pat_id")
         cmd.append("ORDER BY contact_date")
@@ -334,8 +339,8 @@ class WebPersistence():
             cmd.append("AND order_ord.order_datetime >= %s")
             cmdargs.append(startdate)
         if enddate:
-            cmd.append("AND order_ord.order_datetime >= %s + interval '1 day'")
-            cmdargs.append(startdate)
+            cmd.append("AND order_ord.order_datetime < %s + interval '1 day'")
+            cmdargs.append(enddate)
         cur = yield from self.db.execute_single(' '.join(cmd) + ';', cmdargs)
         results = yield from self.execute(cmd, cmdargs, self._display_total_spend, desired)
         if results:
@@ -377,8 +382,8 @@ class WebPersistence():
             cmd.append("AND order_ord.order_datetime >= %s")
             cmdargs.append(startdate)
         if enddate:
-            cmd.append("AND order_ord.order_datetime >= %s + interval '1 day'")
-            cmdargs.append(startdate)
+            cmd.append("AND order_ord.order_datetime < %s + interval '1 day'")
+            cmdargs.append(enddate)
         cmd.append("GROUP BY dt, order_type")
 
         results = yield from self.execute(cmd, cmdargs, self._display_daily_spend, desired)
@@ -425,13 +430,13 @@ class WebPersistence():
         if orderid:
             cmd.append("AND alert.order_id = %s")
             cmdargs.append(orderid)
-        cmd.append("ORDER BY alert.alert_datetime DESC")
         if startdate:
             cmd.append("AND alert.alert_datetime >= %s")
             cmdargs.append(startdate)
         if enddate:
-            cmd.append("AND alert.alert_datetime >= %s + interval '1 day'")
-            cmdargs.append(startdate)
+            cmd.append("AND alert.alert_datetime < %s + interval '1 day'")
+            cmdargs.append(enddate)
+        cmd.append("ORDER BY alert.alert_datetime DESC")
         if limit:
             cmd.append(limit)
 
@@ -456,11 +461,12 @@ class WebPersistence():
         })
 
     @asyncio.coroutine
-    def orders(self, desired, customer, encounter, ordertypes=[], limit="",
+    def orders(self, desired, customer, encounter=None, patientid=None, ordertypes=[], limit="",
                startdate=None, enddate=None):
+        if not encounter and not patientid:
+            raise InvalidRequest('Getting orders requires a patient or an encounter')
         columns = build_columns(desired.keys(), self._available_orders,
                                 self._default_orders)
-
         cmd = []
         cmdargs = []
         cmd.append("SELECT")
@@ -471,6 +477,9 @@ class WebPersistence():
         if encounter:
             cmd.append("AND order_ord.encounter_id = %s")
             cmdargs.append(encounter)
+        else:
+            cmd.append("AND order_ord.pat_id in %s")
+            cmdargs.append(tuple(patientid))
         if ordertypes:
             cmd.append("AND order_ord.order_type IN %s")
             cmdargs.append(ordertypes)
@@ -478,8 +487,8 @@ class WebPersistence():
             cmd.append("AND order_ord.order_datetime >= %s")
             cmdargs.append(startdate)
         if enddate:
-            cmd.append("AND order_ord.order_datetime >= %s + interval '1 day'")
-            cmdargs.append(startdate)
+            cmd.append("AND order_ord.order_datetime < %s + interval '1 day'")
+            cmdargs.append(enddate)
         cmd.append("ORDER BY order_ord.order_datetime desc")
         if limit:
             cmd.append(limit)
@@ -526,7 +535,7 @@ class WebPersistence():
             cmd.append("AND encounter.hosp_admsn_time >= %s")
             cmdargs.append(startdate)
         if enddate:
-            cmd.append("AND encounter.hosp_disch_time <= %s")
+            cmd.append("AND encounter.hosp_disch_time < %s")
             cmdargs.append(enddate)
         cmd.append("GROUP BY encounter.csn, encounter.pat_id")
         #TODO : encounter.pat_id is added to the Group by, need test to make sure we are not losing data

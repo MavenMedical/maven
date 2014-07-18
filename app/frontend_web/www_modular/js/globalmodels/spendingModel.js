@@ -53,7 +53,7 @@ define([
     if(contextModel.get('userAuth')) {
 	spendingModel.fetch({data:$.param(contextModel.toParams())});
     }
-    contextModel.on('change:patients change:userAuth change:encounter', 
+    contextModel.on('change:patients change:userAuth change:encounter change:startdate change:enddate', 
 		    function(x) {
 			if(x.get('userAuth')) {
 			    spendingModel.fetch({
@@ -65,7 +65,6 @@ define([
 				    };
 				    spendingModel.clear({silent:true});
 				    spendingModel.set($.extend(old,r));
-				    console.log(spendingModel.attributes);
 				},
 			    });
 			}

@@ -17,7 +17,9 @@ define([
 
         initialize: function(){
             this.$el.html(this.template())
-
+            if (!curRule.get('sources')){
+                curRule.set('sources', new Backbone.Collection())
+            }
             this.collection = curRule.get('sources');
                         this.collection.on('add', function(){
                             curRule.needsSave = true;

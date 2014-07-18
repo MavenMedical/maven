@@ -4,12 +4,11 @@ define ([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'models/ruleModel',
-    'internalViews/SourceManager',
     'text!/templates/evidenceEditor.html'
     ],
 
 
-    function($, _, Backbone, curRule, SourceManager, editorTemplate){
+    function($, _, Backbone, curRule, editorTemplate){
 
         var EvidenceEditor = Backbone.View.extend({
            template: _.template(editorTemplate),
@@ -32,7 +31,7 @@ define ([
                   curRule.needsSave = true;
                  curRule.trigger("needsSave")
               });
-               curRule.needsSave = true;
+              curRule.needsSave = true;
               curRule.trigger("needsSave")
            },
            render: function(){
@@ -48,7 +47,7 @@ define ([
                for (var c=0;c<fields.length;c++){
                    fields[c].value = curRule.get('evidence').get(fields[c].name);
                }
-               this.sourceView = new SourceManager({el: $('#source-manager', this.$el)})
+
            },
            handleRuleLoad: function(){
 

@@ -11,8 +11,30 @@ define([
 ], function ($, _, Backbone, contextModel, detailSearch, triggerSelectorRow) {
     var DetailSearchBox = Backbone.View.extend({
 
-        initialize: function(params){
 
+        doSearch: function(panel){
+
+                var t = contextModel.toParams();
+                $.extend( t, {'search_param': $('#Detail-Search-Box').val()})
+                var ty = panel.type.split("_");
+                if (ty[ty.length-1] == 'dx'){
+                     $.extend( t, {'type': "snomed_diagnosis"})
+                } else if (panel.type.split("_")[1] == 'NDC' || panel.type.split("_")[1] == 'med'){
+                   $.extend( t, {'type': "snomed_drug"});
+                } else if (panel.type.split("_")[1] == 'HCPCS'){
+                   $.extend( t, {'type': "CPT"});
+                }
+                this.collection.fetch({data:$.param(t), success:function(){
+                    if (panel.collection.length>0 &&panel.collection.models[0].get('type')!='none'){
+                        panel.ready = true;
+                    }
+
+                }})
+
+        },
+
+        initialize: function(params){
+            this.ready = false;
             this.template= _.template(detailSearch);
                  this.$el.html(this.template());
             this.collection  = params.collection;
@@ -20,26 +42,25 @@ define([
             this.type = params.type;
             this.collection.on('sync', this.render, this);
 
-            console.log($('#searchButton', this.$el));
             var panel = this;
             $('#searchButton', this.$el)[0].onclick = function(){
+                 panel.doSearch(panel)
 
-                var t = contextModel.toParams();
-                $.extend( t, {'search_param': $('#Detail-Search-Box').val()})
-                if (panel.type.split("_")[1] == 'dx'){
-                     $.extend( t, {'type': "snomed_diagnosis"})
-                } else if (panel.type.split("_")[1] == 'NDC' || panel.type.split("_")[1] == 'med'){
-                   $.extend( t, {'type': "snomed_drug"});
-                } else if (panel.type.split("_")[1] == 'HCPCS'){
-                   $.extend( t, {'type': "CPT"});
-                }
-                panel.collection.fetch({data:$.param(t)})
             }
-            $('#zoom_button', this.$el)[0].onclick = function(){
+            $('#zoom-in-button', this.$el)[0].on = function(){
                 var t = contextModel.toParams();
-                console.log($('#search_sesults').val())
                 $.extend( t, {'search_param': $('#search_results').val()})
                 $.extend( t, {'type': "snomed_zoom_in"})
+
+                panel.collection.fetch({data:$.param(t)})
+
+
+
+            }
+            $('#zoom-out-button', this.$el)[0].onclick = function(){
+                var t = contextModel.toParams();
+                $.extend( t, {'search_param': $('#search_results').val()})
+                $.extend( t, {'type': "snomed_zoom_out"})
 
                 panel.collection.fetch({data:$.param(t)})
 
@@ -49,20 +70,12 @@ define([
              $('#Detail-Search-Box', this.$el)[0].onkeydown = function(key){
 
                 if (key.keyCode == 13){
-                      var t = contextModel.toParams();
-                $.extend( t, {'search_param': $('#Detail-Search-Box').val()})
-                var ty = panel.type.split("_")
-                if (ty[ty.length-1] == 'dx'){
-                     $.extend( t, {'type': "snomed_diagnosis"})
-                } else if (panel.type.split("_")[1] == 'NDC' || panel.type.split("_")[1] == 'med'){
-                   $.extend( t, {'type': "snomed_drug"})
-                } else if (panel.type.split("_")[1] == 'HCPCS'){
-                   $.extend( t, {'type': "CPT"});
+                    panel.doSearch(panel)
                 }
-                panel.collection.fetch({data:$.param(t)})
-                }
-            }
+             }
         },
+
+
         render: function(){
 
                $('.entries', this.$el).html("");
