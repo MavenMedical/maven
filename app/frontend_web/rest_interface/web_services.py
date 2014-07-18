@@ -456,6 +456,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
         desired = {
             WP.Results.patientid: "patientid",
+            WP.Results.patientname: "patientname",
             WP.Results.encounterid: "encounterid",
             WP.Results.spending: "spending",
             WP.Results.startdate: "admission",
