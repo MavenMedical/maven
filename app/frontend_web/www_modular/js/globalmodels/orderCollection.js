@@ -10,7 +10,6 @@ define([
     orderCollection = new ScrollCollection;
     orderCollection.url = function() {return '/orders'+this.offset+'-'+(this.offset+this.limit);};
     orderCollection.model = OrderModel;
-    orderCollection.limit = 3;
     orderCollection.context = function(){
         contextModel.on('change:patients change:encounter',
 		    // this will be needed once the context filters things

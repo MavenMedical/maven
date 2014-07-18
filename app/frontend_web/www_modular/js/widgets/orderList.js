@@ -50,6 +50,14 @@ define([
 	    } else {
 		this.$el.hide();
 	    }
+
+        var orderlist = $('.orderaccordion', this.$el);
+        setTimeout(function() {
+            var orderHeight = orderlist.innerHeight();
+            if (orderHeight > 0 && orderHeight < parseInt(orderlist.css('max-height'))) {
+                orderCollection.more();
+            }
+        },500);
 	},
 	addOrder: function(order) {
 	    var orderrow = new OrderRow({model: order});

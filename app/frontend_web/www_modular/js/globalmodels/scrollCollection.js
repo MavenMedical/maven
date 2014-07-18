@@ -12,7 +12,7 @@ define([
 
     var ScrollCollection = Backbone.Collection.extend({
     url: function() {return '//';},
-    limit: 3,
+    limit: 10,
     tried: 0,
     offset: 0,
 	model: ScrollModel,
@@ -58,7 +58,8 @@ define([
             this.tried = this.models.length+this.limit;
             this.fetch({
                 data:data,
-                remove:false});
+                remove:false
+            });
             }
 	    },
     });
