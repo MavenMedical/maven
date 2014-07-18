@@ -33,7 +33,7 @@ define([
 		}
                 eventlist.push({
                     id: enc['encounterid'],
-                    title: enc['diagnosis'] + " $" + enc['spending'],
+                    title: enc['patientname']+ ": "+ enc['diagnosis'] + " $" + enc['spending'],
                     start: enc['admission'],
                     end: discharge,
                     className: 'admission',
@@ -44,9 +44,9 @@ define([
 
             $('#calendar').fullCalendar({
                 header: {
-                    left: 'prev,next today',
+                    left: 'prev,next',
                     center: 'title',
-                    right: 'month,agendaWeek,agendaDay'
+                    right: 'today'
                 },
                 defaultDate: contextModel.get('enc_date'),
                 selectable: true,

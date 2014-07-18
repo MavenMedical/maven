@@ -503,6 +503,7 @@ class WebPersistence():
     _default_per_encounter = set((Results.encounterid,))
     _available_per_encounter = {
         Results.patientid: "encounter.pat_id",
+        Results.patientname: "patient.patname",
         Results.encounterid: "encounter.csn",
         Results.startdate: 'min(hosp_admsn_time)',
         Results.enddate: 'max(hosp_disch_time)',
@@ -525,6 +526,8 @@ class WebPersistence():
         cmd.append(columns)
         cmd.append("FROM order_ord JOIN encounter")
         cmd.append("ON order_ord.encounter_id = encounter.csn")
+        cmd.append("JOIN patient")
+        cmd.append("ON encounter.pat_id = patient.pat_id")
         cmd.append("WHERE encounter.visit_prov_id IN %s")
         cmdargs.append(makelist(provider))
         cmd.append("AND order_ord.customer_id = %s")
@@ -541,7 +544,7 @@ class WebPersistence():
         if enddate:
             cmd.append("AND encounter.hosp_disch_time < %s")
             cmdargs.append(enddate)
-        cmd.append("GROUP BY encounter.csn, encounter.pat_id")
+        cmd.append("GROUP BY encounter.csn, encounter.pat_id, patient.patname")
         #TODO : encounter.pat_id is added to the Group by, need test to make sure we are not losing data
 
         results = yield from self.execute(cmd, cmdargs, self._display_per_encounter, desired)
