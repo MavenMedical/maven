@@ -190,7 +190,8 @@ def write_composition_alerts(composition, conn):
                               "long_title",
                               "short_description",
                               "long_description",
-                              "saving"]
+                              "saving",
+                              "status"]
                 columns = DBMapper.select_rows_from_map(column_map)
 
                 cmdargs = [customer_id,
@@ -206,12 +207,13 @@ def write_composition_alerts(composition, conn):
                            alert.long_title,
                            alert.short_description,
                            alert.long_description,
-                           alert.saving]
+                           alert.saving,
+                           alert.status]
 
                 cmd = []
                 cmd.append("INSERT INTO alert")
                 cmd.append("(" + columns + ")")
-                cmd.append("VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
+                cmd.append("VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
 
                 cur = yield from conn.execute_single(' '.join(cmd)+';',cmdargs)
 

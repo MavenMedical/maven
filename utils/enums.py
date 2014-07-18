@@ -26,6 +26,14 @@ class ALERT_TYPES(Enum):
     alt_med = "Alternative Medications"
 
 
+class CDS_ALERT_STATUS(Enum):
+    suppress = -1
+    no_send = 100
+    debug_alert = 200
+    device_alert = 300
+    ehr_alert = 400
+
+
 class CONDITION_TYPE(Enum):
     PL = "Problem List Diagnosis"
     ENC = "Encounter Diagnosis"
