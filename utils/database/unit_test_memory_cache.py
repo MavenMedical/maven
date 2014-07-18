@@ -9,44 +9,54 @@
 #  Side Effects: None
 ##############################################################################
 import asyncio
-from utils.database.memory_cache import MemoryCache
+from utils.database.memory_cache import cache
+import os
+os.environ['MAVEN_TESTING']=''
 import maven_logging as ML
 import time
 
+class Timer():
+    def __init__(self):
+        self.basetime = time.time()
+
+    def elapsed(self):
+        return str(round(10*(time.time()-self.basetime)))
+
+timer = Timer()
+                
+@cache.cache_update("name", period_seconds=.5)
+def update_fun():
+    ML.PRINT("updating "+timer.elapsed())
+    return {1:2, 3:4}
+
+update_fun()
+
+@cache.cache_lookup("name")
+def lookup(key):
+    ML.PRINT("looking up %d at %s" %(key, timer.elapsed()))
+    return key+2
+
+@cache.cache_lookup_multi("name")
+def lookupmulti(keys):
+    ML.PRINT("looking up %s at %s" %(str(keys), timer.elapsed()))
+    return {k:k+3 for k in keys}
+
 @asyncio.coroutine
-def default(x):
-    yield from asyncio.sleep(.02)
-    return x+3
+def PRINT(co_fn):
+    ret = yield from co_fn
+    ML.PRINT("returned "+str(ret)+" at "+timer.elapsed())
+
+@asyncio.coroutine
+def run():
+    yield from asyncio.sleep(.05)
+    for i in range(8):
+        yield from PRINT(lookup(1))
+        yield from PRINT(lookup(2))
+        yield from PRINT(lookupmulti([1,2,3,4]))
+        yield from asyncio.sleep(.1)
     
-@asyncio.coroutine
-def update():
-    ML.PRINT('updating')
-    return {1:2}
+asyncio.get_event_loop().run_until_complete(run())
 
-mc = MemoryCache()
-
-ind1=mc.register_cache(update, default, .2, 0)
-
-loop = asyncio.get_event_loop()
-
-
-@asyncio.coroutine
-def queries(prefix, ind, sleep_time, initial_sleep):
-    if initial_sleep:
-        yield from asyncio.sleep(initial_sleep)
-    for i in range(9):
-        r = yield from mc.lookup(ind, i%5)
-#        PRINT(str(int((time.time() % 1) * 10000)) + " " +prefix +": " + str(i%10) + " -> "+ str(r))
-        ML.PRINT(prefix +": " + str(i%5) + " -> "+ str(r))
-        yield from asyncio.sleep(sleep_time)
-
-import traceback
-t1=queries(str(ind1), ind1, .02, .01)
-loop.run_until_complete(t1)
-mc.cancel()
-for task in asyncio.Task.all_tasks(loop):
-    if not task.done():
-        loop.run_until_complete(task)
-    
 if __name__ == '__main__':
     print(ML.get_results())
+        

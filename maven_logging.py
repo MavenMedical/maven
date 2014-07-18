@@ -139,5 +139,5 @@ DEBUG = root.debug
 INFO = root.info
 WARN = root.warn
 ERROR = root.error
-
+EXCEPTION = root.exception
 
