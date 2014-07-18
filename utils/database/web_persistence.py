@@ -49,6 +49,7 @@ Results = Enum('Results',
     customerid
     provid
     displayname
+    officialname
     password
     passexpired
     userstate
@@ -179,6 +180,7 @@ class WebPersistence():
         Results.customerid: 'users.customer_id',
         Results.provid: 'users.prov_id',
         Results.displayname: 'users.display_name',
+        Results.officialname: "users.official_name",
         Results.password: 'users.pw',
         Results.passexpired: 'users.pw_expiration < now()',
         Results.userstate: 'users.state',
@@ -407,7 +409,7 @@ class WebPersistence():
 
     @asyncio.coroutine
     def alerts(self, desired, provider, customer, patients=[], limit="",
-               startdate=None, enddate=None, orderid=None):
+               startdate=None, enddate=None, orderid=None, categories=[]):
         columns = build_columns(desired.keys(), self._available_alerts,
                                 self._default_alerts)
         
@@ -422,6 +424,9 @@ class WebPersistence():
         if patients:
             cmd.append("AND alert.pat_id IN %s")
             cmdargs.append(makelist(patients))
+        if categories:
+            cmd.append("AND alert.category IN %s")
+            cmdargs.append(makelist(categories))
         if orderid:
             cmd.append("AND alert.order_id = %s")
             cmdargs.append(orderid)

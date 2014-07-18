@@ -65,7 +65,6 @@ define([
 				    };
 				    spendingModel.clear({silent:true});
 				    spendingModel.set($.extend(old,r));
-				    console.log(spendingModel.attributes);
 				},
 			    });
 			}
