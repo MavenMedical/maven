@@ -10,7 +10,7 @@
 #
 echo "Testing Maven backend...confirming Choosing Wisely Rule -- AAO 1...findable by Maven function EvalRules"
 echo " "
- sudo su postgres -c "psql -f step_1_evalRulesAssert.sql -d maven --echo-all -o  $MAVEN_ROOT/endToEndTesting/alerts_evidence/step_1_evalRulesAssert.output"
+sudo su postgres -c "psql -f step_1_evalRulesAssert.sql -d maven --echo-all -o  $MAVEN_ROOT/endToEndTesting/alerts_evidence/step_1_evalRulesAssert.output"
 echo " "
 echo "**** confirm step1_evalRulesAssert.output -- 8 test cases are all True ******"
 cat $MAVEN_ROOT/endToEndTesting/alerts_evidence/step_1_evalRulesAssert.output

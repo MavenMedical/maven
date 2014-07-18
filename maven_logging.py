@@ -69,13 +69,21 @@ def trace(write=print, initial=False, timing=False):
                 write("%s(%s, %s) started" % (func.__name__, args, kwargs))
             if timing:
                 starttime = time.perf_counter()
-                ret = func(*args, **kwargs)
+            try:
+                result = func(*args, **kwargs)
+                resultstring = str(result)
+                ret = lambda: result
+            except Exception as e:
+                resultstring = "exception:\n" + traceback.format_exc()
+                ex=e
+                def ret():
+                    raise ex
+            if timing:
                 totaltime = time.perf_counter() - starttime
-                write("%s(%s, %s) -> %s took %s" % (func.__name__, args, kwargs, ret, totaltime))
+                write("%s(%s, %s) -> %s took %s" % (func.__name__, args, kwargs, resultstring, totaltime))
             else:
-                ret = func(*args, **kwargs)
-                write("%s(%s, %s) -> %s" % (func.__name__, args, kwargs, ret))
-            return ret
+                write("%s(%s, %s) -> %s" % (func.__name__, args, kwargs, resultstring))
+            return ret()
         return inner
     return trace_inner
 
@@ -91,13 +99,22 @@ def coroutine_trace(write=print, initial=None, timing=False):
                 write("%s(%s, %s) started" % (func.__name__, args, kwargs))
             if timing:
                 starttime = time.perf_counter()
-                ret = yield from co_func(*args, **kwargs)
+            try:
+                result = yield from func(*args, **kwargs)
+                resultstring = str(result)
+                ret = lambda: result
+            except Exception as e:
+                resultstring = "exception:\n"+traceback.format_exc()
+                ex=e
+                def ret():
+                    raise ex
+            if timing:
                 totaltime = time.perf_counter() - starttime
-                write("%s(%s, %s) -> %s took %s" % (func.__name__, args, kwargs, ret, totaltime))
+                write("%s(%s, %s) -> %s took %s" % (func.__name__, args, kwargs, resultstring, totaltime))
             else:
-                ret = yield from co_func(*args, **kwargs)
-                write("%s(%s, %s) -> %s" % (func.__name__, args, kwargs, ret))
-            return ret
+                write("%s(%s, %s) -> %s" % (func.__name__, args, kwargs, resultstring))
+            return ret()
+
         return inner
     return trace_inner
                 
@@ -122,3 +139,5 @@ DEBUG = root.debug
 INFO = root.info
 WARN = root.warn
 ERROR = root.error
+EXCEPTION = root.exception
+
