@@ -47,14 +47,16 @@ define([
 
             var panel = this;
             $('.confirm-detail-button', this.$el)[0].onclick = function(){
-
-                for (var cur in panel.searchBoxes){
-                    if (!panel.searchBoxes[cur].ready){
-                        alert("Constraint is not complete, make sure you have a value selected in all search boxes")
-                        return;
+                if (panel.searchBoxes.length>0){
+                    for (var cur in panel.searchBoxes){
+                        if (!panel.searchBoxes[cur].ready){
+                            alert("Constraint is not complete, make sure you have a value selected in all search boxes")
+                            return;
+                        }
                     }
                 }
                 var inputs = $('.detail-input');
+
                 for (var i=0;i<inputs.length;i++){
                     var cur = inputs[i];
                     if ($(cur).hasClass('hasTerm')){
@@ -67,7 +69,6 @@ define([
                             }
                         })
                     }
-                    console.log(cur.getAttribute('name'))
                     panel.model.set(cur.getAttribute('name'), cur.value);
 
 
