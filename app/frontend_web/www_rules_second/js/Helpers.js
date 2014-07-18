@@ -22,7 +22,7 @@ define([
         },
         detailDescriptions: {
 
-            'enc_pl_dx' : "pecify a constraint based on a diagnosis that can be found either in the current encounter or on the patient’s problem list. This would represent a fairly comprehensive set of acute and chronic diagnoses that are likely to be currently active for the patient.",
+            'enc_pl_dx' : "Specify a constraint based on a diagnosis that can be found either in the current encounter or on the patient’s problem list. This would represent a fairly comprehensive set of acute and chronic diagnoses that are likely to be currently active for the patient.",
             'pl_dx'     : "Specify a constraint based on a diagnosis in the patient’s problem list. The patient problem list is a patient-level section of the medical record that catalogs the most important diagnoses for the patient",
             'hist_dx'   : "Specify a constraint based on a diagnosis in the patient’s diagnostic history",
             'lab'       : "Specify a constraint based on the patient's lab results",
