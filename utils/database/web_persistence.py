@@ -45,6 +45,7 @@ Results = Enum('Results',
     customerid
     provid
     displayname
+    officialname
     password
     passexpired
     userstate
@@ -174,6 +175,7 @@ class WebPersistence():
         Results.customerid: 'users.customer_id',
         Results.provid: 'users.prov_id',
         Results.displayname: 'users.display_name',
+        Results.officialname: "users.official_name",
         Results.password: 'users.pw',
         Results.passexpired: 'users.pw_expiration < now()',
         Results.userstate: 'users.state',

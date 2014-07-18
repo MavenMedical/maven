@@ -10,43 +10,49 @@ define([
 ], function ($, _, Backbone, contextModel) {
 
     var Settings = Backbone.View.extend({
-        initialize: function (options) {
-	  //  contextModel.on('change:loginTemplate', this.render, this);
-	    $("#settings-modal").modal({'show':'true', 'backdrop':'static',keyboard:false});
-	    this.render();
+        initialize: function () {
+            this.render();
         },
-	events: {
-        'click': 'dohide',
-	    'click #save-button': 'dosave',
-	    'click #update-password': 'dologin',
-	    'click #cancel-button': 'cancel',
-	    'keyup #login-user':'doenterlogin',
-	    'keyup #login-password':'doenterlogin',
-	    'keyup #login-new-password':'doenterchange',
-	},
+        events: {
+            'click': 'doclick',
+            'click #save-settings': 'dosave',
+            'click #update-password': 'dologin',
+            'click #cancel-settings': 'docancel',
+            'keyup #official-name-input':'doentersave',
+            'keyup #display-name-input':'doentersave',
+            'keyup #login-password':'doenterlogin',
+            'keyup #login-new-password':'doenterchange',
+        },
         render: function () {
-	    //currentContext.setUser('notarealpassword', Backbone.history.fragment);  // hack for now
+
 	    if(contextModel.get('settingsTemplate')) {
-		var that=this;
-		require(["text!../templates/"+contextModel.get('settingsTemplate')], function(settingsTemplate) {
-		    that.template = _.template(settingsTemplate);
-		    that.$el.html(that.template({user:'maven', password:'maven'}));
-		    that.newPasswordChange();
-		});
-	    } else {
-		$("#settings-modal").modal('hide');
+		    var that=this;
+		    require(["text!../templates/"+contextModel.get('settingsTemplate')], function(settingsTemplate) {
+		        that.template = _.template(settingsTemplate);
+                that.$el.html(that.template(contextModel.attributes));
+		        that.newPasswordChange();
+		    });
+	    }
+        else {
+		    $("#settings-modal").modal('hide');
 	    }
 	    return this;
         },
-    dohide: function(event) {
+    doclick: function(event) {
         var target = $(event.target);
         if (!target.parents('div#settings-modal').length) {
-            $("#settings-modal").modal('hide');
-        }
+                this.dohide();
+            }
+        },
+    dohide: function(){
+        $("#settings-modal").modal('hide');
     },
-	doenterlogin: function(event){
+    docancel: function(){
+        this.dohide();
+    },
+	doentersave: function(event){
 	    if(event.keyCode == 13){
-		this.dologin(event);
+		this.dosave(event);
 	    }
 	},
 	doenterchange: function(event){
@@ -57,8 +63,23 @@ define([
 	    }
 	},
 	dosave: function(event) {
-	    console.log(event);
-	    //TODO
+        var official_name = $("#official-name-input").val();
+        var display_name = $("#display-name-input").val();
+
+        $.ajax({
+            url: "/save_user_settings",
+            data:$.param(contextModel.toParams())+"&official_name="+official_name+"&display_name="+display_name,
+            success: function(data) {
+                //response(data);
+                Console.log("Settings failed to save");
+
+            },
+            error: function(xhr, textStatus, errorThrown){
+                Console.log("Settings failed to save");
+            }
+        });
+
+        $("#settings-modal").modal('hide'); //placeholder
 	},
 	newPasswordChange: function() {
 	    var newpw = $("#login-new-password").val();

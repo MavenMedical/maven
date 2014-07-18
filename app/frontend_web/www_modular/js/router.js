@@ -84,11 +84,6 @@ define([
 	defaultAction: function (action) {
 	    console.log('No route:', action);
 	},
-    settings: function() {
-        new Settings({el: '#settings-modal'})
-        //settings = new Settings();
-        //settings.initialize();
-    },
 	initialize: function () {
 	    //ajaxPrefilter
 	    $.ajaxPrefilter(function (options, originalOptions, jqXHR) {

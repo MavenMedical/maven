@@ -3,12 +3,18 @@
         <div class="modal-body">
             <h3><b>User Settings</b></h3>
             <div class="container col-md-12">
+                <p>Official Name: <input id="official-name-input" type="text" value="<%=official_name %>" autofocus> </p>
+                <p>Display Name: <input id="display-name-input" type="text" value="<%= display %>" > </p>
+                <div>
+                        <button id="save-settings">Save</button>
+                        <button id="cancel-settings">Cancel</button>
+                </div>
             </div>
             <div style="clear:both; overflow: auto;">
                 <h5><b>Change Password</b></h5>
 
                 <div style="width:49%; float:left;">
-                <p><b>Old</b> Password: <input id="login-password" type="password" placeholder="password" name="password" autofocus></p>
+                <p><b>Old</b> Password: <input id="login-password" type="password" placeholder="password" name="password"></p>
                 <p><b>New</b> Password: <input id="login-new-password" type="password" name="password" placeholder="password"></p>
                 <p><b>Confirm New</b> Password: <input id="login-new-password2" type="password" name="password" placeholder="password"></p>
                 </div>

@@ -63,6 +63,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         self.stylesheet = 'original'
         self.costbdtype = 'donut'  # this assignment isn't used yet
         self.add_handler(['POST'], '/login', self.post_login)  # REAL
+        self.add_handler(['GET'], '/save_user_settings', self.save_user_settings)  # REAL
         self.add_handler(['GET'], '/patients(?:(\d+)-(\d+)?)?', self.get_patients)  # REAL
         self.add_handler(['GET'], '/patient_details', self.get_patient_details)  # REAL
         self.add_handler(['GET'], '/total_spend', self.get_total_spend)  # REAL
@@ -144,6 +145,10 @@ class FrontendWebService(HTTP.HTTPProcessor):
             raise LoginError('expiredPassword')
 
     @asyncio.coroutine
+    def save_user_settings(self, _header, _body, qs, _matches, _key):
+        return HTTP.OK_RESPONSE, json.dumps(['SETTINGS']), None
+
+    @asyncio.coroutine
     def post_login(self, header, body, _qs, _matches, _key):
         info = json.loads(body.decode('utf-8'))
 
@@ -157,6 +162,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
                 WP.Results.customerid,
                 WP.Results.provid,
                 WP.Results.displayname,
+                WP.Results.officialname,
                 WP.Results.password,
                 WP.Results.passexpired,
                 WP.Results.userstate,
@@ -207,6 +213,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
             ret = {CONTEXT_USER: user_info[WP.Results.userid], 'display': user_info[WP.Results.displayname],
                    'stylesheet': self.stylesheet, 'customer_id': user_info[WP.Results.customerid],
+                   'official_name': user_info[WP.Results.officialname],
                    CONTEXT_PROVIDER: provider,
                    CONTEXT_USER: user,
                    'widgets': [
@@ -220,7 +227,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
                     #['#rowD-1-1','costdonut','costbreakdown-donut.html'],
                     ['#rowE-1-1', 'spend_histogram'],
                     ['#floating-right', 'alertList', 'alertScroll.html'],
-                    ['#datepicker-modal', 'datepicker-calendar']
+                    ['#datepicker-modal', 'datepicker-calendar'],
+                    ['#settings-modal','settings','settings.html'],
                     #['#datepicker-modal', 'datepicker-chart']
                     ], CONTEXT_KEY: user_auth}
             

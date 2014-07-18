@@ -18,7 +18,11 @@ define([
 	},
 	update: function(pat) {
 	    this.$el.html(this.template(contextModel.attributes));
-	}
+	},
+    events: {'click #settings_button': 'handle_settings' },
+    handle_settings: function(){
+        $("#settings-modal").modal({'show':'true'});
+    },
     });
     return TopBanner;
 });
