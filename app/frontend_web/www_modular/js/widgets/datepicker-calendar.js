@@ -20,9 +20,11 @@ define([
             $("#datepicker-modal").on('shown.bs.modal', function () {
                 $("#calendar1").fullCalendar('render');
                 $("#calendar2").fullCalendar('render');
-                $("#calendar1").fullCalendar('prev');
 
             });
+        },
+        events: {
+            'click .btn': 'showEncounters'
         },
         update: function () {
 
@@ -47,13 +49,17 @@ define([
             }
 
             for (var i = 1; i <= num_of_calendars; i++) {
+                var today = new Date ();
+                var d = (contextModel.get('enc_date'))? new Date(contextModel.get('enc_date')): new Date(today.getFullYear(), today.getMonth() - 2, 1);
+                var dd = d.setMonth(d.getMonth() + i);
+                console.log(dd);
                 calendar[i] = $("#calendar" + i).fullCalendar({
                     header: {
                         left: (i == 1) ? 'prev,next' : '',
                         center: 'title',
                         right: (i == 2) ? 'today' : ''
                     },
-                    defaultDate: contextModel.get('enc_date'),
+                    defaultDate: dd,
                     selectable: true,
                     selectHelper: true,
                     select: function (start, end, jsEvent) {
@@ -104,6 +110,20 @@ define([
                     });
                 });
             });
+        },
+        showEncounters: function (e) {
+            var period = e.target.id;
+            var d = new Date();
+            d.setMonth(d.getMonth() - period);
+            console.log(d.toLocaleDateString());
+
+            contextModel.set({'enc': null, 'enc_date': null,
+                'startdate': d.toLocaleDateString(),
+                'enddate': (new Date()).toLocaleDateString()});
+            // navigate to the chosen encounter
+            Backbone.history.navigate("patient/" + contextModel.get('patients'), true);
+            // hide the modal
+            $('#datepicker-modal').modal('hide');
         }
     });
     return DatepickerCalendar;
