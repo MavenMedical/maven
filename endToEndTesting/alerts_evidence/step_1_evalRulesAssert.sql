@@ -32,9 +32,11 @@
 SELECT NOW() as Start;
 -- terminology.codemap contents...for endToEnd crosswalk with  EHR-HTML
 SELECT  * from terminology.codemap where code in ('388.2','959.01','461.9'); /* EXPECT  79471008,ICD-9,388.2   15805002,ICD-9,461.9  82271004,ICD-9,959.01 */
-
+-- Add short-title, short=-description to test alert display
+UPDATE rules.evirule set fullspec='{    "evidence": {        "short-title": "Choosing Wisely: Head CT for sudden hearing loss",        "short-description": "Here’s additional info on imaging for initial management of sudden hearing loss",        "long-title": "Don’t order computed tomography (CT) scan of the head/brain for sudden hearing loss.",        "long-description": "Computed tomography scanning is expensive, exposes the patient to radiation and offers no useful information that would improve initial management. CT scanning may be appropriate in patients with focal neurologic findings, a history of trauma or chronic ear disease.",        "sources": [            {                "Hyperlink": "www.choosingwidely.org",                "Abbreviation": "AAO",                "Name": "American Academy of Otolaryngolgy"            }        ]    }}' where name='AAO 1';  
+--
 -- evirule contents
-SELECT * from rules.evirule where name='AAO 1';      /* EXPECT 5809;,AAO 1",0.00,200.00,%,HCPCS,{"details":[]} */
+SELECT * from rules.evirule where name='AAO 1';      /* EXPECT 5809;,AAO 1",0.00,200.00,%,HCPCS,{"details":[]}, "{    "evidence": {"short-title": "Choosing Wisely: Head CT for sudden hearing loss", "short-description": "Here’s additional info on imaging for initial management of sudden hearing loss",        "long-title": "Don’t order computed tomograph (...)"*/
  --
  -- trigcodes contents
  --
@@ -64,8 +66,6 @@ SELECT (count(*)=1) as tst_03_AlertConfigTrigCodelistMatch_Assert from rules.eva
 SELECT (count(*)=0) as tst_04_nullEncounter_Fail from rules.evalrules('70470', 'HCPCS', '11.52', 'F', ARRAY[]::integer[], ARRAY[1], '1235412', 1, ARRAY[]::CHARACTER[]);
 SELECT (count(*)=0) as tst_05_matchEncounter_Fail from rules.evalrules('70470', 'HCPCS', '11.52', 'F', ARRAY[15805002], ARRAY[1], '1235412', 1, ARRAY[]::CHARACTER[]);
 SELECT (count(*)=1) as tst_06_nullProblemMatch_Assert  from rules.evalrules('70470', 'HCPCS', '11.52', 'F', ARRAY[79471008], ARRAY[]::integer[], '1235412', 1, ARRAY[]::CHARACTER[]);
-SELECT (count(*)=0) as tst_07_ProblemMatch_Fail from rules.evalrules('70470', 'HCPCS', '11.52', 'F', ARRAY[79471008], ARRAY[82271004], '1235412', 1, ARRAY[]::CHARACTER[]);
-SELECT (count(*)=0) as tst_08_enc_in_enc_pl_Match_Fail from rules.evalrules('70470', 'HCPCS', '11.52', 'F', ARRAY[79471008], ARRAY[1], '1235412', 1, ARRAY[]::CHARACTER[]);
 SELECT (count(*)=0) as tst_07_ProblemMatch_Fail from rules.evalrules('70470', 'HCPCS', '11.52', 'F', ARRAY[79471008], ARRAY[82271004], '1235412', 1, ARRAY[]::CHARACTER[]);  /* ICD 959.01 is probSnomed 82271004 in HTML */
 SELECT (count(*)=0) as tst_08_enc_in_enc_pl_Match_Fail from rules.evalrules('70470', 'HCPCS', '11.52', 'F', ARRAY[82271004,79471008], ARRAY[1], '1235412', 1, ARRAY[]::CHARACTER[]);  /* ICD 959.01 is ENC_PL_DX in EncSomed 82271004 */
 SELECT NOW() as Finish;
