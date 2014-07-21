@@ -20,7 +20,7 @@ import utils.streaming.http_responder as HTTP
 import utils.streaming.http_helper as HH
 import utils.crypto.authorization_key as AK
 
-from utils.database.memory_cache import MemoryCache
+from utils.database.memory_cache import cache
 
 import maven_logging as ML
 import maven_config as MC
@@ -52,14 +52,16 @@ details = [{'type': 'pl_dx', 'id': '1'},
            {'type': "enc_dx", 'id': '4'},
            {'type': "enc_pl_dx", 'id': '5'},
            {'type': "hist_proc", 'id': '6'},
-           {'type': "ml_med", 'id': '7'}]
+           {'type': "ml_med", 'id': '7'},
+           {'type': "vitals", 'id': '8'}]
+
+@cache.cache_lookup(__name__)
+def get_med_routes(key):
+    raise KeyError(key)
+
 class RuleService(HTTP.HTTPProcessor):
     
     def __init__(self, configname):
-        self.mc = MemoryCache()
-        self.routes = self.mc.register_cache(self.get_med_routes, None, 60*60*24, 0)
-
-
         HTTP.HTTPProcessor.__init__(self,configname)
         self.add_handler(['POST'], '/login', self.post_login)
         self.add_handler(['GET'], '/list', self.get_list)
@@ -75,11 +77,13 @@ class RuleService(HTTP.HTTPProcessor):
         self.add_handler(['GET'], '/routes', self.get_routes)
         self.helper = HH.HTTPHelper([CONTEXT_USER], CONTEXT_AUTH, AUTH_LENGTH)
         self.search_interface = WS.web_search('search')
-    @asyncio.coroutine
-    def get_med_routes(self):
-         route_list = yield from self.search_interface.get_routes();
-         return {'routes': route_list}
-
+        self.update_med_routes()
+        
+    @cache.cache_update(__name__, period_seconds=60*60*24, message_fn=lambda: ML.EXCEPTION("Failed to get med routes"))
+    def update_med_routes(self):
+        route_list = yield from self.search_interface.get_routes();
+        print("XXXXXXXXX")
+        return {'routes': route_list}
 
     @asyncio.coroutine
     def post_login(self, _header, body, _qs, _matches, _key):
@@ -211,7 +215,7 @@ class RuleService(HTTP.HTTPProcessor):
                                                RuleService.routes_required_context,
                                                RuleService.routes_available_context)
 
-        result = yield from self.mc.lookup(self.routes, 'routes')
+        result = yield from get_med_routes('routes')
         return (HTTP.OK_RESPONSE, json.dumps(result), None)
 
     rule_required_context = [CONTEXT_USER, CONTEXT_RULEID]

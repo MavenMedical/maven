@@ -49,6 +49,14 @@ define([
 			        this.addPatient(patientCollection.models[pat]);
 		        }
 		    }
+
+            var patientlist = $('.patientlist', this.$el);
+            setTimeout(function() {
+                var patientHeight = patientlist.innerHeight();
+                if (patientHeight > 0 && patientHeight < parseInt(patientlist.css('max-height'))) {
+                    patientCollection.more();
+                }
+            },500);
 	    },
     });
 

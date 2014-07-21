@@ -22,8 +22,10 @@ import maven_config as MC
 import maven_logging as ML
 import urllib
 import urllib.parse
+import html
 import math
 import jinja2
+from utils.enums import CDS_ALERT_STATUS
 from jinja2 import Environment, PackageLoader
 
 
@@ -109,7 +111,7 @@ class NotificationGenerator():
             for dup_alert in dup_order_alerts:
                 alert_contents.append(dup_alert)
 
-        sleuth_alerts = yield from self._vista_sleuth_alert_generator(composition, templateEnv)
+        sleuth_alerts = yield from self._vista_CDS_alert_generator(composition, templateEnv)
         if sleuth_alerts is not None and len(sleuth_alerts) > 0:
             for sa in sleuth_alerts:
                 alert_contents.append(sa)
@@ -157,9 +159,9 @@ class NotificationGenerator():
         return templateVars
 
     @asyncio.coroutine
-    def _vista_sleuth_alert_generator(self, composition, templateEnv):
+    def _vista_CDS_alert_generator(self, composition, templateEnv):
 
-        TEMPLATE_FILE = "sleuth_alert.html"
+        TEMPLATE_FILE = "cds_alert.html"
         template_sleuth_alert = templateEnv.get_template( TEMPLATE_FILE )
 
         sleuth_alert_HTML_contents = []
@@ -180,8 +182,12 @@ class NotificationGenerator():
 
         for alert in CDS_alerts['alert_list']:
 
-            templateVars = {"alert_tag_line" : alert.short_title,
-                            "alert_description" : alert.long_description,
+            # Check to make sure the Alert Status is sufficient for generating a message
+            if alert.status < CDS_ALERT_STATUS.debug_alert.value:
+                break
+
+            templateVars = {"alert_tag_line" : html.escape(alert.short_title),
+                            "alert_description" : html.escape(alert.short_description),
                             "http_address" : MC.http_addr,
                             "encounter_id" : csn,
                             "patient_id" : patient_id,
@@ -212,8 +218,8 @@ class NotificationGenerator():
         if dup_order_alert_dict is not None and len(dup_order_alert_dict['alert_list']) > 0:
             for alert in dup_order_alert_dict['alert_list']:
 
-                templateVars = {"alert_tag_line" : alert.short_title,
-                                "alert_description" : alert.short_description,
+                templateVars = {"alert_tag_line" : html.escape(alert.short_title),
+                                "alert_description" : html.escape(alert.short_description),
                                 "http_address" : MC.http_addr,
                                 "encounter_id" : csn,
                                 "patient_id" : patient_id,
@@ -265,7 +271,7 @@ class NotificationGenerator():
     @asyncio.coroutine
     def _web_sleuth_alert_generator(self, composition, templateEnv):
 
-        TEMPLATE_FILE = "sleuth_alert.html"
+        TEMPLATE_FILE = "cds_alert.html"
         template_sleuth_alert = templateEnv.get_template( TEMPLATE_FILE )
 
 

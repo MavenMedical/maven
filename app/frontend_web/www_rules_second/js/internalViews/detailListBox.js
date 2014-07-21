@@ -18,7 +18,6 @@ define([
 
             this.type = params.type;
             this.$el = params.el
-            console.log(this.$el)
             require(['text!templates/SearchSelectorRow/' + panel.type +"_ResultRow.html"], function(template){
                 panel.lineTemplate = _.template(template)
                 panel.collection.on('add', panel.render, panel);

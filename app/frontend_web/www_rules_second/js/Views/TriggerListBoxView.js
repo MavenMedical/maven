@@ -14,7 +14,6 @@ define([
         //Collection is Type: TriggerSet(),
 
         initialize: function(params){
-            console.log(params);
             this.el = params.el;
             this.panelName = params.panelName;
             this.collection = params.collection;

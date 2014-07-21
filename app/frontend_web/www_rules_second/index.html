@@ -18,18 +18,22 @@
 
     <!-- Load the require script-->
     <script data-main="js/main" src="js/libs/require/require.js"></script>
+    <script src="../js/libs/jquery/jquery-min.js"></script>
+   <script src="../css/bootstrap/js/bootstrap.js"></script>
+   <script src="../js/libs/slider/bootstrap-slider.js"></script>
 
 
     <link href="css/style1.css" rel="stylesheet" type="text/css" title='original'>
+
   </head>
 
   <body>
-
    <div style ="text-align: center; font-size:360%; color: #0000ff;">Maven Medical Rule Editor</div>
-    <div id="detail-modal" class="modal fade" role="edit" >
-     <div class="modal-dialog modal-lg">
+
+   <div id="detail-modal" class="modal fade" role="edit" >
+     <div class="modal-dialog modal-lg"   style="width: 1400px">
         <div class="modal-content">
-            <div class="modal-body" style="min-width: 1400px">
+            <div class="modal-body">
                     <div id='modal-target'></div>
                 </div>
             </div>
@@ -37,6 +41,8 @@
      </div>
      <div style = "float: left" id="rule-list"></div>
     <div style="">
+
+
      <div class="bs-example bs-example-tabs center" style = "text-align: center; float: left">
           <ul id="myTab"  class=" center nav nav-tabs">
               <li class="active overview-tab tab"><a href="#Overview-Tab" data-toggle="tab">Overview</a></li>

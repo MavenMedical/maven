@@ -17,7 +17,6 @@ define([
         getTriggerByID: function(idIn){
             var result = null;
             this.each(function(cur){
-             console.log("loop1");
 
                 if ((cur.get('id')+"")==idIn ){
 

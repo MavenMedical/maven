@@ -31,18 +31,17 @@ import pickle
 import asyncio
 import datetime
 import json
-import math
 from collections import defaultdict
 import maven_config as MC
 import maven_logging as ML
 from utils.database.database import AsyncConnectionPool, MappingUtilites
-from utils.enums import CDS_ALERT_STATUS
 import utils.database.fhir_database as FHIR_DB
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
 import utils.streaming.stream_processor as SP
+import app.backend.evaluators.composition_evaluator as CE
 
 
-class CompositionEvaluator(SP.StreamProcessor):
+class CostTransparency(SP.StreamProcessor):
 
     def __init__(self, configname):
         SP.StreamProcessor.__init__(self, configname)
@@ -290,18 +289,16 @@ class CompositionEvaluator(SP.StreamProcessor):
         """
 
         """
-        # Gather any matching CDS Rules that hit according to Dave's rules.evalrules PL/pgsql function
         CDS_rules = yield from FHIR_DB.get_matching_CDS_rules(composition, self.conn)
 
-        # If Dave's evalrules PL/pgsql function returns any rules, go through and evaluate the rule details
         cds_alerts = []
         if CDS_rules is not None and len(CDS_rules) > 0:
             for rule in CDS_rules:
-                if (yield from self._evaluate_CDS_rule_details(composition, rule)):
+                rule_result = yield from self._evaluate_CDS_rule_details(composition, rule)
+                if rule_result:
                     cds_alert = yield from self.generate_cds_alert(composition, rule)
                     cds_alerts.append(cds_alert)
 
-        # Add a CDS Alerts section to the FHIR Composition if any of the CDS rules pass all the rule details
         if cds_alerts is not None and len(cds_alerts) > 0:
             alerts_section = composition.get_section_by_coding(code_system="maven", code_value="alerts")
             alerts_section.content.append({"alert_type": "cds",
@@ -310,10 +307,6 @@ class CompositionEvaluator(SP.StreamProcessor):
 
     @asyncio.coroutine
     def _evaluate_CDS_rule_details(self, composition, rule):
-        # Check to make sure that the FHIR_Rule.CDS_rule_status is not -1 (which is to suppress rule for internal/performance reasons)
-        if rule.CDS_rule_status == CDS_ALERT_STATUS.suppress.value:
-            return False
-
         additional_dx_details_result = yield from self._evaluate_additional_dx_rule_details(composition, rule.encounter_dx_rules)
         lab_rule_details_result = yield from self._evaluate_lab_rule_details(composition, rule.lab_rules)
         med_rule_details_result = yield from self._evaluate_medication_rule_details(composition, None)
@@ -322,6 +315,8 @@ class CompositionEvaluator(SP.StreamProcessor):
             return True
         else:
             return False
+
+
 
     @asyncio.coroutine
     def _evaluate_additional_dx_rule_details(self, composition, dx_rule_details):
@@ -352,10 +347,10 @@ class CompositionEvaluator(SP.StreamProcessor):
         code_trigger = rule.code_trigger
         CDS_rule = rule.CDS_rule_id
         alert_datetime = datetime.datetime.now()
-        short_title = rule.short_title
-        long_title = rule.long_title
-        short_description = rule.short_description
-        long_description = rule.long_description
+        short_title = rule.name
+        long_title = rule.name
+        short_description = rule.name
+        long_description = rule.name
         override_indications = ['Select one of these override indications boink']
         saving = 807.12
         category = "cds"
@@ -363,7 +358,7 @@ class CompositionEvaluator(SP.StreamProcessor):
         FHIR_alert = FHIR_API.Alert(customer_id=customer_id, subject=pat_id, provider_id=provider_id, encounter_id=encounter_id,
                                     code_trigger=code_trigger, CDS_rule=CDS_rule, alert_datetime=alert_datetime,
                                     short_title=short_title, long_title=long_title, short_description=short_description, long_description=long_description,
-                                    override_indications=override_indications, saving=saving, category=category, status=rule.CDS_rule_status)
+                                    override_indications=override_indications, saving=saving, category=category)
 
         return FHIR_alert
 
@@ -413,7 +408,7 @@ def run_composition_evaluator():
         {
             SP.CONFIG_HOST:'localhost',
             SP.CONFIG_QUEUE:'incoming_cost_evaluator_work_queue',
-            SP.CONFIG_EXCHANGE:'maven_exchange',
+            SP.CONFIG_EXCHANGE:'fanout_evaluator',
             SP.CONFIG_KEY:'incomingcosteval'
         },
 
@@ -444,7 +439,7 @@ def run_composition_evaluator():
     MC.MavenConfig = MavenConfig
 
     loop = asyncio.get_event_loop()
-    sp_message_handler = CompositionEvaluator(rabbithandler)
+    sp_message_handler = CostTransparency(rabbithandler)
     sp_message_handler.schedule(loop)
 
     try:

@@ -17,7 +17,6 @@ define([
 
         },
         addRule: function(ruleIn){
-            console.log("attempting to add a rule");
             ruleIn.on('change:myName', function(){
                 this.trigger('happened');
             },this)

@@ -56,7 +56,6 @@ define([
                 ruleCollection.remove(rule);
                 rulerow.destroy()
             })
-            console.log('painting', rule, "current rule is", curRule.get('id') )
             if (rule.get('id') == curRule.get('id')){
                 rulerow.$el.css({'font-size': '200%'});
             } else {

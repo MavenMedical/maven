@@ -1,11 +1,30 @@
-updating
-0: 0 -> 3
-0: 1 -> 2
-0: 2 -> 5
-0: 3 -> 6
-0: 4 -> 7
-0: 0 -> 3
-updating
-0: 1 -> 2
-0: 2 -> 5
-0: 3 -> 6
+updating 0
+returned 2 at 1
+looking up 2 at 1
+returned 4 at 1
+looking up {4} at 1
+returned {1: 2, 2: 4, 3: 4, 4: 7} at 1
+returned 2 at 2
+returned 4 at 2
+returned {1: 2, 2: 4, 3: 4, 4: 7} at 2
+returned 2 at 3
+returned 4 at 3
+returned {1: 2, 2: 4, 3: 4, 4: 7} at 3
+returned 2 at 4
+returned 4 at 4
+returned {1: 2, 2: 4, 3: 4, 4: 7} at 4
+returned 2 at 5
+returned 4 at 5
+returned {1: 2, 2: 4, 3: 4, 4: 7} at 5
+updating 5
+returned 2 at 6
+looking up 2 at 6
+returned 4 at 6
+looking up {4} at 6
+returned {1: 2, 2: 4, 3: 4, 4: 7} at 6
+returned 2 at 7
+returned 4 at 7
+returned {1: 2, 2: 4, 3: 4, 4: 7} at 7
+returned 2 at 8
+returned 4 at 8
+returned {1: 2, 2: 4, 3: 4, 4: 7} at 8

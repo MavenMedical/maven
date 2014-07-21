@@ -16,7 +16,8 @@ define([
     'globalmodels/contextModel',
     'widgets/evidence',
     'widgets/login',
-], function ($, _, Backbone, currentContext, Evidence, Login) {
+    'widgets/settings'
+], function ($, _, Backbone, currentContext, Evidence, Login, Settings) {
     
     var CheckLogin = function() {
 	if (!currentContext.get('user') || !currentContext.get('userAuth')) {
@@ -48,6 +49,7 @@ define([
 	    "episode/:id/patient/:id/:date(/login/:provider/:customer/:userAuth)": 'showEpisode',
 	    "evidence/:id/patient/:id/evi/:id(/login/:provider/:customer/:userAuth)": 'showEvidence',
 	    "logout": 'logout',
+        "settings": 'settings',
 	    //default
 	    '*action': 'defaultAction'
 	},
@@ -83,8 +85,6 @@ define([
 	defaultAction: function (action) {
 	    console.log('No route:', action);
 	},
-	
-	
 	initialize: function () {
 	    //ajaxPrefilter
 	    $.ajaxPrefilter(function (options, originalOptions, jqXHR) {

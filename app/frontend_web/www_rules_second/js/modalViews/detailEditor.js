@@ -16,30 +16,27 @@ define([
 
 
         initialize: function(param){
-            console.log(param);
             this.model = param.model;
             this.newDetail = param.newDetail
             this.$el = param.el;
             this.template = param.template
-            console.log("the parameter", param)
             this.type = param.type;
             this.$el.html(this.template());
             var searchEl = $('.search', this.$el)
+            this.searchBoxes =[];
             if (searchEl.length!=0){
                 var anon =  Backbone.Collection.extend( {url: '/search'})
                 var searchBox = new detailSearchBox({collection: new anon(), type: this.type, el: searchEl})
                 searchBox.render();
+                this.searchBoxes.push(searchBox)
             }
             var multiSearchEl = $('.multi-select-search', this.$el)
-            console.log("multiEls", multiSearchEl)
             $.each(multiSearchEl, function(a, cur){
-                console.log('cur', cur)
                 var anon =  Backbone.Collection.extend( {url: '/search'})
                 var searchBox = new multiSelectSearch({avail: new anon(), type: cur.getAttribute("type"), el: multiSearchEl, selected: new Backbone.Collection})
             })
             var routeListEl = $('.route-list', this.$el)
             $.each(routeListEl, function(a, cur){
-                console.log('cur', cur)
                 var listBox = new routeListBox({el: cur})
             })
             if (!this.newDetail){
@@ -50,37 +47,42 @@ define([
 
             var panel = this;
             $('.confirm-detail-button', this.$el)[0].onclick = function(){
+                if (panel.searchBoxes.length>0){
+                    for (var cur in panel.searchBoxes){
+                        if (!panel.searchBoxes[cur].ready){
+                            alert("Constraint is not complete, make sure you have a value selected in all search boxes")
+                            return;
+                        }
+                    }
+                }
                 var inputs = $('.detail-input');
+
                 for (var i=0;i<inputs.length;i++){
                     var cur = inputs[i];
-                    console.log("cur", cur)
                     if ($(cur).hasClass('hasTerm')){
 
                         _.each(cur, function(current){
                             if (current.selected){
                                 _.each(current.attributes, function(curAttrib){
-                                    console.log("setting", curAttrib.name, curAttrib.value)
                                     panel.model.set(curAttrib.name, curAttrib.value);
                                 })
                             }
                         })
                     }
+                    panel.model.set(cur.getAttribute('name'), cur.value);
 
-                    panel.model.set(cur.name, cur.value);
 
 
                 }
                 var multi = $('.multi-select-search', this.$el)
                 _.each(multi, function(cur){
                     var selectedItems = $('.selected-items option', cur)
-                    console.log('selected box is ', selectedItems)
                     var idList = [];
                     _.each(selectedItems, function(cur){
                         idList.push(cur.value)
                     })
                     panel.model.set(cur.getAttribute('name'), idList);
                 }, this)
-                console.log(panel.model)
                 if (panel.newDetail){
                     if (curRule.get(panel.type)){
                         curRule.get(panel.type).add(panel.model);
@@ -90,7 +92,6 @@ define([
                         curRule.set(panel.type, model);
 
                     }
-                    console.log(curRule)
                 }
                $('#detail-modal').modal('hide');
                curRule.needsSave = true;

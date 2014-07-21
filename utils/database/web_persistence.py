@@ -49,6 +49,7 @@ Results = Enum('Results',
     customerid
     provid
     displayname
+    officialname
     password
     passexpired
     userstate
@@ -166,6 +167,10 @@ class WebPersistence():
     def update_password(self, user, newpw, timeout = '180d'):
         yield from self.execute(["UPDATE users set (pw, pw_expiration) = (%s, now() + interval %s) where user_id = %s"],
                                 [newpw, timeout, user], {}, {})
+    @asyncio.coroutine
+    def update_user_settings(self, user, officialname,displayname):
+        yield from self.execute(["UPDATE users set (official_name, display_name) = (%s, %s) where user_id = %s"],
+                                [officialname, displayname, user], {}, {})
 
     @asyncio.coroutine
     def record_login(self, username, method, ip, authkey):
@@ -179,6 +184,7 @@ class WebPersistence():
         Results.customerid: 'users.customer_id',
         Results.provid: 'users.prov_id',
         Results.displayname: 'users.display_name',
+        Results.officialname: "users.official_name",
         Results.password: 'users.pw',
         Results.passexpired: 'users.pw_expiration < now()',
         Results.userstate: 'users.state',
@@ -407,7 +413,7 @@ class WebPersistence():
 
     @asyncio.coroutine
     def alerts(self, desired, provider, customer, patients=[], limit="",
-               startdate=None, enddate=None, orderid=None):
+               startdate=None, enddate=None, orderid=None, categories=[]):
         columns = build_columns(desired.keys(), self._available_alerts,
                                 self._default_alerts)
         
@@ -422,6 +428,9 @@ class WebPersistence():
         if patients:
             cmd.append("AND alert.pat_id IN %s")
             cmdargs.append(makelist(patients))
+        if categories:
+            cmd.append("AND alert.category IN %s")
+            cmdargs.append(makelist(categories))
         if orderid:
             cmd.append("AND alert.order_id = %s")
             cmdargs.append(orderid)

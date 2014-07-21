@@ -27,14 +27,14 @@ define([
 
         },
         render: function(){
-
+            console.log("rendering")
             this.$el.html("");
             var type = this.type;
 
             this.list.each(function(cur) {
-                console.log("outputting detail", cur)
                 this.$el.append(this.lineTemplate(cur.attributes))
-
+                cur.off('change')
+                cur.on('change', this.render, this)
                 $('.detail-item', this.$el).last()[0].onclick = function(){
                      require(['text!/templates/individualDetails/' + type + '_editor.html'],
 		                     function(curTemplate) {

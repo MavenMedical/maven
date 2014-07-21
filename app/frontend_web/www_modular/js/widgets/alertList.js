@@ -37,6 +37,14 @@ define([
 	    for(alert in alertCollection.models) {
 		this.addAlert(alertCollection.models[alert]);
 	    }
+
+	    var alertlist = $('.alertlist', this.$el);
+        setTimeout(function() {
+            var alertHeight = alertlist.innerHeight();
+            if (alertHeight > 0 && alertHeight < parseInt(alertlist.css('max-height'))) {
+                alertCollection.more();
+            }
+        },500);
 	},
 	reset: function() {
 	    $('#alertaccordion').empty();

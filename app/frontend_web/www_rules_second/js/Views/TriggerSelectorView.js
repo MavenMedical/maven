@@ -42,7 +42,6 @@ define([
                 var setToRemove = $('#rightBox option:selected');
 
                 for (var c = 0; c<setToRemove.length; c++){
-                    console.log("loop");
                     var val = setToRemove[c].value;
                     var toTransfer = that.model.get('SelectedTriggerSet').getTriggerByID(val);
                       that.model.get('SelectedTriggerSet').remove(toTransfer);

@@ -4,7 +4,7 @@
             Rule will <b>not be used</b> if <b><%=term%>(Snomed: <%=code%>)</b> is in the drug list
     <%} else { %>
             Rule will <b>be used only</b> if  <b><%=term%>(Snomed: <%=code%>)</b> is in the the drug list
-    <%}%> <br> administered via the route: <b><%=route%></b>
+    <%}%>  administered via the route: <b><% if (route =="%"){%>ANY<%}else{%><%=route%><%}%></b>
     </a>
     <a style = "float: right" class="remove-detail">&#10006</a>
 

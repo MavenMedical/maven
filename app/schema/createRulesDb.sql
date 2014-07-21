@@ -147,10 +147,10 @@ Author: Dave.
 People to ask: Dave, Bruce, Yuki
 ************************************************************/
 create or replace function rules.evalRules(orderCode varchar, ordcodeType varchar, patAge numeric(18,2), patSex varchar, encSnomeds bigint[], probSnomeds bigint[],patid varchar(100),customer int, curMedList varchar[])
-returns table (ruleid int, name varchar,details text,status int) as $$
+returns table (ruleid int, name varchar,details text,status int,fullspec text) as $$
 begin
                 return query execute
-                'select x.ruleid,x.name,x.remainingDetails,d.validation_status from
+                'select x.ruleid,x.name,x.remainingDetails,d.validation_status,x.fullspec from
                 (
                 select a.ruleid
                 from rules.eviRule a
