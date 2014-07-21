@@ -183,7 +183,7 @@ class NotificationGenerator():
         for alert in CDS_alerts['alert_list']:
 
             # Check to make sure the Alert Status is sufficient for generating a message
-            if alert.status < CDS_ALERT_STATUS.debug_alert.value:
+            if alert.status < CDS_ALERT_STATUS.DEBUG_ALERT.value:
                 break
 
             templateVars = {"alert_tag_line" : html.escape(alert.short_title),

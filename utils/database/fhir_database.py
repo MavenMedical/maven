@@ -22,7 +22,7 @@ import asyncio
 from collections import defaultdict
 from dateutil.relativedelta import relativedelta
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
-import utils.enums as ENUMS
+from utils.enums import ORDER_SOURCE, PROCEDURE_ORDER_TYPES, MEDICATION_ORDER_TYPES
 from utils.database.database import MappingUtilites
 
 DBMapper = MappingUtilites()
@@ -137,32 +137,39 @@ def write_composition_conditions(composition, conn):
 def write_composition_encounter_orders(composition, conn):
     try:
         for order in composition.get_encounter_orders():
-            if isinstance(order.detail[0], FHIR_API.Procedure):
-                code_id = order.detail[0].type.coding[0].code
-                order_type = order.detail[0].type.text
-            elif isinstance(order.detail[0], FHIR_API.Medication):
-                code_id = order.detail[0].code.coding[0].code
-                order_type = order.detail[0].code.text
-            cmdargs = [composition.customer_id,
-                       order.detail[0].identifier[0].value,
-                       composition.subject.get_pat_id(),
-                       composition.encounter.get_csn(),
-                       composition.get_author_id(),
-                       composition.get_author_id(),
-                       order.get_orderable_ID(),
-                       "created",
-                       "webservice",
-                       code_id,
-                       "clientEMR",
-                       order.detail[0].text,
-                       order_type,
-                       order.detail[0].cost,
-                       composition.lastModifiedDate]
+            yield from write_composition_encounter_order(order, composition, conn)
+    except:
+        raise Exception("Error inserting composition encounter orders into database")
 
-            cur = yield from conn.execute_single("SELECT upsert_enc_order(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", extra=cmdargs)
+@asyncio.coroutine
+def write_composition_encounter_order(order, composition, conn):
+    try:
+        if isinstance(order.detail[0], FHIR_API.Procedure):
+            code_id = order.detail[0].type.coding[0].code
+            order_type = order.detail[0].type.text
+        elif isinstance(order.detail[0], FHIR_API.Medication):
+            code_id = order.detail[0].code.coding[0].code
+            order_type = order.detail[0].code.text
+        cmdargs = [composition.customer_id,
+                   order.identifier[0].value,
+                   composition.subject.get_pat_id(),
+                   composition.encounter.get_csn(),
+                   composition.get_author_id(),
+                   composition.get_author_id(),
+                   order.get_orderable_ID(),
+                   order.status,
+                   ORDER_SOURCE.WEBSERVICE.name,
+                   code_id,
+                   "clientEMR",
+                   order.detail[0].text,
+                   order_type,
+                   order.detail[0].cost,
+                   composition.lastModifiedDate]
+
+        cur = yield from conn.execute_single("SELECT upsert_enc_order(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", extra=cmdargs)
 
     except:
-        raise Exception("Error inserting encounter orders into database")
+        raise Exception("Error inserting encounter order into database")
 
 @asyncio.coroutine
 def write_composition_alerts(composition, conn):
@@ -270,7 +277,7 @@ def construct_encounter_orders_from_db(composition, conn):
         for result in cur:
             order_type = result[12]
 
-            if order_type.lower() in ENUMS.PROCEDURE_ORDER_TYPES.__members__:
+            if order_type.lower() in PROCEDURE_ORDER_TYPES.__members__:
                 FHIR_procedure = FHIR_API.Procedure(text=result[11],
                                                     name=result[11],
                                                     type=FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(system=result[17],
@@ -282,9 +289,10 @@ def construct_encounter_orders_from_db(composition, conn):
                                                                                            value=result[1],
                                                                                            label="Internal"),],
                                                            date=result[15],
-                                                           detail=[FHIR_procedure]))
+                                                           detail=[FHIR_procedure],
+                                                           status=result[7]))
 
-            elif order_type.lower() in ENUMS.MEDICATION_ORDER_TYPES.__members__:
+            elif order_type.lower() in MEDICATION_ORDER_TYPES.__members__:
                 FHIR_medication = FHIR_API.Medication(text=result[11],
                                                       name=result[1],
                                                       code=FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(system="rxnorm",
@@ -296,7 +304,8 @@ def construct_encounter_orders_from_db(composition, conn):
                                                            date=result[15],
                                                            identifier=[FHIR_API.Identifier(system="clientEMR",
                                                                                            value=result[1],
-                                                                                           label="Internal"),]))
+                                                                                           label="Internal"),],
+                                                           status=result[7]))
         return rtn_encounter_orders
 
     except:

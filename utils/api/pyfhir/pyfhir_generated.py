@@ -3255,7 +3255,8 @@ class Order(Resource):
                  when_schedule=None,
                  detail=None,
                  totalCost=None,
-                 order_type=None
+                 order_type=None,
+                 status=None
                  ):
         Resource.__init__(self,
                           customer_id=customer_id,
@@ -3278,6 +3279,7 @@ class Order(Resource):
         self.when_schedule = when_schedule                                     # , A formal schedule
         self.totalCost = totalCost
         self.order_type = order_type
+        self.status = status
         
         if detail is None:
             self.detail = []                                     # , { attb['short_desc'] }}

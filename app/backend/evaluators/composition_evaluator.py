@@ -37,6 +37,7 @@ import maven_config as MC
 import maven_logging as ML
 from utils.database.database import AsyncConnectionPool, MappingUtilites
 from utils.enums import CDS_ALERT_STATUS
+from utils.enums import ORDER_STATUS
 import utils.database.fhir_database as FHIR_DB
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
 import utils.streaming.stream_processor as SP
@@ -56,45 +57,47 @@ class CompositionEvaluator(SP.StreamProcessor):
     @asyncio.coroutine
     def read_object(self, obj, _):
 
-        #Load the FHIR Composition from the pickle
+        # Load the FHIR Composition from the pickle
         composition = pickle.loads(obj)
 
-        #Write the original composition that came across the wire for debugging purposes
-        #Eventually we'll want the DB write method below to update the composition as opposed to writing it again
+        # Write the original composition that came across the wire for debugging purposes
+        # Eventually we'll want the DB write method below to update the composition as opposed to writing it again
         yield from FHIR_DB.write_composition_json(composition, self.conn)
 
-        #Add the alerts section so that the components below can add their respective alerts
+        # Add the alerts section so that the components below can add their respective alerts
         self._add_alerts_section(composition)
 
-        #Identify Encounter Orderables
+        # Identify Encounter Orderables
         yield from self.identify_encounter_orderables(composition)
 
-        #Detect deleted/removed/canceled orders from new set
-        yield from self.detect_canceled_deleted_orders(composition)
+        # Send composition to fanout_evaluator RabbitMQ exchange
+        #self.write_object(composition, writer_key='logging')
 
-        #Maven Transparency
+        # Detect deleted/removed/canceled orders from new set
+        yield from self.detect_removed_orders(composition)
+
+        # Maven Transparency
         yield from self.evaluate_encounter_cost(composition)
 
-        #Maven Duplicate Orders (with related Clinical Observations) analysis
+        # Maven Duplicate Orders (with related Clinical Observations) analysis
         yield from self.evaluate_duplicate_orders(composition)
 
-        #Maven Alternative Meds
+        # Maven Alternative Meds
         yield from self.evaluate_alternative_meds(composition)
 
-        #Use the FHIR Database API to look up each Condition's codes (ICD-9) and add Snomed CT concepts to the Condition
+        # Use the FHIR Database API to look up each Condition's codes (ICD-9) and add Snomed CT concepts to the Condition
         yield from FHIR_DB.get_snomeds_and_append_to_encounter_dx(composition, self.conn)
 
-        #Analyze Choosing Wisely/CDS Rules
+        # Analyze Choosing Wisely/CDS Rules
         yield from self.evaluate_CDS_rules(composition)
 
-        #Write everything to persistent DB storage
+        # Write everything to persistent DB storage
         yield from FHIR_DB.write_composition_to_db(composition, self.conn)
 
-        #Debug Message
-        comp_json = json.dumps(composition, default=FHIR_API.jdefault, indent=4)
-        ML.DEBUG(json.dumps(FHIR_API.remove_none(json.loads(comp_json)), default=FHIR_API.jdefault, indent=4))
+        # Debug Message
+        ML.DEBUG(json.dumps(FHIR_API.remove_none(json.loads(json.dumps(composition, default=FHIR_API.jdefault))), default=FHIR_API.jdefault, indent=4))
 
-        #Send message back to data_router (or aggregate)
+        # Send message back to data_router (or aggregate)
         self.write_object(composition, writer_key='aggregate')
 
     def _add_alerts_section(self, composition):
@@ -138,7 +141,7 @@ class CompositionEvaluator(SP.StreamProcessor):
     ##########################################################################################
     ##########################################################################################
     @asyncio.coroutine
-    def detect_canceled_deleted_orders(self, composition):
+    def detect_removed_orders(self, composition):
 
         #Build a list of FHIR_API.Orders encounter orders in the database.order_ord
         orders_from_db = yield from FHIR_DB.construct_encounter_orders_from_db(composition, self.conn)
@@ -148,6 +151,14 @@ class CompositionEvaluator(SP.StreamProcessor):
         old_orders_clientEMR_IDs = [(order.get_clientEMR_uuid(), order.get_orderable_ID()) for order in orders_from_db]
 
         missing_orders = [old_order for old_order in old_orders_clientEMR_IDs if old_order not in new_orders_clientEMR_IDs]
+
+        # Update FHIR_Order.status and write changes to DB for each of the orders found in missing_orders
+        if missing_orders is not None and len(missing_orders) > 0:
+            for order in [(db_order) for db_order in orders_from_db for order in missing_orders if order[0] == db_order.identifier[0].value]:
+
+                # Put the Order in a status of ON HOLD which means we need to figure out if it was Completed/Removed/Canceled
+                order.status = ORDER_STATUS.HD.name
+                yield from FHIR_DB.write_composition_encounter_order(order, composition, self.conn)
 
 
     ##########################################################################################
@@ -311,7 +322,7 @@ class CompositionEvaluator(SP.StreamProcessor):
     @asyncio.coroutine
     def _evaluate_CDS_rule_details(self, composition, rule):
         # Check to make sure that the FHIR_Rule.CDS_rule_status is not -1 (which is to suppress rule for internal/performance reasons)
-        if rule.CDS_rule_status == CDS_ALERT_STATUS.suppress.value:
+        if rule.CDS_rule_status == CDS_ALERT_STATUS.SUPPRESS.value:
             return False
 
         additional_dx_details_result = yield from self._evaluate_additional_dx_rule_details(composition, rule.encounter_dx_rules)

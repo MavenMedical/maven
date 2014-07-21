@@ -23,6 +23,7 @@ import uuid
 import dateutil.parser
 import json
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
+from utils.enums import ORDER_STATUS
 
 
 class EpicParser():
@@ -340,7 +341,8 @@ class VistaParser():
 
                         encounter_orders.append(FHIR_API.Order(identifier=[FHIR_API.Identifier(system="clientEMR", value=ord_id, label="Internal")],
                                                                detail=[procedure],
-                                                               text=ord_name))
+                                                               text=ord_name,
+                                                               status=ORDER_STATUS.IP.name))
 
                     elif ord_type == "MED":
                         pass
@@ -354,7 +356,8 @@ class VistaParser():
                                                            detail=[FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(system=ord_code_type,
                                                                                                                     code=procedure_code,
                                                                                                                     display=ord_name)],
-                                                                                            text="Unknown")]))
+                                                                                            text="Unknown")],
+                                                           status=ORDER_STATUS.IP.name))
             encounter_orders_section.content = encounter_orders
             composition.section.append(encounter_orders_section)
 

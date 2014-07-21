@@ -427,6 +427,7 @@ create index ixobsPatLoincDate on observation(customer_id,pat_id,loinc_code,resu
 -- DROP TABLE order_event;
 CREATE TABLE order_event (
   customer_id numeric(18,0),
+  encounter_id character varying(100),
   order_id character varying(36),
   provider_id character varying(100),
   order_event character varying(2),
@@ -658,21 +659,21 @@ ALTER TABLE public.users
 --
 -- Name: upsert_condition(character varying, numeric, character varying, character varying, character varying, timestamp without time zone, timestamp without time zone, numeric, character varying, character varying, character varying, boolean, boolean, boolean); Type: FUNCTION; Schema: public; Owner: maven
 --
-CREATE OR REPLACE FUNCTION upsert_condition(pat_id1 character varying, customer_id1 numeric, encounter_id1 character varying, dx_category1 character varying, status1 character varying, date_asserted1 timestamp without time zone, date_resolved1 timestamp without time zone, snomed_id1 numeric, dx_code_id1 character varying, dx_code_system1 character varying, dx_text1 character varying, is_principle1 boolean, is_chronic1 boolean, is_poa1 boolean) RETURNS void
+CREATE OR REPLACE FUNCTION upsert_condition(v_pat_id character varying, v_customer_id numeric, v_encounter_id character varying, v_dx_category character varying, v_status character varying, v_date_asserted timestamp without time zone, v_date_resolved timestamp without time zone, v_snomed_id numeric, v_dx_code character varying, v_dx_code_system character varying, v_dx_text character varying, v_is_principle boolean, v_is_chronic boolean, v_is_poa boolean) RETURNS void
     LANGUAGE plpgsql
     AS $$
 BEGIN
   LOOP
     UPDATE condition
-    SET dx_category=dx_category1,
-      status=status1,
-      date_asserted=date_asserted1,
-      date_resolved=date_resolved1,
-      dx_text=dx_text1,
-      is_principle=is_principle1,
-      is_chronic=is_chronic1,
-      is_poa=is_poa1
-       WHERE encounter_id=encounter_id1 AND customer_id=customer_id1 AND (snomed_id=snomed_id1 OR (dx_code_id=dx_code_id1 AND dx_code_system=dx_code_system1)) ;
+    SET dx_category=v_dx_category,
+      status=v_status,
+      date_asserted=v_date_asserted,
+      date_resolved=v_date_resolved,
+      dx_text=v_dx_text,
+      is_principle=v_is_principle,
+      is_chronic=v_is_chronic,
+      is_poa=v_is_poa
+       WHERE encounter_id=v_encounter_id AND customer_id=v_customer_id AND (snomed_id=v_snomed_id OR (dx_code_id=v_dx_code AND dx_code_system=v_dx_code_system)) ;
     IF found THEN
       RETURN;
     END IF;
@@ -681,101 +682,122 @@ BEGIN
             pat_id, customer_id, encounter_id, dx_category, status, date_asserted,
             date_resolved, snomed_id, dx_code_id, dx_code_system, dx_text,
             is_principle, is_chronic, is_poa)
-        VALUES (pat_id1, customer_id1, encounter_id1, dx_category1, status1, date_asserted1,
-            date_resolved1, snomed_id1, dx_code_id1, dx_code_system1, dx_text1,
-            is_principle1, is_chronic1, is_poa1);
+        VALUES (v_pat_id, v_customer_id, v_encounter_id, v_dx_category, v_status, v_date_asserted,
+            v_date_resolved, v_snomed_id, v_dx_code, v_dx_code_system, v_dx_text,
+            v_is_principle, v_is_chronic, v_is_poa);
       RETURN;
     EXCEPTION WHEN unique_violation THEN
     END;
   END LOOP;
 END;
 $$;
-ALTER FUNCTION public.upsert_condition(pat_id1 character varying, customer_id1 numeric, encounter_id1 character varying, dx_category1 character varying, status1 character varying, date_asserted1 timestamp without time zone, date_resolved1 timestamp without time zone, snomed_id1 numeric, dx_code_id1 character varying, dx_code_system1 character varying, dx_text1 character varying, is_principle1 boolean, is_chronic1 boolean, is_poa1 boolean) OWNER TO maven;
+ALTER FUNCTION public.upsert_condition(v_pat_id character varying, v_customer_id numeric, v_encounter_id character varying, v_dx_category character varying, v_status character varying, v_date_asserted timestamp without time zone, v_date_resolved timestamp without time zone, v_snomed_id numeric, v_dx_code character varying, v_dx_code_system character varying, v_dx_text character varying, v_is_principle boolean, v_is_chronic boolean, v_is_poa boolean) OWNER TO maven;
 
 
 --
 -- Name: upsert_enc_order(numeric, character varying, character varying, character varying, character varying, character varying, character varying, ord_event, ord_source, character varying, character varying, character varying, character varying, numeric, timestamp without time zone); Type: FUNCTION; Schema: public; Owner: maven
 --
-CREATE OR REPLACE FUNCTION upsert_enc_order(customer_id1 numeric, order_id1 character varying, pat_id1 character varying, encounter_id1 character varying, ordering_provider_id1 character varying, auth_provider_id1 character varying, orderable_id1 character varying, status1 character varying, source1 character varying, code_id1 character varying, code_system1 character varying, order_name1 character varying, order_type1 character varying, order_cost1 numeric, order_datetime1 timestamp without time zone) RETURNS void
+CREATE OR REPLACE FUNCTION upsert_enc_order(v_customer_id numeric, v_order_id character varying, v_pat_id character varying, v_encounter_id character varying, v_ordering_provider_id character varying, v_auth_provider_id character varying, v_orderable_id character varying, v_status character varying, v_source character varying, v_code_id character varying, v_code_system character varying, v_order_name character varying, v_order_type character varying, v_order_cost numeric, v_order_datetime timestamp without time zone) RETURNS void
     LANGUAGE plpgsql
     AS $$
+    DECLARE exit_loop Boolean:=FALSE;
 BEGIN
   LOOP
+    IF exit_loop = TRUE THEN
+      EXIT;
+    END IF;
     UPDATE order_ord
     SET
-      status = status1,
-      order_datetime = order_datetime1
-    WHERE encounter_id = encounter_id1 and customer_id = customer_id1 and orderable_id = orderable_id1;
-    IF found THEN
-      RETURN;
-    END IF;
-    BEGIN
-      INSERT INTO order_ord(customer_id, order_id, pat_id, encounter_id, ordering_provider_id,
-                            auth_provider_id, orderable_id, status, source, code_id, code_system,
-                            order_name, order_type, order_cost, order_datetime)
-        VALUES (customer_id1, order_id1, pat_id1, encounter_id1, ordering_provider_id1,
-                auth_provider_id1, orderable_id1, status1, source1, code_id1, code_system1,
-                order_name1, order_type1, order_cost1, order_datetime1);
-      INSERT INTO order_event(
+      status = v_status,
+      order_datetime = v_order_datetime
+    WHERE encounter_id = v_encounter_id AND customer_id = v_customer_id AND order_id = v_order_id AND NOT (status = v_status);
+     IF found THEN
+       INSERT INTO order_event(
             customer_id, order_id, provider_id, order_event, event_datetime,
             source, active_orders)
-        VALUES (customer_id1, order_id1, pat_id1, 'IP', order_datetime1,
-                'Webservice', NULL);
-      RETURN;
-    EXCEPTION WHEN unique_violation THEN
-    END;
+         VALUES (v_customer_id, v_order_id, v_pat_id, v_status, v_order_datetime,
+                v_source, NULL);
+       exit_loop = TRUE;
+       EXIT;
+     END IF;
+
+    UPDATE order_ord
+      SET
+        status = v_status
+    WHERE encounter_id = v_encounter_id AND customer_id = v_customer_id AND order_id = v_order_id AND status = v_status;
+    IF found THEN
+      exit_loop = TRUE;
+      EXIT;
+    END IF;
+
+    BEGIN
+        INSERT INTO order_ord(customer_id, order_id, pat_id, encounter_id, ordering_provider_id,
+                              auth_provider_id, orderable_id, status, source, code_id, code_system,
+                              order_name, order_type, order_cost, order_datetime)
+          VALUES (v_customer_id, v_order_id, v_pat_id, v_encounter_id, v_ordering_provider_id,
+                  v_auth_provider_id, v_orderable_id, v_status, v_source, v_code_id, v_code_system,
+                  v_order_name, v_order_type, v_order_cost, v_order_datetime);
+        INSERT INTO order_event(
+              customer_id, order_id, provider_id, order_event, event_datetime,
+              source, active_orders)
+           VALUES (v_customer_id, v_order_id, v_pat_id, v_status, v_order_datetime,
+                  v_source, NULL);
+        exit_loop = TRUE;
+        RETURN;
+        EXCEPTION WHEN unique_violation THEN
+          END;
   END LOOP;
 END;
 $$;
-ALTER FUNCTION public.upsert_enc_order(customer_id1 numeric, order_id1 character varying, pat_id1 character varying, encounter_id1 character varying, ordering_provider_id1 character varying, auth_provider_id1 character varying, orderable_id1 character varying, status1 character varying, source1 character varying, code_id1 character varying, code_system1 character varying, order_name1 character varying, order_type1 character varying, order_cost1 numeric, order_datetime1 timestamp without time zone) OWNER TO maven;
+ALTER FUNCTION public.upsert_enc_order(v_customer_id numeric, v_order_id character varying, v_pat_id character varying, v_encounter_id character varying, v_ordering_provider_id character varying, v_auth_provider_id character varying, v_orderable_id character varying, v_status character varying, v_source character varying, v_code_id character varying, v_code_system character varying, v_order_name character varying, v_order_type character varying, v_order_cost numeric, v_order_datetime timestamp without time zone) OWNER TO maven;
 
 
 --
 -- Name: upsert_encounter(character varying, character varying, character varying, date, character varying, character varying, numeric, date, date, numeric); Type: FUNCTION; Schema: public; Owner: maven
 --
-CREATE OR REPLACE FUNCTION upsert_encounter(csn1 character varying, pat_id1 character varying, enc_type1 character varying, contact_date1 date, visit_prov_id1 character varying, bill_prov_id1 character varying, department_id1 numeric, hosp_admsn_time1 date, hosp_disch_time1 date, customer_id1 numeric) RETURNS void
+CREATE OR REPLACE FUNCTION upsert_encounter(v_csn character varying, v_pat_id character varying, v_enc_type character varying, v_contact_date date, v_visit_prov_id character varying, v_bill_prov_id character varying, v_department_id numeric, v_hosp_admsn_time date, v_hosp_disch_time date, v_customer_id numeric) RETURNS void
     LANGUAGE plpgsql
     AS $$
 BEGIN
   LOOP
-    UPDATE encounter SET pat_id = pat_id1, enc_type = enc_type1, contact_date = contact_date1,
-      visit_prov_id = visit_prov_id1, bill_prov_id = bill_prov_id1, department_id = department_id1,
-      hosp_admsn_time = hosp_admsn_time1, hosp_disch_time = hosp_disch_time1 WHERE csn = csn1 AND customer_id = customer_id1;
+    UPDATE encounter SET pat_id = v_pat_id, enc_type = v_enc_type, contact_date = v_contact_date,
+      visit_prov_id = v_visit_prov_id, bill_prov_id = v_bill_prov_id, department_id = v_department_id,
+      hosp_admsn_time = v_hosp_admsn_time, hosp_disch_time = v_hosp_disch_time WHERE csn = v_csn AND customer_id = v_customer_id;
     IF found THEN
       RETURN;
     END IF;
     BEGIN
       INSERT INTO encounter(csn, pat_id, enc_type, contact_date, visit_prov_id, bill_prov_id, department_id, hosp_admsn_time, hosp_disch_time, customer_id)
-        VALUES (csn1, pat_id1, enc_type1, contact_date1, visit_prov_id1, bill_prov_id1, department_id1, hosp_admsn_time1, hosp_disch_time1, customer_id1);
+        VALUES (v_csn, v_pat_id, v_enc_type, v_contact_date, v_visit_prov_id, v_bill_prov_id, v_department_id, v_hosp_admsn_time, v_hosp_disch_time, v_customer_id);
       RETURN;
     EXCEPTION WHEN unique_violation THEN
     END;
   END LOOP;
 END;
 $$;
-ALTER FUNCTION public.upsert_encounter(csn1 character varying, pat_id1 character varying, enc_type1 character varying, contact_date1 date, visit_prov_id1 character varying, bill_prov_id1 character varying, department_id1 numeric, hosp_admsn_time1 date, hosp_disch_time1 date, customer_id1 numeric) OWNER TO maven;
+ALTER FUNCTION public.upsert_encounter(v_csn character varying, v_pat_id character varying, v_enc_type character varying, v_contact_date date, v_visit_prov_id character varying, v_bill_prov_id character varying, v_department_id numeric, v_hosp_admsn_time date, v_hosp_disch_time date, v_customer_id numeric) OWNER TO maven;
 
 
 --
 -- Name: upsert_patient(character varying, numeric, character varying, character varying, character varying, character varying, character varying, date); Type: FUNCTION; Schema: public; Owner: maven
 --
-CREATE OR REPLACE FUNCTION upsert_patient(pat_id1 character varying, customer_id1 numeric, birth_month1 character varying, sex1 character varying, mrn1 character varying, patname1 character varying, cur_pcp_prov_id1 character varying, birthdate1 date) RETURNS void
+CREATE OR REPLACE FUNCTION upsert_patient(v_pat_id character varying, v_customer_id numeric, v_birth_month character varying, v_sex character varying, v_mrn character varying, v_patname1 character varying, v_cur_pcp_prov_id character varying, v_birthdate date) RETURNS void
     LANGUAGE plpgsql
     AS $$
 BEGIN
   LOOP
-    UPDATE patient SET birth_month = birth_month1, sex = sex1, mrn = mrn1,
-      patname = patname1, cur_pcp_prov_id = cur_pcp_prov_id1, birthdate = birthdate1 WHERE pat_id = pat_id1 AND customer_id = customer_id1;
+    UPDATE patient SET birth_month = v_birth_month, sex = v_sex, mrn = v_mrn,
+      patname = v_patname1, cur_pcp_prov_id = v_cur_pcp_prov_id, birthdate = v_birthdate WHERE pat_id = v_pat_id AND customer_id = v_customer_id;
     IF found THEN
       RETURN;
     END IF;
     BEGIN
       INSERT INTO patient(pat_id, customer_id, birth_month, sex, mrn, patname, cur_pcp_prov_id, birthdate)
-        VALUES (pat_id1, customer_id1, birth_month1, sex1, mrn1, patname1, cur_pcp_prov_id1, birthdate1);
+        VALUES (v_pat_id, v_customer_id, v_birth_month, v_sex, v_mrn, v_patname1, v_cur_pcp_prov_id, v_birthdate);
       RETURN;
     EXCEPTION WHEN unique_violation THEN
     END;
   END LOOP;
 END;
 $$;
-ALTER FUNCTION public.upsert_patient(pat_id1 character varying, customer_id1 numeric, birth_month1 character varying, sex1 character varying, mrn1 character varying, patname1 character varying, cur_pcp_prov_id1 character varying, birthdate1 date) OWNER TO maven;
+ALTER FUNCTION public.upsert_patient(v_pat_id character varying, v_customer_id numeric, v_birth_month character varying, v_sex character varying, v_mrn character varying, v_patname1 character varying, v_cur_pcp_prov_id character varying, v_birthdate date) OWNER TO maven;
