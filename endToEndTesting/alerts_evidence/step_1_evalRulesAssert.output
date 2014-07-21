@@ -1,6 +1,6 @@
              start             
 -------------------------------
- 2014-07-18 12:54:34.394203-04
+ 2014-07-21 09:05:41.375508-04
 (1 row)
 
  snomedid | codetype |  code  
@@ -10,9 +10,10 @@
  82271004 | ICD-9    | 959.01
 (3 rows)
 
- ruleid | name  | minage | maxage | sex | codetype | remainingdetails | fullspec | comments 
---------+-------+--------+--------+-----+----------+------------------+----------+----------
-   5809 | AAO 1 |   0.00 | 200.00 | %   | HCPCS    | {"details":[]}   |          | 
+UPDATE 1
+ ruleid | name  | minage | maxage | sex | codetype | remainingdetails |                                                                                                                                                                                                                                                                                                                                                                                                                       fullspec                                                                                                                                                                                                                                                                                                                                                                                                                        | comments 
+--------+-------+--------+--------+-----+----------+------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------
+   5809 | AAO 1 |   0.00 | 200.00 | %   | HCPCS    | {"details":[]}   | {    "evidence": {        "short-title": "Choosing Wisely: Head CT for sudden hearing loss",        "short-description": "Here’s additional info on imaging for initial management of sudden hearing loss",        "long-title": "Don’t order computed tomography (CT) scan of the head/brain for sudden hearing loss.",        "long-description": "Computed tomography scanning is expensive, exposes the patient to radiation and offers no useful information that would improve initial management. CT scanning may be appropriate in patients with focal neurologic findings, a history of trauma or chronic ear disease.",        "sources": [            {                "Hyperlink": "www.choosingwidely.org",                "Abbreviation": "AAO",                "Name": "American Academy of Otolaryngolgy"            }        ]    }} | 
 (1 row)
 
  ruleid | code  
@@ -65,15 +66,13 @@ UPDATE 1
  t
 (1 row)
 
-UPDATE 1
  tst_08_enc_in_enc_pl_match_fail 
 ---------------------------------
  t
 (1 row)
 
-UPDATE 1
             finish             
 -------------------------------
- 2014-07-18 12:54:34.620487-04
+ 2014-07-21 09:05:41.646984-04
 (1 row)
 
