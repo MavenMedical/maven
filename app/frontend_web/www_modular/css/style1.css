@@ -482,7 +482,7 @@ body {
 
 .calendar-modal, #chart-modal{
     height: 340px;
-    width: 530px;
+    width:50%;
 }
 
 
