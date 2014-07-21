@@ -18,22 +18,27 @@ define([
             contextModel.on('change:patients change:encounter change:enc_date', this.update, this);
             this.update();
             $("#datepicker-modal").on('shown.bs.modal', function () {
-                $("#calendar").fullCalendar('render')
+                $("#calendar1").fullCalendar('render');
+                $("#calendar2").fullCalendar('render');
+                $("#calendar1").fullCalendar('prev');
+
             });
         },
         update: function () {
-            console.log('update calendar');
+
+            var calendar = new Array();
+            var num_of_calendars = 2;
             var eventlist = [];
 
             for (var key in histogramModel.attributes) {
                 var enc = histogramModel.attributes[key];
-		var discharge = enc['discharge'];
-		if (!discharge) {
-		    discharge = (new Date()).toISOString().substring(0,10);
-		}
+                var discharge = enc['discharge'];
+                if (!discharge) {
+                    discharge = (new Date()).toISOString().substring(0, 10);
+                }
                 eventlist.push({
                     id: enc['encounterid'],
-                    title: enc['patientname']+ ": "+ enc['diagnosis'] + " $" + enc['spending'],
+                    title: enc['patientname'] + ": " + enc['diagnosis'] + " $" + enc['spending'],
                     start: enc['admission'],
                     end: discharge,
                     className: 'admission',
@@ -41,39 +46,63 @@ define([
                     url: "#episode/" + enc['encounterid'] + "/patient/" + enc['patientid'] + "/" + enc['admission'] });
             }
 
+            for (var i = 1; i <= num_of_calendars; i++) {
+                calendar[i] = $("#calendar" + i).fullCalendar({
+                    header: {
+                        left: (i == 1) ? 'prev,next' : '',
+                        center: 'title',
+                        right: (i == 2) ? 'today' : ''
+                    },
+                    defaultDate: contextModel.get('enc_date'),
+                    selectable: true,
+                    selectHelper: true,
+                    select: function (start, end, jsEvent) {
+                        if (contextModel.get('patients')) {
+                            contextModel.set({'enc': null, 'enc_date': null,
+                                'startdate': start.format(),
+                                'enddate': end.format()});
+                            // navigate to the chosen encounter
+                            Backbone.history.navigate("patient/" + contextModel.get('patients'), true);
+                            // hide the modal
+                            $('#datepicker-modal').modal('hide');
+                        }
+                        $('#calendar').fullCalendar('unselect');
+                    },
 
-            $('#calendar').fullCalendar({
-                header: {
-                    left: 'prev,next',
-                    center: 'title',
-                    right: 'today'
-                },
-                defaultDate: contextModel.get('enc_date'),
-                selectable: true,
-                selectHelper: true,
-                select: function (start, end, jsEvent) {
-                    if (contextModel.get('patients')) {
-                        contextModel.set({'enc':null, 'enc_date': null,
-					  'startdate': start.format(),
-					  'enddate': end.format()});
-                        // navigate to the chosen encounter
-                        Backbone.history.navigate("patient/" + contextModel.get('patients'), true);
-                        // hide the modal
-                        $('#datepicker-modal').modal('hide');
-                    }
-                    $('#calendar').fullCalendar('unselect');
-                },
+                    eventClick: function (event) {
+                        if (event.url) {
+                            // navigate to the chosen encounter
+                            Backbone.history.navigate(event.url, true);
+                            // hide the modal
+                            $('#datepicker-modal').modal('hide');
 
-                eventClick: function (event) {
-                    if (event.url) {
-                        // navigate to the chosen encounter
-                        Backbone.history.navigate(event.url, true);
-                        // hide the modal
-                        $('#datepicker-modal').modal('hide');
+                        }
+                    },
+                    events: eventlist
+                });
+            }
 
-                    }
-                },
-                events: eventlist
+            $("#calendar1 .fc-button-prev").each(function () {
+                $(this).click(function () {
+                    $("#calendar2").each(function () {
+                        $(this).fullCalendar('prev');
+                    });
+                });
+            });
+            $("#calendar1 .fc-button-next").each(function () {
+                $(this).click(function () {
+                    $("#calendar2").each(function () {
+                        $(this).fullCalendar('next');
+                    });
+                });
+            });
+            $("#calendar2 .fc-button-today").each(function () {
+                $(this).click(function () {
+                    $("#calendar1").each(function () {
+                        $(this).fullCalendar('today');
+                        $(this).fullCalendar('prev');
+                    });
+                });
             });
         }
     });
