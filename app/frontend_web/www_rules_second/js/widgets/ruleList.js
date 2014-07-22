@@ -31,6 +31,8 @@ define([
         render: function(){
 
             this.$el.html(this.template({}));
+
+            console.log(this.first)
             return this;
         },
         saveRule: function(){
@@ -63,6 +65,7 @@ define([
             }
 
             $('.rule-table', this.$el).append(rulerow.render().el);
+
         },
 	addAll: function() {
 	    this.render();
