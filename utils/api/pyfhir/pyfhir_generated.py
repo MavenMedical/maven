@@ -742,7 +742,7 @@ class Composition(Resource):
     def get_alerts_by_type(self, type=None):
         alerts_section = self.get_section_by_coding(code_system="maven", code_value="alerts")
         for alert in alerts_section.content:
-            if alert['alert_type'] == type:
+            if alert['alert_type'] == type.name:
                 return alert
 
     def get_encounter_conditions(self):

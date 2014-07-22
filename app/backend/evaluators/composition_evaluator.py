@@ -36,8 +36,7 @@ from collections import defaultdict
 import maven_config as MC
 import maven_logging as ML
 from utils.database.database import AsyncConnectionPool, MappingUtilites
-from utils.enums import CDS_ALERT_STATUS
-from utils.enums import ORDER_STATUS
+from utils.enums import CDS_ALERT_STATUS, ORDER_STATUS, ALERT_TYPES
 import utils.database.fhir_database as FHIR_DB
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
 import utils.streaming.stream_processor as SP
@@ -80,7 +79,7 @@ class CompositionEvaluator(SP.StreamProcessor):
         yield from self.evaluate_encounter_cost(composition)
 
         # Maven Duplicate Orders (with related Clinical Observations) analysis
-        yield from self.evaluate_duplicate_orders(composition)
+        yield from self.evaluate_recent_results(composition)
 
         # Maven Alternative Meds
         yield from self.evaluate_alternative_meds(composition)
@@ -175,6 +174,11 @@ class CompositionEvaluator(SP.StreamProcessor):
         """
         :param composition: FHIR Composition object with fully identified FHIR Order objects (i.e. already run through order identifier
         """
+        # Check the alert configuration for cost and if it's suppress (-1) then return
+        cost_alert_validation_status = yield from FHIR_DB.get_alert_configuration(ALERT_TYPES.COST, composition, self.conn)
+        if cost_alert_validation_status == CDS_ALERT_STATUS.SUPPRESS.value:
+            return
+
         encounter_cost_breakdown = []
         encounter_total_cost = 0
         for order in composition.get_encounter_orders():
@@ -204,9 +208,10 @@ class CompositionEvaluator(SP.StreamProcessor):
 
             FHIR_alert = FHIR_API.Alert(customer_id=composition.customer_id, subject=composition.subject.get_pat_id(),
                                         provider_id=composition.get_author_id(), encounter_id=composition.encounter.get_csn(),
-                                        alert_datetime=alert_datetime, short_title=short_title, cost_breakdown=encounter_cost_breakdown, long_description=long_description)
+                                        alert_datetime=alert_datetime, short_title=short_title, cost_breakdown=encounter_cost_breakdown,
+                                        long_description=long_description, status=cost_alert_validation_status)
 
-            cost_alert = {"alert_type": "cost",
+            cost_alert = {"alert_type": ALERT_TYPES.COST.name,
                           "alert_time" : alert_datetime,
                           "total_cost": encounter_total_cost,
                           "cost_details": encounter_cost_breakdown,
@@ -225,7 +230,7 @@ class CompositionEvaluator(SP.StreamProcessor):
     ##########################################################################################
     ##########################################################################################
     @asyncio.coroutine
-    def evaluate_duplicate_orders(self, composition):
+    def evaluate_recent_results(self, composition):
 
         #Check to see if there are exact duplicate orders (order code AND order code type)from within the last year
         duplicate_orders = yield from FHIR_DB.get_duplicate_orders(composition, self.conn)
@@ -235,13 +240,20 @@ class CompositionEvaluator(SP.StreamProcessor):
             duplicate_orders_with_observations = yield from FHIR_DB.get_observations_from_duplicate_orders(duplicate_orders, composition, self.conn)
 
             if duplicate_orders_with_observations is not None and len(duplicate_orders_with_observations) > 0:
-                self._generate_duplicate_order_alerts(composition, duplicate_orders_with_observations)
+                yield from self._generate_recent_results_alerts(composition, duplicate_orders_with_observations)
 
-    def _generate_duplicate_order_alerts(self, composition, dup_ords_with_obs):
+    @asyncio.coroutine
+    def _generate_recent_results_alerts(self, composition, dup_ords_with_obs):
+
+        #Check to see if recent results alert_config should event generate alerts
+        recent_results_alert_validation_status = yield from FHIR_DB.get_alert_configuration(ALERT_TYPES.REC_RESULT, composition, self.conn)
+        if recent_results_alert_validation_status == CDS_ALERT_STATUS.SUPPRESS.value:
+            return
+
         customer_id = composition.customer_id
         patient_id = composition.subject.get_pat_id()
         alert_datetime = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-        duplicate_order_alerts = {"alert_type": "dup_order",
+        duplicate_order_alerts = {"alert_type": ALERT_TYPES.REC_RESULT.name,
                                   "alert_time": alert_datetime,
                                   "alert_list": []}
 
@@ -265,7 +277,8 @@ class CompositionEvaluator(SP.StreamProcessor):
                                         short_title=("Duplicate Order: %s" % ord_detail.text), short_description="Clinical observations are available for a duplicate order recently placed.", long_description=long_description,
                                         saving=16.14,
                                         related_observations=dup_ords_with_obs[ord]['related_observations'],
-                                        category="dup_order")
+                                        category=ALERT_TYPES.REC_RESULT.name,
+                                        status=recent_results_alert_validation_status)
             duplicate_order_alerts['alert_list'].append(FHIR_alert)
 
 
@@ -315,7 +328,7 @@ class CompositionEvaluator(SP.StreamProcessor):
         # Add a CDS Alerts section to the FHIR Composition if any of the CDS rules pass all the rule details
         if cds_alerts is not None and len(cds_alerts) > 0:
             alerts_section = composition.get_section_by_coding(code_system="maven", code_value="alerts")
-            alerts_section.content.append({"alert_type": "cds",
+            alerts_section.content.append({"alert_type": ALERT_TYPES.CDS.name,
                                            "alert_time": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
                                            "alert_list": cds_alerts})
 
@@ -457,6 +470,7 @@ def run_composition_evaluator():
     loop = asyncio.get_event_loop()
     sp_message_handler = CompositionEvaluator(rabbithandler)
     sp_message_handler.schedule(loop)
+    ML.set_debug("/home/devel/composition_evaluator.log")
 
     try:
         loop.run_forever()

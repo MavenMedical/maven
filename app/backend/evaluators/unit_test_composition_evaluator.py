@@ -55,7 +55,7 @@ class TestCompositionEvaluator(unittest.TestCase):
             #TODO - which we need to decouple (thats why the evaluate_encounter_cost method is run before below)
             self.composition_evaluator._add_alerts_section(self.composition)
             yield from self.composition_evaluator.evaluate_encounter_cost(composition=self.composition)
-            yield from self.composition_evaluator.evaluate_duplicate_orders(composition=self.composition)
+            yield from self.composition_evaluator.evaluate_recent_results(composition=self.composition)
         self.loop.run_until_complete(go())
 
         ord_detail = self.composition.get_encounter_order_detail_by_coding(code="3", code_system="maven")

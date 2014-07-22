@@ -655,7 +655,36 @@ def get_alternative_meds(order, composition, conn):
 
     return []
 
+@asyncio.coroutine
+def get_alert_configuration(ALERT_TYPE, composition, conn):
+    try:
+        if len(composition.encounter.location) > 0:
+            department = composition.encounter.location[0].identifier[0].value
+        else:
+            department = -1
 
+        customer_id = composition.customer_id
+
+        column_map = ["validation_status"]
+        columns = DBMapper.select_rows_from_map(column_map)
+
+        cmd = []
+        cmd.append("SELECT " + columns)
+        cmd.append("FROM alert_config")
+        cmd.append("WHERE customer_id=%s")
+        cmd.append("AND category=%s")
+        cmd.append("AND (department=%s or department='-1')")
+        cmd.append("ORDER BY department DESC")
+        cmd.append("LIMIT 1;")
+        cmdargs = [customer_id, ALERT_TYPE.name, department]
+
+        cur = yield from conn.execute_single(' '.join(cmd), cmdargs)
+
+        rtn_cost_alert_validation_status = cur.fetchone()[0]
+
+        return rtn_cost_alert_validation_status
+    except:
+        raise Exception("Error retrieving COST alert configuration from database")
 
 
 

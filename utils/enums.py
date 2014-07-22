@@ -20,10 +20,17 @@ from enum import Enum
 
 
 class ALERT_TYPES(Enum):
-    cds = "Evidence"
-    cost = "Transparent"
-    dup_order = "Recent Results"
-    alt_med = "Alternative Medications"
+    CDS = "Evidence"
+    COST = "Transparent"
+    REC_RESULT = "Recent Results"
+    ALT_MED = "Alternative Medications"
+
+
+class ALERT_PRIORITY(Enum):
+    COST = 1
+    REC_RESULT = 2
+    ALT_MED = 3
+    CDS = 4
 
 
 class CDS_ALERT_STATUS(Enum):
