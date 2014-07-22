@@ -14,7 +14,6 @@ define([
             this.render();
         },
         events: {
-            'click': 'doclick',
             'click #save-settings': 'dosave',
             'click #update-password': 'dologin',
             'click #cancel-settings': 'docancel',
@@ -38,18 +37,12 @@ define([
 	    }
 	    return this;
         },
-    doclick: function(event) {
-        var target = $(event.target);
-        if (!target.parents('div#settings-modal').length) {
-                this.dohide();
-            }
-        },
-    dohide: function(){
-        $("#settings-modal").modal('hide');
-    },
-    docancel: function(){
-        this.dohide();
-    },
+	dohide: function(){
+            $("#settings-modal").modal('hide');
+	},
+	docancel: function(){
+            this.dohide();
+	},
 	doentersave: function(event){
 	    if(event.keyCode == 13){
 		this.dosave(event);
@@ -71,7 +64,7 @@ define([
             data:$.param(contextModel.toParams())+"&official_name="+official_name+"&display_name="+display_name,
             success: function(data) {
                 //response(data);
-                Console.log("Settings failed to save");
+                Console.log("Settings saved");
 
             },
             error: function(xhr, textStatus, errorThrown){

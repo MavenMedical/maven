@@ -26,9 +26,11 @@ define([
         handleClick: function(){
             //update context to have a current patient, 
 	    //that triggers everything else
-            contextModel.set({key:this.model.get("key"), 
-			      patients:this.model.get("id"),
-			      patientName:this.model.get("name")});
+	    var patid = this.model.get("id");
+	    console.log("patient id = "+patid);
+            contextModel.set({patientName:this.model.get("name")},
+			    {silent:true});
+	    Backbone.history.navigate('patient/'+patid, {trigger:true});
         }
     });
 
