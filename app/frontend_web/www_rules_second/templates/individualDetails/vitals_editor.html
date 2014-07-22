@@ -1,10 +1,12 @@
 <p class="attn-text">Alert the clinician only if the patient's</p>
 <select name="vital_type" class="form-control attn-text-small detail-input">
-    <option>Blood Pressure</option>
-    <option>Temperature</option>
-    <option>Heart Rate</option>
-    <option>Respiratory Rate</option>
-    <option>Oxygen Saturation</option>
+    <option value = "sys_bp">Systolic Blood Pressure</option>
+    <option value = "di_bp">Diastolic Blood Pressure</option>
+
+    <option value="temp">Temperature</option>
+    <option value="hr">Heart Rate</option>
+    <option value="rr">Respiratory Rate</option>
+    <option value="o2sat">Oxygen Saturation</option>
 </select>
     <p class="attn-text">is within the range</p>
     <input class="attn-text-small detail-input form-control" value = "0.0" name="min_value">

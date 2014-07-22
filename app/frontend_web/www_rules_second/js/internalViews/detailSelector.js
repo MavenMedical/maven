@@ -38,7 +38,7 @@ define([
             var entryTemplate = _.template(detailEntry);
             for (var i in this.searchedDetails.models){
                 var cur = this.searchedDetails.models[i]
-                this.$el.append(entryTemplate({id:cur.get('id'), type:Helpers.detailDescriptions[cur.get('type')]}));
+                this.$el.append(entryTemplate({id:cur.get('id'), desc:Helpers.detailDescriptions[cur.get('type')], type:Helpers.detailHeadings[cur.get('type')]}));
 
             }
 

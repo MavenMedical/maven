@@ -16,9 +16,10 @@ define([
             'lab': "Lab Results",
             'enc_dx': "Encounter Diagnosis",
             'hist_proc': "Historic Procedure",
-            'enc_proc':"Encounter Procedure",
+            'enc_proc':"(unusued) Encounter Procedure",
             'ml_med' : "Medication List",
-            'vitals': "Vital Signs"
+            'vitals': "Vital Signs",
+            'vitals_bp': "Disjunctive Blood Pressure Detail"
         },
         detailDescriptions: {
 
@@ -30,7 +31,8 @@ define([
             'hist_proc' : "Specify a constraint based on procedures that the patient has undergone in the past",
             'enc_proc'  : "(unusued) Encounter Procedure",
             'ml_med'    : "Specify a constraint based on medications that the patient is currently taking according to the medical record",
-            'vitals'    : "Specify a constraint based on the patient's vitals"
+            'vitals'    : "Specify a constraint based on the patient's vitals",
+            'vitals_bp' : "Specify a constraint based on the patient's blood pressure which allows for EITHER the systolic OR diastolic to be within a given range"
         },
         notDetail: ['id', 'evidence','genders', 'minAge', 'maxAge', 'name', 'triggers', 'triggerType', 'sources']
     };

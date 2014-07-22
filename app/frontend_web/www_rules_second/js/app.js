@@ -4,9 +4,9 @@ define([
     'underscore',
     'backbone',
     'bootstrap',
-
     'models/contextModel',
     'models/ruleModel',
+
 
     //Views
     'widgets/ruleList',
@@ -15,10 +15,9 @@ define([
     'widgets/detailOverview',
     'widgets/evidenceEditor',
     'widgets/SourceManager',
-    'libs/slider/bootstrap-slider'
 
 //    'widgets/triggerList',
-], function ($, _, Backbone, Bootstrap, contextModel, curRule,  RuleList, RuleOverview, TriggerEditor, DetailOverview, EvidenceEditor, SourceManager, Slider) {//, TriggerList) {
+], function ($, _, Backbone, Bootstrap,  contextModel, curRule,  RuleList, RuleOverview, TriggerEditor, DetailOverview, EvidenceEditor, SourceManager) {//, TriggerList) {
     var initialize = function () {
 
         $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
@@ -32,13 +31,13 @@ define([
         curRule.on('sync', function(){
             new SourceManager({el: $('#source-manager', this.$el)})
         }, this)
-
          contextModel.on('change:auth', function(){
             new EvidenceEditor({el:$("#evi-list")});
             new TriggerEditor({el:$("#trigger-editor")});
          }, this);
 
     };
+
 
 
     return {

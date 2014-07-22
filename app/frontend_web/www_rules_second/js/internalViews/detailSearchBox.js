@@ -21,7 +21,7 @@ define([
                      $.extend( t, {'type': "snomed_diagnosis"})
                 } else if (panel.type.split("_")[1] == 'NDC' || panel.type.split("_")[1] == 'med'){
                    $.extend( t, {'type': "snomed_drug"});
-                } else if (panel.type.split("_")[1] == 'HCPCS'){
+                } else if (panel.type.split("_")[1] == 'proc'){
                    $.extend( t, {'type': "CPT"});
                 }
                 this.collection.fetch({data:$.param(t), success:function(){
