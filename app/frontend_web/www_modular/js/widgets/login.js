@@ -50,10 +50,9 @@ define([
 	    }
 	},
 	fastlogin: function() {
-	    contextModel.setUser('maven','mavendevel', Backbone.history.fragment);
+	    contextModel.setUser('maven','maven', Backbone.history.fragment);
 	},
 	dologin: function(event) {
-	    console.log(event);
 	    var user = $("#login-user").val();
 	    var password = $("#login-password").val();
 	    if( user && password ) {
@@ -84,10 +83,8 @@ define([
 	    $("#pw-num-cb").html(num?X:check);
 	    $("#pw-diff-cb").html(diff?X:check);
 	    if(len || low || up || num || diff) {
-		$("#login-button").attr("disabled", "disabled");
 		return false;
 	    } else {
-		$("#login-button").removeAttr("disabled");
 		return true;
 	    }
 	}

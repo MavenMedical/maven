@@ -31,6 +31,7 @@ define([
         render: function(){
 
             this.$el.html(this.template({}));
+
             return this;
         },
         saveRule: function(){
@@ -54,7 +55,6 @@ define([
             }, this)
             rule.on('destroy', function(){
                 ruleCollection.remove(rule);
-                rulerow.destroy()
             })
             if (rule.get('id') == curRule.get('id')){
                 rulerow.$el.css({'font-size': '200%'});
@@ -63,6 +63,7 @@ define([
             }
 
             $('.rule-table', this.$el).append(rulerow.render().el);
+
         },
 	addAll: function() {
 	    this.render();

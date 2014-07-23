@@ -1,0 +1,6 @@
+#on cloud machines, this hook should be present to ensure people aren't checking in code from the upstream servers
+#copy this file to .git/hooks on the cloud servers
+echo "  ALL new changes must be checked in from your local machine. You cannot commit changes from this server."
+echo
+exit 1
+

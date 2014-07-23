@@ -54,9 +54,10 @@ def run():
         yield from PRINT(lookup(2))
         yield from PRINT(lookupmulti([1,2,3,4]))
         yield from asyncio.sleep(.1)
-    
+    cache.cancel()
+    yield from asyncio.sleep(.1)
+        
 asyncio.get_event_loop().run_until_complete(run())
-
 if __name__ == '__main__':
     print(ML.get_results())
         

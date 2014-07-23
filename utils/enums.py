@@ -20,23 +20,47 @@ from enum import Enum
 
 
 class ALERT_TYPES(Enum):
-    cds = "Evidence"
-    cost = "Transparent"
-    dup_order = "Recent Results"
-    alt_med = "Alternative Medications"
+    CDS = "Evidence"
+    COST = "Transparent"
+    REC_RESULT = "Recent Results"
+    ALT_MED = "Alternative Medications"
+
+
+class ALERT_PRIORITY(Enum):
+    COST = 1
+    REC_RESULT = 2
+    ALT_MED = 3
+    CDS = 4
 
 
 class CDS_ALERT_STATUS(Enum):
-    suppress = -1
-    no_send = 100
-    debug_alert = 200
-    device_alert = 300
-    ehr_alert = 400
+    SUPPRESS = -1
+    NO_SEND = 100
+    DEBUG_ALERT = 200
+    DEVICE_ALERT = 300
+    EHR_ALERT = 400
 
 
 class CONDITION_TYPE(Enum):
     PL = "Problem List Diagnosis"
     ENC = "Encounter Diagnosis"
+
+
+class ORDER_SOURCE(Enum):
+    WEBSERVICE = "Orders that came in via Webservice"
+    EXTRACT = "Orders that were identified/updated via an Extract"
+
+
+class ORDER_STATUS(Enum):
+    ER = "Error, order not found"
+    SC = "In process, scheduled"
+    IP = "In process, unspecified"
+    RP = "Order has been replaced"
+    CM = "Order is completed"
+    HD = "Order is on hold"
+    CA = "Order was canceled"
+    DC = "Order was discontinued"
+    A = "Some, but not all, results available"
 
 
 class ORDER_TYPES(Enum):
@@ -63,18 +87,6 @@ class MEDICATION_ORDER_TYPES(Enum):
     meds = "Medication"
     medication = "Medication"
     medications = "Medication"
-
-
-class ORDER_STATUS(Enum):
-    ER = "Error, order not found"
-    SC = "In process, scheduled"
-    IP = "In process, unspecified"
-    RP = "Order has been replaced"
-    CM = "Order is completed"
-    HD = "Order is on hold"
-    CA = "Order was canceled"
-    DC = "Order was discontinued"
-    A = "Some, but not all, results available"
 
 
 class PROCEDURE_TERMINOLOGIES(Enum):

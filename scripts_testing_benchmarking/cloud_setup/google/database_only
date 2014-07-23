@@ -1,32 +1,25 @@
 echo "local0.*		  /var/log/postgresql" | sudo tee -a /etc/rsyslog.conf
 
 #LUKS,install if nessecary 
-yum install cryptsetup 
+#yum install cryptsetup 
 
+sudo yum install postgresql93-server -y 
 
-sudo cryptsetup -y -v luksFormat /dev/sdc                                           
-# type YES enter passphrase twice
-sudo cryptsetup luksOpen /dev/sdc maven_LUKS
-#enter password from before
+DATA_DRIVE=`ls /dev/sd* | grep -v sda`
+PW="maven"
+echo $PW | sudo cryptsetup --verbose --batch-mode --key-file - luksFormat $DATA_DRIVE
+echo $PW | sudo cryptsetup --key-file - luksOpen $DATA_DRIVE maven_LUKS
 #Format the partition
-sudo dd if=/dev/zero of=/dev/mapper/maven_LUKS
-#create the file system
 sudo mkfs.ext4 /dev/mapper/maven_LUKS
-#mount the partition
-sudo mkdir /maven_LUKS
-sudo mount /dev/mapper/maven_LUKS /maven_LUKS
-sudo df -H
-cd /maven_LUKS
-
-sudo yum install postgresql-server9.3 -y 
+echo maven_LUKS $DATA_DRIVE  | sudo tee -a /etc/crypttab
 
 # mount encrypted partition and initialize the database
 #switch to root user
 sudo su
-truecrypt -t -k "" --protect-hidden=no /dev/sdc ~postgres
+mount -t ext4 /dev/mapper/maven_LUKS ~postgres
 cd ~postgres
-chown postgres .
-chgrp postgres .
+chown postgres ~postgres
+chgrp postgres ~postgres
 setenforce 0
 echo 'PATH=/usr/pgsql-9.3/bin:${PATH}' >> .bashrc
 su postgres
@@ -35,33 +28,29 @@ cd 9.3/data
 sed -i.bak\
     -e "s/#listen_addresses = 'localhost'/listen_addresses = '\*'/" \
     -e 's/max_connections = 100/max_connections = 200/' \
-    -e 's/#ssl = off/ssl = on/' \
-    -e "s/#ssl_ciphers.*/ssl_ciphers = 'ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256'/" \
-    -e "s/#ssl_ca_file.*/ssl_ca_file = cacert.pem/" \
     -e "s/log_destination = 'stderr'/log_destination = 'syslog'/" \
     -e "s/#syslog_/syslog_/" \
 postgresql.conf
 
-echo "host   all    postgres          10.240.0.0/16   cert clientcert=1 map=chsli
-host   maven  maven             10.240.0.0/16   cert clientcert=1 map=chsli" >> pg_hba.conf
-echo "chsli           chsli.mavenmedical.net   postgres
-chsli           chsli.mavenmedical.net   maven" >> pg_ident.conf
-
-# need to put unencrypted server key (chmod 600) into data/server.key, also need server.crt and cacert.pem
-# an encrypted key can be unencrypted by openssl rsa -in keyfile -out server.key
+echo "host   all    postgres          10.240.0.0/16   password
+host   maven  maven             10.240.0.0/16   password" >> pg_hba.conf
 
 echo 'PATH=/usr/pgsql-9.3/bin:${PATH}' >> .bashrc
 exit # exit postgres
-service postgresql start
+service postgresql-9.3 start
 exit # exit root
 echo 'PATH=/usr/pgsql-9.3/bin:${PATH}' >> .bashrc
 
 #Note - on google, EBS storage of a truecrypt encrypted partition passed the closest I can get to a "disk pull plug" test.  A single pass doesn't prove much - only that the system isn't horribly broken.  It was also getting around 120 writes/second (compared to amazon's 80).  The writes/second matches what happened without truecrypt, so I don't think encryption costs us anything.
 
+echo '#!/bin/bash
+service postgresql-9.3 restart | sudo tee /etc/limited/restartpostgres
+echo '#!/bin/bash
+echo $1 | cryptsetup --key-file - luksOpen /dev/mapper/maven_LUKS maven_LUKS
+mount -t ext4 /dev/mapper/maven_LUKS ~postgres' | sudo tee /etc/limited/mount
+sudo chmod a+rx /etc/limited/restartpostgres /etc/limited/mount
 
-#using visudo, add %adm ALL=NOPASSWD: /usr/bin/truecrypt,/etc/limited/restartpostgres,/etc/limited/restartnginx
-
-sudo mkdir /etc/limited
-sudo echo "service postgresql-9.3 restart" > /etc/limited/restartpostgres
-sudo echo "service nginx restart" > /etc/limited/restartnginx
-sudo chmod -R 544 /etc/limited
+# echo "
+/etc/limited/mount maven
+/etc/limited/restartpostgres
+"  | sudo tee -a /etc/rc.local

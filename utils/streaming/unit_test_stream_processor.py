@@ -45,7 +45,7 @@ MavenConfig = {
     rabbittestproducername+".Test Writer":
     {
         SP.CONFIG_HOST:'localhost',
-        SP.CONFIG_QUEUE:'incoming_work_queue',
+        SP.CONFIG_QUEUE:'incoming_work_queue_sp_test',
         SP.CONFIG_EXCHANGE:'maven_exchange',
         SP.CONFIG_KEY:'incoming'
     },
@@ -60,7 +60,7 @@ MavenConfig = {
     rabbittestconsumername+".Test Reader":
     {
         SP.CONFIG_HOST:'localhost',
-        SP.CONFIG_QUEUE:'incoming_work_queue',
+        SP.CONFIG_QUEUE:'incoming_work_queue_sp_test',
         SP.CONFIG_EXCHANGE:'maven_exchange',
         SP.CONFIG_KEY:'incoming'
     },
@@ -74,7 +74,7 @@ MavenConfig = {
     trippletestproducername+".Test Writer":
     {
         SP.CONFIG_HOST:'localhost',
-        SP.CONFIG_QUEUE:'incoming_work_queue',
+        SP.CONFIG_QUEUE:'incoming_work_queue_sp_test',
         SP.CONFIG_EXCHANGE:'maven_exchange',
         SP.CONFIG_KEY:'incoming'
     },
@@ -89,7 +89,7 @@ MavenConfig = {
     trippletestmiddlename+".Test Reader":
     {
         SP.CONFIG_HOST:'localhost',
-        SP.CONFIG_QUEUE:'incoming_work_queue',
+        SP.CONFIG_QUEUE:'incoming_work_queue_sp_test',
         SP.CONFIG_EXCHANGE:'maven_exchange',
         SP.CONFIG_KEY:'incoming'
     },
@@ -190,12 +190,10 @@ def tripple_test():
         sender.send_data(x)
         #print("sent %d" % (1000*(x+1)))
     loop.run_until_complete(asyncio.sleep(.1))
-        
     tasks = asyncio.Task.all_tasks(loop)
-    while any([not t.done() for t in tasks]):
-#        print(tasks)
-        loop.run_until_complete(asyncio.wait(asyncio.Task.all_tasks(loop)))
-        tasks = asyncio.Task.all_tasks(loop)
+    if any([not t.done() for t in tasks]):
+        loop.run_until_complete(asyncio.sleep(.2))
+      
 
     sp_producer.close()
     sp_middle.close()

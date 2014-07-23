@@ -1,6 +1,8 @@
 
 # initial setup
 # note that the f1-micro instance is too small to do a yum update, so we create from g1-small
+gcutil addinstance "dev-1" --zone="us-central1-f" --machine_type="g1-small" --network="default" --external_ip_address="162.222.177.174" --image="centos-6" --persistent_boot_disk="true" --auto_delete_boot_disk="false" --tag="dev"
+
 gcutil addinstance frontend-prototype --tags=web --machine_type=g1-small --image=centos-6 --zone=us-central1-a
 gcutil ssh frontend-prototype
 # push a file from local to remote (pull is the reverse)

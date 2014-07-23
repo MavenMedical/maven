@@ -29,9 +29,15 @@ def clear_results():
     _results.seek(0)
     _results.truncate(0)
 
-def get_logger():
-    modulename = inspect.getmodule(inspect.stack()[1][0]).__name__
-    return logging.getLogger(modulename)
+def get_logger(name=None):
+    if name is None:
+        modulename = inspect.getmodule(inspect.stack()[1][0]).__name__
+        return logging.getLogger(modulename)
+    else:
+        try:
+            return logging.getLogger(name=name)
+        except:
+            raise Exception("Logger needs a configuration record with that name")
 
 def set_debug(filename=None):
     modulename = inspect.getmodule(inspect.stack()[1][0]).__name__
@@ -87,7 +93,7 @@ def trace(write=print, initial=False, timing=False):
         return inner
     return trace_inner
 
-def coroutine_trace(write=print, initial=None, timing=False):
+def coroutine_trace(write, initial=None, timing=False):
     """
     The semantics are the same as trace, but for coroutines
     """

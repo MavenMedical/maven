@@ -53,7 +53,9 @@ details = [{'type': 'pl_dx', 'id': '1'},
            {'type': "enc_pl_dx", 'id': '5'},
            {'type': "hist_proc", 'id': '6'},
            {'type': "ml_med", 'id': '7'},
-           {'type': "vitals", 'id': '8'}]
+           {'type': "vitals", 'id': '8'},
+           {'type': "vitals_bp", 'id': '9'}]
+
 
 @cache.cache_lookup(__name__)
 def get_med_routes(key):

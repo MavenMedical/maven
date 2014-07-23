@@ -1,5 +1,8 @@
 sudo yum update -y
-sudo yum install elinks screen git emacs kernel-headers fuse-libs fuse-devel fuse lvm2 wireshark nc tcptrack iotop iptraf iftop psacct pam-devel -y
+sudo yum install elinks screen git emacs kernel-headers fuse-libs fuse-devel fuse lvm2 wireshark nc iptraf iftop psacct pam-devel -y
+
+wget http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+yum install epel-release-6-8.noarch.rpm -y
 
 sudo useradd logaccess -G adm
 sudo sed -i -e 's/^create$/create 640 root adm/' /etc/logrotate.conf
@@ -9,6 +12,7 @@ sudo chmod -R g+r /var/log
 
 wget http://yum.postgresql.org/9.3/redhat/rhel-6-x86_64/pgdg-centos93-9.3-1.noarch.rpm
 sudo yum install pgdg-centos93-9.3-1.noarch.rpm -y
+sudo yum install postgresql93 -y
 
 #curl http://google-authenticator.googlecode.com/files/libpam-google-authenticator-1.0-source.tar.bz2 | bzip2 -d | tar -xv
 #cd libpam-google-authenticator-1.0
@@ -21,9 +25,18 @@ sudo yum install pgdg-centos93-9.3-1.noarch.rpm -y
 #sudo service sshd restart
 
 sudo usermod -a -G adm devel
+sudo mkdir /etc/mavenmedical
+sudo chmod 755 /etc/mavenmedical
 echo "/var/log/audit /var/log/messages /var/log/secure /tmp/maven" | sudo tee /etc/mavenmedical/logs
 
 # user crontab -e to run this once (or more often) per day
 #env PATH=/usr/bin:/usr/local/bin gsutil cp -R -z -n `cat /etc/mavenmedical/logs` gs://maven-medical/logs/
 
 # next, setup default logging and configuration scripts
+
+sudo mkdir /etc/limited
+sudo chmod -R 755 /etc/limited
+
+#using visudo, add %adm ALL=NOPASSWD: /usr/bin/truecrypt,/etc/limited/restartpostgres,/etc/limited/restartnginx
+#%adm ALL=(postgres)NOPASSWD: /usr/bin/psql
+

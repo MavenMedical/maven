@@ -1,0 +1,12 @@
+    Was the patient observed to have a result
+    <b><% if (relation == "greater") { %>
+            greater than
+    <%} else { %>
+            less than
+    <%}%></b>
+    <b><%=value%></b> on any of the tests with loinc codes
+    <b><%=obs_type%></b>
+    in the time frame  between <b><%=mindays%></b> and <b><%=maxdays%></b> days from the present
+    <b><%if (lastlab=='true'){%>only considering the most recent lab within the time frame<%}else{%>when considering any lab within the time frame<%}%></b>?
+
+

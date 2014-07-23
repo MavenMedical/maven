@@ -13,6 +13,7 @@ require.config({
         underscore: 'libs/underscore/underscore',
         backbone: 'libs/backbone/backbone',
         bootstrap: '../css/bootstrap/js/bootstrap.min',
+        jsplumb: 'libs/jsplumb',
 
 	templates: '../templates'
     },
@@ -29,12 +30,23 @@ require([
     'jquery',
     'underscore',
     'backbone',
-    'bootstrap',
+    'jsplumb/js/jsplumb',
     //    'globalmodels/spendingModel',
     //    'localmodels/patientRowModel',
     
     'text'
+
+
+
+
+
+
 ], function (App) {
+    jsPlumb.Defaults.Connector = "Flowchart"
+    jsPlumb.Defaults.PaintStyle=  { lineWidth : 2, strokeStyle : "#456" }
+    jsPlumb.Defaults.Endpoint ="Blank"
+     jsPlumb.Defaults.MaxConnections =-1
+     jsPlumb.setContainer($('#tree-view'))
     // The "app" dependency is passed in as "App"
     // Again, the other dependencies passed in are not "AMD" therefore don't pass a parameter to this function
     App.initialize();

@@ -742,7 +742,7 @@ class Composition(Resource):
     def get_alerts_by_type(self, type=None):
         alerts_section = self.get_section_by_coding(code_system="maven", code_value="alerts")
         for alert in alerts_section.content:
-            if alert['alert_type'] == type:
+            if alert['alert_type'] == type.name:
                 return alert
 
     def get_encounter_conditions(self):
@@ -786,6 +786,12 @@ class Composition(Resource):
         for coding in codeable_concept.coding:
             if coding.system in system:
                 return coding
+
+    def get_encounter_department(self):
+        if len(self.encounter.location) > 0:
+            return self.encounter.location[0].identifier[0].value
+        else:
+            return None
 
 
 class ConceptMap(Resource):
@@ -3255,7 +3261,8 @@ class Order(Resource):
                  when_schedule=None,
                  detail=None,
                  totalCost=None,
-                 order_type=None
+                 order_type=None,
+                 status=None
                  ):
         Resource.__init__(self,
                           customer_id=customer_id,
@@ -3278,6 +3285,7 @@ class Order(Resource):
         self.when_schedule = when_schedule                                     # , A formal schedule
         self.totalCost = totalCost
         self.order_type = order_type
+        self.status = status
         
         if detail is None:
             self.detail = []                                     # , { attb['short_desc'] }}

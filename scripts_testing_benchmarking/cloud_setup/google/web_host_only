@@ -1,4 +1,7 @@
-sudo yum install pcre-devel zlib-devel openssl-devel gcc postgresql93 -y
+sudo yum install pcre-devel zlib-devel openssl-devel gcc -y
+
+echo "export MAVEN_ROOT=/home/devel/maven
+export PYTHONPATH=$MAVEN_ROOT" >> .bashrc
 
 #for python3
 wget http://www.python.org/ftp/python/3.3.2/Python-3.3.2.tar.bz2
@@ -39,21 +42,7 @@ sudo service nginx start
 
 sudo usermod -G <user> -a nginx
 
-# rabbitMQ
-sudo su
-# begin as root
-echo "[erlang-solutions]
-name=Centos $releasever - $basearch - Erlang Solutions
-baseurl=http://packages.erlang-solutions.com/rpm/centos/6/\$basearch
-gpgcheck=1
-gpgkey=http://packages.erlang-solutions.com/rpm/erlang_solutions.asc
-enabled=1" > /etc/yum.repos.d/erlang.repo
-exit
-#end as root
-cd
-sudo yum install erlang -y
-wget https://www.rabbitmq.com/releases/rabbitmq-server/v3.2.4/rabbitmq-server-3.2.4-1.noarch.rpm
-sudo yum install esl-erlang_16.b.3-2~centos~6_amd64.rpm -y
+sudo yum install rabbitmq-server -y
 sudo service rabbitmq-server start
 sudo chkconfig rabbitmq-server on
 
@@ -61,3 +50,12 @@ sudo chkconfig rabbitmq-server on
 #add this line: su devel -c '(cd ~/maven && source ~/.bashrc && nohup ~/maven/run_maven.sh)'
 sudo emacs /etc/rc.local
 
+sudo echo '#!/bin/bash
+service nginx restart' > /etc/limited/restartnginx
+
+cd ~/maven/scripts_testing_benchmarking/cloud_setup/google/
+for x in `ls etc_*`
+do
+	sudo cp $x /etc/mavenmedical/${x#*_mavenmedical_}
+done
+sudo chmod 644 /etc/mavenmedical/*

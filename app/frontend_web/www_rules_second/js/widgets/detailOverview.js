@@ -24,7 +24,7 @@ define([
              detailsOverviewTemplate,  detailSection) {
     var createDetail = function(){
         var selected = $('.detail-selector').val();
-        var text_code = _.invert(Helpers.detailDescriptions)[selected];
+        var text_code = _.invert(Helpers.detailHeadings)[selected];
         require(['text!/templates/individualDetails/' + text_code + '_editor.html'],
             function(curTemplate) {
                   var newModel;

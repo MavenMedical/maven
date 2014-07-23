@@ -208,13 +208,21 @@ class web_search():
         cmd.append("DELETE FROM rules.codelists * WHERE ruleid = ")
         cmd.append(str(id))
         yield from self.db.execute_single(' '.join(cmd)+';', [])
-        yield from (self.writeExplicitSnomed('hist_dx', ruleJSON))
-        yield from self.writeExplicitSnomed('pl_dx', ruleJSON)
-        yield from self.writeExplicitSnomed('enc_dx', ruleJSON)
-        yield from self.writeExplicitSnomed('enc_pl_dx', ruleJSON)
-        yield from self.writeExplicitNDC('ml_med', ruleJSON)
-        yield from self.writeExplicitCPT('hist_proc', ruleJSON)
-        yield from self.writeExplicitCPT('enc_proc', ruleJSON)
+        count = 0
+        count += yield from (self.writeExplicitSnomed('hist_dx', ruleJSON))
+        count += yield from self.writeExplicitSnomed('pl_dx', ruleJSON)
+        count += yield from self.writeExplicitSnomed('enc_dx', ruleJSON)
+        count += yield from self.writeExplicitSnomed('enc_pl_dx', ruleJSON)
+        count += yield from self.writeExplicitNDC('ml_med', ruleJSON)
+        count += yield from self.writeExplicitCPT('hist_proc', ruleJSON)
+        count += yield from self.writeExplicitCPT('enc_proc', ruleJSON)
+        if (count==0):
+            cmd =[]
+            cmdArgs = []
+            cmd.append("insert into rules.codelists (ruleid, listtype, isintersect, intlist)")
+            cmd.append("(select %s, 'pl_dx', false, array[-99999])")
+            cmdArgs.append(ruleJSON ['id'])
+            yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
         if (ruleJSON['triggerType'] == 'NDC'):
             yield from self.writeDrugTriggers(ruleJSON)
         elif (ruleJSON['triggerType'] == 'HCPCS'):
@@ -253,9 +261,9 @@ class web_search():
                      cmdArgs.append(str(type))
                      cmdArgs.append(cur['exists']=='true')
                      cmdArgs.append(cur['code'])
-                 yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
-
-        return
+                     yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
+                     return 1
+        return 0
     @asyncio.coroutine
     def writeExplicitCPT(self, type, rule):
         list = rule.get(type, None)
@@ -289,6 +297,9 @@ class web_search():
                      cmdArgs.append(cur['exists']=='true')
 
                  yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
+                 return 1
+
+        return 0
 
     @asyncio.coroutine
     def writeExplicitNDC(self, type, rule):
@@ -300,44 +311,73 @@ class web_search():
             cmdArgs = []
             pos = []
             neg = []
+            n = 0
             for cur in list:
                  cmd = []
                  cmdArgs = []
 
                  cmd.append("INSERT INTO rules.codelists")
                  cmd.append("(ruleid, listtype, strlist, isintersect)")
-                 cmd.append("(SELECT DISTINCT  %s, %s, array_agg(ndc), %s FROM "
-		                    "(SELECT b.child FROM terminology.descriptions a inner join terminology.conceptancestry b on a.conceptid = b.ancestor where a.conceptid = %s) x "
-			                "inner join terminology.rxsnomeds c ON x.child = c.snomed)")
+                 cmd.append("(SELECT %s, %s, array_agg(ndc), %s FROM "
+		                    " terminology.conceptancestry b inner join terminology.rxsnomeds a on b.child=a.snomed"
+                            " inner join terminology.rxnrel c on a.rxcui=c.rxcui1 and c.rela='dose_form_of'"
+                            " where b.ancestor = %s"
+                            " and c.rxcui2 in (select rxcui from terminology.doseformgroups where"
+                            " groupname like %s)"
+                            " GROUP BY NDC)")
                  cmdArgs.append(id)
                  cmdArgs.append(str(type))
 
                  cmdArgs.append(cur['exists']=='true')
                  cmdArgs.append(cur['code'])
+                 cmdArgs.append(cur['route'])
                  yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
+            return 1
+        return 0
+
 
 
 
 
     @asyncio.coroutine
     def writeDrugTriggers(self, rule):
+        ndcs = {}
 
-          for cur in rule['triggers']:
-            cmd = [];
-            cmdArgs = []
-            NDC = []
-            cmd.append("INSERT INTO rules.trigcodes (ruleid, code) ")
-            cmd.append("(SELECT DISTINCT %s, ndc FROM ((SELECT * FROM terminology.rxnrel routerel INNER JOIN terminology.doseformgroups route ON routerel.rxcui2 = route.rxcui WHERE routerel.rela='dose_form_of' ) AS drugmaps INNER JOIN"
-                        "(SELECT DISTINCT  rxcui, ndc FROM (SELECT b.child FROM terminology.descriptions a INNER JOIN terminology.conceptancestry b ON a.conceptid = b.ancestor WHERE a.conceptid = %s) AS x INNER JOIN terminology.rxsnomeds AS c ON x.child = c.snomed) AS rxcui"
-                        " ON drugmaps.rxcui1 = rxcui.rxcui) AS t LEFT OUTER JOIN rules.trigcodes as r ON t.ndc = r.code where (r.ruleid ISNULL OR NOT r.ruleid = %s) AND groupname like %s ) ")
+        for cur in rule['triggers']:
+            r = cur['route']
+            i = cur['code']
+            if r in ndcs:
+                ndcs[r].append(i)
+            else:
+                ndcs[r] = [i]
+        cmd = [];
+        cmdArgs = []
+        NDC = []
+        union = False
+        cmd.append("INSERT INTO rules.trigcodes (ruleid, code) ")
+        for cur in ndcs:
+
+            if union:
+                cmd.append('UNION')
+            union = True
+            cmd.append("(SELECT %s, ndc FROM "
+                            " terminology.conceptancestry b inner join terminology.rxsnomeds a on b.child=a.snomed"
+                            " inner join terminology.rxnrel c on a.rxcui=c.rxcui1 and c.rela='dose_form_of'"
+                            " left outer join rules.trigcodes t on ndc = t.code "
+
+                            " where b.ancestor in %s"
+                            " and c.rxcui2 in (select rxcui from terminology.doseformgroups where"
+                            " groupname like %s)"
+                      #      " and NOT (ruleid = %s AND code notNull))"
+                            " GROUP BY NDC)")
             cmdArgs.append(rule['id'])
-            cmdArgs.append(cur['code'])
-            cmdArgs.append(rule['id'])
-            cmdArgs.append(cur['route'])
+            cmdArgs.append(tuple(ndcs[cur]))
+            cmdArgs.append(cur)
+           # cmdArgs.append(rule['id'])
 
+        yield from self.db.execute_single(' '.join(cmd)+";", cmdArgs)
 
-            yield from self.db.execute_single(' '.join(cmd)+";", cmdArgs)
-          return
+        return
     @asyncio.coroutine
     def writeCPTTriggers(self, rule):
           for cur in rule['triggers']:
