@@ -41,6 +41,7 @@ import utils.database.fhir_database as FHIR_DB
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
 import utils.streaming.stream_processor as SP
 
+COMP_EVAL_LOG = ML.get_logger('app.backend.evaluators.composition_evaluator')
 
 class CompositionEvaluator(SP.StreamProcessor):
 
@@ -94,7 +95,7 @@ class CompositionEvaluator(SP.StreamProcessor):
         yield from FHIR_DB.write_composition_to_db(composition, self.conn)
 
         # Debug Message
-        ML.DEBUG(json.dumps(FHIR_API.remove_none(json.loads(json.dumps(composition, default=FHIR_API.jdefault))), default=FHIR_API.jdefault, indent=4))
+        COMP_EVAL_LOG.debug(json.dumps(FHIR_API.remove_none(json.loads(json.dumps(composition, default=FHIR_API.jdefault))), default=FHIR_API.jdefault, indent=4))
 
         # Send message back to data_router (or aggregate)
         self.write_object(composition, writer_key='aggregate')
@@ -113,7 +114,7 @@ class CompositionEvaluator(SP.StreamProcessor):
     ##########################################################################################
     ##########################################################################################
     ##########################################################################################
-    @asyncio.coroutine
+    @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
     def identify_encounter_orderables(self, composition):
 
         for order in composition.get_encounter_orders():
@@ -139,7 +140,7 @@ class CompositionEvaluator(SP.StreamProcessor):
     ##########################################################################################
     ##########################################################################################
     ##########################################################################################
-    @asyncio.coroutine
+    @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
     def detect_removed_orders(self, composition):
 
         #Build a list of FHIR_API.Orders encounter orders in the database.order_ord
@@ -169,6 +170,7 @@ class CompositionEvaluator(SP.StreamProcessor):
     ##########################################################################################
     ##########################################################################################
     ##########################################################################################
+    @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
     @asyncio.coroutine
     def evaluate_encounter_cost(self, composition):
         """
@@ -229,11 +231,11 @@ class CompositionEvaluator(SP.StreamProcessor):
     ##########################################################################################
     ##########################################################################################
     ##########################################################################################
-    @asyncio.coroutine
+    @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
     def evaluate_recent_results(self, composition):
 
         #Check to see if there are exact duplicate orders (order code AND order code type)from within the last year
-        duplicate_orders = yield from FHIR_DB.get_duplicate_orders(composition, self.conn)
+        duplicate_orders = yield from FHIR_DB.get_recently_resulted_orders(composition, self.conn)
 
         if duplicate_orders is not None and len(duplicate_orders) > 0:
             #Check to see if there are relevant lab components to be displayed
@@ -242,7 +244,7 @@ class CompositionEvaluator(SP.StreamProcessor):
             if duplicate_orders_with_observations is not None and len(duplicate_orders_with_observations) > 0:
                 yield from self._generate_recent_results_alerts(composition, duplicate_orders_with_observations)
 
-    @asyncio.coroutine
+    @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
     def _generate_recent_results_alerts(self, composition, dup_ords_with_obs):
 
         #Check to see if recent results alert_config should event generate alerts
@@ -294,7 +296,7 @@ class CompositionEvaluator(SP.StreamProcessor):
     ##########################################################################################
     ##########################################################################################
     ##########################################################################################
-    @asyncio.coroutine
+    @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
     def evaluate_alternative_meds(self, composition):
         for order in composition.get_encounter_orders():
             if isinstance(order.detail[0], FHIR_API.Medication):
@@ -309,7 +311,7 @@ class CompositionEvaluator(SP.StreamProcessor):
     ##########################################################################################
     ##########################################################################################
     ##########################################################################################
-    @asyncio.coroutine
+    @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
     def evaluate_CDS_rules(self, composition):
         """
 
@@ -332,7 +334,7 @@ class CompositionEvaluator(SP.StreamProcessor):
                                            "alert_time": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
                                            "alert_list": cds_alerts})
 
-    @asyncio.coroutine
+    @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
     def _evaluate_CDS_rule_details(self, composition, rule):
         # Check to make sure that the FHIR_Rule.CDS_rule_status is not -1 (which is to suppress rule for internal/performance reasons)
         if rule.CDS_rule_status == CDS_ALERT_STATUS.SUPPRESS.value:
@@ -347,19 +349,19 @@ class CompositionEvaluator(SP.StreamProcessor):
         else:
             return False
 
-    @asyncio.coroutine
+    @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
     def _evaluate_additional_dx_rule_details(self, composition, dx_rule_details):
         return True
 
-    @asyncio.coroutine
+    @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
     def _evaluate_lab_rule_details(self, composition, lab_rule_details):
         return True
 
-    @asyncio.coroutine
+    @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
     def _evaluate_medication_rule_details(self, composition, med_rule_details):
         return True
 
-    @asyncio.coroutine
+    @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
     def generate_cds_alert(self, composition, rule):
         """
         Generates an alert from the rule that evaluated to true, along with the evidence that supports that rule (from a clinical perspective)
@@ -391,7 +393,7 @@ class CompositionEvaluator(SP.StreamProcessor):
 
         return FHIR_alert
 
-    @asyncio.coroutine
+    @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
     def gather_evidence(self, rule, customer_id):
         evidence = []
         column_map = ["sleuth_evidence.name",
@@ -405,7 +407,7 @@ class CompositionEvaluator(SP.StreamProcessor):
 
         return evidence
 
-    @asyncio.coroutine
+    @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
     def get_override_indications(self, rule, customer_id):
         override_indications = []
         column_map = ["override_indication.name",
@@ -470,7 +472,6 @@ def run_composition_evaluator():
     loop = asyncio.get_event_loop()
     sp_message_handler = CompositionEvaluator(rabbithandler)
     sp_message_handler.schedule(loop)
-    ML.set_debug("/home/devel/composition_evaluator.log")
 
     try:
         loop.run_forever()

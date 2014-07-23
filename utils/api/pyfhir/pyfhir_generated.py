@@ -787,6 +787,12 @@ class Composition(Resource):
             if coding.system in system:
                 return coding
 
+    def get_encounter_department(self):
+        if len(self.encounter.location) > 0:
+            return self.encounter.location[0].identifier[0].value
+        else:
+            return None
+
 
 class ConceptMap(Resource):
     """

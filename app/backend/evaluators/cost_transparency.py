@@ -216,7 +216,7 @@ class CostTransparency(SP.StreamProcessor):
     def evaluate_duplicate_orders(self, composition):
 
         #Check to see if there are exact duplicate orders (order code AND order code type)from within the last year
-        duplicate_orders = yield from FHIR_DB.get_duplicate_orders(composition, self.conn)
+        duplicate_orders = yield from FHIR_DB.get_recently_resulted_orders(composition, self.conn)
 
         if duplicate_orders is not None and len(duplicate_orders) > 0:
             #Check to see if there are relevant lab components to be displayed
