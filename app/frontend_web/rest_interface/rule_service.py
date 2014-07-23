@@ -37,7 +37,7 @@ CONTEXT_RULENAME = 'name'
 CONTEXT_PASSWORD = 'password'
 
 AUTH_LENGTH = 44
-LOGIN_TIMEOUT = 60 * 60  # 1 hour
+LOGIN_TIMEOUT = 60 * 60 * 48 # 1 hour
 static_id = 4
 rules = {
 

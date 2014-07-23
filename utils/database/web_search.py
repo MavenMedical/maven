@@ -261,8 +261,8 @@ class web_search():
                      cmdArgs.append(str(type))
                      cmdArgs.append(cur['exists']=='true')
                      cmdArgs.append(cur['code'])
-                     yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
-                     return 1
+                 yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
+            return 1
         return 0
     @asyncio.coroutine
     def writeExplicitCPT(self, type, rule):
@@ -318,13 +318,13 @@ class web_search():
 
                  cmd.append("INSERT INTO rules.codelists")
                  cmd.append("(ruleid, listtype, strlist, isintersect)")
-                 cmd.append("(SELECT %s, %s, array_agg(ndc), %s FROM "
+                 cmd.append("(SELECT %s, %s, array_agg(ndc), %s FROM (SELECT ndc FROM  "
 		                    " terminology.conceptancestry b inner join terminology.rxsnomeds a on b.child=a.snomed"
                             " inner join terminology.rxnrel c on a.rxcui=c.rxcui1 and c.rela='dose_form_of'"
                             " where b.ancestor = %s"
                             " and c.rxcui2 in (select rxcui from terminology.doseformgroups where"
                             " groupname like %s)"
-                            " GROUP BY NDC)")
+                            " GROUP BY NDC) as x)")
                  cmdArgs.append(id)
                  cmdArgs.append(str(type))
 
@@ -429,7 +429,7 @@ class web_search():
     @asyncio.coroutine
     def fetch_rules(self):
         cmd = []
-        cmd.append("SELECT ruleid, name FROM rules.evirule")
+        cmd.append("SELECT ruleid, name FROM rules.evirule ORDER BY name asc")
         rows = yield from self.db.execute_single(' '.join(cmd)+';', [])
         amalgamation = []
         for row in rows:
