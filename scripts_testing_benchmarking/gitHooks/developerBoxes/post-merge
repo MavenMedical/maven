@@ -1,0 +1,12 @@
+#All machines should copy this to their .git/hooks directory
+#the following line (uncommented, of course) should be in your pg_hba.conf file to ensure this script will work
+#local   all     postgres        trust
+for f in `git diff-tree -r --name-only HEAD ORIG_HEAD app/schema/updates`; do
+  echo "------------------`date`---------------">>../schema_updates.sql
+  echo "------------------$f------------------">>../schema_updates.sql
+  echo "------------------`date`---------------">>../schema_updates.log
+  echo "------------------$f---------------">>../schema_updates.log
+  psql maven -U postgres -w -f $f >> ../schema_updates.log
+  cat $f>>../schema_updates.sql
+done
+
