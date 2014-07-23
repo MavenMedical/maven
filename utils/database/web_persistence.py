@@ -173,6 +173,15 @@ class WebPersistence():
                                 [officialname, displayname, user], {}, {})
 
     @asyncio.coroutine
+    def rate_alert(self, user, alertid, like):
+        #placeholder code
+        value = 1
+        if like == 0:
+            value = 0
+        yield from self.execute(["UPDATE alert set (saving) = (%s) where alert_id = %s"],
+                                [value, alertid], {}, {})
+
+    @asyncio.coroutine
     def record_login(self, username, method, ip, authkey):
         yield from self.execute(['INSERT INTO logins (user_name, method, logintime, ip, authkey) VALUES (%s, %s, now(), %s, %s)'],
                                 [username, method, ip, authkey], {}, {})
@@ -402,7 +411,7 @@ class WebPersistence():
         Results.description: "alert.long_description",
         Results.outcome: "alert.outcome",
         Results.savings: "alert.saving",
-        Results.alerttype: "'Recent Event'",
+        Results.alerttype: "alert.category",
         Results.ruleid: "alert.cds_rule",
         }
     _display_alerts = _build_format({

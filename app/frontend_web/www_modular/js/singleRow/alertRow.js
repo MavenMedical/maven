@@ -14,9 +14,11 @@ define([
     'widgets/evidence',
 
     //Template
-    'text!templates/alertRow.html'
+    'text!templates/alertRow.html',
 
-], function ($, _, Backbone, Evidence, alertRowTemplate) {
+    'globalmodels/contextModel'
+
+], function ($, _, Backbone, Evidence, alertRowTemplate, contextModel) {
 
     showEvidence = function(evi) {
 	var evidence = new Evidence({'evi':evi});
@@ -29,10 +31,47 @@ define([
         template: _.template(alertRowTemplate),
         events:{
             'click .panel-heading': 'handleClick',
+            'click .like': 'like',
+            'click .dislike': 'dislike',
+            'click .dislike_info': 'critique'
         },
         render: function(){
             $(this.el).html(this.template(this.model.toJSON()));
             return this;
+        },
+        like: function(){
+            //user clicks 'like'
+            console.log("Like clicked");
+            this.rate(1);
+        },
+        dislike: function(){
+            //user clicks 'dislike'
+            console.log("Dislike clicked");
+            this.rate(0);
+        },
+        rate: function(like){
+            //sends like/dislike to backend
+            that = this;
+            $.ajax({
+                url: "/rate_alert",
+                data: $.param(contextModel.toParams()) + "&alert_id=" + that.model.get("id") +"&like="+like,
+                success: function (data) {
+                    console.log(data);
+                }
+            });
+        },
+        critique: function(event){
+            //user gave additional info for 'dislike'
+
+            that = this;
+            var reason = $(event.target).attr("value");
+            $.ajax({
+                url: "/critique_alert",
+                data: $.param(contextModel.toParams()) + "&alert_id=" + that.model.get("id") +"&reason="+reason,
+                success: function (data) {
+                    console.log(data);
+                }
+            });
         },
         clickEvidenceSpan:function(){
             jQuery.noConflict();

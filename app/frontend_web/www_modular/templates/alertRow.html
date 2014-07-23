@@ -1,8 +1,24 @@
 <div class="row">
   <div class="col-sm-12">
-    <div class="alert-type">
-      <img src="images/<%= alerttype.toLowerCase() %>-29x37.png"><br>
-      <span class="headings title center"><%= alerttype %></span>
+    <div class="alert-type" style="display:inline-block;">
+      <img src="images/<%= alerttype.toLowerCase().replace(' ','-') %>-29x37.png"><br>
+      <span class="headings title" style="float:left;"><%= alerttype %></span>
+	  <div class="btn-group" style="float:right;">
+        <ul class="dropdown-menu dropdown-menu-right" role="menu" style='float:right;'>
+          <li><a class="dislike_info" value="incorrect">Incorrect</a></li>
+	      <li><a class="dislike_info" value="irrelevant">Irrelevant</a></li>
+	    </ul>
+
+        <button type="button" class="btn btn-default btn-sm dislike dropdown-toggle" data-dismiss="modal" data-toggle="dropdown" style="font-size: 8px;">
+            <span class="glyphicon glyphicon glyphicon-thumbs-down"> 92%</span>
+	        <span class="sr-only">Toggle Dropdown</span>
+        </button>
+
+      </div>
+
+      <button type="button" class="btn btn-default btn-sm like" data-dismiss="modal" style="font-size: 8px; float:right;">
+        <span class="glyphicon glyphicon glyphicon-thumbs-up"> 8%</span>
+      </button>
     </div>
     <p>
       <b><%= name %></b>

@@ -34,6 +34,7 @@ CONTEXT_PATIENTLIST = 'patients'
 CONTEXT_DEPARTMENT = 'department'
 CONTEXT_ORDERTYPE = 'ordertype'
 CONTEXT_ORDERID = 'order_id'
+CONTEXT_ALERTID = 'alert_id'
 CONTEXT_KEY = 'userAuth'
 CONTEXT_ENCOUNTER = 'encounter'
 CONTEXT_CUSTOMERID = 'customer_id'
@@ -44,6 +45,7 @@ CONTEXT_ENDDATE = 'enddate'
 CONTEXT_CATEGORIES = 'categories'
 CONTEXT_OFFICIALNAME = 'official_name'
 CONTEXT_DISPLAYNAME = 'display_name'
+CONTEXT_LIKE = 'like'
 
 LOGIN_TIMEOUT = 60 * 60  # 1 hour
 AUTH_LENGTH = 44  # 44 base 64 encoded bits gives the entire 256 bites of SHA2 hash
@@ -66,6 +68,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
         self.costbdtype = 'donut'  # this assignment isn't used yet
         self.add_handler(['POST'], '/login', self.post_login)  # REAL
         self.add_handler(['GET'], '/save_user_settings', self.save_user_settings)  # REAL
+        self.add_handler(['GET'], '/rate_alert', self.rate_alert)  # REAL
+        self.add_handler(['GET'], '/critique_alert', self.critique_alert)  # REAL
         self.add_handler(['GET'], '/patients(?:(\d+)-(\d+)?)?', self.get_patients)  # REAL
         self.add_handler(['GET'], '/patient_details', self.get_patient_details)  # REAL
         self.add_handler(['GET'], '/total_spend', self.get_total_spend)  # REAL
@@ -145,6 +149,34 @@ class FrontendWebService(HTTP.HTTPProcessor):
             import traceback
             traceback.print_exc()
             raise LoginError('expiredPassword')
+
+    rate_alert_required_contexts = [CONTEXT_USER, CONTEXT_CUSTOMERID, CONTEXT_ALERTID, CONTEXT_LIKE]
+    rate_alert_available_contexts = {CONTEXT_USER: str, CONTEXT_CUSTOMERID: int,
+                                     CONTEXT_ALERTID: str, CONTEXT_LIKE: int}
+
+    @asyncio.coroutine
+    def rate_alert(self, _header, _body, qs, _matches, _key):
+        context = self.helper.restrict_context(qs,
+                            FrontendWebService.rate_alert_required_contexts,
+                            FrontendWebService.rate_alert_available_contexts)
+
+        userid = context[CONTEXT_USER]
+        customerid = context[CONTEXT_CUSTOMERID]
+        alertid = context[CONTEXT_ALERTID]
+        like = context[CONTEXT_LIKE]
+
+        result = yield from self.persistence_interface.rate_alert(userid, alertid, like)
+        if result:
+            return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
+        else:
+            return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
+
+        #return HTTP.OK_RESPONSE, json.dumps(['ALERT LIKED']), None
+
+    @asyncio.coroutine
+    def critique_alert(self, _header, _body, qs, _matches, _key):
+        return HTTP.OK_RESPONSE, json.dumps(['Alert Critiqued']), None
+
 
     settings_required_contexts = [CONTEXT_USER, CONTEXT_CUSTOMERID, CONTEXT_OFFICIALNAME, CONTEXT_DISPLAYNAME]
     settings_available_contexts = {CONTEXT_USER: str, CONTEXT_CUSTOMERID: int, CONTEXT_OFFICIALNAME:str, CONTEXT_DISPLAYNAME:str}
