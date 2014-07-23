@@ -349,19 +349,23 @@ class CompositionEvaluator(SP.StreamProcessor):
         else:
             return False
 
-    @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
+    #@ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
+    @asyncio.coroutine
     def _evaluate_additional_dx_rule_details(self, composition, dx_rule_details):
         return True
 
-    @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
+    #@ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
+    @asyncio.coroutine
     def _evaluate_lab_rule_details(self, composition, lab_rule_details):
         return True
 
-    @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
+    #@ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
+    @asyncio.coroutine
     def _evaluate_medication_rule_details(self, composition, med_rule_details):
         return True
 
-    @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
+    #@ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
+    @asyncio.coroutine
     def generate_cds_alert(self, composition, rule):
         """
         Generates an alert from the rule that evaluated to true, along with the evidence that supports that rule (from a clinical perspective)
