@@ -323,7 +323,7 @@ class web_search():
                             " inner join terminology.rxnrel c on a.rxcui=c.rxcui1 and c.rela='dose_form_of'"
                             " where b.ancestor = %s"
                             " and c.rxcui2 in (select rxcui from terminology.doseformgroups where"
-                            " groupname=%s)"
+                            " groupname like %s)"
                             " GROUP BY NDC)")
                  cmdArgs.append(id)
                  cmdArgs.append(str(type))
@@ -341,31 +341,43 @@ class web_search():
 
     @asyncio.coroutine
     def writeDrugTriggers(self, rule):
+        ndcs = {}
 
-          for cur in rule['triggers']:
-            cmd = [];
-            cmdArgs = []
-            NDC = []
-            cmd.append("INSERT INTO rules.trigcodes (ruleid, code) ")
+        for cur in rule['triggers']:
+            r = cur['route']
+            i = cur['code']
+            if r in ndcs:
+                ndcs[r].append(i)
+            else:
+                ndcs[r] = [i]
+        cmd = [];
+        cmdArgs = []
+        NDC = []
+        union = False
+        cmd.append("INSERT INTO rules.trigcodes (ruleid, code) ")
+        for cur in ndcs:
+
+            if union:
+                cmd.append('UNION')
+            union = True
             cmd.append("(SELECT %s, ndc FROM "
-		                    " terminology.conceptancestry b inner join terminology.rxsnomeds a on b.child=a.snomed"
+                            " terminology.conceptancestry b inner join terminology.rxsnomeds a on b.child=a.snomed"
                             " inner join terminology.rxnrel c on a.rxcui=c.rxcui1 and c.rela='dose_form_of'"
                             " left outer join rules.trigcodes t on ndc = t.code "
 
-                            " where b.ancestor = %s"
+                            " where b.ancestor in %s"
                             " and c.rxcui2 in (select rxcui from terminology.doseformgroups where"
-                            " groupname like %s"
-                            " and NOT (ruleid = %s AND code notNull))"
+                            " groupname like %s)"
+                      #      " and NOT (ruleid = %s AND code notNull))"
                             " GROUP BY NDC)")
-
             cmdArgs.append(rule['id'])
-            cmdArgs.append(cur['code'])
+            cmdArgs.append(tuple(ndcs[cur]))
+            cmdArgs.append(cur)
+           # cmdArgs.append(rule['id'])
 
-            cmdArgs.append(cur['route'])
-            cmdArgs.append(rule['id'])
+        yield from self.db.execute_single(' '.join(cmd)+";", cmdArgs)
 
-            yield from self.db.execute_single(' '.join(cmd)+";", cmdArgs)
-          return
+        return
     @asyncio.coroutine
     def writeCPTTriggers(self, rule):
           for cur in rule['triggers']:
