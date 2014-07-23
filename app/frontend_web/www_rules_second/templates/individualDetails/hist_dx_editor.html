@@ -37,35 +37,3 @@
             <button style = "float:right" class="btn btn-info confirm-detail-button">Confirm</button>
 	      </div>
           <div style = "clear:both"></div>
-
-  <script>
-
-
-                console.log($)
-                console.log($('.confirm-detail-button'))
-                $('.confirm-detail-button').on('click', function(){
-                    var minDays = 0+parseInt($('.days-min').val())
-                    var minWeeks = 0+parseInt($('.weeks-min').val())
-                    var minMonths = 0+parseInt($('.months-min').val())
-                    var minYears = 0+parseInt($('.years-min').val())
-
-                    var maxDays = 0+parseInt($('.days-max').val())
-                    var maxWeeks = 0+parseInt($('.weeks-max').val())
-                    var maxMonths = 0+parseInt($('.months-max').val())
-                    var maxYears = 0+parseInt($('.years-max').val())
-
-                    if (!minDays) minDays = 0;
-                    if (!minWeeks) minWeeks = 0;
-                    if (!minMonths) minMonths = 0;
-                    if (!minYears) minYears = 0;
-
-                    if (!maxDays) maxDays = 0;
-                    if (!maxWeeks) maxWeeks = 0;
-                    if (!maxMonths) maxMonths = 0;
-                    if (!maxYears) maxYears = 0;
-                     var minval = minDays + 7*minWeeks+30*minMonths+365*minYears
-                    $('.min-days').val(minval)
-                     var maxval = maxDays + 7*maxWeeks+30*maxMonths+365*maxYears
-                    $('.max-days').val(maxval)
-                })
- </script>

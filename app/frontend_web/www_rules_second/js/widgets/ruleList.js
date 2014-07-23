@@ -32,7 +32,6 @@ define([
 
             this.$el.html(this.template({}));
 
-            console.log(this.first)
             return this;
         },
         saveRule: function(){
@@ -56,7 +55,6 @@ define([
             }, this)
             rule.on('destroy', function(){
                 ruleCollection.remove(rule);
-                rulerow.destroy()
             })
             if (rule.get('id') == curRule.get('id')){
                 rulerow.$el.css({'font-size': '200%'});

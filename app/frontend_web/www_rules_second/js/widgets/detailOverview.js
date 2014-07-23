@@ -25,7 +25,6 @@ define([
     var createDetail = function(){
         var selected = $('.detail-selector').val();
         var text_code = _.invert(Helpers.detailHeadings)[selected];
-        console.log(text_code)
         require(['text!/templates/individualDetails/' + text_code + '_editor.html'],
             function(curTemplate) {
                   var newModel;
