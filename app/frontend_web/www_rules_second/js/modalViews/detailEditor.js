@@ -55,8 +55,7 @@ define([
                         }
                     }
                 }
-                var inputs = $('.detail-input');
-
+                var inputs = $('.detail-input', panel.$el);
                 for (var i=0;i<inputs.length;i++){
                     var cur = inputs[i];
                     if ($(cur).hasClass('hasTerm')){
@@ -70,7 +69,6 @@ define([
                         })
                     }
                     panel.model.set(cur.getAttribute('name'), cur.value);
-
 
 
                 }
