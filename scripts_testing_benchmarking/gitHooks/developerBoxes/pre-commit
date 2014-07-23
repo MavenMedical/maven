@@ -1,0 +1,8 @@
+cd $MAVEN_ROOT && python unit_tests.py
+if [ $? -eq 0 ]; then
+   echo Tests passed, commit proceeding
+   exit 0
+else
+   echo TESTS FAILED, commit aborting
+   exit 1
+fi
