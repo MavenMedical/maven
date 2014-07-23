@@ -34,6 +34,7 @@ define([
                     }, 100)
                     console.log(resizetimer)
                }
+               curRule.on('selected', function(){that.render()})
 
             },
             render: function(){
@@ -84,8 +85,11 @@ define([
 
                     allNodes.push(new treeNode({el:$('.nodeEl').last(), text: (_.template(sexTree))(curRule.attributes), veracity: true}))
                 }
-                this.genNodes(this.usableKeys.pop(), this.usableKeys, allNodes, this)
-
+                if (this.usableKeys==0){
+                    this.drawConnections(allNodes)
+                } else{
+                    this.genNodes(this.usableKeys.pop(), this.usableKeys, allNodes, this)
+                 }
 
 
             },
@@ -117,6 +121,21 @@ define([
             drawConnections: function(nodeList){
                 var trueFinish = jsPlumb.addEndpoint($('#doRule'), {anchor: "Top"})
                 var falseFinish = jsPlumb.addEndpoint($('#dontRule'), {anchor:"Top"})
+                if (nodeList.length == 1){
+                    nodeList[0].exitPoint.repaint
+                    jsPlumb.connect({
+                                     source: nodeList[0].exitPoint,
+                                     target: trueFinish,
+                                     overlays:nodeList[0].posOverlay
+                    })
+                    jsPlumb.connect({
+                                    source: nodeList[0].negativePoint,
+                                    target: falseFinish,
+                                    overlays:nodeList[0].negOverlay
+                    })
+
+
+                } 
                 for (var i=0;i<nodeList.length-1;i++){
                    var cur = nodeList[i]
                    var next = nodeList[i+1]
@@ -133,6 +152,7 @@ define([
 
                    if (i+2 == nodeList.length){
                        next.exitPoint.repaint()
+
                        jsPlumb.connect({
                                             source: next.exitPoint,
                                             target: trueFinish,
