@@ -135,7 +135,7 @@ define([
                     })
 
 
-                } 
+                }
                 for (var i=0;i<nodeList.length-1;i++){
                    var cur = nodeList[i]
                    var next = nodeList[i+1]

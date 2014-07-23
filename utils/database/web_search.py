@@ -208,13 +208,21 @@ class web_search():
         cmd.append("DELETE FROM rules.codelists * WHERE ruleid = ")
         cmd.append(str(id))
         yield from self.db.execute_single(' '.join(cmd)+';', [])
-        yield from (self.writeExplicitSnomed('hist_dx', ruleJSON))
-        yield from self.writeExplicitSnomed('pl_dx', ruleJSON)
-        yield from self.writeExplicitSnomed('enc_dx', ruleJSON)
-        yield from self.writeExplicitSnomed('enc_pl_dx', ruleJSON)
-        yield from self.writeExplicitNDC('ml_med', ruleJSON)
-        yield from self.writeExplicitCPT('hist_proc', ruleJSON)
-        yield from self.writeExplicitCPT('enc_proc', ruleJSON)
+        count = 0
+        count += yield from (self.writeExplicitSnomed('hist_dx', ruleJSON))
+        count += yield from self.writeExplicitSnomed('pl_dx', ruleJSON)
+        count += yield from self.writeExplicitSnomed('enc_dx', ruleJSON)
+        count += yield from self.writeExplicitSnomed('enc_pl_dx', ruleJSON)
+        count += yield from self.writeExplicitNDC('ml_med', ruleJSON)
+        count += yield from self.writeExplicitCPT('hist_proc', ruleJSON)
+        count += yield from self.writeExplicitCPT('enc_proc', ruleJSON)
+        if (count==0):
+            cmd =[]
+            cmdArgs = []
+            cmd.append("insert into rules.codelists (ruleid, listtype, isintersect, intlist)")
+            cmd.append("(select %s, 'pl_dx', false, array[-99999])")
+            cmdArgs.append(ruleJSON ['id'])
+            yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
         if (ruleJSON['triggerType'] == 'NDC'):
             yield from self.writeDrugTriggers(ruleJSON)
         elif (ruleJSON['triggerType'] == 'HCPCS'):
@@ -253,9 +261,9 @@ class web_search():
                      cmdArgs.append(str(type))
                      cmdArgs.append(cur['exists']=='true')
                      cmdArgs.append(cur['code'])
-                 yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
-
-        return
+                     yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
+                     return 1
+        return 0
     @asyncio.coroutine
     def writeExplicitCPT(self, type, rule):
         list = rule.get(type, None)
@@ -289,6 +297,9 @@ class web_search():
                      cmdArgs.append(cur['exists']=='true')
 
                  yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
+                 return 1
+
+        return 0
 
     @asyncio.coroutine
     def writeExplicitNDC(self, type, rule):
@@ -300,6 +311,7 @@ class web_search():
             cmdArgs = []
             pos = []
             neg = []
+            n = 0
             for cur in list:
                  cmd = []
                  cmdArgs = []
@@ -320,6 +332,9 @@ class web_search():
                  cmdArgs.append(cur['code'])
                  cmdArgs.append(cur['route'])
                  yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
+            return 1
+        return 0
+
 
 
 
