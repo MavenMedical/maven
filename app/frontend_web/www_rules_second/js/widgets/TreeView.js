@@ -25,14 +25,12 @@ define([
                 $('#hide-tree').on('shown.bs.tab', function(){
                     that.render()
                 })
-                console.log((window))
                window.onresize = function(){
 
                     window.clearTimeout(resizetimer)
                     resizetimer = window.setTimeout(function(){
                         that.render()
                     }, 100)
-                    console.log(resizetimer)
                }
                curRule.on('selected', function(){that.render()})
 

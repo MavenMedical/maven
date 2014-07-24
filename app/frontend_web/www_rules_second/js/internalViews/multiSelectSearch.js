@@ -41,7 +41,9 @@ define([
             var panel = this
             this.type = params.type;
             this.avail = params.avail;
-            this.selected_items = new Backbone.Collection()
+             console.log("selected", params.selected)
+            this.selected_items = params.selected
+            console.log("selected", this.selected_items)
             this.el = params.el;
             this.avail.on('sync', this.render, this);
             $('.search-button', this.$el)[0].onclick = function(){

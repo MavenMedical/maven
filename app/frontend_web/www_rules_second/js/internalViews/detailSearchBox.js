@@ -34,10 +34,22 @@ define([
         },
 
         initialize: function(params){
-            this.ready = false;
             this.template= _.template(detailSearch);
                  this.$el.html(this.template());
             this.collection  = params.collection;
+            console.log(this.collection)
+
+
+            if (this.collection.length==0) {
+                this.ready = false;
+            } else {
+                this.ready = true
+            }
+
+            this.collection.on('add', function(){
+                this.ready = true
+            }, this)
+
             this.el = params.el;
             this.type = params.type;
             this.collection.on('sync', this.render, this);
@@ -85,6 +97,7 @@ define([
                         if (!this.model.get('route')){
                             this.model.set('route', "")
                         }
+                        this.model.set('id', this.model.get('code')+this.model.get('route'))
                         this.$el.html(this.template(this.model.toJSON()));
                         return this;
                     }

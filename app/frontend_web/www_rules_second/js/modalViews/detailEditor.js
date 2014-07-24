@@ -25,15 +25,31 @@ define([
             this.$el.html(this.template());
             var searchEl = $('.search', this.$el)
             this.searchBoxes =[];
+            var that = this
             if (searchEl.length!=0){
                 var anon =  Backbone.Collection.extend( {url: '/search'})
-                var searchBox = new detailSearchBox({collection: new anon(), type: this.type, el: searchEl})
+                var col = new anon()
+                if (!that.newDetail){
+                    col.add(that.model)
+                }
+                var searchBox = new detailSearchBox({collection: col, type: this.type, el: searchEl})
                 searchBox.render();
                 this.searchBoxes.push(searchBox)
             }
             var multiSearchEl = $('.multi-select-search', this.$el)
             $.each(multiSearchEl, function(a, cur){
                 var anon =  Backbone.Collection.extend( {url: '/search'})
+                var sel = new Backbone.Collection
+
+                if (!that.newDetail){
+                    alert("editing a lab")
+                    console.log(that.model)
+                    console.log(cur.getAttribute('name'))
+                    sel = that.model.get(cur.getAttribute('name'))
+                    console.log("to selector", sel)
+                }
+
+
                 var searchBox = new multiSelectSearch({avail: new anon(), type: cur.getAttribute("type"), el: multiSearchEl, selected: new Backbone.Collection})
             })
             var routeListEl = $('.route-list', this.$el)
@@ -83,7 +99,6 @@ define([
                     panel.model.set(cur.getAttribute('name'), idList);
                 }, this)
                 if (panel.newDetail){
-                    console.log('new detail')
                     if (curRule.get(panel.type)){
                         curRule.get(panel.type).add(panel.model);
                     } else {
@@ -96,7 +111,6 @@ define([
                     curRule.set({detID: curRule.get('detID') + 1}, {silent:true})
                     panel.model.set({did: curRule.get('detID')});
 
-                    console.log("assigned id", curRule)
                 }
                $('#detail-modal').modal('hide');
                curRule.needsSave = true;

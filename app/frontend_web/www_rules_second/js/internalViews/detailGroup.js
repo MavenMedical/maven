@@ -27,22 +27,18 @@ define([
 
         },
         render: function(){
-            console.log("rendering")
             this.$el.html("");
             var type = this.type;
             var panel = this
             var detailLine = Backbone.View.extend({
 
                 initialize: function(params){
-                    console.log(params)
                     this.el = params.el
                     this.$el.html(params.text)
 
                     this.detail = params.detail
-                    console.log(curRule)
                     if (curRule.get('conflicts')){
                         _.each(curRule.get('conflicts').models, function(cur){
-                                console.log(cur.get('0'), this.detail.get('did'))
                                 if (cur.get('0') == this.detail.get('did') || cur.get('1') == this.detail.get('did')){
                                     this.$el.addClass("conflict")
                                 }
