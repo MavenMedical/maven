@@ -276,7 +276,7 @@ class CompositionEvaluator(SP.StreamProcessor):
                                         short_title=("Duplicate Order: %s" % ord_detail.text),
                                         short_description="Clinical observations are available for a duplicate order recently placed.",
                                         long_description=long_description,
-                                        saving=16.14,
+                                        saving=order.totalCost,
                                         related_observations=dup_ords_with_obs[ord]['related_observations'],
                                         category=ALERT_TYPES.REC_RESULT,
                                         status=recent_results_alert_validation_status,
@@ -383,7 +383,7 @@ class CompositionEvaluator(SP.StreamProcessor):
         short_description = rule.short_description
         long_description = rule.long_description
         override_indications = ['Select one of these override indications boink']
-        saving = 807.12
+        saving = rule.triggering_order.totalCost
         category = ALERT_TYPES.CDS
 
         FHIR_alert = FHIR_API.Alert(customer_id=customer_id, subject=pat_id, provider_id=provider_id, encounter_id=encounter_id,

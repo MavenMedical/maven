@@ -220,7 +220,7 @@ def write_composition_alerts(composition, conn):
 
             if is_alert_with_triggering_order:
                 column_map.append("saving")
-                cmdargs.append(alert.triggering_order.totalCost)
+                cmdargs.append(alert.saving)
 
                 column_map.append("order_id")
                 cmdargs.append(alert.triggering_order.get_clientEMR_uuid())
