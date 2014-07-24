@@ -3,10 +3,10 @@
 #local   all     postgres        trust
 UPDATESSQL=../schema_updates.sql
 UPDATESLOG=../schema_updates.log
-if [ $UPDATESSQL  does not exist ]; then
+if [ ! -f $UPDATESSQL ]; then
    touch $UPDATESSQL
 fi
-if [ $UPDATESLOG  does not exist ]; then
+if [ ! -f $UPDATESLOG ]; then
    touch $UPDATESLOG
 fi
 
