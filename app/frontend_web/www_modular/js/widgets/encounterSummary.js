@@ -23,7 +23,6 @@ define([
 
         },
         update: function (summary) {
-            console.log('update summary')
             var title = 'your patients';
 	    var date = "Through today";
             if (contextModel.get('encounter')) {
