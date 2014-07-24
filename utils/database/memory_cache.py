@@ -11,6 +11,36 @@
 import asyncio
 from collections import defaultdict, OrderedDict
 
+def firstarg(argskwargs):
+    """
+    Makes the key the first argument passed to the function
+    :param argskwargs: all args and keyword args passed in
+    """
+    return argskwargs[0][0]
+
+def firstarg_instance_method(argskwargs):
+    """
+    Makes the key the first (non-self) argument passed to the function.  Useful for member functions
+    :param argskwargs: all args and keyword args passed in
+    """
+    return argskwargs[0][1]
+
+def keyarg(keykey):
+    """
+    Selects a key from the kwargs (does not work with implicit keyword args)
+    :param argskwargs: all args and keyword args passed in
+    :param keykey: the keyword from which to select the key
+    """
+    return lambda argskwargs: argskwargs[1][keykey]
+
+def allargs(argskwargs):
+    """
+    Makes the entire argument set the key
+    :param argskwargs: all args and keyword args passed in
+    """
+    return (argskwargs[0], tuple(sorted(argskwargs[1].items())))
+
+
 class MemoryCache():
     """
     Many database lookups come from a read-only, or very rarely changing part of the database.
@@ -86,7 +116,7 @@ class MemoryCache():
             return scheduler
         return decorator
                 
-    def cache_lookup(self, cache_name, lookup_on_none=False):
+    def cache_lookup(self, cache_name, lookup_on_none=False, key_function=firstarg):
         """ Decorator to lookup a key for a cache, or fetch it if it's not there
         Apply @<memory_cache instance>.cache_lookup(...) to a coroutine that takes a key and finds the value
         This function will only be called if the key isn't already in the cache
@@ -98,15 +128,16 @@ class MemoryCache():
         """
         def decorator(func):
             co_func = asyncio.coroutine(func)
-            def lookup(key, *args, **kwargs):
+            def lookup(*args, **kwargs):
                 data = self.data[cache_name]
                 limit = self.size_limits[cache_name]
+                key = key_function((args, kwargs))
                 if key in data:
                     data.move_to_end(key)
                     val = data[key]
                     if val or not lookup_on_none:
                         return val
-                ret = yield from co_func(key, *args, **kwargs)
+                ret = yield from co_func(*args, **kwargs)
                 data[key] = ret
                 if limit and len(data)>limit:
                     data.popitem(last=False)
