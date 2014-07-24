@@ -3,6 +3,13 @@
 #local   all     postgres        trust
 UPDATESSQL=../schema_updates.sql
 UPDATESLOG=../schema_updates.log
+if [ $UPDATESSQL  does not exist ]; then
+   touch $UPDATESSQL
+fi
+if [ $UPDATESLOG  does not exist ]; then
+   touch $UPDATESLOG
+fi
+
 for f in `git diff-tree -r --name-only HEAD ORIG_HEAD app/schema/updates | sort -n`; do
   echo $f
   if grep "SUCCEEDED: $f" $UPDATESLOG; then

@@ -1,7 +1,13 @@
 cd $MAVEN_ROOT && python unit_tests.py
 if [ $? -eq 0 ]; then
    echo Tests passed, commit proceeding
-   exit 0
+   if find $MAVEN_ROOT/app/schema/updates -name "*.sql" | grep -v "app/schema/updates/\(\(schema\)\|\(data\)\)/[0-9]\{8\}/[0-9]*.sql"; then 
+      echo you have misplaced sql update files, commit aborting
+      exit 1
+   else
+      echo All checks passed, commit
+      exit 0
+   fi
 else
    echo TESTS FAILED, commit aborting
    exit 1
