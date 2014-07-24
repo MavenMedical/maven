@@ -25,7 +25,7 @@ import urllib.parse
 import html
 import math
 import jinja2
-from utils.enums import CDS_ALERT_STATUS, ALERT_TYPES
+from utils.enums import CDS_ALERT_STATUS, ALERT_TYPES, ALERT_PRIORITY
 from jinja2 import Environment, PackageLoader
 
 
@@ -35,7 +35,9 @@ CLIENTAPP_LOCATION = "clientapplocation"
 DEBUG = "debug"
 COST_ALERT_ICON = "costalerticon"
 TEMPLATE_LOAD_PATH = "templateloadpath"
+MAX_MSG_LOAD = "maxmsgload"
 
+NG_LOG = ML.get_logger()
 
 class NotificationGenerator():
 
@@ -60,7 +62,9 @@ class NotificationGenerator():
 #                self.emrversion = config.get(EMR_VERSION, None)
                 self.DEBUG = config.get(DEBUG, None)
                 self.templateEnv = {}
-                
+
+                self.max_msg_load = config.get(MAX_MSG_LOAD, None)
+
                 templateLoader = jinja2.FileSystemLoader('/home/devel/maven/clientApp/notification_generator/VistA/templates')
                 self.templateEnv['vista'] = jinja2.Environment(loader=templateLoader)
 
@@ -98,30 +102,40 @@ class NotificationGenerator():
     ################################################################################################
     # Start Vista Alert Generator Components
     ################################################################################################
-    @asyncio.coroutine
+    @ML.coroutine_trace(timing=True, write=NG_LOG.debug)
     def _vista_alert_content_generator(self, composition, templateEnv):
 
         alert_contents = []
+        fhir_alerts = sorted(composition.get_section_by_coding(code_system="maven", code_value="alerts").content,
+                             key=lambda x: ALERT_PRIORITY[x.category.name].value,
+                             reverse=True)
 
-        cost_alert = yield from self._vista_cost_alert_generator(composition, templateEnv)
-        alert_contents.append(cost_alert)
+        # Shared data elements for all alerts so we don't have to keep passing the composition around everywhere
+        base_alert_data = {"user": composition.get_author_id(),
+                           "customer": composition.customer_id,
+                           "userAuth": composition.userAuth,
+                           "csn": urllib.parse.quote(composition.encounter.get_csn()),
+                           "patient_id": composition.subject.get_pat_id()}
 
-        dup_order_alerts = yield from self._vista_duplicate_order_alert_generator(composition, templateEnv)
-        if dup_order_alerts is not None:
-            for dup_alert in dup_order_alerts:
-                alert_contents.append(dup_alert)
+        for alert in fhir_alerts[0:self.max_msg_load]:
+            if alert.category == ALERT_TYPES.COST and alert.status > CDS_ALERT_STATUS.DEBUG_ALERT.value:
+                content = yield from self._vista_cost_alert_generator(alert, base_alert_data, templateEnv)
+                alert_contents.append(content)
 
-        sleuth_alerts = yield from self._vista_CDS_alert_generator(composition, templateEnv)
-        if sleuth_alerts is not None and len(sleuth_alerts) > 0:
-            for sa in sleuth_alerts:
-                alert_contents.append(sa)
+            elif alert.category == ALERT_TYPES.REC_RESULT and alert.status > CDS_ALERT_STATUS.DEBUG_ALERT.value:
+                content = yield from self._vista_recent_results_alert_generator(alert, base_alert_data, templateEnv)
+                alert_contents.append(content)
+
+            elif alert.category == ALERT_TYPES.CDS and alert.status > CDS_ALERT_STATUS.DEBUG_ALERT.value:
+                content = yield from self._vista_CDS_alert_generator(alert, base_alert_data, templateEnv)
+                alert_contents.append(content)
 
         ML.DEBUG("Generated %s VistA Alerts" % len(alert_contents))
 
         return alert_contents
 
     @asyncio.coroutine
-    def _vista_cost_alert_generator(self, composition, templateEnv):
+    def _vista_cost_alert_generator(self, alert, base_alert_data, templateEnv):
 
         #creates the cost alert html. This may want to become more sophisticated over time to
         #dynamically shorten the appearance of a very large active orders list
@@ -129,108 +143,65 @@ class NotificationGenerator():
         TEMPLATE2_FILE = "cost_alert2.html"
         template = templateEnv.get_template(TEMPLATE_FILE)
         template2 = templateEnv.get_template(TEMPLATE2_FILE)
-        templateVars = self._generate_cost_alert_template_vars(composition)
+        templateVars = yield from self._generate_cost_alert_template_vars(alert, base_alert_data)
         notification_body = template.render(templateVars)
         notification_body += template2.render(templateVars)
 
         return notification_body
 
-    def _generate_cost_alert_template_vars(self, composition):
+    @asyncio.coroutine
+    def _generate_cost_alert_template_vars(self, alert, base_alert_data):
 
-        cost_alert = composition.get_alerts_by_type(type=ALERT_TYPES.COST)
-
-        cost_alert_order_list = cost_alert['cost_details']
-        total_cost = cost_alert['total_cost']
-        user = composition.get_author_id()
-        customer = composition.customer_id
-        userAuth = composition.userAuth
-        csn = urllib.parse.quote(composition.encounter.get_csn())
-        patient_id = composition.subject.get_pat_id()
-
-        templateVars = {"order_list" : cost_alert_order_list,
-                        "total_cost" : math.ceil(total_cost),
+        templateVars = {"order_list" : alert.cost_breakdown['details'],
+                        "total_cost" : math.ceil(alert.cost_breakdown['total_cost']),
                         "http_address" : MC.http_addr,
-                        "encounter_id" : csn,
-                        "patient_id" : patient_id,
-                        "user" : user,
-                        "customer" : customer,
-                        "user_auth" : userAuth}
+                        "encounter_id" : base_alert_data['csn'],
+                        "patient_id" : base_alert_data['patient_id'],
+                        "user" : base_alert_data['user'],
+                        "customer" : base_alert_data['customer'],
+                        "user_auth" : base_alert_data['userAuth']}
 
         return templateVars
 
     @asyncio.coroutine
-    def _vista_CDS_alert_generator(self, composition, templateEnv):
+    def _vista_CDS_alert_generator(self, alert, base_alert_data, templateEnv):
 
         TEMPLATE_FILE = "cds_alert.html"
         template_sleuth_alert = templateEnv.get_template( TEMPLATE_FILE )
 
-        sleuth_alert_HTML_contents = []
-        user = composition.get_author_id()
-        customer = composition.customer_id
-        userAuth = composition.userAuth
-        csn = urllib.parse.quote(composition.encounter.get_csn())
-        patient_id = composition.subject.get_pat_id()
+        templateVars = {"alert_tag_line" : html.escape(alert.short_title),
+                        "alert_description" : html.escape(alert.short_description),
+                        "evi_id": alert.CDS_rule,
+                        "http_address" : MC.http_addr,
+                        "encounter_id" : base_alert_data['csn'],
+                        "patient_id" : base_alert_data['patient_id'],
+                        "user" : base_alert_data['user'],
+                        "customer" : base_alert_data['customer'],
+                        "user_auth" : base_alert_data['userAuth']}
 
-        #composition_alert_section = composition.get_alerts_section()
-        CDS_alerts = composition.get_alerts_by_type(type=ALERT_TYPES.CDS)
-        if not CDS_alerts or not CDS_alerts['alert_list']:
-            return []
+        notification_body = template_sleuth_alert.render(templateVars)
 
-
-        #check to see if there's anything in the list. Should probably move this to the FHIR api
-        #if composition_alert_section is not None and len(composition_alert_section.content) > 0:
-
-        for alert in CDS_alerts['alert_list']:
-
-            # Check to make sure the Alert Status is sufficient for generating a message
-            if alert.status < CDS_ALERT_STATUS.DEBUG_ALERT.value:
-                break
-
-            templateVars = {"alert_tag_line" : html.escape(alert.short_title),
-                            "alert_description" : html.escape(alert.short_description),
-                            "http_address" : MC.http_addr,
-                            "encounter_id" : csn,
-                            "patient_id" : patient_id,
-                            "evi_id": alert.CDS_rule,
-                            "user" : user,
-                            "customer" : customer,                        
-                            "user_auth" : userAuth}
-
-            notification_body = template_sleuth_alert.render(templateVars)
-            sleuth_alert_HTML_contents.append(notification_body)
-
-        return sleuth_alert_HTML_contents
+        return notification_body
 
     @asyncio.coroutine
-    def _vista_duplicate_order_alert_generator(self, composition, templateEnv):
+    def _vista_recent_results_alert_generator(self, alert, base_alert_data, templateEnv):
 
         TEMPLATE_FILE = "duplicate_order_alert.html"
         template_dup_order_alert = templateEnv.get_template(TEMPLATE_FILE)
-        duplicate_order_alert_contents = []
 
-        user = composition.get_author_id()
-        customer = composition.customer_id
-        userAuth = composition.userAuth
-        csn = urllib.parse.quote(composition.encounter.get_csn())
-        patient_id = composition.subject.get_pat_id()
+        templateVars = {"alert_tag_line" : html.escape(alert.short_title),
+                        "alert_description" : html.escape(alert.short_description),
+                        "related_observations": alert.related_observations,
+                        "http_address" : MC.http_addr,
+                        "encounter_id" : base_alert_data['csn'],
+                        "patient_id" : base_alert_data['patient_id'],
+                        "user" : base_alert_data['user'],
+                        "customer" : base_alert_data['customer'],
+                        "user_auth" : base_alert_data['userAuth']}
 
-        dup_order_alert_dict = composition.get_alerts_by_type(type=ALERT_TYPES.REC_RESULT)
-        if dup_order_alert_dict is not None and len(dup_order_alert_dict['alert_list']) > 0:
-            for alert in dup_order_alert_dict['alert_list']:
+        notification_body = template_dup_order_alert.render(templateVars)
 
-                templateVars = {"alert_tag_line" : html.escape(alert.short_title),
-                                "alert_description" : html.escape(alert.short_description),
-                                "http_address" : MC.http_addr,
-                                "encounter_id" : csn,
-                                "patient_id" : patient_id,
-                                "user" : user,
-                                "user_auth" : userAuth,
-                                "related_observations": alert.related_observations}
-
-                notification_body = template_dup_order_alert.render(templateVars)
-                duplicate_order_alert_contents.append(notification_body)
-
-        return duplicate_order_alert_contents
+        return notification_body
 
 
     ################################################################################################

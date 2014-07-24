@@ -173,7 +173,8 @@ def main(loop):
             NG.EMR_VERSION : "2.0",
             NG.CLIENTAPP_LOCATION: "cloud",
             NG.DEBUG: True,
-            NG.COST_ALERT_ICON: "/clientApp"
+            NG.COST_ALERT_ICON: "/clientApp",
+            NG.MAX_MSG_LOAD: 3
         },
         notificationservicename:
         {

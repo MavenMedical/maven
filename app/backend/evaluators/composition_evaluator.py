@@ -181,8 +181,8 @@ class CompositionEvaluator(SP.StreamProcessor):
         if cost_alert_validation_status == CDS_ALERT_STATUS.SUPPRESS.value:
             return
 
-        encounter_cost_breakdown = []
-        encounter_total_cost = 0
+        encounter_cost_breakdown = {"total_cost": 0, "details": []}
+
         for order in composition.get_encounter_orders():
             order_total_cost = 0
             for order_detail in order.detail:
@@ -193,34 +193,29 @@ class CompositionEvaluator(SP.StreamProcessor):
                 elif isinstance(order_detail, FHIR_API.Medication):
                     codeable_concept = order_detail.code
                 coding = composition.get_coding_from_codeable_concept(codeable_concept=codeable_concept, system=["clientEMR", "CPT", "rxnorm"])
-                encounter_cost_breakdown.append({"order_name": coding.display,
-                                                 "order_cost": order_detail.cost,
-                                                 "order_type": order_detail.resourceType})
-            encounter_total_cost += order_total_cost
+                encounter_cost_breakdown['details'].append({"order_name": coding.display,
+                                                            "order_cost": order_detail.cost,
+                                                            "order_type": order_detail.resourceType})
+            encounter_cost_breakdown['total_cost'] += order_total_cost
 
-        if encounter_cost_breakdown is not None and len(encounter_cost_breakdown) > 0:
+        # Only generate the alert if there are costs to show
+        if len(encounter_cost_breakdown['details']) > 0 and encounter_cost_breakdown['total_cost'] > 0:
             alert_datetime = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-            short_title = ("Encounter Cost: %s" % encounter_total_cost)
+            short_title = ("Encounter Cost: %s" % encounter_cost_breakdown['total_cost'])
 
             #Create a storeable text description of the cost breakdown details list
             long_description = ""
-            for cost_element in encounter_cost_breakdown:
+            for cost_element in encounter_cost_breakdown['details']:
                 long_description += ("%s: $%s\n" % (cost_element['order_name'], cost_element['order_cost']))
-
 
             FHIR_alert = FHIR_API.Alert(customer_id=composition.customer_id, subject=composition.subject.get_pat_id(),
                                         provider_id=composition.get_author_id(), encounter_id=composition.encounter.get_csn(),
                                         alert_datetime=alert_datetime, short_title=short_title, cost_breakdown=encounter_cost_breakdown,
-                                        long_description=long_description, status=cost_alert_validation_status)
-
-            cost_alert = {"alert_type": ALERT_TYPES.COST.name,
-                          "alert_time" : alert_datetime,
-                          "total_cost": encounter_total_cost,
-                          "cost_details": encounter_cost_breakdown,
-                          "alert_list": [FHIR_alert]}
+                                        long_description=long_description, status=cost_alert_validation_status,
+                                        category=ALERT_TYPES.COST)
 
             alerts_section = composition.get_section_by_coding(code_system="maven", code_value="alerts")
-            alerts_section.content.append(cost_alert)
+            alerts_section.content.append(FHIR_alert)
 
     ##########################################################################################
     ##########################################################################################
@@ -247,7 +242,7 @@ class CompositionEvaluator(SP.StreamProcessor):
     @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
     def _generate_recent_results_alerts(self, composition, dup_ords_with_obs):
 
-        #Check to see if recent results alert_config should event generate alerts
+        # Check to see if recent results alert_config should event generate alerts
         recent_results_alert_validation_status = yield from FHIR_DB.get_alert_configuration(ALERT_TYPES.REC_RESULT, composition, self.conn)
         if recent_results_alert_validation_status == CDS_ALERT_STATUS.SUPPRESS.value:
             return
@@ -255,9 +250,6 @@ class CompositionEvaluator(SP.StreamProcessor):
         customer_id = composition.customer_id
         patient_id = composition.subject.get_pat_id()
         alert_datetime = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-        duplicate_order_alerts = {"alert_type": ALERT_TYPES.REC_RESULT.name,
-                                  "alert_time": alert_datetime,
-                                  "alert_list": []}
 
         for ord in list(dup_ords_with_obs):
             order_code = ord[0]
@@ -274,18 +266,23 @@ class CompositionEvaluator(SP.StreamProcessor):
                                                          observation.valueQuantity.units,
                                                          observation.appliesdateTime))
 
-            FHIR_alert = FHIR_API.Alert(customer_id=customer_id, subject=patient_id, provider_id=composition.get_author_id(), encounter_id=composition.encounter.get_csn(),
-                                        code_trigger=order_code, code_trigger_type=order_code_system, alert_datetime=composition.lastModifiedDate,
-                                        short_title=("Duplicate Order: %s" % ord_detail.text), short_description="Clinical observations are available for a duplicate order recently placed.", long_description=long_description,
+            FHIR_alert = FHIR_API.Alert(customer_id=customer_id,
+                                        subject=patient_id,
+                                        provider_id=composition.get_author_id(),
+                                        encounter_id=composition.encounter.get_csn(),
+                                        code_trigger=order_code,
+                                        code_trigger_type=order_code_system,
+                                        alert_datetime=alert_datetime,
+                                        short_title=("Duplicate Order: %s" % ord_detail.text),
+                                        short_description="Clinical observations are available for a duplicate order recently placed.",
+                                        long_description=long_description,
                                         saving=16.14,
                                         related_observations=dup_ords_with_obs[ord]['related_observations'],
-                                        category=ALERT_TYPES.REC_RESULT.name,
+                                        category=ALERT_TYPES.REC_RESULT,
                                         status=recent_results_alert_validation_status)
-            duplicate_order_alerts['alert_list'].append(FHIR_alert)
 
-
-        alerts_section = composition.get_section_by_coding(code_system="maven", code_value="alerts")
-        alerts_section.content.append(duplicate_order_alerts)
+            alerts_section = composition.get_section_by_coding(code_system="maven", code_value="alerts")
+            alerts_section.content.append(FHIR_alert)
 
     ##########################################################################################
     ##########################################################################################
@@ -330,9 +327,7 @@ class CompositionEvaluator(SP.StreamProcessor):
         # Add a CDS Alerts section to the FHIR Composition if any of the CDS rules pass all the rule details
         if cds_alerts is not None and len(cds_alerts) > 0:
             alerts_section = composition.get_section_by_coding(code_system="maven", code_value="alerts")
-            alerts_section.content.append({"alert_type": ALERT_TYPES.CDS.name,
-                                           "alert_time": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
-                                           "alert_list": cds_alerts})
+            alerts_section.content.extend(cds_alerts)
 
     @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
     def _evaluate_CDS_rule_details(self, composition, rule):
@@ -388,7 +383,7 @@ class CompositionEvaluator(SP.StreamProcessor):
         long_description = rule.long_description
         override_indications = ['Select one of these override indications boink']
         saving = 807.12
-        category = "cds"
+        category = ALERT_TYPES.CDS
 
         FHIR_alert = FHIR_API.Alert(customer_id=customer_id, subject=pat_id, provider_id=provider_id, encounter_id=encounter_id,
                                     code_trigger=code_trigger, CDS_rule=CDS_rule, alert_datetime=alert_datetime,

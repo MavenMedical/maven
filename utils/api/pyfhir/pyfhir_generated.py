@@ -24,6 +24,7 @@ from decimal import Decimal
 import itertools
 import json
 from utils.api.pyfhir.pyfhir_datatypes_generated import *
+from utils.enums import ALERT_TYPES
 
 PROCEDURE_CODE_TERMINOLOGY = ["CPT", "cpt", "CPT4", "cpt4"]
 
@@ -266,7 +267,7 @@ class Alert(Resource):
     def __init__(self, customer_id, category=None, status=None, subject=None, author=None, provider_id=None, encounter_id=None,
                  code_trigger=None, code_trigger_type=None, CDS_rule=None, alert_datetime=None, short_title=None, long_title=None,
                  short_description=None, long_description=None, override_indications=None, outcome=None, saving=None, resourceType="Alert",
-                 related_observations=None, cost_breakdown=None):
+                 related_observations=None, cost_breakdown=None, validation_status=None):
         Resource.__init__(self, customer_id=customer_id, resourceType=resourceType)
         self.category = category
         self.status = status
@@ -297,6 +298,7 @@ class Alert(Resource):
             self.cost_breakdown = []
         else:
             self.cost_breakdown = cost_breakdown
+        self.validation_status = validation_status
 
 
 class AllergyIntolerance(Resource):
@@ -741,9 +743,17 @@ class Composition(Resource):
 
     def get_alerts_by_type(self, type=None):
         alerts_section = self.get_section_by_coding(code_system="maven", code_value="alerts")
-        for alert in alerts_section.content:
-            if alert['alert_type'] == type.name:
-                return alert
+
+        if type == ALERT_TYPES.COST:
+            for alert in alerts_section.content:
+                if alert.category == type:
+                    return alert
+        else:
+            rtn_alerts = []
+            for alert in alerts_section.content:
+                if alert.category == type:
+                    rtn_alerts.append(alert)
+            return rtn_alerts
 
     def get_encounter_conditions(self):
         enc_conditions_section = self.get_section_by_coding("http://loinc.org", "11450-4")

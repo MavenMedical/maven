@@ -180,53 +180,50 @@ def write_composition_alerts(composition, conn):
     provider_id = composition.get_author_id()
     encounter_id = composition.encounter.get_csn()
 
-    for alert_group_type in composition.get_section_by_coding(code_system="maven", code_value="alerts").content:
+    for alert in composition.get_section_by_coding(code_system="maven", code_value="alerts").content:
+        try:
+            column_map = ["customer_id",
+                          "pat_id",
+                          "provider_id",
+                          "encounter_id",
+                          "cds_rule",
+                          "category",
+                          "code_trigger",
+                          "code_trigger_type",
+                          "alert_datetime",
+                          "short_title",
+                          "long_title",
+                          "short_description",
+                          "long_description",
+                          "saving",
+                          "status"]
+            columns = DBMapper.select_rows_from_map(column_map)
 
-        alert_category = alert_group_type['alert_type']
-        for alert in alert_group_type['alert_list']:
-            try:
-                column_map = ["customer_id",
-                              "pat_id",
-                              "provider_id",
-                              "encounter_id",
-                              "cds_rule",
-                              "category",
-                              "code_trigger",
-                              "code_trigger_type",
-                              "alert_datetime",
-                              "short_title",
-                              "long_title",
-                              "short_description",
-                              "long_description",
-                              "saving",
-                              "status"]
-                columns = DBMapper.select_rows_from_map(column_map)
+            cmdargs = [customer_id,
+                       patient_id,
+                       provider_id,
+                       encounter_id,
+                       alert.CDS_rule,
+                       alert.category.name,
+                       alert.code_trigger,
+                       alert.code_trigger_type,
+                       alert.alert_datetime,
+                       alert.short_title,
+                       alert.long_title,
+                       alert.short_description,
+                       alert.long_description,
+                       alert.saving,
+                       alert.status]
 
-                cmdargs = [customer_id,
-                           patient_id,
-                           provider_id,
-                           encounter_id,
-                           alert.CDS_rule,
-                           alert_category,
-                           alert.code_trigger,
-                           alert.code_trigger_type,
-                           alert.alert_datetime,
-                           alert.short_title,
-                           alert.long_title,
-                           alert.short_description,
-                           alert.long_description,
-                           alert.saving,
-                           alert.status]
+            cmd = []
+            cmd.append("INSERT INTO alert")
+            cmd.append("(" + columns + ")")
+            cmd.append("VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
 
-                cmd = []
-                cmd.append("INSERT INTO alert")
-                cmd.append("(" + columns + ")")
-                cmd.append("VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
+            cur = yield from conn.execute_single(' '.join(cmd)+';',cmdargs)
 
-                cur = yield from conn.execute_single(' '.join(cmd)+';',cmdargs)
-
-            except:
-                raise Exception("Error inserting Alerts into the database")
+        except:
+            raise Exception("Error inserting Alerts into the database")
 
 
 ##########################################################################################
@@ -684,10 +681,10 @@ def get_alert_configuration(ALERT_TYPE, composition, conn):
         cmd = []
         cmd.append("SELECT " + columns)
         cmd.append("FROM alert_config")
-        cmd.append("WHERE customer_id=%s")
+        cmd.append("WHERE (customer_id=%s or customer_id=-1)")
         cmd.append("AND category=%s")
         cmd.append("AND (department=%s or department='-1')")
-        cmd.append("ORDER BY department DESC")
+        cmd.append("ORDER BY customer_id DESC, department DESC")
         cmd.append("LIMIT 1;")
         cmdargs = [customer_id, ALERT_TYPE.name, department]
 
