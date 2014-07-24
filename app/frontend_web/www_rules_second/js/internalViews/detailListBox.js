@@ -37,8 +37,8 @@ define([
 
                 var entryview = Backbone.View.extend({
                         render: function(){
-                        this.$el.html(panel.lineTemplate(this.model.toJSON()));
-                        return this;
+                            this.$el.html(panel.lineTemplate(this.model.toJSON()));
+                            return this;
                     }
                 });
                 var curentry = new entryview({model: cur});

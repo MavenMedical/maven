@@ -42,15 +42,16 @@ define([
                 var sel = new Backbone.Collection
 
                 if (!that.newDetail){
-                    alert("editing a lab")
-                    console.log(that.model)
-                    console.log(cur.getAttribute('name'))
-                    sel = that.model.get(cur.getAttribute('name'))
-                    console.log("to selector", sel)
+                    for (a in that.model.get(cur.getAttribute('name'))){
+                        console.log(that.model)
+                        var c = that.model.get(cur.getAttribute('name'))[a]
+                        var t = that.model.get(cur.getAttribute('name')+'term')[a]
+                        sel.add(new Backbone.Model({id: c, code: c, term: t, type: "loinc" }))
+                    }
                 }
 
 
-                var searchBox = new multiSelectSearch({avail: new anon(), type: cur.getAttribute("type"), el: multiSearchEl, selected: new Backbone.Collection})
+                var searchBox = new multiSelectSearch({avail: new anon(), type: cur.getAttribute("type"), el: multiSearchEl, selected: sel})
             })
             var routeListEl = $('.route-list', this.$el)
             $.each(routeListEl, function(a, cur){
@@ -93,10 +94,14 @@ define([
                 _.each(multi, function(cur){
                     var selectedItems = $('.selected-items option', cur)
                     var idList = [];
+                    var termList = []
                     _.each(selectedItems, function(cur){
+                        console.log('curitem', cur)
                         idList.push(cur.value)
+                        termList.push(cur.getAttribute("term"));
                     })
                     panel.model.set(cur.getAttribute('name'), idList);
+                    panel.model.set(cur.getAttribute('name')+'term', termList);
                 }, this)
                 if (panel.newDetail){
                     if (curRule.get(panel.type)){

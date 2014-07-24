@@ -37,7 +37,6 @@ define([
             this.template= _.template(detailSearch);
                  this.$el.html(this.template());
             this.collection  = params.collection;
-            console.log(this.collection)
 
 
             if (this.collection.length==0) {
