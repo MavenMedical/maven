@@ -9,7 +9,7 @@
 #  Side Effects: None
 ##############################################################################
 import asyncio
-from utils.database.memory_cache import cache
+from utils.database.memory_cache import cache, firstarg_instance_method, keyarg, allargs
 import os
 os.environ['MAVEN_TESTING']=''
 import maven_logging as ML
@@ -46,6 +46,26 @@ def PRINT(co_fn):
     ret = yield from co_fn
     ML.PRINT("returned "+str(ret)+" at "+timer.elapsed())
 
+@cache.cache_lookup("name2")
+def lookup2(*args, **kwargs):
+    ret=(args, sorted(kwargs.items()))
+    return ret
+
+@cache.cache_lookup("name2", key_function=firstarg_instance_method)
+def lookup3(*args, **kwargs):
+    ret=(args, sorted(kwargs.items()))
+    return ret
+
+@cache.cache_lookup("name2", key_function=keyarg('a'))
+def lookup4(*args, **kwargs):
+    ret=(args, sorted(kwargs.items()))
+    return ret
+
+@cache.cache_lookup("name2", key_function=allargs)
+def lookup5(*args, **kwargs):
+    ret=(args, sorted(kwargs.items()))
+    return ret
+    
 @asyncio.coroutine
 def run():
     yield from asyncio.sleep(.05)
@@ -56,7 +76,12 @@ def run():
         yield from asyncio.sleep(.1)
     cache.cancel()
     yield from asyncio.sleep(.1)
-        
+    yield from lookup2(1, 2, a=3, b=4)
+    yield from lookup3(1, 2, a=3, b=4)
+    yield from lookup4(1, 2, a=3, b=4)
+    yield from lookup5(1, 2, a=3, b=4)
+    ML.PRINT(cache.data["name2"])
+            
 asyncio.get_event_loop().run_until_complete(run())
 if __name__ == '__main__':
     print(ML.get_results())

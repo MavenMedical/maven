@@ -4,6 +4,10 @@
 UPDATESSQL=../schema_updates.sql
 UPDATESLOG=../schema_updates.log
 for f in `git diff-tree -r --name-only HEAD ORIG_HEAD app/schema/updates | sort -n`; do
+  echo $f
+  if grep "SUCCEEDED: $f" $UPDATESLOG; then
+    echo $f already succeeded in log, did someone update the file - which should not happen
+  else
   echo "------------------`date`---------------">>$UPDATESSQL
   echo "------------------$f------------------">>$UPDATESSQL
   echo "------------------`date`---------------">>$UPDATESLOG
@@ -15,6 +19,7 @@ for f in `git diff-tree -r --name-only HEAD ORIG_HEAD app/schema/updates | sort 
   else
     echo FAILED on $f
     echo ------------------FAILED: $f------->>$UPDATESLOG
+  fi
   fi
 done
 
