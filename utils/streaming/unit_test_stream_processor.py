@@ -178,10 +178,10 @@ def tripple_test():
     sp_producer = ConcatenateStreamProcessor(trippletestproducername)
 
     sp_consumer.schedule(loop)
-    loop.run_until_complete(asyncio.sleep(.1))
+    loop.run_until_complete(asyncio.sleep(.01))
     sp_middle.schedule(loop)
     sender = sp_producer.schedule(loop)
-    #loop.run_until_complete(asyncio.sleep(.1))
+    loop.run_until_complete(asyncio.sleep(.01))
 
     sender.send_data('foo')
     sender.send_data('bar')

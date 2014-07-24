@@ -360,13 +360,13 @@ class _SocketServerReader():
     def schedule(self, loop):
         self.loop = loop
         # start a listening server which creates a new instance of the parser for each connection
-        self.server = asyncio.Task(loop.create_server(self.parser_factory_factory(loop),
-                                                      host=self.host, port=self.port), loop=loop)
-        loop.run_until_complete(asyncio.sleep(.01))
+        server = asyncio.Task(loop.create_server(self.parser_factory_factory(loop),
+                                                 host=self.host, port=self.port), loop=loop)
+        self.server=loop.run_until_complete(server)
         return self.server
 
     def close(self):
-        self.server.cancel()
+        self.server.close()
 
 
 class _SocketQueryReader():        
@@ -672,12 +672,13 @@ class _SocketClientWriter(_BaseWriter):
         if self.transport:
             self.transport.write(obj)
         else:
+            ML.INFO(str(obj))
             raise StreamProcessorException("no transport active to write on")
 
     def schedule(self, loop):
         self.loop=loop
         protocol = ReEstablishProtocol(loop, self.set_transport, host=self.host, port=self.port)
-        asyncio.Task(protocol.connect())
+        loop.run_until_complete(asyncio.Task(protocol.connect()))
 
     def set_transport(self, transport):
         self.transport = transport
