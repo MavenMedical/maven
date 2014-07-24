@@ -1,12 +1,20 @@
 #All machines should copy this to their .git/hooks directory
 #the following line (uncommented, of course) should be in your pg_hba.conf file to ensure this script will work
 #local   all     postgres        trust
-for f in `git diff-tree -r --name-only HEAD ORIG_HEAD app/schema/updates`; do
-  echo "------------------`date`---------------">>../schema_updates.sql
-  echo "------------------$f------------------">>../schema_updates.sql
-  echo "------------------`date`---------------">>../schema_updates.log
-  echo "------------------$f---------------">>../schema_updates.log
-  psql maven -U postgres -w -f $f >> ../schema_updates.log
-  cat $f>>../schema_updates.sql
+UPDATESSQL=../schema_updates.sql
+UPDATESLOG=../schema_updates.log
+for f in `git diff-tree -r --name-only HEAD ORIG_HEAD app/schema/updates | sort -n`; do
+  echo "------------------`date`---------------">>$UPDATESSQL
+  echo "------------------$f------------------">>$UPDATESSQL
+  echo "------------------`date`---------------">>$UPDATESLOG
+  echo "------------------$f---------------">>$UPDATESLOG
+  psql maven -U postgres -w -f $f >> $UPDATESLOG 2>&1
+  if [ $? -eq 0 ]; then
+    cat $f>>$UPDATESSQL
+    echo ------------------SUCCEEDED: $f------->>$UPDATESLOG
+  else
+    echo FAILED on $f
+    echo ------------------FAILED: $f------->>$UPDATESLOG
+  fi
 done
 
