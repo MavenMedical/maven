@@ -3,9 +3,9 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
+    'models/ruleModel'
 
-
-], function ($, _, Backbone) {
+], function ($, _, Backbone, curRule) {
 
     var Helpers = {
 
@@ -34,7 +34,7 @@ define([
             'vitals'    : "Specify a constraint based on the patient's vitals",
             'vitals_bp' : "Specify a constraint based on the patient's blood pressure which allows for EITHER the systolic OR diastolic to be within a given range"
         },
-        notDetail: ['id', 'evidence','genders', 'minAge', 'maxAge', 'name', 'triggers', 'triggerType', 'sources']
+        notDetail: ['id', 'evidence','genders', 'minAge', 'maxAge', 'name', 'triggers', 'triggerType', 'sources', 'detID', 'conflicts']
     };
 
     return Helpers;

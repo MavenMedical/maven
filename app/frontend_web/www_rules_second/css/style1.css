@@ -31,6 +31,13 @@
     height: auto;
     width: auto;
 }
+
+
+.conflict {
+    border-style: solid;
+    border-color: red;
+
+}
 .detail-input{
     font-size: 130%;
     height: auto;

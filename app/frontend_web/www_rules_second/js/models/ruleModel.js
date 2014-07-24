@@ -55,10 +55,13 @@ define([
 
       ruleModel.clearData();
       ruleModel.set({name: name}, {silent: true});
+      ruleModel.set({detID: 0}, {silent: true})
+      console.log("new rule not saved ", ruleModel)
       $('.tab-pane').removeClass('active')
       $('a[href="#Overview-Tab"]').tab('show');
       $('.overview-tab').addClass('active')
       ruleModel.save({}, {success: function(){
+          console.log("new rule saved ", ruleModel)
           ruleModel.trigger('selected')}});
 
 
@@ -138,7 +141,10 @@ define([
              if (contextModel.get('id')){
 				if(!('id' in ruleModel) || cm.get('id') != ruleModel.get('id')) {
                     ruleModel.clearData();
-				    ruleModel.fetch();
+				    ruleModel.fetch({},{success: function(){
+                        ruleModel.set({conflicts: false})
+                    }});
+
 
                 }
              }

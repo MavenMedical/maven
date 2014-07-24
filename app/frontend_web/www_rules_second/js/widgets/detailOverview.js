@@ -45,6 +45,7 @@ define([
              this.$el.html(this.template());
 
              //curRule.on('sync', this.render, this)
+
              curRule.on('change', this.render, this)
                  curRule.on('selected', function(){
                   this.$el.show()

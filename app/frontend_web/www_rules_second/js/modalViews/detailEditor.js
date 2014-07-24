@@ -4,13 +4,14 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
+    'Helpers',
     'internalViews/detailSearchBox',
     'internalViews/multiSelectSearch',
     'internalViews/routeListBox',
     'models/ruleModel'
 
 
-], function ($, _, Backbone,  detailSearchBox, multiSelectSearch, routeListBox, curRule) {
+], function ($, _, Backbone, Helpers, detailSearchBox, multiSelectSearch, routeListBox, curRule) {
 
     var DetailEditor = Backbone.View.extend({
 
@@ -82,14 +83,20 @@ define([
                     panel.model.set(cur.getAttribute('name'), idList);
                 }, this)
                 if (panel.newDetail){
+                    console.log('new detail')
                     if (curRule.get(panel.type)){
                         curRule.get(panel.type).add(panel.model);
                     } else {
                         var model = new Backbone.Collection();
+
                         model.add(panel.model);
                         curRule.set(panel.type, model);
 
                     }
+                    curRule.set({detID: curRule.get('detID') + 1}, {silent:true})
+                    panel.model.set({did: curRule.get('detID')});
+
+                    console.log("assigned id", curRule)
                 }
                $('#detail-modal').modal('hide');
                curRule.needsSave = true;

@@ -209,6 +209,7 @@ class web_search():
         cmd.append(str(id))
         yield from self.db.execute_single(' '.join(cmd)+';', [])
         count = 0
+
         count += yield from (self.writeExplicitSnomed('hist_dx', ruleJSON))
         count += yield from self.writeExplicitSnomed('pl_dx', ruleJSON)
         count += yield from self.writeExplicitSnomed('enc_dx', ruleJSON)
@@ -216,6 +217,25 @@ class web_search():
         count += yield from self.writeExplicitNDC('ml_med', ruleJSON)
         count += yield from self.writeExplicitCPT('hist_proc', ruleJSON)
         count += yield from self.writeExplicitCPT('enc_proc', ruleJSON)
+
+        cmd = [];
+        cmdArgs = []
+        cmd.append("SELECT distinct a.detailid, b.detailid from rules.codelists a, rules.codelists b  where a.ruleid=b.ruleid and a.isintersect='t' and  b.isintersect='f'"
+                       " and a.intlist && b.intlist and "
+                       "("
+                       "   (a.listtype = 'enc_dx' and b.listtype in ('enc_dx', 'enc_pl_dx')) "
+                       "OR (a.listtype = 'pl_dx' AND b.listtype in ('pl_dx', 'enc_pl_dx')) "
+                       "OR (a.listtype = 'enc_pl_dx' AND b.listtype in ('pl_dx', 'enc_pl_dx', 'enc_dx'))"
+                       ")")
+
+
+        result = yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
+        conflicts = []
+        for row in result:
+            print (row)
+            conflicts.append(row)
+
+
         if (count==0):
             cmd =[]
             cmdArgs = []
@@ -228,7 +248,7 @@ class web_search():
         elif (ruleJSON['triggerType'] == 'HCPCS'):
             yield from self.writeCPTTriggers(ruleJSON)
         yield from self.writeLabs(ruleJSON)
-        return
+        return conflicts
     @asyncio.coroutine
     def writeExplicitSnomed(self, type, rule):
         list = rule.get(type, None)
@@ -237,35 +257,50 @@ class web_search():
         if (list):
             cmd = []
             cmdArgs = []
-            pos = []
-            neg = []
+            conflicts = []
             for cur in list:
                  cmd = []
                  cmdArgs = []
                  if (type.split('_')[0] == 'hist'):
                      cmd.append("INSERT INTO rules.codelists")
-                     cmd.append("(ruleid, listtype, isintersect, intlist, framemin, framemax)")
+                     cmd.append("(ruleid, listtype, isintersect, intlist, framemin, framemax, term, detailid)")
                      print (cmd)
-                     cmd.append("(SELECT %s, %s, %s, array_agg(child) , %s, %s FROM terminology.conceptancestry WHERE ancestor = %s)")
+                     cmd.append("(SELECT %s, %s, %s, array_agg(child) , %s, %s, %s %s FROM terminology.conceptancestry WHERE ancestor = %s)")
                      cmdArgs.append(str(id))
                      cmdArgs.append(str(type))
                      cmdArgs.append(cur['exists']=='true')
                      cmdArgs.append(cur['minDays'])
                      cmdArgs.append(cur['maxDays'])
+                     cmdArgs.append(cur['term'])
+                     cmdArgs.append(cur['did'])
                      cmdArgs.append(cur['code'])
+
                  else:
                      cmd.append("INSERT INTO rules.codelists")
-                     cmd.append("(ruleid, listtype, isintersect, intlist)")
-                     cmd.append("(SELECT %s, %s, %s, array_agg(child) FROM terminology.conceptancestry WHERE ancestor = %s)")
+                     cmd.append("(ruleid, listtype, isintersect, intlist, term, detailid)")
+                     cmd.append("(SELECT %s, %s, %s, array_agg(child), %s, %s FROM terminology.conceptancestry WHERE ancestor = %s )RETURNING detailid ")
                      cmdArgs.append(str(id))
                      cmdArgs.append(str(type))
                      cmdArgs.append(cur['exists']=='true')
+                     cmdArgs.append(cur['term'])
+                     cmdArgs.append(cur['did'])
                      cmdArgs.append(cur['code'])
+
+
                  yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
-            return 1
+
+
+
+
+            return (1)
         return 0
+
+
+
     @asyncio.coroutine
     def writeExplicitCPT(self, type, rule):
+
+
         list = rule.get(type, None)
         id = rule['id']
 

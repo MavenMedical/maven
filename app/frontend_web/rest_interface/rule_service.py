@@ -113,8 +113,8 @@ class RuleService(HTTP.HTTPProcessor):
                                                RuleService.update_required_contexts,
                                                RuleService.update_available_contexts)
 
-        yield from self.search_interface.update_db(info);
 
+        info['conflicts'] = yield from self.search_interface.update_db(info);
         return (HTTP.OK_RESPONSE, json.dumps(info), None)
 
 
