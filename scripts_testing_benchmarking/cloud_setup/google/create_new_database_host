@@ -1,0 +1,30 @@
+#!/bin/bash
+SYSNAME=$1
+DISKNAME=$2
+if gcutil listinstances | grep "^..${SYSNAME} "; then
+    echo instance $SYSNAME already exists
+    exit 1
+fi
+
+gcutil addinstance $SYSNAME --zone="us-central1-f" --machine_type="g1-small" --network="default" --external_ip_address=ephemeral --image="centos-6" --persistent_boot_disk="true" --auto_delete_boot_disk="false" --tag="dev,ssh"
+#gcutil addinstance $SYSNAME --zone="us-central1-f" --machine_type="f1-micro" --network="default" --external_ip_address=ephemeral -disk="qa-database-2,deviceName=qa-database-2,mode=READ_WRITE,boot" --disk="qa-data-1,deviceName=qa-data-1,mode=READ_WRITE" --auto_delete_boot_disk="false" --tag="dev,ssh"
+
+if [ $? -eq 0 ]; then
+    sleep 60
+else
+    echo addinstance $SYSNAME failed
+    exit 1
+fi
+
+if ! (gcutil listinstances | grep $SYSNAME) then
+    echo listinstances does not show instance $SYSNAME
+    exit 1
+fi
+
+gcutil adddisk $DISKNAME --size_gb="100" --zone="us-central1-f" --disk_type="pd-standard"
+gcutil attachdisk --zone="us-central1-f" --disk=$DISKNAME $SYSNAME
+
+gcutil push $SYSNAME common database_only .
+
+echo "bash common" | gcutil ssh $SYSNAME 
+#echo "bash database_only" | gcutil ssh $SYSNAME

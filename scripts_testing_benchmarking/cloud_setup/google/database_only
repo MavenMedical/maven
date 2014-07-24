@@ -5,13 +5,12 @@ echo "local0.*		  /var/log/postgresql" | sudo tee -a /etc/rsyslog.conf
 
 sudo yum install postgresql93-server -y 
 
-DATA_DRIVE=`ls /dev/sd* | grep -v sda`
+DATA_DRIVE=/dev/sdb
 PW="maven"
 echo $PW | sudo cryptsetup --verbose --batch-mode --key-file - luksFormat $DATA_DRIVE
 echo $PW | sudo cryptsetup --key-file - luksOpen $DATA_DRIVE maven_LUKS
 #Format the partition
 sudo mkfs.ext4 /dev/mapper/maven_LUKS
-echo maven_LUKS $DATA_DRIVE  | sudo tee -a /etc/crypttab
 
 # mount encrypted partition and initialize the database
 #switch to root user
@@ -23,7 +22,8 @@ chgrp postgres ~postgres
 setenforce 0
 echo 'PATH=/usr/pgsql-9.3/bin:${PATH}' >> .bashrc
 su postgres
-initdb -D `pwd`/9.3/data -A password -W  # prompts for a password
+echo maven > pw
+initdb -D `pwd`/9.3/data -A password --pwfile=pw
 cd 9.3/data
 sed -i.bak\
     -e "s/#listen_addresses = 'localhost'/listen_addresses = '\*'/" \
@@ -35,7 +35,6 @@ postgresql.conf
 echo "host   all    postgres          10.240.0.0/16   password
 host   maven  maven             10.240.0.0/16   password" >> pg_hba.conf
 
-echo 'PATH=/usr/pgsql-9.3/bin:${PATH}' >> .bashrc
 exit # exit postgres
 service postgresql-9.3 start
 exit # exit root
@@ -44,13 +43,16 @@ echo 'PATH=/usr/pgsql-9.3/bin:${PATH}' >> .bashrc
 #Note - on google, EBS storage of a truecrypt encrypted partition passed the closest I can get to a "disk pull plug" test.  A single pass doesn't prove much - only that the system isn't horribly broken.  It was also getting around 120 writes/second (compared to amazon's 80).  The writes/second matches what happened without truecrypt, so I don't think encryption costs us anything.
 
 echo '#!/bin/bash
-service postgresql-9.3 restart | sudo tee /etc/limited/restartpostgres
+service postgresql-9.3 restart '| sudo tee /etc/limited/restartpostgres
 echo '#!/bin/bash
-echo $1 | cryptsetup --key-file - luksOpen /dev/mapper/maven_LUKS maven_LUKS
+echo $1 | cryptsetup --key-file - luksOpen /dev/sdb maven_LUKS
 mount -t ext4 /dev/mapper/maven_LUKS ~postgres' | sudo tee /etc/limited/mount
 sudo chmod a+rx /etc/limited/restartpostgres /etc/limited/mount
 
-# echo "
+echo "
 /etc/limited/mount maven
 /etc/limited/restartpostgres
-"  | sudo tee -a /etc/rc.local
+"  | sudo tee -a /etc/rc.localq
+
+cd ~/schema
+sudo ./installAsRoot.sh
