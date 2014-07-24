@@ -22,7 +22,7 @@ import asyncio
 from collections import defaultdict
 from dateutil.relativedelta import relativedelta
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
-from utils.enums import ORDER_SOURCE, PROCEDURE_ORDER_TYPES, MEDICATION_ORDER_TYPES
+from utils.enums import ORDER_SOURCE, PROCEDURE_ORDER_TYPES, MEDICATION_ORDER_TYPES, ALERT_TYPES
 from utils.database.database import MappingUtilites
 import maven_logging as ML
 
@@ -182,6 +182,11 @@ def write_composition_alerts(composition, conn):
 
     for alert in composition.get_section_by_coding(code_system="maven", code_value="alerts").content:
         try:
+            if alert.category in [ALERT_TYPES.CDS, ALERT_TYPES.REC_RESULT, ALERT_TYPES.ALT_MED]:
+                is_alert_with_triggering_order = True
+            else:
+                is_alert_with_triggering_order = False
+
             column_map = ["customer_id",
                           "pat_id",
                           "provider_id",
@@ -195,10 +200,8 @@ def write_composition_alerts(composition, conn):
                           "long_title",
                           "short_description",
                           "long_description",
-                          "saving",
-                          "status"]
-            columns = DBMapper.select_rows_from_map(column_map)
-
+                          "status",
+                          "alert_uuid"]
             cmdargs = [customer_id,
                        patient_id,
                        provider_id,
@@ -212,13 +215,26 @@ def write_composition_alerts(composition, conn):
                        alert.long_title,
                        alert.short_description,
                        alert.long_description,
-                       alert.saving,
-                       alert.status]
+                       alert.status,
+                       str(alert.id)]
+
+            if is_alert_with_triggering_order:
+                column_map.append("saving")
+                cmdargs.append(alert.triggering_order.totalCost)
+
+                column_map.append("order_id")
+                cmdargs.append(alert.triggering_order.get_clientEMR_uuid())
+
+            columns = DBMapper.select_rows_from_map(column_map)
 
             cmd = []
             cmd.append("INSERT INTO alert")
             cmd.append("(" + columns + ")")
-            cmd.append("VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
+
+            if is_alert_with_triggering_order:
+                cmd.append("VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
+            else:
+                cmd.append("VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
 
             cur = yield from conn.execute_single(' '.join(cmd)+';',cmdargs)
 
@@ -651,7 +667,8 @@ def get_matching_CDS_rules(composition, conn):
                                                        short_title=full_spec['evidence']['short-title'],
                                                        short_description=full_spec['evidence']['short-description'],
                                                        long_title=full_spec['evidence']['long-title'],
-                                                       long_description=full_spec['evidence']['long-description']))
+                                                       long_description=full_spec['evidence']['long-description'],
+                                                       triggering_order=enc_ord))
         return rtn_matched_rules
     except:
         raise Exception("Error extracting CDS rules from database")
