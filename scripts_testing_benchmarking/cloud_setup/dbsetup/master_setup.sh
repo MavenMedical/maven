@@ -10,8 +10,12 @@ perl -pi -e 's/#wal_keep_segments = 0/wal_keep_segments = 32/' /var/lib/pgsql/9.
 
 service postgresql-9.3 start
 #install maven
-psql -U postgres -c "create table test(i int);"
-#REMOVE ABOVE LINE
+cd ../../../app/schema/
+./installAsRoot.sh
+./terminology/installAsRoot.sh
+./terminology/rxnorm/installAsRoot.sh
+./terminology/loinc/installAsRoot.sh
+
 service postgresql-9.3 stop
 scp -r /var/lib/pgsql/9.3/data/base/ $1:/var/lib/pgsql/9.3/data/
 scp -r /var/lib/pgsql/9.3/data/global/ $1:/var/lib/pgsql/9.3/data/
