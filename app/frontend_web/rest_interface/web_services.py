@@ -281,6 +281,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
                     ['#floating-right', 'alertList', 'alertScroll.html'],
                     ['#datepicker-modal', 'datepicker-calendar'],
                     ['#settings-modal','settings','settings.html'],
+                    ['#profile-modal','providerProfile'],
                     #['#datepicker-modal', 'datepicker-chart']
                     ], CONTEXT_KEY: user_auth}
             

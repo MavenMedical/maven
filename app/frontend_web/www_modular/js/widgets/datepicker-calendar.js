@@ -52,7 +52,6 @@ define([
                 var today = new Date ();
                 var d = (contextModel.get('enc_date'))? new Date(contextModel.get('enc_date')): new Date(today.getFullYear(), today.getMonth() - 2, 1);
                 var dd = d.setMonth(d.getMonth() + i);
-                console.log(dd);
                 calendar[i] = $("#calendar" + i).fullCalendar({
                     header: {
                         left: (i == 1) ? 'prev,next' : '',
