@@ -1,4 +1,10 @@
 #takes standby ip as a parameter
+if [ "0" -eq `lsof|grep runme|wc -l` ]; then
+  echo "Don't call me directly. Only call from runme.sh"
+  exit
+fi
+
+
 service postgresql-9.3 stop
 scp -r /var/lib/pgsql/9.3/data/base/ $1:/var/lib/pgsql/9.3/data/
 scp -r /var/lib/pgsql/9.3/data/global/ $1:/var/lib/pgsql/9.3/data/

@@ -1,4 +1,7 @@
-
+if [ "0" -eq `lsof|grep runme|wc -l` ]; then
+  echo "Don't call me directly. Only call from runme.sh"
+  exit
+fi
 perl -pi -e 's/#wal_level = minimal/wal_level=hot_standby/' /var/lib/pgsql/9.3/data/postgresql.conf
 perl -pi -e 's/#max_wal_senders = 0/max_wal_senders = 5/' /var/lib/pgsql/9.3/data/postgresql.conf
 perl -pi -e 's/#wal_keep_segments = 0/wal_keep_segments = 32/' /var/lib/pgsql/9.3/data/postgresql.conf
