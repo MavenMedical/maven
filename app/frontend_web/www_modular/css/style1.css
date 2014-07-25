@@ -497,9 +497,17 @@ body {
 /**********************************************************************
  * The following customize the styles and colors of the profile modal *
  *********************************************************************/
-#profile-modal{
-    height: 400px;
+body.modal-open, .modal-open .navbar-fixed-top, .modal-open .navbar-fixed-bottom {
+    overflow-y: auto;
 }
+
+.modal {
+    overflow-y: auto;
+}
+#profile-modal {
+    max-height: 600px;
+}
+
 
 #profile-tabs {
     background-color: rgb(235, 235, 235);
@@ -515,6 +523,18 @@ border-right: 1px solid rgb(204, 204, 204);
 
 }
 
+.nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus {
+    background-color: rgb(235, 235, 235);
+}
+
+.pane-content{
+    background-image: linear-gradient(to bottom, rgb(235, 235, 235), rgb(253, 253, 253));
+    padding: 30px;
+}
+
+.rule {
+    background-color: red;
+}
 
 
 /***************************************************************

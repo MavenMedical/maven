@@ -15,6 +15,7 @@ define([
             this.template = _.template(arg.template);
             this.update(contextModel);
             contextModel.on('change:display change:page', this.update, this);
+
         },
         update: function (pat) {
             this.$el.html(this.template(contextModel.attributes));
@@ -25,7 +26,10 @@ define([
         },
         handle_profile: function () {
             console.log('profile is clicked');
-            $("#profile-modal").modal({'show': 'true'});
+
+
+             $("#profile-modal").modal({'show': 'true'});
+
         },
         handle_settings: function () {
             $("#settings-modal").modal({'show': 'true'});
