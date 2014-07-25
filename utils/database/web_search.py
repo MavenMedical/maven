@@ -263,28 +263,28 @@ class web_search():
                  cmdArgs = []
                  if (type.split('_')[0] == 'hist'):
                      cmd.append("INSERT INTO rules.codelists")
-                     cmd.append("(ruleid, listtype, isintersect, intlist, framemin, framemax, term, detailid)")
+                     cmd.append("(ruleid, listtype, isintersect, intlist, framemin, framemax,  detailid)")
                      print (cmd)
-                     cmd.append("(SELECT %s, %s, %s, array_agg(child) , %s, %s, %s %s FROM terminology.conceptancestry WHERE ancestor = %s)")
+                     cmd.append("(SELECT %s, %s, %s, array_agg(child) , %s, %s, %s FROM terminology.conceptancestry WHERE ancestor in %s)")
                      cmdArgs.append(str(id))
                      cmdArgs.append(str(type))
                      cmdArgs.append(cur['exists']=='true')
                      cmdArgs.append(cur['minDays'])
                      cmdArgs.append(cur['maxDays'])
-                     cmdArgs.append(cur['term'])
+                 #    cmdArgs.append(str(cur['codeterm']))
                      cmdArgs.append(cur['did'])
-                     cmdArgs.append(cur['code'])
+                     cmdArgs.append(tuple(cur['code']))
 
                  else:
                      cmd.append("INSERT INTO rules.codelists")
-                     cmd.append("(ruleid, listtype, isintersect, intlist, term, detailid)")
-                     cmd.append("(SELECT %s, %s, %s, array_agg(child), %s, %s FROM terminology.conceptancestry WHERE ancestor = %s )RETURNING detailid ")
+                     cmd.append("(ruleid, listtype, isintersect, intlist,  detailid)")
+                     cmd.append("(SELECT %s, %s, %s, array_agg(child),  %s FROM terminology.conceptancestry WHERE ancestor IN %s )RETURNING detailid ")
                      cmdArgs.append(str(id))
                      cmdArgs.append(str(type))
                      cmdArgs.append(cur['exists']=='true')
-                     cmdArgs.append(cur['term'])
+                 #    cmdArgs.append(str(cur['codeterm']))
                      cmdArgs.append(cur['did'])
-                     cmdArgs.append(cur['code'])
+                     cmdArgs.append(tuple(cur['code']))
 
 
                  yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
@@ -319,7 +319,8 @@ class web_search():
                      cmdArgs.append(str(id))
                      cmdArgs.append(str(type))
                      cmdArgs.append(cur['exists']=='true')
-                     cmdArgs.append([int(cur['code'])])
+                     desired_array = [int(numeric_string) for numeric_string in cur['code']]
+                     cmdArgs.append(desired_array)
                      cmdArgs.append(cur['minDays'])
                      cmdArgs.append(cur['maxDays'])
                  else:
@@ -328,7 +329,8 @@ class web_search():
                      cmd.append("(SELECT %s, %s, %s, %s)")
                      cmdArgs.append(str(id))
                      cmdArgs.append(str(type))
-                     cmdArgs.append([int(cur['code'])])
+                     desired_array = [int(numeric_string) for numeric_string in cur['code']]
+                     cmdArgs.append(desired_array)
                      cmdArgs.append(cur['exists']=='true')
 
                  yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
@@ -356,7 +358,7 @@ class web_search():
                  cmd.append("(SELECT %s, %s, array_agg(ndc), %s FROM (SELECT ndc FROM  "
 		                    " terminology.conceptancestry b inner join terminology.rxsnomeds a on b.child=a.snomed"
                             " inner join terminology.rxnrel c on a.rxcui=c.rxcui1 and c.rela='dose_form_of'"
-                            " where b.ancestor = %s"
+                            " where b.ancestor in %s"
                             " and c.rxcui2 in (select rxcui from terminology.doseformgroups where"
                             " groupname like %s)"
                             " GROUP BY NDC) as x)")
@@ -364,7 +366,7 @@ class web_search():
                  cmdArgs.append(str(type))
 
                  cmdArgs.append(cur['exists']=='true')
-                 cmdArgs.append(cur['code'])
+                 cmdArgs.append(tuple(cur['code']))
                  cmdArgs.append(cur['route'])
                  yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
             return 1
