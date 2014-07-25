@@ -1,10 +1,10 @@
 <div class="detail-entry">
     <a class="detail-item">
    <% if (exists == "false") { %>
-            Rule will <b>not be used</b> if the subject underwent the procdedure<b><%=term%>(CPT: <%=code%>)</b>
+            Rule will <b>not be used</b> if the subject underwent any of the procdedures:<b><%=codeterm%>(CPT: <%=code%>)</b>
             <br>in the time frame <%=minDays%> to <%=maxDays%> days from the present
     <%} else { %>
-            Rule will <b>be used only</b> if the  subject underwent the procedure<b> <%=term%>(CPT: <%=code%>)</b>
+            Rule will <b>be used only</b> if the  subject underwent any of the  procedures: <b> <%=codeterm%>(CPT: <%=code%>)</b>
             <br>in the time frame <b><%=minDays%></b> to <b><%=maxDays%></b> days from the present
     <%}%>
     </a>

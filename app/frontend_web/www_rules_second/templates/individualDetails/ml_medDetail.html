@@ -1,9 +1,9 @@
 <div class="detail-entry">
     <a class="detail-item">
     <% if (exists == "false") { %>
-            Rule will <b>not be used</b> if <b><%=term%>(Snomed: <%=code%>)</b> is in the drug list
+            Rule will <b>not be used</b> if <b><%=codeterm%></b> is in the drug list
     <%} else { %>
-            Rule will <b>be used only</b> if  <b><%=term%>(Snomed: <%=code%>)</b> is in the the drug list
+            Rule will <b>be used only</b> if  <b><%=codeterm%></b> is in the the drug list
     <%}%>  administered via the route: <b><% if (route =="%"){%>ANY<%}else{%><%=route%><%}%></b>
     </a>
     <a style = "float: right" class="remove-detail">&#10006</a>
