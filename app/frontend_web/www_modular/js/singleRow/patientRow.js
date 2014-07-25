@@ -27,7 +27,6 @@ define([
             //update context to have a current patient, 
 	    //that triggers everything else
 	    var patid = this.model.get("id");
-	    console.log("patient id = "+patid);
             contextModel.set({patientName:this.model.get("name")},
 			    {silent:true});
 	    Backbone.history.navigate('patient/'+patid, {trigger:true});
