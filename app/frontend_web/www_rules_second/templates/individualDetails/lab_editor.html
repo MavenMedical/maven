@@ -14,17 +14,16 @@
 	<input  name="value" class="form-control detail-input" type="text" value="0"  style="min-width:100px">
 	 <p class="attn-text">in the time frame from
              <br>
-              <div style = "clear:both" name="mindays" class="min-days detail-input">
+              <div style = "float:left" name="mindays" class="min-days detail-input">
                  <div style="float:left">Days<br><input class="range-input days-min" placeholder="Days"></div>
                  <div style="float:left">Weeks<br><input  class="range-input weeks-min" placeholder="Weeks"></div>
                  <div style="float:left">Months<br><input class="range-input months-min" placeholder="Months"></div>
                  <div style="float:left">Years<br><input class="range-input years-min" placeholder="Years"></div>
              </div>
-             <br>
-         <div style = "clear:both" class = "attn-text">until </div>
-             <br>
-             <br>
-             <div style = "clear: both" name="maxdays" class="max-days detail-input">
+
+        <div style = "float: left; width:500px; text-align: center" class = "attn-text">until</div>
+
+             <div style = "float: right" name="maxdays" class="max-days detail-input">
                  <div style="float:left">Days<br><input class="range-input days-max" placeholder="Days"></div>
                  <div style="float:left">Weeks<br><input  class="range-input weeks-max" placeholder="Weeks"></div>
                  <div style="float:left">Months<br><input class="range-input months-max" placeholder="Months"></div>
@@ -60,7 +59,9 @@
                 })
              </script>
     <br>
-    <select class = "detail-input form-control" name = "lastlab">
+    <br>
+    <br>
+        <select class = "detail-input form-control" name = "lastlab">
         <option value = "true">This rule will only look at the last lab</option>
         <option value = "false" selected>This rule will look for any lab in the given time frame</option>
     </select>
