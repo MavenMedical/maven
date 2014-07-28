@@ -8,9 +8,9 @@ CREATE TABLE alert_setting_hist (
 	subcategory character varying(36), 
 	rule_id integer, 
 	scope character varying(36),
-	action character varying(36),
+	action character varying(36)
 )
-WITH (, , 
+WITH (
       OIDS=FALSE
 );
 ALTER TABLE public.alert_setting_hist
