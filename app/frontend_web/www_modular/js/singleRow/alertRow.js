@@ -42,19 +42,21 @@ define([
         like: function(){
             //user clicks 'like'
             console.log("Like clicked");
-            this.rate(1);
+            this.rate("like");
         },
         dislike: function(){
             //user clicks 'dislike'
             console.log("Dislike clicked");
-            this.rate(0);
+            this.rate("dislike");
         },
         rate: function(like){
             //sends like/dislike to backend
-            that = this;
             $.ajax({
                 url: "/rate_alert",
-                data: $.param(contextModel.toParams()) + "&alert_id=" + that.model.get("id") +"&like="+like,
+                data: $.param(contextModel.toParams()) + "&alert_id=" + this.model.get("id") +
+                                                         "&category=" + this.model.get("alerttype") +
+                                                         "&rule_id=" + this.model.get("ruleid") +
+                                                         "&action="+like,
                 success: function (data) {
                     console.log(data);
                 }

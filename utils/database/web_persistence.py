@@ -58,6 +58,10 @@ Results = Enum('Results',
     enddate
     recentkeys
     diagnosisid
+    category
+    subcategory
+    scope
+    action
 """)
 
 
@@ -173,13 +177,17 @@ class WebPersistence():
                                 [officialname, displayname, user], {}, {})
 
     @asyncio.coroutine
-    def rate_alert(self, user, alertid, like):
-        #placeholder code
-        value = 1
-        if like == 0:
-            value = 0
-        yield from self.execute(["UPDATE alert set (saving) = (%s) where alert_id = %s"],
-                                [value, alertid], {}, {})
+    def rate_alert(self, customer_id, provider_id, category, subcategory, rule_id, scope, action, update=0):
+
+        if update == 1:
+            yield from self.execute(["UPDATE alert_setting_hist set (action) = (%s) where customer_id = %s and provider_id = %s " +
+                                                                                   "and category = %s and subcategory = %s "+
+                                                                                   "and rule_id = %s and scope = %s"],
+                                    [action, customer_id, provider_id, category, subcategory, rule_id, scope], {}, {})
+        else:
+            yield from self.execute(["INSERT into alert_setting_hist (customer_id, provider_id, category, subcategory, rule_id, scope, action)" +
+                                     "VALUES (%s,%s,%s,%s,%s,%s,%s)"],
+                                    [customer_id, provider_id, category, subcategory, rule_id, scope, action], {}, {})
 
     @asyncio.coroutine
     def record_login(self, username, method, ip, authkey):
@@ -422,7 +430,7 @@ class WebPersistence():
 
     @asyncio.coroutine
     def alerts(self, desired, provider, customer, patients=[], limit="",
-               startdate=None, enddate=None, orderid=None, categories=[]):
+               startdate=None, enddate=None, orderid=None, categories=[], alertid=None):
         columns = build_columns(desired.keys(), self._available_alerts,
                                 self._default_alerts)
         
@@ -440,6 +448,9 @@ class WebPersistence():
         if categories:
             cmd.append("AND alert.category IN %s")
             cmdargs.append(makelist(categories))
+        if alertid:
+            cmd.append("AND alert.alert_id = %s")
+            cmdargs.append(alertid)
         if orderid:
             cmd.append("AND alert.order_id = %s")
             cmdargs.append(orderid)
@@ -455,7 +466,43 @@ class WebPersistence():
 
         results = yield from self.execute(cmd, cmdargs, self._display_alerts, desired)
         return results
-        
+
+    _default_alert_settings = set((Results.ruleid,))
+    _available_alert_settings = {
+        Results.category: "alert_setting_hist.category",
+        Results.subcategory: "alert_setting_hist.subcategory",
+        Results.ruleid: "alert_setting_hist.rule_id",
+        Results.scope: "alert_setting_hist.scope",
+        Results.action: "alert_setting_hist.action"
+        }
+    _display_alert_settings = _build_format({
+        Results.ruleid: lambda x: x,
+        })
+
+    @asyncio.coroutine
+    def alert_settings(self, desired, provider, customer, ruleid=None, category=None, limit=""):
+        columns = build_columns(desired.keys(), self._available_alert_settings,
+                                self._default_alert_settings)
+
+        cmd = []
+        cmdargs = []
+        cmd.append("SELECT")
+        cmd.append(columns)
+        cmd.append("FROM alert_setting_hist")
+        cmd.append("WHERE alert_setting_hist.provider_id = %s AND alert_setting_hist.customer_id = %s")
+        cmdargs.append(provider)
+        cmdargs.append(customer)
+        if ruleid:
+            cmd.append("AND alert_setting_hist.rule_id = %s")
+            cmdargs.append(ruleid)
+        if category:
+            cmd.append("AND alert_setting_hist.category = %s ")
+            cmdargs.append(category)
+        if limit:
+            cmd.append(limit)
+        results = yield from self.execute(cmd, cmdargs, self._display_alert_settings, desired)
+        return results
+
 
     _default_orders = set((Results.datetime,))
     _available_orders = {
