@@ -183,19 +183,16 @@ class CompositionEvaluator(SP.StreamProcessor):
 
         encounter_cost_breakdown = {"total_cost": 0, "details": []}
 
-        for order in composition.get_encounter_orders():
+        for order in [(order) for order in composition.get_encounter_orders() if isinstance(order.detail[0], (FHIR_API.Medication, FHIR_API.Procedure))]:
             order.totalCost = 0
+            coding = order.get_proc_med_terminology_coding()
             for order_detail in order.detail:
                 yield from FHIR_DB.get_order_detail_cost(order_detail, composition, self.conn)
                 order.totalCost += order_detail.cost
-                if isinstance(order_detail, FHIR_API.Procedure):
-                    codeable_concept = order_detail.type
-                elif isinstance(order_detail, FHIR_API.Medication):
-                    codeable_concept = order_detail.code
-                coding = composition.get_coding_from_codeable_concept(codeable_concept=codeable_concept, system=["clientEMR", "CPT", "rxnorm"])
-                encounter_cost_breakdown['details'].append({"order_name": coding.display,
-                                                            "order_cost": order_detail.cost,
-                                                            "order_type": order_detail.resourceType})
+
+            encounter_cost_breakdown['details'].append({"order_name": coding.display,
+                                                        "order_cost": order_detail.cost,
+                                                        "order_type": order_detail.resourceType})
             encounter_cost_breakdown['total_cost'] += order.totalCost
 
         # Only generate the alert if there are costs to show

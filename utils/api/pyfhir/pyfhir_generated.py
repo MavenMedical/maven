@@ -2486,6 +2486,8 @@ class Medication(Resource):
     
     :param product_ingredient: Identifies a particular constituent of interest in the product.
     :param package_content: A set of components that go to make up the described item.
+    :param cost: Cost of the Medication
+    :param cost_type: Cost Type of the Medication (i.e. NADAC, Client Hospital Pharmacy Cost)
     
     """
     def __init__(self,
@@ -3320,7 +3322,7 @@ class Order(Resource):
                         return coding.code
         return None
 
-    def get_procedure_id_coding(self):
+    def get_proc_med_terminology_coding(self):
         if isinstance(self.detail[0], Procedure):
             for coding in self.detail[0].type.coding:
                 if coding.system in  ["CPT", "HCPCS"]:
@@ -4657,8 +4659,6 @@ class Substance(Resource):
                  instance=None,
                  instance_expiry=None,
                  instance_quantity=None,
-                 ingredient_quantity=None,
-                 ingredient_substance=None,
                  ingredient=None,
                  ):
         Resource.__init__(self,
@@ -4674,11 +4674,11 @@ class Substance(Resource):
         self.instance = instance                                     # , If this describes a specific package/container of the substance
         self.instance_expiry = instance_expiry                                     # , When no longer valid to use
         self.instance_quantity = instance_quantity                                     # , Amount of substance in the package
-        self.ingredient_quantity = ingredient_quantity                                     # , Optional amount (concentration)
-        self.ingredient_substance = ingredient_substance                                     # , A component of the substance
         
         if ingredient is None:
             self.ingredient = []                                     # , { attb['short_desc'] }}
+        else:
+            self.ingredient = ingredient
         
 
 class Supply(Resource):
