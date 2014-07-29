@@ -64,11 +64,11 @@ define([
             data:$.param(contextModel.toParams())+"&official_name="+official_name+"&display_name="+display_name,
             success: function(data) {
                 //response(data);
-                Console.log("Settings saved");
+                console.log("Settings saved");
 
             },
             error: function(xhr, textStatus, errorThrown){
-                Console.log("Settings failed to save");
+                console.log("Settings failed to save");
             }
         });
 

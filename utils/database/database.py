@@ -29,7 +29,7 @@ import psycopg2
 import asyncio
 import maven_logging as ML
 import maven_config as MC
-
+import traceback
 
 class AsyncConnectionPool():
     """ ConnectionPool subclass supporting parallelism using asyncio and yield from
@@ -72,9 +72,13 @@ class AsyncConnectionPool():
 
     def schedule(self, loop):
         self.loop=loop
-        [asyncio.Task(self._new_connection(), loop=loop) for _ in range(self.MIN_CONNECTIONS)]
+        tasks=[asyncio.Task(self._new_connection(), loop=loop) for _ in range(self.MIN_CONNECTIONS)]
         ML.INFO('Starting %d connections' % self.pending)
-
+        for t in tasks:
+            ML.DEBUG(t)
+            if not t.done():
+                loop.run_until_complete(t) 
+        
     # noinspection PyArgumentList
     @asyncio.coroutine
     def execute_single(self, cmd, extra=None, future=None):
@@ -263,6 +267,7 @@ class AsyncConnectionPool():
             while sleep_time:
                 try:
                     # make the connection with async=1, and wait for it to be ready
+                    ML.DEBUG("trying to connect to %s" % self.CONNECTION_STRING)
                     connection = psycopg2.connect(self.CONNECTION_STRING, async=1)
                     yield from self._wait(connection)
                     ML.INFO("Allocated a new connection")
@@ -274,6 +279,7 @@ class AsyncConnectionPool():
                     self.pending -= 1
                     sleep_time = 0
                 except (psycopg2.DatabaseError, psycopg2.OperationalError):
+                    ML.ERROR("The database had an operational error: "+traceback.format_exc())
                     yield from asyncio.sleep(sleep_time)
                     sleep_time = sleep_time * 2
                     if sleep_time > 4:
