@@ -35,6 +35,7 @@ CONTEXT_DEPARTMENT = 'department'
 CONTEXT_ORDERTYPE = 'ordertype'
 CONTEXT_ORDERID = 'order_id'
 CONTEXT_ALERTID = 'alert_id'
+CONTEXT_RULEID = 'rule_id'
 CONTEXT_KEY = 'userAuth'
 CONTEXT_ENCOUNTER = 'encounter'
 CONTEXT_CUSTOMERID = 'customer_id'
@@ -42,10 +43,11 @@ CONTEXT_DIAGNOSIS = 'diagnosis'
 CONTEXT_PATIENTNAME = 'patientname'
 CONTEXT_STARTDATE = 'startdate'
 CONTEXT_ENDDATE = 'enddate'
+CONTEXT_CATEGORY = 'category'
 CONTEXT_CATEGORIES = 'categories'
 CONTEXT_OFFICIALNAME = 'official_name'
 CONTEXT_DISPLAYNAME = 'display_name'
-CONTEXT_LIKE = 'like'
+CONTEXT_ACTION = 'action'
 
 LOGIN_TIMEOUT = 60 * 60  # 1 hour
 AUTH_LENGTH = 44  # 44 base 64 encoded bits gives the entire 256 bites of SHA2 hash
@@ -150,9 +152,11 @@ class FrontendWebService(HTTP.HTTPProcessor):
             traceback.print_exc()
             raise LoginError('expiredPassword')
 
-    rate_alert_required_contexts = [CONTEXT_USER, CONTEXT_CUSTOMERID, CONTEXT_ALERTID, CONTEXT_LIKE]
-    rate_alert_available_contexts = {CONTEXT_USER: str, CONTEXT_CUSTOMERID: int,
-                                     CONTEXT_ALERTID: str, CONTEXT_LIKE: int}
+    rate_alert_required_contexts = [CONTEXT_USER, CONTEXT_CUSTOMERID, CONTEXT_PROVIDER, CONTEXT_ALERTID,
+                                    CONTEXT_ACTION, CONTEXT_RULEID, CONTEXT_CATEGORY]
+    rate_alert_available_contexts = {CONTEXT_USER: str, CONTEXT_CUSTOMERID: int, CONTEXT_PROVIDER: str,
+                                     CONTEXT_ALERTID: int, CONTEXT_ACTION: str, CONTEXT_RULEID: int,
+                                     CONTEXT_CATEGORY: str}
 
     @asyncio.coroutine
     def rate_alert(self, _header, _body, qs, _matches, _key):
@@ -161,17 +165,30 @@ class FrontendWebService(HTTP.HTTPProcessor):
                             FrontendWebService.rate_alert_available_contexts)
 
         userid = context[CONTEXT_USER]
-        customerid = context[CONTEXT_CUSTOMERID]
-        alertid = context[CONTEXT_ALERTID]
-        like = context[CONTEXT_LIKE]
+        customer = context[CONTEXT_CUSTOMERID]
+        #alertid = context[CONTEXT_ALERTID]s
+        action = context[CONTEXT_ACTION]
+        ruleid = context[CONTEXT_RULEID]
+        category = context[CONTEXT_CATEGORY]
+        provider = context[CONTEXT_PROVIDER]
 
-        result = yield from self.persistence_interface.rate_alert(userid, alertid, like)
+        desired = {
+            WP.Results.action: 'action',
+        }
+
+        update = 0
+        result = yield from self.persistence_interface.alert_settings(desired, provider, customer, ruleid, category)
+        if result:
+            # record exists so update, don't add
+            update = 1
+
+        result = yield from self.persistence_interface.rate_alert(customer, provider, category, "", ruleid, "", action, update=update)
+
+        #return HTTP.OK_RESPONSE, json.dumps(['ALERT LIKED']), None
         if result:
             return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
         else:
             return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
-
-        #return HTTP.OK_RESPONSE, json.dumps(['ALERT LIKED']), None
 
     @asyncio.coroutine
     def critique_alert(self, _header, _body, qs, _matches, _key):
