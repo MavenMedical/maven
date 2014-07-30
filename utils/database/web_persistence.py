@@ -62,6 +62,8 @@ Results = Enum('Results',
     subcategory
     scope
     action
+    likes
+    dislikes
 """)
 
 
@@ -175,19 +177,23 @@ class WebPersistence():
     def update_user_settings(self, user, officialname,displayname):
         yield from self.execute(["UPDATE users set (official_name, display_name) = (%s, %s) where user_id = %s"],
                                 [officialname, displayname, user], {}, {})
+    @asyncio.coroutine
+    def update_alert_setting(self, provider, customer, alertid, ruleid, category, actioncomment):
+        yield from self.execute(["UPDATE alert_setting_hist set(action_comment, datetime) = (%s, CURRENT_TIMESTAMP) where alert_id=%s and "+
+                                                                        "customer_id = %s and provider_id=%s and category=%s and rule_id=%s" ],
+                                [actioncomment, alertid, customer, provider, category, ruleid], {}, {})
 
     @asyncio.coroutine
-    def rate_alert(self, customer_id, provider_id, category, subcategory, rule_id, scope, action, update=0):
+    def rate_alert(self, customer_id, provider_id, category, subcategory, alertid, rule_id, scope, action, update=0):
 
         if update == 1:
-            yield from self.execute(["UPDATE alert_setting_hist set (action) = (%s) where customer_id = %s and provider_id = %s " +
-                                                                                   "and category = %s and subcategory = %s "+
-                                                                                   "and rule_id = %s and scope = %s"],
-                                    [action, customer_id, provider_id, category, subcategory, rule_id, scope], {}, {})
+            yield from self.execute(["UPDATE alert_setting_hist set (action, datetime) = (%s, CURRENT_TIMESTAMP) where alert_id = %s and customer_id = %s "
+                                            "and provider_id = %s and category = %s and subcategory = %s and rule_id = %s and scope = %s"],
+                                    [action, alertid, customer_id, provider_id, category, subcategory, rule_id, scope], {}, {})
         else:
-            yield from self.execute(["INSERT into alert_setting_hist (customer_id, provider_id, category, subcategory, rule_id, scope, action)" +
-                                     "VALUES (%s,%s,%s,%s,%s,%s,%s)"],
-                                    [customer_id, provider_id, category, subcategory, rule_id, scope, action], {}, {})
+            yield from self.execute(["INSERT into alert_setting_hist (alert_id, customer_id, provider_id, datetime, category, subcategory, rule_id, scope, action)" +
+                                     "VALUES (%s,%s,%s,CURRENT_TIMESTAMP,%s,%s,%s,%s,%s)"],
+                                    [alertid, customer_id, provider_id, category, subcategory, rule_id, scope, action], {}, {})
 
     @asyncio.coroutine
     def record_login(self, username, method, ip, authkey):
@@ -421,6 +427,8 @@ class WebPersistence():
         Results.savings: "alert.saving",
         Results.alerttype: "alert.category",
         Results.ruleid: "alert.cds_rule",
+        Results.likes: "SUM(CASE WHEN alert_setting_hist.action = 'like' THEN 1 ELSE 0 END)",
+        Results.dislikes: "SUM(CASE WHEN alert_setting_hist.action = 'dislike' THEN 1 ELSE 0 END)"
         }
     _display_alerts = _build_format({
         Results.title: lambda x: x or '',
@@ -433,12 +441,15 @@ class WebPersistence():
                startdate=None, enddate=None, orderid=None, categories=[], alertid=None):
         columns = build_columns(desired.keys(), self._available_alerts,
                                 self._default_alerts)
-        
+
         cmd = []
         cmdargs = []
         cmd.append("SELECT")
         cmd.append(columns)
         cmd.append("FROM alert")
+        if "likes" in desired.values() or "dislikes" in desired.values():
+            #need to join with alert settings history to get like/dislike counts
+            cmd.append("left join alert_setting_hist ON alert.cds_rule = alert_setting_hist.rule_id")
         cmd.append("WHERE alert.provider_id = %s AND alert.customer_id = %s")
         cmdargs.append(provider)
         cmdargs.append(customer)
@@ -460,6 +471,13 @@ class WebPersistence():
         if enddate:
             cmd.append("AND alert.alert_datetime < %s + interval '1 day'")
             cmdargs.append(enddate)
+        if "likes" in desired.values() or "dislikes" in desired.values():
+            #group by selected columns that are not likes or dislikes
+            groupdesired = {k: v for k, v in desired.items() if (v != 'likes' and v != 'dislikes')}
+            groupcolumns = build_columns(groupdesired.keys(), self._available_alerts,
+                                         self._default_alerts)
+            cmd.append("GROUP BY")
+            cmd.append(groupcolumns)
         cmd.append("ORDER BY alert.alert_datetime DESC")
         if limit:
             cmd.append(limit)
@@ -480,7 +498,7 @@ class WebPersistence():
         })
 
     @asyncio.coroutine
-    def alert_settings(self, desired, provider, customer, ruleid=None, category=None, limit=""):
+    def alert_settings(self, desired, provider, customer, alertid=None, ruleid=None, category=None, limit=""):
         columns = build_columns(desired.keys(), self._available_alert_settings,
                                 self._default_alert_settings)
 
@@ -492,6 +510,9 @@ class WebPersistence():
         cmd.append("WHERE alert_setting_hist.provider_id = %s AND alert_setting_hist.customer_id = %s")
         cmdargs.append(provider)
         cmdargs.append(customer)
+        if alertid:
+            cmd.append("AND alert_setting_hist.alert_id = %s")
+            cmdargs.append(alertid)
         if ruleid:
             cmd.append("AND alert_setting_hist.rule_id = %s")
             cmdargs.append(ruleid)

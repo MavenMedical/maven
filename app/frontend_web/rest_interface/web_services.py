@@ -48,6 +48,7 @@ CONTEXT_CATEGORIES = 'categories'
 CONTEXT_OFFICIALNAME = 'official_name'
 CONTEXT_DISPLAYNAME = 'display_name'
 CONTEXT_ACTION = 'action'
+CONTEXT_ACTIONCOMMENT ='action_comment'
 
 LOGIN_TIMEOUT = 60 * 60  # 1 hour
 AUTH_LENGTH = 44  # 44 base 64 encoded bits gives the entire 256 bites of SHA2 hash
@@ -166,7 +167,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
         userid = context[CONTEXT_USER]
         customer = context[CONTEXT_CUSTOMERID]
-        #alertid = context[CONTEXT_ALERTID]s
+        alertid = context[CONTEXT_ALERTID]
         action = context[CONTEXT_ACTION]
         ruleid = context[CONTEXT_RULEID]
         category = context[CONTEXT_CATEGORY]
@@ -177,12 +178,12 @@ class FrontendWebService(HTTP.HTTPProcessor):
         }
 
         update = 0
-        result = yield from self.persistence_interface.alert_settings(desired, provider, customer, ruleid, category)
+        result = yield from self.persistence_interface.alert_settings(desired, provider, customer, alertid, ruleid, category)
         if result:
             # record exists so update, don't add
             update = 1
 
-        result = yield from self.persistence_interface.rate_alert(customer, provider, category, "", ruleid, "", action, update=update)
+        result = yield from self.persistence_interface.rate_alert(customer, provider, category, "", alertid, ruleid, "", action, update=update)
 
         #return HTTP.OK_RESPONSE, json.dumps(['ALERT LIKED']), None
         if result:
@@ -190,9 +191,27 @@ class FrontendWebService(HTTP.HTTPProcessor):
         else:
             return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
 
+    critique_required_contexts = [CONTEXT_CUSTOMERID, CONTEXT_PROVIDER, CONTEXT_RULEID, CONTEXT_CATEGORY, CONTEXT_ACTIONCOMMENT]
+    critique_available_contexts = {CONTEXT_CUSTOMERID: int, CONTEXT_PROVIDER:str, CONTEXT_RULEID:int,
+                                   CONTEXT_CATEGORY: str, CONTEXT_ACTIONCOMMENT: str}
+
     @asyncio.coroutine
     def critique_alert(self, _header, _body, qs, _matches, _key):
-        return HTTP.OK_RESPONSE, json.dumps(['Alert Critiqued']), None
+        context = self.helper.restrict_context(qs,
+                                               FrontendWebService.critique_required_contexts,
+                                               FrontendWebService.critique_available_contexts)
+
+        provider = context[CONTEXT_PROVIDER]
+        customerid = context[CONTEXT_CUSTOMERID]
+        ruleid = context[CONTEXT_RULEID]
+        actioncomment = context[CONTEXT_ACTIONCOMMENT]
+        category = context[CONTEXT_CATEGORY]
+
+        result = yield from self.persistence_interface.update_alert_setting(provider, customerid, ruleid, category, actioncomment)
+        if result:
+            return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
+        else:
+            return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
 
 
     settings_required_contexts = [CONTEXT_USER, CONTEXT_CUSTOMERID, CONTEXT_OFFICIALNAME, CONTEXT_DISPLAYNAME]
@@ -473,6 +492,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
             WP.Results.savings: 'cost',
             WP.Results.alerttype: 'alerttype',
             WP.Results.ruleid: 'ruleid',
+            WP.Results.likes: 'likes',
+            WP.Results.dislikes: 'dislikes'
         }
 
         results = yield from self.persistence_interface.alerts(desired, provider, customer,
