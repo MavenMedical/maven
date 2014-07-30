@@ -267,7 +267,7 @@ class Alert(Resource):
     def __init__(self, customer_id, category=None, status=None, subject=None, author=None, provider_id=None, encounter_id=None,
                  code_trigger=None, code_trigger_type=None, CDS_rule=None, alert_datetime=None, short_title=None, long_title=None,
                  short_description=None, long_description=None, override_indications=None, outcome=None, saving=None, resourceType="Alert",
-                 related_observations=None, cost_breakdown=None, validation_status=None):
+                 related_observations=None, cost_breakdown=None, validation_status=None, triggering_order=None):
         Resource.__init__(self, customer_id=customer_id, resourceType=resourceType)
         self.category = category
         self.status = status
@@ -278,6 +278,7 @@ class Alert(Resource):
         self.encounter_id = encounter_id
         self.code_trigger = code_trigger
         self.code_trigger_type = code_trigger_type
+        self.triggering_order = triggering_order
         self.CDS_rule = CDS_rule
         self.alert_datetime = alert_datetime
         self.short_title = short_title
@@ -736,7 +737,7 @@ class Composition(Resource):
         if enc_orders_section.content is not None:
             return enc_orders_section.content
 
-    def get_encounter_order_by_uuid(self, id):
+    def get_encounter_order_by_clientEMR_uuid(self, id):
         for order in self.get_encounter_orders():
             if order.get_clientEMR_uuid() == id:
                 return order
@@ -2485,6 +2486,8 @@ class Medication(Resource):
     
     :param product_ingredient: Identifies a particular constituent of interest in the product.
     :param package_content: A set of components that go to make up the described item.
+    :param cost: Cost of the Medication
+    :param cost_type: Cost Type of the Medication (i.e. NADAC, Client Hospital Pharmacy Cost)
     
     """
     def __init__(self,
@@ -3319,7 +3322,7 @@ class Order(Resource):
                         return coding.code
         return None
 
-    def get_procedure_id_coding(self):
+    def get_proc_med_terminology_coding(self):
         if isinstance(self.detail[0], Procedure):
             for coding in self.detail[0].type.coding:
                 if coding.system in  ["CPT", "HCPCS"]:
@@ -4656,8 +4659,6 @@ class Substance(Resource):
                  instance=None,
                  instance_expiry=None,
                  instance_quantity=None,
-                 ingredient_quantity=None,
-                 ingredient_substance=None,
                  ingredient=None,
                  ):
         Resource.__init__(self,
@@ -4673,11 +4674,11 @@ class Substance(Resource):
         self.instance = instance                                     # , If this describes a specific package/container of the substance
         self.instance_expiry = instance_expiry                                     # , When no longer valid to use
         self.instance_quantity = instance_quantity                                     # , Amount of substance in the package
-        self.ingredient_quantity = ingredient_quantity                                     # , Optional amount (concentration)
-        self.ingredient_substance = ingredient_substance                                     # , A component of the substance
         
         if ingredient is None:
             self.ingredient = []                                     # , { attb['short_desc'] }}
+        else:
+            self.ingredient = ingredient
         
 
 class Supply(Resource):
@@ -4886,7 +4887,7 @@ class Rule(Resource):
 
     def __init__(self, customer_id=None, CDS_rule_id=None, CDS_rule_status=None, code_trigger=None, code_trigger_type=None,
                  dep_id=None, name=None, short_title=None, long_title=None, short_description=None, long_description=None,
-                 rule_details=None):
+                 rule_details=None, triggering_order=None):
         Resource.__init__(self, customer_id=customer_id)
         self.CDS_rule_id = CDS_rule_id
         self.CDS_rule_status = CDS_rule_status
@@ -4905,6 +4906,7 @@ class Rule(Resource):
         self.historic_proc_rules = []
         self.lab_rules = []
         self.drug_list_rules = []
+        self.triggering_order = triggering_order
 
         #extract the rule_details JSON object into respective lists of each type
         self._extract_rule_details(self.rule_details)

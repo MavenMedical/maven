@@ -149,7 +149,36 @@ def build_columns(desired, available, defaults):
     columns.extend(defaults - set(desired))
     return DBMapUtils().select_rows_from_map([available[x] for x in columns])
 
+def build_set(items, available):
+    try:
+        iter(items)
+        return ",".join([available[x] for x in items])
+    except TypeError:
+        return available[items]
 
+def append_extras(cmd, datefield, startdate, enddate, orderby, ascending,
+                  groupby, limit, column_map):
+    if startdate:
+        cmd.append("AND "+column_map[datefield] +" >= %s")
+        cmdargs.append(startdate)
+    if enddate:
+        cmd.append("AND "+column_map[datefield]+ " < %s + interval '1 day'")
+        cmdargs.append(enddate)
+    if groupby:
+        try:
+            gb = build_set(groupby, column_map)
+        except KeyError :
+            gb = groupby
+        cmd.append("GROUP BY " + gb)
+    if orderby:
+        try:
+            ob = build_set(orderby, column_map)
+        except KeyError:
+            ob = orderby
+        cmd.append("ORDER BY %s %s" % (ob, "ASC" if ascending else "DESC"))
+    if limit:
+        cmd.append(limit)
+    
 class WebPersistence():
     def __init__(self, configname):
         self.db = AsyncConnectionPool(MC.MavenConfig[configname][CONFIG_DATABASE])
@@ -287,11 +316,8 @@ class WebPersistence():
         if enddate:
             cmd.append("AND encounter.hosp_disch_time < %s")
             cmdargs.append(enddate)
-        cmd.append("GROUP BY encounter.pat_id")
-        cmd.append("ORDER BY contact_date")
-
-        if limit:
-            cmd.append(limit)
+        append_extras(cmd, None, None, None, 'contact_date', True, 'encounter.pat_id', limit,
+                      self._available_patient_info)
 
         results = yield from self.execute(cmd, cmdargs, self._display_patient_info, desired)
         return results
@@ -333,6 +359,7 @@ class WebPersistence():
     _available_total_spend = {
         Results.spending: "sum(order_cost)",
         Results.savings: "NULL",
+        Results.datetime: "order_ord.order_datetime",
     }
     _display_total_spend = _build_format({
         Results.savings: lambda x: -1,
@@ -362,12 +389,8 @@ class WebPersistence():
         if encounter:
             cmd.append("AND encounter.csn = %s")
             cmdargs.append(encounter)
-        if startdate:
-            cmd.append("AND order_ord.order_datetime >= %s")
-            cmdargs.append(startdate)
-        if enddate:
-            cmd.append("AND order_ord.order_datetime < %s + interval '1 day'")
-            cmdargs.append(enddate)
+        append_extras(cmd, Results.datetime, startdate, enddate, None, None,
+                      None, None, self._available_total_spend)
         cur = yield from self.db.execute_single(' '.join(cmd) + ';', cmdargs)
         results = yield from self.execute(cmd, cmdargs, self._display_total_spend, desired)
         if results:
@@ -377,11 +400,13 @@ class WebPersistence():
 
     _default_daily_spend = set()
     _available_daily_spend = {
-        Results.date: "to_char(order_datetime,'Mon/DD/YYYY') AS dt",
-        Results.ordertype: "order_type",
+        Results.date: "order_ord.order_datetime",
+        Results.ordertype: "order_ord.order_type",
         Results.spending: "sum(order_cost)",
     }
-    _display_daily_spend = _build_format()
+    _display_daily_spend = _build_format({
+        Results.date: lambda d: d.strftime("%m/%d/%Y")
+    })
         
     @asyncio.coroutine
     def daily_spend(self, desired, provider, customer, patients=[], encounter=None,
@@ -405,30 +430,25 @@ class WebPersistence():
         if encounter:
             cmd.append("AND encounter.csn = %s")
             cmdargs.append(encounter)
-        if startdate:
-            cmd.append("AND order_ord.order_datetime >= %s")
-            cmdargs.append(startdate)
-        if enddate:
-            cmd.append("AND order_ord.order_datetime < %s + interval '1 day'")
-            cmdargs.append(enddate)
-        cmd.append("GROUP BY dt, order_type")
+        append_extras(cmd, Results.date, startdate, enddate, None, None,
+                      [Results.date, Results.ordertype], None, self._available_daily_spend)
 
         results = yield from self.execute(cmd, cmdargs, self._display_daily_spend, desired)
         return results
 
     _default_alerts = set((Results.datetime,))
     _available_alerts = {
-        Results.alertid: "alert.alert_id",
-        Results.patientid: "alert.pat_id",
-        Results.datetime: "alert.alert_datetime",
-        Results.title: "alert.long_title",
-        Results.description: "alert.long_description",
-        Results.outcome: "alert.outcome",
-        Results.savings: "alert.saving",
-        Results.alerttype: "alert.category",
-        Results.ruleid: "alert.cds_rule",
+        Results.alertid: "max(alert.alert_id)",
+        Results.patientid: "array_agg(alert.pat_id)",
+        Results.datetime: "max(alert.alert_datetime)",
+        Results.title: "max(alert.long_title)",
+        Results.description: "max(alert.long_description)",
+        Results.outcome: "avg(alert.outcome)",
+        Results.savings: "avg(alert.saving)",
+        Results.alerttype: "max(alert.category)",
+        Results.ruleid: "max(alert.cds_rule)",
         Results.likes: "SUM(CASE WHEN alert_setting_hist.action = 'like' THEN 1 ELSE 0 END)",
-        Results.dislikes: "SUM(CASE WHEN alert_setting_hist.action = 'dislike' THEN 1 ELSE 0 END)"
+        Results.dislikes: "SUM(CASE WHEN alert_setting_hist.action = 'dislike' THEN 1 ELSE 0 END)" 
         }
     _display_alerts = _build_format({
         Results.title: lambda x: x or '',
@@ -438,7 +458,8 @@ class WebPersistence():
 
     @asyncio.coroutine
     def alerts(self, desired, provider, customer, patients=[], limit="",
-               startdate=None, enddate=None, orderid=None, categories=[], alertid=None):
+               startdate=None, enddate=None, orderid=None, categories=[],
+               orderby=Results.datetime, ascending=True, alertid=None):
         columns = build_columns(desired.keys(), self._available_alerts,
                                 self._default_alerts)
 
@@ -447,9 +468,6 @@ class WebPersistence():
         cmd.append("SELECT")
         cmd.append(columns)
         cmd.append("FROM alert")
-        if "likes" in desired.values() or "dislikes" in desired.values():
-            #need to join with alert settings history to get like/dislike counts
-            cmd.append("left join alert_setting_hist ON alert.cds_rule = alert_setting_hist.rule_id")
         cmd.append("WHERE alert.provider_id = %s AND alert.customer_id = %s")
         cmdargs.append(provider)
         cmdargs.append(customer)
@@ -465,12 +483,9 @@ class WebPersistence():
         if orderid:
             cmd.append("AND alert.order_id = %s")
             cmdargs.append(orderid)
-        if startdate:
-            cmd.append("AND alert.alert_datetime >= %s")
-            cmdargs.append(startdate)
-        if enddate:
-            cmd.append("AND alert.alert_datetime < %s + interval '1 day'")
-            cmdargs.append(enddate)
+        append_extras(cmd, Results.datetime, startdate, enddate, orderby, ascending,
+                      "(CASE WHEN cds_rule IS NULL THEN 'alert_id' || alert_id::varchar ELSE cds_rule::varchar END)",
+                      limit, self._available_alerts)
         if "likes" in desired.values() or "dislikes" in desired.values():
             #group by selected columns that are not likes or dislikes
             groupdesired = {k: v for k, v in desired.items() if (v != 'likes' and v != 'dislikes')}
@@ -478,7 +493,6 @@ class WebPersistence():
                                          self._default_alerts)
             cmd.append("GROUP BY")
             cmd.append(groupcolumns)
-        cmd.append("ORDER BY alert.alert_datetime DESC")
         if limit:
             cmd.append(limit)
 
@@ -564,15 +578,8 @@ class WebPersistence():
         if ordertypes:
             cmd.append("AND order_ord.order_type IN %s")
             cmdargs.append(ordertypes)
-        if startdate:
-            cmd.append("AND order_ord.order_datetime >= %s")
-            cmdargs.append(startdate)
-        if enddate:
-            cmd.append("AND order_ord.order_datetime < %s + interval '1 day'")
-            cmdargs.append(enddate)
-        cmd.append("ORDER BY order_ord.order_datetime desc")
-        if limit:
-            cmd.append(limit)
+        append_extras(cmd, Results.datetime, startdate, enddate, Results.datetime, False,
+                      None, limit, self._available_orders)
 
         results = yield from self.execute(cmd, cmdargs, self._display_orders, desired)
         return results

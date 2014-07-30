@@ -31,7 +31,9 @@
     height: auto;
     width: auto;
 }
-
+.range-input{
+    width:100px
+}
 
 .conflict {
     border-style: solid;

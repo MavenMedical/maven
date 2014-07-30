@@ -25,7 +25,7 @@ import urllib.parse
 import html
 import math
 import jinja2
-from utils.enums import CDS_ALERT_STATUS, ALERT_TYPES, ALERT_PRIORITY
+from utils.enums import ALERT_VALIDATION_STATUS, ALERT_TYPES, ALERT_PRIORITY
 from jinja2 import Environment, PackageLoader
 
 
@@ -118,15 +118,15 @@ class NotificationGenerator():
                            "patient_id": composition.subject.get_pat_id()}
 
         for alert in fhir_alerts[0:self.max_msg_load]:
-            if alert.category == ALERT_TYPES.COST and alert.status > CDS_ALERT_STATUS.DEBUG_ALERT.value:
+            if alert.category == ALERT_TYPES.COST and alert.status > ALERT_VALIDATION_STATUS.DEBUG_ALERT.value:
                 content = yield from self._vista_cost_alert_generator(alert, base_alert_data, templateEnv)
                 alert_contents.append(content)
 
-            elif alert.category == ALERT_TYPES.REC_RESULT and alert.status > CDS_ALERT_STATUS.DEBUG_ALERT.value:
+            elif alert.category == ALERT_TYPES.REC_RESULT and alert.status > ALERT_VALIDATION_STATUS.DEBUG_ALERT.value:
                 content = yield from self._vista_recent_results_alert_generator(alert, base_alert_data, templateEnv)
                 alert_contents.append(content)
 
-            elif alert.category == ALERT_TYPES.CDS and alert.status > CDS_ALERT_STATUS.DEBUG_ALERT.value:
+            elif alert.category == ALERT_TYPES.CDS and alert.status > ALERT_VALIDATION_STATUS.DEBUG_ALERT.value:
                 content = yield from self._vista_CDS_alert_generator(alert, base_alert_data, templateEnv)
                 alert_contents.append(content)
 

@@ -22,7 +22,7 @@ import asyncio
 from collections import defaultdict
 from dateutil.relativedelta import relativedelta
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
-from utils.enums import ORDER_SOURCE, PROCEDURE_ORDER_TYPES, MEDICATION_ORDER_TYPES
+from utils.enums import ORDER_SOURCE, PROCEDURE_ORDER_TYPES, MEDICATION_ORDER_TYPES, ALERT_TYPES, ALERT_VALIDATION_STATUS
 from utils.database.database import MappingUtilites
 import maven_logging as ML
 
@@ -137,7 +137,7 @@ def write_composition_conditions(composition, conn):
 @ML.coroutine_trace(timing=True, write=FHIR_DB_LOG.debug)
 def write_composition_encounter_orders(composition, conn):
     try:
-        for order in composition.get_encounter_orders():
+        for order in [(order) for order in composition.get_encounter_orders() if isinstance(order.detail[0], (FHIR_API.Medication, FHIR_API.Procedure))]:
             yield from write_composition_encounter_order(order, composition, conn)
     except:
         raise Exception("Error inserting composition encounter orders into database")
@@ -182,6 +182,11 @@ def write_composition_alerts(composition, conn):
 
     for alert in composition.get_section_by_coding(code_system="maven", code_value="alerts").content:
         try:
+            if alert.category in [ALERT_TYPES.CDS, ALERT_TYPES.REC_RESULT, ALERT_TYPES.ALT_MED]:
+                is_alert_with_triggering_order = True
+            else:
+                is_alert_with_triggering_order = False
+
             column_map = ["customer_id",
                           "pat_id",
                           "provider_id",
@@ -195,10 +200,8 @@ def write_composition_alerts(composition, conn):
                           "long_title",
                           "short_description",
                           "long_description",
-                          "saving",
-                          "status"]
-            columns = DBMapper.select_rows_from_map(column_map)
-
+                          "status",
+                          "alert_uuid"]
             cmdargs = [customer_id,
                        patient_id,
                        provider_id,
@@ -212,13 +215,26 @@ def write_composition_alerts(composition, conn):
                        alert.long_title,
                        alert.short_description,
                        alert.long_description,
-                       alert.saving,
-                       alert.status]
+                       alert.status,
+                       str(alert.id)]
+
+            if is_alert_with_triggering_order:
+                column_map.append("saving")
+                cmdargs.append(alert.saving)
+
+                column_map.append("order_id")
+                cmdargs.append(alert.triggering_order.get_clientEMR_uuid())
+
+            columns = DBMapper.select_rows_from_map(column_map)
 
             cmd = []
             cmd.append("INSERT INTO alert")
             cmd.append("(" + columns + ")")
-            cmd.append("VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
+
+            if is_alert_with_triggering_order:
+                cmd.append("VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
+            else:
+                cmd.append("VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
 
             cur = yield from conn.execute_single(' '.join(cmd)+';',cmdargs)
 
@@ -334,11 +350,19 @@ def identify_encounter_orderable(item=None, order=None, composition=None, conn=N
             cmd = []
             cmd.append("SELECT " + columns)
             cmd.append("FROM orderable")
-            cmd.append("WHERE orderable_id IN %s AND customer_id=%s")
+            cmd.append("WHERE orderable_id IN %s AND (customer_id=%s OR customer_id=-1)")
+            cmd.append("ORDER BY customer_id DESC")
+            cmd.append("LIMIT 1;")
 
-            cur = yield from conn.execute_single(' '.join(cmd), cmdargs)
+            try:
+                cur = yield from conn.execute_single(' '.join(cmd), cmdargs)
+                result = cur.fetchone()
 
-            for result in cur:
+                # Return the codeable concept so that downstream processes know that that a proper FHIR Med/Proc was never
+                #     identified for this codeable concept
+                if result is None:
+                    return item
+
                 FHIR_DB_LOG.debug("Result from DB query (identify_encounter_orderable): %s" % [(result[x]) for x in range(len(result))])
                 orderable_id, system, name, description, order_type = _get_base_order_elements_from_DB_cursor_result(result)
 
@@ -361,6 +385,9 @@ def identify_encounter_orderable(item=None, order=None, composition=None, conn=N
                                                       type=FHIR_API.CodeableConcept(coding=[original_coding, procedure_coding],
                                                                                     text=order_type))
                     return rtn_FHIR_procedure
+            except:
+                raise Exception("Error generating FHIR Medication/Procedure from Orderable table")
+
 
         elif isinstance(item, FHIR_API.Procedure):
             column_map.extend(["cpt_code", "cpt_version"])
@@ -369,19 +396,24 @@ def identify_encounter_orderable(item=None, order=None, composition=None, conn=N
             cmd = []
             cmd.append("SELECT " + columns)
             cmd.append("FROM orderable")
-            cmd.append("WHERE cpt_code IN %s AND customer_id=%s")
+            cmd.append("WHERE cpt_code IN %s AND (customer_id=%s OR customer_id=-1)")
+            cmd.append("ORDER BY customer_id DESC")
+            cmd.append("LIMIT 1;")
 
             cur = yield from conn.execute_single(' '.join(cmd), cmdargs)
+            result = cur.fetchone()
 
-            for result in cur:
-                FHIR_DB_LOG.debug("Result from DB query (identify_encounter_orderable): %s" % [(result[x]) for x in range(len(result))])
-                orderable_id, system, name, description, order_type = _get_base_order_elements_from_DB_cursor_result(result)
-                del item.type.coding[:]
-                item.type.coding.append(FHIR_API.Coding(code=result[5], system=result[6], display=name))
-                item.type.coding.append(FHIR_API.Coding(code=orderable_id, system=system, display=name))
-                item.identifier = order.identifier
-                item.type.text = order_type
-                item.name = name
+            if result is None:
+                return item.type
+
+            FHIR_DB_LOG.debug("Result from DB query (identify_encounter_orderable): %s" % [(result[x]) for x in range(len(result))])
+            orderable_id, system, name, description, order_type = _get_base_order_elements_from_DB_cursor_result(result)
+            del item.type.coding[:]
+            item.type.coding.append(FHIR_API.Coding(code=result[5], system=result[6], display=name))
+            item.type.coding.append(FHIR_API.Coding(code=orderable_id, system=system, display=name))
+            item.identifier = order.identifier
+            item.type.text = order_type
+            item.name = name
 
             return item
 
@@ -392,19 +424,24 @@ def identify_encounter_orderable(item=None, order=None, composition=None, conn=N
             cmd = []
             cmd.append("SELECT " + columns)
             cmd.append("FROM orderable")
-            cmd.append("WHERE cpt_code IN %s AND customer_id=%s")
+            cmd.append("WHERE cpt_code IN %s AND (customer_id=%s OR customer_id=-1)")
+            cmd.append("ORDER BY customer_id DESC")
+            cmd.append("LIMIT 1;")
 
             cur = yield from conn.execute_single(' '.join(cmd), cmdargs)
+            result = cur.fetchone()
 
-            for result in cur:
-                FHIR_DB_LOG.debug("Result from DB query (identify_encounter_orderable): %s" % [(result[x]) for x in range(len(result))])
-                orderable_id, system, name, description, order_type = _get_base_order_elements_from_DB_cursor_result(result)
-                del item.code.coding[:]
-                item.code.coding.append(FHIR_API.Coding(code=result[5], system=result[6], display=name))
-                item.code.coding.append(FHIR_API.Coding(code=orderable_id, system=system, display=name))
-                item.code.text = order_type
-                item.identifier = order.identifier
-                item.name = name
+            if result is None:
+                return item.code
+
+            FHIR_DB_LOG.debug("Result from DB query (identify_encounter_orderable): %s" % [(result[x]) for x in range(len(result))])
+            orderable_id, system, name, description, order_type = _get_base_order_elements_from_DB_cursor_result(result)
+            del item.code.coding[:]
+            item.code.coding.append(FHIR_API.Coding(code=result[5], system=result[6], display=name))
+            item.code.coding.append(FHIR_API.Coding(code=orderable_id, system=system, display=name))
+            item.code.text = order_type
+            item.identifier = order.identifier
+            item.name = name
 
             return item
     except:
@@ -520,7 +557,7 @@ def get_recently_resulted_orders(composition, conn):
         one_year_ago = datetime.datetime.now() - relativedelta(years=1)
 
         orderable_IDs_list = []
-        for order in composition.get_encounter_orders():
+        for order in [(order) for order in composition.get_encounter_orders() if isinstance(order.detail[0], (FHIR_API.Medication, FHIR_API.Procedure))]:
             if order.get_orderable_ID():
                 orderable_IDs_list.extend(order.get_orderable_ID())
 
@@ -625,8 +662,8 @@ def get_matching_CDS_rules(composition, conn):
         patient_meds = []
 
         rtn_matched_rules = []
-        for enc_ord in composition.get_encounter_orders():
-            trigger_code = enc_ord.get_procedure_id_coding()
+        for enc_ord in [(order) for order in composition.get_encounter_orders() if isinstance(order.detail[0], (FHIR_API.Medication, FHIR_API.Procedure))]:
+            trigger_code = enc_ord.get_proc_med_terminology_coding()
             args = [trigger_code.code,
                     trigger_code.system,
                     patient_age,
@@ -651,7 +688,8 @@ def get_matching_CDS_rules(composition, conn):
                                                        short_title=full_spec['evidence']['short-title'],
                                                        short_description=full_spec['evidence']['short-description'],
                                                        long_title=full_spec['evidence']['long-title'],
-                                                       long_description=full_spec['evidence']['long-description']))
+                                                       long_description=full_spec['evidence']['long-description'],
+                                                       triggering_order=enc_ord))
         return rtn_matched_rules
     except:
         raise Exception("Error extracting CDS rules from database")
@@ -690,11 +728,16 @@ def get_alert_configuration(ALERT_TYPE, composition, conn):
 
         cur = yield from conn.execute_single(' '.join(cmd), cmdargs)
 
-        rtn_cost_alert_validation_status = cur.fetchone()
-        FHIR_DB_LOG.debug("Result from DB query (get_alert_configuration): %s" %
-                 [(rtn_cost_alert_validation_status[x]) for x in range(len(rtn_cost_alert_validation_status))])
+        rtn_alert_validation_status = cur.fetchone()
 
-        return rtn_cost_alert_validation_status[0]
+        if rtn_alert_validation_status is None:
+            FHIR_DB_LOG.debug("No alert_config record for Alert Type: %s" % ALERT_TYPE.name)
+            return ALERT_VALIDATION_STATUS.SUPPRESS.value
+
+        else:
+            FHIR_DB_LOG.debug("Result from DB query (get_alert_configuration): %s" %
+            [(rtn_alert_validation_status[x]) for x in range(len(rtn_alert_validation_status))])
+            return rtn_alert_validation_status[0]
     except:
         raise Exception("Error retrieving COST alert configuration from database")
 

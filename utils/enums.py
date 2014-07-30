@@ -33,7 +33,7 @@ class ALERT_PRIORITY(Enum):
     CDS = 4
 
 
-class CDS_ALERT_STATUS(Enum):
+class ALERT_VALIDATION_STATUS(Enum):
     SUPPRESS = -1
     NO_SEND = 100
     DEBUG_ALERT = 200

@@ -29,7 +29,7 @@ import psycopg2
 import asyncio
 import maven_logging as ML
 import maven_config as MC
-
+import traceback
 
 class AsyncConnectionPool():
     """ ConnectionPool subclass supporting parallelism using asyncio and yield from
@@ -63,7 +63,8 @@ class AsyncConnectionPool():
 
         self.MIN_CONNECTIONS = MC.MavenConfig[name][self.CONFIG_MIN_CONNECTIONS]
         self.MAX_CONNECTIONS = MC.MavenConfig[name][self.CONFIG_MAX_CONNECTIONS]
-        self.CONNECTION_STRING = MC.MavenConfig[name][self.CONFIG_CONNECTION_STRING]
+        self.CONNECTION_STRINGS = MC.MavenConfig[name][self.CONFIG_CONNECTION_STRING].splitlines()
+        print(self.CONNECTION_STRINGS)
 
         # create MIN_CONNECTIONS tasks, each of which will establish a connection to prime the ready queue
         self.pending = self.MIN_CONNECTIONS
@@ -72,9 +73,13 @@ class AsyncConnectionPool():
 
     def schedule(self, loop):
         self.loop=loop
-        [asyncio.Task(self._new_connection(), loop=loop) for _ in range(self.MIN_CONNECTIONS)]
+        tasks=[asyncio.Task(self._new_connection(), loop=loop) for _ in range(self.MIN_CONNECTIONS)]
         ML.INFO('Starting %d connections' % self.pending)
-
+        for t in tasks:
+            ML.DEBUG(t)
+            if not t.done():
+                loop.run_until_complete(t) 
+        
     # noinspection PyArgumentList
     @asyncio.coroutine
     def execute_single(self, cmd, extra=None, future=None):
@@ -115,7 +120,7 @@ class AsyncConnectionPool():
         finally:
             if conn.closed:
                 self.in_use.remove(conn)
-                asyncio.Task(self._test_connection())
+                asyncio.Task(self._test_connection())  # see if other connections are dead too
                 asyncio.Task(self._new_connection())
             else:
                 self._release_connection(conn)  # put the connection back on the queue
@@ -263,7 +268,9 @@ class AsyncConnectionPool():
             while sleep_time:
                 try:
                     # make the connection with async=1, and wait for it to be ready
-                    connection = psycopg2.connect(self.CONNECTION_STRING, async=1)
+                    ML.DEBUG("trying to connect to %s" % self.CONNECTION_STRINGS[0])
+                    connection_string = self.CONNECTION_STRINGS[0]
+                    connection = psycopg2.connect(self.CONNECTION_STRINGS[0], async=1)
                     yield from self._wait(connection)
                     ML.INFO("Allocated a new connection")
                 
@@ -274,6 +281,9 @@ class AsyncConnectionPool():
                     self.pending -= 1
                     sleep_time = 0
                 except (psycopg2.DatabaseError, psycopg2.OperationalError):
+                    ML.ERROR("The database had an operational error: "+traceback.format_exc())
+                    if self.CONNECTION_STRINGS[0] == connection_string:
+                        self.CONNECTION_STRINGS.append(self.CONNECTION_STRINGS.pop(0))
                     yield from asyncio.sleep(sleep_time)
                     sleep_time = sleep_time * 2
                     if sleep_time > 4:
@@ -282,8 +292,11 @@ class AsyncConnectionPool():
                     # This will catch all errors from which we can never recover.
                     ML.ERROR("The database was unable to connect: "+traceback.format_exc())
                     self.pending -= 1
-                    self.connection_sem.release()
-        
+                except:
+                    ML.ERROR("An unexpected error occurred: "+traceback.format_exc())
+                    self.pending -= 1
+                    raise
+                    
     @asyncio.coroutine
     def _wait(self, connection):
         """ This is the key coroutine to make everything asynchronous.

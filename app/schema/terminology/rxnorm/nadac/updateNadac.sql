@@ -54,5 +54,38 @@ select updatenadacarchive();
 truncate table public.nadac;
 \copy nadac from 'NADAC.csv' delimiter ',' CSV
 delete from public.costmap where customer_id=-1 and code_type='NDC';
-insert into public.costmap (select -1,NDC,'NDC',-1,'NADAC '||units||' Cost',NDC,unitCost from NADAC);
-insert into public.orderable (customer_id,orderable_id,ord_type,name,description,base_cost) (Select -1,NDC,'Med',name,name,unitcost from NADAC);
+
+CREATE OR REPLACE FUNCTION translatenadacunitstonumeric()
+  RETURNS TABLE(units character varying, ndc character varying, unitCost numeric) AS
+$BODY$
+begin
+  FOR units, ndc, unitCost IN
+    SELECT nadac.units, nadac.ndc, nadac.unitcost FROM nadac
+      LOOP
+        IF units = 'EA' THEN
+          INSERT INTO costmap(
+            customer_id, code, code_type, department, cost_type, orderable_id,
+            cost)
+          VALUES (-1, ndc, 'NDC', -1, -150, ndc,
+                  unitCost);
+        ELSEIF units = 'GM' THEN
+          INSERT INTO costmap(
+            customer_id, code, code_type, department, cost_type, orderable_id,
+            cost)
+          VALUES (-1, ndc, 'NDC', -1, -152, ndc,
+                  unitCost);
+        ELSEIF units = 'ML' THEN
+          INSERT INTO costmap(
+            customer_id, code, code_type, department, cost_type, orderable_id,
+            cost)
+          VALUES (-1, ndc, 'NDC', -1, -151, ndc,
+                  unitCost);
+        END IF;
+        RETURN NEXT;
+      END LOOP;
+      RETURN;
+end
+$BODY$
+  Language plpgsql;
+select translatenadacunitstonumeric();
+insert into public.orderable (customer_id,orderable_id,ord_type,name,description) (Select -1,NDC,'Med',name,name from NADAC);

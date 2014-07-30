@@ -17,6 +17,28 @@ class Section():
             self.content = content
 
 
+class Product():
+
+    def __init__(self, form=None, ingredient=None):
+        self.form = form
+        if ingredient is None:
+            self.ingredient = []
+        else:
+            self.ingredient = ingredient
+
+
+class Ingredient():
+    """
+
+    :param ingredient_quantity: The amount of the ingredient in the substance - a concentration ratio.
+    :param ingredient_substance: Another substance that is a component of this substance.
+    """
+
+    def __init__(self, item=None, amount=None):
+        self.item = item
+        self.amount = amount
+
+
 class Address(Element):
     """
     Short Description: Extensions that cannot be ignored
