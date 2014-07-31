@@ -22,7 +22,7 @@ import asyncio
 from collections import defaultdict
 from dateutil.relativedelta import relativedelta
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
-from utils.enums import ORDER_SOURCE, PROCEDURE_ORDER_TYPES, MEDICATION_ORDER_TYPES, ALERT_TYPES
+from utils.enums import ORDER_SOURCE, PROCEDURE_ORDER_TYPES, MEDICATION_ORDER_TYPES, ALERT_TYPES, ALERT_VALIDATION_STATUS
 from utils.database.database import MappingUtilites
 import maven_logging as ML
 
@@ -729,10 +729,15 @@ def get_alert_configuration(ALERT_TYPE, composition, conn):
         cur = yield from conn.execute_single(' '.join(cmd), cmdargs)
 
         rtn_alert_validation_status = cur.fetchone()
-        FHIR_DB_LOG.debug("Result from DB query (get_alert_configuration): %s" %
-                 [(rtn_alert_validation_status[x]) for x in range(len(rtn_alert_validation_status))])
 
-        return rtn_alert_validation_status[0]
+        if rtn_alert_validation_status is None:
+            FHIR_DB_LOG.debug("No alert_config record for Alert Type: %s" % ALERT_TYPE.name)
+            return ALERT_VALIDATION_STATUS.SUPPRESS.value
+
+        else:
+            FHIR_DB_LOG.debug("Result from DB query (get_alert_configuration): %s" %
+            [(rtn_alert_validation_status[x]) for x in range(len(rtn_alert_validation_status))])
+            return rtn_alert_validation_status[0]
     except:
         raise Exception("Error retrieving COST alert configuration from database")
 
