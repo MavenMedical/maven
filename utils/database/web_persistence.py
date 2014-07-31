@@ -123,13 +123,13 @@ def _build_format(override={}):
             return formatbytypemap[type(x)](x)
         else:
             return x
-        
+
     formatbykeymap = {
         Results.patientname: _prettify_name,
         Results.sex: _prettify_sex,
         #Results.encounter_date: _prettify_date,
         Results.lengthofstay: _prettify_lengthofstay,
-    }        
+    }
     formatter = defaultdict(lambda: formatbytype,
                             formatbykeymap.items())
     formatter.update(override)
@@ -178,7 +178,7 @@ def append_extras(cmd, datefield, startdate, enddate, orderby, ascending,
         cmd.append("ORDER BY %s %s" % (ob, "ASC" if ascending else "DESC"))
     if limit:
         cmd.append(limit)
-    
+
 class WebPersistence():
     def __init__(self, configname):
         self.db = AsyncConnectionPool(MC.MavenConfig[configname][CONFIG_DATABASE])
@@ -244,7 +244,7 @@ class WebPersistence():
         Results.recentkeys: 'NULL',
     }
     _display_pre_login = _build_format()
-        
+
     @asyncio.coroutine
     def pre_login(self, desired, username=None, provider=[], keycheck=None):
         columns = build_columns(desired.keys(), self._available_pre_login,
@@ -263,10 +263,10 @@ class WebPersistence():
             cmd.append("WHERE users.prov_id = %s AND users.customer_id = %s")
             cmdargs.append(provider[0])
             cmdargs.append(provider[1])
-        
+
         results = yield from self.execute(cmd, cmdargs, self._display_pre_login, desired)
         return results[0]
-    
+
     _default_patient_info = set((Results.encounter_date,))
     _available_patient_info = {
         Results.patientname: "max(patient.patname)",
@@ -292,7 +292,7 @@ class WebPersistence():
                      startdate=None, enddate=None):
         columns = build_columns(desired.keys(), self._available_patient_info,
                                 self._default_patient_info)
-                
+
         cmd = []
         cmdargs=[]
         cmd.append("SELECT")
@@ -354,7 +354,6 @@ class WebPersistence():
         results = yield from self.execute(cmd, cmdargs, self._display_diagnosis_info, desired)
         return []
 
-        
     _default_total_spend = set()
     _available_total_spend = {
         Results.spending: "sum(order_cost)",
@@ -365,7 +364,7 @@ class WebPersistence():
         Results.savings: lambda x: -1,
         Results.spending: lambda x: (x and int(x)) or 0,
     })
-        
+
     @asyncio.coroutine
     def total_spend(self, desired, customer, provider=None, patients=[], encounter=None,
                     startdate=None, enddate=None):
@@ -407,7 +406,7 @@ class WebPersistence():
     _display_daily_spend = _build_format({
         Results.date: lambda d: d.strftime("%m/%d/%Y")
     })
-        
+
     @asyncio.coroutine
     def daily_spend(self, desired, provider, customer, patients=[], encounter=None,
                     startdate=None, enddate=None):
@@ -448,7 +447,7 @@ class WebPersistence():
         Results.alerttype: "max(alert.category)",
         Results.ruleid: "max(alert.cds_rule)",
         Results.likes: "SUM(CASE WHEN alert_setting_hist.action = 'like' THEN 1 ELSE 0 END)",
-        Results.dislikes: "SUM(CASE WHEN alert_setting_hist.action = 'dislike' THEN 1 ELSE 0 END)" 
+        Results.dislikes: "SUM(CASE WHEN alert_setting_hist.action = 'dislike' THEN 1 ELSE 0 END)"
         }
     _display_alerts = _build_format({
         Results.title: lambda x: x or '',
@@ -468,6 +467,8 @@ class WebPersistence():
         cmd.append("SELECT")
         cmd.append(columns)
         cmd.append("FROM alert")
+        if "likes" in desired.values() or "dislikes" in desired.values():
+            cmd.append("LEFT JOIN alert_setting_hist ON alert.alert_id = alert_setting_hist.alert_id")
         cmd.append("WHERE alert.provider_id = %s AND alert.customer_id = %s")
         cmdargs.append(provider)
         cmdargs.append(customer)
@@ -484,17 +485,8 @@ class WebPersistence():
             cmd.append("AND alert.order_id = %s")
             cmdargs.append(orderid)
         append_extras(cmd, Results.datetime, startdate, enddate, orderby, ascending,
-                      "(CASE WHEN cds_rule IS NULL THEN 'alert_id' || alert_id::varchar ELSE cds_rule::varchar END)",
+                      "(CASE WHEN cds_rule IS NULL THEN 'alert.alert_id' || alert.alert_id::varchar ELSE cds_rule::varchar END)",
                       limit, self._available_alerts)
-        if "likes" in desired.values() or "dislikes" in desired.values():
-            #group by selected columns that are not likes or dislikes
-            groupdesired = {k: v for k, v in desired.items() if (v != 'likes' and v != 'dislikes')}
-            groupcolumns = build_columns(groupdesired.keys(), self._available_alerts,
-                                         self._default_alerts)
-            cmd.append("GROUP BY")
-            cmd.append(groupcolumns)
-        if limit:
-            cmd.append(limit)
 
         results = yield from self.execute(cmd, cmdargs, self._display_alerts, desired)
         return results
@@ -583,7 +575,7 @@ class WebPersistence():
 
         results = yield from self.execute(cmd, cmdargs, self._display_orders, desired)
         return results
-        
+
     _default_per_encounter = set((Results.encounterid,))
     _available_per_encounter = {
         Results.patientid: "encounter.pat_id",
@@ -597,7 +589,7 @@ class WebPersistence():
     _display_per_encounter = _build_format({
         Results.enddate: lambda x: x and _prettify_datetime(x),
         })
-        
+
     @asyncio.coroutine
     def per_encounter(self, desired, provider, customer, patients=[], encounter=None,
                       startdate=None, enddate=None):
