@@ -201,10 +201,10 @@ class FrontendWebService(HTTP.HTTPProcessor):
             return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
 
     critique_required_contexts = [CONTEXT_CUSTOMERID, CONTEXT_RULEID, CONTEXT_USER,
-                                  CONTEXT_CATEGORY, CONTEXT_ACTIONCOMMENT]
+                                  CONTEXT_CATEGORY, CONTEXT_ACTIONCOMMENT, CONTEXT_ALERTID]
     critique_available_contexts = {CONTEXT_CUSTOMERID: int, CONTEXT_RULEID: int,
                                    CONTEXT_CATEGORY: str, CONTEXT_ACTIONCOMMENT: str,
-                                   CONTEXT_USER: str}
+                                   CONTEXT_USER: str, CONTEXT_ALERTID: int}
 
     @asyncio.coroutine
     def critique_alert(self, _header, _body, qs, _matches, _key):
@@ -215,12 +215,13 @@ class FrontendWebService(HTTP.HTTPProcessor):
         userid = context[CONTEXT_USER]
         customerid = context[CONTEXT_CUSTOMERID]
         ruleid = context[CONTEXT_RULEID]
+        alertid = context[CONTEXT_ALERTID]
         actioncomment = context[CONTEXT_ACTIONCOMMENT]
         category = context[CONTEXT_CATEGORY]
 
         result = yield from self.persistence_interface.update_alert_setting(userid, customerid,
-                                                                            ruleid, category,
-                                                                            actioncomment)
+                                                                            alertid, ruleid,
+                                                                            category, actioncomment)
         if result:
             return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
         else:

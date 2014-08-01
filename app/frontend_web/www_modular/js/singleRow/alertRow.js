@@ -81,7 +81,7 @@ define([
             {
                 $.ajax({
                     url: "/critique_alert",
-                    data: $.param(contextModel.toParams()) + "&alert_id" + that.model.get("alertid")+ "&rule_id=" + that.model.get("ruleid") +
+                    data: $.param(contextModel.toParams()) + "&alert_id=" + that.model.get("id")+ "&rule_id=" + that.model.get("ruleid") +
                                                              "&category=" +that.model.get("alerttype") + "&action_comment="+reason,
                     success: function (data) {
                         console.log(data);

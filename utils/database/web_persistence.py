@@ -467,8 +467,8 @@ class WebPersistence():
         Results.savings: "avg(alert.saving)",
         Results.alerttype: "max(alert.category)",
         Results.ruleid: "max(alert.cds_rule)",
-        Results.likes: "SUM(CASE WHEN alert_setting_hist.action = 'like' THEN 1 ELSE 0 END)",
-        Results.dislikes: "SUM(CASE WHEN alert_setting_hist.action = 'dislike' THEN 1 ELSE 0 END)"
+        Results.likes: "COUNT(case when alert_setting_hist.action = 'like' then 1 else null end)",
+        Results.dislikes: "COUNT(case when alert_setting_hist.action = 'dislike' then 1 else null end)"
         }
     _display_alerts = _build_format({
         Results.title: lambda x: x or '',
@@ -506,18 +506,9 @@ class WebPersistence():
             cmd.append("AND alert.order_id = %s")
             cmdargs.append(orderid)
         append_extras(cmd, cmdargs, Results.datetime, startdate, enddate, orderby, ascending,
-                      "(CASE WHEN cds_rule IS NULL THEN 'alert_id' " +
-                      "|| alert_id::varchar ELSE cds_rule::varchar END)",
+                      "(CASE WHEN cds_rule IS NULL THEN 'alert.alert_id' " +
+                      "|| alert.alert_id::varchar ELSE cds_rule::varchar END)",
                       limit, self._available_alerts)
-        if Results.likes in desired or Results.dislikes in desired:
-            # group by selected columns that are not likes or dislikes
-            groupdesired = {k: v for k, v in desired.items() if (v != 'likes' and v != 'dislikes')}
-            groupcolumns = build_columns(groupdesired.keys(), self._available_alerts,
-                                         self._default_alerts)
-            cmd.append("GROUP BY")
-            cmd.append(groupcolumns)
-        if limit:
-            cmd.append(limit)
 
         results = yield from self.execute(cmd, cmdargs, self._display_alerts, desired)
         return results
