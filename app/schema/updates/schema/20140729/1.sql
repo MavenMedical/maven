@@ -1,4 +1,4 @@
-Table: alert_setting_hist
+--Table: alert_setting_hist
 DROP TABLE alert_setting_hist;
 
 CREATE TABLE alert_setting_hist (
