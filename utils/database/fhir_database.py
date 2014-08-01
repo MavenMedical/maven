@@ -243,9 +243,9 @@ def write_composition_alerts(composition, conn):
             cmd.append("(" + columns + ")")
 
             if is_alert_with_triggering_order:
-                cmd.append("VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
+                cmd.append("VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
             else:
-                cmd.append("VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
+                cmd.append("VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
 
             cur = yield from conn.execute_single(' '.join(cmd) + ';', cmdargs)
 
