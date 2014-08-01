@@ -1,14 +1,33 @@
-cd $MAVEN_ROOT && python unit_tests.py
+RET=0
+
+cd $MAVEN_ROOT
+#git stash -q --keep-index
+
+CHANGEDPY=`git diff --diff-filter=ACMRUXB --full-index --name-only HEAD -- '*.py' | grep -v site-packages`
+if [[ -n "$CHANGEDPY" ]]; then
+   if flake8 --ignore=E501,E123,E126 $CHANGEDPY; then
+      echo flake8 lint succeeded
+   else
+      echo flake8 lint failed, commit aborting
+      exit 1
+   fi
+fi
+
+
+
+python unit_tests.py
 if [ $? -eq 0 ]; then
    echo Tests passed, commit proceeding
    if find $MAVEN_ROOT/app/schema/updates -name "*.sql" | grep -v "app/schema/updates/\(\(schema\)\|\(data\)\)/[0-9]\{8\}/[0-9]*.sql"; then 
       echo you have misplaced sql update files, commit aborting
-      exit 1
+      RET=1
    else
-      echo All checks passed, commit
-      exit 0
+      echo All unit tests passed
    fi
 else
    echo TESTS FAILED, commit aborting
-   exit 1
+   RET=1
 fi
+
+#git stash pop -q
+exit $RET
