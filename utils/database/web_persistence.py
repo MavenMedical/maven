@@ -1,9 +1,9 @@
 import asyncio
-import dateutil
 from enum import Enum
 from collections import defaultdict
 from decimal import Decimal
 from datetime import date, datetime
+import utils.enums
 
 from utils.database.database import AsyncConnectionPool
 from utils.database.database import MappingUtilites as DBMapUtils
@@ -488,11 +488,13 @@ class WebPersistence():
         cmd.append("SELECT")
         cmd.append(columns)
         cmd.append("FROM alert")
-        if "likes" in desired.values() or "dislikes" in desired.values():
+        if Results.likes in desired or Results.dislikes in desired:
             cmd.append("LEFT JOIN alert_setting_hist ON alert.alert_id = alert_setting_hist.alert_id")
         cmd.append("WHERE alert.provider_id = %s AND alert.customer_id = %s")
         cmdargs.append(provider)
         cmdargs.append(customer)
+        cmd.append("AND alert.validation_status > %s")
+        cmdargs.append(utils.enums.ALERT_VALIDATION_STATUS.DEBUG_ALERT.value)
         if patients:
             cmd.append("AND alert.pat_id IN %s")
             cmdargs.append(makelist(patients))
