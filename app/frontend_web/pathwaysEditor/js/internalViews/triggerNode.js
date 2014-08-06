@@ -12,9 +12,10 @@ define([
     'models/treeModel',
     'internalViews/protocolNode',
     'internalViews/treeNode',
-    'text!templates/triggerNode.html'
+    'text!templates/triggerNode.html',
+    'text!templates/triggerRow.html'
 
-    ], function($, _, Backbone,  NodeEditor, ProtocolEditor, DetailEditor, nodeList, nodeModel, curTree, ProtocolNode, TreeNode, nodeTemplate){
+    ], function($, _, Backbone,  NodeEditor, ProtocolEditor, DetailEditor, nodeList, nodeModel, curTree, ProtocolNode, TreeNode, nodeTemplate, rowTemplate){
 
         var TriggerNode = TreeNode.extend({
 
@@ -38,7 +39,13 @@ define([
                 this.model.on('change', function(){
                     curTree.trigger('propagate')
                 }, this)
-
+                this.model.get('triggers').off('add')
+                this.model.get('triggers').on('add', function(){
+                    curTree.trigger('propagate')
+                },this)
+                this.model.get('triggers').on('remove', function(){
+                    curTree.trigger('propagate')
+                },this)
                 this.render()
 
 
@@ -93,6 +100,24 @@ define([
                     $('.removeProtocolButton', this.$el).on("click", function(){
                         that.model.unset('protocol')
                     })
+
+                }
+                if (this.model.get('triggers')){
+                    var triggerEl = $('.triggerView', this.$el)
+                    var rowTemp = _.template(rowTemplate)
+                    triggerEl.html("");
+                    _.each(this.model.get('triggers').models, function(cur){
+                        triggerEl.append(rowTemp(cur.attributes))
+                        var that = this
+                        var curRemoveButton = $('.remove-detail', triggerEl).last()
+                        curRemoveButton.on('click', function(){
+                            that.model.get('triggers').remove(cur)
+                        })
+
+
+
+
+                    }, this)
 
                 }
 

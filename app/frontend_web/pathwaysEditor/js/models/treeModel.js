@@ -16,6 +16,7 @@ define([
         },
 
         initialize: function(){
+            this.set('triggers', new Backbone.Collection())
             this.set('text', "Triggers")
             this.set('children', new NodeList())
             this.elPairs = []
@@ -30,6 +31,7 @@ define([
            this.set('id', response.id)
            this.set('protocol', response.protocol)
            this.set('children', new NodeList(response.children))
+           this.set('triggers', new Backbone.Collection(response.triggers))
         }
 
     })
