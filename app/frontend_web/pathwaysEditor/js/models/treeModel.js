@@ -9,13 +9,16 @@ define([
 
 
     var TreeModel = Backbone.Model.extend({
+        elPairs: [],
         url: function() {
 
             return '/tree?' + decodeURIComponent($.param(contextModel.toParams()));
         },
+
         initialize: function(){
             this.set('text', "Triggers")
             this.set('children', new NodeList())
+            this.elPairs = []
         },
         toJSON: function(){
             return this.attributes
