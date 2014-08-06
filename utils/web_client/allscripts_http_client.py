@@ -163,8 +163,8 @@ class allscripts_api(http.http_api):
         return child
 
     @_require_token
-    def GetProcedures(self, username, patient, completionstatuses=[],
-                      rulenames=[], rulenameexactmatch=False):
+    def GetProcedures(self, username, patient, completionstatuses=None,
+                      rulenames=None, rulenameexactmatch=False):
         """ Gets a list of procedures for a given patient
         :param username: the allscripts user requesting the data
         :param patient: the patient to search for

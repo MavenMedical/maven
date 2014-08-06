@@ -16,10 +16,10 @@ class http_api():
     It also handles timeouts, caching, and other common functionality.
     """
 
-    def __init__(self, url, other_headers=[], decode=True, postprocess=None):
+    def __init__(self, url, other_headers=None, decode=True, postprocess=None):
         """ Create a new instance of the remote query object using the shared parameters
         :param url: the shared url base for all remote methods
-        :param other_headers=[]: optional parameter for additional headers (api key)
+        :param other_headers=None: optional parameter for additional headers (api key)
         """
         self.base_url = url
         self.other_headers = other_headers
