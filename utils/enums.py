@@ -1,21 +1,21 @@
-#*************************************************************************
-#Copyright (c) 2014 - Maven Medical
-#************************
-#AUTHOR:
-__author__='Yuki Uchino'
-#************************
-#DESCRIPTION:   This enums.py contains the enums/lists that are standardized throughout various applications
+# *************************************************************************
+# Copyright (c) 2014 - Maven Medical
+# ************************
+# AUTHOR:
+__author__ = 'Yuki Uchino'
+# ************************
+# DESCRIPTION:   This enums.py contains the enums/lists that are standardized throughout various applications
 #
 #
 #
 #
-#************************
-#ASSUMES:
-#************************
-#SIDE EFFECTS:
-#************************
-#LAST MODIFIED FOR JIRA ISSUE: MAV-223
-#*************************************************************************
+# ************************
+# ASSUMES:
+# ************************
+# SIDE EFFECTS:
+# ************************
+# LAST MODIFIED FOR JIRA ISSUE: MAV-223
+# *************************************************************************
 from enum import Enum
 
 
@@ -33,7 +33,7 @@ class ALERT_PRIORITY(Enum):
     CDS = 4
 
 
-class CDS_ALERT_STATUS(Enum):
+class ALERT_VALIDATION_STATUS(Enum):
     SUPPRESS = -1
     NO_SEND = 100
     DEBUG_ALERT = 200
@@ -105,3 +105,10 @@ class DIAGNOSTIC_TERMINOLOGIES(Enum):
     ICD10 = "International Statistical Classification of Diseases Version 10"
     snomed = "SNOMED CT"
     SNOMED = "SNOMED CT"
+
+
+class ALERT_SETTING_ACTIONS(Enum):
+    LI = "like"
+    DI = "dislike"
+    OI = "opt in"
+    OO = "opt out"

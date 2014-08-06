@@ -1,9 +1,9 @@
 import asyncio
-import dateutil
 from enum import Enum
 from collections import defaultdict
 from decimal import Decimal
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
+import utils.enums
 
 from utils.database.database import AsyncConnectionPool
 from utils.database.database import MappingUtilites as DBMapUtils
@@ -16,7 +16,7 @@ ML.set_debug('/tmp/web_persistence.log')
 CONFIG_DATABASE = 'database'
 
 Results = Enum('Results',
-"""
+               """
     patientname
     patientid
     birthdate
@@ -62,6 +62,8 @@ Results = Enum('Results',
     subcategory
     scope
     action
+    likes
+    dislikes
 """)
 
 
@@ -88,14 +90,15 @@ def _prettify_name(s):
 def _prettify_sex(s):
     return str.title(s)
 
+
 def _prettify_datetime(s):
     return s.strftime("%Y-%m-%d %H:%M")
 
 
 def _prettify_lengthofstay(s):
     days = s[0].days
-    if days>1:
-        return str(days)+" days"
+    if days > 1:
+        return str(days) + " days"
     else:
         return (s[0].seconds // 3600) + " hours"
 
@@ -121,13 +124,13 @@ def _build_format(override={}):
             return formatbytypemap[type(x)](x)
         else:
             return x
-        
+
     formatbykeymap = {
         Results.patientname: _prettify_name,
         Results.sex: _prettify_sex,
-        #Results.encounter_date: _prettify_date,
+        # Results.encounter_date: _prettify_date,
         Results.lengthofstay: _prettify_lengthofstay,
-    }        
+    }
     formatter = defaultdict(lambda: formatbytype,
                             formatbykeymap.items())
     formatter.update(override)
@@ -137,15 +140,47 @@ def _build_format(override={}):
 def build_columns(desired, available, defaults):
     extras = set(desired) - available.keys()
     if extras:
-        raise InvalidRequest("patient_info does not support these results: " + str(extras))
+        raise InvalidRequest("these results are not support: " + str(extras))
 
-    #missing = required - set(desired)
-    #if missing:
+    # missing = required - set(desired)
+    # if missing:
     #    raise InvalidRequest("patient_info requires the following results: "+str(missing))
 
     columns = list(desired)
     columns.extend(defaults - set(desired))
     return DBMapUtils().select_rows_from_map([available[x] for x in columns])
+
+
+def build_set(items, available):
+    try:
+        iter(items)
+        return ",".join([available[x] for x in items])
+    except TypeError:
+        return available[items]
+
+
+def append_extras(cmd, cmdargs, datefield, startdate, enddate, orderby, ascending,
+                  groupby, limit, column_map):
+    if startdate:
+        cmd.append("AND " + column_map[datefield] + " >= %s")
+        cmdargs.append(startdate)
+    if enddate:
+        cmd.append("AND " + column_map[datefield] + " < %s + interval '1 day'")
+        cmdargs.append(enddate)
+    if groupby:
+        try:
+            gb = build_set(groupby, column_map)
+        except KeyError:
+            gb = groupby
+        cmd.append("GROUP BY " + gb)
+    if orderby:
+        try:
+            ob = build_set(orderby, column_map)
+        except KeyError:
+            ob = orderby
+        cmd.append("ORDER BY %s %s" % (ob, "ASC" if ascending else "DESC"))
+    if limit:
+        cmd.append(limit)
 
 
 class WebPersistence():
@@ -161,37 +196,56 @@ class WebPersistence():
         results = []
         if cmd[0] in ['SELECT']:
             for row in cur:
-#            results.append({print((type(v),v, k, display[k], display[k](v))) or desired[k]: display[k](v) for k,v in zip(desired, row)})
-                results.append({desired[k]: display[k](v) for k,v in zip(desired, row)})
+                # results.append({print((type(v),v, k, display[k], display[k](v)))
+                #                or desired[k]: display[k](v) for k,v in zip(desired, row)})
+                results.append({desired[k]: display[k](v) for k, v in zip(desired, row)})
 
-        logger.debug(str(cmd) + " " +str(cmdargs) +" -> " + str(results))
+        logger.debug(str(cmd) + " " + str(cmdargs) + " -> " + str(results))
         return results
 
     @asyncio.coroutine
-    def update_password(self, user, newpw, timeout = '180d'):
-        yield from self.execute(["UPDATE users set (pw, pw_expiration) = (%s, now() + interval %s) where user_id = %s"],
+    def update_password(self, user, newpw, timeout='180d'):
+        yield from self.execute(["UPDATE users set (pw, pw_expiration) " +
+                                 "= (%s, now() + interval %s) where user_id = %s"],
                                 [newpw, timeout, user], {}, {})
+
     @asyncio.coroutine
-    def update_user_settings(self, user, officialname,displayname):
-        yield from self.execute(["UPDATE users set (official_name, display_name) = (%s, %s) where user_id = %s"],
+    def update_user_settings(self, user, officialname, displayname):
+        yield from self.execute(["UPDATE users set (official_name, display_name) " +
+                                 "= (%s, %s) where user_id = %s"],
                                 [officialname, displayname, user], {}, {})
 
     @asyncio.coroutine
-    def rate_alert(self, customer_id, provider_id, category, subcategory, rule_id, scope, action, update=0):
+    def update_alert_setting(self, user, customer, alertid, ruleid, category, actioncomment):
+        yield from self.execute(["UPDATE alert_setting_hist set(action_comment, datetime) = " +
+                                 "(%s, CURRENT_TIMESTAMP) where alert_id=%s and customer_id = " +
+                                 "%s and user_id=%s and category=%s and rule_id=%s"],
+                                [actioncomment, alertid, customer, user,
+                                 category, ruleid], {}, {})
+
+    @asyncio.coroutine
+    def rate_alert(self, customer_id, user_id, category, subcategory,
+                   alertid, rule_id, scope, action, update=0):
 
         if update == 1:
-            yield from self.execute(["UPDATE alert_setting_hist set (action) = (%s) where customer_id = %s and provider_id = %s " +
-                                                                                   "and category = %s and subcategory = %s "+
-                                                                                   "and rule_id = %s and scope = %s"],
-                                    [action, customer_id, provider_id, category, subcategory, rule_id, scope], {}, {})
+            yield from self.execute(["UPDATE alert_setting_hist set (action, datetime) = " +
+                                     "(%s, CURRENT_TIMESTAMP) where alert_id = %s and " +
+                                     "customer_id = %s and user_id = %s and category = %s " +
+                                     "and subcategory = %s and rule_id = %s and scope = %s"],
+                                    [action, alertid, customer_id, user_id, category,
+                                     subcategory, rule_id, scope], {}, {})
         else:
-            yield from self.execute(["INSERT into alert_setting_hist (customer_id, provider_id, category, subcategory, rule_id, scope, action)" +
-                                     "VALUES (%s,%s,%s,%s,%s,%s,%s)"],
-                                    [customer_id, provider_id, category, subcategory, rule_id, scope, action], {}, {})
+            yield from self.execute(["INSERT into alert_setting_hist (alert_id, customer_id, " +
+                                     "user_id, datetime, category, subcategory, rule_id, " +
+                                     "scope, action)" +
+                                     "VALUES (%s,%s,%s,CURRENT_TIMESTAMP,%s,%s,%s,%s,%s)"],
+                                    [alertid, customer_id, user_id, category, subcategory,
+                                     rule_id, scope, action], {}, {})
 
     @asyncio.coroutine
     def record_login(self, username, method, ip, authkey):
-        yield from self.execute(['INSERT INTO logins (user_name, method, logintime, ip, authkey) VALUES (%s, %s, now(), %s, %s)'],
+        yield from self.execute(["INSERT INTO logins (user_name, method, logintime, ip, authkey)" +
+                                 "VALUES (%s, %s, now(), %s, %s)"],
                                 [username, method, ip, authkey], {}, {})
 
     _default_pre_login = set((Results.username,))
@@ -205,11 +259,11 @@ class WebPersistence():
         Results.password: 'users.pw',
         Results.passexpired: 'users.pw_expiration < now()',
         Results.userstate: 'users.state',
-#        Results.failedlogins: 'array_agg(logins.logintime)',
+        #        Results.failedlogins: 'array_agg(logins.logintime)',
         Results.recentkeys: 'NULL',
     }
     _display_pre_login = _build_format()
-        
+
     @asyncio.coroutine
     def pre_login(self, desired, username=None, provider=[], keycheck=None):
         columns = build_columns(desired.keys(), self._available_pre_login,
@@ -228,10 +282,10 @@ class WebPersistence():
             cmd.append("WHERE users.prov_id = %s AND users.customer_id = %s")
             cmdargs.append(provider[0])
             cmdargs.append(provider[1])
-        
+
         results = yield from self.execute(cmd, cmdargs, self._display_pre_login, desired)
         return results[0]
-    
+
     _default_patient_info = set((Results.encounter_date,))
     _available_patient_info = {
         Results.patientname: "max(patient.patname)",
@@ -239,13 +293,14 @@ class WebPersistence():
         Results.birthdate: "max(patient.birthdate)",
         Results.sex: "max(patient.sex)",
         Results.encounter_date: "max(encounter.contact_date) AS contact_date",
-        Results.encounter_list: "array_agg(encounter.csn || ' ' || encounter.contact_date)" ,
+        Results.encounter_list: "array_agg(encounter.csn || ' ' || encounter.contact_date)",
         Results.cost: "0",
         Results.diagnosis: "'None yet'",
         Results.allergies: "'None'",
         Results.problems: "'None yet'",
         Results.admission: "max(encounter.hosp_admsn_time)",
-        Results.lengthofstay: 'array_agg(coalesce(encounter.hosp_disch_time, now()) - encounter.hosp_admsn_time)',
+        Results.lengthofstay: 'array_agg(coalesce(encounter.hosp_disch_time, now()) -' +
+                              'encounter.hosp_admsn_time)',
     }
     _display_patient_info = _build_format({
         Results.encounter_list: lambda x: list(map(lambda v: v.split(' '), x)),
@@ -257,13 +312,14 @@ class WebPersistence():
                      startdate=None, enddate=None):
         columns = build_columns(desired.keys(), self._available_patient_info,
                                 self._default_patient_info)
-                
+
         cmd = []
-        cmdargs=[]
+        cmdargs = []
         cmd.append("SELECT")
         cmd.append(columns)
         cmd.append("FROM encounter JOIN patient")
-        cmd.append("ON (patient.pat_id = encounter.pat_id AND encounter.customer_id = patient.customer_id)")
+        cmd.append("ON patient.pat_id = encounter.pat_id")
+        cmd.append("AND encounter.customer_id = patient.customer_id")
         cmd.append("WHERE encounter.customer_id = %s")
         cmdargs.append(customer)
         cmd.append("AND encounter.visit_prov_id = %s")
@@ -281,11 +337,8 @@ class WebPersistence():
         if enddate:
             cmd.append("AND encounter.hosp_disch_time < %s")
             cmdargs.append(enddate)
-        cmd.append("GROUP BY encounter.pat_id")
-        cmd.append("ORDER BY contact_date")
-
-        if limit:
-            cmd.append(limit)
+        append_extras(cmd, cmdargs, None, None, None, 'contact_date', True, 'encounter.pat_id',
+                      limit, self._available_patient_info)
 
         results = yield from self.execute(cmd, cmdargs, self._display_patient_info, desired)
         return results
@@ -304,12 +357,12 @@ class WebPersistence():
                                 self._default_diagnosis_info)
 
         cmd = []
-        cmdargs=[]
+        cmdargs = []
         cmd.append("SELECT")
         cmd.append(columns)
         cmd.append("FROM diagnosis")
-        #cmd.append("WHERE customer_id = %s")
-        #cmdargs.append(customer)
+        # cmd.append("WHERE customer_id = %s")
+        # cmdargs.append(customer)
         if diagnosis:
             substring = "%" + diagnosis + "%"
             cmd.append("WHERE UPPER(dx_name) LIKE UPPER(%s)")
@@ -320,19 +373,19 @@ class WebPersistence():
             cmd.append(limit)
 
         results = yield from self.execute(cmd, cmdargs, self._display_diagnosis_info, desired)
-        return []
+        return list(results)
 
-        
     _default_total_spend = set()
     _available_total_spend = {
         Results.spending: "sum(order_cost)",
         Results.savings: "NULL",
+        Results.datetime: "order_ord.order_datetime",
     }
     _display_total_spend = _build_format({
         Results.savings: lambda x: -1,
         Results.spending: lambda x: (x and int(x)) or 0,
     })
-        
+
     @asyncio.coroutine
     def total_spend(self, desired, customer, provider=None, patients=[], encounter=None,
                     startdate=None, enddate=None):
@@ -356,13 +409,9 @@ class WebPersistence():
         if encounter:
             cmd.append("AND encounter.csn = %s")
             cmdargs.append(encounter)
-        if startdate:
-            cmd.append("AND order_ord.order_datetime >= %s")
-            cmdargs.append(startdate)
-        if enddate:
-            cmd.append("AND order_ord.order_datetime < %s + interval '1 day'")
-            cmdargs.append(enddate)
-        cur = yield from self.db.execute_single(' '.join(cmd) + ';', cmdargs)
+        append_extras(cmd, cmdargs, Results.datetime, startdate, enddate, None, None,
+                      None, None, self._available_total_spend)
+
         results = yield from self.execute(cmd, cmdargs, self._display_total_spend, desired)
         if results:
             return results[0]
@@ -371,12 +420,14 @@ class WebPersistence():
 
     _default_daily_spend = set()
     _available_daily_spend = {
-        Results.date: "to_char(order_datetime,'Mon/DD/YYYY') AS dt",
-        Results.ordertype: "order_type",
+        Results.date: "order_ord.order_datetime",
+        Results.ordertype: "order_ord.order_type",
         Results.spending: "sum(order_cost)",
     }
-    _display_daily_spend = _build_format()
-        
+    _display_daily_spend = _build_format({
+        Results.date: lambda d: d.strftime("%m/%d/%Y")
+    })
+
     @asyncio.coroutine
     def daily_spend(self, desired, provider, customer, patients=[], encounter=None,
                     startdate=None, enddate=None):
@@ -399,28 +450,25 @@ class WebPersistence():
         if encounter:
             cmd.append("AND encounter.csn = %s")
             cmdargs.append(encounter)
-        if startdate:
-            cmd.append("AND order_ord.order_datetime >= %s")
-            cmdargs.append(startdate)
-        if enddate:
-            cmd.append("AND order_ord.order_datetime < %s + interval '1 day'")
-            cmdargs.append(enddate)
-        cmd.append("GROUP BY dt, order_type")
+        append_extras(cmd, cmdargs, Results.date, startdate, enddate, None, None,
+                      [Results.date, Results.ordertype], None, self._available_daily_spend)
 
         results = yield from self.execute(cmd, cmdargs, self._display_daily_spend, desired)
         return results
 
     _default_alerts = set((Results.datetime,))
     _available_alerts = {
-        Results.alertid: "alert.alert_id",
-        Results.patientid: "alert.pat_id",
-        Results.datetime: "alert.alert_datetime",
-        Results.title: "alert.long_title",
-        Results.description: "alert.long_description",
-        Results.outcome: "alert.outcome",
-        Results.savings: "alert.saving",
-        Results.alerttype: "alert.category",
-        Results.ruleid: "alert.cds_rule",
+        Results.alertid: "max(alert.alert_id)",
+        Results.patientid: "array_agg(alert.pat_id)",
+        Results.datetime: "max(alert.alert_datetime)",
+        Results.title: "max(alert.long_title)",
+        Results.description: "max(alert.long_description)",
+        Results.outcome: "avg(alert.outcome)",
+        Results.savings: "avg(alert.saving)",
+        Results.alerttype: "max(alert.category)",
+        Results.ruleid: "max(alert.cds_rule)",
+        Results.likes: "COUNT(case when alert_setting_hist.action = 'like' then 1 else null end)",
+        Results.dislikes: "COUNT(case when alert_setting_hist.action = 'dislike' then 1 else null end)"
         }
     _display_alerts = _build_format({
         Results.title: lambda x: x or '',
@@ -430,18 +478,23 @@ class WebPersistence():
 
     @asyncio.coroutine
     def alerts(self, desired, provider, customer, patients=[], limit="",
-               startdate=None, enddate=None, orderid=None, categories=[], alertid=None):
+               startdate=None, enddate=None, orderid=None, categories=[],
+               orderby=Results.datetime, ascending=True, alertid=None):
         columns = build_columns(desired.keys(), self._available_alerts,
                                 self._default_alerts)
-        
+
         cmd = []
         cmdargs = []
         cmd.append("SELECT")
         cmd.append(columns)
         cmd.append("FROM alert")
+        if Results.likes in desired or Results.dislikes in desired:
+            cmd.append("LEFT JOIN alert_setting_hist ON alert.alert_id = alert_setting_hist.alert_id")
         cmd.append("WHERE alert.provider_id = %s AND alert.customer_id = %s")
         cmdargs.append(provider)
         cmdargs.append(customer)
+        cmd.append("AND alert.validation_status > %s")
+        cmdargs.append(utils.enums.ALERT_VALIDATION_STATUS.DEBUG_ALERT.value)
         if patients:
             cmd.append("AND alert.pat_id IN %s")
             cmdargs.append(makelist(patients))
@@ -454,15 +507,10 @@ class WebPersistence():
         if orderid:
             cmd.append("AND alert.order_id = %s")
             cmdargs.append(orderid)
-        if startdate:
-            cmd.append("AND alert.alert_datetime >= %s")
-            cmdargs.append(startdate)
-        if enddate:
-            cmd.append("AND alert.alert_datetime < %s + interval '1 day'")
-            cmdargs.append(enddate)
-        cmd.append("ORDER BY alert.alert_datetime DESC")
-        if limit:
-            cmd.append(limit)
+        append_extras(cmd, cmdargs, Results.datetime, startdate, enddate, orderby, ascending,
+                      "(CASE WHEN cds_rule IS NULL THEN 'alert.alert_id' " +
+                      "|| alert.alert_id::varchar ELSE cds_rule::varchar END)",
+                      limit, self._available_alerts)
 
         results = yield from self.execute(cmd, cmdargs, self._display_alerts, desired)
         return results
@@ -480,7 +528,8 @@ class WebPersistence():
         })
 
     @asyncio.coroutine
-    def alert_settings(self, desired, provider, customer, ruleid=None, category=None, limit=""):
+    def alert_settings(self, desired, user, customer, alertid=None, ruleid=None,
+                       category=None, limit=""):
         columns = build_columns(desired.keys(), self._available_alert_settings,
                                 self._default_alert_settings)
 
@@ -489,9 +538,13 @@ class WebPersistence():
         cmd.append("SELECT")
         cmd.append(columns)
         cmd.append("FROM alert_setting_hist")
-        cmd.append("WHERE alert_setting_hist.provider_id = %s AND alert_setting_hist.customer_id = %s")
-        cmdargs.append(provider)
+        cmd.append("WHERE alert_setting_hist.user_id = %s")
+        cmdargs.append(user)
+        cmd.append("AND alert_setting_hist.customer_id = %s")
         cmdargs.append(customer)
+        if alertid:
+            cmd.append("AND alert_setting_hist.alert_id = %s")
+            cmdargs.append(alertid)
         if ruleid:
             cmd.append("AND alert_setting_hist.rule_id = %s")
             cmdargs.append(ruleid)
@@ -503,18 +556,16 @@ class WebPersistence():
         results = yield from self.execute(cmd, cmdargs, self._display_alert_settings, desired)
         return results
 
-
     _default_orders = set((Results.datetime,))
     _available_orders = {
         Results.ordername: "order_ord.order_name",
         Results.datetime: "order_ord.order_datetime",
         Results.active: "order_ord.status",
         Results.cost: "order_ord.order_cost",
-#        Results.ordertype: "(ARRAY['Medication', 'Consultation', 'Lab-work', 'Procedure', 'Other', 'Imaging'])[floor(random() * 6.0) + 1]",
         Results.ordertype: "order_ord.order_type",
         Results.orderid: "order_ord.order_id",
     }
-    #_display_orders = _build_format()
+    # _display_orders = _build_format()
 
     _display_orders = _build_format({
         Results.datetime: lambda x: x and _prettify_datetime(x),
@@ -543,19 +594,12 @@ class WebPersistence():
         if ordertypes:
             cmd.append("AND order_ord.order_type IN %s")
             cmdargs.append(ordertypes)
-        if startdate:
-            cmd.append("AND order_ord.order_datetime >= %s")
-            cmdargs.append(startdate)
-        if enddate:
-            cmd.append("AND order_ord.order_datetime < %s + interval '1 day'")
-            cmdargs.append(enddate)
-        cmd.append("ORDER BY order_ord.order_datetime desc")
-        if limit:
-            cmd.append(limit)
+        append_extras(cmd, cmdargs, Results.datetime, startdate, enddate, Results.datetime, False,
+                      None, limit, self._available_orders)
 
         results = yield from self.execute(cmd, cmdargs, self._display_orders, desired)
         return results
-        
+
     _default_per_encounter = set((Results.encounterid,))
     _available_per_encounter = {
         Results.patientid: "encounter.pat_id",
@@ -569,7 +613,7 @@ class WebPersistence():
     _display_per_encounter = _build_format({
         Results.enddate: lambda x: x and _prettify_datetime(x),
         })
-        
+
     @asyncio.coroutine
     def per_encounter(self, desired, provider, customer, patients=[], encounter=None,
                       startdate=None, enddate=None):
@@ -577,7 +621,7 @@ class WebPersistence():
                                 self._default_per_encounter)
 
         cmd = []
-        cmdargs=[]
+        cmdargs = []
         cmd.append("SELECT")
         cmd.append(columns)
         cmd.append("FROM order_ord JOIN encounter")
@@ -601,7 +645,8 @@ class WebPersistence():
             cmd.append("AND encounter.hosp_disch_time < %s")
             cmdargs.append(enddate)
         cmd.append("GROUP BY encounter.csn, encounter.pat_id, patient.patname")
-        #TODO : encounter.pat_id is added to the Group by, need test to make sure we are not losing data
+        # TODO : encounter.pat_id is added to the Group by, need test to
+        # make sure we are not losing data
 
         results = yield from self.execute(cmd, cmdargs, self._display_per_encounter, desired)
         return results

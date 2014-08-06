@@ -172,5 +172,11 @@ INSERT INTO rules.evirule(
 INSERT INTO alert_config(
             customer_id, department, category, rule_id, validation_status,
             provide_optouts)
-    VALUES (1, NULL, 'cds', 5, 100,
+    VALUES (1, NULL, 'CDS', 5, 100,
+            NULL);
+
+INSERT INTO alert_config(
+            customer_id, department, category, rule_id, validation_status,
+            provide_optouts)
+    VALUES (1, -1, 'COST', 5, 400,
             NULL);

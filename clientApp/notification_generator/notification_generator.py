@@ -1,21 +1,21 @@
-#*************************************************************************
-#Copyright (c) 2014 - Maven Medical
-#************************
-#AUTHOR:
-__author__='Yuki Uchino'
-#************************
-#DESCRIPTION:   This notification_generator.py contains the classes required to generate
-#               EMR-specific notification messages, in order to accommodate the available
-#               features in each environment (e.g. WorldVistA will utilize Dave's Java Notification
-#               system, whereas the Notifications targeting Epic will have to be constructed in a
-#               BPA-friendly manner.)
-#************************
-#ASSUMES:
-#************************
-#SIDE EFFECTS:
-#************************
-#LAST MODIFIED FOR JIRA ISSUE: MAV-150
-#*************************************************************************
+# *************************************************************************
+# Copyright (c) 2014 - Maven Medical
+# ************************
+# AUTHOR:
+__author__ = 'Yuki Uchino'
+# ************************
+# DESCRIPTION:   This notification_generator.py contains the classes required to generate
+#                EMR-specific notification messages, in order to accommodate the available
+#                features in each environment (e.g. WorldVistA will utilize Dave's Java Notification
+#                system, whereas the Notifications targeting Epic will have to be constructed in a
+#                BPA-friendly manner.)
+# ************************
+# ASSUMES:
+# ************************
+# SIDE EFFECTS:
+# ************************
+# LAST MODIFIED FOR JIRA ISSUE: MAV-150
+# *************************************************************************
 import os
 import asyncio
 import maven_config as MC
@@ -25,7 +25,7 @@ import urllib.parse
 import html
 import math
 import jinja2
-from utils.enums import CDS_ALERT_STATUS, ALERT_TYPES, ALERT_PRIORITY
+from utils.enums import ALERT_VALIDATION_STATUS, ALERT_TYPES, ALERT_PRIORITY
 from jinja2 import Environment, PackageLoader
 
 
@@ -38,6 +38,7 @@ TEMPLATE_LOAD_PATH = "templateloadpath"
 MAX_MSG_LOAD = "maxmsgload"
 
 NG_LOG = ML.get_logger()
+
 
 class NotificationGenerator():
 
@@ -53,13 +54,13 @@ class NotificationGenerator():
             raise MC.InvalidConfig("Notification Generator needs a config entry")
         try:
             self.configname = configname
-            if not configname in MC.MavenConfig:
-                raise MC.InvalidConfig(configname+" is not in the MavenConfig map.")
+            if configname not in MC.MavenConfig:
+                raise MC.InvalidConfig(configname + " is not in the MavenConfig map.")
             config = MC.MavenConfig[configname]
 
             try:
-#                self.emrtype = config.get(EMR_TYPE, None)
-#                self.emrversion = config.get(EMR_VERSION, None)
+                # self.emrtype = config.get(EMR_TYPE, None)
+                # self.emrversion = config.get(EMR_VERSION, None)
                 self.DEBUG = config.get(DEBUG, None)
                 self.templateEnv = {}
 
@@ -78,14 +79,14 @@ class NotificationGenerator():
                 raise MC.InvalidConfig(configname + " did not have sufficient parameters.")
 
         except Exception as e:
-            ML.ERROR("MC.InvalidConfig in "+self.configname)
+            ML.ERROR("MC.InvalidConfig in " + self.configname)
             raise e
 
     @asyncio.coroutine
     def generate_alert_content(self, composition, emrtype, emrversion):
 
-        #DEBUG trigger, when set to True, messages get sent, when set to False, empty list gets sent
-        if self.DEBUG == True:
+        # DEBUG trigger, when set to True, messages get sent, when set to False, empty list gets sent
+        if self.DEBUG:
 
             if emrtype == 'vista':
                 return self._vista_alert_content_generator(composition, self.templateEnv[emrtype])
@@ -96,7 +97,6 @@ class NotificationGenerator():
                 return self._web_alert_content_generator(composition, self.templateEnv[emrtype])
         else:
             return []
-
 
     ################################################################################################
     ################################################################################################
@@ -118,15 +118,15 @@ class NotificationGenerator():
                            "patient_id": composition.subject.get_pat_id()}
 
         for alert in fhir_alerts[0:self.max_msg_load]:
-            if alert.category == ALERT_TYPES.COST and alert.status > CDS_ALERT_STATUS.DEBUG_ALERT.value:
+            if alert.category == ALERT_TYPES.COST and alert.validation_status > ALERT_VALIDATION_STATUS.DEBUG_ALERT.value:
                 content = yield from self._vista_cost_alert_generator(alert, base_alert_data, templateEnv)
                 alert_contents.append(content)
 
-            elif alert.category == ALERT_TYPES.REC_RESULT and alert.status > CDS_ALERT_STATUS.DEBUG_ALERT.value:
+            elif alert.category == ALERT_TYPES.REC_RESULT and alert.validation_status > ALERT_VALIDATION_STATUS.DEBUG_ALERT.value:
                 content = yield from self._vista_recent_results_alert_generator(alert, base_alert_data, templateEnv)
                 alert_contents.append(content)
 
-            elif alert.category == ALERT_TYPES.CDS and alert.status > CDS_ALERT_STATUS.DEBUG_ALERT.value:
+            elif alert.category == ALERT_TYPES.CDS and alert.validation_status > ALERT_VALIDATION_STATUS.DEBUG_ALERT.value:
                 content = yield from self._vista_CDS_alert_generator(alert, base_alert_data, templateEnv)
                 alert_contents.append(content)
 
@@ -137,8 +137,8 @@ class NotificationGenerator():
     @asyncio.coroutine
     def _vista_cost_alert_generator(self, alert, base_alert_data, templateEnv):
 
-        #creates the cost alert html. This may want to become more sophisticated over time to
-        #dynamically shorten the appearance of a very large active orders list
+        # creates the cost alert html. This may want to become more sophisticated over time to
+        # dynamically shorten the appearance of a very large active orders list
         TEMPLATE_FILE = "cost_alert.html"
         TEMPLATE2_FILE = "cost_alert2.html"
         template = templateEnv.get_template(TEMPLATE_FILE)
@@ -152,14 +152,14 @@ class NotificationGenerator():
     @asyncio.coroutine
     def _generate_cost_alert_template_vars(self, alert, base_alert_data):
 
-        templateVars = {"order_list" : alert.cost_breakdown['details'],
-                        "total_cost" : math.ceil(alert.cost_breakdown['total_cost']),
-                        "http_address" : MC.http_addr,
-                        "encounter_id" : base_alert_data['csn'],
-                        "patient_id" : base_alert_data['patient_id'],
-                        "user" : base_alert_data['user'],
-                        "customer" : base_alert_data['customer'],
-                        "user_auth" : base_alert_data['userAuth']}
+        templateVars = {"order_list": alert.cost_breakdown['details'],
+                        "total_cost": math.ceil(alert.cost_breakdown['total_cost']),
+                        "http_address": MC.http_addr,
+                        "encounter_id": base_alert_data['csn'],
+                        "patient_id": base_alert_data['patient_id'],
+                        "user": base_alert_data['user'],
+                        "customer": base_alert_data['customer'],
+                        "user_auth": base_alert_data['userAuth']}
 
         return templateVars
 
@@ -167,17 +167,17 @@ class NotificationGenerator():
     def _vista_CDS_alert_generator(self, alert, base_alert_data, templateEnv):
 
         TEMPLATE_FILE = "cds_alert.html"
-        template_sleuth_alert = templateEnv.get_template( TEMPLATE_FILE )
+        template_sleuth_alert = templateEnv.get_template(TEMPLATE_FILE)
 
-        templateVars = {"alert_tag_line" : html.escape(alert.short_title),
-                        "alert_description" : html.escape(alert.short_description),
+        templateVars = {"alert_tag_line": html.escape(alert.short_title),
+                        "alert_description": html.escape(alert.short_description),
                         "evi_id": alert.CDS_rule,
-                        "http_address" : MC.http_addr,
-                        "encounter_id" : base_alert_data['csn'],
-                        "patient_id" : base_alert_data['patient_id'],
-                        "user" : base_alert_data['user'],
-                        "customer" : base_alert_data['customer'],
-                        "user_auth" : base_alert_data['userAuth']}
+                        "http_address": MC.http_addr,
+                        "encounter_id": base_alert_data['csn'],
+                        "patient_id": base_alert_data['patient_id'],
+                        "user": base_alert_data['user'],
+                        "customer": base_alert_data['customer'],
+                        "user_auth": base_alert_data['userAuth']}
 
         notification_body = template_sleuth_alert.render(templateVars)
 
@@ -189,20 +189,19 @@ class NotificationGenerator():
         TEMPLATE_FILE = "duplicate_order_alert.html"
         template_dup_order_alert = templateEnv.get_template(TEMPLATE_FILE)
 
-        templateVars = {"alert_tag_line" : html.escape(alert.short_title),
-                        "alert_description" : html.escape(alert.short_description),
+        templateVars = {"alert_tag_line": html.escape(alert.short_title),
+                        "alert_description": html.escape(alert.short_description),
                         "related_observations": alert.related_observations,
-                        "http_address" : MC.http_addr,
-                        "encounter_id" : base_alert_data['csn'],
-                        "patient_id" : base_alert_data['patient_id'],
-                        "user" : base_alert_data['user'],
-                        "customer" : base_alert_data['customer'],
-                        "user_auth" : base_alert_data['userAuth']}
+                        "http_address": MC.http_addr,
+                        "encounter_id": base_alert_data['csn'],
+                        "patient_id": base_alert_data['patient_id'],
+                        "user": base_alert_data['user'],
+                        "customer": base_alert_data['customer'],
+                        "user_auth": base_alert_data['userAuth']}
 
         notification_body = template_dup_order_alert.render(templateVars)
 
         return notification_body
-
 
     ################################################################################################
     ################################################################################################
@@ -212,8 +211,8 @@ class NotificationGenerator():
     def _web_alert_content_generator(self, composition, templateEnv):
         alert_contents = []
 
-        #creates the cost alert html. This may want to become more sophisticated over time to
-        #dynamically shorten the appearance of a very large active orders list
+        # creates the cost alert html. This may want to become more sophisticated over time to
+        # dynamically shorten the appearance of a very large active orders list
         cost_alert = yield from self._web_cost_alert_generator(composition, templateEnv)
         alert_contents.append(cost_alert)
 
@@ -243,8 +242,7 @@ class NotificationGenerator():
     def _web_sleuth_alert_generator(self, composition, templateEnv):
 
         TEMPLATE_FILE = "cds_alert.html"
-        template_sleuth_alert = templateEnv.get_template( TEMPLATE_FILE )
-
+        template_sleuth_alert = templateEnv.get_template(TEMPLATE_FILE)
 
         sleuth_alert_HTML_contents = []
         user = composition.get_author_id()
@@ -253,29 +251,28 @@ class NotificationGenerator():
         csn = urllib.parse.quote(composition.encounter.get_csn())
         patient_id = composition.subject.get_pat_id()
 
-        #composition_alert_section = composition.get_alerts_section()
+        # composition_alert_section = composition.get_alerts_section()
         CDS_alerts = composition.get_alerts_by_type(type=ALERT_TYPES.CDS)
 
-        #check to see if there's anything in the list. Should probably move this to the FHIR api
-        #if composition_alert_section is not None and len(composition_alert_section.content) > 0:
+        # check to see if there's anything in the list. Should probably move this to the FHIR api
+        # if composition_alert_section is not None and len(composition_alert_section.content) > 0:
 
         for alert in CDS_alerts['alert_list']:
 
-            templateVars = {"alert_tag_line" : alert.short_title,
-                            "alert_description" : alert.long_description,
-                            "http_address" : MC.http_addr,
-                            "encounter_id" : csn,
-                            "patient_id" : patient_id,
+            templateVars = {"alert_tag_line": alert.short_title,
+                            "alert_description": alert.long_description,
+                            "http_address": MC.http_addr,
+                            "encounter_id": csn,
+                            "patient_id": patient_id,
                             "evi_id": alert.CDS_rule,
-                            "user" : user,
-                            "customer" : customer,
-                            "user_auth" : userAuth}
+                            "user": user,
+                            "customer": customer,
+                            "user_auth": userAuth}
 
             notification_body = template_sleuth_alert.render(templateVars)
             sleuth_alert_HTML_contents.append(notification_body)
 
         return sleuth_alert_HTML_contents
-
 
     ################################################################################################
     ################################################################################################
@@ -285,8 +282,8 @@ class NotificationGenerator():
     def _epic_alert_content_generator(self, composition, templateEnv):
         alert_contents = []
 
-        #creates the cost alert html. This may want to become more sophisticated over time to
-        #dynamically shorten the appearance of a very large active orders list
+        # creates the cost alert html. This may want to become more sophisticated over time to
+        # dynamically shorten the appearance of a very large active orders list
         cost_alert = yield from self._epic_cost_alert_generator(composition, templateEnv)
         alert_contents.append(cost_alert)
 

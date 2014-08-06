@@ -1,28 +1,28 @@
-#*************************************************************************
-#Copyright (c) 2014 - Maven Medical
-#************************
-#AUTHOR:
-__author__='Yuki Uchino'
-#************************
-#DESCRIPTION:   This fhir_database.py module contains the classes required to update the
-#               SQL database from FHIR objects, as well as convert database records into
-#               FHIR objects.
+# *************************************************************************
+# Copyright (c) 2014 - Maven Medical
+# ************************
+# AUTHOR:
+__author__ = 'Yuki Uchino'
+# ************************
+# DESCRIPTION:   This fhir_database.py module contains the classes required to update the
+#                SQL database from FHIR objects, as well as convert database records into
+#                FHIR objects.
 #
 #
-#************************
-#ASSUMES:       The database connection argument for each of the methods is of type AsynchronousConnectionPool
-#************************
-#SIDE EFFECTS:
-#************************
-#LAST MODIFIED FOR JIRA ISSUE: MAV-96
-#*************************************************************************
+# ************************
+# ASSUMES:       The database connection argument for each of the methods is of type AsynchronousConnectionPool
+# ************************
+# SIDE EFFECTS:
+# ************************
+# LAST MODIFIED FOR JIRA ISSUE: MAV-96
+# *************************************************************************
 import json
 import datetime
 import asyncio
 from collections import defaultdict
 from dateutil.relativedelta import relativedelta
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
-from utils.enums import ORDER_SOURCE, PROCEDURE_ORDER_TYPES, MEDICATION_ORDER_TYPES
+from utils.enums import ORDER_SOURCE, PROCEDURE_ORDER_TYPES, MEDICATION_ORDER_TYPES, ALERT_TYPES, ALERT_VALIDATION_STATUS
 from utils.database.database import MappingUtilites
 import maven_logging as ML
 
@@ -33,11 +33,13 @@ FHIR_DB_LOG = ML.get_logger()
 ##########################################################################################
 ##########################################################################################
 #####
-##### WRITE FHIR OBJECTS TO DATABASE
+# WRITE FHIR OBJECTS TO DATABASE
 #####
 ##########################################################################################
 ##########################################################################################
 ##########################################################################################
+
+
 @ML.coroutine_trace(timing=True, write=FHIR_DB_LOG.debug)
 def write_composition_to_db(composition, conn):
     yield from write_composition_patient(composition, conn)
@@ -46,6 +48,7 @@ def write_composition_to_db(composition, conn):
     yield from write_composition_conditions(composition, conn)
     yield from write_composition_encounter_orders(composition, conn)
     yield from write_composition_alerts(composition, conn)
+
 
 @ML.coroutine_trace(timing=True, write=FHIR_DB_LOG.debug)
 def write_composition_patient(composition, conn):
@@ -60,10 +63,11 @@ def write_composition_patient(composition, conn):
         cur_pcp_prov_id = composition.subject.get_current_pcp()
 
         cur = yield from conn.execute_single("SELECT upsert_patient(%s, %s, %s, %s, %s, %s, %s, %s)",
-                                            extra=[pat_id, customer_id, birth_month, sex, mrn, patname, cur_pcp_prov_id, birth_date])
+                                             extra=[pat_id, customer_id, birth_month, sex, mrn, patname, cur_pcp_prov_id, birth_date])
         cur.close()
     except:
         raise Exception("Error inserting patient data into database")
+
 
 @ML.coroutine_trace(timing=True, write=FHIR_DB_LOG.debug)
 def write_composition_encounter(composition, conn):
@@ -80,11 +84,12 @@ def write_composition_encounter(composition, conn):
         customer_id = composition.customer_id
 
         cur = yield from conn.execute_single("SELECT upsert_encounter(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-                                            extra=[encounter_id, pat_id, encounter_type, encounter_date, provider_id, bill_prov_id, encounter_dep, encounter_admit_time, encounter_disch_time, customer_id])
+                                             extra=[encounter_id, pat_id, encounter_type, encounter_date, provider_id, bill_prov_id, encounter_dep, encounter_admit_time, encounter_disch_time, customer_id])
         cur.close()
 
     except:
         raise Exception("Error inserting encounter data into database")
+
 
 @ML.coroutine_trace(timing=True, write=FHIR_DB_LOG.debug)
 def write_composition_json(composition, conn):
@@ -98,6 +103,7 @@ def write_composition_json(composition, conn):
 
     except:
         raise Exception("Error inserting JSON composition into database")
+
 
 @ML.coroutine_trace(timing=True, write=FHIR_DB_LOG.debug)
 def write_composition_conditions(composition, conn):
@@ -127,20 +133,22 @@ def write_composition_conditions(composition, conn):
                        condition.isPrincipal,
                        condition.abatementBoolean,
                        condition.presentOnArrival]
-            #dx_ID = condition.get_problem_ID().value
+            # dx_ID = condition.get_problem_ID().value
             cur = yield from conn.execute_single("SELECT upsert_condition(%s, %s, %s, %s, %s, %s, %s, %s::bigint, %s, %s, %s, %s, %s, %s)", extra=columns)
             cur.close()
 
     except:
         raise Exception("Error inserting encounter problem list into database")
 
+
 @ML.coroutine_trace(timing=True, write=FHIR_DB_LOG.debug)
 def write_composition_encounter_orders(composition, conn):
     try:
-        for order in composition.get_encounter_orders():
+        for order in [(order) for order in composition.get_encounter_orders() if isinstance(order.detail[0], (FHIR_API.Medication, FHIR_API.Procedure))]:
             yield from write_composition_encounter_order(order, composition, conn)
     except:
         raise Exception("Error inserting composition encounter orders into database")
+
 
 @ML.coroutine_trace(timing=True, write=FHIR_DB_LOG.debug)
 def write_composition_encounter_order(order, composition, conn):
@@ -172,6 +180,7 @@ def write_composition_encounter_order(order, composition, conn):
     except:
         raise Exception("Error inserting encounter order into database")
 
+
 @ML.coroutine_trace(timing=True, write=FHIR_DB_LOG.debug)
 def write_composition_alerts(composition, conn):
 
@@ -182,6 +191,11 @@ def write_composition_alerts(composition, conn):
 
     for alert in composition.get_section_by_coding(code_system="maven", code_value="alerts").content:
         try:
+            if alert.category in [ALERT_TYPES.CDS, ALERT_TYPES.REC_RESULT, ALERT_TYPES.ALT_MED]:
+                is_alert_with_triggering_order = True
+            else:
+                is_alert_with_triggering_order = False
+
             column_map = ["customer_id",
                           "pat_id",
                           "provider_id",
@@ -195,10 +209,9 @@ def write_composition_alerts(composition, conn):
                           "long_title",
                           "short_description",
                           "long_description",
-                          "saving",
-                          "status"]
-            columns = DBMapper.select_rows_from_map(column_map)
-
+                          "status",
+                          "validation_status",
+                          "alert_uuid"]
             cmdargs = [customer_id,
                        patient_id,
                        provider_id,
@@ -212,15 +225,29 @@ def write_composition_alerts(composition, conn):
                        alert.long_title,
                        alert.short_description,
                        alert.long_description,
-                       alert.saving,
-                       alert.status]
+                       alert.status,
+                       alert.validation_status,
+                       str(alert.id)]
+
+            if is_alert_with_triggering_order:
+                column_map.append("saving")
+                cmdargs.append(alert.saving)
+
+                column_map.append("order_id")
+                cmdargs.append(alert.triggering_order.get_clientEMR_uuid())
+
+            columns = DBMapper.select_rows_from_map(column_map)
 
             cmd = []
             cmd.append("INSERT INTO alert")
             cmd.append("(" + columns + ")")
-            cmd.append("VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
 
-            cur = yield from conn.execute_single(' '.join(cmd)+';',cmdargs)
+            if is_alert_with_triggering_order:
+                cmd.append("VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
+            else:
+                cmd.append("VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
+
+            cur = yield from conn.execute_single(' '.join(cmd) + ';', cmdargs)
 
         except:
             raise Exception("Error inserting Alerts into the database")
@@ -230,7 +257,7 @@ def write_composition_alerts(composition, conn):
 ##########################################################################################
 ##########################################################################################
 #####
-##### CONSTRUCT FHIR OBJECTS FROM DATABASE
+# CONSTRUCT FHIR OBJECTS FROM DATABASE
 #####
 ##########################################################################################
 ##########################################################################################
@@ -240,25 +267,25 @@ def construct_encounter_orders_from_db(composition, conn):
     rtn_encounter_orders = []
 
     try:
-        column_map = ["oo.customer_id",          #0
+        column_map = ["oo.customer_id",          # 0
                       "oo.order_id",
                       "oo.pat_id",
-                      "oo.encounter_id",         #3
+                      "oo.encounter_id",         # 3
                       "oo.ordering_provider_id",
                       "oo.auth_provider_id",
-                      "oo.orderable_id",         #6
+                      "oo.orderable_id",         # 6
                       "oo.status",
                       "oo.source",
-                      "oo.code_id",              #9
+                      "oo.code_id",              # 9
                       "oo.code_system",
                       "oo.order_name",
-                      "oo.order_type",           #12
+                      "oo.order_type",           # 12
                       "oo.order_cost",
                       "oo.order_cost_type",
-                      "oo.order_datetime",       #15
+                      "oo.order_datetime",       # 15
                       "od.cpt_code",
                       "od.cpt_version",
-                      "od.rx_rxnorm_id"]         #18
+                      "od.rx_rxnorm_id"]         # 18
         columns = DBMapper.select_rows_from_map(column_map)
 
         cmd = []
@@ -285,7 +312,7 @@ def construct_encounter_orders_from_db(composition, conn):
                                                                                   text="Procedure"))
                 rtn_encounter_orders.append(FHIR_API.Order(identifier=[FHIR_API.Identifier(system="clientEMR",
                                                                                            value=result[1],
-                                                                                           label="Internal"),],
+                                                                                           label="Internal")],
                                                            date=result[15],
                                                            detail=[FHIR_procedure],
                                                            status=result[7]))
@@ -302,18 +329,19 @@ def construct_encounter_orders_from_db(composition, conn):
                                                            date=result[15],
                                                            identifier=[FHIR_API.Identifier(system="clientEMR",
                                                                                            value=result[1],
-                                                                                           label="Internal"),],
+                                                                                           label="Internal")],
                                                            status=result[7]))
         return rtn_encounter_orders
 
     except:
         raise Exception("Error constructing encounter order list from database")
 
+
 ##########################################################################################
 ##########################################################################################
 ##########################################################################################
 #####
-##### COMPOSITION EVALUATOR(S) HELPER FUNCTIONS
+# COMPOSITION EVALUATOR(S) HELPER FUNCTIONS
 #####
 ##########################################################################################
 ##########################################################################################
@@ -334,11 +362,19 @@ def identify_encounter_orderable(item=None, order=None, composition=None, conn=N
             cmd = []
             cmd.append("SELECT " + columns)
             cmd.append("FROM orderable")
-            cmd.append("WHERE orderable_id IN %s AND customer_id=%s")
+            cmd.append("WHERE orderable_id IN %s AND (customer_id=%s OR customer_id=-1)")
+            cmd.append("ORDER BY customer_id DESC")
+            cmd.append("LIMIT 1;")
 
-            cur = yield from conn.execute_single(' '.join(cmd), cmdargs)
+            try:
+                cur = yield from conn.execute_single(' '.join(cmd), cmdargs)
+                result = cur.fetchone()
 
-            for result in cur:
+                # Return the codeable concept so that downstream processes know that that a proper FHIR Med/Proc was never
+                #     identified for this codeable concept
+                if result is None:
+                    return item
+
                 FHIR_DB_LOG.debug("Result from DB query (identify_encounter_orderable): %s" % [(result[x]) for x in range(len(result))])
                 orderable_id, system, name, description, order_type = _get_base_order_elements_from_DB_cursor_result(result)
 
@@ -346,21 +382,23 @@ def identify_encounter_orderable(item=None, order=None, composition=None, conn=N
                     original_coding = FHIR_API.Coding(code=orderable_id, system=system, display=name)
                     rxnorm_coding = FHIR_API.Coding(code=result[7], system="rxnorm", display=name)
                     rtn_FHIR_medication = FHIR_API.Medication(text=name,
-                                                       identifier=order.identifier,
-                                                       name=name,
-                                                       code=FHIR_API.CodeableConcept(coding=[original_coding, rxnorm_coding],
-                                                                                     text=order_type))
+                                                              identifier=order.identifier,
+                                                              name=name,
+                                                              code=FHIR_API.CodeableConcept(coding=[original_coding, rxnorm_coding],
+                                                                                            text=order_type))
                     return rtn_FHIR_medication
 
                 elif order_type in ["Procedure", "Lab", "Imaging", "Proc"]:
                     original_coding = FHIR_API.Coding(code=orderable_id, system=system, display=name)
                     procedure_coding = FHIR_API.Coding(code=result[5], system=result[6], display=name)
                     rtn_FHIR_procedure = FHIR_API.Procedure(text=name,
-                                                      identifier=order.identifier,
-                                                      name=name,
-                                                      type=FHIR_API.CodeableConcept(coding=[original_coding, procedure_coding],
-                                                                                    text=order_type))
+                                                            identifier=order.identifier,
+                                                            name=name,
+                                                            type=FHIR_API.CodeableConcept(coding=[original_coding, procedure_coding],
+                                                                                          text=order_type))
                     return rtn_FHIR_procedure
+            except:
+                raise Exception("Error generating FHIR Medication/Procedure from Orderable table")
 
         elif isinstance(item, FHIR_API.Procedure):
             column_map.extend(["cpt_code", "cpt_version"])
@@ -369,19 +407,24 @@ def identify_encounter_orderable(item=None, order=None, composition=None, conn=N
             cmd = []
             cmd.append("SELECT " + columns)
             cmd.append("FROM orderable")
-            cmd.append("WHERE cpt_code IN %s AND customer_id=%s")
+            cmd.append("WHERE cpt_code IN %s AND (customer_id=%s OR customer_id=-1)")
+            cmd.append("ORDER BY customer_id DESC")
+            cmd.append("LIMIT 1;")
 
             cur = yield from conn.execute_single(' '.join(cmd), cmdargs)
+            result = cur.fetchone()
 
-            for result in cur:
-                FHIR_DB_LOG.debug("Result from DB query (identify_encounter_orderable): %s" % [(result[x]) for x in range(len(result))])
-                orderable_id, system, name, description, order_type = _get_base_order_elements_from_DB_cursor_result(result)
-                del item.type.coding[:]
-                item.type.coding.append(FHIR_API.Coding(code=result[5], system=result[6], display=name))
-                item.type.coding.append(FHIR_API.Coding(code=orderable_id, system=system, display=name))
-                item.identifier = order.identifier
-                item.type.text = order_type
-                item.name = name
+            if result is None:
+                return item.type
+
+            FHIR_DB_LOG.debug("Result from DB query (identify_encounter_orderable): %s" % [(result[x]) for x in range(len(result))])
+            orderable_id, system, name, description, order_type = _get_base_order_elements_from_DB_cursor_result(result)
+            del item.type.coding[:]
+            item.type.coding.append(FHIR_API.Coding(code=result[5], system=result[6], display=name))
+            item.type.coding.append(FHIR_API.Coding(code=orderable_id, system=system, display=name))
+            item.identifier = order.identifier
+            item.type.text = order_type
+            item.name = name
 
             return item
 
@@ -392,23 +435,29 @@ def identify_encounter_orderable(item=None, order=None, composition=None, conn=N
             cmd = []
             cmd.append("SELECT " + columns)
             cmd.append("FROM orderable")
-            cmd.append("WHERE cpt_code IN %s AND customer_id=%s")
+            cmd.append("WHERE cpt_code IN %s AND (customer_id=%s OR customer_id=-1)")
+            cmd.append("ORDER BY customer_id DESC")
+            cmd.append("LIMIT 1;")
 
             cur = yield from conn.execute_single(' '.join(cmd), cmdargs)
+            result = cur.fetchone()
 
-            for result in cur:
-                FHIR_DB_LOG.debug("Result from DB query (identify_encounter_orderable): %s" % [(result[x]) for x in range(len(result))])
-                orderable_id, system, name, description, order_type = _get_base_order_elements_from_DB_cursor_result(result)
-                del item.code.coding[:]
-                item.code.coding.append(FHIR_API.Coding(code=result[5], system=result[6], display=name))
-                item.code.coding.append(FHIR_API.Coding(code=orderable_id, system=system, display=name))
-                item.code.text = order_type
-                item.identifier = order.identifier
-                item.name = name
+            if result is None:
+                return item.code
+
+            FHIR_DB_LOG.debug("Result from DB query (identify_encounter_orderable): %s" % [(result[x]) for x in range(len(result))])
+            orderable_id, system, name, description, order_type = _get_base_order_elements_from_DB_cursor_result(result)
+            del item.code.coding[:]
+            item.code.coding.append(FHIR_API.Coding(code=result[5], system=result[6], display=name))
+            item.code.coding.append(FHIR_API.Coding(code=orderable_id, system=system, display=name))
+            item.code.text = order_type
+            item.identifier = order.identifier
+            item.name = name
 
             return item
     except:
         raise Exception("Error identifying orderables")
+
 
 def _get_base_order_elements_from_DB_cursor_result(result):
     try:
@@ -473,6 +522,7 @@ def get_order_detail_cost(order_detail, composition, conn):
     except:
         raise Exception("Error querying the costmap table")
 
+
 @ML.coroutine_trace(timing=True, write=FHIR_DB_LOG.debug)
 def get_snomeds_and_append_to_encounter_dx(composition, conn):
     """
@@ -503,6 +553,7 @@ def get_snomeds_and_append_to_encounter_dx(composition, conn):
     except:
         raise Exception("Error gathering SNOMED CT codes for Encounter Diagnoses")
 
+
 @ML.coroutine_trace(timing=True, write=FHIR_DB_LOG.debug)
 def get_recently_resulted_orders(composition, conn):
     """
@@ -520,11 +571,11 @@ def get_recently_resulted_orders(composition, conn):
         one_year_ago = datetime.datetime.now() - relativedelta(years=1)
 
         orderable_IDs_list = []
-        for order in composition.get_encounter_orders():
+        for order in [(order) for order in composition.get_encounter_orders() if isinstance(order.detail[0], (FHIR_API.Medication, FHIR_API.Procedure))]:
             if order.get_orderable_ID():
                 orderable_IDs_list.extend(order.get_orderable_ID())
 
-        #for order in enc_ord_summary_section.content:
+        # for order in enc_ord_summary_section.content:
         column_map = ["order_ord.orderable_id",
                       "orderable.system",
                       "order_ord.order_id",
@@ -545,7 +596,6 @@ def get_recently_resulted_orders(composition, conn):
         cmd.append("JOIN orderable on order_ord.orderable_id = orderable.orderable_id")
         cmd.append("WHERE order_ord.customer_id=%s AND order_ord.pat_id=%s AND order_ord.orderable_id IN %s AND order_ord.order_datetime > %s AND order_ord.order_datetime <= %s")
 
-
         cur = yield from conn.execute_single(' '.join(cmd), cmdargs)
 
         for result in cur:
@@ -559,6 +609,7 @@ def get_recently_resulted_orders(composition, conn):
         return rtn_duplicate_orders
     except:
         raise Exception("Error finding previous duplicate orders for this patient")
+
 
 @ML.coroutine_trace(timing=True, write=FHIR_DB_LOG.debug)
 def get_observations_from_duplicate_orders(duplicate_orders, composition, conn):
@@ -615,18 +666,18 @@ def get_observations_from_duplicate_orders(duplicate_orders, composition, conn):
 @ML.coroutine_trace(timing=True, write=FHIR_DB_LOG.debug)
 def get_matching_CDS_rules(composition, conn):
     try:
-        #Pull a list of all the SNOMED CT codes from all of the conditions in the composition
-        #It's important the the list/array of problem list/encounter DXs is an empty list as opposed to being null
+        # Pull a list of all the SNOMED CT codes from all of the conditions in the composition
+        # It's important the the list/array of problem list/encounter DXs is an empty list as opposed to being null
         encounter_snomedIDs = composition.get_encounter_dx_snomeds()
         problem_list_snomedIDs = composition.get_problem_list_dx_snomeds()
         patient_age = composition.get_patient_age()
 
-        #TODO - Need to replace this placeholder list of meds with the real meds
+        # TODO - Need to replace this placeholder list of meds with the real meds
         patient_meds = []
 
         rtn_matched_rules = []
-        for enc_ord in composition.get_encounter_orders():
-            trigger_code = enc_ord.get_procedure_id_coding()
+        for enc_ord in [(order) for order in composition.get_encounter_orders() if isinstance(order.detail[0], (FHIR_API.Medication, FHIR_API.Procedure))]:
+            trigger_code = enc_ord.get_proc_med_terminology_coding()
             args = [trigger_code.code,
                     trigger_code.system,
                     patient_age,
@@ -651,15 +702,17 @@ def get_matching_CDS_rules(composition, conn):
                                                        short_title=full_spec['evidence']['short-title'],
                                                        short_description=full_spec['evidence']['short-description'],
                                                        long_title=full_spec['evidence']['long-title'],
-                                                       long_description=full_spec['evidence']['long-description']))
+                                                       long_description=full_spec['evidence']['long-description'],
+                                                       triggering_order=enc_ord))
         return rtn_matched_rules
     except:
         raise Exception("Error extracting CDS rules from database")
 
+
 @ML.coroutine_trace(timing=True, write=FHIR_DB_LOG.debug)
 def get_alternative_meds(order, composition, conn):
-
     return []
+
 
 @ML.coroutine_trace(timing=True, write=FHIR_DB_LOG.debug)
 def get_alert_configuration(ALERT_TYPE, composition, conn):
@@ -690,34 +743,15 @@ def get_alert_configuration(ALERT_TYPE, composition, conn):
 
         cur = yield from conn.execute_single(' '.join(cmd), cmdargs)
 
-        rtn_cost_alert_validation_status = cur.fetchone()
-        FHIR_DB_LOG.debug("Result from DB query (get_alert_configuration): %s" %
-                 [(rtn_cost_alert_validation_status[x]) for x in range(len(rtn_cost_alert_validation_status))])
+        rtn_alert_validation_status = cur.fetchone()
 
-        return rtn_cost_alert_validation_status[0]
+        if rtn_alert_validation_status is None:
+            FHIR_DB_LOG.debug("No alert_config record for Alert Type: %s" % ALERT_TYPE.name)
+            return ALERT_VALIDATION_STATUS.SUPPRESS.value
+
+        else:
+            FHIR_DB_LOG.debug("Result from DB query (get_alert_configuration): %s" %
+                              [(rtn_alert_validation_status[x]) for x in range(len(rtn_alert_validation_status))])
+            return rtn_alert_validation_status[0]
     except:
         raise Exception("Error retrieving COST alert configuration from database")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

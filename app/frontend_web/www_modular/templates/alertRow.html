@@ -8,18 +8,21 @@
           <li><a class="dislike_info" value="incorrect">Disagree</a></li>
 	      <li><a class="dislike_info" value="irrelevant">Not Applicable</a></li>
           <li><a class="dislike_info" value="notuseful">Not Useful</a></li>
-          <li><a class="dislike_info" value="other">Other...</a></li>
+          <li><a class="dislike_info dislike_other" value="other">Other...</a></li>
+          <li style="display:none" class="dislike_text"><textarea class='dislike_text_form' rows="2" cols="25"></textarea></li>
 	    </ul>
 
-        <button type="button" class="btn btn-default btn-sm dislike dropdown-toggle" data-dismiss="modal" data-toggle="dropdown" style="font-size: 8px;">
-            <span class="glyphicon glyphicon glyphicon-thumbs-down"> 92%</span>
+        <button type="button" class="btn btn-default btn-sm dislike" data-dismiss="modal" data-toggle="dropdown" style="font-size: 8px;">
+            <span class="glyphicon glyphicon glyphicon-thumbs-down">
+                <%= ((dislikes+likes==0) ? "N/A" : ((dislikes/(likes+dislikes))*100).toFixed(0)+"%") %></span>
 	        <span class="sr-only">Toggle Dropdown</span>
         </button>
 
       </div>
 
       <button type="button" class="btn btn-default btn-sm like" data-dismiss="modal" style="font-size: 8px; float:right;">
-        <span class="glyphicon glyphicon glyphicon-thumbs-up"> 8%</span>
+        <span class="glyphicon glyphicon glyphicon-thumbs-up">
+                <%= ((dislikes+likes==0) ? "N/A" : ((likes/(likes+dislikes))*100).toFixed(0)+"%") %></span>
       </button>
     </div>
     <p>

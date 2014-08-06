@@ -33,7 +33,9 @@ define([
             'click .panel-heading': 'handleClick',
             'click .like': 'like',
             'click .dislike': 'dislike',
-            'click .dislike_info': 'critique'
+            'click .dislike_info': 'critique',
+            'click .dislike_text': 'clickText',
+            'keyup .dislike_text':'doentercomment',
         },
         render: function(){
             $(this.el).html(this.template(this.model.toJSON()));
@@ -41,21 +43,21 @@ define([
         },
         like: function(){
             //user clicks 'like'
-            console.log("Like clicked");
             this.rate("like");
         },
         dislike: function(){
             //user clicks 'dislike'
-            console.log("Dislike clicked");
+            $(this.el).find(".dislike_text").hide();
             this.rate("dislike");
         },
         rate: function(like){
             //sends like/dislike to backend
+            that = this;
             $.ajax({
                 url: "/rate_alert",
-                data: $.param(contextModel.toParams()) + "&alert_id=" + this.model.get("id") +
-                                                         "&category=" + this.model.get("alerttype") +
-                                                         "&rule_id=" + this.model.get("ruleid") +
+                data: $.param(contextModel.toParams()) + "&alert_id=" + that.model.get("id") +
+                                                         "&category=" + that.model.get("alerttype") +
+                                                         "&rule_id=" + that.model.get("ruleid") +
                                                          "&action="+like,
                 success: function (data) {
                     console.log(data);
@@ -64,12 +66,47 @@ define([
         },
         critique: function(event){
             //user gave additional info for 'dislike'
-
             that = this;
             var reason = $(event.target).attr("value");
-            $.ajax({
+            if (reason == "other")            {
+                event.stopPropagation();
+                if (!$(this.el).find(".dislike_text").is(":visible")) {
+                    $(this.el).find(".dislike_text").show();
+                }
+                else{
+                    $(this.el).find(".dislike_text").hide();
+                }
+            }
+            else
+            {
+                $.ajax({
+                    url: "/critique_alert",
+                    data: $.param(contextModel.toParams()) + "&alert_id=" + that.model.get("id")+ "&rule_id=" + that.model.get("ruleid") +
+                                                             "&category=" +that.model.get("alerttype") + "&action_comment="+reason,
+                    success: function (data) {
+                        console.log(data);
+                    }
+                });
+            }
+        },
+        clickText: function(event){
+            event.stopPropagation();
+        },
+        doentercomment: function(event){
+	    if(event.keyCode == 13){
+            event.preventDefault();
+		    this.addComment();
+	        }
+	    },
+        addComment: function(){
+            var comment = $(this.el).find(".dislike_text_form").val();
+            $(this.el).find(".dislike_text_form").val("");
+            $(this.el).find(".dislike_text").hide();
+            $(this.el).find(".dropdown-menu").trigger('click');
+            console.log("Comment: " + comment);
+             $.ajax({
                 url: "/critique_alert",
-                data: $.param(contextModel.toParams()) + "&alert_id=" + that.model.get("id") +"&reason="+reason,
+                data: $.param(contextModel.toParams()) + "&rule_id=" + that.model.get("ruleid") + "&category=" +that.model.get("alerttype") + "&action_comment="+comment,
                 success: function (data) {
                     console.log(data);
                 }
@@ -83,7 +120,6 @@ define([
 		var id = this.model.get('id');
 		$('#collapse'+this.model.get('patient')+'-'+id).toggleClass("in");
         }
-
     });
 
     return AlertRow;
