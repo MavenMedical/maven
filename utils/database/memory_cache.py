@@ -11,6 +11,7 @@
 import asyncio
 import time
 from collections import defaultdict, OrderedDict
+from functools import wraps
 
 
 def firstarg(argskwargs):
@@ -134,7 +135,7 @@ class MemoryCache():
                 asyncio.Task(self._loop(lambda: co_func(*args, **kwargs),
                                         cache_name, period_seconds, delay_seconds,
                                         retry_on_error, message_fn))
-            return scheduler
+            return wraps(func)(scheduler)
         return decorator
 
     def _get_value(self, data, key):
@@ -194,7 +195,7 @@ class MemoryCache():
                 if limit and len(data) > limit:
                     data.popitem(last=False)
                 return ret
-            return asyncio.coroutine(lookup)
+            return asyncio.coroutine(wraps(func)(lookup))
         return decorator
 
     def cache_lookup_multi(self, cache_name, lookup_on_none=False):
@@ -247,7 +248,7 @@ class MemoryCache():
                         for x in range(limit, len(data)):
                             data.popitem(last=False)
                 return ret
-            return asyncio.coroutine(lookup)
+            return asyncio.coroutine(wraps(func)(lookup))
         return decorator
 
     def cache_explicit_insert(self, cache_name, key, value):

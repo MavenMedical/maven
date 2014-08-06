@@ -44,7 +44,7 @@ class http_api():
         if self.decode:
             ret = ret.decode()
         return ret
-      
+
     @asyncio.coroutine
     def get(self, resource, **kwargs):
         return self.initiate(resource, 'GET', **kwargs)
@@ -75,7 +75,7 @@ class http_api():
 if __name__ == "__main__":
     rpc = http_api("http://www.cs.umd.edu")
     loop = asyncio.get_event_loop()
-    
+
     @rpc.prefetch('', '/~tdubois')
     def lengths(base, tdubois):
         print(len(base))

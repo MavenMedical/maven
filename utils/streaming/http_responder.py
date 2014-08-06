@@ -224,7 +224,7 @@ class HTTPProcessor(SP.StreamProcessor):
                     },
             })
         if SP.CONFIG_PARSERTIMEOUT in self.config:
-            parsername = configname+'.parser'
+            parsername = configname + '.parser'
             self.config.update({SP.CONFIG_PARSERNAME: parsername})
             MC.MavenConfig.update(
                 {
@@ -259,7 +259,7 @@ class HTTPProcessor(SP.StreamProcessor):
         # ML.INFO("path: %s" % headers.get_path())
         # ML.DEBUG("status: %s" % headers.get_status_code())
         # ML.DEBUG("body: %s" % body)
-        req_line = headers.get_method()+' '+headers.get_path()
+        req_line = headers.get_method() + ' ' + headers.get_path()
         query_string = urllib.parse.parse_qs(headers.get_query_string())
         # ML.DEBUG("query: %s" % str(query_string))
         # print(req_line)
@@ -327,7 +327,7 @@ class HTTPProcessor(SP.StreamProcessor):
 
         if 'GET' in methods and 'HEAD' not in methods:
             methods.append('HEAD')
-        regexp = '(?:'+'|'.join(methods)+')\s+'+regexpstring + '$'
+        regexp = '(?:' + '|'.join(methods) + ')\s+' + regexpstring + '$'
         self.handlers.append((re.compile(regexp), fn))
         # print(regexp)
         # print(re.match(regexp,b'GET /users/1 HTTP/1.0'))
