@@ -1,0 +1,36 @@
+define([
+    'jquery',
+    'underscore',
+    'backbone',
+    'models/contextModel',
+    'models/nodeList'
+], function($, _, Backbone, contextModel, NodeList){
+    var treeModel;
+
+
+    var TreeModel = Backbone.Model.extend({
+        url: function() {
+
+            return '/tree?' + decodeURIComponent($.param(contextModel.toParams()));
+        },
+        initialize: function(){
+            this.set('text', "Triggers")
+            this.set('children', new NodeList())
+        },
+        toJSON: function(){
+            return this.attributes
+
+
+        },
+        parse: function(response){
+           this.set('text', response.text)
+           this.set('id', response.id)
+           this.set('protocol', response.protocol)
+           this.set('children', new NodeList(response.children))
+        }
+
+    })
+    treeModel = new TreeModel()
+    return treeModel
+
+});
