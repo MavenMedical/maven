@@ -44,7 +44,7 @@ require([
 ], function (App) {
     jsPlumb.Defaults.Connector = "Flowchart"
     jsPlumb.Defaults.PaintStyle=  { lineWidth : 2, strokeStyle : "#456" }
-    jsPlumb.Defaults.Endpoint ="Blank"
+     jsPlumb.Defaults.Endpoint ="Blank"
      jsPlumb.Defaults.MaxConnections =-1
      jsPlumb.setContainer($('#tree-view'))
     // The "app" dependency is passed in as "App"

@@ -34,10 +34,13 @@ define([
                     console.log(cur)
                     if (!panel.triggerNode.get('triggers')){
                         panel.triggerNode.set({triggers: new Backbone.Collection()}, {silent: true})
+
                     }
+                    cur.set('exists', $('#existsField').val());
                     panel.triggerNode.get('triggers').add(cur)
 
                 })
+                $('#detail-modal').modal('hide')
 
 
             })

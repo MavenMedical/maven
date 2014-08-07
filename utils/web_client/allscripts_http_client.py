@@ -3,6 +3,7 @@ import asyncio
 import json
 from xml.etree import ElementTree as ETree
 from enum import Enum
+from functools import wraps
 
 ALLSCRIPTS_NUM_PARAMETERS = 6
 Ehr_username = 'terry'
@@ -50,7 +51,7 @@ class allscripts_api(http.http_api):
                  appname=APPNAME,
                  appuser=APPUSERNAME,
                  apppassword=APPPASSWORD):
-                 
+
         http.http_api.__init__(self, baseurl,
                                {'Content-Type': 'application/json'})
         self.postprocess = (lambda x: list(json.loads(x)[0].values())[0])
@@ -59,7 +60,7 @@ class allscripts_api(http.http_api):
         self.apppassword = APPPASSWORD
         self.unitytoken = None
 
-    def build_message(self, action, *args, user=None, patient=None, data='null'):
+    def _build_message(self, action, *args, user=None, patient=None, data='null'):
         if len(args) < ALLSCRIPTS_NUM_PARAMETERS:
             args += ('',) * (ALLSCRIPTS_NUM_PARAMETERS - len(args))
         ret = {'Action': action,
@@ -74,7 +75,7 @@ class allscripts_api(http.http_api):
         ret.update(zip(['Parameter' + str(n + 1) for n in range(ALLSCRIPTS_NUM_PARAMETERS)], args))
         return ret
 
-    def require_token(func):
+    def _require_token(func):
         co_func = asyncio.coroutine(func)
 
         def worker(self, *args, **kwargs):
@@ -85,9 +86,9 @@ class allscripts_api(http.http_api):
                 self.unitytoken = req
             ret = yield from co_func(self, *args, **kwargs)
             return ret
-        return asyncio.coroutine(worker)
+        return asyncio.coroutine(wraps(func)(worker))
 
-    @require_token
+    @_require_token
     def GetServerInfo(self):
         """ Takes no arguments and returns:
         Returns values for server time zone, server time server datetime offset,
@@ -95,10 +96,10 @@ class allscripts_api(http.http_api):
         unity installation
         """
         ret = yield from self.post('/MagicJson',
-                                   data=self.build_message('GetServerInfo'))
+                                   data=self._build_message('GetServerInfo'))
         return self.postprocess(ret)[0]
 
-    @require_token
+    @_require_token
     def GetPatient(self, username, patient):
         """ Gets (demographic and contact mostly) information about a patient
         :param user: the allscripts EHR user ID
@@ -108,11 +109,11 @@ class allscripts_api(http.http_api):
         also, name/dob/gender (needed) and much more
         """
         ret = yield from self.post('/MagicJson',
-                                   data=self.build_message('GetPatient', user=username,
-                                                           patient=patient))
+                                   data=self._build_message('GetPatient', user=username,
+                                                            patient=patient))
         return self.postprocess(ret)[0]
 
-    @require_token
+    @_require_token
     def GetChangedPatients(self, username, since):
         """ Gets a list of patientIDs for patients whose information has changed recently
         :param username: the allscripts ehr username
@@ -123,11 +124,11 @@ class allscripts_api(http.http_api):
         if type(since) is not str:
             since = since.isoformat()
         ret = yield from self.post('/MagicJson',
-                                   data=self.build_message('GetChangedPatients', since,
-                                                           user=username))
+                                   data=self._build_message('GetChangedPatients', since,
+                                                            user=username))
         return [x['patientid'] for x in self.postprocess(ret)]
 
-    @require_token
+    @_require_token
     def GetSchedule(self, username, startdate, changedsince=None, soughtuser=None):
         """ Gets a list of scheduled appointments for a provider.
         Each element in the list includes (among others):
@@ -142,28 +143,28 @@ class allscripts_api(http.http_api):
             startdate = startdate.isoformat()
         if changedsince and type(changedsince) is not str:
             changedsince = changedsince.isoformat()
-        message = self.build_message('GetSchedule',
-                                     startdate,
-                                     changedsince or '',
-                                     'N',  # includepicture
-                                     soughtuser or '',
-                                     user=username)
-            
+        message = self._build_message('GetSchedule',
+                                      startdate,
+                                      changedsince or '',
+                                      'N',  # includepicture
+                                      soughtuser or '',
+                                      user=username)
+
         ret = yield from self.post('/MagicJson', data=message)
         print(ret)
         return self.postprocess(ret)
 
     @staticmethod
-    def append_xml(root, name, value=None):
+    def _append_xml(root, name, value=None):
         child = ETree.Element(name)
         if value:
             child.set('value', value)
         root.append(child)
         return child
 
-    @require_token
-    def GetProcedures(self, username, patient, completionstatuses=[],
-                      rulenames=[], rulenameexactmatch=False):
+    @_require_token
+    def GetProcedures(self, username, patient, completionstatuses=None,
+                      rulenames=None, rulenameexactmatch=False):
         """ Gets a list of procedures for a given patient
         :param username: the allscripts user requesting the data
         :param patient: the patient to search for
@@ -174,24 +175,22 @@ class allscripts_api(http.http_api):
         :param rulenameexactmatch: are the rulenames exact matches, or prefix matches
         """
         XML = ETree.Element('ProcedureSearchCriteria')
-        self.append_xml(XML, 'PatientID', patient)
-        self.append_xml(XML, 'UserLoginName', username)
-        completionXML = self.append_xml(XML, 'CompletionStatuses')
+        self._append_xml(XML, 'PatientID', patient)
+        self._append_xml(XML, 'UserLoginName', username)
+        completionXML = self._append_xml(XML, 'CompletionStatuses')
         if completionstatuses:
             for cs in completionstatuses:
-                self.append_xml(completionXML, 'CompletionStatus', cs.value)
+                self._append_xml(completionXML, 'CompletionStatus', cs.value)
         else:
-            self.append_xml(completionXML, 'CompletionStatus', COMPLETION_STATUSES.All.value)
+            self._append_xml(completionXML, 'CompletionStatus', COMPLETION_STATUSES.All.value)
         if rulenames:
-            rulenameXML = self.append_xml(XML, 'RuleNames',
-                                          'Y' if rulenameexactmatch else 'N')
+            rulenameXML = self._append_xml(XML, 'RuleNames',
+                                           'Y' if rulenameexactmatch else 'N')
             for rn in rulenames:
-                self.append_xml(rulenameXML, 'RuleName', rn)
-        message = self.build_message('GetProcedures',
-                                     ETree.tostring(XML, 'unicode'),
-                                     user=username,
-                                     # patient=patient
-                                     )
+                self._append_xml(rulenameXML, 'RuleName', rn)
+        message = self._build_message('GetProcedures',
+                                      ETree.tostring(XML, 'unicode'),
+                                      user=username)
         ret = yield from self.post('/MagicJson', data=message)
         # allscripts returns this as a json, containing an xml string
         # step 1, check if the string is empty
@@ -212,7 +211,7 @@ class allscripts_api(http.http_api):
             ret = []
         return ret
 
-    @require_token
+    @_require_token
     def GetClinicalSummary(self, username, patient, sections=None):
         """ Gets lots of clinical data about a patient
         :param username: the allscripts user
@@ -221,12 +220,21 @@ class allscripts_api(http.http_api):
                          the default None does not filter
         """
         ret = yield from self.post('/MagicJson',
-                                   data=self.build_message('GetClinicalSummary',
-                                                           sections.value if sections else 'list',
-                                                           user=username,
-                                                           patient=patient))
+                                   data=self._build_message('GetClinicalSummary',
+                                                            sections.value if sections else 'list',
+                                                            user=username,
+                                                            patient=patient))
         return self.postprocess(ret)
 
+    @_require_token
+    def GetPatientSections(self, username, patient, months):
+        """
+        """
+        ret = yield from self.post('/MagicJson',
+                                   data=self._build_message('GetPatientSections',
+                                                            str(months),
+                                                            user=username, patient=patient))
+        return self.postprocess(ret)
 
 if __name__ == '__main__':
     api = allscripts_api()
@@ -250,7 +258,5 @@ if __name__ == '__main__':
     if input('GetClinicalSummary (y/n)? ') == 'y':
         print(loop.run_until_complete(api.GetClinicalSummary(Ehr_username, patient,
                                                              CLINICAL_SUMMARY.Medications)))
-    if input('GetClinicalSummary (y/n)? ') == 'y':
-        print(loop.run_until_complete(api.GetClinicalSummary(Ehr_username, patient,
-                                                             CLINICAL_SUMMARY.Medications)))
-    
+    if input('GetPatientSections (y/n)? ') == 'y':
+        print(loop.run_until_complete(api.GetPatientSections(Ehr_username, patient, 1)))

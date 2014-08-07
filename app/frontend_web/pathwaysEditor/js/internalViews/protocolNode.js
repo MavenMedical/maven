@@ -17,7 +17,16 @@ define([
 
 
             },
+            makeExit: function(){
 
+                var exit = jsPlumb.addEndpoint(this.$el, {anchor: 'Bottom'})
+                return exit
+            },
+            makeEntrance: function(){
+
+                var entrance = jsPlumb.addEndpoint(this.$el, {anchor: 'Top'})
+                return entrance
+            },
             render: function(){
                 if (this.model.get('protocol').attributes){
                     this.$el.html(this.template(this.model.get('protocol').attributes))

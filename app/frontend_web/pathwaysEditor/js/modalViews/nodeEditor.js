@@ -21,7 +21,8 @@ define([
                 $("#addNodeButton", this.$el).on("click", function(){
 
                     that.parent.get('children').add(new NodeModel({text: $('#newNodeText', this.$el).val()}))
-                    that.parent.unset('protocol')
+
+                    //that.parent.unset('protocol')
                     $('#detail-modal').modal('hide')
 
             })

@@ -7,15 +7,18 @@ define([
     'modalViews/protocolEditor',
     'models/nodeList',
     'models/nodeModel',
-    'internalViews/protocolNode',
-    'text!templates/treeNode.html',
+    'models/treeModel',
 
-    ], function($, _, Backbone,  NodeEditor, ProtocolEditor, nodeList, nodeModel, ProtocolNode, nodeTemplate){
+    'internalViews/protocolNode',
+    'text!templates/treeNode.html'
+
+    ], function($, _, Backbone,  NodeEditor, ProtocolEditor, nodeList, nodeModel, curTree, ProtocolNode, nodeTemplate){
 
         var treeNode = Backbone.View.extend({
 
             template: _.template(nodeTemplate),
             initialize: function(params){
+                this.childEntrances = []
                 this.model = params.model
                 if (params.el)
                     this.el = params.el
@@ -26,15 +29,28 @@ define([
                     this.model.set('children', new nodeList(this.model.get('children')))
                 }
                 var that = this
-
-                this.model.get('children').on('add', this.render,this)
-                this.model.on('change', this.render, this)
-
+                this.model.get('children').off('add')
+                this.model.get('children').on('add', function(){
+                    curTree.trigger('propagate')
+                },this)
+                this.model.on('change', function(){
+                    curTree.trigger('propagate')
+                }, this)
                 this.render()
 
 
-            },
 
+            },
+            makeExit: function(){
+                var trueNode = $('.treeNode', this.$el).first()
+                var exit = jsPlumb.addEndpoint(trueNode, {anchor: 'Bottom'})
+                return exit
+            },
+            makeEntrance: function(){
+                var trueNode = $('.treeNode', this.$el).first()
+                var entrance = jsPlumb.addEndpoint(trueNode, {anchor: 'Top'})
+                return entrance
+            },
             render: function(){
                 this.$el.html(this.template({protocol: this.model.get('protocol'), children: this.model.get('children'), text: this.model.get('text')}))
                   var that = this;
@@ -46,18 +62,27 @@ define([
                      var newEditor = new ProtocolEditor(that.model)
                 })
 
-                $('.children', this.$el).html("")
                 _.each(this.model.get('children').models, function(cur){
-                    $('.children', this.$el).first().append(new treeNode({model: cur}).render().$el)
+                    $('.children', this.$el).first().append("<div class='childSpot'></div>")
+                    var targ = $('.childSpot',$('.children', this.$el).first()).last()
+                    var thisChild = new treeNode({model: cur, el:targ})
+                    curTree.elPairs.push({source: this, target: thisChild})
+
+
                 }, this)
 
                 if (this.model.get('protocol')){
-                    $('.protocol', this.$el).first().append(new ProtocolNode({model: this.model}).render().$el)
+                    var protoNode = new ProtocolNode({model: this.model})
+                    $('.protocol', this.$el).first().append(protoNode.render().$el)
+                    curTree.elPairs.push({source: this, target: protoNode})
                     $('.removeProtocolButton', this.$el).on("click", function(){
                         that.model.unset('protocol')
                     })
 
                 }
+
+
+
                 return this
 
             }
