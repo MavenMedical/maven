@@ -35,7 +35,10 @@ define([
                this.$el.html(this.template())
                $('#saveTreeButton', this.$el).on('click', this.saveTreeFunction)
                $('#loadTreeButton', this.$el).on('click', this.loadTreeFunction)
-
+               $('#drawPaths', this.$el).on('click', function(){
+                   alert("draw")
+                   this.render();
+               })
                var that = this
 
                 $('.tree', that.$el).append("<div style= 'width:auto' class='nodeEl'></div>")
@@ -43,7 +46,7 @@ define([
                 console.log('the tree will contain', curTree)
                 var topLevel = new TriggerNode({el:$('.nodeEl').last(), model: curTree});
                  _.each(curTree.elPairs, function(cur){
-                  if(!cur.source.model.get('hideChildren') || cur.source.model.get('protocol')){
+                  if(!(cur.source.model.get('hideChildren') == "true") || cur.source.model.get('protocol')){
                        var a = cur.source.makeExit()
                        var b = cur.target.makeEntrance()
                        jsPlumb.connect({
@@ -64,6 +67,7 @@ define([
             },
             loadTreeFunction: function(){
                 contextModel.set('id', parseInt($('#idcode').val()))
+                console.log(contextModel)
                 curTree.fetch()
 
             },

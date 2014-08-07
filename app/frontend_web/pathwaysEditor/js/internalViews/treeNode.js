@@ -29,10 +29,9 @@ define([
 
                 if(!(this.model.get('children').models)){
                     this.model.set('children', new nodeList(this.model.get('children')))
-                    this.model.set({'hideChildren': true}, {silent: true})
+                    this.model.set({'hideChildren': "true"}, {silent: true})
 
                 }
-                console.log("in the beggining", this.model.get('text'), "had hide children ", this.model.get('hideChildren'))
 
 
                 var that = this
@@ -64,7 +63,11 @@ define([
                   var that = this;
                 $('.treeNode', this.$el).first().off('click')
                 $('.treeNode', this.$el).first().on('click', function(){
-                       that.model.set('hideChildren', !that.model.get('hideChildren'))
+                       if (that.model.get('hideChildren') == "false"){
+                           that.model.set('hideChildren', "true")
+                       } else{
+                            that.model.set('hideChildren', "false")
+                       }
                 })
                 $("#addChildButton", this.$el).off('click')
                 $("#addChildButton", this.$el).on('click', function(){
@@ -82,7 +85,7 @@ define([
 
 
                 }, this)
-                if (this.model.get('hideChildren')){
+                if (this.model.get('hideChildren') == "true"){
                     $('.children', this.$el).first()[0].hidden = true;
                 } else {
                     $('.children', this.$el).first()[0].hidden = false;

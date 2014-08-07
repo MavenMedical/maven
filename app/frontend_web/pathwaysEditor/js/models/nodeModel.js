@@ -31,14 +31,14 @@ define([
     })
 
     var NodeModel = Backbone.Model.extend({
-        defaults: {hideChildren: true},
+        defaults: {hideChildren: "true"},
         initialize: function(params){
             this.set({text: params.text + " NODE"},{silent:true})
             if (!params.children){params.children = []}
             this.set({children: new NodeList(params.children)}, {silent:true})
 
             this.set({protocol: params.protocol}, {silent:true})
-             this.set({hideChildren: true}, {silent: true})
+             this.set({hideChildren: "true"}, {silent: true})
 
 
         },

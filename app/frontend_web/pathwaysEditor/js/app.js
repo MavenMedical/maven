@@ -14,8 +14,7 @@ define([
         });*/
 
 
-        contextModel.setUser('tom', 'pw', '#');
-       // new TreeView({el:'#tree-view'});
+       // contextModel.setUser('tom', 'pw', '#');
 
          new AppRouter;
 
