@@ -2,6 +2,10 @@ import aiohttp
 import asyncio
 import json
 
+from maven_config import MavenConfig
+
+CONFIG_BASEURL = 'base url'
+CONFIG_OTHERHEADERS = 'other headers'
 
 class http_api():
     """ This class encapsulates all of the common details for contacting a
@@ -16,17 +20,31 @@ class http_api():
     It also handles timeouts, caching, and other common functionality.
     """
 
-    def __init__(self, url, other_headers=None, decode=True, postprocess=None):
+    def __init__(self, configname:str, other_headers:{str:str}=None, 
+                 decode:bool=True):
         """ Create a new instance of the remote query object using the shared parameters
-        :param url: the shared url base for all remote methods
+        :param configname: the name of this module in the configuration file.
+                           It must contain the base url
         :param other_headers=None: optional parameter for additional headers (api key)
+        :param decode: True if the output should be returned as a string, false means bytes
         """
-        self.base_url = url
-        self.other_headers = other_headers
+        self.config = MavenConfig[configname]
+        self.base_url = self.config[CONFIG_BASEURL]
+        self.other_headers = self.config.get(CONFIG_OTHERHEADERS,{})
+        if other_headers:
+            self.other_headers.update(other_headers)
         self.decode = decode
 
     @asyncio.coroutine
-    def initiate(self, resource, method, **kwargs):
+    def initiate(self, resource:str, method:['GET', 'POST', 'PUT'], **kwargs) -> {bytes, str}:
+        """ make a connection to a remote server and wait for a response
+        :param resource: A string to append to the base url
+        :param method: one of the standard http methods
+        :param kwargs: data to send.  If it contains a key 'data', it is dumped as json
+                       and put in the body.  If it contains a key 'params', they are 
+                       added to the url.  If neither, then the entire kwargs are added to
+                       the body (if post/put) or url (if get)
+        """
         data = None
         params = None
         if 'params' in kwargs:
@@ -46,18 +64,18 @@ class http_api():
         return ret
 
     @asyncio.coroutine
-    def get(self, resource, **kwargs):
+    def get(self, resource:str, **kwargs) -> {str, bytes}:
         return self.initiate(resource, 'GET', **kwargs)
 
     @asyncio.coroutine
-    def put(self, resource, **kwargs):
+    def put(self, resource:str, **kwargs) -> {bytes, str}:
         return self.initiate(resource, 'PUT', **kwargs)
 
     @asyncio.coroutine
-    def post(self, resource, **kwargs):
+    def post(self, resource:str, **kwargs) -> {bytes, str}:
         return self.initiate(resource, 'POST', **kwargs)
 
-    def prefetch(self, *resources):
+    def prefetch(self, *resources:[str]):
         def decorator(func):
             co_func = asyncio.coroutine(func)
 
