@@ -4,19 +4,20 @@ define([
     'underscore',
     'backbone',
     'bootstrap',
-    'models/contextModel',
-    'models/nodeList',
-    'widgets/TreeView'
+    'router', //Request router.js
 
-], function ($, _, Backbone, Bootstrap,  contextModel, NodeList, TreeView) {//, TriggerList) {
+], function ($, _, Backbone, Bootstrap, AppRouter) {//, TriggerList) {
     var initialize = function () {
 
-        $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
+        /*$.ajaxPrefilter(function (options, originalOptions, jqXHR) {
             options.url = 'rule_services' + options.url;
-        });
+        });*/
+
 
         contextModel.setUser('tom', 'pw', '#');
-        new TreeView({el:'#tree-view'});
+       // new TreeView({el:'#tree-view'});
+
+         new AppRouter;
 
     };
 

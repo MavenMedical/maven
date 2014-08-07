@@ -18,39 +18,99 @@
 
     <!-- Load the require script-->
     <script data-main="js/main" src="js/libs/require/require.js"></script>
-   <script src="../js/libs/jquery/jquery-min.js"></script>
-   <script src="../css/bootstrap/js/bootstrap.js"></script>
-
-
-
 
     <link href="css/style1.css" rel="stylesheet" type="text/css" title='original'>
 
   </head>
 
   <body>
-
-   <div style ="text-align: center; font-size:360%; color: #0000ff;">Maven Medical Tree Editor</div>
-
-   <div id="detail-modal" class="modal fade" role="edit" >
-     <div class="modal-dialog modal-lg"   style="width: 1400px">
-        <div class="modal-content">
-            <div class="modal-body">
-                    <div id='modal-target'></div>
-                </div>
-            </div>
-         </div>
-     </div>
+  <!-- modals goes here -->
+  <div id='modal-target'></div>
+  <div id="createNewPath-modal" class="modal fade" role="newPath" ></div>
+   <div id="tree-view"></div>
 
 
-            <div id="tree-view"></div>
+  <div id="fixed-top">
+    <div id='fixed-topA' class='row'>
+        <div id="fixed-topA-1-1" class="col-sm-12"></div>
+        <div id="fixed-topA-1-2" class="col-sm-6"></div>
+        <div id="fixed-topA-2-2" class="col-sm-6"></div>
+        <div id="fixed-topA-1-3" class="col-sm-4"></div>
+        <div id="fixed-topA-2-3" class="col-sm-4"></div>
+        <div id="fixed-topA-3-3" class="col-sm-4"></div>
+    </div>
+    <div id='fixed-topB' class='row'>
+        <div id="fixed-topB-1-1" class="col-sm-12"></div>
+        <div id="fixed-topB-1-2" class="col-sm-6"></div>
+        <div id="fixed-topB-2-2" class="col-sm-6"></div>
+        <div id="fixed-topB-1-3" class="col-sm-4"></div>
+        <div id="fixed-topB-2-3" class="col-sm-4"></div>
+        <div id="fixed-topB-3-3" class="col-sm-4"></div>
+    </div>
+</div>
+<div id="fixed-left"></div>
+<div id="fixed-right"></div>
+<div id="wrapper" class="container">
+    <div id="floating-top"></div>
+    <div id="floating-left"></div>
+<div id="floating-right" class="content">
+    </div>
+    <div id="content" class="content col-sm-12">
+        <div id='rowA' class="row">
+            <div id="rowA-1-1" class="col-sm-12"></div>
+            <div id="rowA-1-2" class="col-sm-6"></div>
+            <div id="rowA-2-2" class="col-sm-6"></div>
+            <div id="rowA-1-3" class="col-sm-4"></div>
+            <div id="rowA-2-3" class="col-sm-4"></div>
+            <div id="rowA-3-3" class="col-sm-4"></div>
+        </div>
+        <div id='rowB' class="row">
+            <div id="rowB-1-1" class="col-sm-12"></div>
+            <div id="rowB-1-2" class="col-sm-6"></div>
+            <div id="rowB-2-2" class="col-sm-6"></div>
+            <div id="rowB-1-3" class="col-sm-4"></div>
+            <div id="rowB-2-3" class="col-sm-4"></div>
+            <div id="rowB-3-3" class="col-sm-4"></div>
+        </div>
 
-     </div>
+        <div id='rowC' class="row">
+            <div id="rowC-1-1" class="col-sm-12"></div>
+            <div id="rowC-1-2" class="col-sm-6"></div>
+            <div id="rowC-2-2" class="col-sm-6"></div>
+            <div id="rowC-1-3" class="col-sm-4"></div>
+            <div id="rowC-2-3" class="col-sm-4"></div>
+            <div id="rowC-3-3" class="col-sm-4"></div>
+        </div>
+        <div id='rowD' class="row">
+            <div id="rowD-1-1" class="col-sm-12"></div>
+            <div id="rowD-1-2" class="col-sm-6"></div>
+            <div id="rowD-2-2" class="col-sm-6"></div>
+            <div id="rowD-1-3" class="col-sm-4"></div>
+            <div id="rowD-2-3" class="col-sm-4"></div>
+            <div id="rowD-3-3" class="col-sm-4"></div>
+        </div>
+        <div id='rowE' class="row">
+            <div id="rowE-1-1" class="col-sm-12"></div>
+            <div id="rowE-1-2" class="col-sm-6"></div>
+            <div id="rowE-2-2" class="col-sm-6"></div>
+            <div id="rowE-1-3" class="col-sm-4"></div>
+            <div id="rowE-2-3" class="col-sm-4"></div>
+            <div id="rowE-3-3" class="col-sm-4"></div>
+        </div>
+        <div id='rowF' class="row">
+            <div id="rowF-1-1" class="col-sm-12"></div>
+            <div id="rowF-1-2" class="col-sm-6"></div>
+            <div id="rowF-2-2" class="col-sm-6"></div>
+            <div id="rowF-1-3" class="col-sm-4"></div>
+            <div id="rowF-2-3" class="col-sm-4"></div>
+            <div id="rowF-3-3" class="col-sm-4"></div>
+        </div>
+
     </div>
 
-
-
-
+    <div id="floating-bottom"></div>
+</div>
+<div id="fixed-bottom"></div>
 
   </body>
 </html>

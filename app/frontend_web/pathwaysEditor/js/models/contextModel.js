@@ -11,7 +11,7 @@
 define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
-    'backbone',    // lib/backbone/backbone
+    'backbone'    // lib/backbone/backbone
 ], function ($, _, Backbone) {
     
     var Context = Backbone.Model.extend({
@@ -25,7 +25,7 @@ define([
             showDetails: false
     },
 	toParams: function() {
-	    var ret = _.pick(this.attributes,['user', 'auth', 'id']);
+        var ret = _.pick(this.attributes,['user', 'auth', 'id']);
 	    for(var x in ret) {
     		if(!ret[x]) {delete ret[x];}
 	    }
@@ -34,12 +34,14 @@ define([
         setUser: function (user, pw, route) {
 	    if (this.user != user || !this.userAuth) {
 		this.set('user', user);
+            var that = this;
+            var data = {user:user, password:pw};
 		//alert('setting user');
 		this.fetch({
-		    data: JSON.stringify({user:user, password:pw}),
 		    type: 'POST',
 		    success: function() {
-			    Backbone.history.loadUrl(route);
+                console.log('fetch sucess');
+			    //Backbone.history.loadUrl(route);
 		    }
 		});
 	    }

@@ -11,9 +11,6 @@ define([
 
     function($, _, Backbone, contextModel, curTree, TriggerNode, Helpers, treeTemplate){
 
-
-
-
         var TreeView = Backbone.View.extend({
             template: _.template(treeTemplate),
             initialize: function(){
