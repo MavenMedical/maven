@@ -82,7 +82,6 @@ define([
                 _.each(this.model.get('children').models, function(cur){
 
 
-
                     $('.children', this.$el).first().append("<div class='childSpot'></div>")
                     var targ = $('.childSpot',$('.children', this.$el).first()).last()
                     var thisChild = new TreeNode({model: cur, el:targ})
@@ -92,6 +91,13 @@ define([
 
 
                 }, this)
+
+
+                if (this.model.get('hideChildren')){
+                    $('.children', this.$el).first()[0].hidden = true;
+                } else {
+                    $('.children', this.$el).first()[0].hidden = false;
+                }
 
                 if (this.model.get('protocol')){
                     var protoNode = new ProtocolNode({model: this.model})

@@ -43,9 +43,10 @@ define([
 
                 $('.tree', that.$el).append("<div style= 'width:auto' class='nodeEl'></div>")
                 $('.tree', that.$el).append("<div style='height:60px'></div>")
+                console.log('the tree will contain', curTree)
                 var topLevel = new TriggerNode({el:$('.nodeEl').last(), model: curTree});
                  _.each(curTree.elPairs, function(cur){
-
+                  if(!cur.source.model.get('hideChildren') || cur.source.model.get('protocol')){
                        var a = cur.source.makeExit()
                        var b = cur.target.makeEntrance()
                        jsPlumb.connect({
@@ -54,6 +55,7 @@ define([
 
                            overlays: [["Arrow", {location:1}]]
                        })
+                  }
                 })
 
 

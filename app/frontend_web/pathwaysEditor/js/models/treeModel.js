@@ -16,6 +16,7 @@ define([
         },
 
         initialize: function(){
+
             this.set('triggers', new Backbone.Collection())
             this.set('text', "Triggers")
             this.set('children', new NodeList())
@@ -27,11 +28,16 @@ define([
 
         },
         parse: function(response){
-           this.set('text', response.text)
-           this.set('id', response.id)
-           this.set('protocol', response.protocol)
-           this.set('children', new NodeList(response.children))
-           this.set('triggers', new Backbone.Collection(response.triggers))
+
+
+           this.set({text: response.text}, {silent: true})
+           this.set({id: response.id}, {silent: true})
+           this.set({protocol: response.protocol}, {silent: true})
+            this.set({children: new NodeList(response.children)}, {silent: true})
+            _.each(this.get('children').models, function(cur){
+                cur.set({'hideChildren': true}, {silent: true})
+            })
+           this.set({triggers: new Backbone.Collection(response.triggers)}, {silent: true})
         }
 
     })
