@@ -4,9 +4,13 @@ import json
 from xml.etree import ElementTree as ETree
 from enum import Enum
 from functools import wraps
+from maven_config import MavenConfig
 
 ALLSCRIPTS_NUM_PARAMETERS = 6
-Ehr_username = 'terry'
+
+CONFIG_APPNAME = 'appname'
+CONFIG_APPUSERNAME = 'appusername'
+CONFIG_APPPASSWORD = 'apppassword'
 
 
 class COMPLETION_STATUSES(Enum):
@@ -30,37 +34,35 @@ class CLINICAL_SUMMARY(Enum):
     Results = 'results'
 
 
-# BASEURL = 'http://aws-eehr-11.4.1.unitysandbox.com/Unity/UnityService.svc/json'
-BASEURL = 'http://pro14ga.unitysandbox.com/Unity/UnityService.svc/json'
-# APPNAME = 'web20'
-APPNAME = 'MavenPathways.TestApp'
-# APPUSERNAME = 'webtwozero'
-APPUSERNAME = 'MavenPathways'
-# APPPASSWORD = 'www!web20!'
-APPPASSWORD = 'MavenPathways123!!'
-
-
 class UnauthorizedUser(Exception):
     pass
 
 
 class allscripts_api(http.http_api):
 
-    def __init__(self,
-                 baseurl=BASEURL,
-                 appname=APPNAME,
-                 appuser=APPUSERNAME,
-                 apppassword=APPPASSWORD):
-
-        http.http_api.__init__(self, baseurl,
-                               {'Content-Type': 'application/json'})
+    def __init__(self, configname: str):
+        """ initialize this adapter for the allscripts professional API
+        :params configname: the name of the configuration section in the MavenConfig map
+        it's required parameters are:
+          CONFIG_BASEURL, CONFIG_APPNAME, CONFIG_APPUSERNAME, CONFIG_APPPASSWORD
+        it's optional parameter is CONFIG_OTHERHEADERS
+        """
+        http.http_api.__init__(self, configname)
         self.postprocess = (lambda x: list(json.loads(x)[0].values())[0])
-        self.appname = appname
-        self.appusername = APPUSERNAME
-        self.apppassword = APPPASSWORD
+        self.appname = self.config[CONFIG_APPNAME]
+        self.appusername = self.config[CONFIG_APPUSERNAME]
+        self.apppassword = self.config[CONFIG_APPPASSWORD]
         self.unitytoken = None
 
-    def _build_message(self, action, *args, user=None, patient=None, data='null'):
+    def _build_message(self, action: str, *args: [str], user: str=None,
+                       patient: str=None, data='null') -> {str: str}:
+        """ builds the data section of a message to allscripts
+        :param action: the API method to invoke
+        :param user: the provider's userid for whom we perform this
+        :param patient: the patient whose data to get/interact with
+        :param data: seem to always be None for Get calls
+        :param *arg: allscripts functions take other parameters as positional
+        """
         if len(args) < ALLSCRIPTS_NUM_PARAMETERS:
             args += ('',) * (ALLSCRIPTS_NUM_PARAMETERS - len(args))
         ret = {'Action': action,
@@ -75,15 +77,21 @@ class allscripts_api(http.http_api):
         ret.update(zip(['Parameter' + str(n + 1) for n in range(ALLSCRIPTS_NUM_PARAMETERS)], args))
         return ret
 
-    def _require_token(func):
+    def _require_token(func: 'function') -> 'function':
+        """ decorator for functions which require a security token before executing
+        """
         co_func = asyncio.coroutine(func)
 
         def worker(self, *args, **kwargs):
             if not self.unitytoken:
+                f = asyncio.Future()
+                self.unitytoken = f
                 req = yield from self.post('/GetToken',
                                            Username=self.appusername, Password=self.apppassword)
-
+                f.set_result(req)
                 self.unitytoken = req
+            elif isinstance(self.unitytoken, asyncio.Future):
+                yield from self.unitytoken
             ret = yield from co_func(self, *args, **kwargs)
             return ret
         return asyncio.coroutine(wraps(func)(worker))
@@ -100,7 +108,7 @@ class allscripts_api(http.http_api):
         return self.postprocess(ret)[0]
 
     @_require_token
-    def GetPatient(self, username, patient):
+    def GetPatient(self, username: str, patient: str):
         """ Gets (demographic and contact mostly) information about a patient
         :param user: the allscripts EHR user ID
         :param patient: the allscripts internal patient ID (from GetPatientByMRN,
@@ -114,7 +122,7 @@ class allscripts_api(http.http_api):
         return self.postprocess(ret)[0]
 
     @_require_token
-    def GetChangedPatients(self, username, since):
+    def GetChangedPatients(self, username: str, since: {str, 'date', 'datetime'}):
         """ Gets a list of patientIDs for patients whose information has changed recently
         :param username: the allscripts ehr username
         :param since: a timestamp - only get patients who changed after this time
@@ -129,7 +137,8 @@ class allscripts_api(http.http_api):
         return [x['patientid'] for x in self.postprocess(ret)]
 
     @_require_token
-    def GetSchedule(self, username, startdate, changedsince=None, soughtuser=None):
+    def GetSchedule(self, username: str, startdate: {str, 'date', 'datetime'},
+                    changedsince: {str, 'date', 'datetime'}=None, soughtuser: str=None):
         """ Gets a list of scheduled appointments for a provider.
         Each element in the list includes (among others):
         Status (i.e. pending), patiendID, Duration, Patient (full name), TimeIn, ProviderID,
@@ -155,7 +164,7 @@ class allscripts_api(http.http_api):
         return self.postprocess(ret)
 
     @staticmethod
-    def _append_xml(root, name, value=None):
+    def _append_xml(root: ETree.Element, name: str, value: str=None):
         child = ETree.Element(name)
         if value:
             child.set('value', value)
@@ -163,8 +172,8 @@ class allscripts_api(http.http_api):
         return child
 
     @_require_token
-    def GetProcedures(self, username, patient, completionstatuses=None,
-                      rulenames=None, rulenameexactmatch=False):
+    def GetProcedures(self, username: str, patient: str, completionstatuses: [COMPLETION_STATUSES]=None,
+                      rulenames: [str]=None, rulenameexactmatch: bool=False):
         """ Gets a list of procedures for a given patient
         :param username: the allscripts user requesting the data
         :param patient: the patient to search for
@@ -212,7 +221,7 @@ class allscripts_api(http.http_api):
         return ret
 
     @_require_token
-    def GetClinicalSummary(self, username, patient, sections=None):
+    def GetClinicalSummary(self, username: str, patient: str, sections: [CLINICAL_SUMMARY]=None):
         """ Gets lots of clinical data about a patient
         :param username: the allscripts user
         :param patient: the patient to search for
@@ -227,7 +236,7 @@ class allscripts_api(http.http_api):
         return self.postprocess(ret)
 
     @_require_token
-    def GetPatientSections(self, username, patient, months):
+    def GetPatientSections(self, username: str, patient: str, months: int):
         """
         """
         ret = yield from self.post('/MagicJson',
@@ -237,8 +246,29 @@ class allscripts_api(http.http_api):
         return self.postprocess(ret)
 
 if __name__ == '__main__':
-    api = allscripts_api()
+    MavenConfig['allscripts_old_demo'] = {
+        http.CONFIG_BASEURL: 'http://aws-eehr-11.4.1.unitysandbox.com/Unity/UnityService.svc/json',
+        http.CONFIG_OTHERHEADERS: {
+            'Content-Type': 'application/json'
+        },
+        CONFIG_APPNAME: 'web20',
+        CONFIG_APPUSERNAME: 'webtwozero',
+        CONFIG_APPPASSWORD: 'www!web20!',
+    }
+
+    MavenConfig['allscripts_demo'] = {
+        http.CONFIG_BASEURL: 'http://pro14ga.unitysandbox.com/Unity/UnityService.svc/json',
+        http.CONFIG_OTHERHEADERS: {
+            'Content-Type': 'application/json'
+        },
+        CONFIG_APPNAME: 'MavenPathways.TestApp',
+        CONFIG_APPUSERNAME: 'MavenPathways',
+        CONFIG_APPPASSWORD: 'MavenPathways123!!',
+    }
+
+    api = allscripts_api('allscripts_demo')
     loop = asyncio.get_event_loop()
+    Ehr_username = 'terry'
     patient = input('Enter a Patient ID to display (e.g., 22): ')
     if not patient:
         patient = '22'
