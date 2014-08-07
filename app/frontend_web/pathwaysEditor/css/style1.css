@@ -4,7 +4,7 @@
 
 /* sadly css variables aren't supported by much of anything, so we'll do this with copy and paste.
  * Here is a list of all of the values which can be modified
- * The places where each is used includes a comment with the variable name after it 
+ * The places where each is used includes a comment with the variable name after it
  * This allows changing exactly the right things using search and replace (almost)
     var-fixed-top-size
     var-fixed-bottom-size
@@ -90,39 +90,49 @@ html, body {
 }
 
 #fixed-left {
+    display: none;
+    position: fixed;
+    width: 20%; /*var-fixed-left-size*/
+    top: 130px; /*var-fixed-top-size*/
+    bottom: 0px; /*var-fixed-bottom-size*/
+    left: 0px;
 }
 
 #fixed-right {
-    position:fixed;
-    visibility:hidden;
-    width:20%; /*var-fixed-right-size*/
-    top: 130px;  /*var-fixed-top-size*/
+    position: fixed;
+    visibility: hidden;
+    width: 20%; /*var-fixed-right-size*/
+    top: 130px; /*var-fixed-top-size*/
     bottom: 0px; /*var-fixed-bottom-size*/
-    right:0px;
-
+    right: 0px;
 }
-
 #wrapper {
-    position:relative;
-    left:20%; /*var-fixed-left-size*/
-    width:60%;/*100% minus var-fixed-left-size minus var-fixed-right-size */;
-    bottom:0px;
-    z-index:1;
+    position: relative;
+    min-width: 70%; /*100% minus var-fixed-left-size minus var-fixed-right-size */;
+    bottom: 0px;
+    z-index: 1;
     margin-top: 130px; /*var-fixed-top-size*/
 }
 
 #floating-top {
+    position: relative;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    display: none;
+    height: 0px; /*var-floating-top-size*/
+    z-index: 2;
 }
 
 #floating-bottom {
-    display:none;
-    position:relative;
-    bottom:0px;
-    left:0px;
-    right:0px;
-    height:30px; /*var-floating-bottom-size*/
+    display: none;
+    position: relative;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    height: 30px; /*var-floating-bottom-size*/
     margin-bottom: 0px; /*var-fixed-bottom-size*/
-    z-index:2;
+    z-index: 2;
 }
 
 #floating-left {
@@ -136,13 +146,13 @@ html, body {
     position:relative;
     float:right;
     width:30%; /*var-floating-right-size*/
-    height: 700px;
-    overflow: auto
+    height: 600px;
 }
 
 #content {
     overflow:hidden;
     position:relative;
+    height: 600px;
     margin-left:0px; /*var-float-left-size*/
     width:70%; /*100 minus var-float-left-size minus var-floating-right-size*/
 }
@@ -182,10 +192,12 @@ html, body {
     font-size:20px;
 }
 
-body{
+body {
     height: 100%;
-  margin-top: 50px;
-  background-color: #fff6f6;
+    margin-top: 50px;
+    background-color: rgb(235, 235, 235);
+    background-image: linear-gradient(to bottom, rgb(253, 253, 253), #fff6f6);
+    background-repeat: repeat-x;
 }
 
 .main-header{
@@ -370,6 +382,73 @@ body{
 .alert-list-panel {
         background-color: #c0c0c0;
 }
+
+/**********************************************************************
+ * The following customize the styles and colors of the profile modal *
+ *********************************************************************/
+body.modal-open, .modal-open .navbar-fixed-top, .modal-open .navbar-fixed-bottom {
+    overflow-y: auto;
+}
+
+.modal {
+    overflow-y: auto;
+}
+#profile-modal {
+    max-height: 600px;
+}
+
+
+#pathway-tabs {
+    background-color: rgb(235, 235, 235);
+    background-image: linear-gradient(to bottom, rgb(253, 253, 253), rgb(209, 209, 209));
+    background-repeat: repeat-x;
+}
+
+#pathway-tabs a {
+    display: table-cell;
+list-style: none outside none;
+border-left: 1px solid white;
+border-right: 1px solid rgb(204, 204, 204);
+
+}
+
+.nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus {
+    background-color: rgb(235, 235, 235);
+}
+
+.pane-content{
+    background-image: linear-gradient(to bottom, rgb(235, 235, 235), rgb(253, 253, 253));
+    padding: 30px;
+}
+
+.rule {
+    background-color: red;
+}
+
+
+/***************************************************************
+ * The following customize action buttons *
+ ***************************************************************/
+
+#actions button {
+	background-color: #46bdec;
+	color: #fff;
+	margin: 0 auto;
+	padding: 4px 0;
+	width: 200px;
+    -webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 15px;
+}
+
+#actions button:hover {
+	background-color: #465766;
+}
+
+#action-buttons {
+  margin-left: 20%;
+}
+
 
 /* adjust the contents on smaller devices */
 @media (max-width: 768px) {
