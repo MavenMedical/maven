@@ -11,8 +11,7 @@ define([
         initialize: function(childSet){
             if (childSet){
                 _.each(childSet, function(cur){
-                    this.add(new NodeModel(cur))
-
+                    this.add(new NodeModel(cur), {silent: true})
                 }, this)
             }
         },
