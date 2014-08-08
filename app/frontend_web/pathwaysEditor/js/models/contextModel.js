@@ -15,7 +15,7 @@ define([
 ], function ($, _, Backbone) {
     
     var Context = Backbone.Model.extend({
-	urlRoot: '/login',
+	urlRoot: '/pathway_services/login',
 
         defaults: {
             stage: null,
@@ -29,19 +29,19 @@ define([
 	    for(var x in ret) {
     		if(!ret[x]) {delete ret[x];}
 	    }
-	    return ret;
+        console.log(ret)
+        return ret;
+
 	},
         setUser: function (user, pw, route) {
 	    if (this.user != user || !this.userAuth) {
 		this.set('user', user);
-            var that = this;
-            var data = {user:user, password:pw};
 		//alert('setting user');
 		this.fetch({
+		    data: JSON.stringify({user:user, password:pw}),
 		    type: 'POST',
 		    success: function() {
-                console.log('fetch sucess');
-			    //Backbone.history.loadUrl(route);
+			    Backbone.history.loadUrl(route);
 		    }
 		});
 	    }

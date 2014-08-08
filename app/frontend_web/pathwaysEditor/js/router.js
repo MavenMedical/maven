@@ -39,9 +39,12 @@ var AppRouter = Backbone.Router.extend({
 	    console.log('No route:', action);
 	},
     initialize: function(){
+        Context.setUser('tom', 'pw', '#');
         $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
             options.url = 'pathway_services' + options.url;
         });
+
+
 
         Backbone.history.start();
     }
