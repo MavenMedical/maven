@@ -3,7 +3,7 @@ import asyncio
 import json
 from xml.etree import ElementTree as ETree
 from enum import Enum
-from functools import wraps
+from functools import wraps, lru_cache
 from maven_config import MavenConfig
 
 ALLSCRIPTS_NUM_PARAMETERS = 6
@@ -38,6 +38,7 @@ class UnauthorizedUser(Exception):
     pass
 
 
+@lru_cache()
 class allscripts_api(http.http_api):
 
     def __init__(self, configname: str):
@@ -244,6 +245,7 @@ class allscripts_api(http.http_api):
                                                             str(months),
                                                             user=username, patient=patient))
         return self.postprocess(ret)
+
 
 if __name__ == '__main__':
     MavenConfig['allscripts_old_demo'] = {
