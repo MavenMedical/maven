@@ -1,0 +1,16 @@
+<div style="width: auto">
+<div style="text-align: center; border-style:solid;  width:auto;" class = "treeNode"><%=text%>
+<div class="triggerView">triggers will go here</div>
+<br>
+<button id = "addTriggerButton">Add Triggering Snomed</button>
+<br>
+<button id = "addChildButton">Add Child</button>
+
+<% if (children.length == 0){%><button class="addProtocolButton">Add a Protocol</button><%}%>
+</div>
+
+<div style="clear: both; height:100px; width:10px;"></div>
+<div style= "clear: both; width: 100%; text-align: center" class ='children'></div>
+<div class ='protocol'></div>
+
+</div>

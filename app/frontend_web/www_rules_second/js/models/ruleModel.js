@@ -53,13 +53,13 @@ define([
     },
     getNewRule: function(name){
 
-      ruleModel.clearData();
-      ruleModel.set({name: name}, {silent: true});
-      ruleModel.set({detID: 0}, {silent: true})
-      $('.tab-pane').removeClass('active')
-      $('a[href="#Overview-Tab"]').tab('show');
-      $('.overview-tab').addClass('active')
-      ruleModel.save({}, {success: function(){
+          ruleModel.clearData();
+          ruleModel.set({name: name}, {silent: true});
+          ruleModel.set({detID: 0}, {silent: true})
+          $('.tab-pane').removeClass('active')
+          $('a[href="#Overview-Tab"]').tab('show');
+          $('.overview-tab').addClass('active')
+          ruleModel.save({}, {success: function(){
           ruleModel.trigger('selected')}});
 
 

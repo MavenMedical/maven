@@ -25,9 +25,7 @@ define([
             'click #profile_button' : 'handle_profile'
         },
         handle_profile: function () {
-            console.log('profile is clicked');
-
-
+            // a modal to be shown after clicking 'my profile' from the dropdown menu
              $("#profile-modal").modal({'show': 'true'});
 
         },

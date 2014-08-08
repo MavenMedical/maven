@@ -111,7 +111,7 @@ def _invalid_string(x):
     return "NOTVALIDYET"
 
 
-def _build_format(override={}):
+def _build_format(override=None):
     formatbytypemap = {
         Decimal: int,
         date: str,
@@ -133,7 +133,8 @@ def _build_format(override={}):
     }
     formatter = defaultdict(lambda: formatbytype,
                             formatbykeymap.items())
-    formatter.update(override)
+    if override:
+        formatter.update(override)
     return formatter
 
 
@@ -265,7 +266,7 @@ class WebPersistence():
     _display_pre_login = _build_format()
 
     @asyncio.coroutine
-    def pre_login(self, desired, username=None, provider=[], keycheck=None):
+    def pre_login(self, desired, username=None, provider=None, keycheck=None):
         columns = build_columns(desired.keys(), self._available_pre_login,
                                 self._default_pre_login)
         if not username and not provider:
@@ -308,7 +309,7 @@ class WebPersistence():
     })
 
     @asyncio.coroutine
-    def patient_info(self, desired, user, customer, patients=[], limit="", patient_name="",
+    def patient_info(self, desired, user, customer, patients=None, limit="", patient_name="",
                      startdate=None, enddate=None):
         columns = build_columns(desired.keys(), self._available_patient_info,
                                 self._default_patient_info)
@@ -387,7 +388,7 @@ class WebPersistence():
     })
 
     @asyncio.coroutine
-    def total_spend(self, desired, customer, provider=None, patients=[], encounter=None,
+    def total_spend(self, desired, customer, provider=None, patients=None, encounter=None,
                     startdate=None, enddate=None):
         columns = build_columns(desired.keys(), self._available_total_spend,
                                 self._default_total_spend)
@@ -429,7 +430,7 @@ class WebPersistence():
     })
 
     @asyncio.coroutine
-    def daily_spend(self, desired, provider, customer, patients=[], encounter=None,
+    def daily_spend(self, desired, provider, customer, patients=None, encounter=None,
                     startdate=None, enddate=None):
         columns = build_columns(desired.keys(), self._available_daily_spend,
                                 self._default_daily_spend)
@@ -477,8 +478,8 @@ class WebPersistence():
         })
 
     @asyncio.coroutine
-    def alerts(self, desired, provider, customer, patients=[], limit="",
-               startdate=None, enddate=None, orderid=None, categories=[],
+    def alerts(self, desired, provider, customer, patients=None, limit="",
+               startdate=None, enddate=None, orderid=None, categories=None,
                orderby=Results.datetime, ascending=True, alertid=None):
         columns = build_columns(desired.keys(), self._available_alerts,
                                 self._default_alerts)
@@ -572,7 +573,7 @@ class WebPersistence():
         })
 
     @asyncio.coroutine
-    def orders(self, desired, customer, encounter=None, patientid=None, ordertypes=[], limit="",
+    def orders(self, desired, customer, encounter=None, patientid=None, ordertypes=None, limit="",
                startdate=None, enddate=None):
         if not encounter and not patientid:
             raise InvalidRequest('Getting orders requires a patient or an encounter')
@@ -615,7 +616,7 @@ class WebPersistence():
         })
 
     @asyncio.coroutine
-    def per_encounter(self, desired, provider, customer, patients=[], encounter=None,
+    def per_encounter(self, desired, provider, customer, patients=None, encounter=None,
                       startdate=None, enddate=None):
         columns = build_columns(desired.keys(), self._available_per_encounter,
                                 self._default_per_encounter)

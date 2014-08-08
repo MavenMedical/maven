@@ -5,12 +5,12 @@
 #  Description: This module extends the StreamProcessor class into a REST web server.
 #               I also give a sample application, which interacts with a slightly modified
 #               version of the backbone tutorial's user manager application.
-#               
+#
 #  Author: Tom DuBois
-#  Assumes: Nothing for now, eventually that Rabbit will send a message 
+#  Assumes: Nothing for now, eventually that Rabbit will send a message
 #           with a specific format
 #  Side Effects: None
-#  Last Modified: 
+#  Last Modified:
 ##############################################################################
 
 import urllib.parse
@@ -62,7 +62,7 @@ UNAVAILABLE_RESPONSE = b'HTTP/1.0 503 Service Unavailable'
 CREATED_RESPONSE = b'HTTP/1.0 201 Created'
 NOCONTENT_RESPONSE = b'HTTP/1.0 204 No Content'
 BAD_RESPONSE = b'HTTP/1.0 400 Bad Request'
-UNAUTHORIZED_RESPONSE = b'HTTP/1.0 401 Unauthorized' # needs to let the client know how to get authorization
+UNAUTHORIZED_RESPONSE = b'HTTP/1.0 401 Unauthorized'
 NOTFOUND_RESPONSE = b'HTTP/1.0 404 Not Found'
 NOTALLOWED_RESPONSE = b'HTTP/1.0 405 Method Not Allowed'
 ERROR_RESPONSE = b'HTTP/1.0 500 Internal Server Error'
@@ -72,7 +72,7 @@ DEFAULT_HEADERS = \
         b'Content-Type: application/json',
         b'Connection: close',
     ]
-    # text/plain
+# text/plain
 
 
 def wrap_response(response_type, text, extra_header_list=None):
@@ -93,14 +93,14 @@ def wrap_response(response_type, text, extra_header_list=None):
 
 
 class _HTTPStreamParser(SP.MappingParser):
-    """ _HTTPStreamParser is a stream parser that takes a stream of (either one, or multiple 
-    pipelined) HTTP requests, divides them into individual requests, parses them into a 
+    """ _HTTPStreamParser is a stream parser that takes a stream of (either one, or multiple
+    pipelined) HTTP requests, divides them into individual requests, parses them into a
     HttpParser object and a body, and calls read_object (see stream_processor for more info
     on parsers
     """
-    
-    # Every HTTP message should start with one of these.  So each occurence is a 
-    # potential delimited between messages.  Used for breaking up potentially 
+
+    # Every HTTP message should start with one of these.  So each occurence is a
+    # potential delimited between messages.  Used for breaking up potentially
     # pipelined messages
     _starting_re = re.compile(b"(GET|POST|OPTIONS|DELETE|PUT|HEAD|TRACE)")
 
@@ -113,7 +113,7 @@ class _HTTPStreamParser(SP.MappingParser):
         :param register_fn: when a new socket is opened, register a writer for it here
         """
         SP.MappingParser.__init__(self, configname, read_fn, lambda x: x, loop, register_fn)
-        #ML.DEBUG("created a new http parser")
+        # ML.DEBUG("created a new http parser")
         self.p = HttpParser()
         self.body = []
 
@@ -123,27 +123,27 @@ class _HTTPStreamParser(SP.MappingParser):
         :params data: the bytes received over the socket
         """
 
-        #self.update_last_activity()
+        # self.update_last_activity()
 
         ML.DEBUG("RECV: " + str(data))
-        
+
         # split the data on potential http request boundaries
         splits = _HTTPStreamParser._starting_re.split(data)
-        
+
         # for each non-empty split, parse it
-        for sp in filter(None,splits):
-            #print("SP: "+str(sp))
-            base=0
+        for sp in filter(None, splits):
+            # print("SP: " + str(sp))
+            base = 0
             while base < len(sp):
                 c = self.p.execute(sp[base:], len(sp[base:]))  # parse the chunk of bytes
-                l = len(sp[base:])
-                base=base+c
-            
+                # l = len(sp[base:])
+                base = base + c
+
             # if it contains part of the request's body, process that
             if self.p.is_partial_body():
                 self.body.append(self.p.recv_body())
 
-            # if the message is complete, put everything together, and launch a coroutine to handle it
+            # if the message is complete, put everything together, and launch a coroutine for it
             if self.p.is_message_complete():
                 coro = self.read_fn([self.p, b''.join(self.body)], self.registered_key)
                 self.loop.call_soon_threadsafe(SP.MappingParser.create_task, coro, self.loop)
@@ -151,31 +151,35 @@ class _HTTPStreamParser(SP.MappingParser):
                 self.body = []
 
     def eof_received(self):
-        #ML.DEBUG("EOF")
+        # ML.DEBUG("EOF")
         return True
+
 
 class IncompleteRequest(Exception):
     pass
 
+
 class UnauthorizedRequest(Exception):
     pass
 
+
 def ssl_check(header):
-    if not header.get('VERIFIED','None') == 'SUCCESS':
+    if not header.get('VERIFIED', 'None') == 'SUCCESS':
         raise UnauthorizedRequest('This services requires ssl client authentication.')
+
 
 class HTTPProcessor(SP.StreamProcessor):
     """ HTTPProcessor extends stream_processor.StreamProcessor with a web server
     It can create many kinds of web servers, but the motivation is RESTful web services
 
-    As written, when a client connects, a coroutine is schedule to handle the request and respond 
+    As written, when a client connects, a coroutine is schedule to handle the request and respond
     immediately.  Without much effort it could be re-configured to bundle the request, send it to
-    another machine for processing, and pair the reply back with the original socket when it comes back.
+    another machine for processing, pair the reply with the original socket when it comes back.
     """
 
     def __init__(self, configname):
-        """ Initialize the StreamProcessor superclass, getting all of the IO and helper functions from 
-        the MavenConfig structure.  It creates the StreamProcess, but does not yet make network connections.
+        """ Initialize the StreamProcessor superclass, getting all of the IO and helper functions from
+        MavenConfig.  It creates the StreamProcess, but does not yet make network connections.
 
         :param configname: the name of the instance to pull config parameters
         """
@@ -186,8 +190,8 @@ class HTTPProcessor(SP.StreamProcessor):
             self.host = self.config.get(SP.CONFIG_HOST, None)
             self.port = self.config[SP.CONFIG_PORT]
         except KeyError:
-            raise MC.InvalidConfig(configname + " did not have sufficient parameters.")            
-        
+            raise MC.InvalidConfig(configname + " did not have sufficient parameters.")
+
         if self.config.get(CONFIG_SSLAUTH, None):
             self.sslauth = ssl_check
         else:
@@ -197,7 +201,7 @@ class HTTPProcessor(SP.StreamProcessor):
         # more detailed information.  create detailed configuration parameters here
         readername = configname + '.reader'
         writername = configname + '.writer'
-        
+
         self.config.update(
             {
                 SP.CONFIG_READERTYPE: SP.CONFIGVALUE_ASYNCIOSERVERSOCKET,
@@ -220,7 +224,7 @@ class HTTPProcessor(SP.StreamProcessor):
                     },
             })
         if SP.CONFIG_PARSERTIMEOUT in self.config:
-            parsername = configname+'.parser'
+            parsername = configname + '.parser'
             self.config.update({SP.CONFIG_PARSERNAME: parsername})
             MC.MavenConfig.update(
                 {
@@ -231,49 +235,49 @@ class HTTPProcessor(SP.StreamProcessor):
         # initialize the base StreamProcessor with this new configuration pameters
         SP.StreamProcessor.__init__(self, configname)
 
-        # The one piece of state specific to this base class - the handler functions and their regexes
+        # This state is specific to this base class - the handler functions and their regexes
         # Any subclass of HttpProcessor should populate this in its __init__
         self.handlers = []
 
-
     @asyncio.coroutine
     def read_object(self, obj, key):
-        """ read_object takes an http request and a writer key, determines which handler should process 
+        """ read_object takes an http request and a writer key, determines which handler should process
         request, invokes that handler, and responds with its output.
-        
-        It should handle catch-all errors, string sanitization, authentication, etc., so that the handler
+
+        Handle catch-all errors, string sanitization, authentication, etc., so that the handler
         functions only worry about the business logic.
 
         :param obj: a list of [HttpParse, message_body]
         :param key: the key to be used when responding with self.write_object(response_bytes, key)
-        """        
-        
+        """
+
         headers = obj[0]
         body = obj[1]
-        #ML.DEBUG("errno: %s" % headers.get_errno())
+        # ML.DEBUG("errno: %s" % headers.get_errno())
         ML.INFO("header: %s" % str((headers.get_path(), headers.get_query_string())))
-        #ML.DEBUG("method: %s" % headers.get_method())
-        #ML.INFO("path: %s" % headers.get_path())
-        #ML.DEBUG("status: %s" % headers.get_status_code())
-        #ML.DEBUG("body: %s" % body)
-        req_line = headers.get_method()+' '+headers.get_path()
+        # ML.DEBUG("method: %s" % headers.get_method())
+        # ML.INFO("path: %s" % headers.get_path())
+        # ML.DEBUG("status: %s" % headers.get_status_code())
+        # ML.DEBUG("body: %s" % body)
+        req_line = headers.get_method() + ' ' + headers.get_path()
         query_string = urllib.parse.parse_qs(headers.get_query_string())
-        #ML.DEBUG("query: %s" % str(query_string))
-        #print(req_line)
+        # ML.DEBUG("query: %s" % str(query_string))
+        # print(req_line)
         ret = None
         try:
             self.sslauth(headers.get_headers())
             for (r, fn) in self.handlers:
-            #print(r, fn)
+                # print(r, fn)
                 m = r.match(req_line)
                 if m:  # if the regex matches, call the handler and return a response
-                    (resp, body, extras) = yield from fn(headers, body, query_string, m.groups(), key)
+                    (resp, body, extras) = yield from fn(headers, body, query_string,
+                                                         m.groups(), key)
                     if headers.get_method() == 'HEAD':  # don't send a body with HEAD
-                        ret=wrap_response(resp, b'', extras)
+                        ret = wrap_response(resp, b'', extras)
                     else:
-                        if resp == OK_RESPONSE and not body: # use No Content when called for
+                        if resp == OK_RESPONSE and not body:  # for No Content
                             resp = NOCONTENT_RESPONSE
-                        ret=wrap_response(resp, body, extras)
+                        ret = wrap_response(resp, body, extras)
                     break
         except (KeyError, IndexError):  # key error means an object isn't found
             traceback.print_exc()
@@ -281,10 +285,10 @@ class HTTPProcessor(SP.StreamProcessor):
         except ValueError:
             traceback.print_exc()
             ret = wrap_response(BAD_RESPONSE, b'')
-        except IncompleteRequest as e:
+        except IncompleteRequest:
             traceback.print_exc()
             ret = wrap_response(BAD_RESPONSE, b'')
-        except UnauthorizedRequest as e :
+        except UnauthorizedRequest:
             ret = wrap_response(UNAUTHORIZED_RESPONSE, b'')
         except:  # handle general errors gracefully
             traceback.print_exc()
@@ -294,14 +298,14 @@ class HTTPProcessor(SP.StreamProcessor):
             ret = wrap_response(UNAVAILABLE_RESPONSE, b'')
 
         try:
-            self.write_object(ret, writer_key = key)  # send the response
-            #ML.DEBUG("done writing")
-            if headers.get_headers().get('Connection','').upper()=='CLOSE':
+            self.write_object(ret, writer_key=key)  # send the response
+            # ML.DEBUG("done writing")
+            if headers.get_headers().get('Connection', '').upper() == 'CLOSE':
                 self.unregister_writer(key)
-                #ML.DEBUG("unregistering")
+                # ML.DEBUG("unregistering")
             else:
                 pass
-                #ML.DEBUG(headers.get('Connection'))
+                # ML.DEBUG(headers.get('Connection'))
         except:
             try:
                 self.unregister_writer(key)
@@ -316,31 +320,31 @@ class HTTPProcessor(SP.StreamProcessor):
         The first match gets to handle the message
         :param methods: a list of http methods (ex ['GET'])
         :param regexpstring: a string representing urls to match.
-                             it may contain groups (ex "(\d+)") whose 
+                             it may contain groups (ex "(\d+)") whose
                              matches contents are passed to the handler.
         :param fn: the handler function
         """
 
-        if 'GET' in methods and not 'HEAD' in methods:
+        if 'GET' in methods and 'HEAD' not in methods:
             methods.append('HEAD')
-        regexp = '(?:'+'|'.join(methods)+')\s+'+regexpstring + '$'
+        regexp = '(?:' + '|'.join(methods) + ')\s+' + regexpstring + '$'
         self.handlers.append((re.compile(regexp), fn))
-        #print(regexp)
-        #print(re.match(regexp,b'GET /users/1 HTTP/1.0'))
+        # print(regexp)
+        # print(re.match(regexp,b'GET /users/1 HTTP/1.0'))
 
 
 class HTTPReader(SP.StreamProcessor):
     """ HTTPProcessor extends stream_processor.StreamProcessor with a web server
     It can create many kinds of web servers, but the motivation is RESTful web services
 
-    As written, when a client connects, a coroutine is schedule to handle the request and respond 
+    As written, when a client connects, a coroutine is schedule to handle the request and respond
     immediately.  Without much effort it could be re-configured to bundle the request, send it to
-    another machine for processing, and pair the reply back with the original socket when it comes back.
+    another machine for processing, and pair the reply with the original socket when it comes back.
     """
 
     def __init__(self, configname):
-        """ Initialize the StreamProcessor superclass, getting all of the IO and helper functions from 
-        the MavenConfig structure.  It creates the StreamProcess, but does not yet make network connections.
+        """ Initialize the StreamProcessor superclass, getting all of the IO and helper functions from
+        MavenConfig.  It creates the StreamProcess, but does not yet make network connections.
 
         :param configname: the name of the instance to pull config parameters
         """
@@ -348,11 +352,11 @@ class HTTPReader(SP.StreamProcessor):
         # read the config parameters
         try:
             self.config = MC.MavenConfig[configname]
-            #self.host = self.config.get(SP.CONFIG_HOST, None)
-            #self.port = self.config[SP.CONFIG_PORT]
+            # self.host = self.config.get(SP.CONFIG_HOST, None)
+            # self.port = self.config[SP.CONFIG_PORT]
         except KeyError:
-            raise MC.InvalidConfig(configname + " did not have sufficient parameters.")            
-        
+            raise MC.InvalidConfig(configname + " did not have sufficient parameters.")
+
         if self.config.get(CONFIG_SSLAUTH, None):
             self.sslauth = ssl_check
         else:
@@ -368,36 +372,37 @@ class HTTPReader(SP.StreamProcessor):
         # initialize the base StreamProcessor with this new configuration pameters
         SP.StreamProcessor.__init__(self, configname)
 
+
 class HTTPWriter(SP.StreamProcessor):
-    
+
     def __init__(self, configname):
         SP.StreamProcessor.__init__(self, configname)
 
     @asyncio.coroutine
     def read_object(self, obj, key):
-        """ read_object takes an http request and a writer key, determines which handler should process 
+        """ read_object takes an http request and a writer key, determines which handler should process
         request, invokes that handler, and responds with its output.
-        
-        It should handle catch-all errors, string sanitization, authentication, etc., so that the handler
+
+        Handle catch-all errors, string sanitization, authentication, etc., so that the handler
         functions only worry about the business logic.
 
-        :param obj: 
-        :param key: 
-        """        
+        :param obj:
+        :param key:
+        """
         k = None
         ret = None
         try:
             (response, body, extras, k) = yield from self.format_response(obj, key)
-            if response == OK_RESPONSE and not body: # use No Content when called for
-                resp = NOCONTENT_RESPONSE
-            ret=wrap_response(response, body, extras)
+            if response == OK_RESPONSE and not body:  # use No Content when called for
+                response = NOCONTENT_RESPONSE
+            ret = wrap_response(response, body, extras)
 
         except KeyError:  # key error means an object isn't found
             ret = wrap_response(NOTFOUND_RESPONSE, b'')
         except ValueError:
             ret = wrap_response(BAD_RESPONSE, b'')
-        except IncompleteRequest as e :  # key error means an object isn't found
-            ret = wrap_response(BAD_RESPONSE, bytes(str(e),'utf-8'))
+        except IncompleteRequest as e:  # key error means an object isn't found
+            ret = wrap_response(BAD_RESPONSE, bytes(str(e), 'utf-8'))
         except:  # handle general errors gracefully
             traceback.print_exc()
             ret = wrap_response(ERROR_RESPONSE, b'')
@@ -406,23 +411,19 @@ class HTTPWriter(SP.StreamProcessor):
             ret = wrap_response(UNAVAILABLE_RESPONSE, b'')
 
         try:
-            self.write_object(ret, writer_key = k)  # send the response
-            #ML.DEBUG("done writing")
-            if headers.get_headers().get('Connection','').upper()=='CLOSE':
-                self.unregister_writer(k)
-                #ML.DEBUG("unregistering")
-            else:
-                #ML.DEBUG(headers.get('Connection'))
-                pass
+            self.write_object(ret, writer_key=k)  # send the response
+            # ML.DEBUG("done writing")
+            self.unregister_writer(k)
+            # ML.DEBUG("unregistering")
         except:
-            ML.WARN("connection to %s failed before write happened" % k)
-    
+            ML.EXCEPTION("connection to %s failed before/as write happened" % k)
 
 
 class BackboneService(HTTPProcessor):
-    """ BackboneService is a subclass of HTTPProcessor which interacts with the backbone.js turorial available 
+    """ BackboneService is a subclass of HTTPProcessor which interacts
+    with the backbone.js turorial available
     from git clone https://github.com/thomasdavis/backbonetutorials.git
-    
+
     It keeps an in-memory list of users, with first/last names and ages.
     The web service supports adding, deleting, editing, and listing user(s)
     """
@@ -432,7 +433,7 @@ class BackboneService(HTTPProcessor):
         HTTPProcessor.__init__(self, configname)
         self.allusers = {'1': {'id': '1', 'firstname': 'Tom', 'lastname': 'D', 'age': '33'}}
         self.nextid = 2
-        
+
         self.add_handler(['POST'], '/user', self.create_user)
         self.add_handler(['GET', 'OPTIONS'], '/users', self.get_users)
         self.add_handler(['GET', 'OPTIONS'], '/user/(\d+)', self.get_user)
@@ -450,10 +451,11 @@ class BackboneService(HTTPProcessor):
         :param body: the request body
         :param qs: a map from the query string (ex ?x=&y=1&y=2&Y&z=4 becomes {y:[1,2],z:[4]})
         :param matches: a list of url parts matches from the handler's regex
-        :param key: not used here, but potentially useful for passing off processing to another machine
+        :param key: not used here, but useful for passing off processing to another machine
         """
         yield from asyncio.sleep(.2)
-        return (OK_RESPONSE, json.dumps([self.allusers[x] for x in sorted(self.allusers.keys())]),None)
+        return (OK_RESPONSE, json.dumps([self.allusers[x] for x in sorted(self.allusers.keys())]),
+                None)
 
     @asyncio.coroutine
     def get_user(self, _header, _body, _qs, matches, _key):

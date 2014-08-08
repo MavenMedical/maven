@@ -17,32 +17,32 @@ define([
             this.template = _.template(arg.template); // this must already be loaded
             this.update(summaryModel);
             summaryModel.on('change', this.update, this);
-            contextModel.on('change:patients change:encounter change:startdate change:enddate change:enc_date', 
-			    this.update, this);
+            contextModel.on('change:patients change:encounter change:startdate change:enddate change:enc_date',
+                this.update, this);
             patientModel.on('change:name', this.update, this);
 
         },
         update: function (summary) {
             var title = 'your patients';
-	    var date = "Through today";
+            var date = "Through today";
             if (contextModel.get('encounter')) {
                 title = 'encounter';//including ' + date;
                 date = "Encounter starting " + contextModel.get('enc_date');
                 //date = contextModel.get('startdate') + " to " + contextModel.get('enddate');
             } else {
-		if (patientModel.get('name')) {
+                if (patientModel.get('name')) {
                     title = patientModel.get('name');
-		}
-                if(contextModel.get('startdate')){
-		    if(contextModel.get('enddate')) {
-			date = contextModel.get('startdate') + " to " + contextModel.get('enddate');
-		    } else {
-			date = "Since " + contextModel.get('startdate');
-		    }
+                }
+                if (contextModel.get('startdate')) {
+                    if (contextModel.get('enddate')) {
+                        date = contextModel.get('startdate') + " to " + contextModel.get('enddate');
+                    } else {
+                        date = "Since " + contextModel.get('startdate');
+                    }
                 }
             }
             $('#datepicker-input').val(date);
-	    
+
             this.$el.html(this.template($.extend({}, summaryModel.attributes, {'title': title, 'encounterdate': date, 'page': contextModel.get('page')})));
         }
     });

@@ -64,7 +64,7 @@ def get_med_routes(key):
 class RuleService(HTTP.HTTPProcessor):
     
     def __init__(self, configname):
-        HTTP.HTTPProcessor.__init__(self,configname)
+        HTTP.HTTPProcessor.__init__(self, configname)
         self.add_handler(['POST'], '/login', self.post_login)
         self.add_handler(['GET'], '/list', self.get_list)
         self.add_handler(['GET'], '/rule', self.get_rule)
@@ -87,7 +87,7 @@ class RuleService(HTTP.HTTPProcessor):
         print("XXXXXXXXX")
         return {'routes': route_list}
 
-    @asyncio.coroutine
+    @asyncio.coroutinehttpserver
     def post_login(self, _header, body, _qs, _matches, _key):
         info = json.loads(body.decode('utf-8'))
         if (not CONTEXT_USER in info) or (not CONTEXT_PASSWORD in info):
