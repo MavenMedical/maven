@@ -335,6 +335,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
                        ['#rowD-1-1', 'costtable', 'costbreakdown-table.html'],
                        # ['#rowD-1-1','costdonut','costbreakdown-donut.html'],
                        ['#rowE-1-1', 'spend_histogram'],
+                       ['#rowF-1-1', 'pathway'],
                        ['#floating-right', 'alertList', 'alertScroll.html'],
                        ['#datepicker-modal', 'datepicker-calendar'],
                        ['#settings-modal', 'settings', 'settings.html'],
