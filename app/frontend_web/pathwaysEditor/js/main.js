@@ -30,7 +30,7 @@ require([
     'jquery',
     'underscore',
     'backbone',
-    'jsplumb/js/jsplumb',
+   // 'jsplumb/js/jsplumb',
     //    'globalmodels/spendingModel',
     //    'localmodels/patientRowModel',
     

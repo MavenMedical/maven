@@ -17,7 +17,7 @@ define([
             this.template = _.template(arg.template); // this must already be loaded
             this.update(summaryModel);
             summaryModel.on('change', this.update, this);
-            contextModel.on('change:patients change:encounter change:startdate change:enddate change:enc_date',
+            contextModel.on('change:page change:patients change:encounter change:startdate change:enddate change:enc_date',
                 this.update, this);
             patientModel.on('change:name', this.update, this);
 

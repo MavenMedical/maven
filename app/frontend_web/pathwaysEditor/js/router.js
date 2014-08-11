@@ -32,6 +32,8 @@ var AppRouter = Backbone.Router.extend({
     },
     showNewPathway: function () {
         console.log('show New Pathway');
+        new TopBanner({el:'#fixed-topA-1-1'});
+        new PathSearch({el:'#fixed-topB-1-1'});
     },
     defaultAction: function (action) {
 	    console.log('No route:', action);
