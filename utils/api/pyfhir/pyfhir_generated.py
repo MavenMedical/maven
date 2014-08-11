@@ -1,21 +1,21 @@
-#*************************************************************************
-#Copyright (c) 2014 - Maven Medical
-#************************
-#AUTHOR:
-__author__='Yuki Uchino'
-#************************
-#DESCRIPTION:   This FHIR Python Object API was automatically generated from JSON examples
+# *************************************************************************
+# Copyright (c) 2014 - Maven Medical
+# ************************
+# AUTHOR:
+__author__ = 'Yuki Uchino'
+# ************************
+# DESCRIPTION:   This FHIR Python Object API was automatically generated from JSON examples
 #               provided by HL7 FHIR Working Group.
 #
 #
 #
-#************************
-#ASSUMES:
-#************************
-#SIDE EFFECTS:
-#************************
-#LAST MODIFIED FOR JIRA ISSUE: MAV-
-#*************************************************************************
+# ************************
+# ASSUMES:
+# ************************
+# SIDE EFFECTS:
+# ************************
+# LAST MODIFIED FOR JIRA ISSUE: MAV-
+# *************************************************************************
 import uuid
 import datetime
 import dateutil.parser
@@ -27,6 +27,7 @@ from utils.api.pyfhir.pyfhir_datatypes_generated import *
 from utils.enums import ALERT_TYPES
 
 PROCEDURE_CODE_TERMINOLOGY = ["CPT", "cpt", "CPT4", "cpt4"]
+
 
 class Resource():
 
@@ -46,10 +47,7 @@ class Resource():
 
         if text is None:
             self.text = ""
-        if identifier is None:
-            self.identifier = []
-        else:
-            self.identifier = identifier
+        self.identifier = identifier or []
 
     def add_identifier(self, use=None, label=None, system=None, value=None, period=None, assigner=None):
         """
@@ -91,6 +89,7 @@ class Resource():
                                           period=period,
                                           assigner=assigner))
 
+
 def jdefault(o):
     if o is None:
         del o
@@ -103,17 +102,17 @@ def jdefault(o):
         if hasattr(o, '__dict__') and o is not None:
             return o.__dict__
 
-def remove_none(obj):
-  if isinstance(obj, (tuple, set)):
-    return type(obj)(remove_none(x) for x in obj if x is not None)
-  elif isinstance(obj, list):
-    return type(obj)(remove_none(x) for x in obj if x is not None and len(obj) > 0)
-  elif isinstance(obj, dict):
-    return type(obj)((remove_none(k), remove_none(v))
-      for k, v in obj.items() if k is not None and v is not None)
 
-  else:
-    return obj
+def remove_none(obj):
+    if isinstance(obj, (tuple, set)):
+        return type(obj)(remove_none(x) for x in obj if x is not None)
+    elif isinstance(obj, list):
+        return type(obj)(remove_none(x) for x in obj if x is not None and len(obj) > 0)
+    elif isinstance(obj, dict):
+        return type(obj)((remove_none(k), remove_none(v)) for k, v in obj.items() if k is not None and v is not None)
+    else:
+        return obj
+
 
 def round_up_five(x, base=5):
     return int(base * int(math.ceil(x / base)))
@@ -122,18 +121,18 @@ def round_up_five(x, base=5):
 class Cost(Resource):
 
     def __init__(self,
-        customer_id=None,
-        name_space=None,
-        identifier=None,
-        versionId=None,
-        resourceType="Cost",
-        lastModifiedDate=None,
-        id=None,
-        code=None,
-        code_type=None,
-        department=None,
-        cost_type=None,
-        cost=None):
+                 customer_id=None,
+                 name_space=None,
+                 identifier=None,
+                 versionId=None,
+                 resourceType="Cost",
+                 lastModifiedDate=None,
+                 id=None,
+                 code=None,
+                 code_type=None,
+                 department=None,
+                 cost_type=None,
+                 cost=None):
         Resource.__init__(self,
                           customer_id=customer_id,
                           name_space=name_space,
@@ -152,18 +151,18 @@ class Cost(Resource):
 class Bundle(Resource):
 
     def __init__(self,
-        customer_id=None,
-        name_space=None,
-        identifier=None,
-        versionId=None,
-        resourceType="Bundle",
-        title=None,
-        lastModifiedDate=None,
-        id=None,
-        link=None,
-        category=None,
-        entry=None,
-        totalResults=None):
+                 customer_id=None,
+                 name_space=None,
+                 identifier=None,
+                 versionId=None,
+                 resourceType="Bundle",
+                 title=None,
+                 lastModifiedDate=None,
+                 id=None,
+                 link=None,
+                 category=None,
+                 entry=None,
+                 totalResults=None):
         Resource.__init__(self,
                           customer_id=customer_id,
                           name_space=name_space,
@@ -182,6 +181,7 @@ class Bundle(Resource):
         if category is None:
             self.category = []
 
+
 class AdverseReaction(Resource):
     """
     Short Description: Specific reactions to a substance
@@ -199,10 +199,8 @@ class AdverseReaction(Resource):
     :param exposure_type: The type of exposure: Drug Administration, Immunization, Coincidental.
     :param exposure_causalityExpectation: A statement of how confident that the recorder was that this exposure caused the reaction.
     :param exposure_substance: Substance that is presumed to have caused the adverse reaction.
-    
     :param symptom: The signs and symptoms that were observed as part of the reaction.
     :param exposure: An exposure to a substance that preceded a reaction occurrence.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -243,7 +241,7 @@ class AdverseReaction(Resource):
         self.exposure_type = exposure_type                                     # , drugadmin | immuniz | coincidental
         self.exposure_causalityExpectation = exposure_causalityExpectation                                     # , likely | unlikely | confirmed | unknown
         self.exposure_substance = exposure_substance                                     # , Presumed causative substance
-        
+
         if symptom is None:
             self.symptom = []                                     # , { attb['short_desc'] }}
         if exposure is None:
@@ -316,10 +314,8 @@ class AllergyIntolerance(Resource):
     :param subject: The patient who has the allergy or intolerance.
     :param recorder: Indicates who has responsibility for the record.
     :param substance: The substance that causes the sensitivity.
-    
     :param reaction: Reactions associated with the sensitivity.
     :param sensitivityTest: Observations that confirm or refute the sensitivity.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -354,12 +350,12 @@ class AllergyIntolerance(Resource):
         self.subject = subject                                     # , Who the sensitivity is for
         self.recorder = recorder                                     # , Who recorded the sensitivity
         self.substance = substance                                     # , The substance that causes the sensitivity
-        
+
         if reaction is None:
             self.reaction = []                                     # , { attb['short_desc'] }}
         if sensitivityTest is None:
             self.sensitivityTest = []                                     # , { attb['short_desc'] }}
-        
+
 
 class CarePlan(Resource):
     """
@@ -391,7 +387,6 @@ class CarePlan(Resource):
     :param activity_simple_quantity: Identifies the quantity expected to be supplied.
     :param activity_simple_details: This provides a textual description of constraints on the activity occurrence, including relation to other activities.  It may also include objectives, pre-conditions and end-conditions.  Finally, it may convey specifics about the activity such as body site, method, route, etc.
     :param notes: General notes about the care plan not covered elsewhere.
-    
     :param concern: Identifies the conditions/problems/concerns/diagnoses/etc. whose management and/or mitigation are handled by this plan.
     :param participant: Identifies all people and organizations who are expected to be involved in the care envisioned by this plan.
     :param goal: Describes the intended objective(s) of carrying out the Care Plan.
@@ -399,7 +394,6 @@ class CarePlan(Resource):
     :param activity: Identifies a planned action to occur as part of the plan.  For example, a medication to be used, lab tests to perform, self-monitoring, education, etc.
     :param activity_goal: Internal reference that identifies the goals that this activity is intended to contribute towards meeting.
     :param activity_actionResulting: Resources that describe follow-on actions resulting from the plan, such as drug prescriptions, encounter records, appointments, etc.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -471,7 +465,7 @@ class CarePlan(Resource):
         self.activity_simple_quantity = activity_simple_quantity                                     # , How much is administered/supplied/consumed
         self.activity_simple_details = activity_simple_details                                     # , Extra info on activity occurrence
         self.notes = notes                                     # , Comments about the plan
-        
+
         if concern is None:
             self.concern = []                                     # , { attb['short_desc'] }}
         if participant is None:
@@ -495,11 +489,8 @@ class Section():
         self.code = code
         self.subject = subject
 
-        if content is None:
-            self.content = []
-        else:
-            self.content = content
-        
+        self.content = content or []
+
 
 class Composition(Resource):
     """
@@ -525,7 +516,6 @@ class Composition(Resource):
     :param section_code: A code identifying the kind of content contained within the section.
     :param section_subject: Identifies the primary subject of the section.
     :param section_content: Identifies the discrete data that provides the content for the section.
-    
     :param author: Identifies who is responsible for the information in the composition.  (Not necessarily who typed it in.).
     :param attester: A participant who has attested to the accuracy of the composition/document.
     :param attester_mode: The type of attestation the authenticator offers.
@@ -533,7 +523,6 @@ class Composition(Resource):
     :param event_detail: Full details for the event(s) the composition/documentation consents.
     :param section: The root of the sections that make up the composition.
     :param section_section: A nested sub-section within this section.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -597,22 +586,14 @@ class Composition(Resource):
         self.section_content = section_content                                     # , The actual data for the section
         self.write_key = write_key
         self.emr_type = emr_type
-        
-        if author is None:
-            self.author = []                                     # , { attb['short_desc'] }}
-        if attester is None:
-            self.attester = []                                     # , { attb['short_desc'] }}
-        if attester_mode is None:
-            self.attester_mode = []                                     # , { attb['short_desc'] }}
-        if event_code is None:
-            self.event_code = []                                     # , { attb['short_desc'] }}
-        if event_detail is None:
-            self.event_detail = []                                     # , { attb['short_desc'] }}
-        if section is None:
-            self.section = []                                     # , { attb['short_desc'] }}
-        if section_section is None:
-            self.section_section = []                                     # , { attb['short_desc'] }}
-        
+
+        self.author = author or []
+        self.attester = attester or []
+        self.attester_mode = attester_mode or []
+        self.event_code = event_code or []
+        self.event_detail = event_detail or []
+        self.section = section or []
+
     def create_composition_from_json(self, json_composition):
 
         composition = Composition()
@@ -693,7 +674,7 @@ class Composition(Resource):
         for ord in json_orders:
             order = Order()
 
-            #A FHIR order actually contains a list of DETAILS where the list of procedures,
+            # A FHIR order actually contains a list of DETAILS where the list of procedures,
             # medications, and supply items are stored.
             for deet in ord['detail']:
                 if deet['type'] == "Lab" or "Procedure" or "PROC":
@@ -831,12 +812,10 @@ class ConceptMap(Resource):
     :param concept_map_code: Code that identifies the target concept.
     :param concept_map_equivalence: equal | equivalent | wider | subsumes | narrower | specialises | inexact | unmatched | disjoint.
     :param concept_map_comments: Description of status/issues in mapping.
-    
     :param telecom: Contacts of the publisher to assist a user in finding and communicating with the publisher.
     :param concept: Mappings for a concept from the source valueset.
     :param concept_dependsOn: A set of additional dependencies for this mapping to hold. This mapping is only applicable if the specified concept can be resolved, and it has the specified value.
     :param concept_map: A concept from the target value set that this concept maps to.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -897,7 +876,7 @@ class ConceptMap(Resource):
         self.concept_map_code = concept_map_code                                     # , Code that identifies the target concept
         self.concept_map_equivalence = concept_map_equivalence                                     # , equal | equivalent | wider | subsumes | narrower | specialises | inexact | unmatched | disjoint
         self.concept_map_comments = concept_map_comments                                     # , Description of status/issues in mapping
-        
+
         if telecom is None:
             self.telecom = []                                     # , { attb['short_desc'] }}
         if concept is None:
@@ -906,7 +885,7 @@ class ConceptMap(Resource):
             self.concept_dependsOn = []                                     # , { attb['short_desc'] }}
         if concept_map is None:
             self.concept_map = []                                     # , { attb['short_desc'] }}
-        
+
 
 class Condition(Resource):
     """
@@ -940,13 +919,11 @@ class Condition(Resource):
     :param relatedItem_code: Code that identifies the target of this relationship. The code takes the place of a detailed instance target.
     :param relatedItem_target: Target of the relationship.
     :param notes: Additional information about the Condition. This is a general notes/comments entry  for description of the Condition, its diagnosis and prognosis.
-    
     :param stage_assessment: Reference to a formal record of the evidence on which the staging assessment is based.
     :param evidence: Supporting Evidence / manifestations that are the basis on which this condition is suspected or confirmed.
     :param evidence_detail: Links to other relevant information, including pathology reports.
     :param location: The anatomical location where this condition manifests itself.
     :param relatedItem: Further conditions, problems, diagnoses, procedures or events that are related in some way to this condition, or the substance that caused/triggered this Condition.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -1024,25 +1001,20 @@ class Condition(Resource):
         self.notes = notes                                     # , Additional information about the Condition
         self.presentOnArrival = presentOnArrival
         self.isPrincipal = isPrincipal
-        
-        if stage_assessment is None:
-            self.stage_assessment = []                                     # , { attb['short_desc'] }}
-        if evidence is None:
-            self.evidence = []                                     # , { attb['short_desc'] }}
-        if evidence_detail is None:
-            self.evidence_detail = []                                     # , { attb['short_desc'] }}
-        if location is None:
-            self.location = []                                     # , { attb['short_desc'] }}
-        if relatedItem is None:
-            self.relatedItem = []                                     # , { attb['short_desc'] }}
-        
+
+        self.stage_assessment = stage_assessment or []
+        self.evidence = evidence or []
+        self.evidence_detail = evidence_detail or []
+        self.location = location or []
+        self.relatedItem = relatedItem or []
+
     def get_ICD9_id(self):
         for coding in self.code.coding:
             if coding.system in ["ICD-9", "ICD9", "icd9", "icd-9"]:
                 return coding
 
     def get_snomed_id(self):
-
+        # TODO - Need to figure out which one of these SNOMED CTs we want to return when there's multiple
         for coding in self.code.coding:
             if coding.system == "SNOMED CT":
                 return coding.code
@@ -1098,7 +1070,6 @@ class Conformance(Resource):
     :param document_mode: Mode of this document declaration - whether application is producer or consumer.
     :param document_documentation: A description of how the application supports or uses the specified document profile.  For example, when are documents created, what action is taken with consumed documents, etc.
     :param document_profile: A constraint on a resource used in the document.
-    
     :param telecom: Contacts for Organization relevant to this conformance statement.  The contacts may be a website, email, phone numbers, etc.
     :param format: A list of the formats supported by this implementation.
     :param profile: A list of profiles supported by the system. For a server, "supported by the system" means the system hosts/produces a set of recourses, conformant to a particular profile, and allows its clients to search using this profile and to find appropriate data. For a client, it means the system will search by this profile and process data according to the guidance implicit in the profile.
@@ -1110,7 +1081,6 @@ class Conformance(Resource):
     :param messaging: A description of the messaging capabilities of the solution.
     :param messaging_event: A description of the solution's support for an event at this end point.
     :param document: A document definition.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -1226,7 +1196,7 @@ class Conformance(Resource):
         self.document_mode = document_mode                                     # , producer | consumer
         self.document_documentation = document_documentation                                     # , Description of document support
         self.document_profile = document_profile                                     # , Constraint on a resource used in the document
-        
+
         if telecom is None:
             self.telecom = []                                     # , { attb['short_desc'] }}
         if format is None:
@@ -1249,7 +1219,7 @@ class Conformance(Resource):
             self.messaging_event = []                                     # , { attb['short_desc'] }}
         if document is None:
             self.document = []                                     # , { attb['short_desc'] }}
-        
+
 
 class Device(Resource):
     """
@@ -1269,9 +1239,7 @@ class Device(Resource):
     :param location: The resource may be found in a literal location (i.e. GPS coordinates), a logical place (i.e. "in/with the patient"), or a coded location.
     :param patient: Patient information, if the resource is affixed to a person.
     :param url: A network address on which the device may be contacted directly.
-    
     :param contact: Contact details for an organization or a particular human that is responsible for the device.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -1313,10 +1281,10 @@ class Device(Resource):
         self.location = location                                     # , Where the resource is found
         self.patient = patient                                     # , If the resource is affixed to a person
         self.url = url                                     # , Network address to contact device
-        
+
         if contact is None:
             self.contact = []                                     # , { attb['short_desc'] }}
-        
+
 
 class DeviceObservationReport(Resource):
     """
@@ -1330,10 +1298,8 @@ class DeviceObservationReport(Resource):
     :param subject: The subject of the measurement.
     :param virtualDevice_code: Describes the compartment.
     :param virtualDevice_channel_code: Describes the channel.
-    
     :param virtualDevice: A medical-related subsystem of a medical device.
     :param virtualDevice_channel: Groups together physiological measurement data and derived data.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -1364,12 +1330,12 @@ class DeviceObservationReport(Resource):
         self.subject = subject                                     # , Subject of the measurement
         self.virtualDevice_code = virtualDevice_code                                     # , Describes the compartment
         self.virtualDevice_channel_code = virtualDevice_channel_code                                     # , Describes the channel
-        
+
         if virtualDevice is None:
             self.virtualDevice = []                                     # , { attb['short_desc'] }}
         if virtualDevice_channel is None:
             self.virtualDevice_channel = []                                     # , { attb['short_desc'] }}
-        
+
 
 class DiagnosticOrder(Resource):
     """
@@ -1391,13 +1357,11 @@ class DiagnosticOrder(Resource):
     :param item_code: A code that identifies a particular diagnostic investigation, or panel of investigations, that have been requested.
     :param item_bodySite: Anatomical location where the request test should be performed.
     :param item_status: The status of this individual item within the order.
-    
     :param specimen: One or more specimens that the diagnostic investigation is about.
     :param event: A summary of the events of interest that have occurred as the request is processed. E.g. when the order was made, various processing steps (specimens received), when it was completed.
     :param item: The specific diagnostic investigations that are requested as part of this request. Sometimes, there can only be one item per request, but in most contexts, more than one investigation can be requested.
     :param item_specimen: If the item is related to a specific speciment.
     :param item_event: A summary of the events of interest that have occurred as this item of the request is processed.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -1447,7 +1411,7 @@ class DiagnosticOrder(Resource):
         self.item_code = item_code                                     # , Code to indicate the item (test or panel) being ordered
         self.item_bodySite = item_bodySite                                     # , Location of requested test (if applicable)
         self.item_status = item_status                                     # , requested | received | accepted | in progress | review | completed | suspended | rejected | failed
-        
+
         if specimen is None:
             self.specimen = []                                     # , { attb['short_desc'] }}
         if event is None:
@@ -1458,7 +1422,7 @@ class DiagnosticOrder(Resource):
             self.item_specimen = []                                     # , { attb['short_desc'] }}
         if item_event is None:
             self.item_event = []                                     # , { attb['short_desc'] }}
-        
+
 
 class DiagnosticReport(Resource):
     """
@@ -1479,7 +1443,6 @@ class DiagnosticReport(Resource):
     :param image_comment: A comment about the image. Typically, this is used to provide an explanation for why the image is included, or to draw the viewer's attention to important features.
     :param image_link: Reference to the image source.
     :param conclusion: Concise and clinically contextualized narrative interpretation of the diagnostic report.
-    
     :param requestDetail: Details concerning a test requested.
     :param specimen: Details about the specimens on which this Disagnostic report is based.
     :param result: Observations that are part of this diagnostic report. Observations can be simple name/value pairs (e.g. "atomic" results), or they can be grouping observations that include references to other members of the group (e.g. "panels").
@@ -1487,7 +1450,6 @@ class DiagnosticReport(Resource):
     :param image: A list of key images associated with this report. The images are generally created during the diagnostic process, and may be directly of the patient, or of treated specimens (i.e. slides of interest).
     :param codedDiagnosis: Codes for the conclusion.
     :param presentedForm: Rich text representation of the entire result as issued by the diagnostic service. Multiple formats are allowed but they SHALL be semantically equivalent.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -1537,7 +1499,7 @@ class DiagnosticReport(Resource):
         self.image_comment = image_comment                                     # , Comment about the image (e.g. explanation)
         self.image_link = image_link                                     # , Reference to the image source
         self.conclusion = conclusion                                     # , Clinical Interpretation of test results
-        
+
         if requestDetail is None:
             self.requestDetail = []                                     # , { attb['short_desc'] }}
         if specimen is None:
@@ -1552,7 +1514,7 @@ class DiagnosticReport(Resource):
             self.codedDiagnosis = []                                     # , { attb['short_desc'] }}
         if presentedForm is None:
             self.presentedForm = []                                     # , { attb['short_desc'] }}
-        
+
 
 class DocumentManifest(Resource):
     """
@@ -1569,12 +1531,10 @@ class DocumentManifest(Resource):
     :param supercedes: Whether this document manifest replaces another.
     :param description: Human-readable description of the source document. This is sometimes known as the "title".
     :param confidentiality: A code specifying the level of confidentiality of this set of Documents.
-    
     :param subject: Who or what the set of documents is about. The documents can be about a person, (patient or healthcare practitioner), a device (i.e. machine) or even a group of subjects (such as a document about a herd of farm animals, or a set of patients that share a common exposure). If the documents cross more than one subject, then more than one subject is allowed here (unusual use case).
     :param recipient: A patient, practitioner, or organization for which this set of documents is intended.
     :param author: Identifies who is responsible for adding the information to the document.
     :param content: The list of resources that describe the parts of this document reference. Usually, these would be document references, but direct references to binary attachments and images are also allowed.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -1613,7 +1573,7 @@ class DocumentManifest(Resource):
         self.supercedes = supercedes                                     # , If this document manifest replaces another
         self.description = description                                     # , Human-readable description (title)
         self.confidentiality = confidentiality                                     # , Sensitivity of set of documents
-        
+
         if subject is None:
             self.subject = []                                     # , { attb['short_desc'] }}
         if recipient is None:
@@ -1622,7 +1582,7 @@ class DocumentManifest(Resource):
             self.author = []                                     # , { attb['short_desc'] }}
         if content is None:
             self.content = []                                     # , { attb['short_desc'] }}
-        
+
 
 class Encounter(Resource):
     """
@@ -1656,7 +1616,6 @@ class Encounter(Resource):
     :param location_period: Time period during which the patient was present at the location.
     :param serviceProvider: Department or team providing care.
     :param partOf: Another Encounter of which this encounter is a part of (administratively or in time).
-    
     :param type: Specific type of encounter (e.g. e-mail consultation, surgical day-care, skilled nursing, rehabilitation).
     :param participant: The main practitioner responsible for providing the service.
     :param participant_type: Role of participant in encounter.
@@ -1664,7 +1623,6 @@ class Encounter(Resource):
     :param hospitalization_specialCourtesy: Special courtesies (VIP, board member).
     :param hospitalization_specialArrangement: Wheelchair, translator, stretcher, etc.
     :param location: List of locations at which the patient has been.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -1740,7 +1698,7 @@ class Encounter(Resource):
         self.location_period = location_period                                     # , Time period during which the patient was present at the location
         self.serviceProvider = serviceProvider                                     # , Department or team providing care
         self.partOf = partOf                                     # , Another Encounter this encounter is part of
-        
+
         if type is None:
             self.type = []                                     # , { attb['short_desc'] }}
         else:
@@ -1761,7 +1719,7 @@ class Encounter(Resource):
             self.location = []                                     # , { attb['short_desc'] }}
         else:
             self.location = location
-        
+
     def add_practitioner(self, practitioner):
         self.participant.append(practitioner)
 
@@ -1801,10 +1759,8 @@ class FamilyHistory(Resource):
     :param relation_condition_outcome: Indicates what happened as a result of this condition.  If the condition resulted in death, deceased date is captured on the relation.
     :param relation_condition_onset: Either the age of onset, range of approximate age or descriptive string can be recorded.  For conditions with multiple occurrences, this describes the first known occurrence.
     :param relation_condition_note: An area where general notes can be placed about this specific condition.
-    
     :param relation: The related person. Each FamilyHistory resource contains the entire family history for a single person.
     :param relation_condition: The significant Conditions (or condition) that the family member had. This is a repeating section to allow a system to represent more than one condition per resource, though there is nothing stopping multiple resources - one per condition.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -1847,12 +1803,12 @@ class FamilyHistory(Resource):
         self.relation_condition_outcome = relation_condition_outcome                                     # , deceased | permanent disability | etc.
         self.relation_condition_onset = relation_condition_onset                                     # , When condition first manifested
         self.relation_condition_note = relation_condition_note                                     # , Extra information about condition
-        
+
         if relation is None:
             self.relation = []                                     # , { attb['short_desc'] }}
         if relation_condition is None:
             self.relation_condition = []                                     # , { attb['short_desc'] }}
-        
+
 
 class Group(Resource):
     """
@@ -1869,10 +1825,8 @@ class Group(Resource):
     :param characteristic_code: A code that identifies the kind of trait being asserted.
     :param characteristic_value: The value of the trait that holds (or does not hold - see 'exclude') for members of the group.
     :param characteristic_exclude: If true, indicates the characteristic is one that is NOT held by members of the group.
-    
     :param characteristic: Identifies the traits shared by members of the group.
     :param member: Identifies the resource instances that are members of the group.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -1909,12 +1863,12 @@ class Group(Resource):
         self.characteristic_code = characteristic_code                                     # , Kind of characteristic
         self.characteristic_value = characteristic_value                                     # , Value held by characteristic
         self.characteristic_exclude = characteristic_exclude                                     # , Group includes or excludes
-        
+
         if characteristic is None:
             self.characteristic = []                                     # , { attb['short_desc'] }}
         if member is None:
             self.member = []                                     # , { attb['short_desc'] }}
-        
+
 
 class ImagingStudy(Resource):
     """
@@ -1951,13 +1905,11 @@ class ImagingStudy(Resource):
     :param series_instance_title: Description (0070,0080 | 0040,A043 > 0008,0104 | 0042,0010 | 0008,0008).
     :param series_instance_url: WADO-RS url where image is available.
     :param series_instance_attachment: A FHIR resource with content for this instance.
-    
     :param order: A list of the diagnostic orders that resulted in this imaging study being performed.
     :param modality: A list of all the Series.ImageModality values that are actual acquisition modalities, i.e. those in the DICOM Context Group 29 (value set OID 1.2.840.10008.6.1.19).
     :param procedure: Type of procedure performed.
     :param series: Each study has one or more series of image instances.
     :param series_instance: A single image taken from a patient.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -2037,7 +1989,7 @@ class ImagingStudy(Resource):
         self.series_instance_title = series_instance_title                                     # , Description (0070,0080 | 0040,A043 > 0008,0104 | 0042,0010 | 0008,0008)
         self.series_instance_url = series_instance_url                                     # , WADO-RS service where instance is available  (0008,1199 > 0008,1190)
         self.series_instance_attachment = series_instance_attachment                                     # , A FHIR resource with content for this instance
-        
+
         if order is None:
             self.order = []                                     # , { attb['short_desc'] }}
         if modality is None:
@@ -2048,7 +2000,7 @@ class ImagingStudy(Resource):
             self.series = []                                     # , { attb['short_desc'] }}
         if series_instance is None:
             self.series_instance = []                                     # , { attb['short_desc'] }}
-        
+
 
 class Immunization(Resource):
     """
@@ -2083,12 +2035,10 @@ class Immunization(Resource):
     :param vaccinationProtocol_doseTarget: The targeted disease.
     :param vaccinationProtocol_doseStatus: Indicates if the immunization event should "count" against  the protocol.
     :param vaccinationProtocol_doseStatusReason: Provides an explanation as to why a immunization event should or should not count against the protocol.
-    
     :param explanation_reason: Reasons why a vaccine was administered.
     :param explanation_refusalReason: Refusal or exemption reasons.
     :param reaction: Categorical data indicating that an adverse event is associated in time to an immunization.
     :param vaccinationProtocol: Contains information about the protocol(s) under which the vaccine was administered.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -2163,7 +2113,7 @@ class Immunization(Resource):
         self.vaccinationProtocol_doseTarget = vaccinationProtocol_doseTarget                                     # , Disease immunized against
         self.vaccinationProtocol_doseStatus = vaccinationProtocol_doseStatus                                     # , Does dose count towards immunity?
         self.vaccinationProtocol_doseStatusReason = vaccinationProtocol_doseStatusReason                                     # , Why does does count/not count?
-        
+
         if explanation_reason is None:
             self.explanation_reason = []                                     # , { attb['short_desc'] }}
         if explanation_refusalReason is None:
@@ -2172,7 +2122,7 @@ class Immunization(Resource):
             self.reaction = []                                     # , { attb['short_desc'] }}
         if vaccinationProtocol is None:
             self.vaccinationProtocol = []                                     # , { attb['short_desc'] }}
-        
+
 
 class ImmunizationRecommendation(Resource):
     """
@@ -2193,12 +2143,10 @@ class ImmunizationRecommendation(Resource):
     :param recommendation_protocol_description: Contains the description about the protocol under which the vaccine was administered.
     :param recommendation_protocol_authority: Indicates the authority who published the protocol?  E.g. ACIP.
     :param recommendation_protocol_series: One possible path to achieve presumed immunity against a disease - within the context of an authority.
-    
     :param recommendation: Vaccine administration recommendations.
     :param recommendation_dateCriterion: Vaccine date recommendations - e.g. earliest date to administer, latest date to administer, etc.
     :param recommendation_supportingImmunization: Immunization event history that supports the status and recommendation.
     :param recommendation_supportingPatientInformation: Patient Information that supports the status and recommendation.  This includes patient observations, adverse reactions and allergy/intolerance information.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -2245,7 +2193,7 @@ class ImmunizationRecommendation(Resource):
         self.recommendation_protocol_description = recommendation_protocol_description                                     # , Protocol details
         self.recommendation_protocol_authority = recommendation_protocol_authority                                     # , Who is responsible for protocol
         self.recommendation_protocol_series = recommendation_protocol_series                                     # , Name of vaccination series
-        
+
         if recommendation is None:
             self.recommendation = []                                     # , { attb['short_desc'] }}
         if recommendation_dateCriterion is None:
@@ -2254,7 +2202,7 @@ class ImmunizationRecommendation(Resource):
             self.recommendation_supportingImmunization = []                                     # , { attb['short_desc'] }}
         if recommendation_supportingPatientInformation is None:
             self.recommendation_supportingPatientInformation = []                                     # , { attb['short_desc'] }}
-        
+
 
 class List(Resource):
     """
@@ -2273,10 +2221,8 @@ class List(Resource):
     :param entry_date: When this item was added to the list.
     :param entry_item: A reference to the actual resource from which data was derived.
     :param emptyReason: If the list is empty, why the list is empty.
-    
     :param entry: Entries in this list.
     :param entry_flag: The flag allows the system constructing the list to make one or more statements about the role and significance of the item in the list.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -2317,12 +2263,12 @@ class List(Resource):
         self.entry_date = entry_date                                     # , When item added to list
         self.entry_item = entry_item                                     # , Actual entry
         self.emptyReason = emptyReason                                     # , Why list is empty
-        
+
         if entry is None:
             self.entry = []                                     # , { attb['short_desc'] }}
         if entry_flag is None:
             self.entry_flag = []                                     # , { attb['short_desc'] }}
-        
+
 
 class Location(Resource):
     """
@@ -2344,9 +2290,7 @@ class Location(Resource):
     :param status: active | suspended | inactive.
     :param partOf: Another Location which this Location is physically part of.
     :param mode: Indicates whether a resource instance represents a specific location or a class of locations.
-    
     :param telecom: The contact details of communication devices available at the location. This can include phone numbers, fax numbers, mobile numbers, email addresses and web sites.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -2392,10 +2336,10 @@ class Location(Resource):
         self.status = status                                     # , active | suspended | inactive
         self.partOf = partOf                                     # , Another Location which this Location is physically part of
         self.mode = mode                                     # , instance | kind
-        
+
         if telecom is None:
             self.telecom = []                                     # , { attb['short_desc'] }}
-        
+
 
 class Media(Resource):
     """
@@ -2416,8 +2360,6 @@ class Media(Resource):
     :param frames: The number of frames in a photo. This is used with a multi-page fax, or an imaging acquisition context that takes multiple slices in a single image, or an animated gif. If there is more than one frame, this SHALL have a value in order to alert interface software that a multi-frame capable rendering widget is required.
     :param length: The length of the recording in seconds - for audio and video.
     :param content: The actual content of the media - inline or by direct reference to the media source file.
-    
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -2460,8 +2402,7 @@ class Media(Resource):
         self.frames = frames                                     # , Number of frames if > 1 (photo)
         self.length = length                                     # , Length in seconds (audio / video)
         self.content = content                                     # , Actual Media - reference or data
-        
-        
+
 
 class Medication(Resource):
     """
@@ -2483,12 +2424,10 @@ class Medication(Resource):
     :param package_container: The kind of container that this package comes as.
     :param package_content_item: Identifies one of the items in the package.
     :param package_content_amount: The amount of the product that is in the package.
-    
     :param product_ingredient: Identifies a particular constituent of interest in the product.
     :param package_content: A set of components that go to make up the described item.
     :param cost: Cost of the Medication
     :param cost_type: Cost Type of the Medication (i.e. NADAC, Client Hospital Pharmacy Cost)
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -2540,12 +2479,12 @@ class Medication(Resource):
         self.package_content_amount = package_content_amount                                     # , How many are in the package?
         self.cost = cost
         self.cost_type = cost_type
-        
+
         if product_ingredient is None:
             self.product_ingredient = []                                     # , { attb['short_desc'] }}
         if package_content is None:
             self.package_content = []                                     # , { attb['short_desc'] }}
-        
+
 
 class MedicationAdministration(Resource):
     """
@@ -2574,11 +2513,9 @@ Terminologies used often pre-coordinate this term with the route and or form of 
     :param dosage_quantity: The amount of the medication given at one administration event.   Use this value when the administration is essentially an instantaneous event such as a swallowing a tablet or giving an injection.
     :param dosage_rate: Identifies the speed with which the medication was introduced into the patient. Typically the rate for an infusion e.g. 200ml in 2 hours.  May also expressed as a rate per unit of time such as 100ml per hour - the duration is then not specified, or is specified in the quantity.
     :param dosage_maxDosePerPeriod: The maximum total quantity of a therapeutic substance that was administered to the patient over the specified period of time. E.g. 1000mg in 24 hours.
-    
     :param reasonNotGiven: A code indicating why the administration was not performed.
     :param device: The device used in administering the medication to the patient.  E.g. a particular infusion pump.
     :param dosage: Provides details of how much of the medication was administered.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -2632,14 +2569,14 @@ Terminologies used often pre-coordinate this term with the route and or form of 
         self.dosage_quantity = dosage_quantity                                     # , Amount administered in one dose
         self.dosage_rate = dosage_rate                                     # , Dose quantity per unit of time
         self.dosage_maxDosePerPeriod = dosage_maxDosePerPeriod                                     # , Total dose that was consumed per unit of time
-        
+
         if reasonNotGiven is None:
             self.reasonNotGiven = []                                     # , { attb['short_desc'] }}
         if device is None:
             self.device = []                                     # , { attb['short_desc'] }}
         if dosage is None:
             self.dosage = []                                     # , { attb['short_desc'] }}
-        
+
 
 class MedicationDispense(Resource):
     """
@@ -2671,14 +2608,12 @@ Terminologies used often pre-coordinate this term with the route and or form of 
     :param dispense_dosage_maxDosePerPeriod: The maximum total quantity of a therapeutic substance that may be administered to a subject over the period of time,  e.g. 1000mg in 24 hours.
     :param substitution: Indicates whether or not substitution was made as part of the dispense.  In some cases substitution will be expected but doesn't happen, in other cases substitution is not expected but does happen.  This block explains what substitition did or did not happen and why.
     :param substitution_type: A code signifying whether a different drug was dispensed from what was prescribed.
-    
     :param authorizingPrescription: Indicates the medication order that is being dispensed against.
     :param dispense: Indicates the details of the dispense event such as the days supply and quantity of medication dispensed.
     :param dispense_receiver: Identifies the person who picked up the medication.  This will usually be a patient or their carer, but some cases exist where it can be a healthcare professional.
     :param dispense_dosage: Indicates how the medication is to be used by the patient.
     :param substitution_reason: Indicates the reason for the substitution of (or lack of substitution) from what was prescribed.
     :param substitution_responsibleParty: The person or organization that has primary responsibility for the substitution.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -2745,7 +2680,7 @@ Terminologies used often pre-coordinate this term with the route and or form of 
         self.dispense_dosage_maxDosePerPeriod = dispense_dosage_maxDosePerPeriod                                     # , Upper limit on medication per unit of time
         self.substitution = substitution                                     # , Deals with substitution of one medicine for another
         self.substitution_type = substitution_type                                     # , Type of substitiution
-        
+
         if authorizingPrescription is None:
             self.authorizingPrescription = []                                     # , { attb['short_desc'] }}
         if dispense is None:
@@ -2758,7 +2693,7 @@ Terminologies used often pre-coordinate this term with the route and or form of 
             self.substitution_reason = []                                     # , { attb['short_desc'] }}
         if substitution_responsibleParty is None:
             self.substitution_responsibleParty = []                                     # , { attb['short_desc'] }}
-        
+
 
 class MedicationPrescription(Resource):
     """
@@ -2782,28 +2717,20 @@ class MedicationPrescription(Resource):
     :param dosageInstruction_asNeeded: If set to true or if specified as a CodeableConcept, indicates that the medication is only taken when needed within the specified schedule rather than at every scheduled dose.  If a CodeableConcept is present, it indicates the pre-condition for taking the Medication.
     :param dosageInstruction_site: A coded specification of the anatomic site where the medication first enters the body.
     :param dosageInstruction_route: A code specifying the route or physiological path of administration of a therapeutic agent into or onto a patient.
-    :param dosageInstruction_method: A coded value indicating the method by which the medication is introduced into or onto the body. Most commonly used for injections.  Examples:  Slow Push; Deep IV.
-
-Terminologies used often pre-coordinate this term with the route and or form of administration.
+    :param dosageInstruction_method: A coded value indicating the method by which the medication is introduced into or onto the body. Most commonly used for injections.  Examples:  Slow Push; Deep IV. Terminologies used often pre-coordinate this term with the route and or form of administration.
     :param dosageInstruction_doseQuantity: The amount of therapeutic or other substance given at one administration event.
     :param dosageInstruction_rate: Identifies the speed with which the substance is introduced into the subject. Typically the rate for an infusion. 200ml in 2 hours.
     :param dosageInstruction_maxDosePerPeriod: The maximum total quantity of a therapeutic substance that may be administered to a subject over the period of time. E.g. 1000mg in 24 hours.
     :param dispense: Deals with details of the dispense part of the order.
     :param dispense_medication: Identifies the medication that is to be dispensed.  This may be a more specifically defined than the medicationPrescription.medication . This is either a link to a resource representing the details of the medication or a simple attribute carrying a code that identifies the medication from a known list of medications.
-    :param dispense_validityPeriod: Design Comments: This indicates the validity period of a prescription (stale dating the Prescription) 
-It reflects the prescriber perspective for the validity of the prescription. Dispenses must not be made against the prescription outside of this period. The lower-bound of the Dispensing Window signifies the earliest date that the prescription can be filled for the first time. If an upper-bound is not specified then the Prescription is open-ended or will default to a stale-date based on regulations. 
-Rationale: Indicates when the Prescription becomes valid, and when it ceases to be a dispensable Prescription.
-    :param dispense_numberOfRepeatsAllowed: An integer indicating the number of repeats of the Dispense. 
-UsageNotes: For example, the number of times the prescribed quantity is to be supplied including the initial standard fill.
+    :param dispense_validityPeriod: Design Comments: This indicates the validity period of a prescription (stale dating the Prescription) It reflects the prescriber perspective for the validity of the prescription. Dispenses must not be made against the prescription outside of this period. The lower-bound of the Dispensing Window signifies the earliest date that the prescription can be filled for the first time. If an upper-bound is not specified then the Prescription is open-ended or will default to a stale-date based on regulations. Rationale: Indicates when the Prescription becomes valid, and when it ceases to be a dispensable Prescription.
+    :param dispense_numberOfRepeatsAllowed: An integer indicating the number of repeats of the Dispense. UsageNotes: For example, the number of times the prescribed quantity is to be supplied including the initial standard fill.
     :param dispense_quantity: The amount that is to be dispensed.
-    :param dispense_expectedSupplyDuration: Identifies the period time over which the supplied product is expected to be used, or the length of time the dispense is expected to last. 
-In some situations, this attribute may be used instead of quantity to identify the amount supplied by how long it is expected to last, rather than the physical quantity issued, e.g. 90 days supply of medication (based on an ordered dosage) When possible, it is always better to specify quantity, as this tends to be more precise. expectedSupplyDuration will always be an estimate that can be influenced by external factors.
+    :param dispense_expectedSupplyDuration: Identifies the period time over which the supplied product is expected to be used, or the length of time the dispense is expected to last. In some situations, this attribute may be used instead of quantity to identify the amount supplied by how long it is expected to last, rather than the physical quantity issued, e.g. 90 days supply of medication (based on an ordered dosage) When possible, it is always better to specify quantity, as this tends to be more precise. expectedSupplyDuration will always be an estimate that can be influenced by external factors.
     :param substitution: Indicates whether or not substitution can or should be part of the dispense. In some cases substitution must happen, in other cases substitution must not happen, and in others it does not matter. This block explains the prescriber's intent. If nothing is specified substitution may be done.
     :param substitution_type: A code signifying whether a different drug should be dispensed from what was prescribed.
     :param substitution_reason: Indicates the reason for the substitution, or why substitution must or must not be performed.
-    
     :param dosageInstruction: Indicates how the medication is to be used by the patient.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -2879,10 +2806,10 @@ In some situations, this attribute may be used instead of quantity to identify t
         self.substitution = substitution                                     # , Any restrictions on medication substitution?
         self.substitution_type = substitution_type                                     # , generic | formulary +
         self.substitution_reason = substitution_reason                                     # , Why should substitution (not) be made
-        
+
         if dosageInstruction is None:
             self.dosageInstruction = []                                     # , { attb['short_desc'] }}
-        
+
 
 class MedicationStatement(Resource):
     """
@@ -2905,11 +2832,9 @@ Terminologies used often pre-coordinate this term with the route and or form of 
     :param dosage_quantity: The amount of therapeutic or other substance given at one administration event.
     :param dosage_rate: Identifies the speed with which the substance is introduced into the subject. Typically the rate for an infusion. 200ml in 2 hours.
     :param dosage_maxDosePerPeriod: The maximum total quantity of a therapeutic substance that may be administered to a subject over the period of time. E.g. 1000mg in 24 hours.
-    
     :param reasonNotGiven: A code indicating why the medication was not taken.
     :param device: An identifier or a link to a resource that identifies a device used in administering the medication to the patient.
     :param dosage: Indicates how the medication is/was used by the patient.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -2955,14 +2880,14 @@ Terminologies used often pre-coordinate this term with the route and or form of 
         self.dosage_quantity = dosage_quantity                                     # , Amount administered in one dose
         self.dosage_rate = dosage_rate                                     # , Dose quantity per unit of time
         self.dosage_maxDosePerPeriod = dosage_maxDosePerPeriod                                     # , Maximum dose that was consumed per unit of time
-        
+
         if reasonNotGiven is None:
             self.reasonNotGiven = []                                     # , { attb['short_desc'] }}
         if device is None:
             self.device = []                                     # , { attb['short_desc'] }}
         if dosage is None:
             self.dosage = []                                     # , { attb['short_desc'] }}
-        
+
 
 class MessageHeader(Resource):
     """
@@ -2990,10 +2915,8 @@ class MessageHeader(Resource):
     :param receiver: Allows data conveyed by a message to be addressed to a particular person or department when routing to a specific application isn't sufficient.
     :param responsible: The person or organization that accepts overall responsibility for the contents of the message. The implication is that the message event happened under the policies of the responsible party.
     :param reason: Coded indication of the cause for the event - indicates  a reason for the occurance of the event that is a focus of this message.
-    
     :param destination: The destination application which the message is intended for.
     :param data: The actual data of the message - a reference to the root/focus class of the event.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -3052,12 +2975,12 @@ class MessageHeader(Resource):
         self.receiver = receiver                                     # , Intended "real-world" recipient for the data
         self.responsible = responsible                                     # , Final responsibility for event
         self.reason = reason                                     # , Cause of event
-        
+
         if destination is None:
             self.destination = []                                     # , { attb['short_desc'] }}
         if data is None:
             self.data = []                                     # , { attb['short_desc'] }}
-        
+
 
 class Observation(Resource):
     """
@@ -3093,11 +3016,9 @@ class Observation(Resource):
     :param referenceRange_age: The age at which this reference range is applicable. This is a neonatal age (e.g. number of weeks at term) if the meaning says so.
     :param related_type: A code specifying the kind of relationship that exists with the target observation.
     :param related_target: A reference to the observation that is related to this observation.
-    
     :param performer: Who was responsible for asserting the observed value as "true".
     :param referenceRange: Guidance on how to interpret the value by comparison to a normal or recommended range.
     :param related: Related observations - either components, or previous observations, or statements of derivation.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -3173,14 +3094,14 @@ class Observation(Resource):
         self.referenceRange_age = referenceRange_age                                     # , Applicable age range, if relevant
         self.related_type = related_type                                     # , has-component | has-member | derived-from | sequel-to | replaces | qualified-by | interfered-by
         self.related_target = related_target                                     # , Observation that is related to this one
-        
+
         if performer is None:
             self.performer = []                                     # , { attb['short_desc'] }}
         if referenceRange is None:
             self.referenceRange = []                                     # , { attb['short_desc'] }}
         if related is None:
             self.related = []                                     # , { attb['short_desc'] }}
-        
+
 
 class OperationOutcome(Resource):
     """
@@ -3192,10 +3113,8 @@ class OperationOutcome(Resource):
     :param issue_severity: Indicates whether the issue indicates a variation from successful processing.
     :param issue_type: A code indicating the type of error, warning or information message.
     :param issue_details: Additional description of the issue.
-    
     :param issue: An error, warning or information message that results from a system action.
     :param issue_location: A simple XPath limited to element names, repetition indicators and the default child access that identifies one of the elements in the resource that caused this issue to be raised.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -3222,12 +3141,12 @@ class OperationOutcome(Resource):
         self.issue_severity = issue_severity                                     # , fatal | error | warning | information
         self.issue_type = issue_type                                     # , Error or warning code
         self.issue_details = issue_details                                     # , Additional description of the issue
-        
+
         if issue is None:
             self.issue = []                                     # , { attb['short_desc'] }}
         if issue_location is None:
             self.issue_location = []                                     # , { attb['short_desc'] }}
-        
+
 
 class Order(Resource):
     """
@@ -3249,9 +3168,7 @@ class Order(Resource):
     :param when_schedule: A formal schedule.
     :param totalCost
     :param order_type
-    
     :param detail: What action is being ordered.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -3299,12 +3216,12 @@ class Order(Resource):
         self.totalCost = totalCost
         self.order_type = order_type
         self.status = status
-        
+
         if detail is None:
             self.detail = []                                     # , { attb['short_desc'] }}
         else:
             self.detail = detail
-        
+
     def get_clientEMR_uuid(self):
         for id in self.identifier:
             if id.system == "clientEMR" and id.label == "Internal":
@@ -3325,102 +3242,13 @@ class Order(Resource):
     def get_proc_med_terminology_coding(self):
         if isinstance(self.detail[0], Procedure):
             for coding in self.detail[0].type.coding:
-                if coding.system in  ["CPT", "HCPCS"]:
+                if coding.system in ["CPT", "HCPCS"]:
                     return coding
         if isinstance(self.detail[0], Medication):
             for coding in self.detail[0].code.coding:
                 if coding.system == "rxnorm":
                     return coding
 
-
-class DiagnosticOrder(Resource):
-    """
-    Short Description: A request for a diagnostic service
-
-    Formal Description: A request for a diagnostic investigation service to be performed.
-
-    :param text: A human-readable narrative that contains a summary of the resource, and may be used to represent the content of the resource to a human. The narrative need not encode all the structured data, but is required to contain sufficient detail to make it "clinically safe" for a human to just read the narrative. Resource definitions may define what content should be represented in the narrative to ensure clinical safety.
-    :param subject: Who or what the investigation is to be performed on. This is usually a human patient, but diagnostic tests can also be requested on animals, groups of humans or animals, devices such as dialysis machines, or even locations (typically for environmental scans).
-    :param orderer: The practitioner that holds legal responsibility for ordering the investigation.
-    :param encounter: An encounter that provides additional informaton about the healthcare context in which this request is made.
-    :param clinicalNotes: An explanation or justification for why this diagnostic investigation is being requested.
-    :param status: The status of the order.
-    :param priority: The clinical priority associated with this order.
-    :param event_status: The status for the event.
-    :param event_description: Additional information about the event that occurred - e.g. if the status remained unchanged.
-    :param event_dateTime: The date/time at which the event occurred.
-    :param event_actor: The person who was responsible for performing or recording the action.
-    :param item_code: A code that identifies a particular diagnostic investigation, or panel of investigations, that have been requested.
-    :param item_bodySite: Anatomical location where the request test should be performed.
-    :param item_status: The status of this individual item within the order.
-    
-    :param specimen: One or more specimens that the diagnostic investigation is about.
-    :param event: A summary of the events of interest that have occurred as the request is processed. E.g. when the order was made, various processing steps (specimens received), when it was completed.
-    :param item: The specific diagnostic investigations that are requested as part of this request. Sometimes, there can only be one item per request, but in most contexts, more than one investigation can be requested.
-    :param item_specimen: If the item is related to a specific speciment.
-    :param item_event: A summary of the events of interest that have occurred as this item of the request is processed.
-    
-    """
-    def __init__(self,
-                 customer_id=None,
-                 name_space=None,
-                 id=None,
-                 identifier=None,
-                 versionId=None,
-                 resourceType="DiagnosticOrder",
-                 text=None,
-                 subject=None,
-                 orderer=None,
-                 encounter=None,
-                 clinicalNotes=None,
-                 status=None,
-                 priority=None,
-                 event_status=None,
-                 event_description=None,
-                 event_dateTime=None,
-                 event_actor=None,
-                 item_code=None,
-                 item_bodySite=None,
-                 item_status=None,
-                 specimen=None,
-                 event=None,
-                 item=None,
-                 item_specimen=None,
-                 item_event=None,
-                 ):
-        Resource.__init__(self,
-                          customer_id=customer_id,
-                          name_space=name_space,
-                          identifier=identifier,
-                          id=id,
-                          versionId=versionId,
-                          resourceType=resourceType)
-        self.text = text                                     # , Text summary of the resource, for human interpretation
-        self.subject = subject                                     # , Who and/or what test is about
-        self.orderer = orderer                                     # , Who ordered the test
-        self.encounter = encounter                                     # , The encounter that this diagnostic order is associated with
-        self.clinicalNotes = clinicalNotes                                     # , Explanation/Justification for test
-        self.status = status                                     # , requested | received | accepted | in progress | review | completed | suspended | rejected | failed
-        self.priority = priority                                     # , routine | urgent | stat | asap
-        self.event_status = event_status                                     # , requested | received | accepted | in progress | review | completed | suspended | rejected | failed
-        self.event_description = event_description                                     # , More information about the event and it's context
-        self.event_dateTime = event_dateTime                                     # , The date at which the event happened
-        self.event_actor = event_actor                                     # , Who recorded or did this
-        self.item_code = item_code                                     # , Code to indicate the item (test or panel) being ordered
-        self.item_bodySite = item_bodySite                                     # , Location of requested test (if applicable)
-        self.item_status = item_status                                     # , requested | received | accepted | in progress | review | completed | suspended | rejected | failed
-        
-        if specimen is None:
-            self.specimen = []                                     # , { attb['short_desc'] }}
-        if event is None:
-            self.event = []                                     # , { attb['short_desc'] }}
-        if item is None:
-            self.item = []                                     # , { attb['short_desc'] }}
-        if item_specimen is None:
-            self.item_specimen = []                                     # , { attb['short_desc'] }}
-        if item_event is None:
-            self.item_event = []                                     # , { attb['short_desc'] }}
-        
 
 class OrderResponse(Resource):
     """
@@ -3437,9 +3265,7 @@ class OrderResponse(Resource):
     :param authority: A reference to an authority policy that is the reason for the response. Usually this is used when the order is rejected, to provide a reason for rejection.
     :param code: What this response says about the status of the original order.
     :param description: Additional description about the response - e.g. a text description provided by a human user when making decisions about the order.
-    
     :param fulfillment: Links to resources that provide details of the outcome of performing the order. E.g. Diagnostic Reports in a response that is made to an order that referenced a diagnostic order.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -3475,10 +3301,10 @@ class OrderResponse(Resource):
         self.authority = authority                                     # , If required by policy
         self.code = code                                     # , pending | review | rejected | error | accepted | cancelled | replaced | aborted | complete
         self.description = description                                     # , Additional description of the response
-        
+
         if fulfillment is None:
             self.fulfillment = []                                     # , { attb['short_desc'] }}
-        
+
 
 class Organization(Resource):
     """
@@ -3495,13 +3321,11 @@ class Organization(Resource):
     :param contact_address: Visiting or postal addresses for the contact.
     :param contact_gender: Administrative Gender - the gender that the person is considered to have for administration and record keeping purposes.
     :param active: Whether the organization's record is still in active use.
-    
     :param telecom: A contact detail for the organization.
     :param address: An address for the organization.
     :param contact: Contact for the organization for a certain purpose.
     :param contact_telecom: A contact detail (e.g. a telephone number or an email address) by which the party may be contacted.
     :param location: Location(s) the organization uses to provide services.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -3541,7 +3365,7 @@ class Organization(Resource):
         self.contact_address = contact_address                                     # , Visiting or postal addresses for the contact
         self.contact_gender = contact_gender                                     # , Gender for administrative purposes
         self.active = active                                     # , Whether the organization's record is still in active use
-        
+
         if telecom is None:
             self.telecom = []                                     # , { attb['short_desc'] }}
         if address is None:
@@ -3552,7 +3376,7 @@ class Organization(Resource):
             self.contact_telecom = []                                     # , { attb['short_desc'] }}
         if location is None:
             self.location = []                                     # , { attb['short_desc'] }}
-        
+
 
 class Other(Resource):
     """
@@ -3565,8 +3389,6 @@ class Other(Resource):
     :param subject: Identifies the patient, practitioner, device or any other resource that is the "focus" of this resoruce.
     :param author: Indicates who was responsible for creating the resource instance.
     :param created: Identifies when the resource was first created.
-    
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -3593,8 +3415,7 @@ class Other(Resource):
         self.subject = subject                                     # , Identifies the
         self.author = author                                     # , Who created
         self.created = created                                     # , When created
-        
-        
+
 
 class Patient(Resource):
     """
@@ -3624,7 +3445,6 @@ class Patient(Resource):
     :param link_other: The other patient resource that the link refers to.
     :param link_type: The type of link between this patient resource and another patient resource.
     :param active: Whether this patient record is in active use.
-    
     :param name: A name associated with the individual.
     :param telecom: A contact detail (e.g. a telephone number or an email address) by which the individual may be contacted.
     :param address: Addresses for the individual.
@@ -3635,7 +3455,6 @@ class Patient(Resource):
     :param communication: Languages which may be used to communicate with the patient about his or her health.
     :param careProvider: Patient's nominated care provider.
     :param link: Link to another patient resource that concerns the same actual person.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -3665,7 +3484,7 @@ class Patient(Resource):
                  managingOrganization=None,
                  link_other=None,
                  link_type=None,
-                 active=None,
+                 active=True,
                  name=None,
                  telecom=None,
                  address=None,
@@ -3706,33 +3525,22 @@ class Patient(Resource):
         self.link_other = link_other                                     # , The other patient resource that the link refers to
         self.link_type = link_type                                     # , replace | refer | seealso - type of link
         self.active = active                                     # , Whether this patient's record is in active use
-        
-        if name is None:
-            self.name = []                                     # , { attb['short_desc'] }}
-        if telecom is None:
-            self.telecom = []                                     # , { attb['short_desc'] }}
-        if address is None:
-            self.address = []                                     # , { attb['short_desc'] }}
-        if photo is None:
-            self.photo = []                                     # , { attb['short_desc'] }}
-        if contact is None:
-            self.contact = []                                     # , { attb['short_desc'] }}
-        if contact_relationship is None:
-            self.contact_relationship = []                                     # , { attb['short_desc'] }}
-        if contact_telecom is None:
-            self.contact_telecom = []                                     # , { attb['short_desc'] }}
-        if communication is None:
-            self.communication = []                                     # , { attb['short_desc'] }}
-        if careProvider is None:
-            self.careProvider = []                                     # , { attb['short_desc'] }}
-        if link is None:
-            self.link = []                                     # , { attb['short_desc'] }}
-        
+
+        self.name = name or []
+        self.telecom = telecom or []
+        self.contact = contact or []
+        self.address = address or []
+        self.photo = photo or []
+        self.contact = contact or []
+        self.communication = communication or []
+        self.careProvider = careProvider or []
+        self.link = link or []
+
     def add_careProvider(self, orgclinician):
         self.careProvider.append(orgclinician)
 
     def get_current_pcp(self):
-        #TODO add for loop to look up current pcp
+        # TODO add for loop to look up current pcp
         return "304923812"
 
     def add_name(self, given, family, use=None, text=None, prefix=None, suffix=None, period=None):
@@ -3757,10 +3565,10 @@ class Patient(Resource):
                 return id.value
 
     def get_mrn(self):
-        return "b59145f2b2d411e398360800275923d2"
-        #for id in self.identifier:
-            #if id.label == "MRN" and id.system == "clientEMR":
-                #return id.value
+        for id in self.identifier:
+            if id.label == "MRN" and id.system == "clientEMR":
+                return id.value
+        return None
 
 
 class Practitioner(Resource):
@@ -3779,7 +3587,6 @@ class Practitioner(Resource):
     :param qualification_code: Coded representation of the qualification.
     :param qualification_period: Period during which the qualification is valid.
     :param qualification_issuer: Organization that regulates and issues the qualification.
-    
     :param telecom: A contact detail for the practitioner, e.g. a telephone number or an email address.
     :param photo: Image of the person.
     :param role: Roles which this practitioner is authorized to perform for the organization.
@@ -3787,7 +3594,6 @@ class Practitioner(Resource):
     :param location: The location(s) at which this practitioner provides care.
     :param qualification: Qualifications obtained by training and certification.
     :param communication: A language the practitioner is able to use in patient communication.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -3831,22 +3637,15 @@ class Practitioner(Resource):
         self.qualification_code = qualification_code                                     # , Coded representation of the qualification
         self.qualification_period = qualification_period                                     # , Period during which the qualification is valid
         self.qualification_issuer = qualification_issuer                                     # , Organization that regulates and issues the qualification
-        
-        if telecom is None:
-            self.telecom = []                                     # , { attb['short_desc'] }}
-        if photo is None:
-            self.photo = []                                     # , { attb['short_desc'] }}
-        if role is None:
-            self.role = []                                     # , { attb['short_desc'] }}
-        if specialty is None:
-            self.specialty = []                                     # , { attb['short_desc'] }}
-        if location is None:
-            self.location = []                                     # , { attb['short_desc'] }}
-        if qualification is None:
-            self.qualification = []                                     # , { attb['short_desc'] }}
-        if communication is None:
-            self.communication = []                                     # , { attb['short_desc'] }}
-        
+
+        self.telecom = telecom or []
+        self.photo = photo or []
+        self.role = role or []
+        self.specialty = specialty or []
+        self.location = location or []
+        self.qualification = qualification or []
+        self.communication = communication or []
+
 
 class Procedure(Resource):
     """
@@ -3868,14 +3667,12 @@ class Procedure(Resource):
     :param notes: Any other notes about the procedure - e.g. the operative notes.
     :param cost: Base Cost as determined by the costmap table
     :param cost_type: Cost Type as determined by the costmap table
-    
     :param bodySite: Detailed and structured anatomical location information. Multiple locations are allowed - e.g. multiple punch biopsies of a lesion.
     :param indication: The reason why the procedure was performed. This may be due to a Condition, may be coded entity of some type, or may simply be present as text.
     :param performer: Limited to 'real' people rather than equipment.
     :param report: This could be a histology result. There could potentially be multiple reports - e.g. if this was a procedure that made multiple biopsies.
     :param complication: Any complications that occurred during the procedure, or in the immediate post-operative period. These are generally tracked separately from the notes, which typically will describe the procedure itself rather than any 'post procedure' issues.
     :param relatedItem: Procedures may be related to other items such as procedures or medications. For example treating wound dehiscence following a previous procedure.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -3928,7 +3725,7 @@ class Procedure(Resource):
         self.notes = notes                                     # , Additional information about procedure
         self.cost = cost
         self.cost_type = cost_type
-        
+
         if bodySite is None:
             self.bodySite = []                                     # , { attb['short_desc'] }}
         if indication is None:
@@ -3943,7 +3740,7 @@ class Procedure(Resource):
             self.relatedItem = []                                     # , { attb['short_desc'] }}
         else:
             self.relatedItem = relatedItem
-        
+
 
 class Profile(Resource):
     """
@@ -3979,7 +3776,6 @@ class Profile(Resource):
     :param structure_searchParam_path: An XPath expression that returns a set of elements for the search parameter.
     :param query_name: The name of a query, which is used in the URI from Conformance statements declaring use of the query.  Typically this will also be the name for the _query parameter when the query is called, though in some cases it may be aliased by a server to avoid collisions.
     :param query_documentation: Description of the query - the functionality it offers, and considerations about how it functions and to use it.
-    
     :param telecom: Contact details to assist a user in finding and communicating with the publisher.
     :param code: A set of terms from external terminologies that may be used to assist with indexing and searching of templates.
     :param mapping: An external specification that the content is mapped to.
@@ -3988,7 +3784,6 @@ class Profile(Resource):
     :param structure_searchParam: Additional search parameters for implementations to support and/or make use of.
     :param query: Definition of a named query and its parameters and their meaning.
     :param query_parameter: A parameter of a named query.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -4069,7 +3864,7 @@ class Profile(Resource):
         self.structure_searchParam_path = structure_searchParam_path                                     # , XPath that extracts the parameter set
         self.query_name = query_name                                     # , Special named queries (_query=)
         self.query_documentation = query_documentation                                     # , Describes the named query
-        
+
         if telecom is None:
             self.telecom = []                                     # , { attb['short_desc'] }}
         if code is None:
@@ -4086,7 +3881,7 @@ class Profile(Resource):
             self.query = []                                     # , { attb['short_desc'] }}
         if query_parameter is None:
             self.query_parameter = []                                     # , { attb['short_desc'] }}
-        
+
 
 class Provenance(Resource):
     """
@@ -4109,12 +3904,10 @@ class Provenance(Resource):
     :param entity_display: Human-readable description of the entity.
     :param entity_agent: The entity is attributed to an agent to express the agent's responsibility for that entity, possibly along with other agents. This description can be understood as shorthand for saying that the agent was responsible for the activity which generated the entity.
     :param integritySignature: A digital signature on the target resource(s). The signature should match a Provenance.agent.reference in the provenance resource. The signature is only added to support checking cryptographic integrity of the resource, and not to represent workflow and clinical aspects of the signing process, or to support non-repudiation.
-    
     :param target: The resource(s) that were generated by  the activity described in this resource. A provenance can point to more than one target if multiple resources were created/updated by the same activity.
     :param policy: Policy or plan the activity was defined by. Typically, a single activity may have multiple applicable policy documents, such as patient consent, guarantor funding, etc.
     :param agent: An agent takes a role in an activity such that the agent can be assigned some degree of responsibility for the activity taking place. An agent can be a person, a piece of software, an inanimate object, an organization, or other entities that may be ascribed responsibility.
     :param entity: An entity used in this activity.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -4165,7 +3958,7 @@ class Provenance(Resource):
         self.entity_display = entity_display                                     # , Human description of participant
         self.entity_agent = entity_agent                                     # , Entity is attributed to this agent
         self.integritySignature = integritySignature                                     # , Base64 signature (DigSig) - integrity check
-        
+
         if target is None:
             self.target = []                                     # , { attb['short_desc'] }}
         if policy is None:
@@ -4174,7 +3967,7 @@ class Provenance(Resource):
             self.agent = []                                     # , { attb['short_desc'] }}
         if entity is None:
             self.entity = []                                     # , { attb['short_desc'] }}
-        
+
 
 class Query(Resource):
     """
@@ -4186,7 +3979,6 @@ class Query(Resource):
     :param response: If this is a response to a query.
     :param response_outcome: Outcome of processing the query.
     :param response_total: Total number of matching records.
-    
     :param parameter: Set of query parameters with values.
     :param response_parameter: Parameters server used.
     :param response_first: To get first page (if paged).
@@ -4194,7 +3986,6 @@ class Query(Resource):
     :param response_next: To get next page (if paged).
     :param response_last: To get last page (if paged).
     :param response_reference: Resources that are the results of the search.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -4226,7 +4017,7 @@ class Query(Resource):
         self.response = response                                     # , If this is a response to a query
         self.response_outcome = response_outcome                                     # , ok | limited | refused | error
         self.response_total = response_total                                     # , Total number of matching records
-        
+
         if parameter is None:
             self.parameter = []                                     # , { attb['short_desc'] }}
         if response_parameter is None:
@@ -4241,7 +4032,7 @@ class Query(Resource):
             self.response_last = []                                     # , { attb['short_desc'] }}
         if response_reference is None:
             self.response_reference = []                                     # , { attb['short_desc'] }}
-        
+
 
 class Questionnaire(Resource):
     """
@@ -4268,10 +4059,8 @@ class Questionnaire(Resource):
     :param group_question_options: Reference to a valueset containing the possible options.
     :param group_question_data: Structured answer in the form of a FHIR Resource or datatype.
     :param group_question_remarks: The remark contains information about the answer given. This is additional information about the answer the author wishes to convey, but should not be used to contain information that is part of the answer itself.
-    
     :param group_group: A sub-group within a group. The ordering of groups within this group is relevant.
     :param group_question: Set of questions within this group. The order of questions within the group is relevant.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -4328,12 +4117,12 @@ class Questionnaire(Resource):
         self.group_question_options = group_question_options                                     # , Valueset containing the possible options
         self.group_question_data = group_question_data                                     # , Structured answer
         self.group_question_remarks = group_question_remarks                                     # , Remarks about the answer given
-        
+
         if group_group is None:
             self.group_group = []                                     # , { attb['short_desc'] }}
         if group_question is None:
             self.group_question = []                                     # , { attb['short_desc'] }}
-        
+
 
 class RelatedPerson(Resource):
     """
@@ -4347,10 +4136,8 @@ class RelatedPerson(Resource):
     :param name: A name associated with the person.
     :param gender: Administrative Gender - the gender that the person is considered to have for administration and record keeping purposes.
     :param address: Address where the related person can be contacted or visited.
-    
     :param telecom: A contact detail for the person, e.g. a telephone number or an email address.
     :param photo: Image of the person.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -4381,12 +4168,12 @@ class RelatedPerson(Resource):
         self.name = name                                     # , A name associated with the person
         self.gender = gender                                     # , Gender for administrative purposes
         self.address = address                                     # , Address where the related person can be contacted or visited
-        
+
         if telecom is None:
             self.telecom = []                                     # , { attb['short_desc'] }}
         if photo is None:
             self.photo = []                                     # , { attb['short_desc'] }}
-        
+
 
 class SecurityEvent(Resource):
     """
@@ -4421,14 +4208,12 @@ class SecurityEvent(Resource):
     :param object_query: The actual query for a query-type participant object.
     :param object_detail_type: Name of the property.
     :param object_detail_value: Property value.
-    
     :param event_subtype: Identifier for the category of event.
     :param participant: A person, a hardware device or software process.
     :param participant_role: Specification of the role(s) the user plays when performing the event. Usually the codes used in this element are local codes defined by the role-based access control security system used in the local context.
     :param source_type: Code specifying the type of source where event originated.
     :param object: Specific instances of data or objects that have been accessed.
     :param object_detail: Additional Information about the Object.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -4505,7 +4290,7 @@ class SecurityEvent(Resource):
         self.object_query = object_query                                     # , Actual query for object
         self.object_detail_type = object_detail_type                                     # , Name of the property
         self.object_detail_value = object_detail_value                                     # , Property value
-        
+
         if event_subtype is None:
             self.event_subtype = []                                     # , { attb['short_desc'] }}
         if participant is None:
@@ -4518,7 +4303,7 @@ class SecurityEvent(Resource):
             self.object = []                                     # , { attb['short_desc'] }}
         if object_detail is None:
             self.object_detail = []                                     # , { attb['short_desc'] }}
-        
+
 
 class Specimen(Resource):
     """
@@ -4545,14 +4330,12 @@ class Specimen(Resource):
     :param container_capacity: The capacity (volume or other measure) the container may contain.
     :param container_specimenQuantity: The quantity of specimen in the container; may be volume, dimensions, or other appropriate measurements, depending on the specimen type.
     :param container_additive: Additive associated with the container.
-    
     :param source: Parent specimen from which the focal specimen was a component.
     :param source_target: The specimen resource that is the target of this relationship.
     :param collection_comment: To communicate any details or issues encountered during the specimen collection procedure.
     :param treatment: Details concerning treatment and processing steps for the specimen.
     :param treatment_additive: Material used in the processing step.
     :param container: The container holding the specimen.  The recursive nature of containers; i.e. blood in tube in tray in rack is not addressed here.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -4613,7 +4396,7 @@ class Specimen(Resource):
         self.container_capacity = container_capacity                                     # , Container volume or size
         self.container_specimenQuantity = container_specimenQuantity                                     # , Quantity of specimen within container
         self.container_additive = container_additive                                     # , Additive associated with container
-        
+
         if source is None:
             self.source = []                                     # , { attb['short_desc'] }}
         if source_target is None:
@@ -4626,7 +4409,7 @@ class Specimen(Resource):
             self.treatment_additive = []                                     # , { attb['short_desc'] }}
         if container is None:
             self.container = []                                     # , { attb['short_desc'] }}
-        
+
 
 class Substance(Resource):
     """
@@ -4642,9 +4425,7 @@ class Substance(Resource):
     :param instance_quantity: The amount of the substance.
     :param ingredient_quantity: The amount of the ingredient in the substance - a concentration ratio.
     :param ingredient_substance: Another substance that is a component of this substance.
-    
     :param ingredient: A substance can be composed of other substances.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -4674,12 +4455,12 @@ class Substance(Resource):
         self.instance = instance                                     # , If this describes a specific package/container of the substance
         self.instance_expiry = instance_expiry                                     # , When no longer valid to use
         self.instance_quantity = instance_quantity                                     # , Amount of substance in the package
-        
+
         if ingredient is None:
             self.ingredient = []                                     # , { attb['short_desc'] }}
         else:
             self.ingredient = ingredient
-        
+
 
 class Supply(Resource):
     """
@@ -4700,10 +4481,8 @@ class Supply(Resource):
     :param dispense_whenPrepared: The time the dispense event occurred.
     :param dispense_whenHandedOver: The time the dispensed item was sent or handed to the patient (or agent).
     :param dispense_destination: Identification of the facility/location where the Supply was shipped to, as part of the dispense event.
-    
     :param dispense: Indicates the details of the dispense event such as the days supply and quantity of a supply dispensed.
     :param dispense_receiver: Identifies the person who picked up the Supply.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -4748,12 +4527,12 @@ class Supply(Resource):
         self.dispense_whenPrepared = dispense_whenPrepared                                     # , Dispensing time
         self.dispense_whenHandedOver = dispense_whenHandedOver                                     # , Handover time
         self.dispense_destination = dispense_destination                                     # , Where the Supply was sent
-        
+
         if dispense is None:
             self.dispense = []                                     # , { attb['short_desc'] }}
         if dispense_receiver is None:
             self.dispense_receiver = []                                     # , { attb['short_desc'] }}
-        
+
 
 class ValueSet(Resource):
     """
@@ -4787,14 +4566,12 @@ class ValueSet(Resource):
     :param expansion_contains_system: System value for the code.
     :param expansion_contains_code: Code - if blank, this is not a choosable code.
     :param expansion_contains_display: User display for the concept.
-    
     :param telecom: Contacts of the publisher to assist a user in finding and communicating with the publisher.
     :param define_concept: Concepts in the code system.
     :param compose_import: Includes the contents of the referenced value set as a part of the contents of this value set.
     :param compose_include: Include one or more codes from a code system.
     :param compose_exclude: Exclude one or more codes from the value set.
     :param expansion_contains: Codes in the value set.
-    
     """
     def __init__(self,
                  customer_id=None,
@@ -4869,7 +4646,7 @@ class ValueSet(Resource):
         self.expansion_contains_system = expansion_contains_system                                     # , System value for the code
         self.expansion_contains_code = expansion_contains_code                                     # , Code - if blank, this is not a choosable code
         self.expansion_contains_display = expansion_contains_display                                     # , User display for the concept
-        
+
         if telecom is None:
             self.telecom = []                                     # , { attb['short_desc'] }}
         if define_concept is None:
@@ -4882,7 +4659,8 @@ class ValueSet(Resource):
             self.compose_exclude = []                                     # , { attb['short_desc'] }}
         if expansion_contains is None:
             self.expansion_contains = []                                     # , { attb['short_desc'] }}
-        
+
+
 class Rule(Resource):
 
     def __init__(self, customer_id=None, CDS_rule_id=None, CDS_rule_status=None, code_trigger=None, code_trigger_type=None,
@@ -4908,7 +4686,7 @@ class Rule(Resource):
         self.drug_list_rules = []
         self.triggering_order = triggering_order
 
-        #extract the rule_details JSON object into respective lists of each type
+        # extract the rule_details JSON object into respective lists of each type
         self._extract_rule_details(self.rule_details)
 
     def _extract_rule_details(self, rule_details):
@@ -4937,6 +4715,3 @@ class Rule(Resource):
 
             except:
                 raise Exception("Rule Detail needs a TYPE")
-
-
-
