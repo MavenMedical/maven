@@ -111,7 +111,10 @@ class NotificationGenerator():
                              reverse=True)
 
         # Shared data elements for all alerts so we don't have to keep passing the composition around everywhere
-        base_alert_data = {"user": composition.get_author_id(),
+        base_alert_data = {"alert_id": composition.id,
+                           "rule_id": 0,
+                           "provider": composition.get_author_id(),
+                           "user": composition.customer_id,
                            "customer": composition.customer_id,
                            "userAuth": composition.userAuth,
                            "csn": urllib.parse.quote(composition.encounter.get_csn()),
@@ -139,20 +142,25 @@ class NotificationGenerator():
 
         # creates the cost alert html. This may want to become more sophisticated over time to
         # dynamically shorten the appearance of a very large active orders list
-        TEMPLATE_FILE = "cost_alert.html"
-        TEMPLATE2_FILE = "cost_alert2.html"
+        TEMPLATE_FILE = "cost_alert2.html"
+        TEMPLATE_HEADER = "notificationHeader.html"
+
         template = templateEnv.get_template(TEMPLATE_FILE)
-        template2 = templateEnv.get_template(TEMPLATE2_FILE)
+        templateHeader = templateEnv.get_template(TEMPLATE_HEADER)
+
         templateVars = yield from self._generate_cost_alert_template_vars(alert, base_alert_data)
-        notification_body = template.render(templateVars)
-        notification_body += template2.render(templateVars)
+        notification_body = templateHeader.render(templateVars)
+        notification_body += template.render(templateVars)
 
         return notification_body
 
     @asyncio.coroutine
     def _generate_cost_alert_template_vars(self, alert, base_alert_data):
 
-        templateVars = {"order_list": alert.cost_breakdown['details'],
+        templateVars = {"alert_id": base_alert_data['alert_id'],
+                        "provider": base_alert_data['provider'],
+                        "rule_id": base_alert_data['rule_id'],
+                        "order_list": alert.cost_breakdown['details'],
                         "total_cost": math.ceil(alert.cost_breakdown['total_cost']),
                         "http_address": MC.http_addr,
                         "encounter_id": base_alert_data['csn'],
@@ -230,8 +238,10 @@ class NotificationGenerator():
 
         TEMPLATE_FILE = "cost_alert.html"
         TEMPLATE2_FILE = "cost_alert2.html"
+        TEMPLATE3_FILE = "notification.js"
         template = templateEnv.get_template(TEMPLATE_FILE)
         template2 = templateEnv.get_template(TEMPLATE2_FILE)
+        template3 = templateEnv.get_template(TEMPLATE3_FILE)
         cost_alert = composition.get_alerts_by_type(type=ALERT_TYPES.COST)
         templateVars = self._generate_cost_alert_template_vars(composition)
         notification_body = template.render(templateVars)

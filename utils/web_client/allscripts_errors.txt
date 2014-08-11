@@ -1,0 +1,81 @@
+POST /Unity/UnityService.svc/json/MagicJson HTTP/1.1
+
+CONTENT-TYPE: application/json
+
+ACCEPT-ENCODING: gzip, deflate
+
+ACCEPT: */*
+
+HOST: pro14ga.unitysandbox.com
+
+CONTENT-LENGTH: 275
+
+CONNECTION: keep-alive
+
+USER-AGENT: Python/3.3 aiohttp/0.9.0
+
+
+
+{"Action": "GetPatient", "Data": "null", "PatientID": "22a", "Parameter3": "", "Parameter4": "", "Parameter5": "", "Parameter6": "", "Appname": "MavenPathways.TestApp", "Token": "9C5A74C6-B23B-4707-8A1F-8BC0AA261A8C", "AppUserID": "terry", "Parameter1": "", "Parameter2": ""}HTTP/1.1 200 OK
+
+Cache-Control: private
+
+Content-Length: 56
+
+Content-Type: application/json
+
+Server: Microsoft-IIS/7.5
+
+X-AspNet-Version: 4.0.30319
+
+X-Powered-By: ASP.NET
+
+Date: Fri, 08 Aug 2014 16:49:26 GMT
+
+
+
+[{"Error":"Error converting data type varchar to int."}]
+
+
+
+
+
+
+
+POST /Unity/UnityService.svc/json/MagicJson HTTP/1.1
+
+CONTENT-TYPE: application/json
+
+ACCEPT: */*
+
+ACCEPT-ENCODING: gzip, deflate
+
+HOST: pro14ga.unitysandbox.com
+
+CONTENT-LENGTH: 275
+
+CONNECTION: keep-alive
+
+USER-AGENT: Python/3.3 aiohttp/0.9.0
+
+
+
+{"PatientID": "-22", "Token": "134A6214-2B66-4E8F-B3DA-895420376E3B", "Parameter1": "", "AppUserID": "terry", "Parameter3": "", "Parameter2": "", "Parameter5": "", "Parameter4": "", "Parameter6": "", "Action": "GetPatient", "Appname": "MavenPathways.TestApp", "Data": "null"}HTTP/1.1 200 OK
+
+Cache-Control: private
+
+Content-Length: 23
+
+Content-Type: application/json
+
+Server: Microsoft-IIS/7.5
+
+X-AspNet-Version: 4.0.30319
+
+X-Powered-By: ASP.NET
+
+Date: Fri, 08 Aug 2014 16:52:05 GMT
+
+
+
+[{"getpatientinfo":[]}]

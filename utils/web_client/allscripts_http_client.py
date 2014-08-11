@@ -3,7 +3,7 @@ import asyncio
 import json
 from xml.etree import ElementTree as ETree
 from enum import Enum
-from functools import wraps
+from functools import wraps, lru_cache
 from maven_config import MavenConfig
 
 ALLSCRIPTS_NUM_PARAMETERS = 6
@@ -38,9 +38,10 @@ class UnauthorizedUser(Exception):
     pass
 
 
+@lru_cache()
 class allscripts_api(http.http_api):
 
-    def __init__(self, configname:str):
+    def __init__(self, configname: str):
         """ initialize this adapter for the allscripts professional API
         :params configname: the name of the configuration section in the MavenConfig map
         it's required parameters are:
@@ -54,8 +55,8 @@ class allscripts_api(http.http_api):
         self.apppassword = self.config[CONFIG_APPPASSWORD]
         self.unitytoken = None
 
-    def _build_message(self, action:str, *args:[str], user:str=None, 
-                       patient:str=None, data='null') -> {str:str}:
+    def _build_message(self, action: str, *args: [str], user: str=None,
+                       patient: str=None, data='null') -> {str: str}:
         """ builds the data section of a message to allscripts
         :param action: the API method to invoke
         :param user: the provider's userid for whom we perform this
@@ -77,14 +78,14 @@ class allscripts_api(http.http_api):
         ret.update(zip(['Parameter' + str(n + 1) for n in range(ALLSCRIPTS_NUM_PARAMETERS)], args))
         return ret
 
-    def _require_token(func:'function') -> 'function':
-        """ decorator for functions which require a security token before executing 
+    def _require_token(func: 'function') -> 'function':
+        """ decorator for functions which require a security token before executing
         """
         co_func = asyncio.coroutine(func)
 
         def worker(self, *args, **kwargs):
             if not self.unitytoken:
-                f  = asyncio.Future()
+                f = asyncio.Future()
                 self.unitytoken = f
                 req = yield from self.post('/GetToken',
                                            Username=self.appusername, Password=self.apppassword)
@@ -108,7 +109,7 @@ class allscripts_api(http.http_api):
         return self.postprocess(ret)[0]
 
     @_require_token
-    def GetPatient(self, username:str, patient:str):
+    def GetPatient(self, username: str, patient: str):
         """ Gets (demographic and contact mostly) information about a patient
         :param user: the allscripts EHR user ID
         :param patient: the allscripts internal patient ID (from GetPatientByMRN,
@@ -122,7 +123,7 @@ class allscripts_api(http.http_api):
         return self.postprocess(ret)[0]
 
     @_require_token
-    def GetChangedPatients(self, username:str, since:{str, 'date', 'datetime'}):
+    def GetChangedPatients(self, username: str, since: {str, 'date', 'datetime'}):
         """ Gets a list of patientIDs for patients whose information has changed recently
         :param username: the allscripts ehr username
         :param since: a timestamp - only get patients who changed after this time
@@ -137,8 +138,8 @@ class allscripts_api(http.http_api):
         return [x['patientid'] for x in self.postprocess(ret)]
 
     @_require_token
-    def GetSchedule(self, username:str, startdate:{str, 'date', 'datetime'}, 
-                    changedsince:{str, 'date', 'datetime'}=None, soughtuser:str=None):
+    def GetSchedule(self, username: str, startdate: {str, 'date', 'datetime'},
+                    changedsince: {str, 'date', 'datetime'}=None, soughtuser: str=None):
         """ Gets a list of scheduled appointments for a provider.
         Each element in the list includes (among others):
         Status (i.e. pending), patiendID, Duration, Patient (full name), TimeIn, ProviderID,
@@ -164,7 +165,7 @@ class allscripts_api(http.http_api):
         return self.postprocess(ret)
 
     @staticmethod
-    def _append_xml(root:ETree.Element, name:str, value:str=None):
+    def _append_xml(root: ETree.Element, name: str, value: str=None):
         child = ETree.Element(name)
         if value:
             child.set('value', value)
@@ -172,8 +173,8 @@ class allscripts_api(http.http_api):
         return child
 
     @_require_token
-    def GetProcedures(self, username:str, patient:str, completionstatuses:[COMPLETION_STATUSES]=None,
-                      rulenames:[str]=None, rulenameexactmatch:bool=False):
+    def GetProcedures(self, username: str, patient: str, completionstatuses: [COMPLETION_STATUSES]=None,
+                      rulenames: [str]=None, rulenameexactmatch: bool=False):
         """ Gets a list of procedures for a given patient
         :param username: the allscripts user requesting the data
         :param patient: the patient to search for
@@ -221,7 +222,7 @@ class allscripts_api(http.http_api):
         return ret
 
     @_require_token
-    def GetClinicalSummary(self, username:str, patient:str, sections:[CLINICAL_SUMMARY]=None):
+    def GetClinicalSummary(self, username: str, patient: str, sections: [CLINICAL_SUMMARY]=None):
         """ Gets lots of clinical data about a patient
         :param username: the allscripts user
         :param patient: the patient to search for
@@ -236,7 +237,7 @@ class allscripts_api(http.http_api):
         return self.postprocess(ret)
 
     @_require_token
-    def GetPatientSections(self, username:str, patient:str, months:int):
+    def GetPatientSections(self, username: str, patient: str, months: int):
         """
         """
         ret = yield from self.post('/MagicJson',
@@ -244,6 +245,7 @@ class allscripts_api(http.http_api):
                                                             str(months),
                                                             user=username, patient=patient))
         return self.postprocess(ret)
+
 
 if __name__ == '__main__':
     MavenConfig['allscripts_old_demo'] = {
@@ -265,8 +267,6 @@ if __name__ == '__main__':
         CONFIG_APPUSERNAME: 'MavenPathways',
         CONFIG_APPPASSWORD: 'MavenPathways123!!',
     }
-
-
 
     api = allscripts_api('allscripts_demo')
     loop = asyncio.get_event_loop()
