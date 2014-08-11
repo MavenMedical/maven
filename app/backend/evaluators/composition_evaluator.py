@@ -93,7 +93,7 @@ class CompositionEvaluator(SP.StreamProcessor):
         yield from self.evaluate_CDS_rules(composition)
 
         # Write everything to persistent DB storage
-        #yield from FHIR_DB.write_composition_to_db(composition, self.conn)
+        yield from FHIR_DB.write_composition_to_db(composition, self.conn)
 
         # Debug Message
         COMP_EVAL_LOG.debug(json.dumps(FHIR_API.remove_none(json.loads(json.dumps(composition, default=FHIR_API.jdefault))), default=FHIR_API.jdefault, indent=4))
