@@ -11,8 +11,9 @@ define([
     'widgets/topBanner',
     'widgets/pathwaySearch',
     'widgets/pathwaysList',
-    'widgets/actionList'
-], function ($, _, Backbone, Context, TopBanner, PathSearch, PathwaysList, ActionList) {
+    'widgets/actionList',
+    'widgets/TreeView',
+], function ($, _, Backbone, Context, TopBanner, PathSearch, PathwaysList, ActionList, TreeView) {
 
 var AppRouter = Backbone.Router.extend({
     routes: {
@@ -28,7 +29,8 @@ var AppRouter = Backbone.Router.extend({
         new PathSearch({el:'#fixed-topB-1-1'});
         new PathwaysList({el:'#rowA-1-1'});
         new ActionList({el:'#floating-right'});
-        //new TreeView({el:'#tree-view'});
+        new TreeView({el:'#rowA-1-2'})
+
     },
     showNewPathway: function () {
         console.log('show New Pathway');

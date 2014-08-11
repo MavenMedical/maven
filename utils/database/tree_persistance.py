@@ -37,7 +37,8 @@ class tree_persistance():
         cmd = []
         cmdArgs = []
         cmd.append("SELECT \"JSONSpec\" from protocols.unparsed WHERE pathid = %s")
-        cmdArgs.append(treeid)
+        n = int(treeid)
+        cmdArgs.append(n)
         json = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
         return (json.fetchone()[0])
 

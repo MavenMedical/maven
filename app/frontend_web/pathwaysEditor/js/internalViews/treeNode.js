@@ -25,14 +25,21 @@ define([
                 this.$el.css({'float':'left'})
 
                 var that = this;
+
+
                 if(!(this.model.get('children').models)){
                     this.model.set('children', new nodeList(this.model.get('children')))
+                    this.model.set({'hideChildren': "true"}, {silent: true})
+
                 }
+
+
                 var that = this
                 this.model.get('children').off('add')
                 this.model.get('children').on('add', function(){
                     curTree.trigger('propagate')
                 },this)
+                this.model.off('change')
                 this.model.on('change', function(){
                     curTree.trigger('propagate')
                 }, this)
@@ -54,6 +61,14 @@ define([
             render: function(){
                 this.$el.html(this.template({protocol: this.model.get('protocol'), children: this.model.get('children'), text: this.model.get('text')}))
                   var that = this;
+                $('.treeNode', this.$el).first().off('click')
+                $('.treeNode', this.$el).first().on('click', function(){
+                       if (that.model.get('hideChildren') == "false"){
+                           that.model.set('hideChildren', "true")
+                       } else{
+                            that.model.set('hideChildren', "false")
+                       }
+                })
                 $("#addChildButton", this.$el).off('click')
                 $("#addChildButton", this.$el).on('click', function(){
                      var newEditor = new NodeEditor(that.model)
@@ -70,6 +85,11 @@ define([
 
 
                 }, this)
+                if (this.model.get('hideChildren') == "true"){
+                    $('.children', this.$el).first()[0].hidden = true;
+                } else {
+                    $('.children', this.$el).first()[0].hidden = false;
+                }
 
                 if (this.model.get('protocol')){
                     var protoNode = new ProtocolNode({model: this.model})

@@ -13,8 +13,8 @@ define([
             options.url = 'rule_services' + options.url;
         });*/
 
+
        // contextModel.setUser('tom', 'pw', '#');
-         //new TreeView({el:'#tree-view'});
 
          new AppRouter;
 

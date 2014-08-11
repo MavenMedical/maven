@@ -8,8 +8,10 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
 
+    'models/treeModel',
+
     'text!templates/newPathway.html'
-], function ($, _, Backbone, newPathwayTemplate) {
+], function ($, _, Backbone, curTree, newPathwayTemplate) {
     var NewPathway = Backbone.View.extend({
         template: _.template(newPathwayTemplate),
         events:{
@@ -24,6 +26,8 @@ define([
         handle_createPathway: function(){
             //hide modal
             $("#createNewPath-modal").modal('hide');
+            curTree.loadNewPathway();
+
             //navigate to new pathway page
             Backbone.history.navigate('createpathway', {trigger: true});
         }
