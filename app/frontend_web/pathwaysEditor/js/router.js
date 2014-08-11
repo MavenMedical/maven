@@ -27,10 +27,9 @@ var AppRouter = Backbone.Router.extend({
         console.log('Show page Home');
         new TopBanner({el:'#fixed-topA-1-1'});
         new PathSearch({el:'#fixed-topB-1-1'});
-        new PathwaysList({el:'#rowA-1-1'});
+        //new PathwaysList({el:'#rowA-1-1'});
         new ActionList({el:'#floating-right'});
         new TreeView({el:'#rowA-1-2'})
-
     },
     showNewPathway: function () {
         console.log('show New Pathway');
@@ -43,9 +42,6 @@ var AppRouter = Backbone.Router.extend({
         $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
             options.url = 'pathway_services' + options.url;
         });
-
-
-
         Backbone.history.start();
     }
 });

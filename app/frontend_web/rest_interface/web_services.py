@@ -154,7 +154,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         try:
             yield from self.persistence_interface.update_password(user, ret)
         except:
-            import traceback
+            import tracebacknewPathName
             traceback.print_exc()
             raise LoginError('expiredPassword')
 

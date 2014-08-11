@@ -26,7 +26,7 @@ define([
         handle_createPathway: function(){
             //hide modal
             $("#createNewPath-modal").modal('hide');
-            curTree.loadNewPathway();
+            curTree.loadNewPathway({name: $('#newPathName').val()});
 
             //navigate to new pathway page
             Backbone.history.navigate('createpathway', {trigger: true});

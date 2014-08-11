@@ -28,8 +28,9 @@ class tree_persistance():
     def create_tree(self, treeJSON):
         cmd = []
         cmdArgs = []
-        cmd.append("INSERT INTO protocols.unparsed (\"JSONSpec\") VALUES (%s) RETURNING pathid")
+        cmd.append("INSERT INTO protocols.unparsed (\"JSONSpec\", \"pathName\") VALUES (%s, %s) RETURNING pathid")
         cmdArgs. append(str(treeJSON).replace("'", '"'))
+        cmdArgs.append(treeJSON['name'])
         id = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
         return (id.fetchone()[0])
 

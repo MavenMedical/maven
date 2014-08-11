@@ -76,7 +76,8 @@ class RuleService(HTTP.HTTPProcessor):
             CONTEXT_AUTH: user_auth,
             CONTEXT_USER: user,
             'widgets': [
-                ['#fixed-topA-1-1', 'topBanner', 'topBanner.html'],
+                ['#fixed-topA-1-1', 'treeView', 'treeTemplate.html'],
+
             ]
         }
         return (HTTP.OK_RESPONSE, json.dumps(ret), None)

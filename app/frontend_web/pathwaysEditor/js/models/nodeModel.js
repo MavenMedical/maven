@@ -36,9 +36,9 @@ define([
             this.set({text: params.text + " NODE"},{silent:true})
             if (!params.children){params.children = []}
             this.set({children: new NodeList(params.children)}, {silent:true})
-
+            this.set('name', params.name)
             this.set({protocol: params.protocol}, {silent:true})
-             this.set({hideChildren: "true"}, {silent: true})
+            this.set({hideChildren: "true"}, {silent: true})
 
 
         },

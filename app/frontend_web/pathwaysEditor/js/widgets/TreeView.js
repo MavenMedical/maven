@@ -12,11 +12,19 @@ define([
     function($, _, Backbone, contextModel, curTree, TriggerNode, Helpers, treeTemplate){
 
         var TreeView = Backbone.View.extend({
+
+
             template: _.template(treeTemplate),
             initialize: function(){
-                var resizetimer
+                 jsPlumb.Defaults.Connector = "Flowchart"
+                 jsPlumb.Defaults.PaintStyle=  { lineWidth : 2, strokeStyle : "#456" }
+                 jsPlumb.Defaults.Endpoint ="Blank"
+                 jsPlumb.Defaults.MaxConnections =-1
+                 jsPlumb.setContainer(this.$el)
+                 this.$el.draggable()
+                 this.$el.css({'width': '3000px'})
+                 var resizetimer
                  var that = this
-
                window.onresize = function(){
 
                     window.clearTimeout(resizetimer)

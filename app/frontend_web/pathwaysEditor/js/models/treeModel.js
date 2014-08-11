@@ -30,10 +30,12 @@ define([
 
 
         },
-        loadNewPathway: function(){
+        loadNewPathway: function(params){
             this.set('triggers', new Backbone.Collection(), {silent: true})
-            this.set('text', "Triggers", {silent: true})
+            this.set('text', params.name, {silent: true})
+
             this.set('children', new NodeList(), {silent: true})
+            this.set('name', params.name, {silent: true})
             this.unset('protocol', {silent: true})
             this.unset('id', {silent: true})
 
@@ -43,9 +45,10 @@ define([
         },
         parse: function(response){
             console.log('parsing', response.id)
-           this.set({text: response.text}, {silent: true})
-           this.set({id: response.id}, {silent: true})
-           this.set({protocol: response.protocol}, {silent: true})
+            this.set({text: response.text}, {silent: true})
+            this.set({id: response.id}, {silent: true})
+            this.set({protocol: response.protocol}, {silent: true})
+            this.set({name: response.name}, {silent: true})
             this.set({children: new NodeList(response.children)}, {silent: true})
             _.each(this.get('children').models, function(cur){
                 cur.set({'hideChildren': "true"}, {silent: true})

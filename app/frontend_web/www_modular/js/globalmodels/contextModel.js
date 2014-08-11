@@ -33,7 +33,8 @@ define([
 	}
 	// each row is [html_id, viewfile, templatefile]
 	var widgetlist = res.get('widgets');
-	var viewlist = []; 
+	var viewlist = [];
+
 	var templatelist = [];
 	for (var ind in widgetlist) {
 	    var row = widgetlist[ind];
