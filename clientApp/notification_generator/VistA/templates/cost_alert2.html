@@ -1,37 +1,61 @@
 <!doctype html>
 <html>
 <body bgcolor=#FFFFFF style='font-family: Arial; color: #444; word-spacing: normal; text-align: left; letter-spacing: 0; font-size: 104%%;'>
-<table>
+<div id="dislike_info_text" style="display:none; width:100%; float:left;">
+        <textarea id='dislike_info_text_form' rows="1" cols="40" onkeyup='enter_comment(event);' value="" style="float:right;"></textarea>
+</div>
+<div id="main_view" style="height:100%; width:80%; float:left; display:block;">
+    <table width="100%;">
     <col width=32px>
-    <col width=10%%>
+    <col width=20%%>
+    <col width=40%%>
     <col width=30%%>
-    <col width=60%%>
     <tr>
         <td valign='top'>
             <img src='/home/devel/maven/clientApp/notification_generator/img/evidence-28x35px.png' />
         </td>
 
         <td valign='top'>
-            <a href="{{ http_address }}/#/episode/{{ encounter_id }}/patient/{{ patient_id }}/login/{{ user }}/{{ customer }}/{{ user_auth }}">
+            <a href="http://localhost/#/episode/5%7C76%7C3140325/patient/1235412/login/JHU1093124/1/U9_0CA..HvoKB6C-M2-E4RL_oaHZrfa3D5JXu8PaLA5Hy1nd9Mo.">
                 <b>Encounter Cost Details</b>
             </a>
             <br/>
-            <b style='font-size: 130%;'>${{ total_cost }}</b>
+            <b style='font-size: 130%;'>$540</b>
         </td>
 
-        <td valign='top'>
+  <td valign='top'>
            Some graphic here
         </td>
 
         <td valign='top' style='font-family: Arial; color: #444; word-spacing: normal; text-align: left; letter-spacing: 0; font-size: 104%;'>
             <table>
-                {% for order in order_list %}
-                    <tr><td>{{ order['order_name'] }}</td><td>${{ order['order_cost'] }}</td></tr>
-                {% endfor %}
+
+                    <tr><td>IMMUNOGLOBULINS</td><td>$20</td></tr>
+
+                    <tr><td>CEFIXIME TAB</td><td>$520</td></tr>
+
             </table>
         </td>
-    </tr>
+ </tr>
 </table>
+</div>
+<div id="dislike_info" style="display:none; width:20%; float:left;">
+        <button type="button" class="btn btn-default btn-xs like" data-dismiss="modal" style=" float:right;" onclick="dismiss_options();">
+            X</button>
+        <button style='float: right;' type="button" class="btn btn-default btn-xs like dislike_info" onclick="critique('other');">
+		    Other</button>
+	    <button style='float: right;' type="button" class="btn btn-default btn-xs like dislike_info" onclick="critique('notuseful');">
+		    Not Useful</button>
+	    <button style='float: right;' type="button" class="btn btn-default btn-xs like dislike_info" onclick="critique('irrelevant');">
+	    	Not Applicable</button>
+	    <button style='float: right;' type="button" class="btn btn-default btn-xs like dislike_info" onclick="critique('incorrect');">
+		    Disagree</button>
+</div>
+<div id='like_buttons' style='width:20%; height:100%; float:left; display:block; vertical-align:top; font-size: 8px;'>
+    <button type="button" class="btn btn-default btn-xs dislike" data-dismiss="modal" style="float:right;" onclick="rate('dislike');">
+        V &nbsp;10% </button>
+    <button type="button" class="btn btn-default btn-xs like" data-dismiss="modal" style=" float:right;" onclick="rate('like');">
+        ^ &nbsp;90% </button>
+</div>
 </body>
 </html>
-

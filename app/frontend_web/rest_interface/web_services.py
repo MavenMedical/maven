@@ -162,9 +162,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                     CONTEXT_ALERTID, CONTEXT_ACTION,
                                     CONTEXT_RULEID, CONTEXT_CATEGORY]
     rate_alert_available_contexts = {CONTEXT_USER: str, CONTEXT_CUSTOMERID: int,
-                                     CONTEXT_ALERTID: int,
-                                     CONTEXT_ACTION: str, CONTEXT_RULEID: int,
-                                     CONTEXT_CATEGORY: str}
+                                     CONTEXT_ALERTID: int, CONTEXT_ACTION: str,
+                                     CONTEXT_RULEID: str, CONTEXT_CATEGORY: str}
 
     @asyncio.coroutine
     def rate_alert(self, _header, _body, qs, _matches, _key):
@@ -176,8 +175,10 @@ class FrontendWebService(HTTP.HTTPProcessor):
         customer = context[CONTEXT_CUSTOMERID]
         alertid = context[CONTEXT_ALERTID]
         action = context[CONTEXT_ACTION]
-        ruleid = context[CONTEXT_RULEID]
         category = context[CONTEXT_CATEGORY]
+        ruleid = context[CONTEXT_RULEID]
+        if ruleid == "null":
+            ruleid = "0"
 
         desired = {
             WP.Results.action: 'action',
@@ -214,10 +215,12 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
         userid = context[CONTEXT_USER]
         customerid = context[CONTEXT_CUSTOMERID]
-        ruleid = context[CONTEXT_RULEID]
         alertid = context[CONTEXT_ALERTID]
         actioncomment = context[CONTEXT_ACTIONCOMMENT]
         category = context[CONTEXT_CATEGORY]
+        ruleid = context[CONTEXT_RULEID]
+        if ruleid == "null":
+            ruleid = "0"
 
         result = yield from self.persistence_interface.update_alert_setting(userid, customerid,
                                                                             alertid, ruleid,
@@ -332,6 +335,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
                        ['#rowD-1-1', 'costtable', 'costbreakdown-table.html'],
                        # ['#rowD-1-1','costdonut','costbreakdown-donut.html'],
                        ['#rowE-1-1', 'spend_histogram'],
+                       ['#rowF-1-1', 'pathway'],
                        ['#floating-right', 'alertList', 'alertScroll.html'],
                        ['#datepicker-modal', 'datepicker-calendar'],
                        ['#settings-modal', 'settings', 'settings.html'],

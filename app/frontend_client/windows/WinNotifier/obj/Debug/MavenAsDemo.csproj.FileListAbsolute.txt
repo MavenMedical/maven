@@ -1,0 +1,9 @@
+c:\users\dave\documents\visual studio 2012\Projects\MavenAsDemo\bin\Debug\MavenAsDemo.exe.config
+c:\users\dave\documents\visual studio 2012\Projects\MavenAsDemo\bin\Debug\MavenAsDemo.exe
+c:\users\dave\documents\visual studio 2012\Projects\MavenAsDemo\bin\Debug\MavenAsDemo.pdb
+c:\users\dave\documents\visual studio 2012\Projects\MavenAsDemo\obj\Debug\MavenAsDemo.csprojResolveAssemblyReference.cache
+c:\users\dave\documents\visual studio 2012\Projects\MavenAsDemo\obj\Debug\MavenAsDemo.Properties.Resources.resources
+c:\users\dave\documents\visual studio 2012\Projects\MavenAsDemo\obj\Debug\MavenAsDemo.csproj.GenerateResource.Cache
+c:\users\dave\documents\visual studio 2012\Projects\MavenAsDemo\obj\Debug\MavenAsDemo.exe
+c:\users\dave\documents\visual studio 2012\Projects\MavenAsDemo\obj\Debug\MavenAsDemo.pdb
+c:\users\dave\documents\visual studio 2012\Projects\MavenAsDemo\obj\Debug\MavenAsDemo.frmAlert.resources
