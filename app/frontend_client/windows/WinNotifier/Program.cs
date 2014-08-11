@@ -18,6 +18,7 @@ namespace MavenAsDemo
         public static int priorityThreadId = 0;
         public static AlertMode mode = AlertMode.deskSoft;
         public static double fadeSlowness = 3;
+        public static string location = "BR";
 
         /// <summary>
         /// The main entry point for the application.
@@ -58,7 +59,7 @@ namespace MavenAsDemo
         }
         public static void ShowAlertForm()
         {
-            frmAlert frm = new frmAlert(fadeSlowness);
+            frmAlert frm = new frmAlert(fadeSlowness,location);
             frm.ShowInTaskbar = false;
             frm.Visible = true;
             Application.Run(frm);
@@ -77,7 +78,7 @@ namespace MavenAsDemo
             modeitm.MenuItems.Add("Combo", AlertModeClick);
             ctx.MenuItems.Add(modeitm);
 
-            MenuItem speeditm = new MenuItem("Fade Slowness");
+            MenuItem speeditm = new MenuItem("Soft Alert Fade Slowness");
             speeditm.MenuItems.Add("1", FadeSlownessClick);
             speeditm.MenuItems.Add("2", FadeSlownessClick);
             speeditm.MenuItems.Add("3", FadeSlownessClick);
@@ -87,6 +88,19 @@ namespace MavenAsDemo
             speeditm.MenuItems.Add("7", FadeSlownessClick);
             speeditm.MenuItems.Add("8", FadeSlownessClick);
             ctx.MenuItems.Add(speeditm);
+
+            MenuItem locitm = new MenuItem("Soft Alert Location");
+            MenuItem vitm = new MenuItem("Vertical");
+            vitm.MenuItems.Add("Top", LocationClick);
+            vitm.MenuItems.Add("Middle", LocationClick);
+            vitm.MenuItems.Add("Bottom", LocationClick);
+            locitm.MenuItems.Add(vitm);
+            MenuItem hitm = new MenuItem("Horizontal");
+            hitm.MenuItems.Add("Left", LocationClick);
+            hitm.MenuItems.Add("Center", LocationClick);
+            hitm.MenuItems.Add("Right", LocationClick);
+            locitm.MenuItems.Add(hitm);
+            ctx.MenuItems.Add(locitm);
 
             MenuItem itm6 = new MenuItem("Replay Last Alert", DummyAlert);
             ctx.MenuItems.Add(itm6);
@@ -304,6 +318,31 @@ namespace MavenAsDemo
                 fadeSlowness = Convert.ToDouble(itm.Text);
             }
             catch { }
+        }
+        static void LocationClick(object sender, EventArgs e)
+        {
+            MenuItem itm = (MenuItem)sender;
+            switch (itm.Text)
+            {
+                case "Top":
+                    location="T"+location.Substring(1);
+                    break;
+                case "Middle":
+                    location = "M" + location.Substring(1);
+                    break;
+                case "Bottom":
+                    location = "B" + location.Substring(1);
+                    break;
+                case "Left":
+                    location =location.Substring(0,1)+"L";
+                    break;
+                case "Center":
+                    location = location.Substring(0, 1) + "C";
+                    break;
+                case "Right":
+                    location = location.Substring(0, 1) + "R";
+                    break;
+            }
         }
         static void DummyAlert(object sender, EventArgs e)
         {

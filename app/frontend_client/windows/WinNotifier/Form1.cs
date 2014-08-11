@@ -15,12 +15,14 @@ namespace MavenAsDemo
         public int tix = 0;
         public Point downPoint=Point.Empty;
         public int timerspeed = 200;
+        public string loc = "BR";
 
-        public frmAlert(double fadeslowness)
+        public frmAlert(double fadeslowness,string location)
         {
             try
             {
                 timerspeed = Convert.ToInt32(Math.Round(50 * fadeslowness, 0));
+                loc = location;
                 InitializeComponent();
             }
             catch (System.Threading.ThreadAbortException ex)
@@ -36,6 +38,9 @@ namespace MavenAsDemo
             imgLogo.MouseDown += new MouseEventHandler(MouseDown);
             imgLogo.MouseMove += new MouseEventHandler(MouseMove);
             imgLogo.MouseUp += new MouseEventHandler(MouseUp);
+            imgAlertType.MouseDown += new MouseEventHandler(MouseDown);
+            imgAlertType.MouseMove += new MouseEventHandler(MouseMove);
+            imgAlertType.MouseUp += new MouseEventHandler(MouseUp);
            
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             //make the background transparent and whiteish so the white overlay is visible and the shadow appears to be ontop of white. 
@@ -43,14 +48,25 @@ namespace MavenAsDemo
             //this.TransparencyKey=System.Drawing.Color.Gray;
             //go to the bottom right + 15px vertical 
             Rectangle workingArea = Screen.GetWorkingArea(this);
-            this.Location = new Point(workingArea.Right - Size.Width-10,
-                                      workingArea.Bottom - Size.Height-15);
+            this.Location = getLocation(loc);
             //keep this on top
             this.TopMost = true;
             timer.Interval = timerspeed;
             timer.Start();
-            browserDisplay.DocumentText = "<head><script language=\"JavaScript\">function jsfunction(strURL){window.open(strURL, \"_blank\",\"height=800 width=800 top=0 left=0 scrollbars=no titlebar=no\");} "
-                +"</script></head><body>Click <a href=\"#\" onclick=\"jsfunction('http://mavenmedical.net')\">here</a> to see the Maven website</body>";
+            string s= "<head></head><body> "
+                /*+" <table> "
+                +" <tr> "
+                +" 	<td> "
+                +" 		<p><img src=\"http://i60.tinypic.com/517jlv.png\" style=\"width: 50%; height: 50%\"/></p> "
+                +" 	</td> "
+                +" 	<td> "*/
+                + " 		 <p style=\"color:#443361;font-family:verdana, sans-serif; font-size:small\"> Patient matches an AUA Pathway.<br/> "
+                +" 		<a href=\"http://mavenmedical.net\">Click</a> to view the pathway. </p>"
+                /*+" 	</td> "
+                +" </tr> "
+                +" </table> "*/
+                +" </body></head>";
+            browserDisplay.DocumentText = s;
         }
         /// <summary>
         /// On mouse enter of the form, reset the timer and become opaque
@@ -121,6 +137,41 @@ namespace MavenAsDemo
         private void pictureBox2_Click(object sender, EventArgs e)
         {
 
+        }
+        private Point getLocation(string locstring)
+        {
+            Rectangle workingArea = Screen.GetWorkingArea(this);
+            int hpixels=workingArea.Right;
+            int vpixels=workingArea.Bottom;
+            int v = 0;
+            int h = 0;
+            string strV = locstring.Substring(0, 1);
+            string strH = locstring.Substring(1, 1);
+            switch (strV)
+            {
+                case "T":
+                    v = 0;
+                    break;
+                case "M":
+                    v = Convert.ToInt32( Math.Round((decimal)vpixels / 2, 0))-Convert.ToInt32(Math.Round((decimal)Size.Height/2,0));
+                    break;
+                case "B":
+                    v=vpixels - Size.Height - 15;
+                    break;
+            }
+            switch (strH)
+            {
+                case "L":
+                    h = 0;
+                    break;
+                case "C":
+                    h = Convert.ToInt32(Math.Round((decimal)hpixels / 2, 0)) - Convert.ToInt32(Math.Round((decimal)Size.Width / 2, 0));
+                    break;
+                case "R":
+                    h = hpixels - Size.Width - 10;
+                    break;
+            }
+            return new Point(h,v);
         }
     }
 }
