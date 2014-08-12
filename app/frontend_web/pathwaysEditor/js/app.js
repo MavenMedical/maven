@@ -14,8 +14,6 @@ define([
         });*/
 
 
-       // contextModel.setUser('tom', 'pw', '#');
-
          new AppRouter;
 
     };

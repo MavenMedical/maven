@@ -154,7 +154,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         try:
             yield from self.persistence_interface.update_password(user, ret)
         except:
-            import traceback
+            import tracebacknewPathName
             traceback.print_exc()
             raise LoginError('expiredPassword')
 
@@ -319,29 +319,21 @@ class FrontendWebService(HTTP.HTTPProcessor):
             if not self.stylesheet == 'original':
                 self.stylesheet = 'original'
 
+            desired_layout = {
+                WP.Results.widget: 'widget',
+                WP.Results.template: 'template',
+                WP.Results.element: 'element',
+                WP.Results.priority: 'priority'
+            }
+            widgets = yield from self.persistence_interface.layout_info(desired_layout, user_info[WP.Results.userid])
+
             ret = {CONTEXT_USER: user_info[WP.Results.userid],
                    'display': user_info[WP.Results.displayname],
                    'stylesheet': self.stylesheet, 'customer_id': user_info[WP.Results.customerid],
                    'official_name': user_info[WP.Results.officialname],
                    CONTEXT_PROVIDER: provider,
                    CONTEXT_USER: user,
-                   'widgets': [
-                       ['#fixed-topA-1-1', 'topBanner', 'topBanner.html'],
-                       ['#fixed-topB-1-1', 'patientInfo'],
-                       ['#fixed-topB-1-1', 'patientSearch'],
-                       ['#rowA-1-1', 'patientList'],
-                       ['#rowB-1-1', 'encounterSummary'],
-                       ['#rowC-1-1', 'orderList', 'orderScroll.html'],
-                       ['#rowD-1-1', 'costtable', 'costbreakdown-table.html'],
-                       # ['#rowD-1-1','costdonut','costbreakdown-donut.html'],
-                       ['#rowE-1-1', 'spend_histogram'],
-                       ['#rowF-1-1', 'pathway'],
-                       ['#floating-right', 'alertList', 'alertScroll.html'],
-                       ['#datepicker-modal', 'datepicker-calendar'],
-                       ['#settings-modal', 'settings', 'settings.html'],
-                       ['#profile-modal', 'providerProfile'],
-                       # ['#datepicker-modal', 'datepicker-chart']
-                   ], CONTEXT_KEY: user_auth}
+                   'widgets': widgets, CONTEXT_KEY: user_auth}
 
             return HTTP.OK_RESPONSE, json.dumps(ret), None
         except LoginError as err:
@@ -492,7 +484,10 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                                                     encounter=encounter)
 
         for row in results:
-            ret[row[WP.Results.date]][row[WP.Results.ordertype]] += row[WP.Results.spending]
+            if WP.Results.spending is int:
+                ret[row[WP.Results.date]][row[WP.Results.ordertype]] += row[WP.Results.spending]
+            else:
+                ret[row[WP.Results.date]][row[WP.Results.ordertype]] = row[WP.Results.spending]
 
         return HTTP.OK_RESPONSE, json.dumps(ret), None
 

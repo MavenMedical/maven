@@ -16,13 +16,15 @@ namespace MavenAsDemo
         public Point downPoint=Point.Empty;
         public int timerspeed = 200;
         public string loc = "BR";
+        public string url = "http://mavenmedical.net";
 
-        public frmAlert(double fadeslowness,string location)
+        public frmAlert(double fadeslowness,string location,string inUrl)
         {
             try
             {
                 timerspeed = Convert.ToInt32(Math.Round(50 * fadeslowness, 0));
                 loc = location;
+                url = inUrl;
                 InitializeComponent();
             }
             catch (System.Threading.ThreadAbortException ex)
@@ -53,18 +55,10 @@ namespace MavenAsDemo
             this.TopMost = true;
             timer.Interval = timerspeed;
             timer.Start();
-            string s= "<head></head><body> "
-                /*+" <table> "
-                +" <tr> "
-                +" 	<td> "
-                +" 		<p><img src=\"http://i60.tinypic.com/517jlv.png\" style=\"width: 50%; height: 50%\"/></p> "
-                +" 	</td> "
-                +" 	<td> "*/
+            string s = "<head><script language=\"JavaScript\">function jsfunction(strURL){window.open(strURL, \"_blank\",\"height=800 width=800 top=0 left=0 scrollbars=no titlebar=no\");} "
+                 +"</script></head><body> "
                 + " 		 <p style=\"color:#443361;font-family:verdana, sans-serif; font-size:small\"> Patient matches an AUA Pathway.<br/> "
-                +" 		<a href=\"http://mavenmedical.net\">Click</a> to view the pathway. </p>"
-                /*+" 	</td> "
-                +" </tr> "
-                +" </table> "*/
+                + " 		<a href=\"#\" onclick=\"jsfunction('"+url+"')\">Click</a> to view the pathway. </p>"
                 +" </body></head>";
             browserDisplay.DocumentText = s;
         }

@@ -30,7 +30,9 @@ require([
     'jquery',
     'underscore',
     'backbone',
-   // 'jsplumb/js/jsplumb',
+    'jsplumb/js/jsplumb',
+    'models/treeModel',
+    'models/pathwayCollection',
     //    'globalmodels/spendingModel',
     //    'localmodels/patientRowModel',
     
@@ -42,11 +44,7 @@ require([
 
 
 ], function (App) {
-    jsPlumb.Defaults.Connector = "Flowchart"
-    jsPlumb.Defaults.PaintStyle=  { lineWidth : 2, strokeStyle : "#456" }
-     jsPlumb.Defaults.Endpoint ="Blank"
-     jsPlumb.Defaults.MaxConnections =-1
-     jsPlumb.setContainer($('#rowA-1-2'))
+
     // The "app" dependency is passed in as "App"
     // Again, the other dependencies passed in are not "AMD" therefore don't pass a parameter to this function
     App.initialize();

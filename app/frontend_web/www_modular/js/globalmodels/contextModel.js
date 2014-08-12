@@ -31,24 +31,21 @@ define([
 	if(res.get('stylesheet')) {
 	    setActiveStyleSheet(res.get('stylesheet'));
 	}
-	// each row is [html_id, viewfile, templatefile]
+	// each row is {element, widget, template}
 	var widgetlist = res.get('widgets');
-	var viewlist = []; 
+	var viewlist = [];
+
 	var templatelist = [];
 	for (var ind in widgetlist) {
 	    var row = widgetlist[ind];
-	    viewlist.push('widgets/'+row[1]);
-	    if (row.length==3) {
-		templatelist.push('text!/templates/'+row[2]);
-	    } else {
-		templatelist.push('text!templates/'+row[1]+'.html');
-	    }
-	    console.log('adding view '+row[1]+' to element '+row[0]+
-			' with template '+templatelist[templatelist.length-1]);
+	    viewlist.push('widgets/'+row.widget);
+		templatelist.push('text!/templates/'+row.template);
+	    console.log('adding view '+row.widget +' to element #'+row.element +
+			' with template '+ row.template); //templatelist[templatelist.length-1]);
 	}
 	require(viewlist.concat(templatelist),function () {
 	    for(var i=0;i<viewlist.length;i++) {
-		var view = new arguments[i]({el:$(widgetlist[i][0]),
+		var view = new arguments[i]({el:$("#"+widgetlist[i].element),
 					     template:arguments[i+viewlist.length]});
 	    }
 	    $("#content").show();

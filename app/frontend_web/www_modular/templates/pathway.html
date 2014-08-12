@@ -1,6 +1,12 @@
+<<<<<<< HEAD
 
 
+=======
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+>>>>>>> 3d9a6b61ea61a64f069ab9a7353db580e93e4502
 <style>
+
+
     #pathway-container {
         position: relative;
     }
@@ -162,7 +168,10 @@
     }
 </style>
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 3d9a6b61ea61a64f069ab9a7353db580e93e4502
 
 <div class="row" style="margin: 0px auto; width: 90%;">
     <span class="title headings">
@@ -174,6 +183,7 @@
 
         <div class="tree">
             <ul>
+<<<<<<< HEAD
                 <li>
                     <div id="n1" class="qualifier">
                         <!-- content & helping text -->
@@ -182,10 +192,21 @@
                     <ul>
                         <li>
                             <div id="n2" class="qualifier">
+=======
+                <li class = 'parent'>
+                    <div class="qualifier">
+                        <!-- content & helping text -->
+                        <span data-toggle="tooltip" title="helping text">CRPC</span>
+                    </div>
+                    <ul class = "children">
+                        <li class = 'parent'>
+                            <div class="qualifier">
+>>>>>>> 3d9a6b61ea61a64f069ab9a7353db580e93e4502
                                 <!-- content & helping text -->
                                 <span data-toggle="tooltip" title="helping text">Metastatic</span>
                             </div>
 
+<<<<<<< HEAD
                             <ul>
                                 <li>
                                     <div id='n1-1-1' class="qualifier">
@@ -201,6 +222,23 @@
                                             <ul>
                                                 <li>
                                                     <div id='n-1-1-1-p' class="protocole">
+=======
+                            <ul class = "children">
+                                <li class = 'parent'>
+                                    <div class="qualifier">
+                                        <!-- content & helping text -->
+                                        <span data-toggle="tooltip" title="helping text">Prior Docetaxel</span>
+                                    </div>
+                                    <ul class = "children">
+                                        <li class = 'parent'>
+                                            <div class="qualifier">
+                                                <!-- content & helping text -->
+                                                <span data-toggle="tooltip" title="helping text">Poor Performance</span>
+                                            </div>
+                                            <ul class = "children">
+                                                <li class = 'parent'>
+                                                    <div class="protocole">
+>>>>>>> 3d9a6b61ea61a64f069ab9a7353db580e93e4502
                                                         <!-- content & helping text -->
                                                         <span data-toggle="tooltip"
                                                               title="helping text">Protocole</span>
@@ -209,8 +247,13 @@
                                                 </li>
                                             </ul>
                                         </li>
+<<<<<<< HEAD
                                         <li>
                                             <div id='n1-1-1-2' class="qualifier">
+=======
+                                        <li class = 'parent'>
+                                            <div class="qualifier">
+>>>>>>> 3d9a6b61ea61a64f069ab9a7353db580e93e4502
                                                 <!-- content & helping text -->
                                                 <span data-toggle="tooltip" title="helping text">Good Performance</span>
                                             </div>
@@ -219,8 +262,13 @@
                                         </li>
                                     </ul>
                                 </li>
+<<<<<<< HEAD
                                 <li>
                                     <div id='n1-1-2' class="qualifier">
+=======
+                                <li class = 'parent'>
+                                    <div class="qualifier">
+>>>>>>> 3d9a6b61ea61a64f069ab9a7353db580e93e4502
                                         <!-- content & helping text -->
                                         <span data-toggle="tooltip" title="helping text">No Prior Docetaxel</span>
                                     </div>
@@ -228,8 +276,13 @@
                                 </li>
                             </ul>
                         </li>
+<<<<<<< HEAD
                         <li>
                             <div id='n1-2' class="qualifier">
+=======
+                        <li class = 'parent'>
+                            <div class="qualifier">
+>>>>>>> 3d9a6b61ea61a64f069ab9a7353db580e93e4502
                                 <!-- content & helping text -->
                                 <span data-toggle="tooltip" title="helping text">Non-Metastatic</span>
                             </div>
@@ -254,6 +307,7 @@
 </div>
 
 
+<<<<<<< HEAD
 <script type="text/javascript">
     $('span[data-toggle="tooltip"]').tooltip({
         animated: 'fade',
@@ -315,3 +369,17 @@ jsPlumb.bind("connection", function(info) {
                 });
     });
   </script>
+=======
+
+
+<script type="text/javascript">
+
+    var tree = $('.tree');
+    $('.qualifier', tree).on('click', function(self){
+        var parent = (self.currentTarget.parentNode)
+        $('.children', parent). first().toggle()
+    })
+
+
+</script>
+>>>>>>> 3d9a6b61ea61a64f069ab9a7353db580e93e4502

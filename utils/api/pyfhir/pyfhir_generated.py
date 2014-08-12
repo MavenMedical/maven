@@ -357,6 +357,72 @@ class AllergyIntolerance(Resource):
             self.sensitivityTest = []                                     # , { attb['short_desc'] }}
 
 
+class Appointment(Resource):
+    """
+    Short Description:
+
+    Formal Description:
+
+    :param identifier:
+    :param priority
+    :param status:
+    :param type:
+    :param reason:
+    :param description:
+    :param start:
+    :param end:
+    :param slot:
+    :param location:
+    :param comment:
+    :param order:
+    :param lastModifiedBy
+    :param lastModified
+    :param Participant
+    """
+    def __init__(self,
+                 customer_id=None,
+                 name_space=None,
+                 id=None,
+                 identifier=None,
+                 versionId=None,
+                 resourceType="Appointment",
+                 priority=None,
+                 status=None,
+                 type=None,
+                 reason=None,
+                 description=None,
+                 start=None,
+                 end=None,
+                 slot=None,
+                 location=None,
+                 comment=None,
+                 order=None,
+                 lastModifiedBy=None,
+                 lastModified=None,
+                 participant=None):
+        Resource.__init__(self,
+                          customer_id=customer_id,
+                          name_space=name_space,
+                          identifier=identifier,
+                          id=id,
+                          versionId=versionId,
+                          resourceType=resourceType),
+        self.priority = priority
+        self.status = status
+        self.type = type
+        self.reason = reason
+        self.description = description
+        self.start = start
+        self.end = end
+        self.slot = slot or []
+        self.location = location
+        self.comment = comment
+        self.order = order
+        self.lastModifiedDate = lastModified
+        self.lastModifiedBy = lastModifiedBy
+        self.participant = participant or []
+
+
 class CarePlan(Resource):
     """
     Short Description: Healthcare plan for patient
@@ -4303,6 +4369,51 @@ class SecurityEvent(Resource):
             self.object = []                                     # , { attb['short_desc'] }}
         if object_detail is None:
             self.object_detail = []                                     # , { attb['short_desc'] }}
+
+
+class Slot(Resource):
+    """
+
+    :param identifier:
+    :param type:
+    :param availability:
+    :param freeBusyType:
+    :param start:
+    :param end:
+    :param overbooked:
+    :param comment:
+    :param lastModified:
+    """
+    def __init__(self,
+                 customer_id=None,
+                 name_space=None,
+                 id=None,
+                 identifier=None,
+                 versionId=None,
+                 resourceType="Slot",
+                 type=None,
+                 availability=None,
+                 freeBusyType=None,
+                 start=None,
+                 end=None,
+                 overbooked=False,
+                 comment=None,
+                 lastModified=None):
+        Resource.__init__(self,
+                          customer_id=customer_id,
+                          name_space=name_space,
+                          identifier=identifier,
+                          id=id,
+                          versionId=versionId,
+                          resourceType=resourceType)
+        self.type = type
+        self.availability = availability
+        self.freeBusyType = freeBusyType
+        self.start = start
+        self.end = end
+        self.overbooked = overbooked
+        self.comment = comment
+        self.lastModified = lastModified
 
 
 class Specimen(Resource):

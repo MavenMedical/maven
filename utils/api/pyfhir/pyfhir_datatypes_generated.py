@@ -449,6 +449,25 @@ class Narrative(Element):
         self.div = div                                     # Limited xhtml content
 
 
+class Participant():
+    """
+
+    """
+    def __init__(self, role=None, reference=None, userId=None, altId=None, name=None, requestor=False, media=None, network=None, type=None, individual=None, required=False, status="accepted"):
+        self.type = type or []
+        self.individual = individual
+        self.required = required
+        self.status = status
+        self.role = role
+        self.reference = reference
+        self.userId = userId
+        self.altId = altId
+        self.name = name
+        self.requestor = requestor
+        self.media = media
+        self.network = network
+
+
 class Period(Element):
     """
     Short Description: Extensions that cannot be ignored

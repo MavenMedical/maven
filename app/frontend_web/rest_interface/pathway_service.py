@@ -34,8 +34,8 @@ SEARCH_PARAM = 'search_param'
 CONTEXT_DISPLAY = 'display'
 CONTEXT_AUTH = 'auth'
 CONTEXT_USER = 'user'
-CONTEXT_RULEID = 'id'
-CONTEXT_RULENAME = 'name'
+CONTEXT_PATHID = 'id'
+CONTEXT_PATHNAME = 'name'
 CONTEXT_PASSWORD = 'password'
 AUTH_LENGTH = 44
 LOGIN_TIMEOUT = 60 * 60 * 48  # 1 hour
@@ -50,14 +50,23 @@ def get_med_routes(key):
     raise KeyError(key)
 
 
-class RuleService(HTTP.HTTPProcessor):
+
+
+
+
+
+
+
+class pathway_service(HTTP.HTTPProcessor):
     def __init__(self, configname):
         HTTP.HTTPProcessor.__init__(self, configname)
         self.add_handler(['PUT'], '/tree', self.put_update)
         self.add_handler(['POST'], '/tree', self.post_create)
         self.add_handler(['GET'], '/tree', self.get_tree)
         self.add_handler(['GET'], '/search', self.search)
+        self.add_handler(['GET'], '/list', self.get_list)
         self.add_handler(['POST'], '/login/0', self.post_login)
+        self.add_handler(['DELETE'], '/tree', self.delete_pathway)
         self.helper = HH.HTTPHelper([CONTEXT_USER], CONTEXT_AUTH, AUTH_LENGTH)
         self.save_interface = TP.tree_persistance('persistance')
         self.search_interface = WS.web_search('search')
@@ -76,14 +85,36 @@ class RuleService(HTTP.HTTPProcessor):
             CONTEXT_AUTH: user_auth,
             CONTEXT_USER: user,
             'widgets': [
-                ['#fixed-topA-1-1', 'topBanner', 'topBanner.html'],
+                ['#rowA-1-2', 'TreeView', 'treeTemplate.html'],
+                ['#fixed-topA-1-1', 'topBanner', 'treeTemplate.html'],
+                ['#fixed-topB-1-1', 'pathwaySearch', 'treeTemplate.html'],
+                ['#floating-right', 'actionList', 'treeTemplate.html'],
+                ['#floating-left', 'pathwaysList', 'pathwaysList.html']
+
             ]
         }
         return (HTTP.OK_RESPONSE, json.dumps(ret), None)
 
 
+
+    list_required_context = [CONTEXT_USER]
+    list_available_context = {CONTEXT_USER: str, CONTEXT_PATHID: int}
+
+    @asyncio.coroutine
+    def get_list(self, _header, body, qs, _matches, _key):
+        context = self.helper.restrict_context(qs,
+                                               pathway_service.list_required_context,
+                                               pathway_service.list_available_context)
+
+        database_pathways = yield from self.save_interface.fetch_pathways()
+
+
+        return (HTTP.OK_RESPONSE, json.dumps([{CONTEXT_PATHID:k[0], JNAME:k[1]} for k in database_pathways]), None)
+
     search_required_context = [CONTEXT_USER, SEARCH_PARAM, 'type']
-    search_available_context = {CONTEXT_USER: str, CONTEXT_RULEID: int, SEARCH_PARAM: str, 'type': str}
+    search_available_context = {CONTEXT_USER: str, CONTEXT_PATHID: int, SEARCH_PARAM: str, 'type': str}
+
+
 
     @asyncio.coroutine
     def search(self, _header, body, qs, _matches, _key):
@@ -91,8 +122,8 @@ class RuleService(HTTP.HTTPProcessor):
         if (not hasSearch):
             return (HTTP.OK_RESPONSE, json.dumps(EMPTY_RETURN), None);
         context = self.helper.restrict_context(qs,
-                                               RuleService.search_required_context,
-                                               RuleService.search_available_context)
+                                               pathway_service.search_required_context,
+                                               pathway_service.search_available_context)
         print(context)
         results = yield from self.search_interface.do_search(context[SEARCH_PARAM], context['type'])
 
@@ -113,6 +144,17 @@ class RuleService(HTTP.HTTPProcessor):
 
         return (HTTP.OK_RESPONSE, json.dumps(info), None)
 
+    delete_required_context = [CONTEXT_USER, CONTEXT_PATHID]
+    delete_available_context = {CONTEXT_USER: str, CONTEXT_PATHID: int}
+
+    @asyncio.coroutine
+    def delete_pathway(self, _header, body, qs, _matches, _key):
+        context = self.helper.restrict_context(qs,
+                                               pathway_service.delete_required_context,
+                                               pathway_service.delete_available_context)
+
+        yield from self.save_interface.delete_pathway(context[CONTEXT_PATHID])
+        return (HTTP.OK_RESPONSE, "" , None)
 
     @asyncio.coroutine
     def post_create(self, _header, body, qs, _matches, _key):
@@ -142,7 +184,7 @@ if __name__ == '__main__':
             AsyncConnectionPool.CONFIG_MAX_CONNECTIONS: 8
         }
     }
-    hp = RuleService('httpserver')
+    hp = pathway_service('httpserver')
     event_loop = asyncio.get_event_loop()
     hp.schedule(event_loop)
     event_loop.run_forever()

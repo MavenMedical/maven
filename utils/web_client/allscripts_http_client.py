@@ -5,6 +5,7 @@ from xml.etree import ElementTree as ETree
 from enum import Enum
 from functools import wraps, lru_cache
 from maven_config import MavenConfig
+from maven_logging import WARN
 
 ALLSCRIPTS_NUM_PARAMETERS = 6
 
@@ -38,6 +39,48 @@ class UnauthorizedUser(Exception):
     pass
 
 
+class AllscriptsError(Exception):
+
+    def __init__(self, string):
+        WARN("Exception invalid response from allscripts: %s", str(string))
+        Exception(self, "Exception invalid response from allscripts: %s", str(string))
+
+
+def check_output(jobj, empty_ok=False):
+    exc = None
+    if not jobj:
+        raise AllscriptsError("Query returned empty string")
+    try:
+        obj = json.loads(jobj)
+        if "Error" in obj[0]:
+            exc = AllscriptsError(obj[0]["Error"])
+        elif (not empty_ok) and len(list(obj[0].values())[0]) == 0:
+            exc = AllscriptsError("Query returned empty list")
+        else:
+            return obj
+    except:
+        raise AllscriptsError("parse error: " + str(jobj))
+    raise exc
+
+
+def isoformat(d: {str, 'date', 'datetime'}):
+    if type(d) is str:
+        return d
+    try:
+        return d.replace(microsecond=0).isoformat()
+    except TypeError:
+        return d.isoformat()
+
+
+def isoformatday(d: {'date', 'datetime'}):
+    if type(d) is str:
+        return d
+    try:
+        return d.date().isoformat()
+    except AttributeError:
+        return d.isoformat()
+
+
 @lru_cache()
 class allscripts_api(http.http_api):
 
@@ -49,7 +92,7 @@ class allscripts_api(http.http_api):
         it's optional parameter is CONFIG_OTHERHEADERS
         """
         http.http_api.__init__(self, configname)
-        self.postprocess = (lambda x: list(json.loads(x)[0].values())[0])
+        self.postprocess = (lambda x: list(x[0].values())[0])
         self.appname = self.config[CONFIG_APPNAME]
         self.appusername = self.config[CONFIG_APPUSERNAME]
         self.apppassword = self.config[CONFIG_APPPASSWORD]
@@ -76,6 +119,7 @@ class allscripts_api(http.http_api):
             ret['PatientID'] = patient
 
         ret.update(zip(['Parameter' + str(n + 1) for n in range(ALLSCRIPTS_NUM_PARAMETERS)], args))
+        print(ret)
         return ret
 
     def _require_token(func: 'function') -> 'function':
@@ -106,7 +150,7 @@ class allscripts_api(http.http_api):
         """
         ret = yield from self.post('/MagicJson',
                                    data=self._build_message('GetServerInfo'))
-        return self.postprocess(ret)[0]
+        return self.postprocess(check_output(ret))[0]
 
     @_require_token
     def GetPatient(self, username: str, patient: str):
@@ -120,7 +164,7 @@ class allscripts_api(http.http_api):
         ret = yield from self.post('/MagicJson',
                                    data=self._build_message('GetPatient', user=username,
                                                             patient=patient))
-        return self.postprocess(ret)[0]
+        return self.postprocess(check_output(ret))[0]
 
     @_require_token
     def GetChangedPatients(self, username: str, since: {str, 'date', 'datetime'}):
@@ -130,12 +174,11 @@ class allscripts_api(http.http_api):
                       can be a date/datetime object, or a string "YYYY-MM-DDTHH:MM:SS"
         returns a list of patient ids
         """
-        if type(since) is not str:
-            since = since.isoformat()
+        since = isoformat(since)
         ret = yield from self.post('/MagicJson',
                                    data=self._build_message('GetChangedPatients', since,
                                                             user=username))
-        return [x['patientid'] for x in self.postprocess(ret)]
+        return [x['patientid'] for x in self.postprocess(check_output(ret, True))]
 
     @_require_token
     def GetSchedule(self, username: str, startdate: {str, 'date', 'datetime'},
@@ -149,10 +192,9 @@ class allscripts_api(http.http_api):
         :param changedsince: a timestamp filter like in GetChangedPatients
         :param soughtuser: get the schedule for a different allscripts user (provider)
         """
-        if type(startdate) is not str:
-            startdate = startdate.isoformat()
-        if changedsince and type(changedsince) is not str:
-            changedsince = changedsince.isoformat()
+        startdate = isoformat(startdate)
+        if changedsince:
+            changedsince = isoformat(changedsince)
         message = self._build_message('GetSchedule',
                                       startdate,
                                       changedsince or '',
@@ -161,8 +203,7 @@ class allscripts_api(http.http_api):
                                       user=username)
 
         ret = yield from self.post('/MagicJson', data=message)
-        print(ret)
-        return self.postprocess(ret)
+        return self.postprocess(check_output(ret))
 
     @staticmethod
     def _append_xml(root: ETree.Element, name: str, value: str=None):
@@ -173,7 +214,8 @@ class allscripts_api(http.http_api):
         return child
 
     @_require_token
-    def GetProcedures(self, username: str, patient: str, completionstatuses: [COMPLETION_STATUSES]=None,
+    def GetProcedures(self, username: str, patient: str,
+                      completionstatuses: [COMPLETION_STATUSES]=None,
                       rulenames: [str]=None, rulenameexactmatch: bool=False):
         """ Gets a list of procedures for a given patient
         :param username: the allscripts user requesting the data
@@ -204,7 +246,7 @@ class allscripts_api(http.http_api):
         ret = yield from self.post('/MagicJson', data=message)
         # allscripts returns this as a json, containing an xml string
         # step 1, check if the string is empty
-        ret = self.postprocess(ret)
+        ret = self.postprocess(check_output(ret))
         if ret:
             # allscripts returns an XML string, but they split it up in an odd way.
             # it looks like [{'key1':'the text is spl'},{'key1':'it into two'}]
@@ -234,7 +276,7 @@ class allscripts_api(http.http_api):
                                                             sections.value if sections else 'list',
                                                             user=username,
                                                             patient=patient))
-        return self.postprocess(ret)
+        return self.postprocess(check_output(ret))
 
     @_require_token
     def GetPatientSections(self, username: str, patient: str, months: int):
@@ -244,7 +286,7 @@ class allscripts_api(http.http_api):
                                    data=self._build_message('GetPatientSections',
                                                             str(months),
                                                             user=username, patient=patient))
-        return self.postprocess(ret)
+        return self.postprocess(check_output(ret))
 
     @_require_token
     def GetPatientByMRN(self, username, patientMRN):
@@ -254,7 +296,7 @@ class allscripts_api(http.http_api):
                                    data=self._build_message('GetPatientByMRN',
                                                             patientMRN.strip('#'),
                                                             user=username))
-        return self.postprocess(ret)
+        return self.postprocess(check_output(ret))
 
     @_require_token
     def GetLastLogs(self, username):
@@ -263,7 +305,7 @@ class allscripts_api(http.http_api):
         ret = yield from self.post('/MagicJson',
                                    data=self._build_message('LastLogs',
                                                             user=username))
-        return self.postprocess(ret)
+        return self.postprocess(check_output(ret))
 
     @_require_token
     def GetPatientCDA(self, username, patient):
@@ -272,7 +314,7 @@ class allscripts_api(http.http_api):
         ret = yield from self.post('/MagicJson',
                                    data=self._build_message('GetPatientCDA',
                                                             user=username, patient=patient))
-        return self.postprocess(ret)[0]
+        return self.postprocess(check_output(ret))[0]
 
     @_require_token
     def GetPatientFull(self, username, patient):
@@ -284,7 +326,7 @@ class allscripts_api(http.http_api):
         ret = yield from self.post('/MagicJson',
                                    data=self._build_message('GetPatientFull',
                                                             user=username, patient=patient))
-        return self.postprocess(ret)
+        return self.postprocess(check_output(ret))
 
     @_require_token
     def GetEncounter(self, username, patient):
@@ -296,7 +338,7 @@ class allscripts_api(http.http_api):
         ret = yield from self.post('/MagicJson',
                                    data=self._build_message('GetEncounter',
                                                             user=username, patient=patient))
-        return self.postprocess(ret)
+        return self.postprocess(check_output(ret))
 
     @_require_token
     def GetProviders(self, username):
@@ -307,20 +349,43 @@ class allscripts_api(http.http_api):
         ret = yield from self.post('/MagicJson',
                                    data=self._build_message('GetProviders',
                                                             user=username))
-        return self.postprocess(ret)
+        return self.postprocess(check_output(ret))
 
     @_require_token
     def GetProvider(self, username):
-        """
+        """ Searches for and returns provider information based on either Provider ID or Provider user name.
         """
         ret = yield from self.post('/MagicJson',
                                    data=self._build_message('GetProvider',
                                                             "68",
-                                                            "terry",
+                                                            'terry',
+                                                            user=username))
+        return self.postprocess(check_output(ret))
+
+    @_require_token
+    def GetUserID(self, username: str):
+        """ Returns the UserID (Internal clientEMR Integer) for the specified username.
+        :param username:
+        :return:
+        """
+        ret = yield from self.post('/MagicJson',
+                                   data=self._build_message('GetUserID',
                                                             user=username))
         return self.postprocess(ret)
 
+    def GetDocuments(self, username: str, patient: str,
+                     startdate: {str, 'date', 'datetime'}, enddate: {str, 'date', 'datetime'},
+                     documentid: str=None, documenttype: str=None):
+        ret = yield from self.post('MagicJson',
+                                   data=self._build_message('GetDocuments',
+                                                            isoformat(startdate),
+                                                            isoformat(enddate),
+                                                            documentid or '',
+                                                            documenttype or '',
+                                                            user=username, patient=patient))
+        return self.postprocess(check_output(ret))
 
+# while not __name__ == '__main__':
 if __name__ == '__main__':
     MavenConfig['allscripts_old_demo'] = {
         http.CONFIG_BASEURL: 'http://aws-eehr-11.4.1.unitysandbox.com/Unity/UnityService.svc/json',
@@ -342,40 +407,57 @@ if __name__ == '__main__':
         CONFIG_APPPASSWORD: 'MavenPathways123!!',
     }
 
+    import traceback
+
+    def wrapexn(coro):
+        try:
+            print(loop.run_until_complete(coro))
+        except:
+            traceback.print_exc()
+
     api = allscripts_api('allscripts_demo')
     loop = asyncio.get_event_loop()
-    Ehr_username = 'terry'
+    Ehr_username = 'CliffHux'
+    #   break
     patient = input('Enter a Patient ID to display (e.g., 22): ')
     if not patient:
         patient = '22'
     if input('GetServerInfo (y/n)? ') == 'y':
-        print(loop.run_until_complete(api.GetServerInfo()))
-    if input('GetLastLogs (y/n)? ') == 'y':
-        print(loop.run_until_complete(api.GetLastLogs(Ehr_username)))
+        wrapexn(api.GetServerInfo())
+    if input('GetDocuments (y/n)? ') == 'y':
+        from datetime import date, timedelta
+        wrapexn(api.GetDocuments(Ehr_username, patient, date.today() - timedelta(days=6),
+                                 date.today()))
     if input('GetPatient (y/n)? ') == 'y':
-        print(loop.run_until_complete(api.GetPatient(Ehr_username, patient)))
+        wrapexn(api.GetPatient(Ehr_username, patient))
+    if input('GetLastLogs (y/n)? ') == 'y':
+        wrapexn(api.GetLastLogs(Ehr_username))
     if input('GetChangedPatients (y/n)? ') == 'y':
-        print(loop.run_until_complete(api.GetChangedPatients(Ehr_username,
-                                                             "2014-08-04T12:00:00")))
+        wrapexn(api.GetChangedPatients(Ehr_username,
+                                       "2014-08-04T12:00:00"))
     if input('GetScheduleChanged (y/n)? ') == 'y':
-        print(loop.run_until_complete(api.GetSchedule(Ehr_username,
-                                                      "2014-08-11")))
+        wrapexn(api.GetSchedule(Ehr_username,
+                                "2014-08-05"))
     if input('GetProcedures (y/n)? ') == 'y':
-        print(loop.run_until_complete(api.GetProcedures(Ehr_username, patient,
-                                                        completionstatuses=[COMPLETION_STATUSES.Ordered])))
+        gp = api.GetProcedures(Ehr_username, patient,
+                               completionstatuses=[COMPLETION_STATUSES.Ordered])
+        wrapexn(gp)
     if input('GetClinicalSummary (y/n)? ') == 'y':
-        print(loop.run_until_complete(api.GetClinicalSummary(Ehr_username, patient)))
+        wrapexn(api.GetClinicalSummary(Ehr_username, patient,
+                                       CLINICAL_SUMMARY.Medications))
     if input('GetPatientSections (y/n)? ') == 'y':
-        print(loop.run_until_complete(api.GetPatientSections(Ehr_username, patient, 1)))
+        wrapexn(api.GetPatientSections(Ehr_username, patient, 1))
     if input('GetPatientByMRN (y/n)? ') == 'y':
-        print(loop.run_until_complete(api.GetPatientByMRN(Ehr_username, patient)))
+        wrapexn(api.GetPatientByMRN(Ehr_username, patient))
     if input('GetPatientCDA (y/n)? ') == 'y':
-        print(loop.run_until_complete(api.GetPatientCDA(Ehr_username, patient)))
+        wrapexn(api.GetPatientCDA(Ehr_username, patient))
     if input('GetPatientFull (y/n)? ') == 'y':
-        print(loop.run_until_complete(api.GetPatientFull(Ehr_username, patient)))
+        wrapexn(api.GetPatientFull(Ehr_username, patient))
     if input('GetEncounter (y/n)? ') == 'y':
-        print(loop.run_until_complete(api.GetEncounter(Ehr_username, patient)))
+        wrapexn(api.GetEncounter(Ehr_username, patient))
     if input('GetProviders (y/n)? ') == 'y':
-        print(loop.run_until_complete(api.GetProviders(Ehr_username)))
+        wrapexn(api.GetProviders(Ehr_username))
     if input('GetProvider (y/n)? ') == 'y':
-        print(loop.run_until_complete(api.GetProvider(Ehr_username)))
+        wrapexn(api.GetProvider(Ehr_username))
+    if input('GetUserID (y/n)? ') == 'y':
+        wrapexn(api.GetUserID(Ehr_username))
