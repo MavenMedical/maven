@@ -37,44 +37,54 @@ class http_api():
         self.decode = decode
 
     @asyncio.coroutine
-    def initiate(self, resource: str, method: ['GET', 'POST', 'PUT'], **kwargs) -> {bytes, str}:
+    def initiate(self, resource: str, method: ['GET', 'POST', 'PUT'],
+                 rawdata=False, newheaders=None, **kwargs) -> {bytes, str}:
         """ make a connection to a remote server and wait for a response
         :param resource: A string to append to the base url
         :param method: one of the standard http methods
+        :param rawdata: True if the data should be passed straight instead of sent as json
+        :param newheaders: overwrite any existing headers with these
         :param kwargs: data to send.  If it contains a key 'data', it is dumped as json
                        and put in the body.  If it contains a key 'params', they are
                        added to the url.  If neither, then the entire kwargs are added to
                        the body (if post/put) or url (if get)
+                       The key must contain "data" if rawdata is used
         """
         data = None
         params = None
         if 'params' in kwargs:
             params = kwargs['params']
         if 'data' in kwargs:
-            data = json.dumps(kwargs['data'])
+            if rawdata:
+                data = kwargs['data']
+            else:
+                data = json.dumps(kwargs['data'])
         if 'params' not in kwargs and 'data' not in kwargs:
             if method in ('POST', 'PUT'):
                 data = json.dumps(kwargs)
             else:
                 params = kwargs
+        headers = dict(self.other_headers)
+        if newheaders:
+            headers.update(newheaders)
         resp = yield from aiohttp.request(method, self.base_url + resource, params=params,
-                                          data=data, headers=self.other_headers)
+                                          data=data, headers=headers)
         ret = yield from resp.content.read()
         if self.decode:
             ret = ret.decode()
         return ret
 
     @asyncio.coroutine
-    def get(self, resource: str, **kwargs) -> {str, bytes}:
-        return self.initiate(resource, 'GET', **kwargs)
+    def get(self, resource: str, rawdata, **kwargs) -> {str, bytes}:
+        return self.initiate(resource, 'GET', rawdata=rawdata, **kwargs)
 
     @asyncio.coroutine
-    def put(self, resource: str, **kwargs) -> {bytes, str}:
-        return self.initiate(resource, 'PUT', **kwargs)
+    def put(self, resource: str, rawdata=False, **kwargs) -> {bytes, str}:
+        return self.initiate(resource, 'PUT', rawdata=rawdata, **kwargs)
 
     @asyncio.coroutine
-    def post(self, resource: str, **kwargs) -> {bytes, str}:
-        return self.initiate(resource, 'POST', **kwargs)
+    def post(self, resource: str, rawdata=False, headers=None, **kwargs) -> {bytes, str}:
+        return self.initiate(resource, 'POST', rawdata=rawdata, newheaders=headers, **kwargs)
 
     def prefetch(self, *resources: [str]):
         def decorator(func):
