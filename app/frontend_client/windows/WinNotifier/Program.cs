@@ -18,6 +18,9 @@ namespace MavenAsDemo
         public static int priorityThreadId = 0;
         public static AlertMode mode = AlertMode.deskSoft;
         public static double fadeSlowness = 3;
+        public static string location = "BR";
+        public static string url = "http://mavenmedical.net";
+        public static bool continueOn = true;
 
         /// <summary>
         /// The main entry point for the application.
@@ -33,7 +36,7 @@ namespace MavenAsDemo
             traythread.Start();
             Thread t=JobOffPollingThread();
             //stay alive until polling dies
-            while (t.IsAlive)
+            while (t.IsAlive && continueOn)
             {
                 Thread.Sleep(5000);
             }
@@ -43,6 +46,7 @@ namespace MavenAsDemo
         {
             ThreadStart start = new ThreadStart(ShowAlertForm);
             Thread thrd = new Thread(start);
+            thrd.IsBackground = true;
             thrd.SetApartmentState(ApartmentState.STA);
             priorityThreadId =thrd.ManagedThreadId;
             thrd.Start();
@@ -51,6 +55,7 @@ namespace MavenAsDemo
         {
             ThreadStart start = new ThreadStart(startPolling);
             Thread thrd = new Thread(start);
+            thrd.IsBackground = true;
             thrd.SetApartmentState(ApartmentState.STA);
             priorityThreadId = thrd.ManagedThreadId;
             thrd.Start();
@@ -58,10 +63,20 @@ namespace MavenAsDemo
         }
         public static void ShowAlertForm()
         {
-            frmAlert frm = new frmAlert(fadeSlowness);
-            frm.ShowInTaskbar = false;
-            frm.Visible = true;
-            Application.Run(frm);
+            if (mode == AlertMode.combo || mode == AlertMode.deskSoft)
+            {
+                frmAlert frm = new frmAlert(fadeSlowness, location, url);
+                frm.ShowInTaskbar = false;
+                frm.Visible = true;
+                Application.Run(frm);
+            }
+            else if (mode == AlertMode.deskHard)
+            {
+                frmHardAlert frm = new frmHardAlert(url,location);
+                frm.ShowInTaskbar = false;
+                frm.Visible = true;
+                Application.Run(frm);
+            }
         }
         public static void prepTray()
         {
@@ -77,7 +92,7 @@ namespace MavenAsDemo
             modeitm.MenuItems.Add("Combo", AlertModeClick);
             ctx.MenuItems.Add(modeitm);
 
-            MenuItem speeditm = new MenuItem("Fade Slowness");
+            MenuItem speeditm = new MenuItem("Soft Alert Fade Slowness");
             speeditm.MenuItems.Add("1", FadeSlownessClick);
             speeditm.MenuItems.Add("2", FadeSlownessClick);
             speeditm.MenuItems.Add("3", FadeSlownessClick);
@@ -88,8 +103,24 @@ namespace MavenAsDemo
             speeditm.MenuItems.Add("8", FadeSlownessClick);
             ctx.MenuItems.Add(speeditm);
 
+            MenuItem locitm = new MenuItem("Alert Location");
+            MenuItem vitm = new MenuItem("Vertical");
+            vitm.MenuItems.Add("Top", LocationClick);
+            vitm.MenuItems.Add("Middle", LocationClick);
+            vitm.MenuItems.Add("Bottom", LocationClick);
+            locitm.MenuItems.Add(vitm);
+            MenuItem hitm = new MenuItem("Horizontal");
+            hitm.MenuItems.Add("Left", LocationClick);
+            hitm.MenuItems.Add("Center", LocationClick);
+            hitm.MenuItems.Add("Right", LocationClick);
+            locitm.MenuItems.Add(hitm);
+            ctx.MenuItems.Add(locitm);
+
             MenuItem itm6 = new MenuItem("Replay Last Alert", DummyAlert);
             ctx.MenuItems.Add(itm6);
+
+            MenuItem itmClose = new MenuItem("Exit Maven Tray", CloseOut);
+            ctx.MenuItems.Add(itmClose);
 
             tray.ContextMenu = ctx;
             tray.Visible = true;
@@ -131,7 +162,7 @@ namespace MavenAsDemo
                             // check the quiet list and then continue with alerting logic if you're good  to go
                             if (icd9.Length > 0 && timeSinceCreate < 1200 && isEnabled(documentId))
                             {
-                                alert(documentId);
+                                alert(documentId,patId,"http://mavenmedical.net");
                             }
                         }
                     }
@@ -146,23 +177,20 @@ namespace MavenAsDemo
                 Console.ReadLine();
             }
         }
-        public static void alert(string documentId)
+        public static void alert(string documentId,string patId, string inUrl)
         {
             DataRow row = quietlist.NewRow();
             row["documentId"] = documentId;
+            url = inUrl;
             try
             {
                 quietlist.Rows.Add(row);
             }
             catch { }
             //Console.WriteLine("Alert now!");
-            if (mode == AlertMode.deskSoft)
+            if (mode == AlertMode.deskSoft || mode == AlertMode.deskHard || mode == AlertMode.combo)
             {
                 JobOffAlertThread();
-            }
-            if (mode == AlertMode.deskHard || mode == AlertMode.combo)
-            {
-                System.Diagnostics.Process.Start("https://onedrive.live.com/fullscreen?cid=fff6838d9ae151c8&id=documents&resid=FFF6838D9AE151C8%219693&filename=PathwaysFakeApp.pptx&wx=p&wv=s&wc=officeapps.live.com&wy=y&wdModeSwitchTime=1407356909440");
             }
             if (mode == AlertMode.mobile || mode == AlertMode.combo)
             {
@@ -170,7 +198,7 @@ namespace MavenAsDemo
             }
             if (mode == AlertMode.inbox || mode == AlertMode.combo)
             {
-                //send inbasket notice
+                mail(patId);
             }
         }
         public static bool isEnabled(string documentId)
@@ -305,9 +333,89 @@ namespace MavenAsDemo
             }
             catch { }
         }
+        static void LocationClick(object sender, EventArgs e)
+        {
+            MenuItem itm = (MenuItem)sender;
+            switch (itm.Text)
+            {
+                case "Top":
+                    location="T"+location.Substring(1);
+                    break;
+                case "Middle":
+                    location = "M" + location.Substring(1);
+                    break;
+                case "Bottom":
+                    location = "B" + location.Substring(1);
+                    break;
+                case "Left":
+                    location =location.Substring(0,1)+"L";
+                    break;
+                case "Center":
+                    location = location.Substring(0, 1) + "C";
+                    break;
+                case "Right":
+                    location = location.Substring(0, 1) + "R";
+                    break;
+            }
+        }
         static void DummyAlert(object sender, EventArgs e)
         {
-            alert("0");
+            alert("0","66556","http://mavenmedical.net");
+        }
+        static void mail(string patId)
+        {
+            string namepro=getPatientNameAndPronoun(patId);
+            string name=namepro.Split('|')[0];
+            string pronoun=namepro.Split('|')[1];
+            Unity.UnityServiceClient unitySvc = new Unity.UnityServiceClient();
+            DataSet ds = unitySvc.Magic("SaveTask",       // Action    
+                                     appUserName,            // UserID    
+                                     appName,                // Appname   
+                                     patId,                     // PatientID 
+                                     token,                  // Token     
+                                     "Send Chart",   // Parameter1 @SINCE
+                                     appUserName,                     // Parameter2
+                                     "",                     // Parameter3
+                                     "During your appointment with "+name+" today, Maven detected that "+pronoun+" matched a pathway from the AUA.\r\nPlease log into Maven to view the protocol.",                     // Parameter4
+                                     "AUA Pathway detected for your patient. Please review.",                     // Parameter5
+                                     "",                     // Parameter6
+                                     null);                  // data                // data 
+        }
+        static string getPatientNameAndPronoun(string patId)
+        {
+            Unity.UnityServiceClient unitySvc = new Unity.UnityServiceClient();
+            DataSet ds = unitySvc.Magic("GetPatient",       // Action    
+                                     appUserName,            // UserID    
+                                     appName,                // Appname   
+                                     patId,                     // PatientID 
+                                     token,                  // Token     
+                                     "",   // Parameter1 @SINCE
+                                     "",                     // Parameter2
+                                     "",                     // Parameter3
+                                     "",
+                                     "",
+                                     "",                     // Parameter6
+                                     null);                  // data                // data 
+            DataTableReader reader=ds.CreateDataReader();
+            reader.Read();
+            string name= reader.GetString(2)+" "+reader.GetString(1);
+            string pronoun = "he";
+            try
+            {
+                if (reader.GetString(4) == "F")
+                {
+                    pronoun = "she";
+                }
+
+            }
+            catch { }
+            return name + "|" + pronoun;
+        }
+        static void CloseOut(object sender, EventArgs e)
+        {
+            continueOn = false;
+            Application.Exit();
+           
         }
     }
 }

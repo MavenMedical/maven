@@ -1,3 +1,22 @@
+# *************************************************************************
+# Copyright (c) 2014 - Maven Medical
+# ************************
+# AUTHOR:
+__author__ = 'Tom DuBois'
+# ************************
+# DESCRIPTION:   This builder.py is designed to be SUB-CLASSED in order to function properly.
+#
+#
+#
+#
+# ************************
+# ASSUMES:
+# ************************
+# SIDE EFFECTS:
+# ************************
+# LAST MODIFIED FOR JIRA ISSUE:
+# *************************************************************************
+
 import asyncio
 
 
@@ -42,27 +61,30 @@ class builder():
     """
 
     def __init__(self):
-        self.providers = {}  # a map from dependencies to coroutines satisfying them
-        self.workers = {}  # a map from coroutines (that take dependencies) to the dependencies they need
+        pass
+    providers = {}  # a map from dependencies to coroutines satisfying them
+    workers = {}  # a map from coroutines (that take dependencies) to the dependencies they need
 
-    def provide(self, dep):
+    @classmethod
+    def provide(cls, dep):
         """ decorator function for instance functions in scheduler.
         The decorated function will be called, with arguments of self, username, patient
         whenever the dependency dep is required when building an object.
         The decorated function's name will be bound to an error - as it should not be called explicitly.
         """
-        if dep in self.providers:
+        if dep in cls.providers:
             raise Exception('Cannot register multiple providers for ' + str(dep))
 
         def decorator(func):
             """ decorated function must take a self, username, patient
             """
-            self.providers[dep] = asyncio.coroutine(func)
+            cls.providers[dep] = asyncio.coroutine(func)
             return _never_call
 
         return decorator
 
-    def require(self, *args):
+    @classmethod
+    def require(cls, *args):
         """ decorator function for methods which parse the EHR's output and add them to the fhir composition
         _require's args are a list of types.  Each of these types must be registered using _provide
         Once the providers return, the decorated function will be called, passing in a composition object
@@ -70,13 +92,13 @@ class builder():
         There is no return value (the function should modify the composition.
         Explicitly calling this function will raise an error.
         """
-        if set(args).difference(self.providers.keys()):
+        if set(args).difference(cls.providers.keys()):
             raise Exception('Cannot satisfy requirements - no provider for '
-                            + str(set(args).difference(self.providers.keys())))
+                            + str(set(args).difference(cls.providers.keys())))
 
         def decorator(func):
 
-            def worker(self, obj, *args):
+            def worker(cls, obj, *args):
                 # wait for all of the requirements to be satisfied
                 done, pending = yield from asyncio.wait(args, return_when=asyncio.FIRST_EXCEPTION)
                 errors = filter(lambda task: task.exception(), done)
@@ -84,14 +106,15 @@ class builder():
                     print((done, pending))
                     raise Exception((done, pending))
                 arg_results = [f.result() for f in args]
-                yield from asyncio.coroutine(func)(self, obj, *arg_results)  # call the function
+                yield from asyncio.coroutine(func)(cls, obj, *arg_results)  # call the function
 
-            self.workers[asyncio.coroutine(worker)] = args
+            cls.workers[asyncio.coroutine(worker)] = args
             return _never_call
 
         return decorator
 
-    def build(self, obj_factory):
+    @classmethod
+    def build(cls, obj_factory):
         """ decorator function for methods which take a completely built object
         :params obj_factor: calling obj_factory() should return a base object to be filled out
                             by the workers registered with @require
@@ -104,14 +127,14 @@ class builder():
             def worker(s, *args):
                 obj = obj_factory()  # create the new object
                 # find all dependencies needed by the workers
-                dependencies = {dep for deps in self.workers.values() for dep in deps}
+                dependencies = {dep for deps in cls.workers.values() for dep in deps}
                 # map each dependency to an asyncio.Task for it's provider
                 try:
-                    dep_tasks = {dep: asyncio.Task(self.providers[dep](s, *args))
+                    dep_tasks = {dep: asyncio.Task(cls.providers[dep](s, *args))
                                  for dep in dependencies}
                     # create a Task for each worker, pass in the obj and the tasks for its dependencies
                     worker_tasks = {asyncio.Task(worker(s, obj, *[dep_tasks[dep] for dep in deps]))
-                                    for worker, deps in self.workers.items()}
+                                    for worker, deps in cls.workers.items()}
                     # wait for all workers to finish
                     done, pending = yield from asyncio.wait(worker_tasks, timeout=10,
                                                             return_when=asyncio.FIRST_EXCEPTION)

@@ -246,6 +246,91 @@ class allscripts_api(http.http_api):
                                                             user=username, patient=patient))
         return self.postprocess(ret)
 
+    @_require_token
+    def GetPatientByMRN(self, username, patientMRN):
+        """
+        """
+        ret = yield from self.post('/MagicJson',
+                                   data=self._build_message('GetPatientByMRN',
+                                                            patientMRN.strip('#'),
+                                                            user=username))
+        return self.postprocess(ret)
+
+    @_require_token
+    def GetLastLogs(self, username):
+        """
+        """
+        ret = yield from self.post('/MagicJson',
+                                   data=self._build_message('LastLogs',
+                                                            user=username))
+        return self.postprocess(ret)
+
+    @_require_token
+    def GetPatientCDA(self, username, patient):
+        """
+        """
+        ret = yield from self.post('/MagicJson',
+                                   data=self._build_message('GetPatientCDA',
+                                                            user=username, patient=patient))
+        return self.postprocess(ret)[0]
+
+    @_require_token
+    def GetPatientFull(self, username, patient):
+        """
+        :param username:
+        :param patient:
+        :return:
+        """
+        ret = yield from self.post('/MagicJson',
+                                   data=self._build_message('GetPatientFull',
+                                                            user=username, patient=patient))
+        return self.postprocess(ret)
+
+    @_require_token
+    def GetEncounter(self, username, patient):
+        """
+        :param username:
+        :param patient:
+        :return:
+        """
+        ret = yield from self.post('/MagicJson',
+                                   data=self._build_message('GetEncounter',
+                                                            user=username, patient=patient))
+        return self.postprocess(ret)
+
+    @_require_token
+    def GetProviders(self, username):
+        """
+        :param username:
+        :return:
+        """
+        ret = yield from self.post('/MagicJson',
+                                   data=self._build_message('GetProviders',
+                                                            user=username))
+        return self.postprocess(ret)
+
+    @_require_token
+    def GetProvider(self, username):
+        """ Searches for and returns provider information based on either Provider ID or Provider user name.
+        """
+        ret = yield from self.post('/MagicJson',
+                                   data=self._build_message('GetProvider',
+                                                            "68",
+                                                            "terry",
+                                                            user=username))
+        return self.postprocess(ret)
+
+    @_require_token
+    def GetUserID(self, username: str):
+        """ Returns the UserID (Internal clientEMR Integer) for the specified username.
+        :param username:
+        :return:
+        """
+        ret = yield from self.post('/MagicJson',
+                                   data=self._build_message('GetUserID',
+                                                            user=username))
+        return self.postprocess(ret)
+
 
 if __name__ == '__main__':
     MavenConfig['allscripts_old_demo'] = {
@@ -276,19 +361,34 @@ if __name__ == '__main__':
         patient = '22'
     if input('GetServerInfo (y/n)? ') == 'y':
         print(loop.run_until_complete(api.GetServerInfo()))
-    if input('GetPatients (y/n)? ') == 'y':
+    if input('GetLastLogs (y/n)? ') == 'y':
+        print(loop.run_until_complete(api.GetLastLogs(Ehr_username)))
+    if input('GetPatient (y/n)? ') == 'y':
         print(loop.run_until_complete(api.GetPatient(Ehr_username, patient)))
     if input('GetChangedPatients (y/n)? ') == 'y':
         print(loop.run_until_complete(api.GetChangedPatients(Ehr_username,
                                                              "2014-08-04T12:00:00")))
     if input('GetScheduleChanged (y/n)? ') == 'y':
         print(loop.run_until_complete(api.GetSchedule(Ehr_username,
-                                                      "2014-08-05")))
+                                                      "2014-08-11")))
     if input('GetProcedures (y/n)? ') == 'y':
         print(loop.run_until_complete(api.GetProcedures(Ehr_username, patient,
                                                         completionstatuses=[COMPLETION_STATUSES.Ordered])))
     if input('GetClinicalSummary (y/n)? ') == 'y':
-        print(loop.run_until_complete(api.GetClinicalSummary(Ehr_username, patient,
-                                                             CLINICAL_SUMMARY.Medications)))
+        print(loop.run_until_complete(api.GetClinicalSummary(Ehr_username, patient)))
     if input('GetPatientSections (y/n)? ') == 'y':
         print(loop.run_until_complete(api.GetPatientSections(Ehr_username, patient, 1)))
+    if input('GetPatientByMRN (y/n)? ') == 'y':
+        print(loop.run_until_complete(api.GetPatientByMRN(Ehr_username, patient)))
+    if input('GetPatientCDA (y/n)? ') == 'y':
+        print(loop.run_until_complete(api.GetPatientCDA(Ehr_username, patient)))
+    if input('GetPatientFull (y/n)? ') == 'y':
+        print(loop.run_until_complete(api.GetPatientFull(Ehr_username, patient)))
+    if input('GetEncounter (y/n)? ') == 'y':
+        print(loop.run_until_complete(api.GetEncounter(Ehr_username, patient)))
+    if input('GetProviders (y/n)? ') == 'y':
+        print(loop.run_until_complete(api.GetProviders(Ehr_username)))
+    if input('GetProvider (y/n)? ') == 'y':
+        print(loop.run_until_complete(api.GetProvider(Ehr_username)))
+    if input('GetUserID (y/n)? ') == 'y':
+        print(loop.run_until_complete(api.GetUserID(Ehr_username)))

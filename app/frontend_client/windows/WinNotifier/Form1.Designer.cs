@@ -36,9 +36,11 @@
             this.timer = new System.Windows.Forms.Timer(this.components);
             this.imgLogo = new System.Windows.Forms.PictureBox();
             this.browserDisplay = new System.Windows.Forms.WebBrowser();
+            this.imgAlertType = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.fileSystemWatcher1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.imgLogo)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.imgAlertType)).BeginInit();
             this.SuspendLayout();
             // 
             // pictureBox1
@@ -66,9 +68,9 @@
             // 
             this.imgLogo.BackColor = System.Drawing.Color.Transparent;
             this.imgLogo.Image = ((System.Drawing.Image)(resources.GetObject("imgLogo.Image")));
-            this.imgLogo.Location = new System.Drawing.Point(3, 100);
+            this.imgLogo.Location = new System.Drawing.Point(342, 109);
             this.imgLogo.Name = "imgLogo";
-            this.imgLogo.Size = new System.Drawing.Size(52, 47);
+            this.imgLogo.Size = new System.Drawing.Size(60, 40);
             this.imgLogo.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.imgLogo.TabIndex = 1;
             this.imgLogo.TabStop = false;
@@ -77,12 +79,23 @@
             // browserDisplay
             // 
             this.browserDisplay.IsWebBrowserContextMenuEnabled = false;
-            this.browserDisplay.Location = new System.Drawing.Point(12, 13);
+            this.browserDisplay.Location = new System.Drawing.Point(68, 25);
             this.browserDisplay.MinimumSize = new System.Drawing.Size(20, 20);
             this.browserDisplay.Name = "browserDisplay";
             this.browserDisplay.ScrollBarsEnabled = false;
-            this.browserDisplay.Size = new System.Drawing.Size(376, 125);
+            this.browserDisplay.Size = new System.Drawing.Size(320, 113);
             this.browserDisplay.TabIndex = 2;
+            // 
+            // imgAlertType
+            // 
+            this.imgAlertType.BackColor = System.Drawing.Color.Transparent;
+            this.imgAlertType.BackgroundImage = global::MavenAsDemo.Properties.Resources.flowdarkblue;
+            this.imgAlertType.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.imgAlertType.Location = new System.Drawing.Point(7, 46);
+            this.imgAlertType.Name = "imgAlertType";
+            this.imgAlertType.Size = new System.Drawing.Size(52, 50);
+            this.imgAlertType.TabIndex = 3;
+            this.imgAlertType.TabStop = false;
             // 
             // frmAlert
             // 
@@ -92,6 +105,7 @@
             this.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("$this.BackgroundImage")));
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(400, 150);
+            this.Controls.Add(this.imgAlertType);
             this.Controls.Add(this.imgLogo);
             this.Controls.Add(this.pictureBox1);
             this.Controls.Add(this.browserDisplay);
@@ -105,6 +119,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.fileSystemWatcher1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.imgLogo)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.imgAlertType)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -116,6 +131,7 @@
         private System.Windows.Forms.Timer timer;
         private System.Windows.Forms.PictureBox imgLogo;
         private System.Windows.Forms.WebBrowser browserDisplay;
+        private System.Windows.Forms.PictureBox imgAlertType;
     }
 }
 
