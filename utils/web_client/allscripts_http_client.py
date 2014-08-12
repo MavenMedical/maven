@@ -311,12 +311,23 @@ class allscripts_api(http.http_api):
 
     @_require_token
     def GetProvider(self, username):
-        """
+        """ Searches for and returns provider information based on either Provider ID or Provider user name.
         """
         ret = yield from self.post('/MagicJson',
                                    data=self._build_message('GetProvider',
                                                             "68",
                                                             "terry",
+                                                            user=username))
+        return self.postprocess(ret)
+
+    @_require_token
+    def GetUserID(self, username: str):
+        """ Returns the UserID (Internal clientEMR Integer) for the specified username.
+        :param username:
+        :return:
+        """
+        ret = yield from self.post('/MagicJson',
+                                   data=self._build_message('GetUserID',
                                                             user=username))
         return self.postprocess(ret)
 
@@ -379,3 +390,5 @@ if __name__ == '__main__':
         print(loop.run_until_complete(api.GetProviders(Ehr_username)))
     if input('GetProvider (y/n)? ') == 'y':
         print(loop.run_until_complete(api.GetProvider(Ehr_username)))
+    if input('GetUserID (y/n)? ') == 'y':
+        print(loop.run_until_complete(api.GetUserID(Ehr_username)))

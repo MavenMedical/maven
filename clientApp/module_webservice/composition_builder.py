@@ -24,11 +24,14 @@ from enum import Enum
 import json
 import asyncio
 from maven_config import MavenConfig
+import maven_logging as ML
 import utils.web_client.http_client as http
 import utils.web_client.allscripts_http_client as AHC
 from utils.web_client.builder import builder
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
 
+
+COMP_BUILD_LOG = ML.get_logger('clientApp.module_webservice.composition_builder')
 CONFIG_API = 'api'
 
 
@@ -145,6 +148,9 @@ class CompositionBuilder(builder):
                 fhir_condition.code = FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(system="ICD-9",
                                                                                        code=code,
                                                                                        display=problem['description'])])
+            else:
+                COMP_BUILD_LOG.WARN("Diagnosis Dx not identified for %s" % problem)
+
             fhir_dx_section.content.append(fhir_condition)
 
         return fhir_dx_section
