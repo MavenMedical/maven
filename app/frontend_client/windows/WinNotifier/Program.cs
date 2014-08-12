@@ -20,6 +20,7 @@ namespace MavenAsDemo
         public static double fadeSlowness = 3;
         public static string location = "BR";
         public static string url = "http://mavenmedical.net";
+        public static bool continueOn = true;
 
         /// <summary>
         /// The main entry point for the application.
@@ -35,7 +36,7 @@ namespace MavenAsDemo
             traythread.Start();
             Thread t=JobOffPollingThread();
             //stay alive until polling dies
-            while (t.IsAlive)
+            while (t.IsAlive && continueOn)
             {
                 Thread.Sleep(5000);
             }
@@ -45,6 +46,7 @@ namespace MavenAsDemo
         {
             ThreadStart start = new ThreadStart(ShowAlertForm);
             Thread thrd = new Thread(start);
+            thrd.IsBackground = true;
             thrd.SetApartmentState(ApartmentState.STA);
             priorityThreadId =thrd.ManagedThreadId;
             thrd.Start();
@@ -53,6 +55,7 @@ namespace MavenAsDemo
         {
             ThreadStart start = new ThreadStart(startPolling);
             Thread thrd = new Thread(start);
+            thrd.IsBackground = true;
             thrd.SetApartmentState(ApartmentState.STA);
             priorityThreadId = thrd.ManagedThreadId;
             thrd.Start();
@@ -115,6 +118,9 @@ namespace MavenAsDemo
 
             MenuItem itm6 = new MenuItem("Replay Last Alert", DummyAlert);
             ctx.MenuItems.Add(itm6);
+
+            MenuItem itmClose = new MenuItem("Exit Maven Tray", CloseOut);
+            ctx.MenuItems.Add(itmClose);
 
             tray.ContextMenu = ctx;
             tray.Visible = true;
@@ -404,6 +410,12 @@ namespace MavenAsDemo
             }
             catch { }
             return name + "|" + pronoun;
+        }
+        static void CloseOut(object sender, EventArgs e)
+        {
+            continueOn = false;
+            Application.Exit();
+           
         }
     }
 }
