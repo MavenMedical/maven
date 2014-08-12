@@ -4,20 +4,28 @@ define([
     'backbone',
     'models/contextModel',
 ], function($, _, Backbone, contextModel){
-    var pathCollection;
 
 
-    var TreeModel = Backbone.Collection.extend({
+    var pathCollection = Backbone.Collection.extend({
         elPairs: [],
+
         url: function() {
 
             return '/list?' + decodeURIComponent($.param(contextModel.toParams()));
+        },
+        initialize: function(){
+            var that = this
+            contextModel.on('change:auth', function(){
+                that.fetch()
+
+            })
+
         }
 
 
 
     })
-    pathCollection = new TreeModel()
+    pathCollection = new pathCollection()
     return pathCollection
 
 });

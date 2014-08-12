@@ -14,7 +14,6 @@ define([
         });*/
 
 
-
          new AppRouter;
 
     };

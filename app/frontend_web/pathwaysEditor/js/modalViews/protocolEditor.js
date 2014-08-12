@@ -24,7 +24,6 @@ define([
                     var note = $('#newProtocolNote', this.$el).val()
 
                     that.parent.set('protocol', new Backbone.Model({summary: summary, recommendation: recommendation, note: note}))
-                    console.log(that.parent.get('protocol'))
                     $('#detail-modal').modal('hide')
 
             })

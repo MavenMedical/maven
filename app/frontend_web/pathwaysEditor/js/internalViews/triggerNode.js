@@ -92,7 +92,6 @@ define([
 
                 }, this)
 
-
                 if (this.model.get('hideChildren')=="true"){
                     $('.children', this.$el).first()[0].hidden = true;
                 } else {

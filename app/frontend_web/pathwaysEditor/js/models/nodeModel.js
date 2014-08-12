@@ -31,20 +31,21 @@ define([
     })
 
     var NodeModel = Backbone.Model.extend({
-        defaults: {hideChildren: "true"},
+        defaults: {hideChildren: "false"},
         initialize: function(params){
             this.set({text: params.text + " NODE"},{silent:true})
             if (!params.children){params.children = []}
             this.set({children: new NodeList(params.children)}, {silent:true})
             this.set('name', params.name)
             this.set({protocol: params.protocol}, {silent:true})
-            this.set({hideChildren: "true"}, {silent: true})
+            this.set({hideChildren: "false"}, {silent: true})
 
 
         },
         toJSON: function(){
-            return this.attributes
-
+            var retMap = _.omit(this.attributes, ['children', 'hideChildren'])
+            retMap.children = this.get('children').toJSON()
+            return retMap
         }
 
 

@@ -24,14 +24,12 @@ define([
                 var sel = new Backbone.Collection
 
                 panel.searchBox = new multiSelectSearch({avail: new anon(), type: cur.getAttribute("type"), el: multiSearchEl, selected: sel})
-                console.log(panel)
             })
             $('.cancel-edit-button', this.$el).on('click', function(){
                 $('#detail-modal').modal('hide')
             })
             $('.confirm-detail-button', this.$el).on('click', function(){
                 _.each(panel.searchBox.selected_items.models, function(cur){
-                    console.log(cur)
                     if (!panel.triggerNode.get('triggers')){
                         panel.triggerNode.set({triggers: new Backbone.Collection()}, {silent: true})
 

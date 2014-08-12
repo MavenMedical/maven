@@ -29,7 +29,7 @@ define([
 	    for(var x in ret) {
     		if(!ret[x]) {delete ret[x];}
 	    }
-        console.log(ret)
+
         return ret;
 
 	},

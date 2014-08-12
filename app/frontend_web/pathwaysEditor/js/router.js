@@ -24,20 +24,18 @@ var AppRouter = Backbone.Router.extend({
     },
 
     showHome: function(){
-        console.log('Show page Home');
-        new TopBanner({el:'#fixed-topA-1-1'});
-        new PathSearch({el:'#fixed-topB-1-1'});
-        //new PathwaysList({el:'#rowA-1-1'});
-        new ActionList({el:'#floating-right'});
-        new TreeView({el:'#rowA-1-2'})
+        _.each(Context.get('widgets'), function(cur){
+                require(['widgets/'+cur[1], 'text!templates/'+ cur[2]], function(view, template){
+                    var n = new view({template: template, el: cur[0]})
+                })
+        })
     },
     showNewPathway: function () {
-        console.log('show New Pathway');
         new TopBanner({el:'#fixed-topA-1-1'});
         new PathSearch({el:'#fixed-topB-1-1'});
+
     },
     defaultAction: function (action) {
-	    console.log('No route:', action);
 	},
     initialize: function(){
         Context.setUser('tom', 'pw', '#');
