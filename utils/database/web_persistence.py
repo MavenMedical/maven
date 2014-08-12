@@ -64,6 +64,11 @@ Results = Enum('Results',
     action
     likes
     dislikes
+    layoutid
+    widget
+    template
+    element
+    priority
 """)
 
 
@@ -514,6 +519,33 @@ class WebPersistence():
                       limit, self._available_alerts)
 
         results = yield from self.execute(cmd, cmdargs, self._display_alerts, desired)
+        return results
+
+    _default_layout_info = set()
+    _available_layout_info = {
+        Results.layoutid: "layouts.layoutid",
+        Results.widget: "layouts.widget",
+        Results.template: "layouts.template",
+        Results.element: "layouts.element",
+        Results.priority: "layouts.priority"
+    }
+    _display_layout_info = _build_format({
+        Results.layoutid: lambda x: x,
+    })
+
+    @asyncio.coroutine
+    def layout_info(self, desired, user):
+        columns = build_columns(desired.keys(), self._available_layout_info,
+                                self._default_layout_info)
+        cmd = []
+        cmdargs = []
+        cmd.append("SELECT")
+        cmd.append(columns)
+        cmd.append("FROM layouts")
+        cmd.append("LEFT JOIN users ON layout_id = ANY(users.layouts) WHERE user_id=%s ORDER BY priority")
+        cmdargs.append(user)
+
+        results = yield from self.execute(cmd, cmdargs, self._display_layout_info, desired)
         return results
 
     _default_alert_settings = set((Results.ruleid,))
