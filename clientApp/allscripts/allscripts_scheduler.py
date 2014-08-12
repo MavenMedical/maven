@@ -13,35 +13,34 @@ class Types(Enum):
     StaticTest2 = 2
     Unused1 = 3
 
-build = builder()
 
-
-class scheduler():
+class scheduler(builder):
 
     def __init__(self, configname):
+        builder.__init__(self)
         self.config = MavenConfig[configname]
         apiname = self.config[CONFIG_API]
         self.allscripts_api = AHC.allscripts_api(apiname)
 
-    @build.build(lambda: {})
+    @builder.build(lambda: {})
     def build_composition(self, obj, username, patient):
         return obj
 
-    @build.provide(Types.StaticTest1)
+    @builder.provide(Types.StaticTest1)
     def _StaticTest1(self, username, patient):
         ret = yield from self.allscripts_api.GetPatient(username, patient)
         return ret
 
-    @build.provide(Types.StaticTest2)
+    @builder.provide(Types.StaticTest2)
     def _StaticTest2(self, username, patient):
         return {patient: username}
 
-    @build.provide(Types.Unused1)
+    @builder.provide(Types.Unused1)
     def _Unused1(self, username, patient):
         print('running unused dependency')
         return {patient: username}
 
-    @build.require(Types.StaticTest1, Types.StaticTest2)
+    @builder.require(Types.StaticTest1, Types.StaticTest2)
     def _build_sample(self, obj, demographics, procedures):
         obj['demographics'] = demographics
         obj['procedures'] = procedures
@@ -72,4 +71,4 @@ if __name__ == '__main__':
 
     sched = scheduler('scheduler')
     loop = asyncio.get_event_loop()
-    print(loop.run_until_complete(sched.build_composition("terry", "-22")))
+    print(loop.run_until_complete(sched.build_composition("terry", "22")))
