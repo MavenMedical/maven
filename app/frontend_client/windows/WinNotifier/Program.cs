@@ -19,6 +19,7 @@ namespace MavenAsDemo
         public static AlertMode mode = AlertMode.deskSoft;
         public static double fadeSlowness = 3;
         public static string location = "BR";
+        public static string url = "http://mavenmedical.net";
 
         /// <summary>
         /// The main entry point for the application.
@@ -59,10 +60,20 @@ namespace MavenAsDemo
         }
         public static void ShowAlertForm()
         {
-            frmAlert frm = new frmAlert(fadeSlowness,location);
-            frm.ShowInTaskbar = false;
-            frm.Visible = true;
-            Application.Run(frm);
+            if (mode == AlertMode.combo || mode == AlertMode.deskSoft)
+            {
+                frmAlert frm = new frmAlert(fadeSlowness, location, url);
+                frm.ShowInTaskbar = false;
+                frm.Visible = true;
+                Application.Run(frm);
+            }
+            else if (mode == AlertMode.deskHard)
+            {
+                frmHardAlert frm = new frmHardAlert(url,location);
+                frm.ShowInTaskbar = false;
+                frm.Visible = true;
+                Application.Run(frm);
+            }
         }
         public static void prepTray()
         {
@@ -89,7 +100,7 @@ namespace MavenAsDemo
             speeditm.MenuItems.Add("8", FadeSlownessClick);
             ctx.MenuItems.Add(speeditm);
 
-            MenuItem locitm = new MenuItem("Soft Alert Location");
+            MenuItem locitm = new MenuItem("Alert Location");
             MenuItem vitm = new MenuItem("Vertical");
             vitm.MenuItems.Add("Top", LocationClick);
             vitm.MenuItems.Add("Middle", LocationClick);
@@ -145,7 +156,7 @@ namespace MavenAsDemo
                             // check the quiet list and then continue with alerting logic if you're good  to go
                             if (icd9.Length > 0 && timeSinceCreate < 1200 && isEnabled(documentId))
                             {
-                                alert(documentId);
+                                alert(documentId,patId,"http://mavenmedical.net");
                             }
                         }
                     }
@@ -160,23 +171,20 @@ namespace MavenAsDemo
                 Console.ReadLine();
             }
         }
-        public static void alert(string documentId)
+        public static void alert(string documentId,string patId, string inUrl)
         {
             DataRow row = quietlist.NewRow();
             row["documentId"] = documentId;
+            url = inUrl;
             try
             {
                 quietlist.Rows.Add(row);
             }
             catch { }
             //Console.WriteLine("Alert now!");
-            if (mode == AlertMode.deskSoft)
+            if (mode == AlertMode.deskSoft || mode == AlertMode.deskHard || mode == AlertMode.combo)
             {
                 JobOffAlertThread();
-            }
-            if (mode == AlertMode.deskHard || mode == AlertMode.combo)
-            {
-                System.Diagnostics.Process.Start("https://onedrive.live.com/fullscreen?cid=fff6838d9ae151c8&id=documents&resid=FFF6838D9AE151C8%219693&filename=PathwaysFakeApp.pptx&wx=p&wv=s&wc=officeapps.live.com&wy=y&wdModeSwitchTime=1407356909440");
             }
             if (mode == AlertMode.mobile || mode == AlertMode.combo)
             {
@@ -184,7 +192,7 @@ namespace MavenAsDemo
             }
             if (mode == AlertMode.inbox || mode == AlertMode.combo)
             {
-                //send inbasket notice
+                mail(patId);
             }
         }
         public static bool isEnabled(string documentId)
@@ -346,7 +354,56 @@ namespace MavenAsDemo
         }
         static void DummyAlert(object sender, EventArgs e)
         {
-            alert("0");
+            alert("0","66556","http://mavenmedical.net");
+        }
+        static void mail(string patId)
+        {
+            string namepro=getPatientNameAndPronoun(patId);
+            string name=namepro.Split('|')[0];
+            string pronoun=namepro.Split('|')[1];
+            Unity.UnityServiceClient unitySvc = new Unity.UnityServiceClient();
+            DataSet ds = unitySvc.Magic("SaveTask",       // Action    
+                                     appUserName,            // UserID    
+                                     appName,                // Appname   
+                                     patId,                     // PatientID 
+                                     token,                  // Token     
+                                     "Send Chart",   // Parameter1 @SINCE
+                                     appUserName,                     // Parameter2
+                                     "",                     // Parameter3
+                                     "During your appointment with "+name+" today, Maven detected that "+pronoun+" matched a pathway from the AUA.\r\nPlease log into Maven to view the protocol.",                     // Parameter4
+                                     "AUA Pathway detected for your patient. Please review.",                     // Parameter5
+                                     "",                     // Parameter6
+                                     null);                  // data                // data 
+        }
+        static string getPatientNameAndPronoun(string patId)
+        {
+            Unity.UnityServiceClient unitySvc = new Unity.UnityServiceClient();
+            DataSet ds = unitySvc.Magic("GetPatient",       // Action    
+                                     appUserName,            // UserID    
+                                     appName,                // Appname   
+                                     patId,                     // PatientID 
+                                     token,                  // Token     
+                                     "",   // Parameter1 @SINCE
+                                     "",                     // Parameter2
+                                     "",                     // Parameter3
+                                     "",
+                                     "",
+                                     "",                     // Parameter6
+                                     null);                  // data                // data 
+            DataTableReader reader=ds.CreateDataReader();
+            reader.Read();
+            string name= reader.GetString(2)+" "+reader.GetString(1);
+            string pronoun = "he";
+            try
+            {
+                if (reader.GetString(4) == "F")
+                {
+                    pronoun = "she";
+                }
+
+            }
+            catch { }
+            return name + "|" + pronoun;
         }
     }
 }

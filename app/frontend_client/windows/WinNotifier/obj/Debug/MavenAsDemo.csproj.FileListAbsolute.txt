@@ -7,3 +7,4 @@ c:\users\dave\documents\visual studio 2012\Projects\MavenAsDemo\obj\Debug\MavenA
 c:\users\dave\documents\visual studio 2012\Projects\MavenAsDemo\obj\Debug\MavenAsDemo.exe
 c:\users\dave\documents\visual studio 2012\Projects\MavenAsDemo\obj\Debug\MavenAsDemo.pdb
 c:\users\dave\documents\visual studio 2012\Projects\MavenAsDemo\obj\Debug\MavenAsDemo.frmAlert.resources
+C:\Users\dave\documents\visual studio 2012\Projects\MavenAsDemo\obj\Debug\MavenAsDemo.frmHardAlert.resources
