@@ -2,8 +2,8 @@ import utils.web_client.allscripts_http_client as AHC
 from maven_config import MavenConfig
 import asyncio
 from enum import Enum
-from collections import defaultdict
 from utils.web_client.builder import builder
+from datetime import date, timedelta
 
 CONFIG_API = 'api'
 
@@ -19,32 +19,47 @@ class scheduler(builder):
     def __init__(self, configname):
         builder.__init__(self)
         self.config = MavenConfig[configname]
-        apiname = self.config[CONFIG_API]
-        self.allscripts_api = AHC.allscripts_api(apiname)
+        self.apiname = self.config[CONFIG_API]
+        self.allscripts_api = AHC.allscripts_api(self.apiname)
+        self.processed = set()
+        self.lastday = None
 
-    @builder.build(lambda: {})
-    def build_composition(self, obj, username, patient):
-        return obj
+    @asyncio.coroutine
+    def get_updated_schedule(self):
+        while True:
+            try:
+                today = date.today() - timedelta(days=1)
+                if today != self.lastday:
+                    self.lastday = today
+                    self.processed = set()
+                    sched = []
+                try:
+                    sched = yield from self.allscripts_api.GetSchedule('CliffHux', today)
+                except AHC.AllscriptsError as e:
+                    print(e)
+                print([(sch['patientID'], sch['ApptTime2'], sch['ProviderID']) for sch in sched])
+                for appointment in sched:
+                    patient = appointment['patientID']
+                    provider = appointment['ProviderID']
+                    if (patient, provider) not in self.processed:
+                        asyncio.Task(self.evaluate(patient, provider))
+            except Exception as e:
+                print(e)
+            yield from asyncio.sleep(10)
 
-    @builder.provide(Types.StaticTest1)
-    def _StaticTest1(self, username, patient):
-        ret = yield from self.allscripts_api.GetPatient(username, patient)
-        return ret
-
-    @builder.provide(Types.StaticTest2)
-    def _StaticTest2(self, username, patient):
-        return {patient: username}
-
-    @builder.provide(Types.Unused1)
-    def _Unused1(self, username, patient):
-        print('running unused dependency')
-        return {patient: username}
-
-    @builder.require(Types.StaticTest1, Types.StaticTest2)
-    def _build_sample(self, obj, demographics, procedures):
-        obj['demographics'] = demographics
-        obj['procedures'] = procedures
-
+    @asyncio.coroutine
+    def evaluate(self, patient, provider):
+        print('evaluating %s for %s' % (patient, provider))
+        today = date.today()
+        prior = today - timedelta(days=2000)
+        try:
+            documents = yield from self.allscripts_api.GetDocuments('CliffHux', patient,
+                                                                    prior, today)
+            if documents:
+                print(documents)
+        except AHC.AllscriptsError as e:
+            print(e)
+            pass
 
 if __name__ == '__main__':
     MavenConfig['allscripts_old_demo'] = {
@@ -71,4 +86,4 @@ if __name__ == '__main__':
 
     sched = scheduler('scheduler')
     loop = asyncio.get_event_loop()
-    print(loop.run_until_complete(sched.build_composition("terry", "22")))
+    print(loop.run_until_complete(sched.get_updated_schedule()))
