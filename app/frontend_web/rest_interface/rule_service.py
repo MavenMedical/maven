@@ -87,7 +87,7 @@ class RuleService(HTTP.HTTPProcessor):
         print("XXXXXXXXX")
         return {'routes': route_list}
 
-    @asyncio.coroutinehttpserver
+    @asyncio.coroutine
     def post_login(self, _header, body, _qs, _matches, _key):
         info = json.loads(body.decode('utf-8'))
         if (not CONTEXT_USER in info) or (not CONTEXT_PASSWORD in info):

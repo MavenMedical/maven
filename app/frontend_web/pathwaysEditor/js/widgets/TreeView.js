@@ -12,11 +12,22 @@ define([
     function($, _, Backbone, contextModel, curTree, TriggerNode, Helpers, treeTemplate){
 
         var TreeView = Backbone.View.extend({
+
+
             template: _.template(treeTemplate),
             initialize: function(){
-                var resizetimer
-                 var that = this
+                  this.$el.html(this.template())
 
+                 jsPlumb.Defaults.Connector = "Flowchart"
+                 jsPlumb.Defaults.PaintStyle=  { lineWidth : 2, strokeStyle : "#456" }
+                 jsPlumb.Defaults.Endpoint ="Blank"
+                 jsPlumb.Defaults.MaxConnections =-1
+                 this.treeEl = $('.tree', this.$el)
+                 this.treeEl.draggable()
+
+                jsPlumb.setContainer(this.treeEl)
+                 var resizetimer
+                 var that = this
                window.onresize = function(){
 
                     window.clearTimeout(resizetimer)
@@ -32,21 +43,25 @@ define([
             },
             render: function(){
                curTree.elPairs=[]
-               this.$el.html(this.template())
-               $('#saveTreeButton', this.$el).on('click', this.saveTreeFunction)
-               $('#loadTreeButton', this.$el).on('click', this.loadTreeFunction)
+                jsPlumb.detachEveryConnection();
+
+                this.treeEl.html('')
+
+
+
+
+
                $('#drawPaths', this.$el).on('click', function(){
-                   alert("draw")
                    this.render();
                })
                var that = this
 
                 $('.tree', that.$el).append("<div style= 'width:auto' class='nodeEl'></div>")
                 $('.tree', that.$el).append("<div style='height:60px'></div>")
-                console.log('the tree will contain', curTree)
                 var topLevel = new TriggerNode({el:$('.nodeEl').last(), model: curTree});
                  _.each(curTree.elPairs, function(cur){
-                  if(!(cur.source.model.get('hideChildren') == "true") || cur.source.model.get('protocol')){
+
+                  if((cur.source.$el.is(":visible")) && (cur.target.$el.is(":visible"))){
                        var a = cur.source.makeExit()
                        var b = cur.target.makeEntrance()
                        jsPlumb.connect({
@@ -67,7 +82,6 @@ define([
             },
             loadTreeFunction: function(){
                 contextModel.set('id', parseInt($('#idcode').val()))
-                console.log(contextModel)
                 curTree.fetch()
 
             },

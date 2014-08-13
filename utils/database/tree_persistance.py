@@ -23,16 +23,25 @@ class tree_persistance():
 
         result = row.fetchone()
         return result
-
+    @asyncio.coroutine
+    def fetch_pathways(self):
+        cmd = []
+        cmdArgs = []
+        cmd.append("SELECT pathid, \"pathName\" FROM protocols.unparsed")
+        ret = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
+        return ret
     @asyncio.coroutine
     def create_tree(self, treeJSON):
         cmd = []
         cmdArgs = []
-        cmd.append("INSERT INTO protocols.unparsed (\"JSONSpec\") VALUES (%s) RETURNING pathid")
+        cmd.append("INSERT INTO protocols.unparsed (\"JSONSpec\", \"pathName\") VALUES (%s, %s) RETURNING pathid")
         cmdArgs. append(str(treeJSON).replace("'", '"'))
+        cmdArgs.append(treeJSON['name'])
         id = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
         return (id.fetchone()[0])
 
+
+    @asyncio.coroutine
     def get_tree(self, treeid):
         cmd = []
         cmdArgs = []
@@ -41,6 +50,15 @@ class tree_persistance():
         cmdArgs.append(n)
         json = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
         return (json.fetchone()[0])
+    @asyncio.coroutine
+    def delete_pathway(self, treeid):
+        cmd = []
+        cmdArgs = []
+        cmd.append("DELETE from protocols.unparsed  * WHERE pathid = %s")
+        n = int(treeid)
+        cmdArgs.append(n)
+        json = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
+        return
 
     @asyncio.coroutine
     def update_tree(self, treeJSON):

@@ -13,7 +13,7 @@ require.config({
         jquery_ui: 'libs/fullCalendar/jquery-ui.custom.min',
         underscore: 'libs/underscore/underscore',
         backbone: 'libs/backbone/backbone',
-        jsplumb: 'libs/jsplumb/dom.jsPlumb-1.6.2-min',
+        jsplumb: 'libs/jsplumb/jquery.jsPlumb-1.6.2-min',
         bootstrap: '../css/bootstrap/js/bootstrap.min',
         fullcalendar: 'libs/fullCalendar/fullcalendar.min',
         moment: 'libs/fullCalendar/moment.min',

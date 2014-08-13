@@ -3,6 +3,7 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
+    'models/contextModel',
     'modalViews/nodeEditor',
     'modalViews/protocolEditor',
     'models/nodeList',
@@ -12,7 +13,7 @@ define([
     'internalViews/protocolNode',
     'text!templates/treeNode.html'
 
-    ], function($, _, Backbone,  NodeEditor, ProtocolEditor, nodeList, nodeModel, curTree, ProtocolNode, nodeTemplate){
+    ], function($, _, Backbone, contextModel,  NodeEditor, ProtocolEditor, nodeList, nodeModel, curTree, ProtocolNode, nodeTemplate){
 
         var treeNode = Backbone.View.extend({
 
@@ -23,17 +24,11 @@ define([
                 if (params.el)
                     this.el = params.el
                 this.$el.css({'float':'left'})
-
                 var that = this;
-
-
                 if(!(this.model.get('children').models)){
                     this.model.set('children', new nodeList(this.model.get('children')))
                     this.model.set({'hideChildren': "true"}, {silent: true})
-
                 }
-
-
                 var that = this
                 this.model.get('children').off('add')
                 this.model.get('children').on('add', function(){
@@ -45,24 +40,26 @@ define([
                 }, this)
                 this.render()
 
-
-
             },
             makeExit: function(){
-                var trueNode = $('.treeNode', this.$el).first()
-                var exit = jsPlumb.addEndpoint(trueNode, {anchor: 'Bottom'})
+                var exit = jsPlumb.addEndpoint(this.getMyElement(), {anchor: 'Bottom'})
                 return exit
             },
             makeEntrance: function(){
-                var trueNode = $('.treeNode', this.$el).first()
-                var entrance = jsPlumb.addEndpoint(trueNode, {anchor: 'Top'})
+                var entrance = jsPlumb.addEndpoint(this.getMyElement(), {anchor: 'Top'})
                 return entrance
             },
+            getMyElement: function(){
+                return $('.treeNode', this.$el).first()
+
+            },
             render: function(){
-                this.$el.html(this.template({protocol: this.model.get('protocol'), children: this.model.get('children'), text: this.model.get('text')}))
+                this.$el.html(this.template(this.model.attributes))
                   var that = this;
-                $('.treeNode', this.$el).first().off('click')
-                $('.treeNode', this.$el).first().on('click', function(){
+
+                //Set on clicks
+                $('.collapseButton', this.$el).first().off('click')
+                $('.collapseButton', this.$el).first().on('click', function(){
                        if (that.model.get('hideChildren') == "false"){
                            that.model.set('hideChildren', "true")
                        } else{
@@ -75,6 +72,11 @@ define([
                 })
                 $(".addProtocolButton", this.$el).on('click', function(){
                      var newEditor = new ProtocolEditor(that.model)
+                })
+                this.getMyElement().off('click')
+                this.getMyElement().on('click', function(){
+                    contextModel.set('selectedNode', that.model)
+
                 })
 
                 _.each(this.model.get('children').models, function(cur){
