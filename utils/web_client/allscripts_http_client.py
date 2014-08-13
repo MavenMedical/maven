@@ -119,7 +119,6 @@ class allscripts_api(http.http_api):
             ret['PatientID'] = patient
 
         ret.update(zip(['Parameter' + str(n + 1) for n in range(ALLSCRIPTS_NUM_PARAMETERS)], args))
-        print(ret)
         return ret
 
     def _require_token(func: 'function') -> 'function':
@@ -131,7 +130,7 @@ class allscripts_api(http.http_api):
             if not self.unitytoken:
                 f = asyncio.Future()
                 self.unitytoken = f
-                req = yield from self.post('/GetToken',
+                req = yield from self.post('/json/GetToken',
                                            Username=self.appusername, Password=self.apppassword)
                 f.set_result(req)
                 self.unitytoken = req
@@ -148,7 +147,7 @@ class allscripts_api(http.http_api):
         what type of unity system, the product version, and the start time of this
         unity installation
         """
-        ret = yield from self.post('/MagicJson',
+        ret = yield from self.post('/json/MagicJson',
                                    data=self._build_message('GetServerInfo'))
         return self.postprocess(check_output(ret))[0]
 
@@ -161,7 +160,7 @@ class allscripts_api(http.http_api):
         Returns phone/address/email/employer/ssn/etc (all not needed)
         also, name/dob/gender (needed) and much more
         """
-        ret = yield from self.post('/MagicJson',
+        ret = yield from self.post('/json/MagicJson',
                                    data=self._build_message('GetPatient', user=username,
                                                             patient=patient))
         return self.postprocess(check_output(ret))[0]
@@ -175,7 +174,7 @@ class allscripts_api(http.http_api):
         returns a list of patient ids
         """
         since = isoformat(since)
-        ret = yield from self.post('/MagicJson',
+        ret = yield from self.post('/json/MagicJson',
                                    data=self._build_message('GetChangedPatients', since,
                                                             user=username))
         return [x['patientid'] for x in self.postprocess(check_output(ret, True))]
@@ -202,7 +201,7 @@ class allscripts_api(http.http_api):
                                       soughtuser or '',
                                       user=username)
 
-        ret = yield from self.post('/MagicJson', data=message)
+        ret = yield from self.post('/json/MagicJson', data=message)
         return self.postprocess(check_output(ret))
 
     @staticmethod
@@ -243,7 +242,7 @@ class allscripts_api(http.http_api):
         message = self._build_message('GetProcedures',
                                       ETree.tostring(XML, 'unicode'),
                                       user=username)
-        ret = yield from self.post('/MagicJson', data=message)
+        ret = yield from self.post('/json/MagicJson', data=message)
         # allscripts returns this as a json, containing an xml string
         # step 1, check if the string is empty
         ret = self.postprocess(check_output(ret))
@@ -271,7 +270,7 @@ class allscripts_api(http.http_api):
         :param sections: a filter, taken from the CLINICAL_SUMMARY enum to filter results
                          the default None does not filter
         """
-        ret = yield from self.post('/MagicJson',
+        ret = yield from self.post('/json/MagicJson',
                                    data=self._build_message('GetClinicalSummary',
                                                             sections.value if sections else 'list',
                                                             user=username,
@@ -282,7 +281,7 @@ class allscripts_api(http.http_api):
     def GetPatientSections(self, username: str, patient: str, months: int):
         """
         """
-        ret = yield from self.post('/MagicJson',
+        ret = yield from self.post('/json/MagicJson',
                                    data=self._build_message('GetPatientSections',
                                                             str(months),
                                                             user=username, patient=patient))
@@ -292,7 +291,7 @@ class allscripts_api(http.http_api):
     def GetPatientByMRN(self, username, patientMRN):
         """
         """
-        ret = yield from self.post('/MagicJson',
+        ret = yield from self.post('/json/MagicJson',
                                    data=self._build_message('GetPatientByMRN',
                                                             patientMRN.strip('#'),
                                                             user=username))
@@ -302,7 +301,7 @@ class allscripts_api(http.http_api):
     def GetLastLogs(self, username):
         """
         """
-        ret = yield from self.post('/MagicJson',
+        ret = yield from self.post('/json/MagicJson',
                                    data=self._build_message('LastLogs',
                                                             user=username))
         return self.postprocess(check_output(ret))
@@ -311,7 +310,7 @@ class allscripts_api(http.http_api):
     def GetPatientCDA(self, username, patient):
         """
         """
-        ret = yield from self.post('/MagicJson',
+        ret = yield from self.post('/json/MagicJson',
                                    data=self._build_message('GetPatientCDA',
                                                             user=username, patient=patient))
         return self.postprocess(check_output(ret))[0]
@@ -323,7 +322,7 @@ class allscripts_api(http.http_api):
         :param patient:
         :return:
         """
-        ret = yield from self.post('/MagicJson',
+        ret = yield from self.post('/json/MagicJson',
                                    data=self._build_message('GetPatientFull',
                                                             user=username, patient=patient))
         return self.postprocess(check_output(ret))
@@ -335,7 +334,7 @@ class allscripts_api(http.http_api):
         :param patient:
         :return:
         """
-        ret = yield from self.post('/MagicJson',
+        ret = yield from self.post('/json/MagicJson',
                                    data=self._build_message('GetEncounter',
                                                             user=username, patient=patient))
         return self.postprocess(check_output(ret))
@@ -346,16 +345,17 @@ class allscripts_api(http.http_api):
         :param username:
         :return:
         """
-        ret = yield from self.post('/MagicJson',
+        ret = yield from self.post('/json/MagicJson',
                                    data=self._build_message('GetProviders',
                                                             user=username))
         return self.postprocess(check_output(ret))
 
     @_require_token
     def GetProvider(self, username):
-        """ Searches for and returns provider information based on either Provider ID or Provider user name.
+        """ Searches for and returns provider information based on either Provider
+        ID or Provider user name.
         """
-        ret = yield from self.post('/MagicJson',
+        ret = yield from self.post('/json/MagicJson',
                                    data=self._build_message('GetProvider',
                                                             "68",
                                                             'terry',
@@ -368,27 +368,35 @@ class allscripts_api(http.http_api):
         :param username:
         :return:
         """
-        ret = yield from self.post('/MagicJson',
+        ret = yield from self.post('/json/MagicJson',
                                    data=self._build_message('GetUserID',
                                                             user=username))
         return self.postprocess(ret)
 
+    @_require_token
     def GetDocuments(self, username: str, patient: str,
                      startdate: {str, 'date', 'datetime'}, enddate: {str, 'date', 'datetime'},
                      documentid: str=None, documenttype: str=None):
-        ret = yield from self.post('MagicJson',
-                                   data=self._build_message('GetDocuments',
-                                                            isoformat(startdate),
-                                                            isoformat(enddate),
-                                                            documentid or '',
-                                                            documenttype or '',
-                                                            user=username, patient=patient))
-        return self.postprocess(check_output(ret))
+        base = """<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><Magic xmlns="http://www.allscripts.com/Unity"><Action>GetDocuments</Action><UserID>%s</UserID><Appname>%s</Appname><PatientID>%s</PatientID><Token>%s</Token><Parameter1>%s</Parameter1><Parameter2>%s</Parameter2><Parameter3/><Parameter4/><Parameter5/><Parameter6/><data/></Magic></s:Body></s:Envelope>"""
+        message = base % (username, self.appname, patient, self.unitytoken,
+                          isoformat(startdate), isoformat(enddate))
+        ret = yield from self.post('/Unityservice',
+                                   data=message, rawdata=True,
+                                   headers={
+                                       'Content-Type': 'text/xml',
+                                       'SOAPAction': '"http://www.allscripts.com/Unity/IUnityService/Magic"'
+                                   })
+        try:
+            root = ETree.fromstring(ret)[0][0][0][1][0]  # Magic contains lots of fluff
+            return [{elem.tag: elem.text for elem in row} for row in root]
+        except ETree.ParseError as e:
+            raise AllscriptsError('Error parsing XML ' + e)
+
 
 # while not __name__ == '__main__':
 if __name__ == '__main__':
     MavenConfig['allscripts_old_demo'] = {
-        http.CONFIG_BASEURL: 'http://aws-eehr-11.4.1.unitysandbox.com/Unity/UnityService.svc/json',
+        http.CONFIG_BASEURL: 'http://aws-eehr-11.4.1.unitysandbox.com/Unity/UnityService.svc',
         http.CONFIG_OTHERHEADERS: {
             'Content-Type': 'application/json'
         },
@@ -398,7 +406,7 @@ if __name__ == '__main__':
     }
 
     MavenConfig['allscripts_demo'] = {
-        http.CONFIG_BASEURL: 'http://pro14ga.unitysandbox.com/Unity/UnityService.svc/json',
+        http.CONFIG_BASEURL: 'http://pro14ga.unitysandbox.com/Unity/UnityService.svc',
         http.CONFIG_OTHERHEADERS: {
             'Content-Type': 'application/json'
         },
@@ -418,7 +426,7 @@ if __name__ == '__main__':
     api = allscripts_api('allscripts_demo')
     loop = asyncio.get_event_loop()
     Ehr_username = 'CliffHux'
-    #   break
+    # break
     patient = input('Enter a Patient ID to display (e.g., 22): ')
     if not patient:
         patient = '22'
@@ -426,7 +434,7 @@ if __name__ == '__main__':
         wrapexn(api.GetServerInfo())
     if input('GetDocuments (y/n)? ') == 'y':
         from datetime import date, timedelta
-        wrapexn(api.GetDocuments(Ehr_username, patient, date.today() - timedelta(days=6),
+        wrapexn(api.GetDocuments(Ehr_username, patient, date.today() - timedelta(days=1),
                                  date.today()))
     if input('GetPatient (y/n)? ') == 'y':
         wrapexn(api.GetPatient(Ehr_username, patient))

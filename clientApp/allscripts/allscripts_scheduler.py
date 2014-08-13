@@ -63,7 +63,7 @@ class scheduler(builder):
 
 if __name__ == '__main__':
     MavenConfig['allscripts_old_demo'] = {
-        AHC.http.CONFIG_BASEURL: 'http://aws-eehr-11.4.1.unitysandbox.com/Unity/UnityService.svc/json',
+        AHC.http.CONFIG_BASEURL: 'http://aws-eehr-11.4.1.unitysandbox.com/Unity/UnityService.svc',
         AHC.http.CONFIG_OTHERHEADERS: {
             'Content-Type': 'application/json'
         },
@@ -73,7 +73,7 @@ if __name__ == '__main__':
     }
 
     MavenConfig['allscripts_demo'] = {
-        AHC.http.CONFIG_BASEURL: 'http://pro14ga.unitysandbox.com/Unity/UnityService.svc/json',
+        AHC.http.CONFIG_BASEURL: 'http://pro14ga.unitysandbox.com/Unity/UnityService.svc',
         AHC.http.CONFIG_OTHERHEADERS: {
             'Content-Type': 'application/json'
         },
