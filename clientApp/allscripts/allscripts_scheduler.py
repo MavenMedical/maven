@@ -2,11 +2,9 @@ import utils.web_client.allscripts_http_client as AHC
 from maven_config import MavenConfig
 import asyncio
 from enum import Enum
-from utils.web_client.builder import builder
 from datetime import date, datetime, timedelta
 import re
 from dateutil.parser import parse
-from collections import defaultdict
 
 icd9_match = re.compile('\(V?[0-9]+(?:\.[0-9]+)?\)')
 
@@ -19,23 +17,24 @@ class Types(Enum):
     Unused1 = 3
 
 
-class scheduler(builder):
+class scheduler():
 
     def __init__(self, configname):
-        builder.__init__(self)
         self.config = MavenConfig[configname]
         self.apiname = self.config[CONFIG_API]
         self.allscripts_api = AHC.allscripts_api(self.apiname)
-        self.processed = defaultdict(set)
+        self.processed = set()
         self.lastday = None
 
     @asyncio.coroutine
     def get_updated_schedule(self):
+        first = True
         while True:
             try:
                 today = date.today()
                 if today != self.lastday:
                     self.lastday = today
+                    self.processed = set()
                     sched = []
                 try:
                     sched = yield from self.allscripts_api.GetSchedule('CliffHux', today)
@@ -45,43 +44,40 @@ class scheduler(builder):
                 for appointment in sched:
                     patient = appointment['patientID']
                     provider = appointment['ProviderID']
-                    asyncio.Task(self.evaluate(patient, provider))
+                    if (patient, provider, today) not in self.processed:
+                        asyncio.Task(self.evaluate(patient, provider, today, first))
             except Exception as e:
                 print(e)
             yield from asyncio.sleep(5)
+            first = False
 
     @asyncio.coroutine
-    def evaluate(self, patient, provider):
+    def evaluate(self, patient, provider, today, first):
         try:
-            print('evaluating %s for %s' % (patient, provider))
+            # print('evaluating %s for %s' % (patient, provider))
             now = datetime.now()
-            prior = now - timedelta(seconds=6000)
-            active = (patient, provider) in self.processed
-            processed = self.processed[(patient, provider)]
+            prior = now - timedelta(seconds=1200)
         except:
             import traceback
             traceback.print_exc()
         try:
             documents = yield from self.allscripts_api.GetDocuments('CliffHux', patient,
                                                                     prior, now)
-            documents = list(filter(lambda doc: doc['DocumentID'] not in processed, documents))
             # print('got %d documents' % len(documents))
             if documents:
-                print('\n'.join([str((doc['DocumentID'], doc['SortDate'], doc['keywords'])) for doc in documents]))
+                # print('\n'.join([str((doc['DocumentID'], doc['SortDate'], doc['keywords'])) for doc in documents]))
                 for doc in documents:
                     keywords = doc.get('keywords', '')
                     match = icd9_match.search(keywords)
-                    docid = doc['DocumentID']
                     doctime = doc.get('SortDate', None)
                     newdoc = doctime and parse(doctime) >= prior
 
-                    if active and match and newdoc:
-                        print([str(active), str(match), str(newdoc), str(docid)])
-                        if docid not in processed:
+                    if match and newdoc:
+                        self.processed.add((patient, provider, today))
+                        if not first:
                             start, stop = match.span()
                             print((start, stop))
                             print('firing ' + str((patient, provider, keywords[start:stop])))
-                            processed.add(docid)
                             break
                 # processed.update({doc['DocumentID'] for doc in documents})
         except AHC.AllscriptsError as e:
