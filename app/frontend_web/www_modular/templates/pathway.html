@@ -1,4 +1,9 @@
+<<<<<<< HEAD
+
+
+=======
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+>>>>>>> 3d9a6b61ea61a64f069ab9a7353db580e93e4502
 <style>
 
 
@@ -93,6 +98,8 @@
     }
 
     .tree li div.qualifier {
+        height: 35px;
+        width: 150px;
         border: 2px solid #46bdec;
         background-color: whitesmoke;
         padding: 5px 10px;
@@ -148,9 +155,23 @@
         border-color: #94a0b4;
     }
 
-
+    #pathway-container .aLabel {
+        background-color: white;
+        padding: 0.4em;
+        font: 12px sans-serif;
+        color: #444;
+        z-index: 21;
+        border: 1px dotted gray;
+        opacity: 0.8;
+        filter: alpha(opacity=80);
+        cursor: pointer;
+    }
 </style>
 
+<<<<<<< HEAD
+
+=======
+>>>>>>> 3d9a6b61ea61a64f069ab9a7353db580e93e4502
 
 <div class="row" style="margin: 0px auto; width: 90%;">
     <span class="title headings">
@@ -162,6 +183,16 @@
 
         <div class="tree">
             <ul>
+<<<<<<< HEAD
+                <li>
+                    <div id="n1" class="qualifier">
+                        <!-- content & helping text -->
+                        <span data-toggle="tooltip" title="helping text">CRPC</span>
+                    </div>
+                    <ul>
+                        <li>
+                            <div id="n2" class="qualifier">
+=======
                 <li class = 'parent'>
                     <div class="qualifier">
                         <!-- content & helping text -->
@@ -170,10 +201,28 @@
                     <ul class = "children">
                         <li class = 'parent'>
                             <div class="qualifier">
+>>>>>>> 3d9a6b61ea61a64f069ab9a7353db580e93e4502
                                 <!-- content & helping text -->
                                 <span data-toggle="tooltip" title="helping text">Metastatic</span>
                             </div>
 
+<<<<<<< HEAD
+                            <ul>
+                                <li>
+                                    <div id='n1-1-1' class="qualifier">
+                                        <!-- content & helping text -->
+                                        <span data-toggle="tooltip" title="helping text">Prior Docetaxel</span>
+                                    </div>
+                                    <ul>
+                                        <li>
+                                            <div id='n1-1-1-1' class="qualifier">
+                                                <!-- content & helping text -->
+                                                <span data-toggle="tooltip" title="helping text">Poor Performance</span>
+                                            </div>
+                                            <ul>
+                                                <li>
+                                                    <div id='n-1-1-1-p' class="protocole">
+=======
                             <ul class = "children">
                                 <li class = 'parent'>
                                     <div class="qualifier">
@@ -188,7 +237,8 @@
                                             </div>
                                             <ul class = "children">
                                                 <li class = 'parent'>
-                                                    <div class="protocol">
+                                                    <div class="protocole">
+>>>>>>> 3d9a6b61ea61a64f069ab9a7353db580e93e4502
                                                         <!-- content & helping text -->
                                                         <span data-toggle="tooltip"
                                                               title="helping text">Protocole</span>
@@ -197,8 +247,13 @@
                                                 </li>
                                             </ul>
                                         </li>
+<<<<<<< HEAD
+                                        <li>
+                                            <div id='n1-1-1-2' class="qualifier">
+=======
                                         <li class = 'parent'>
                                             <div class="qualifier">
+>>>>>>> 3d9a6b61ea61a64f069ab9a7353db580e93e4502
                                                 <!-- content & helping text -->
                                                 <span data-toggle="tooltip" title="helping text">Good Performance</span>
                                             </div>
@@ -207,8 +262,13 @@
                                         </li>
                                     </ul>
                                 </li>
+<<<<<<< HEAD
+                                <li>
+                                    <div id='n1-1-2' class="qualifier">
+=======
                                 <li class = 'parent'>
                                     <div class="qualifier">
+>>>>>>> 3d9a6b61ea61a64f069ab9a7353db580e93e4502
                                         <!-- content & helping text -->
                                         <span data-toggle="tooltip" title="helping text">No Prior Docetaxel</span>
                                     </div>
@@ -216,8 +276,13 @@
                                 </li>
                             </ul>
                         </li>
+<<<<<<< HEAD
+                        <li>
+                            <div id='n1-2' class="qualifier">
+=======
                         <li class = 'parent'>
                             <div class="qualifier">
+>>>>>>> 3d9a6b61ea61a64f069ab9a7353db580e93e4502
                                 <!-- content & helping text -->
                                 <span data-toggle="tooltip" title="helping text">Non-Metastatic</span>
                             </div>
@@ -242,6 +307,69 @@
 </div>
 
 
+<<<<<<< HEAD
+<script type="text/javascript">
+    $('span[data-toggle="tooltip"]').tooltip({
+        animated: 'fade',
+        placement: 'left',
+        container: 'body'
+    });
+
+    jsPlumb.ready(function() {
+
+    jsPlumb.importDefaults({
+        container: '#pathway-container',
+        Endpoint :"Blank",
+        PaintStyle: {
+            lineWidth: 2,
+            strokeStyle: '#ccc'
+        },
+        HoverPaintStyle:{
+            lineWidth: 3,
+            strokeStyle: '#61B7CF'
+        },
+        DragOptions: { cursor: "crosshair" },
+        Endpoints: [
+            [ "Dot", { radius: 1 } ],
+            [ "Dot", { radius: 1 } ]
+        ],
+        EndpointStyles: [
+            { fillStyle: "#ccc" },
+            { fillStyle: "#ccc" }
+        ],
+        Connector: [ "Flowchart"],
+        Anchors: [ "Bottom", "Top" ],
+       /* ConnectionOverlays: [
+            [ "Arrow", { location: 2 } ],
+            [ "Label", {
+                location: 0.1,
+                id: "label",
+                cssClass: "aLabel"
+            }]
+        ]*/
+
+  });
+
+    jsPlumb.makeSource($('.qualifier'), {
+
+    });
+    jsPlumb.makeTarget($('.qualifier'), {
+
+    });
+
+    jsPlumb.connect({
+        source: 'n1',
+        target: "n1-2"
+    });
+
+
+jsPlumb.bind("connection", function(info) {
+                    console.log("Connect " + info.sourceId + " to " + info.targetId );
+                    $("#debug").html("hello.");
+                });
+    });
+  </script>
+=======
 
 
 <script type="text/javascript">
@@ -254,3 +382,4 @@
 
 
 </script>
+>>>>>>> 3d9a6b61ea61a64f069ab9a7353db580e93e4502

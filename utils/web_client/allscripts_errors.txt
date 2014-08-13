@@ -79,3 +79,11 @@ Date: Fri, 08 Aug 2014 16:52:05 GMT
 
 
 [{"getpatientinfo":[]}]
+
+
+
+
+
+
+GetPatientSections (y/n)? y
+[{'Date': '', 'Section': 'Problems: No info', 'Description': '', 'Subject': '', 'ShortDesc': '', 'Transid': ''}, {'Date': '', 'Section': 'Medications: No info', 'Description': '', 'Subject': '', 'ShortDesc': '', 'Transid': ''}, {'Date': '', 'Section': 'Allergies: No info', 'Description': '', 'Subject': '', 'ShortDesc': '', 'Transid': ''}]

@@ -38,6 +38,13 @@ define([
              containment:"parent"
              });
 
+             jsPlumb.connect({
+        source: $('#n1'),
+        target: $('#n1-1'),
+        anchors: ["Right", "Left" ]
+    });
+
+
              */
             //jsPlumb.default.container('#pathway-container');
             jsPlumb.setContainer('#pathway-container');
