@@ -3,7 +3,12 @@ from maven_config import MavenConfig
 import asyncio
 from enum import Enum
 from utils.web_client.builder import builder
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
+import re
+from dateutil.parser import parse
+from collections import defaultdict
+
+icd9_match = re.compile('\(V?[0-9]+(?:\.[0-9]+)?\)')
 
 CONFIG_API = 'api'
 
@@ -21,45 +26,64 @@ class scheduler(builder):
         self.config = MavenConfig[configname]
         self.apiname = self.config[CONFIG_API]
         self.allscripts_api = AHC.allscripts_api(self.apiname)
-        self.processed = set()
+        self.processed = defaultdict(set)
         self.lastday = None
 
     @asyncio.coroutine
     def get_updated_schedule(self):
         while True:
             try:
-                today = date.today() - timedelta(days=1)
+                today = date.today()
                 if today != self.lastday:
                     self.lastday = today
-                    self.processed = set()
                     sched = []
                 try:
                     sched = yield from self.allscripts_api.GetSchedule('CliffHux', today)
                 except AHC.AllscriptsError as e:
                     print(e)
-                print([(sch['patientID'], sch['ApptTime2'], sch['ProviderID']) for sch in sched])
+                # print([(sch['patientID'], sch['ApptTime2'], sch['ProviderID']) for sch in sched])
                 for appointment in sched:
                     patient = appointment['patientID']
                     provider = appointment['ProviderID']
-                    if (patient, provider) not in self.processed:
-                        asyncio.Task(self.evaluate(patient, provider))
+                    asyncio.Task(self.evaluate(patient, provider))
             except Exception as e:
                 print(e)
-            yield from asyncio.sleep(10)
+            yield from asyncio.sleep(5)
 
     @asyncio.coroutine
     def evaluate(self, patient, provider):
-        print('evaluating %s for %s' % (patient, provider))
-        today = date.today()
-        prior = today - timedelta(days=2000)
+        try:
+            print('evaluating %s for %s' % (patient, provider))
+            now = datetime.now()
+            prior = now - timedelta(seconds=6000)
+            active = (patient, provider) in self.processed
+            processed = self.processed[(patient, provider)]
+        except:
+            import traceback
+            traceback.print_exc()
         try:
             documents = yield from self.allscripts_api.GetDocuments('CliffHux', patient,
-                                                                    prior, today)
+                                                                    prior, now)
+            # print('got %d documents' % len(documents))
             if documents:
-                print(documents)
+                for doc in documents:
+                    keywords = doc.get('keywords', '')
+                    match = icd9_match.search(keywords)
+                    docid = doc['DocumentID']
+                    doctime = doc.get('SortDate', None)
+                    newdoc = doctime and parse(doctime) >= prior
+                    # print([str(active), str(match), str(newdoc), str(docid)])
+                    if active and match and newdoc and docid not in processed:
+                        start, stop = match.span()
+                        print((start, stop))
+                        print('firing ' + str((patient, provider, keywords[start:stop])))
+                        break
+                processed.update({doc['DocumentID'] for doc in documents})
         except AHC.AllscriptsError as e:
             print(e)
-            pass
+        except:
+            import traceback
+            traceback.print_exc()
 
 if __name__ == '__main__':
     MavenConfig['allscripts_old_demo'] = {
