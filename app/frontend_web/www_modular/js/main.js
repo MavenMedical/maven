@@ -10,10 +10,10 @@
 require.config({
     paths: {
         jquery: 'libs/jquery/jquery-min',
-        jquery_ui: 'libs/fullCalendar/jquery-ui.custom.min',
+        jquery_ui: 'libs/jquery/jquery-ui.min',
         underscore: 'libs/underscore/underscore',
         backbone: 'libs/backbone/backbone',
-        jsplumb: 'libs/jsplumb/jquery.jsPlumb-1.6.2-min',
+        jsplumb: 'libs/jsplumb2/js/jsplumb',
         bootstrap: '../css/bootstrap/js/bootstrap.min',
         fullcalendar: 'libs/fullCalendar/fullcalendar.min',
         moment: 'libs/fullCalendar/moment.min',
