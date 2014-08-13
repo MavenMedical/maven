@@ -3,7 +3,7 @@
 cd $MAVEN_ROOT
 UPDATESSQL=../schema_updates.sql
 UPDATESLOG=../schema_updates.log
-for f in `find app/schema/updates -name "*.sql"| sort -n`; do
+for f in `find app/schema/updates/schema -name "*.sql"| sort -n` `find app/schema/updates/data -name "*.sql"| sort -n`; do
   if grep -q "SUCCEEDED: $f" $UPDATESLOG; then
     echo $f succeeded in log
   else
