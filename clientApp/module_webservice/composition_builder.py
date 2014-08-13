@@ -36,9 +36,8 @@ CONFIG_API = 'api'
 
 
 class Types(Enum):
-    patient = 1
-    clin_summary = 2
-    practitioner = 3
+    Patient = 1
+    ClinicalSummary = 2
 
 
 class CompositionBuilder(builder):
@@ -54,31 +53,33 @@ class CompositionBuilder(builder):
         print(json.dumps(FHIR_API.remove_none(json.loads(json.dumps(obj, default=FHIR_API.jdefault))), default=FHIR_API.jdefault, indent=4))
         return obj
 
-    @builder.provide(Types.patient)
+    @builder.provide(Types.Patient)
     def _patient(self, username, patient):
         ret = yield from self.allscripts_api.GetPatient(username, patient)
         return ret
 
-    @builder.provide(Types.clin_summary)
+    @builder.provide(Types.ClinicalSummary)
     def _clin_summary(self, username, patient):
-        ret = yield from self.allscripts_api.GetClinicalSummary(username, patient)
+        ret = yield from self.allscripts_api.GetClinicalSummary(username, patient, AHC.CLINICAL_SUMMARY.All)
         return ret
 
-    @builder.provide(Types.practitioner)
-    def _practitioner(self, username, patient):
-        ret = yield from self.allscripts_api.GetProvider(username)
+    """
+    @builder.provide(Types.Practitioner)
+    def _practitioner(self, username, prov_id):
+        ret = yield from self.allscripts_api.GetProvider(username, prov_id)
         return ret
+    """
 
-    @builder.require(Types.patient, Types.clin_summary)
-    def _build_composition_components(self, composition, patient, clin_summary):
+    @builder.require(Types.Patient, Types.ClinicalSummary)
+    def _build_composition_components(self, composition, patient_result, clin_summary_result):
 
         # Create the FHIR Composition Object with a Type=LOINC coded version of
         # Virtual Medical Record for Clinical Decision Support ("74028-2") and append to the FHIR Bundle's Entries
         composition.type = FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(system="http://loinc.org",
                                                                             code="74028-2")])
-        composition.subject = self._build_subject(patient)
-
-        fhir_dx_section = self._build_conditions(clin_summary)
+        # composition.author = self._build_practitioner(practitioner_result)
+        composition.subject = self._build_subject(patient_result)
+        fhir_dx_section = self._build_conditions(clin_summary_result)
         composition.section.append(fhir_dx_section)
 
     def _build_subject(self, get_patient_result):
@@ -155,7 +156,7 @@ class CompositionBuilder(builder):
 
         return fhir_dx_section
 
-    def _build_provider(self, get_provider_result):
+    def _build_practitioner(self, get_provider_result):
 
         # Extract the demographic information
         firstname = get_provider_result['FirstName']
@@ -210,7 +211,7 @@ if __name__ == '__main__':
     }
 
     MavenConfig['allscripts_demo'] = {
-        AHC.http.CONFIG_BASEURL: 'http://pro14ga.unitysandbox.com/Unity/UnityService.svc/json',
+        AHC.http.CONFIG_BASEURL: 'http://pro14ga.unitysandbox.com/Unity/UnityService.svc',
         AHC.http.CONFIG_OTHERHEADERS: {
             'Content-Type': 'application/json'
         },
@@ -223,4 +224,4 @@ if __name__ == '__main__':
 
     comp_builder = CompositionBuilder('scheduler')
     loop = asyncio.get_event_loop()
-    print(loop.run_until_complete(comp_builder.build_composition("terry", "66556")))
+    print(loop.run_until_complete(comp_builder.build_composition("CliffHux", "66556")))

@@ -64,21 +64,26 @@ class scheduler(builder):
         try:
             documents = yield from self.allscripts_api.GetDocuments('CliffHux', patient,
                                                                     prior, now)
+            documents = list(filter(lambda doc: doc['DocumentID'] not in processed, documents))
             # print('got %d documents' % len(documents))
             if documents:
+                print('\n'.join([str((doc['DocumentID'], doc['SortDate'], doc['keywords'])) for doc in documents]))
                 for doc in documents:
                     keywords = doc.get('keywords', '')
                     match = icd9_match.search(keywords)
                     docid = doc['DocumentID']
                     doctime = doc.get('SortDate', None)
                     newdoc = doctime and parse(doctime) >= prior
-                    # print([str(active), str(match), str(newdoc), str(docid)])
-                    if active and match and newdoc and docid not in processed:
-                        start, stop = match.span()
-                        print((start, stop))
-                        print('firing ' + str((patient, provider, keywords[start:stop])))
-                        break
-                processed.update({doc['DocumentID'] for doc in documents})
+
+                    if active and match and newdoc:
+                        print([str(active), str(match), str(newdoc), str(docid)])
+                        if docid not in processed:
+                            start, stop = match.span()
+                            print((start, stop))
+                            print('firing ' + str((patient, provider, keywords[start:stop])))
+                            processed.add(docid)
+                            break
+                # processed.update({doc['DocumentID'] for doc in documents})
         except AHC.AllscriptsError as e:
             print(e)
         except:

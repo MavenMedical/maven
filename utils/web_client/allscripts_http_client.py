@@ -33,6 +33,7 @@ class CLINICAL_SUMMARY(Enum):
     Problems = 'problems'
     Vitals = 'vitals'
     Results = 'results'
+    All = 'list'
 
 
 class UnauthorizedUser(Exception):
@@ -303,6 +304,9 @@ class allscripts_api(http.http_api):
         """
         ret = yield from self.post('/json/MagicJson',
                                    data=self._build_message('LastLogs',
+                                                            "N",
+                                                            "N",
+                                                            "50",
                                                             user=username))
         return self.postprocess(check_output(ret))
 
@@ -352,8 +356,8 @@ class allscripts_api(http.http_api):
 
     @_require_token
     def GetProvider(self, username):
-        """ Searches for and returns provider information based on either Provider
-        ID or Provider user name.
+        """ Searches for and returns provider information based on either Provider ID or Provider user name.
+
         """
         ret = yield from self.post('/json/MagicJson',
                                    data=self._build_message('GetProvider',
@@ -393,7 +397,6 @@ class allscripts_api(http.http_api):
             raise AllscriptsError('Error parsing XML ' + e)
 
 
-# while not __name__ == '__main__':
 if __name__ == '__main__':
     MavenConfig['allscripts_old_demo'] = {
         http.CONFIG_BASEURL: 'http://aws-eehr-11.4.1.unitysandbox.com/Unity/UnityService.svc',
@@ -420,6 +423,7 @@ if __name__ == '__main__':
     def wrapexn(coro):
         try:
             print(loop.run_until_complete(coro))
+
         except:
             traceback.print_exc()
 
@@ -452,7 +456,7 @@ if __name__ == '__main__':
         wrapexn(gp)
     if input('GetClinicalSummary (y/n)? ') == 'y':
         wrapexn(api.GetClinicalSummary(Ehr_username, patient,
-                                       CLINICAL_SUMMARY.Medications))
+                                       CLINICAL_SUMMARY.All))
     if input('GetPatientSections (y/n)? ') == 'y':
         wrapexn(api.GetPatientSections(Ehr_username, patient, 1))
     if input('GetPatientByMRN (y/n)? ') == 'y':
@@ -469,3 +473,5 @@ if __name__ == '__main__':
         wrapexn(api.GetProvider(Ehr_username))
     if input('GetUserID (y/n)? ') == 'y':
         wrapexn(api.GetUserID(Ehr_username))
+    if input('GetDocuments (y/n)? '):
+        print(loop.run_until_complete(api.GetDocuments(Ehr_username, patient)))
