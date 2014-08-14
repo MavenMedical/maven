@@ -296,7 +296,55 @@
         <h4>Pane 4 Content</h4>
     </div>
     <div id="pane5" class="tab-pane pane-content">
-        <h4>Pane 5 Content</h4>
+        <div class="panel panel-default">
+            <div class="panel-heading rule">
+                <h3 class="panel-title">Profile Settings</h3>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="setting-row">Official Name: <input id="official-name-input" type="text" value="<%=official_name %>" autofocus> </div>
+                        <div class="setting-row">Display Name: <input id="display-name-input" type="text" value="<%= display %>" > </div>
+                        <div class="setting-footer">
+                            <button id="save-settings" class="btn btn-default">Save</button>
+                            <button id="cancel-settings" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                            <div id='settings-save-status' class="save-status"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+
+            <div class="panel-heading rule">
+                <h3 class="panel-title">Change Password</h3>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+
+                    <div class="col-md-6">
+                        <div class="setting-row">Old Password: <input id="current-password" type="password" placeholder="password" name="password"></div>
+                        <div class="setting-row">New Password: <input id="new-password" type="password" name="password" placeholder="password"></div>
+                        <div class="setting-row">Confirm New Password: <input id="new-password2" type="password" name="password" placeholder="password"></div>
+
+                        <div class="setting-footer">
+                            <button id="change-password" class="btn btn-default">Update Password</button>
+                        </div>
+                    </div>
+
+                    <div class="col-md-5">
+                        <div> New passwords must contain:</div>
+                        <ul>
+                            <li>At least 8 characters <i id='pw-len-cb'></i></li>
+                            <li>A lower-case character <i id='pw-low-cb'></i></li>
+                            <li>An upper-case character <i id='pw-up-cb'></i></li>
+                            <li>A number<i id='pw-num-cb'></i></li>
+                        </ul>
+                        <div> And it must be different from the old password <i id="pw-diff-cb"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 <!-- /.tab-content -->
