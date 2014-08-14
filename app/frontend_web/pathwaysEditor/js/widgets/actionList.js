@@ -24,7 +24,6 @@ define([
             this.$el.html(this.template());
         },
         loadModelActions: function(){
-            alert('handle the load')
         }
 
 

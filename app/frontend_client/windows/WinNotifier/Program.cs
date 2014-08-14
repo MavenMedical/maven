@@ -4,11 +4,14 @@ using System.Threading;
 using System.Windows.Forms;
 using System.Data;
 using System.Text.RegularExpressions;
+using System.Net;
+using System.IO;
 
 namespace MavenAsDemo
 {
     static class Program
     {
+        //TODO: Move all of this stuff to a settings object
         public static string serviceUser = "MavenPathways";
         public static string servicePwd = "MavenPathways123!!";
         public static string appName = "MavenPathways.TestApp";
@@ -19,8 +22,9 @@ namespace MavenAsDemo
         public static AlertMode mode = AlertMode.deskSoft;
         public static double fadeSlowness = 3;
         public static string location = "BR";
-        public static string url = "http://mavenmedical.net";
+        public static string url = "https://23.251.150.28/broadcaster/poll?key=";
         public static bool continueOn = true;
+        public static byte[] EncryptedKey = null;
 
         /// <summary>
         /// The main entry point for the application.
@@ -28,20 +32,30 @@ namespace MavenAsDemo
         [STAThread]
         static void Main()
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            prepQuietList();
-            ThreadStart startTray = new ThreadStart(prepTray);
-            Thread traythread = new Thread(startTray);
-            traythread.Start();
-            Thread t=JobOffPollingThread();
-            //stay alive until polling dies
-            while (t.IsAlive && continueOn)
+            try
             {
-                Thread.Sleep(5000);
+                Application.SetCompatibleTextRenderingDefault(false);
+                EncryptedKey = Authenticator.GetEncryptedAuthKey();
+                Application.EnableVisualStyles();
+                prepQuietList();
+                ThreadStart startTray = new ThreadStart(prepTray);
+                Thread traythread = new Thread(startTray);
+                traythread.Start();
+                Thread t = JobOffPollingThread();
+                //stay alive until polling dies
+                while (t.IsAlive && continueOn)
+                {
+                    Thread.Sleep(5000);
+                }
+            }
+            catch (Exception ex)
+            {
+                //you've just failed at the highest possible level
+                //kill yourself
+                CommitSuicide(null, null);
             }
         }
-
+        
         public static void JobOffAlertThread()
         {
             ThreadStart start = new ThreadStart(ShowAlertForm);
@@ -119,8 +133,11 @@ namespace MavenAsDemo
             MenuItem itm6 = new MenuItem("Replay Last Alert", DummyAlert);
             ctx.MenuItems.Add(itm6);
 
-            MenuItem itmClose = new MenuItem("Exit Maven Tray", CloseOut);
+            MenuItem itmClose = new MenuItem("Exit Maven Tray", CommitSuicide);
             ctx.MenuItems.Add(itmClose);
+
+            MenuItem itmLogOut = new MenuItem("Log Out", LogOut);
+            ctx.MenuItems.Add(itmLogOut);
 
             tray.ContextMenu = ctx;
             tray.Visible = true;
@@ -129,53 +146,36 @@ namespace MavenAsDemo
         public static void startPolling()
         {
 
-            Unity.UnityServiceClient unitySvc = new Unity.UnityServiceClient();
-            try
+            ServicePointManager.ServerCertificateValidationCallback = new System.Net.Security.RemoteCertificateValidationCallback(AcceptAllCertifications);
+            while (continueOn)
             {
-                //get a token and write it to the console
-                token = unitySvc.GetSecurityToken(serviceUser, servicePwd);
-                Console.WriteLine(token);
-                while (true) //loop forever 
+                try
                 {
-                    DateTime Today = DateTime.Now;
-                    //string strToday = Today.ToString("yyyy-MM-dd");
-                    string strToday = Today.ToString("dd-MMM-yyyy");
-                    DataSet ds = getSchedule(strToday);
-                    DataTableReader reader = ds.CreateDataReader();
-                    int i = 1;
-                    while (reader.Read())
+                    WebRequest rqst = WebRequest.Create("https://23.251.150.28/broadcaster/poll?key=" + WindowsDPAPI.Decrypt(EncryptedKey));
+                    rqst.Timeout = 60000;
+                    HttpWebResponse rsp = (HttpWebResponse)rqst.GetResponse();
+                    HttpStatusCode status = rsp.StatusCode;
+                    if (status == HttpStatusCode.OK)
                     {
-                        string patId = reader.GetString(15);
-                        DataSet docDs = getDocuments(patId, strToday);
-                        //DumpToConsole(docDs);
-                        DataTableReader docreader = docDs.CreateDataReader();
-                        while (docreader.Read())
+                        Stream dataStream = rsp.GetResponseStream();
+                        StreamReader reader = new StreamReader(dataStream);
+                        string responseFromServer = reader.ReadToEnd();
+                        if (responseFromServer != "[]")
                         {
-                            string documentId = docreader.GetString(0);
-                            string keywords = docreader.GetString(10);
-                            string icd9 = getIcdFromKeywords(keywords);
-                            DateTime filedt = Convert.ToDateTime(docreader.GetString(2));
-                            double timeSinceCreate = DateTime.Now.Subtract(filedt).TotalSeconds;
-                            bool mine = docreader.GetString(9) == "Y";
-                            //if you got in in the past 20 minutes 
-                            //and the diagnosis is there and this is indeed your note
-                            // check the quiet list and then continue with alerting logic if you're good  to go
-                            if (icd9.Length > 0 && timeSinceCreate < 1200 && isEnabled(documentId))
-                            {
-                                alert(documentId,patId,"http://mavenmedical.net");
-                            }
+                            string alertUrl = responseFromServer.Split(',')[0].Replace("[{\"LINK\": \"", "").Replace("\"", "");
+                            alert("1", "66556", alertUrl);
                         }
                     }
-                    //Console.WriteLine(strToday);
-                    //Console.ReadLine();
-                    System.Threading.Thread.Sleep(2000);
+                }
+                catch (Exception e)
+                {
                 }
             }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-                Console.ReadLine();
-            }
+            
+        }
+        public static bool AcceptAllCertifications(object sender, System.Security.Cryptography.X509Certificates.X509Certificate certification, System.Security.Cryptography.X509Certificates.X509Chain chain, System.Net.Security.SslPolicyErrors sslPolicyErrors)
+        {
+            return true;
         }
         public static void alert(string documentId,string patId, string inUrl)
         {
@@ -411,11 +411,20 @@ namespace MavenAsDemo
             catch { }
             return name + "|" + pronoun;
         }
-        static void CloseOut(object sender, EventArgs e)
+        static void CommitSuicide(object sender, EventArgs e)
         {
-            continueOn = false;
-            Application.Exit();
+            try
+            {
+                continueOn = false;
+                Application.Exit();
+            }
+            catch { }
            
+        }
+        static void LogOut(object sender, EventArgs e)
+        {
+            Authenticator.ClearLoginSettings();
+            CommitSuicide(null, null);
         }
     }
 }

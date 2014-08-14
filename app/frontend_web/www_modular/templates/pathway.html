@@ -1,385 +1,479 @@
-<<<<<<< HEAD
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="../js/libs/jsplumb2/js/jsplumb.js"></script>
+    <style>
 
 
-=======
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
->>>>>>> 3d9a6b61ea61a64f069ab9a7353db580e93e4502
-<style>
+        #pathway-container {
+            position: relative;
+
+        }
+
+        #pathway-container:active{
+            cursor: url(https://mail.google.com/mail/images/2/openhand.cur), default !important;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        .tree ul {
+            padding-top: 20px;
+            position: relative;
+
+            transition: all 0.5s;
+            -webkit-transition: all 0.5s;
+            -moz-transition: all 0.5s;
+        }
+
+        .tree li {
+            float: left;
+            text-align: center;
+            list-style-type: none;
+            position: relative;
+            padding: 20px 5px 0 5px;
+
+            transition: all 0.5s;
+            -webkit-transition: all 0.5s;
+            -moz-transition: all 0.5s;
+        }
+
+        /*We will use ::before and ::after to draw the connectors
+
+        .tree li::before, .tree li::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 50%;
+            border-top: 2px solid #ccc;
+            width: 50%;
+            height: 20px;
+        }
+
+        .tree li::after {
+            right: auto;
+            left: 50%;
+            border-left: 2px solid #ccc;
+        }
+
+        /*We need to remove left-right connectors from elements without
+        any siblings
+        .tree li:only-child::after, .tree li:only-child::before {
+            display: none;
+        }
+
+        /*Remove space from the top of single children
+        .tree li:only-child {
+            padding-top: 0;
+        }
+
+        /*Remove left connector from first child and
+        right connector from last child
+        .tree li:first-child::before, .tree li:last-child::after {
+            border: 0 none;
+        }
+
+        /*Adding back the vertical connector to the last nodes
+        .tree li:last-child::before {
+            border-right: 2px solid #ccc;
+            border-radius: 0 5px 0 0;
+            -webkit-border-radius: 0 5px 0 0;
+            -moz-border-radius: 0 5px 0 0;
+        }
+
+        .tree li:first-child::after {
+            border-radius: 5px 0 0 0;
+            -webkit-border-radius: 5px 0 0 0;
+            -moz-border-radius: 5px 0 0 0;
+        }
+
+        /*Time to add downward connectors from parents
+        .tree ul ul::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            border-left: 2px solid #ccc;
+            width: 0;
+            height: 20px;
+        }
+*/
+        .tree li div.qualifier {
+            height: 30px;
+            width: 125px;
+            border: 2px solid #46bdec;
+            background-color: whitesmoke;
+            padding: 5px 10px;
+            text-decoration: none;
+            color: #666;
+            font-family: arial, verdana, tahoma;
+            font-size: 11px;
+            font-weight: bold;
+            display: inline-block;
+
+            border-radius: 5px;
+            -webkit-border-radius: 5px;
+            -moz-border-radius: 5px;
+
+            transition: all 0.5s;
+            -webkit-transition: all 0.5s;
+            -moz-transition: all 0.5s;
+        }
+
+        .tree li div.protocole {
+            width: 270px;
+            border: 2px solid #18bc9a;
+            background-color: whitesmoke;
+            padding: 5px 10px;
+            text-decoration: none;
+            color: #666;
+            font-family: arial, verdana, tahoma;
+            font-size: 11px;
+            display: inline-block;
+
+            border-radius: 5px;
+            -webkit-border-radius: 5px;
+            -moz-border-radius: 5px;
+
+            transition: all 0.5s;
+            -webkit-transition: all 0.5s;
+            -moz-transition: all 0.5s;
+        }
+
+        .index {
+            font-size: 11px;
+            border-radius: 5px;
+            -webkit-border-radius: 5px;
+            -moz-border-radius: 5px;
+
+        }
+
+        .plan {
+            text-align: left;
+        }
+
+        .children {
+            display: none;
+        }
+
+        /*Time for some hover effects*/
+        /*We will apply the hover effect the the lineage of the element also*/
+        .tree li div:hover, .tree li div:hover + ul li div {
+            background: #c8e4f8;
+            color: #000;
+            border: 1px solid #94a0b4;
+        }
+
+        /*Connector styles on hover*/
+        .tree li div:hover + ul li::after,
+        .tree li div:hover + ul li::before,
+        .tree li div:hover + ul::before,
+        .tree li div:hover + ul ul::before {
+            border-color: #94a0b4;
+        }
+
+        #toast {
+            height: 30px;
+            width: 250px;
+            padding-right: 10px;
+            background-color: whitesmoke;
+            position: fixed;
+            top: 80%;
+            left: 40%;
+            border-radius: 5px;
+            -webkit-border-radius: 5px;
+            color: #36485c;
+            box-shadow: 7px 7px 4px #888888;
+            visibility: hidden;
+            z-index: 5;
+        }
+    </style>
+
+    <div id="toast">
+        <span class="glyphicon glyphicon-ok"></span>
+        Note-ready text added to clipboard
+    </div>
+
+    <div class="row" style="margin: 0px auto; width: 90%;">
+        <span class="title headings">
+        <!-- static -->
+            CRPC Pathway
+        </span>
+
+        <div id="pathway-container" style="width: 2000px">
+
+            <div class="tree">
+                <ul>
+                    <li class='parent'>
+                        <div id="n1" class="qualifier">
+                            <!-- content & helping text -->
+                            <span>CRPC</span>
+                        </div>
+                        <ul class="children">
+                            <li class='parent'>
+                                <div class="qualifier">
+                                    <!-- content & helping text -->
+                                    <span data-toggle="tooltip" title="This patient has mCRPC">Metastatic</span>
+                                </div>
+
+                                <ul class="children">
+                                    <li class='parent'>
+                                        <div id='n-1-1-1' class="qualifier">
+                                            <!-- content & helping text -->
+                                            <span>Prior Docetaxel</span>
+                                        </div>
+
+                                    </li>
+                                    <li class='parent'>
+                                        <div class="qualifier">
+                                            <!-- content & helping text -->
+                                            <span data-toggle="tooltip"
+                                                  title="This patient has mCRPC, but has not received prior docetaxel therapy">No Prior Docetaxel</span>
+                                        </div>
+                                        <ul class="children">
+                                            <li class="parent">
+                                                <div class="qualifier">
+                                                    <!-- content & helping text -->
+                                                    <span data-toggle="tooltip"
+                                                          title="This patient has symptomatic mCRPC, but has not received prior docetaxel therapy">Symptomatic</span>
+                                                </div>
+                                                <ul class="children">
+                                                    <li class="parent">
+                                                        <div id='gp' class="qualifier">
+                                                            <!-- content & helping text -->
+                                                            <span data-toggle="tooltip"
+                                                                  title="This patient has symptomatic mCRPC and good performance status (ECOG 0-1), but has not received prior docetaxel therapy.">
+                                                                Good Performance</span>
+                                                        </div>
+                                                        <ul class="children">
+                                                            <li class='parent'>
+                                                                <div id='i3' class="protocole">
+                                                                    <!-- content & helping text -->
+                                                                    <div class="index headings">Index Patient 3</div>
+                                                            <span class="plan">
+                                                                <span>
+                                                                    <strong>STANDARD</strong>
+                                                                    <p>
+                                                                        Docetaxel to patient with symptomatic, mCPRC with
+                                                                        good performance status and no prior docetaxel
+                                                                        chemotherapy.
+                                                                    </p>
+                                                                </span>
+                                                                <span>
+                                                                    <strong>RECOMMENDATION</strong>
+                                                                    <p>
+                                                                        Abiraterone +prednisone to patients with
+                                                                        symptomatic, mCRPC with
+                                                                        good performance status and no prior docetaxel
+                                                                        chemotherapy.
+                                                                    </p>
+                                                                </span>
+                                                                <span>
+                                                                    <strong>OPTION</strong>
+                                                                    <p>
+                                                                        (C) Ketoconazole + steroid, (B) mitoxantrone or (C)
+                                                                        radionuclide therapy
+                                                                        to patients with symptomatic, mCRPC with good
+                                                                        performance status and
+                                                                        no prior docetaxel chemotherapy who do not want or
+                                                                        cannot have one of
+                                                                        the standard therapies.
+
+                                                                    </p>
+                                                                </span>
 
 
-    #pathway-container {
-        position: relative;
-    }
+                                                                    <button type="button" class="btn btn-default btn-sm"
+                                                                            style="float: right" onclick="CopyText()">
+                                                                        <img src="../images/copy-icon.png"
+                                                                             style="width: 20px; height: 20px;"
+                                                                             title="Copy">
+                                                                    </button>
 
-    * {
-        margin: 0;
-        padding: 0;
-    }
-
-    .tree ul {
-        padding-top: 20px;
-        position: relative;
-
-        transition: all 0.5s;
-        -webkit-transition: all 0.5s;
-        -moz-transition: all 0.5s;
-    }
-
-    .tree li {
-        float: left;
-        text-align: center;
-        list-style-type: none;
-        position: relative;
-        padding: 20px 5px 0 5px;
-
-        transition: all 0.5s;
-        -webkit-transition: all 0.5s;
-        -moz-transition: all 0.5s;
-    }
-
-    /*We will use ::before and ::after to draw the connectors*/
-
-    .tree li::before, .tree li::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        right: 50%;
-        border-top: 2px solid #ccc;
-        width: 50%;
-        height: 20px;
-    }
-
-    .tree li::after {
-        right: auto;
-        left: 50%;
-        border-left: 2px solid #ccc;
-    }
-
-    /*We need to remove left-right connectors from elements without
-    any siblings*/
-    .tree li:only-child::after, .tree li:only-child::before {
-        display: none;
-    }
-
-    /*Remove space from the top of single children*/
-    .tree li:only-child {
-        padding-top: 0;
-    }
-
-    /*Remove left connector from first child and
-    right connector from last child*/
-    .tree li:first-child::before, .tree li:last-child::after {
-        border: 0 none;
-    }
-
-    /*Adding back the vertical connector to the last nodes*/
-    .tree li:last-child::before {
-        border-right: 2px solid #ccc;
-        border-radius: 0 5px 0 0;
-        -webkit-border-radius: 0 5px 0 0;
-        -moz-border-radius: 0 5px 0 0;
-    }
-
-    .tree li:first-child::after {
-        border-radius: 5px 0 0 0;
-        -webkit-border-radius: 5px 0 0 0;
-        -moz-border-radius: 5px 0 0 0;
-    }
-
-    /*Time to add downward connectors from parents*/
-    .tree ul ul::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 50%;
-        border-left: 2px solid #ccc;
-        width: 0;
-        height: 20px;
-    }
-
-    .tree li div.qualifier {
-        height: 35px;
-        width: 150px;
-        border: 2px solid #46bdec;
-        background-color: whitesmoke;
-        padding: 5px 10px;
-        text-decoration: none;
-        color: #666;
-        font-family: arial, verdana, tahoma;
-        font-size: 13px;
-        font-weight: bold;
-        display: inline-block;
-
-        border-radius: 5px;
-        -webkit-border-radius: 5px;
-        -moz-border-radius: 5px;
-
-        transition: all 0.5s;
-        -webkit-transition: all 0.5s;
-        -moz-transition: all 0.5s;
-    }
-
-    .tree li div.protocole {
-        border: 2px solid #18bc9a;
-        background-color: whitesmoke;
-        padding: 5px 10px;
-        text-decoration: none;
-        color: #666;
-        font-family: arial, verdana, tahoma;
-        font-size: 13px;
-        font-weight: bold;
-        display: inline-block;
-
-        border-radius: 5px;
-        -webkit-border-radius: 5px;
-        -moz-border-radius: 5px;
-
-        transition: all 0.5s;
-        -webkit-transition: all 0.5s;
-        -moz-transition: all 0.5s;
-    }
-
-    /*Time for some hover effects*/
-    /*We will apply the hover effect the the lineage of the element also*/
-    .tree li div:hover, .tree li div:hover + ul li div {
-        background: #c8e4f8;
-        color: #000;
-        border: 1px solid #94a0b4;
-    }
-
-    /*Connector styles on hover*/
-    .tree li div:hover + ul li::after,
-    .tree li div:hover + ul li::before,
-    .tree li div:hover + ul::before,
-    .tree li div:hover + ul ul::before {
-        border-color: #94a0b4;
-    }
-
-    #pathway-container .aLabel {
-        background-color: white;
-        padding: 0.4em;
-        font: 12px sans-serif;
-        color: #444;
-        z-index: 21;
-        border: 1px dotted gray;
-        opacity: 0.8;
-        filter: alpha(opacity=80);
-        cursor: pointer;
-    }
-</style>
-
-<<<<<<< HEAD
-
-=======
->>>>>>> 3d9a6b61ea61a64f069ab9a7353db580e93e4502
-
-<div class="row" style="margin: 0px auto; width: 90%;">
-    <span class="title headings">
-    <!-- static -->
-        CRPC Pathway
-    </span>
-
-    <div id="pathway-container">
-
-        <div class="tree">
-            <ul>
-<<<<<<< HEAD
-                <li>
-                    <div id="n1" class="qualifier">
-                        <!-- content & helping text -->
-                        <span data-toggle="tooltip" title="helping text">CRPC</span>
-                    </div>
-                    <ul>
-                        <li>
-                            <div id="n2" class="qualifier">
-=======
-                <li class = 'parent'>
-                    <div class="qualifier">
-                        <!-- content & helping text -->
-                        <span data-toggle="tooltip" title="helping text">CRPC</span>
-                    </div>
-                    <ul class = "children">
-                        <li class = 'parent'>
-                            <div class="qualifier">
->>>>>>> 3d9a6b61ea61a64f069ab9a7353db580e93e4502
-                                <!-- content & helping text -->
-                                <span data-toggle="tooltip" title="helping text">Metastatic</span>
-                            </div>
-
-<<<<<<< HEAD
-                            <ul>
-                                <li>
-                                    <div id='n1-1-1' class="qualifier">
-                                        <!-- content & helping text -->
-                                        <span data-toggle="tooltip" title="helping text">Prior Docetaxel</span>
-                                    </div>
-                                    <ul>
-                                        <li>
-                                            <div id='n1-1-1-1' class="qualifier">
-                                                <!-- content & helping text -->
-                                                <span data-toggle="tooltip" title="helping text">Poor Performance</span>
-                                            </div>
-                                            <ul>
-                                                <li>
-                                                    <div id='n-1-1-1-p' class="protocole">
-=======
-                            <ul class = "children">
-                                <li class = 'parent'>
-                                    <div class="qualifier">
-                                        <!-- content & helping text -->
-                                        <span data-toggle="tooltip" title="helping text">Prior Docetaxel</span>
-                                    </div>
-                                    <ul class = "children">
-                                        <li class = 'parent'>
-                                            <div class="qualifier">
-                                                <!-- content & helping text -->
-                                                <span data-toggle="tooltip" title="helping text">Poor Performance</span>
-                                            </div>
-                                            <ul class = "children">
-                                                <li class = 'parent'>
-                                                    <div class="protocole">
->>>>>>> 3d9a6b61ea61a64f069ab9a7353db580e93e4502
-                                                        <!-- content & helping text -->
-                                                        <span data-toggle="tooltip"
-                                                              title="helping text">Protocole</span>
-                                                    </div>
-
-                                                </li>
-                                            </ul>
-                                        </li>
-<<<<<<< HEAD
-                                        <li>
-                                            <div id='n1-1-1-2' class="qualifier">
-=======
-                                        <li class = 'parent'>
-                                            <div class="qualifier">
->>>>>>> 3d9a6b61ea61a64f069ab9a7353db580e93e4502
-                                                <!-- content & helping text -->
-                                                <span data-toggle="tooltip" title="helping text">Good Performance</span>
-                                            </div>
+                                                                <div id="copiedText" style="display: none;">
+                                                                </div>
 
 
-                                        </li>
-                                    </ul>
-                                </li>
-<<<<<<< HEAD
-                                <li>
-                                    <div id='n1-1-2' class="qualifier">
-=======
-                                <li class = 'parent'>
-                                    <div class="qualifier">
->>>>>>> 3d9a6b61ea61a64f069ab9a7353db580e93e4502
-                                        <!-- content & helping text -->
-                                        <span data-toggle="tooltip" title="helping text">No Prior Docetaxel</span>
-                                    </div>
+                                                            </span>
+                                                                </div>
 
-                                </li>
-                            </ul>
-                        </li>
-<<<<<<< HEAD
-                        <li>
-                            <div id='n1-2' class="qualifier">
-=======
-                        <li class = 'parent'>
-                            <div class="qualifier">
->>>>>>> 3d9a6b61ea61a64f069ab9a7353db580e93e4502
-                                <!-- content & helping text -->
-                                <span data-toggle="tooltip" title="helping text">Non-Metastatic</span>
-                            </div>
+                                                            </li>
+                                                        </ul>
+                                                    </li>
+                                                    <li class="parent">
+                                                        <div class="qualifier">
+                                                            <!-- content & helping text -->
+                                                            <span>Poor Performance</span>
+                                                        </div>
+                                                    </li>
+                                                </ul>
 
-                        </li>
-                    </ul>
-                </li>
-            </ul>
+                                            </li>
+                                            <li class="parent">
+                                                <div class="qualifier">
+                                                    <!-- content & helping text -->
+                                                    <span>Asymptomatic</span>
+                                                </div>
+                                            </li>
+                                        </ul>
+
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class='parent'>
+                                <div id='n-1-2' class="qualifier">
+                                    <!-- content & helping text -->
+                                    <span data-toggle="tooltip">Non-Metastatic</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+
         </div>
 
 
     </div>
 
 
-</div>
-
-
-<div class="row">
-    <div class="col-md-12">
-        <hr>
+    <div class="row">
+        <div class="col-md-12">
+            <hr>
+        </div>
     </div>
-</div>
 
 
-<<<<<<< HEAD
-<script type="text/javascript">
-    $('span[data-toggle="tooltip"]').tooltip({
-        animated: 'fade',
-        placement: 'left',
-        container: 'body'
-    });
+    <script type="text/javascript">
 
-    jsPlumb.ready(function() {
+        function CopyText() {
+            //window.prompt ("Copy to clipboard: Ctrl+C, Enter", "test copy");
+            $('#copiedText').text("In summary, the patient is a 54-year-old man with " +
+                    "symptomatic mCRPC and good performance status (ECOG 0-1)" +
+                    "who has not received prior docetaxel therapy. " +
+                    "\r\n" +
+                    "This is evidenced by rising PSA in the setting of castrate testosterone levels." +
+                    "Prior radiographic imaging has confirmed metastasis." +
+                    "Symptoms that are attributable to the metastatic disease" +
+                    "burden include: [[[SYMPTOMS]]]" +
+                    "\r\n" +
+                    "Management Plan:" +
+                    "Per AUA guidelines*, The patient will receive" +
+                    "\r\n" +
+                    "Docetaxel therapy" +
+                    "Abiraterone + prednisone" +
+                    "\r\n" +
+                    "[[[OR Since the patient cannot receive the standard" +
+                    "tretatment, he was offered ketoconazole + steroid," +
+                    "mitoxantrone or radionuclide therapy]]]" +
+                    "\r\n\r\n" +
+                    "*Index Patient 3 - http://www.auanet.org/education/guidelines/castration-resistant-prostate-cancer.cfm");
 
-    jsPlumb.importDefaults({
-        container: '#pathway-container',
-        Endpoint :"Blank",
-        PaintStyle: {
-            lineWidth: 2,
-            strokeStyle: '#ccc'
-        },
-        HoverPaintStyle:{
-            lineWidth: 3,
-            strokeStyle: '#61B7CF'
-        },
-        DragOptions: { cursor: "crosshair" },
-        Endpoints: [
-            [ "Dot", { radius: 1 } ],
-            [ "Dot", { radius: 1 } ]
-        ],
-        EndpointStyles: [
-            { fillStyle: "#ccc" },
-            { fillStyle: "#ccc" }
-        ],
-        Connector: [ "Flowchart"],
-        Anchors: [ "Bottom", "Top" ],
-       /* ConnectionOverlays: [
-            [ "Arrow", { location: 2 } ],
-            [ "Label", {
-                location: 0.1,
-                id: "label",
-                cssClass: "aLabel"
-            }]
-        ]*/
+            $('#toast').css('visibility', 'visible');
 
-  });
+            setTimeout(function () {
 
-    jsPlumb.makeSource($('.qualifier'), {
-
-    });
-    jsPlumb.makeTarget($('.qualifier'), {
-
-    });
-
-    jsPlumb.connect({
-        source: 'n1',
-        target: "n1-2"
-    });
-
-
-jsPlumb.bind("connection", function(info) {
-                    console.log("Connect " + info.sourceId + " to " + info.targetId );
-                    $("#debug").html("hello.");
+                $("#toast").fadeOut("slow", function () {
+                    //$('#toast').css('visibility', 'hidden');
                 });
-    });
-  </script>
-=======
+
+            }, 2000);
+        }
+
+        var tree = $('.tree');
+        $('.qualifier', tree).on('click', function (self) {
+            console.log('on event');
+            var parent = (self.currentTarget.parentNode)
+            $('.children', parent).first().toggle()
+            drawTree();
+        });
+        function drawTree() {
+
+        jsPlumb.repaint();
+
+            var nodeList = $('.qualifier', tree);
+            $.each(nodeList, function (key, value) {
+                console.log(value);
+                var s = jsPlumb.addEndpoint(value, {anchor: 'Bottom'});
+                var parent = (value.parentNode);
+                var child = $('.children', parent).first();
+                console.log('child', child);
+                if (child[0]) {
+                    console.log('child[0]', child[0].children);
+                    var children = child[0].children;
+                    $.each(children, function (key2, value2) {
+                        console.log("val2", value2);
+                        var targetDiv = $('.qualifier', value2).first(); //top endpiont
+                        var t = jsPlumb.addEndpoint(targetDiv, {anchor: 'Top'})
+
+                         if(($(value).is(":visible")) && ($(targetDiv).is(":visible"))){
+                        jsPlumb.connect({source: s, target: t});
+                         }
+                    })
 
 
-<script type="text/javascript">
+                }
+            })
 
-    var tree = $('.tree');
-    $('.qualifier', tree).on('click', function(self){
-        var parent = (self.currentTarget.parentNode)
-        $('.children', parent). first().toggle()
-    })
+            if(($('#gp').is(":visible")) && ($('#i3').is(":visible"))){
+                var s = jsPlumb.addEndpoint($('#gp'),{anchor: 'Bottom'} );
+                var t = jsPlumb.addEndpoint($('#i3'), {anchor: 'Top'});
+                jsPlumb.connect({source:s, target:t});
+            }
+        }
 
 
-</script>
->>>>>>> 3d9a6b61ea61a64f069ab9a7353db580e93e4502
+        $('span[data-toggle="tooltip"]').tooltip({
+            animated: 'fade',
+            placement: 'left',
+            container: 'body'
+        });
+
+
+        jsPlumb.importDefaults({
+            container: '#pathway-container',
+            MaxConnections : -1,
+            Endpoint: 'Blank',
+            PaintStyle: {
+                lineWidth: 2,
+                strokeStyle: '#ccc'
+            },
+            HoverPaintStyle: {
+                lineWidth: 3,
+                strokeStyle: '#61B7CF'
+            },
+            DragOptions: { cursor: "crosshair" },
+            Endpoints: [
+                [ "Dot", { radius: 1 } ],
+                [ "Dot", { radius: 1 } ]
+            ],
+            EndpointStyles: [
+                { fillStyle: "#ccc" },
+                { fillStyle: "#ccc" }
+            ],
+            Connector: [ "Flowchart",{
+                cornerRadius: 3
+            }],
+            Anchors: [ "Bottom", "Top" ]
+            /* ConnectionOverlays: [
+             [ "Arrow", { location: 2 } ],
+             [ "Label", {
+             location: 0.1,
+             id: "label",
+             cssClass: "aLabel"
+             }]
+             ]*/
+
+        });
+
+        jsPlumb.draggable($('#pathway-container'));
+
+        //repaint on drag
+        $('#pathway-container').on('mousedown', function(e){
+            //console.log('dragging');
+            jsPlumb.repaint();
+
+        });
+
+    </script>
