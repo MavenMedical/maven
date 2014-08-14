@@ -1,11 +1,32 @@
-import utils.web_client.allscripts_http_client as AHC
-from maven_config import MavenConfig
+# *************************************************************************
+# Copyright (c) 2014 - Maven Medical
+# ************************
+# AUTHOR:
+__author__ = 'Tom DuBois'
+# ************************
+# DESCRIPTION:
+#
+#
+#
+#
+# ************************
+# ASSUMES:
+# ************************
+# SIDE EFFECTS:
+# ************************
+# LAST MODIFIED FOR JIRA ISSUE: MAV-289
+# *************************************************************************
 import asyncio
 from enum import Enum
 from datetime import date, datetime, timedelta
 import re
 from dateutil.parser import parse
+from collections import defaultdict
+import utils.web_client.allscripts_http_client as AHC
 import clientApp.module_webservice.notification_service as NS
+from maven_config import MavenConfig
+from utils.web_client.builder import builder
+from clientApp.module_webservice.composition_builder import CompositionBuilder
 import maven_logging as ML
 
 icd9_match = re.compile('\(V?[0-9]+(?:\.[0-9]+)?\)')
@@ -28,6 +49,7 @@ class scheduler():
         self.processed = set()
         self.lastday = None
         self.messenger = messenger
+        self.comp_builder = CompositionBuilder(self.config)
 
     @asyncio.coroutine
     def get_updated_schedule(self):
@@ -82,6 +104,7 @@ class scheduler():
                         # self.processed.add((patient, provider, today))
                         if not first:
                             start, stop = match.span()
+                            composition = yield from self.comp_builder.build_composition("CLIFFHUX", patient)
                             self.messenger(patient, provider, keywords[start:stop])
                             break
                 # processed.update({doc['DocumentID'] for doc in documents})
