@@ -75,7 +75,24 @@ namespace MavenAsDemo
             thrd.Start();
             return thrd;
         }
-        public static void ShowAlertForm()
+        public static void ShowAlertForm(AlertMode m)
+        {
+            if (m == AlertMode.combo || m == AlertMode.deskSoft)
+            {
+                frmAlert frm = new frmAlert(fadeSlowness, location, url);
+                frm.ShowInTaskbar = false;
+                frm.Visible = true;
+                Application.Run(frm);
+            }
+            else if (m == AlertMode.deskHard)
+            {
+                frmHardAlert frm = new frmHardAlert(url,location);
+                frm.ShowInTaskbar = false;
+                frm.Visible = true;
+                Application.Run(frm);
+            }
+        }
+        private static void ShowAlertForm()
         {
             if (mode == AlertMode.combo || mode == AlertMode.deskSoft)
             {
@@ -86,7 +103,7 @@ namespace MavenAsDemo
             }
             else if (mode == AlertMode.deskHard)
             {
-                frmHardAlert frm = new frmHardAlert(url,location);
+                frmHardAlert frm = new frmHardAlert(url, location);
                 frm.ShowInTaskbar = false;
                 frm.Visible = true;
                 Application.Run(frm);

@@ -54,7 +54,18 @@ namespace MavenAsDemo
                 this.Close();
                 this.Dispose();
             }
-            string tst=browserDisplay.DocumentText;
+            string dtxt=browserDisplay.DocumentText;
+            string clipelem = "<div id=\"copiedText\">";
+            //string clipelem = "<div class=\"col-md-9\">";
+            if (dtxt.Contains(clipelem))
+            {
+                string[] splitter = { clipelem };
+                string copytext = dtxt.Split(splitter,StringSplitOptions.None)[1];
+                int len = copytext.IndexOf("</div>");
+                copytext = copytext.Substring(0, len);
+                Clipboard.SetText(copytext);
+                browserDisplay.DocumentText = dtxt.Replace(clipelem+copytext+"</div>", "");
+            }
         }
 
         private Point getLocation(string locstring)
