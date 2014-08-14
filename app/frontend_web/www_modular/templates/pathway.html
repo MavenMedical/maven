@@ -187,6 +187,10 @@
             visibility: hidden;
             z-index: 5;
         }
+
+        #copiedText{
+            display: none;
+        }
     </style>
 
     <div id="toast">
@@ -290,8 +294,6 @@
                                                                              title="Copy">
                                                                     </button>
 
-                                                                <div id="copiedText" style="display: none;">
-                                                                </div>
 
 
                                                             </span>
@@ -348,6 +350,10 @@
     <script type="text/javascript">
 
         function CopyText() {
+
+            $('<div>').attr('id', 'copiedText').appendTo('body');
+
+
             //window.prompt ("Copy to clipboard: Ctrl+C, Enter", "test copy");
             $('#copiedText').text("In summary, the patient is a 54-year-old man with " +
                     "symptomatic mCRPC and good performance status (ECOG 0-1)" +
@@ -369,6 +375,7 @@
                     "mitoxantrone or radionuclide therapy]]]" +
                     "\r\n\r\n" +
                     "*Index Patient 3 - http://www.auanet.org/education/guidelines/castration-resistant-prostate-cancer.cfm");
+
 
             $('#toast').css('visibility', 'visible');
 
@@ -467,7 +474,9 @@
 
         });
 
-        jsPlumb.draggable($('#pathway-container'));
+        //jsPlumb.draggable($('#pathway-container'));
+        $('#pathway-container').draggable();
+
 
         //repaint on drag
         $('#pathway-container').on('mousedown', function(e){

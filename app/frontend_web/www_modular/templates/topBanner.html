@@ -11,12 +11,12 @@
 	<span class="page-title" onclick="location.href='#patient/<%= patients %>'">
 	  patient
 	</span>
-	<% if(encounter) { %>
+	<% if(encounter && page != 'pathway') { %>
 	<span class="glyphicon glyphicon-chevron-right white"></span>
 	<span class="page-title">
 	  encounter
 	</span>
-    <% } else if (page == 'pathway') { %>
+    <% } else { %>
           <span class="glyphicon glyphicon-chevron-right white"></span>
 	<span class="page-title">
 	  pathway

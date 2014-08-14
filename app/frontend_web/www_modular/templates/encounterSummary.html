@@ -1,6 +1,9 @@
 <div class="row" id="utilization" style='width:90%;margin:0 auto 0 auto'>
+    <% if (page == 'pathway') { %>
+    <h2 class="headings">Overview</h2>
+    <% } else { %>
     <h2 class="headings">Overview of <%= title %></h2>
-
+    <% } %>
     <div class="container row enc-date">
             <span class="headings title blue" style="margin-top: 10px;">
                 <%=  encounterdate %>
