@@ -6,6 +6,7 @@ from enum import Enum
 from functools import wraps, lru_cache
 from maven_config import MavenConfig
 from maven_logging import WARN
+import utils.database.memory_cache as memory_cache
 
 ALLSCRIPTS_NUM_PARAMETERS = 6
 
@@ -81,6 +82,8 @@ def isoformatday(d: {'date', 'datetime'}):
     except AttributeError:
         return d.isoformat()
 
+hour_cache = memory_cache.MemoryCache(timeout=3600)
+
 
 @lru_cache()
 class allscripts_api(http.http_api):
@@ -141,6 +144,8 @@ class allscripts_api(http.http_api):
             return ret
         return asyncio.coroutine(wraps(func)(worker))
 
+    @hour_cache.cache_lookup('GetServerInfo', lookup_on_none=True,
+                             key_function=memory_cache.allargs)
     @_require_token
     def GetServerInfo(self):
         """ Takes no arguments and returns:
@@ -343,8 +348,10 @@ class allscripts_api(http.http_api):
                                                             user=username, patient=patient))
         return self.postprocess(check_output(ret))
 
+    @hour_cache.cache_lookup('GetProviders', lookup_on_none=True,
+                             key_function=memory_cache.allargs)
     @_require_token
-    def GetProviders(self, username):
+    def GetProviders(self, username: str):
         """
         :param username:
         :return:
@@ -354,18 +361,24 @@ class allscripts_api(http.http_api):
                                                             user=username))
         return self.postprocess(check_output(ret))
 
+    @hour_cache.cache_lookup('GetProvider', lookup_on_none=True,
+                             key_function=memory_cache.allargs)
     @_require_token
-    def GetProvider(self, username):
-        """ Searches for and returns provider information based on either Provider ID or Provider user name.
-
+    def GetProvider(self, username, searchname=None, searchid=None):
+        """ returns provider information from either username or userid
+        :param username: the allscripts user on whose behave we are querying
+        :param searchname: the username to search for
+        :param searchid: the userid to search for
         """
         ret = yield from self.post('/json/MagicJson',
                                    data=self._build_message('GetProvider',
-                                                            "68",
-                                                            'terry',
+                                                            searchid or '',
+                                                            searchname or '',
                                                             user=username))
         return self.postprocess(check_output(ret))
 
+    @hour_cache.cache_lookup('GetUserID', lookup_on_none=True,
+                             key_function=memory_cache.allargs)
     @_require_token
     def GetUserID(self, username: str):
         """ Returns the UserID (Internal clientEMR Integer) for the specified username.
@@ -434,6 +447,7 @@ if __name__ == '__main__':
     patient = input('Enter a Patient ID to display (e.g., 22): ')
     if not patient:
         patient = '22'
+    wrapexn(api.GetProvider(Ehr_username, searchid='10041'))
     if input('GetServerInfo (y/n)? ') == 'y':
         wrapexn(api.GetServerInfo())
     if input('GetDocuments (y/n)? ') == 'y':
@@ -449,7 +463,7 @@ if __name__ == '__main__':
                                        "2014-08-04T12:00:00"))
     if input('GetScheduleChanged (y/n)? ') == 'y':
         wrapexn(api.GetSchedule(Ehr_username,
-                                "2014-08-05"))
+                                "2014-08-06"))
     if input('GetProcedures (y/n)? ') == 'y':
         gp = api.GetProcedures(Ehr_username, patient,
                                completionstatuses=[COMPLETION_STATUSES.Ordered])
@@ -470,7 +484,7 @@ if __name__ == '__main__':
     if input('GetProviders (y/n)? ') == 'y':
         wrapexn(api.GetProviders(Ehr_username))
     if input('GetProvider (y/n)? ') == 'y':
-        wrapexn(api.GetProvider(Ehr_username))
+        wrapexn(api.GetProvider(Ehr_username, searchname='terry'))
     if input('GetUserID (y/n)? ') == 'y':
         wrapexn(api.GetUserID(Ehr_username))
     if input('GetDocuments (y/n)? '):
