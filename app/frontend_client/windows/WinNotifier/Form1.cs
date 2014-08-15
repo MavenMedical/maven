@@ -30,6 +30,7 @@ namespace MavenAsDemo
             }
             catch (System.Threading.ThreadAbortException ex)
             {
+                Program.LogMessage("frmAlert Exception: " + ex.Message);
                 this.Close();
                 this.Dispose();
             }
