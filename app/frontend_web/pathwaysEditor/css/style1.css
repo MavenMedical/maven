@@ -35,7 +35,10 @@
         margin: 0;
         padding: 0;
     }
-
+    .selected {
+        border-width: 6px
+        !important;
+    }
     .tree ul {
         padding-top: 60px;
         position: relative;
@@ -121,7 +124,6 @@
 
 .chart-col-12 {
     width: 100%;
-    height: 400px;
 }
 
 .attn-text{

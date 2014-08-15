@@ -11,18 +11,19 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
+    'router',
     'models/contextModel',
     'models/treeModel',
     'models/pathwayCollection',
     'text!templates/pathwayListEntry.html'
 
-], function ($, _, Backbone, contextModel, curTree, pathwayCollection, pathRowTemplate) {
+], function ($, _, Backbone, router, contextModel, curTree, pathwayCollection, pathRowTemplate) {
 
     var ruleRow = Backbone.View.extend({
         template: _.template(pathRowTemplate),
         events:{
-	    'click .select-button': 'handleSelect',
-	    'click .delete-button': 'handleRemove'
+	      'click .select-button': 'handleSelect',
+	      'click .delete-button': 'handleRemove'
         },
         getRemoveUrl: function() {
             var n = contextModel.toParams()
@@ -37,9 +38,10 @@ define([
             this.model = params.model
         },
         handleSelect: function() {
-            contextModel.set('id', this.model.get('id'))
+                contextModel.set('id', this.model.get('id'))
+                curTree.fetch()
 
-            curTree.fetch()
+
         },
     	handleRemove: function() {
             this.model.url = this.getRemoveUrl

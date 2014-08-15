@@ -15,9 +15,8 @@ define([
         },
         initialize: function(){
             var that = this
-            contextModel.on('change:auth', function(){
+            contextModel.on('change:auth' , function(){
                 that.fetch()
-
             })
 
         }

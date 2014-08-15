@@ -9,22 +9,26 @@ define([
     'backbone',    // lib/backbone/backbone
     'models/contextModel',
     'models/treeModel',
+    'internalViews/treeNodeActionSet',
     'text!templates/actionList.html'
-], function ($, _, Backbone, contextModel,  curModel, actionListTemplate) {
+], function ($, _, Backbone, contextModel,  curModel, treeNodeActionSet, actionListTemplate) {
 
     var ActionList = Backbone.View.extend({
         template: _.template(actionListTemplate),
 
         initialize: function () {
-            contextModel.on('change:selectedNode', this.loadModelActions, this)
+            contextModel.on('change:selectedNode', this.render, this)
 
             this.render();
         },
         render: function () {
             this.$el.html(this.template());
-        },
-        loadModelActions: function(){
-        }
+            if (contextModel.get('selectedNode')){
+                var myActions = new treeNodeActionSet()
+                    $('#action-set', this.$el).append(myActions.render().$el)
+                }
+
+         }
 
 
     });

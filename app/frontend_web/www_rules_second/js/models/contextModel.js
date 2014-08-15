@@ -1,12 +1,7 @@
-/***************************************************************************
- * Copyright (c) 2014 - Maven Medical
- * AUTHOR: 
- * DESCRIPTION: This Javascript file is for context that will be used within
- *              the application.
- *              This file needed to be called in all other modules.
- * PREREQUISITE: libraries should be predefine in main.js
- * LAST MODIFIED FOR JIRA ISSUE: MAV-98
- **************************************************************************/
+/* A backbone model representing the non persistant state of the application
+    defines authentication, and the currently loaded id
+    any class can require the 'contextModel' and recieve the same instance of the object
+*/
 
 define([
     'jquery',     // lib/jquery/jquery
@@ -15,6 +10,9 @@ define([
 ], function ($, _, Backbone) {
     
     var Context = Backbone.Model.extend({
+
+    // the url of the context model is loging when it fetches it runs the login persistance function and gets an auth key
+    //currently hard coded
 	urlRoot: '/login',
 
         defaults: {
@@ -31,6 +29,7 @@ define([
 	    }
 	    return ret;
 	},
+        //set the active user and get an auth key
         setUser: function (user, pw, route) {
 	    if (this.user != user || !this.userAuth) {
 		this.set('user', user);

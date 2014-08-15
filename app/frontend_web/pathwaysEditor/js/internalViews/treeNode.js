@@ -76,7 +76,6 @@ define([
                 this.getMyElement().off('click')
                 this.getMyElement().on('click', function(){
                     contextModel.set('selectedNode', that.model)
-
                 })
 
                 _.each(this.model.get('children').models, function(cur){
@@ -91,8 +90,11 @@ define([
                     $('.children', this.$el).first()[0].hidden = true;
                 } else {
                     $('.children', this.$el).first()[0].hidden = false;
-                }
 
+                }
+                if (this.model == contextModel.get('selectedNode')){
+                    that.getMyElement().addClass('selected')
+                }
                 if (this.model.get('protocol')){
                     var protoNode = new ProtocolNode({model: this.model})
                     $('.protocol', this.$el).first().append(protoNode.render().$el)

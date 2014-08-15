@@ -6,7 +6,7 @@ define([
     'modalViews/nodeEditor',
     'modalViews/protocolEditor',
     'modalViews/detailEditor',
-
+    'models/contextModel',
     'models/nodeList',
     'models/nodeModel',
     'models/treeModel',
@@ -15,7 +15,7 @@ define([
     'text!templates/triggerNode.html',
     'text!templates/triggerRow.html'
 
-    ], function($, _, Backbone,  NodeEditor, ProtocolEditor, DetailEditor, nodeList, nodeModel, curTree, ProtocolNode, TreeNode, nodeTemplate, rowTemplate){
+    ], function($, _, Backbone,  NodeEditor, ProtocolEditor, DetailEditor, contextModel,  nodeList, nodeModel, curTree, ProtocolNode, TreeNode, nodeTemplate, rowTemplate){
 
         var TriggerNode = TreeNode.extend({
 
@@ -52,17 +52,17 @@ define([
             },
             makeExit: function(){
 
-                var trueNode = $('.treeNode', this.$el).first()
-                this.exit = jsPlumb.addEndpoint(trueNode, {anchor: 'Bottom'})
+                this.exit = jsPlumb.addEndpoint(this.getMyElement(), {anchor: 'Bottom'})
 
                 return this.exit
             },
             makeEntrance: function(){
-                var trueNode = $('.treeNode', this.$el).first()
-                this.entrance = jsPlumb.addEndpoint(trueNode, {anchor: 'Top'})
+                this.entrance = jsPlumb.addEndpoint(this.getMyElement(), {anchor: 'Top'})
                 return this.entrance
             },
-
+            getMyElement: function(){
+                    return $('.treeNode', this.$el).first()
+            },
             render: function(){
                 this.$el.html(this.template({protocol: this.model.get('protocol'), children: this.model.get('children'), text: this.model.get('text')}))
 
@@ -78,7 +78,10 @@ define([
                      var newEditor = new DetailEditor({triggerNode: that.model})
                      newEditor.render()
                 })
-
+                this.getMyElement().off('click')
+                this.getMyElement().on('click', function(){
+                    contextModel.set('selectedNode', that.model)
+                })
                 _.each(this.model.get('children').models, function(cur){
 
 
@@ -96,6 +99,9 @@ define([
                     $('.children', this.$el).first()[0].hidden = true;
                 } else {
                     $('.children', this.$el).first()[0].hidden = false;
+                }
+                if (this.model == contextModel.get('selectedNode')){
+                    that.getMyElement().addClass('selected')
                 }
 
                 if (this.model.get('protocol')){

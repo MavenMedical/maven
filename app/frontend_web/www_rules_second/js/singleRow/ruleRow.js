@@ -1,11 +1,6 @@
-
-/***************************************************************************
- * Copyright (c) 2014 - Maven Medical
- * AUTHOR: 'Tom DuBois'
- * DESCRIPTION: This Javascript file handle a hierarchy of rulelist view
- *              so we can handle events easier.
- * 
- **************************************************************************/
+/* a Backbone view displaying a row of the rule list
+   dynamically resizes when its rule is selected and shrinks when another rule is selected
+ */
 define([
     // These are path alias that we configured in our main.js
     'jquery',     // lib/jquery/jquery
@@ -21,6 +16,7 @@ define([
     var ruleRow = Backbone.View.extend({
         tagName: 'tr',
         template: _.template(ruleRowTemplate),
+        //define events
         events:{
 	    'click .select-button': 'handleSelect',
 	    'click .remove-button': 'handleRemove'
@@ -30,6 +26,7 @@ define([
             return this;
         },
         initialize: function(){
+            //event: listen for a rule being selected, if it isnt this one, shrink it to normal size
             ruleModel.on('selected', function(){
                 if (ruleModel.get('id')!=this.model.get('id'))
                     this.$el.css({'font-size': '100%'})
@@ -37,22 +34,18 @@ define([
 
         },
         handleSelect: function() {
-            //update context to have a current rule, that triggers everything else
+            //if someone clicks this rule, set the context model's id to this id, which will trigger its load
             contextModel.set({id:this.model.get("id"),
 			                name:this.model.get("name")});
                      var that = this;
+            //also enlarge the text of this view
             this.$el.css({'font-size': '200%'});
-            ruleModel.on('selected', function(){
 
-                if (this.model.get('id') != ruleModel.get('id')){
-                 this.$el.css({'font-size': '100%'});
-                }
 
-            }, this)
+            // don't remember what this does
             ruleModel.on('propagate:name',
 			 function(model) {
 			     if(contextModel.get('id') == this.model.get('id')) {
-
 				 this.model.set({name: ruleModel.get('name')});
 				 this.render()
 			     } else {
