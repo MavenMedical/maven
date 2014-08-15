@@ -55,14 +55,14 @@ class IncomingFromMavenMessageHandler(HR.HTTPWriter):
 
         # ## tom: this has no authentication yet
         # composition.customer_id
-        user = composition.get_author_id()
+        user = composition.write_key[0]
+        msg = yield from self.notification_generator.generate_alert_content(composition, 'web', None)
+        self.notification_service.send_messages(user, msg)
 
         if self.notification_service.send_messages(user, None):
-            notifications = yield from self.notification_generator.generate_alert_content(composition, 'web', None)
-            self.notification_service.send_messages(user, notifications)
             return (HR.OK_RESPONSE, b'', [], composition.write_key[0])
         else:
-            notifications = yield from self.notification_generator.generate_alert_content(composition, 'vista', None)
+            notifications = yield from self.notification_generator.generate_alert_content(composition, 'web', None)
 
             alert_notification_content = ""
 
@@ -117,8 +117,8 @@ def main(loop):
 
         clientemrconfig:
         {
-            NG.EMR_TYPE: "vista",
-            NG.EMR_VERSION: "2.0",
+            NG.EMR_TYPE: "allscripts",
+            NG.EMR_VERSION: "14.0",
             NG.CLIENTAPP_LOCATION: "cloud",
             NG.DEBUG: True,
             NG.COST_ALERT_ICON: "/clientApp",

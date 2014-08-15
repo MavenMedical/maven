@@ -81,7 +81,7 @@ class scheduler(SP.StreamProcessor):
                     asyncio.Task(self.evaluate(*task))
             except Exception as e:
                 ML.EXCEPTION(e)
-            yield from asyncio.sleep(30)
+            yield from asyncio.sleep(5)
             first = False
 
     @asyncio.coroutine

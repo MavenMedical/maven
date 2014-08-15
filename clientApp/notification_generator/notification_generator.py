@@ -221,27 +221,47 @@ class NotificationGenerator():
 
         # creates the cost alert html. This may want to become more sophisticated over time to
         # dynamically shorten the appearance of a very large active orders list
-        cost_alert = yield from self._web_cost_alert_generator(composition, templateEnv)
-        alert_contents.append(cost_alert)
+        # cost_alert = yield from self._web_cost_alert_generator(composition, templateEnv)
+        # alert_contents.append(cost_alert)
 
-        sleuth_alerts = yield from self._web_sleuth_alert_generator(composition, templateEnv)
-        if sleuth_alerts is not None and len(sleuth_alerts) > 0:
-            for sa in sleuth_alerts:
-                alert_contents.append(sa)
+        # sleuth_alerts = yield from self._web_sleuth_alert_generator(composition, templateEnv)
+        # if sleuth_alerts is not None and len(sleuth_alerts) > 0:
+        #    for sa in sleuth_alerts:
+        #        alert_contents.append(sa)
+
+        pathway_alerts = yield from self._web_pathway_alert_generator(composition, templateEnv)
+        alert_contents.append(pathway_alerts)
 
         ML.DEBUG("Generated %s Web Alerts" % len(alert_contents))
 
         return alert_contents
 
     @asyncio.coroutine
+    def _web_pathway_alert_generator(self, composition, templateEnv):
+
+        TEMPLATE_FILE = "pathway_alert.html"
+        # TEMPLATE3_FILE = "notification.js"
+        template = templateEnv.get_template(TEMPLATE_FILE)
+        # template3 = templateEnv.get_template(TEMPLATE3_FILE)
+        cost_alert = composition.get_alerts_by_type(type=ALERT_TYPES.PATHWAY)
+        templateVars = {"http_address": MC.http_addr,
+                        "encounter_id": urllib.parse.quote(composition.encounter.get_csn()),
+                        "patient_id": composition.subject.get_pat_id(),
+                        "user": composition.get_author_id(),
+                        "user_auth": composition.userAuth}
+        notification_body = template.render(templateVars)
+
+        return notification_body
+
+    @asyncio.coroutine
     def _web_cost_alert_generator(self, composition, templateEnv):
 
         TEMPLATE_FILE = "cost_alert.html"
-        TEMPLATE2_FILE = "cost_alert2.html"
-        TEMPLATE3_FILE = "notification.js"
+        # TEMPLATE2_FILE = "cost_alert2.html"
+        # TEMPLATE3_FILE = "notification.js"
         template = templateEnv.get_template(TEMPLATE_FILE)
-        template2 = templateEnv.get_template(TEMPLATE2_FILE)
-        template3 = templateEnv.get_template(TEMPLATE3_FILE)
+        # template2 = templateEnv.get_template(TEMPLATE2_FILE)
+        # template3 = templateEnv.get_template(TEMPLATE3_FILE)
         cost_alert = composition.get_alerts_by_type(type=ALERT_TYPES.COST)
         templateVars = self._generate_cost_alert_template_vars(composition)
         notification_body = template.render(templateVars)
