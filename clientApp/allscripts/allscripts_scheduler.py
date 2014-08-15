@@ -25,13 +25,16 @@ from collections import defaultdict
 import utils.web_client.allscripts_http_client as AHC
 import clientApp.module_webservice.notification_service as NS
 from maven_config import MavenConfig
-from utils.web_client.builder import builder
+import pickle
 from clientApp.module_webservice.composition_builder import CompositionBuilder
+from utils.streaming import stream_processor as SP
 import maven_logging as ML
 
 icd9_match = re.compile('\(V?[0-9]+(?:\.[0-9]+)?\)')
 
 CONFIG_API = 'api'
+
+ML.get_logger()
 
 
 class Types(Enum):
@@ -40,16 +43,18 @@ class Types(Enum):
     Unused1 = 3
 
 
-class scheduler():
+class scheduler(SP.StreamProcessor):
 
     def __init__(self, configname, messenger):
+        SP.StreamProcessor.__init__(self, MavenConfig[configname]['SP'])
         self.config = MavenConfig[configname]
         self.apiname = self.config[CONFIG_API]
         self.allscripts_api = AHC.allscripts_api(self.apiname)
         self.processed = set()
         self.lastday = None
         self.messenger = messenger
-        self.comp_builder = CompositionBuilder(self.config)
+        self.comp_builder = CompositionBuilder(configname)
+        self.wk = 2
 
     @asyncio.coroutine
     def get_updated_schedule(self):
@@ -105,6 +110,7 @@ class scheduler():
                         if not first:
                             start, stop = match.span()
                             composition = yield from self.comp_builder.build_composition("CLIFFHUX", patient)
+                            self.write_object(pickle.dumps([composition, "CLIFFHUX"]), self.wk)
                             self.messenger(patient, provider, keywords[start:stop])
                             break
                 # processed.update({doc['DocumentID'] for doc in documents})
