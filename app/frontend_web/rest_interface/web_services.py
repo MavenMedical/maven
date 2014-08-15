@@ -317,7 +317,6 @@ class FrontendWebService(HTTP.HTTPProcessor):
             user = str(user_info[WP.Results.userid])
             provider = user_info[WP.Results.provid]
             customer = str(user_info[WP.Results.customerid])
-            print([user, provider, customer])
             user_auth = AK.authorization_key([user, provider, customer],
                                              AUTH_LENGTH, LOGIN_TIMEOUT)
             if not self.stylesheet == 'original':
