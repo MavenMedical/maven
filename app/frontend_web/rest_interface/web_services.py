@@ -82,7 +82,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
         self.add_handler(['GET'], '/autocomplete_patient', self.get_autocomplete_patient)
         self.add_handler(['GET'], '/autocomplete_diagnosis', self.get_autocomplete_diagnosis)
         self.add_handler(['GET'], '/hist_spending', self.get_hist_spend)
-        self.helper = HH.HTTPHelper([CONTEXT_USER, CONTEXT_PROVIDER], CONTEXT_KEY, AUTH_LENGTH)
+        self.helper = HH.HTTPHelper([CONTEXT_USER, CONTEXT_PROVIDER,
+                                     CONTEXT_CUSTOMERID], CONTEXT_KEY, AUTH_LENGTH)
         self.persistence_interface = WP.WebPersistence(persistence_name)
 
     def schedule(self, loop):
@@ -154,7 +155,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         try:
             yield from self.persistence_interface.update_password(user, ret)
         except:
-            import tracebacknewPathName
+            import traceback
             traceback.print_exc()
             raise LoginError('expiredPassword')
 

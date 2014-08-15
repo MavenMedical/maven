@@ -1,4 +1,7 @@
+/* a backbone view for representing a single select list box for picking a cpt proc or snomed concept for use by a detail,
+   it is not used currently, as all details use the multiSelectSearch instead
 
+  */
 define([
     // These are path alias that we configured in our main.js
     'jquery',     // lib/jquery/jquery

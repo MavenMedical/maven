@@ -32,6 +32,11 @@ define([
 
     var NodeModel = Backbone.Model.extend({
         defaults: {hideChildren: "false"},
+        getNodeType: function(){
+
+          return "treeNode"
+        },
+
         initialize: function(params){
             this.set({text: params.text + " NODE"},{silent:true})
             if (!params.children){params.children = []}
@@ -39,6 +44,19 @@ define([
             this.set('name', params.name)
             this.set({protocol: params.protocol}, {silent:true})
             this.set({hideChildren: "false"}, {silent: true})
+
+
+        },
+        deleteNode: function(toDelete){
+            var that = this
+            _.each(this.get('children').models, function(cur){
+                if (cur == toDelete){
+                    that.get('children').remove(toDelete)
+                } else {
+                    cur.deleteNode(toDelete)
+                }
+            })
+
 
 
         },

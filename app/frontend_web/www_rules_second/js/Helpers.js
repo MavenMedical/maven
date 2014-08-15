@@ -34,7 +34,7 @@ define([
             'vitals'    : "Specify a constraint based on the patient's vitals",
             'vitals_bp' : "Specify a constraint based on the patient's blood pressure which allows for EITHER the systolic OR diastolic to be within a given range"
         },
-        notDetail: ['id', 'evidence','genders', 'minAge', 'maxAge', 'name', 'triggers', 'triggerType', 'sources', 'detID', 'conflicts']
+        notDetail: ['id', 'evidence','genders', 'minAge', 'maxAge', 'name', 'triggers', 'triggerType', 'sources', 'detID', 'conflicts', 'treeInfo']
     };
 
     return Helpers;

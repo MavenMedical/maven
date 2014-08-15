@@ -23,7 +23,7 @@ define([
         });
 
         contextModel.setUser('tom', 'pw', '#');
-         (new RuleList({el:$("#rule-list")})).render();
+        (new RuleList({el:$("#rule-list")})).render();
          new RuleOverview({el:$("#rule-overview")});
          new DetailOverview({el:$("#detail-list")});
          new TreeView({el:'#tree-view'});
