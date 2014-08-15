@@ -315,7 +315,7 @@
                                                 <div class="qualifier">
                                                     <!-- content & helping text -->
                                                     <span>Asymptomatic</span>
-                                                </div>
+                                                </div>fetch
                                             </li>
                                         </ul>
 
@@ -398,6 +398,7 @@
         function drawTree() {
 
         jsPlumb.repaint();
+            jsPlumb.reset()
 
             var nodeList = $('.qualifier', tree);
             $.each(nodeList, function (key, value) {
@@ -429,13 +430,6 @@
                 jsPlumb.connect({source:s, target:t});
             }
         }
-
-
-        $('span[data-toggle="tooltip"]').tooltip({
-            animated: 'fade',
-            placement: 'left',
-            container: 'body'
-        });
 
 
         jsPlumb.importDefaults({
@@ -476,6 +470,22 @@
 
         //jsPlumb.draggable($('#pathway-container'));
         $('#pathway-container').draggable();
+        $('#pathway-container').on('wheel', function(data){
+                    data.preventDefault()
+/*
+ */                    var re = /scale\((.*)\)/
+                     var n = that.treeEl[0].style.transform
+                     var result = re.exec(n)
+                     if (data.originalEvent.deltaY > 0){
+                         var newScale = result[1] -.05
+                     } else {
+                          var newScale = (result[1]-0) + .05
+
+                     }
+                     var scaleString = 'scale(' + newScale +')'
+                     that.treeEl.css({'transform': scaleString})
+
+                 })
 
 
         //repaint on drag

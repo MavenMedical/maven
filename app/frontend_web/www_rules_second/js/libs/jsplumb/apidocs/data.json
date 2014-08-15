@@ -3210,7 +3210,7 @@
             "line": 654,
             "description": "Removes all an element's Connections.",
             "itemtype": "method",
-            "name": "detachAllConnections",
+            "name": " detachAllConnections",
             "params": [
                 {
                     "name": "el",

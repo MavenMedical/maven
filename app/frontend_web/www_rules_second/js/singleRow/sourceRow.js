@@ -1,11 +1,10 @@
+/* a backbone view which displays a row of info about a evidence source
+    params:
+        model: the Backbone model representing the source to be displayed
+        parent: the Backbone Collection containing the source
 
-/***************************************************************************
- * Copyright (c) 2014 - Maven Medical
- * AUTHOR: 'Tom DuBois'
- * DESCRIPTION: This Javascript file handle a hierarchy of rulelist view
- *              so we can handle events easier.
- * 
- **************************************************************************/
+
+ */
 define([
     // These are path alias that we configured in our main.js
     'jquery',     // lib/jquery/jquery
@@ -23,15 +22,18 @@ define([
 	       'click .remove-button': 'handleRemove'
         },
         initialize: function(params){
+            //set the params
             this.model = params.model;
             this.parent = params.parent;
             this.template = _.template(params.template)
 
         },
         render: function(){
+            //render
             $(this.el).html(this.template(this.model.toJSON()));
             return this;
         },
+        //if the button is clicked remove the model from its parent
     	handleRemove: function() {
 
             this.parent.remove(this.model);
