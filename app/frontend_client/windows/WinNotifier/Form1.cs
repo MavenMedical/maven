@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Threading;
 
 namespace MavenAsDemo
 {
@@ -29,6 +30,7 @@ namespace MavenAsDemo
             }
             catch (System.Threading.ThreadAbortException ex)
             {
+                Program.LogMessage("frmAlert Exception: " + ex.Message);
                 this.Close();
                 this.Dispose();
             }
@@ -45,22 +47,22 @@ namespace MavenAsDemo
             imgAlertType.MouseUp += new MouseEventHandler(MouseUp);
            
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
-            //make the background transparent and whiteish so the white overlay is visible and the shadow appears to be ontop of white. 
-            //this.BackColor = System.Drawing.Color.Gray;
-            //this.TransparencyKey=System.Drawing.Color.Gray;
-            //go to the bottom right + 15px vertical 
             Rectangle workingArea = Screen.GetWorkingArea(this);
             this.Location = getLocation(loc);
             //keep this on top
             this.TopMost = true;
             timer.Interval = timerspeed;
             timer.Start();
+            //TODO: Get the html from the maven cloud
             string s = "<head><script language=\"JavaScript\">function jsfunction(strURL){window.open(strURL, \"_blank\",\"height=800 width=800 top=0 left=0 scrollbars=no titlebar=no\");} "
                  +"</script></head><body> "
                 + " 		 <p style=\"color:#443361;font-family:verdana, sans-serif; font-size:small\"> Patient matches an AUA Pathway.<br/> "
-                + " 		<a href=\"#\" onclick=\"jsfunction('"+url+"')\">Click</a> to view the pathway. </p>"
+                + " 		<a href=\"http://mavenmedical.net\" "
+                //onclick=\"jsfunction('"+url+"')\"
+            +">Click</a> to view the pathway. </p>"
                 +" </body></head>";
             browserDisplay.DocumentText = s;
+            browserDisplay.Navigating += browser_navigate;
         }
         /// <summary>
         /// On mouse enter of the form, reset the timer and become opaque
@@ -166,6 +168,20 @@ namespace MavenAsDemo
                     break;
             }
             return new Point(h,v);
+        }
+        private void browser_navigate(object sender, WebBrowserNavigatingEventArgs e)
+        {
+            Program.url= e.Url.AbsoluteUri;
+            ThreadStart ts = new ThreadStart(launchHardAlert);
+            Thread t = new Thread(ts);
+            t.SetApartmentState(ApartmentState.STA);
+            t.Start();
+            this.Visible = false;
+            this.Close();
+        }
+        private void launchHardAlert()
+        {
+            Program.ShowAlertForm(Program.AlertMode.deskHard);
         }
     }
 }

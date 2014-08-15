@@ -29,29 +29,43 @@ import utils.web_client.http_client as http
 import utils.web_client.allscripts_http_client as AHC
 from utils.web_client.builder import builder
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
+from utils.database.memory_cache import MemoryCache
 
 
-COMP_BUILD_LOG = ML.get_logger('clientApp.module_webservice.composition_builder')
+COMP_BUILD_LOG = ML.get_logger()
 CONFIG_API = 'api'
 
 
 class Types(Enum):
     Patient = 1
     ClinicalSummary = 2
+    Practitioners = 3
+    Practitioner = 4
 
 
 class CompositionBuilder(builder):
 
-    def __init__(self, configname):
+    def __init__(self, config):
         builder.__init__(self)
-        self.config = MavenConfig[configname]
+        self.config = config
         apiname = self.config[CONFIG_API]
         self.allscripts_api = AHC.allscripts_api(apiname)
+        self.provs = {}
+#        provs = yield from self.build_practitioners()
+#        self.providers = yield from self.build_practitioners()
 
     @builder.build(FHIR_API.Composition)
     def build_composition(self, obj, username, patient):
-        print(json.dumps(FHIR_API.remove_none(json.loads(json.dumps(obj, default=FHIR_API.jdefault))), default=FHIR_API.jdefault, indent=4))
+        obj.author.append(self.provs[username])
+        ML.DEBUG(json.dumps(FHIR_API.remove_none(json.loads(json.dumps(obj, default=FHIR_API.jdefault))), default=FHIR_API.jdefault, indent=4))
         return obj
+
+    @builder.provide(Types.Practitioners)
+    def _practitioners(self, username, patient):
+        ret = yield from self.allscripts_api.GetProviders(username=username)
+        for prov in ret:
+            self.provs[prov['UserName']] = self._build_partial_practitioner(prov)
+        return [{prov['EntryCode']: self._build_partial_practitioner(prov)} for prov in ret]
 
     @builder.provide(Types.Patient)
     def _patient(self, username, patient):
@@ -63,15 +77,8 @@ class CompositionBuilder(builder):
         ret = yield from self.allscripts_api.GetClinicalSummary(username, patient, AHC.CLINICAL_SUMMARY.All)
         return ret
 
-    """
-    @builder.provide(Types.Practitioner)
-    def _practitioner(self, username, prov_id):
-        ret = yield from self.allscripts_api.GetProvider(username, prov_id)
-        return ret
-    """
-
-    @builder.require(Types.Patient, Types.ClinicalSummary)
-    def _build_composition_components(self, composition, patient_result, clin_summary_result):
+    @builder.require(Types.Patient, Types.ClinicalSummary, Types.Practitioners)
+    def _build_composition_components(self, composition, patient_result, clin_summary_result, practitioners_result):
 
         # Create the FHIR Composition Object with a Type=LOINC coded version of
         # Virtual Medical Record for Clinical Decision Support ("74028-2") and append to the FHIR Bundle's Entries
@@ -134,7 +141,7 @@ class CompositionBuilder(builder):
 
             # Figure out whether it's a Problem List/Encounter Dx, or Past Medical History
             # Parsing this string 'Promoted: Yes'
-            if problem['detail'].replace(" ", "").split(":")[1] == "Yes":
+            if len(problem['detail']) > 0 and problem['detail'].replace(" ", "").split(":")[1] == "Yes":
                 fhir_condition.category = "Encounter"
             else:
                 fhir_condition.category = "History"
@@ -150,13 +157,36 @@ class CompositionBuilder(builder):
                                                                                        code=code,
                                                                                        display=problem['description'])])
             else:
-                COMP_BUILD_LOG.WARN("Diagnosis Dx not identified for %s" % problem)
+                ML.PRINT("Diagnosis Dx not identified for %s" % problem)
 
             fhir_dx_section.content.append(fhir_condition)
 
         return fhir_dx_section
 
-    def _build_practitioner(self, get_provider_result):
+    def _build_partial_practitioner(self, provider_result):
+
+        # Extract the demographic information
+        firstname = provider_result['FirstName']
+        lastname = provider_result['LastName']
+
+        specialty = provider_result['PrimSpecialty']
+
+        # Create clientEMR Internal Identifier
+        fhir_identifiers = [FHIR_API.Identifier(system="clientEMR",
+                                                label="Internal",
+                                                value=provider_result['EntryCode']),
+                            FHIR_API.Identifier(system="clientEMR",
+                                                label="Username",
+                                                value=provider_result['UserName'])]
+
+        # Instantiate and build the FHIR Practitioner from the data
+        fhir_practitioner = FHIR_API.Practitioner(identifier=fhir_identifiers,
+                                                  name=FHIR_API.HumanName(given=[firstname],
+                                                                          family=[lastname]),
+                                                  specialty=[specialty])
+        return fhir_practitioner
+
+    def _build_full_practitioner(self, get_provider_result):
 
         # Extract the demographic information
         firstname = get_provider_result['FirstName']
@@ -222,6 +252,6 @@ if __name__ == '__main__':
 
     MavenConfig['scheduler'] = {CONFIG_API: 'allscripts_demo'}
 
-    comp_builder = CompositionBuilder('scheduler')
+    comp_builder = CompositionBuilder(MavenConfig['scheduler'])
     loop = asyncio.get_event_loop()
-    print(loop.run_until_complete(comp_builder.build_composition("CliffHux", "66556")))
+    print(loop.run_until_complete(comp_builder.build_composition("CLIFFHUX", "66556")))

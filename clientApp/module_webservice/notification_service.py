@@ -41,13 +41,13 @@ class NotificationService(HR.HTTPProcessor):
                 ret.append(queue.get_nowait())
         except:
             pass
-        return (HR.OK_RESPONSE, json.dumps([self._convert_message(x) for x in ret]), None)
+        return (HR.OK_RESPONSE, json.dumps(ret), None)
 
     @asyncio.coroutine
     def get_post(self, _header, _body, qs, _matches, _key):
         key = qs[QS_KEY][0]
         message = qs['message'][0]
-        self.send_messages(key, [message])
+        self.send_messages(key, [self._convert_message(message)])
         return (HR.OK_RESPONSE, b'', None)
 
     def _convert_message(self, message):
@@ -68,6 +68,7 @@ class NotificationService(HR.HTTPProcessor):
             if messages:
                 for message in messages:
                     self.message_queues[key].put_nowait(message)
+                    print('new queue size is ' + str(self.message_queues[key].qsize()))
             return True
         else:
             return False
@@ -77,9 +78,9 @@ if __name__ == '__main__':
         'notificationserver':
         {
             SP.CONFIG_HOST: 'localhost',
-            SP.CONFIG_PORT: 8091,
+            SP.CONFIG_PORT: 8092,
             SP.CONFIG_PARSERTIMEOUT: 120,
-            CONFIG_QUEUEDELAY: 10,
+            CONFIG_QUEUEDELAY: 30,
         },
     }
 

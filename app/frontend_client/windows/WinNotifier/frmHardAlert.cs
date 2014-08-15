@@ -35,6 +35,7 @@ namespace MavenAsDemo
             mover.MouseUp += MouseUp;
             mover.MouseMove += MouseMove; 
             this.Location = getLocation(loc);
+            this.TopMost = true;
         }
         private void pictureBox1_Click(object sender, EventArgs e)
         {
@@ -45,12 +46,25 @@ namespace MavenAsDemo
         private void timer_Tick(object sender, EventArgs e)
         {
             tix += 1;
+            this.TopMost = true;
             //automatically close out after 5 minutes. 
             //this is the case where the user doesnt close out, but just puts it behind  his EMR screen. 
             if (tix == 300)
             {
                 this.Close();
                 this.Dispose();
+            }
+            string dtxt=browserDisplay.DocumentText;
+            string clipelem = "<div id=\"copiedText\">";
+            //string clipelem = "<div class=\"col-md-9\">";
+            if (dtxt.Contains(clipelem))
+            {
+                string[] splitter = { clipelem };
+                string copytext = dtxt.Split(splitter,StringSplitOptions.None)[1];
+                int len = copytext.IndexOf("</div>");
+                copytext = copytext.Substring(0, len);
+                Clipboard.SetText(copytext);
+                browserDisplay.DocumentText = dtxt.Replace(clipelem+copytext+"</div>", "");
             }
         }
 

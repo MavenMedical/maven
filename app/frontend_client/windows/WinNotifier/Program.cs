@@ -4,23 +4,22 @@ using System.Threading;
 using System.Windows.Forms;
 using System.Data;
 using System.Text.RegularExpressions;
+using System.Net;
+using System.IO;
 
 namespace MavenAsDemo
 {
     static class Program
     {
-        public static string serviceUser = "MavenPathways";
-        public static string servicePwd = "MavenPathways123!!";
-        public static string appName = "MavenPathways.TestApp";
-        public static string token = "";
-        public static string appUserName = "cliffhux";
-        public static DataTable quietlist = new DataTable();
+        //TODO: Move all of this stuff to a settings object
+        
         public static int priorityThreadId = 0;
         public static AlertMode mode = AlertMode.deskSoft;
         public static double fadeSlowness = 3;
         public static string location = "BR";
-        public static string url = "http://mavenmedical.net";
+        public static string url = "https://23.251.150.28/broadcaster/poll?key=";
         public static bool continueOn = true;
+        public static byte[] EncryptedKey = null;
 
         /// <summary>
         /// The main entry point for the application.
@@ -28,20 +27,30 @@ namespace MavenAsDemo
         [STAThread]
         static void Main()
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            prepQuietList();
-            ThreadStart startTray = new ThreadStart(prepTray);
-            Thread traythread = new Thread(startTray);
-            traythread.Start();
-            Thread t=JobOffPollingThread();
-            //stay alive until polling dies
-            while (t.IsAlive && continueOn)
+            try
             {
-                Thread.Sleep(5000);
+                Application.SetCompatibleTextRenderingDefault(false);
+                EncryptedKey = Authenticator.GetEncryptedAuthKey();
+                Application.EnableVisualStyles();
+                ThreadStart startTray = new ThreadStart(prepTray);
+                Thread traythread = new Thread(startTray);
+                traythread.Start();
+                Thread t = JobOffPollingThread();
+                //stay alive until polling dies
+                while (t.IsAlive && continueOn)
+                {
+                    Thread.Sleep(5000);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessage("Main Program Exception: " + ex.Message);
+                //you've just failed at the highest possible level
+                //kill yourself
+                CommitSuicide(null, null);
             }
         }
-
+        
         public static void JobOffAlertThread()
         {
             ThreadStart start = new ThreadStart(ShowAlertForm);
@@ -61,7 +70,24 @@ namespace MavenAsDemo
             thrd.Start();
             return thrd;
         }
-        public static void ShowAlertForm()
+        public static void ShowAlertForm(AlertMode m)
+        {
+            if (m == AlertMode.combo || m == AlertMode.deskSoft)
+            {
+                frmAlert frm = new frmAlert(fadeSlowness, location, url);
+                frm.ShowInTaskbar = false;
+                frm.Visible = true;
+                Application.Run(frm);
+            }
+            else if (m == AlertMode.deskHard)
+            {
+                frmHardAlert frm = new frmHardAlert(url,location);
+                frm.ShowInTaskbar = false;
+                frm.Visible = true;
+                Application.Run(frm);
+            }
+        }
+        private static void ShowAlertForm()
         {
             if (mode == AlertMode.combo || mode == AlertMode.deskSoft)
             {
@@ -72,7 +98,7 @@ namespace MavenAsDemo
             }
             else if (mode == AlertMode.deskHard)
             {
-                frmHardAlert frm = new frmHardAlert(url,location);
+                frmHardAlert frm = new frmHardAlert(url, location);
                 frm.ShowInTaskbar = false;
                 frm.Visible = true;
                 Application.Run(frm);
@@ -119,8 +145,11 @@ namespace MavenAsDemo
             MenuItem itm6 = new MenuItem("Replay Last Alert", DummyAlert);
             ctx.MenuItems.Add(itm6);
 
-            MenuItem itmClose = new MenuItem("Exit Maven Tray", CloseOut);
+            MenuItem itmClose = new MenuItem("Exit Maven Tray", CommitSuicide);
             ctx.MenuItems.Add(itmClose);
+
+            MenuItem itmLogOut = new MenuItem("Log Out", LogOut);
+            ctx.MenuItems.Add(itmLogOut);
 
             tray.ContextMenu = ctx;
             tray.Visible = true;
@@ -129,64 +158,41 @@ namespace MavenAsDemo
         public static void startPolling()
         {
 
-            Unity.UnityServiceClient unitySvc = new Unity.UnityServiceClient();
-            try
+            ServicePointManager.ServerCertificateValidationCallback = new System.Net.Security.RemoteCertificateValidationCallback(AcceptAllCertifications);
+            while (continueOn)
             {
-                //get a token and write it to the console
-                token = unitySvc.GetSecurityToken(serviceUser, servicePwd);
-                Console.WriteLine(token);
-                while (true) //loop forever 
+                try
                 {
-                    DateTime Today = DateTime.Now;
-                    //string strToday = Today.ToString("yyyy-MM-dd");
-                    string strToday = Today.ToString("dd-MMM-yyyy");
-                    DataSet ds = getSchedule(strToday);
-                    DataTableReader reader = ds.CreateDataReader();
-                    int i = 1;
-                    while (reader.Read())
+                    WebRequest rqst = WebRequest.Create("https://23.251.150.28/broadcaster/poll?key=" + WindowsDPAPI.Decrypt(EncryptedKey));
+                    rqst.Timeout = 60000;
+                    HttpWebResponse rsp = (HttpWebResponse)rqst.GetResponse();
+                    HttpStatusCode status = rsp.StatusCode;
+                    if (status == HttpStatusCode.OK)
                     {
-                        string patId = reader.GetString(15);
-                        DataSet docDs = getDocuments(patId, strToday);
-                        //DumpToConsole(docDs);
-                        DataTableReader docreader = docDs.CreateDataReader();
-                        while (docreader.Read())
+                        Stream dataStream = rsp.GetResponseStream();
+                        StreamReader reader = new StreamReader(dataStream);
+                        string responseFromServer = reader.ReadToEnd();
+                        if (responseFromServer != "[]")
                         {
-                            string documentId = docreader.GetString(0);
-                            string keywords = docreader.GetString(10);
-                            string icd9 = getIcdFromKeywords(keywords);
-                            DateTime filedt = Convert.ToDateTime(docreader.GetString(2));
-                            double timeSinceCreate = DateTime.Now.Subtract(filedt).TotalSeconds;
-                            bool mine = docreader.GetString(9) == "Y";
-                            //if you got in in the past 20 minutes 
-                            //and the diagnosis is there and this is indeed your note
-                            // check the quiet list and then continue with alerting logic if you're good  to go
-                            if (icd9.Length > 0 && timeSinceCreate < 1200 && isEnabled(documentId))
-                            {
-                                alert(documentId,patId,"http://mavenmedical.net");
-                            }
+                            string alertUrl = responseFromServer.Split(',')[0].Replace("[{\"LINK\": \"", "").Replace("\"", "");
+                            alert("1", "66556", alertUrl);
                         }
                     }
-                    //Console.WriteLine(strToday);
-                    //Console.ReadLine();
-                    System.Threading.Thread.Sleep(2000);
+                }
+                catch (Exception e)
+                {
+                    LogMessage(e.Message);
                 }
             }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-                Console.ReadLine();
-            }
+            
+        }
+        public static bool AcceptAllCertifications(object sender, System.Security.Cryptography.X509Certificates.X509Certificate certification, System.Security.Cryptography.X509Certificates.X509Chain chain, System.Net.Security.SslPolicyErrors sslPolicyErrors)
+        {
+            return true;
         }
         public static void alert(string documentId,string patId, string inUrl)
         {
-            DataRow row = quietlist.NewRow();
-            row["documentId"] = documentId;
-            url = inUrl;
-            try
-            {
-                quietlist.Rows.Add(row);
-            }
-            catch { }
+           
             //Console.WriteLine("Alert now!");
             if (mode == AlertMode.deskSoft || mode == AlertMode.deskHard || mode == AlertMode.combo)
             {
@@ -201,77 +207,12 @@ namespace MavenAsDemo
                 mail(patId);
             }
         }
-        public static bool isEnabled(string documentId)
-        {
-            bool rtn = true;
-            DataRow[] dr = quietlist.Select("documentId=" + documentId);
-            if (dr.Length > 0)
-            {
-                rtn = false;
-            }
-            return rtn;
-
-        }
-        public static void prepQuietList()
-        {
-            quietlist.Columns.Add("documentId");
-            quietlist.PrimaryKey = new DataColumn[] { quietlist.Columns["documentId"] };
-
-        }
-        public static DataSet getSchedule(string day)
-        {
-            Unity.UnityServiceClient unitySvc = new Unity.UnityServiceClient();
-            return unitySvc.Magic("GetSchedule",       // Action    
-                                     appUserName,            // UserID    
-                                     appName,                // Appname   
-                                     "",                     // PatientID 
-                                     token,                  // Token     
-                                     day,   // Parameter1 @SINCE
-                                     "",                     // Parameter2
-                                     "",                     // Parameter3
-                                     "",                     // Parameter4
-                                     "",                     // Parameter5
-                                     "",                     // Parameter6
-                                     null);                  // data                // data    
-        }
         public static string getIcdFromKeywords(string keywords)
         {
             string pattern = @"\(V?\d+\.?\d*\)";
             Regex rex = new Regex(pattern);
             Match m = rex.Match(keywords);
             return m.Value.Replace("(", "").Replace(")", "");
-        }
-        public static DataSet getDocuments(string pat, string day)
-        {
-            Unity.UnityServiceClient unitySvc = new Unity.UnityServiceClient();
-            return unitySvc.Magic("GetDocuments",       // Action    
-                                     appUserName,            // UserID    
-                                     appName,                // Appname   
-                                     pat,                     // PatientID 
-                                     token,                  // Token     
-                                     day,   // Parameter1 @SINCE
-                                     day,                     // Parameter2
-                                     "",                     // Parameter3
-                                     "",                     // Parameter4
-                                     "",                     // Parameter5
-                                     "",                     // Parameter6
-                                     null);                  // data                // data    
-        }
-        public static DataSet getPatientsBySomething(string strSince)
-        {
-            Unity.UnityServiceClient unitySvc = new Unity.UnityServiceClient();
-            return unitySvc.Magic("GetPatientsBySomething",       // Action    
-                                     appUserName,            // UserID    
-                                     appName,                // Appname   
-                                     "",                     // PatientID 
-                                     token,                  // Token     
-                                     "VisitType",   // Parameter1 @SINCE
-                                     "Outpatient",                     // Parameter2
-                                     strSince,                     // Parameter3
-                                     "",                     // Parameter4
-                                     "",                     // Parameter5
-                                     "",                     // Parameter6
-                                     null);                  // data    
         }
         /// <summary>
         /// Just saving off some useful stuff to dump an entire row to the console
@@ -331,7 +272,7 @@ namespace MavenAsDemo
             {
                 fadeSlowness = Convert.ToDouble(itm.Text);
             }
-            catch { }
+            catch { LogMessage("An invalid menu option was selected for the fade slowness."); }
         }
         static void LocationClick(object sender, EventArgs e)
         {
@@ -364,15 +305,20 @@ namespace MavenAsDemo
         }
         static void mail(string patId)
         {
+            string serviceUser = "MavenPathways";
+            string servicePwd = "MavenPathways123!!";
+            string appName = "MavenPathways.TestApp";
+            string appUserName = "cliffhux";
             string namepro=getPatientNameAndPronoun(patId);
             string name=namepro.Split('|')[0];
             string pronoun=namepro.Split('|')[1];
-            Unity.UnityServiceClient unitySvc = new Unity.UnityServiceClient();
-            DataSet ds = unitySvc.Magic("SaveTask",       // Action    
+            Unity.UnityServiceClient mailsvc = new Unity.UnityServiceClient();
+            string mailtoken = mailsvc.GetSecurityToken(serviceUser, servicePwd);
+            DataSet ds = mailsvc.Magic("SaveTask",       // Action    
                                      appUserName,            // UserID    
                                      appName,                // Appname   
                                      patId,                     // PatientID 
-                                     token,                  // Token     
+                                     mailtoken,                  // Token     
                                      "Send Chart",   // Parameter1 @SINCE
                                      appUserName,                     // Parameter2
                                      "",                     // Parameter3
@@ -383,7 +329,12 @@ namespace MavenAsDemo
         }
         static string getPatientNameAndPronoun(string patId)
         {
+            string serviceUser = "MavenPathways";
+            string servicePwd = "MavenPathways123!!";
+            string appName = "MavenPathways.TestApp";
+            string appUserName = "cliffhux";
             Unity.UnityServiceClient unitySvc = new Unity.UnityServiceClient();
+            string token = unitySvc.GetSecurityToken(serviceUser, servicePwd);
             DataSet ds = unitySvc.Magic("GetPatient",       // Action    
                                      appUserName,            // UserID    
                                      appName,                // Appname   
@@ -411,11 +362,24 @@ namespace MavenAsDemo
             catch { }
             return name + "|" + pronoun;
         }
-        static void CloseOut(object sender, EventArgs e)
+        static void CommitSuicide(object sender, EventArgs e)
         {
-            continueOn = false;
-            Application.Exit();
+            try
+            {
+                continueOn = false;
+                Application.Exit();
+            }
+            catch { }
            
+        }
+        static void LogOut(object sender, EventArgs e)
+        {
+            Authenticator.ClearLoginSettings();
+            CommitSuicide(null, null);
+        }
+        public static void LogMessage(string msg)
+        {
+                    System.Diagnostics.EventLog.WriteEntry("MavenDesktop",msg,System.Diagnostics.EventLogEntryType.Error);
         }
     }
 }
