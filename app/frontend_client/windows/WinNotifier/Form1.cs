@@ -57,7 +57,7 @@ namespace MavenAsDemo
             string s = "<head><script language=\"JavaScript\">function jsfunction(strURL){window.open(strURL, \"_blank\",\"height=800 width=800 top=0 left=0 scrollbars=no titlebar=no\");} "
                  +"</script></head><body> "
                 + " 		 <p style=\"color:#443361;font-family:verdana, sans-serif; font-size:small\"> Patient matches an AUA Pathway.<br/> "
-                + " 		<a href=\"http://mavenmedical.net\" "
+                + " 		<a href=\"https://onedrive.live.com/view.aspx?cid=FFF6838D9AE151C8&resid=FFF6838D9AE151C8%219693&app=PowerPoint\" "
                 //onclick=\"jsfunction('"+url+"')\"
             +">Click</a> to view the pathway. </p>"
                 +" </body></head>";

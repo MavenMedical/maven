@@ -6,6 +6,7 @@ using System.Data;
 using System.Text.RegularExpressions;
 using System.Net;
 using System.IO;
+using System.Diagnostics;
 
 namespace MavenAsDemo
 {
@@ -17,9 +18,10 @@ namespace MavenAsDemo
         public static AlertMode mode = AlertMode.deskSoft;
         public static double fadeSlowness = 3;
         public static string location = "BR";
-        public static string url = "https://23.251.150.28/broadcaster/poll?key=";
+        public static string url = "https://onedrive.live.com/view.aspx?cid=FFF6838D9AE151C8&resid=FFF6838D9AE151C8%219693&app=PowerPoint";
         public static bool continueOn = true;
         public static byte[] EncryptedKey = null;
+        public static string pollingServer = "162.222.177.174";
 
         /// <summary>
         /// The main entry point for the application.
@@ -107,7 +109,10 @@ namespace MavenAsDemo
         public static void prepTray()
         {
             NotifyIcon tray = new NotifyIcon();
-            tray.Icon = new System.Drawing.Icon("Maven256.ico");
+            //note that Maven.ico needs to be packaged up with the installer
+            string iconpath = System.IO.Path.GetDirectoryName(Application.ExecutablePath)+"\\Maven.ico";
+            //MessageBox.Show(iconpath);
+            tray.Icon = new System.Drawing.Icon(iconpath);
             ContextMenu ctx = new ContextMenu();
 
             MenuItem modeitm = new MenuItem("Alert Mode");
@@ -163,7 +168,7 @@ namespace MavenAsDemo
             {
                 try
                 {
-                    WebRequest rqst = WebRequest.Create("https://23.251.150.28/broadcaster/poll?key=" + WindowsDPAPI.Decrypt(EncryptedKey));
+                    WebRequest rqst = WebRequest.Create("http://"+pollingServer+"/broadcaster/poll?key=" + WindowsDPAPI.Decrypt(EncryptedKey));
                     rqst.Timeout = 60000;
                     HttpWebResponse rsp = (HttpWebResponse)rqst.GetResponse();
                     HttpStatusCode status = rsp.StatusCode;
@@ -379,7 +384,18 @@ namespace MavenAsDemo
         }
         public static void LogMessage(string msg)
         {
-                    System.Diagnostics.EventLog.WriteEntry("MavenDesktop",msg,System.Diagnostics.EventLogEntryType.Error);
+            try
+            {
+                //HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\eventlog\Application\MavenDesktop must exist  
+                //Created during install
+                EventLog el = new EventLog("Application");
+                el.Source="MavenDesktop";
+                el.WriteEntry( msg, System.Diagnostics.EventLogEntryType.Error);
+            }
+            catch (Exception ex)
+                {
+                    //TODO: Call this function recursively if writing to the error log fails. Just kidding...
+                }
         }
     }
 }
