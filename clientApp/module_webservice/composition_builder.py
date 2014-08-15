@@ -45,9 +45,9 @@ class Types(Enum):
 
 class CompositionBuilder(builder):
 
-    def __init__(self, config):
+    def __init__(self, configname):
         builder.__init__(self)
-        self.config = config
+        self.config = MavenConfig[configname]
         apiname = self.config[CONFIG_API]
         self.allscripts_api = AHC.allscripts_api(apiname)
         self.provs = {}
@@ -62,6 +62,7 @@ class CompositionBuilder(builder):
 
     @builder.provide(Types.Practitioners)
     def _practitioners(self, username, patient):
+        # TODO - MemoryCache timeout=3600s
         ret = yield from self.allscripts_api.GetProviders(username=username)
         for prov in ret:
             self.provs[prov['UserName']] = self._build_partial_practitioner(prov)

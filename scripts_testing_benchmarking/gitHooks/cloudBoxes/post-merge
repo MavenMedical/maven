@@ -1,32 +1,35 @@
-#All machines should copy this to their .git/hooks directory
-#the following line (uncommented, of course) should be in your pg_hba.conf file to ensure this script will work
-#local   all     postgres        trust
+#!/bin/bash
+
+cd $MAVEN_ROOT
 UPDATESSQL=../schema_updates.sql
 UPDATESLOG=../schema_updates.log
-if [ ! -f $UPDATESSQL ]; then
-   touch $UPDATESSQL
-fi
-if [ ! -f $UPDATESLOG ]; then
-   touch $UPDATESLOG
-fi
-
-for f in `git diff-tree -r --name-only HEAD ORIG_HEAD app/schema/updates/schema app/schema/updates/data | sort -n`; do
-  echo $f
-  if grep "SUCCEEDED: $f" $UPDATESLOG; then
-    echo $f already succeeded in log, did someone update the file - which should not happen
+for f in `find app/schema/updates/schema -name "*.sql"| sort -n` `find app/schema/updates/data -name "*.sql"| sort -n`; do
+  if grep -q "SUCCEEDED: $f" $UPDATESLOG; then
+    echo $f succeeded in log
   else
-  echo "------------------`date`---------------">>$UPDATESSQL
-  echo "------------------$f------------------">>$UPDATESSQL
-  echo "------------------`date`---------------">>$UPDATESLOG
-  echo "------------------$f---------------">>$UPDATESLOG
-  psql maven -U postgres -v ON_ERROR_STOP=1 -w -f $f >> $UPDATESLOG 2>&1
-  if [ $? -eq 0 ]; then
-    cat $f>>$UPDATESSQL
-    echo ------------------SUCCEEDED: $f------->>$UPDATESLOG
-  else
-    echo FAILED on $f
-    echo ------------------FAILED: $f------->>$UPDATESLOG
-  fi
+    if grep -q "FAILED: $f" $UPDATESLOG; then
+      echo $f previously failed?
+      read -p "skip it (y/n)? " -n 1 -r
+      echo
+      if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+        echo skipping $f
+        continue
+      else
+        exit 1
+      fi
+    fi
+    echo "------------------`date`---------------">>$UPDATESSQL
+    echo "------------------$f------------------">>$UPDATESSQL
+    echo "M-----------------`date`---------------">>$UPDATESLOG
+    echo "M-----------------$f---------------">>$UPDATESLOG
+    psql maven  -v ON_ERROR_STOP=1 "`cat ~/.postgresql/command-line-connect`" -f $f >> $UPDATESLOG 2>&1
+    if [ $? -eq 0 ]; then
+      cat $f>>$UPDATESSQL
+      echo M-----------------SUCCEEDED: $f------->>$UPDATESLOG
+    else
+      echo FAILED on $f
+      echo M-----------------FAILED: $f------->>$UPDATESLOG
+    fi
   fi
 done
 

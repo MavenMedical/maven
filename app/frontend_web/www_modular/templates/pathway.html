@@ -153,7 +153,7 @@
         }
 
         .children {
-            display: none;
+           display: none;
         }
 
         /*Time for some hover effects*/
@@ -209,13 +209,13 @@
             <div class="tree">
                 <ul>
                     <li class='parent'>
-                        <div id="n1" class="qualifier">
+                        <div id="n1" class="qualifier" style="visibility: visible">
                             <!-- content & helping text -->
                             <span>CRPC</span>
                         </div>
                         <ul class="children">
                             <li class='parent'>
-                                <div class="qualifier">
+                                <div class="qualifier" style="visibility: visible">
                                     <!-- content & helping text -->
                                     <span data-toggle="tooltip" title="This patient has mCRPC">Metastatic</span>
                                 </div>
@@ -339,13 +339,13 @@
 
     </div>
 
-
+<!--
     <div class="row">
         <div class="col-md-12">
             <hr>
         </div>
     </div>
-
+-->
 
     <script type="text/javascript">
 
@@ -389,12 +389,24 @@
         }
 
         var tree = $('.tree');
+
+        $(".qualifier").bind("show", function(){
+    alert(this);
+});
+
+        $('.qualifier', tree).on('isVisible', function (self) {
+            alert('tree');
+        });
+
+
+
         $('.qualifier', tree).on('click', function (self) {
-            console.log('on event');
             var parent = (self.currentTarget.parentNode)
             $('.children', parent).first().toggle()
             drawTree();
         });
+
+
         function drawTree() {
 
         jsPlumb.repaint();
@@ -402,19 +414,14 @@
 
             var nodeList = $('.qualifier', tree);
             $.each(nodeList, function (key, value) {
-                console.log(value);
                 var s = jsPlumb.addEndpoint(value, {anchor: 'Bottom'});
                 var parent = (value.parentNode);
                 var child = $('.children', parent).first();
-                console.log('child', child);
                 if (child[0]) {
-                    console.log('child[0]', child[0].children);
                     var children = child[0].children;
                     $.each(children, function (key2, value2) {
-                        console.log("val2", value2);
                         var targetDiv = $('.qualifier', value2).first(); //top endpiont
                         var t = jsPlumb.addEndpoint(targetDiv, {anchor: 'Top'})
-
                          if(($(value).is(":visible")) && ($(targetDiv).is(":visible"))){
                         jsPlumb.connect({source: s, target: t});
                          }
@@ -486,13 +493,5 @@
                      that.treeEl.css({'transform': scaleString})
 
                  })
-
-
-        //repaint on drag
-        $('#pathway-container').on('mousedown', function(e){
-            //console.log('dragging');
-            jsPlumb.repaint();
-
-        });
 
     </script>
