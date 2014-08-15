@@ -144,6 +144,9 @@ def write_composition_conditions(composition, conn):
 @ML.coroutine_trace(timing=True, write=FHIR_DB_LOG.debug)
 def write_composition_encounter_orders(composition, conn):
     try:
+        if composition.get_encounter_orders() is None:
+            return
+
         for order in [(order) for order in composition.get_encounter_orders() if isinstance(order.detail[0], (FHIR_API.Medication, FHIR_API.Procedure))]:
             yield from write_composition_encounter_order(order, composition, conn)
     except:
