@@ -5,6 +5,7 @@
 
         #pathway-container {
             position: relative;
+            transform: scale(1)
 
         }
 
@@ -204,7 +205,7 @@
             CRPC Pathway
         </span>
 
-        <div id="pathway-container" style="width: 2000px">
+        <div id="pathway-container" style="transform: scale(1); width: 2000px">
 
             <div class="tree">
                 <ul>
@@ -476,13 +477,16 @@
         });
 
         //jsPlumb.draggable($('#pathway-container'));
-        $('#pathway-container').draggable();
+    //    $('#pathway-container').draggable();
         $('#pathway-container').on('wheel', function(data){
                     data.preventDefault()
 /*
- */                    var re = /scale\((.*)\)/
-                     var n = that.treeEl[0].style.transform
+ */                  var re = /scale\((.*)\)/
+
+                     var n = $('#pathway-container')[0].style.transform
                      var result = re.exec(n)
+                     console.log(result)
+
                      if (data.originalEvent.deltaY > 0){
                          var newScale = result[1] -.05
                      } else {
@@ -490,7 +494,7 @@
 
                      }
                      var scaleString = 'scale(' + newScale +')'
-                     that.treeEl.css({'transform': scaleString})
+                     $('#pathway-container').css({'transform': scaleString})
 
                  })
 
