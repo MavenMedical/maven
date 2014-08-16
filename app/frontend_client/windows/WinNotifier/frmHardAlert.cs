@@ -12,12 +12,22 @@ namespace MavenAsDemo
 {
     public partial class frmHardAlert : Form
     {
-        public int tix=0;
-        public string url = "http://mavenmedical.net";
-        public string loc = "TL";
-        public Point downPoint=Point.Empty;
-        public bool moveForm = false;
+        //the number of ticks of the timer
+        private int tix=0;
+        //a url to go to 
+        private string url = "http://mavenmedical.net";
+        //a valid string indicating where the form should render. 
+        private string loc = "TL";
+        //a point representing the upper left of the form
+        private Point downPoint=Point.Empty;
+        //a boolean to specify if the form should be moving
+        private bool moveForm = false;
 
+        /// <summary>
+        /// Call to show the form
+        /// </summary>
+        /// <param name="inUrl">where do you want to send the browser</param>
+        /// <param name="location">the string representing where on the screen this should go. See Program.cs for more info on this string.</param>
         public frmHardAlert(string inUrl, string location)
         {
             loc = location;
@@ -27,22 +37,36 @@ namespace MavenAsDemo
 
         private void frmHardAlert_Load(object sender, EventArgs e)
         {
+            //timer ticks every second
             timer.Interval = 1000;
-            timer.Start();
+            timer.Start(); //go
+            //navigate to where the user should go
             browserDisplay.Navigate(url);
+            //disable the scrollbars
             browserDisplay.ScrollBarsEnabled = false;
+            //make the form movable my grabbing the mover
             mover.MouseDown += MouseDown;
             mover.MouseUp += MouseUp;
             mover.MouseMove += MouseMove; 
+            //put the form at the right part of the screen and keep it on top
             this.Location = getLocation(loc);
             this.TopMost = true;
         }
+        /// <summary>
+        /// Close out on clicking the x
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void pictureBox1_Click(object sender, EventArgs e)
         {
             this.Close();
             this.Dispose();
         }
-
+        /// <summary>
+        /// Do some stuff asynchronously on timer ticks. (Like keeping track of whether we should close out. And managing the clipboard)
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void timer_Tick(object sender, EventArgs e)
         {
             tix += 1;
@@ -54,9 +78,9 @@ namespace MavenAsDemo
                 this.Close();
                 this.Dispose();
             }
+            //Take the clipboard text and get it to the clipboard. Then get rid of the clipboard text from the document
             string dtxt=browserDisplay.DocumentText;
             string clipelem = "<div id=\"copiedText\">";
-            //string clipelem = "<div class=\"col-md-9\">";
             if (dtxt.Contains(clipelem))
             {
                 string[] splitter = { clipelem };
@@ -67,7 +91,11 @@ namespace MavenAsDemo
                 browserDisplay.DocumentText = dtxt.Replace(clipelem+copytext+"</div>", "");
             }
         }
-
+        /// <summary>
+        /// Figure out where to put the form
+        /// </summary>
+        /// <param name="locstring">The locstring. See Program.cs for more info on this string. </param>
+        /// <returns></returns>
         private Point getLocation(string locstring)
         {
             Rectangle workingArea = Screen.GetWorkingArea(this);
@@ -103,6 +131,11 @@ namespace MavenAsDemo
             }
             return new Point(h, v);
         }
+        /// <summary>
+        /// Handle moving the form
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private new void MouseDown(object sender, MouseEventArgs e)
         {
             if (e.Button != MouseButtons.Left)
@@ -112,6 +145,11 @@ namespace MavenAsDemo
             downPoint = new Point(e.X, e.Y);
             moveForm = true;
         }
+        /// <summary>
+        /// Handle Moving the form
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private new void MouseMove(object sender, MouseEventArgs e)
         {
             if (moveForm)
@@ -120,6 +158,11 @@ namespace MavenAsDemo
                 this.Left = this.Left + e.X - downPoint.X;   
             }
         }
+        /// <summary>
+        /// Handle Moving the form
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private new void MouseUp(object sender, MouseEventArgs e)
         {
             if (e.Button != MouseButtons.Left)

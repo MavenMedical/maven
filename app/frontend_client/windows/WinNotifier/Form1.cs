@@ -113,7 +113,11 @@ namespace MavenAsDemo
             //always display without focus. 
             get { return true; }
         }
-
+        /// <summary>
+        /// Stuff that we can do asynchronously as the form is being displayed. 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void timer_Tick(object sender, EventArgs e)
         {
             //you have to count the ticks
@@ -162,6 +166,11 @@ namespace MavenAsDemo
         {
 
         }
+        /// <summary>
+        /// Take the location string and convert it to a point that specifies where the form will be drawn. 
+        /// </summary>
+        /// <param name="locstring">A string that helps me figure out where to  draw the form.</param>
+        /// <returns></returns>
         private Point getLocation(string locstring)
         {
             Rectangle workingArea = Screen.GetWorkingArea(this);
@@ -197,6 +206,11 @@ namespace MavenAsDemo
             }
             return new Point(h,v);
         }
+        /// <summary>
+        /// When the browser navigates (a url clicked) capture it here and handle it in a custom way. 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void browser_navigate(object sender, WebBrowserNavigatingEventArgs e)
         {
             Program.url= e.Url.AbsoluteUri;
@@ -207,6 +221,9 @@ namespace MavenAsDemo
             this.Visible = false;
             this.Close();
         }
+        /// <summary>
+        /// launch the hard alert
+        /// </summary>
         private void launchHardAlert()
         {
             Program.ShowAlertForm(Program.AlertMode.deskHard);

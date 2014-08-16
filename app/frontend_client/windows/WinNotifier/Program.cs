@@ -223,7 +223,7 @@ namespace MavenAsDemo
         /// <param name="inUrl">The URL of the alert target page. Absolutely essential. Do not spoof.</param>
         private static void alert(string documentId,string patId, string inUrl)
         {
-           
+            url = inUrl;
             //Console.WriteLine("Alert now!");
             if (mode == AlertMode.deskSoft || mode == AlertMode.deskHard || mode == AlertMode.combo)
             {
