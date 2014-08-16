@@ -23,6 +23,7 @@ namespace MavenAsDemo
             }
             catch (System.Threading.ThreadAbortException ex)
             {
+                Program.LogMessage("Error Launching Login Form: \r\n" + ex.Message);
                 this.Close();
                 this.Dispose();
             }
@@ -62,7 +63,7 @@ namespace MavenAsDemo
             get { return true; }
         }
 
-        private void MouseDown(object sender, MouseEventArgs e)
+        private new void MouseDown(object sender, MouseEventArgs e)
         {
             if (e.Button != MouseButtons.Left)
             {
@@ -70,7 +71,7 @@ namespace MavenAsDemo
             }
             downPoint = new Point(e.X, e.Y);
         }
-        private void MouseMove(object sender, MouseEventArgs e)
+        private new void MouseMove(object sender, MouseEventArgs e)
         {
             if (downPoint == Point.Empty)
             {
@@ -81,7 +82,7 @@ namespace MavenAsDemo
                 this.Top + e.Y - downPoint.Y);
             this.Location = location;
         }
-        private void MouseUp(object sender, MouseEventArgs e)
+        private new void MouseUp(object sender, MouseEventArgs e)
         {
             if (e.Button != MouseButtons.Left)
             {

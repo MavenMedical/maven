@@ -103,7 +103,7 @@ namespace MavenAsDemo
             }
             return new Point(h, v);
         }
-        private void MouseDown(object sender, MouseEventArgs e)
+        private new void MouseDown(object sender, MouseEventArgs e)
         {
             if (e.Button != MouseButtons.Left)
             {
@@ -112,7 +112,7 @@ namespace MavenAsDemo
             downPoint = new Point(e.X, e.Y);
             moveForm = true;
         }
-        private void MouseMove(object sender, MouseEventArgs e)
+        private new void MouseMove(object sender, MouseEventArgs e)
         {
             if (moveForm)
             {
@@ -120,7 +120,7 @@ namespace MavenAsDemo
                 this.Left = this.Left + e.X - downPoint.X;   
             }
         }
-        private void MouseUp(object sender, MouseEventArgs e)
+        private new void MouseUp(object sender, MouseEventArgs e)
         {
             if (e.Button != MouseButtons.Left)
             {
