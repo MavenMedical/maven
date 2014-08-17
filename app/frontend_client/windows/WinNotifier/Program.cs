@@ -339,8 +339,8 @@ namespace MavenAsDemo
         /// <param name="e"></param>
         static void DummyAlert(object sender, EventArgs e)
         {
-            //TODO: I am a disgrace placed here for no reason other than demo trickery. Eradicate me. 
-            alert("0","66556","http://mavenmedical.net");
+            //TODO: I am placed here for no reason other than demo trickery. Eradicate me. 
+            alert("0", "66556", "http://162.222.177.174/");
         }
         /// <summary>
         /// TODO: Replace me with a web service call to the cloud. 

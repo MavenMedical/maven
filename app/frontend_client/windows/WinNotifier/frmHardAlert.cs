@@ -59,6 +59,7 @@ namespace MavenAsDemo
         /// <param name="e"></param>
         private void pictureBox1_Click(object sender, EventArgs e)
         {
+            timer.Stop();
             this.Close();
             this.Dispose();
         }
@@ -75,20 +76,21 @@ namespace MavenAsDemo
             //this is the case where the user doesnt close out, but just puts it behind  his EMR screen. 
             if (tix == 300)
             {
+                timer.Stop();
                 this.Close();
                 this.Dispose();
+                return;
             }
             //Take the clipboard text and get it to the clipboard. Then get rid of the clipboard text from the document
-            string dtxt=browserDisplay.DocumentText;
-            string clipelem = "<div id=\"copiedText\">";
-            if (dtxt.Contains(clipelem))
-            {
-                string[] splitter = { clipelem };
-                string copytext = dtxt.Split(splitter,StringSplitOptions.None)[1];
-                int len = copytext.IndexOf("</div>");
-                copytext = copytext.Substring(0, len);
-                Clipboard.SetText(copytext);
-                browserDisplay.DocumentText = dtxt.Replace(clipelem+copytext+"</div>", "");
+            HtmlElement elm = browserDisplay.Document.GetElementById("copiedText");
+            if (elm != null) //check to see if the clipboard element is there
+            { 
+                string copytext = elm.InnerHtml; //if the clipboard element is there, then check the inner text
+                if (copytext!=null&&copytext.Length > 0) //if it has inner text, then grab it and remove it so we don't re-copy on future runs 
+                {
+                    Clipboard.SetText(copytext);
+                    elm.InnerText = "";
+                }
             }
         }
         /// <summary>
