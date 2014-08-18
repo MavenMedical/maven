@@ -1,13 +1,11 @@
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <script src="../js/libs/jsplumb2/js/jsplumb.js"></script>
     <style>
-
 
         #pathway-container {
             position: relative;
+            width: 2000px;
+
 
         }
-
         #pathway-container:active{
             cursor: url(https://mail.google.com/mail/images/2/openhand.cur), default !important;
         }
@@ -191,6 +189,7 @@
         #copiedText{
             display: none;
         }
+
     </style>
 
     <div id="toast">
@@ -202,20 +201,27 @@
         <span class="title headings">
         <!-- static -->
             CRPC Pathway
+            <button type="button" class="btn btn-default btn-sm" id="expandAll" style="float: right">
+                Expand all
+                <img src="../images/pathway-icon.png" style="width: 20px; height: 20px"></button>
+            <button type="button" class="btn btn-default btn-sm" id="sugPath" style="float: right">
+                Suggested Pathway
+                <img src="../images/pathway-icon.png" style="width: 20px; height: 20px"></button>
         </span>
 
-        <div id="pathway-container" style="width: 2000px">
+
+        <div id="pathway-container">
 
             <div class="tree">
                 <ul>
                     <li class='parent'>
-                        <div id="n1" class="qualifier" style="visibility: visible">
+                        <div id="n1" class="qualifier suggested">
                             <!-- content & helping text -->
                             <span>CRPC</span>
                         </div>
                         <ul class="children">
                             <li class='parent'>
-                                <div class="qualifier" style="visibility: visible">
+                                <div id='n1-1' style="display:run-in" class="qualifier suggested">
                                     <!-- content & helping text -->
                                     <span data-toggle="tooltip" title="This patient has mCRPC">Metastatic</span>
                                 </div>
@@ -229,21 +235,21 @@
 
                                     </li>
                                     <li class='parent'>
-                                        <div class="qualifier">
+                                        <div class="qualifier suggested">
                                             <!-- content & helping text -->
                                             <span data-toggle="tooltip"
                                                   title="This patient has mCRPC, but has not received prior docetaxel therapy">No Prior Docetaxel</span>
                                         </div>
                                         <ul class="children">
                                             <li class="parent">
-                                                <div class="qualifier">
+                                                <div class="qualifier suggested">
                                                     <!-- content & helping text -->
                                                     <span data-toggle="tooltip"
                                                           title="This patient has symptomatic mCRPC, but has not received prior docetaxel therapy">Symptomatic</span>
                                                 </div>
                                                 <ul class="children">
                                                     <li class="parent">
-                                                        <div id='gp' class="qualifier">
+                                                        <div id='gp' class="qualifier suggested">
                                                             <!-- content & helping text -->
                                                             <span data-toggle="tooltip"
                                                                   title="This patient has symptomatic mCRPC and good performance status (ECOG 0-1), but has not received prior docetaxel therapy.">
@@ -251,7 +257,7 @@
                                                         </div>
                                                         <ul class="children">
                                                             <li class='parent'>
-                                                                <div id='i3' class="protocole">
+                                                                <div id='i3' class="protocole suggested">
                                                                     <!-- content & helping text -->
                                                                     <div class="index headings">Index Patient 3</div>
                                                             <span class="plan">
@@ -287,8 +293,8 @@
                                                                 </span>
 
 
-                                                                    <button type="button" class="btn btn-default btn-sm"
-                                                                            style="float: right" onclick="CopyText()">
+                                                                    <button id='copybutton' type="button" class="btn btn-default btn-sm"
+                                                                            style="float: right">
                                                                         <img src="../images/copy-icon.png"
                                                                              style="width: 20px; height: 20px;"
                                                                              title="Copy">
@@ -323,7 +329,7 @@
                                 </ul>
                             </li>
                             <li class='parent'>
-                                <div id='n-1-2' class="qualifier">
+                                <div id='n1-2' class="qualifier">
                                     <!-- content & helping text -->
                                     <span data-toggle="tooltip">Non-Metastatic</span>
                                 </div>
@@ -346,142 +352,3 @@
         </div>
     </div>
 -->
-
-    <script type="text/javascript">
-
-        function CopyText() {
-
-            $('<div>').attr('id', 'copiedText').appendTo('body');
-
-
-            //window.prompt ("Copy to clipboard: Ctrl+C, Enter", "test copy");
-            $('#copiedText').text("In summary, the patient is a 54-year-old man with " +
-                    "symptomatic mCRPC and good performance status (ECOG 0-1)" +
-                    "who has not received prior docetaxel therapy. " +
-                    "\r\n" +
-                    "This is evidenced by rising PSA in the setting of castrate testosterone levels." +
-                    "Prior radiographic imaging has confirmed metastasis." +
-                    "Symptoms that are attributable to the metastatic disease" +
-                    "burden include: [[[SYMPTOMS]]]" +
-                    "\r\n" +
-                    "Management Plan:" +
-                    "Per AUA guidelines*, The patient will receive" +
-                    "\r\n" +
-                    "Docetaxel therapy" +
-                    "Abiraterone + prednisone" +
-                    "\r\n" +
-                    "[[[OR Since the patient cannot receive the standard" +
-                    "tretatment, he was offered ketoconazole + steroid," +
-                    "mitoxantrone or radionuclide therapy]]]" +
-                    "\r\n\r\n" +
-                    "*Index Patient 3 - http://www.auanet.org/education/guidelines/castration-resistant-prostate-cancer.cfm");
-
-
-            $('#toast').css('visibility', 'visible');
-
-            setTimeout(function () {
-
-                $("#toast").fadeOut("slow", function () {
-                    //$('#toast').css('visibility', 'hidden');
-                });
-
-            }, 2000);
-        }
-
-        var tree = $('.tree');
-
-        $(".qualifier").bind("show", function(){
-    alert(this);
-});
-
-        $('.qualifier', tree).on('isVisible', function (self) {
-            alert('tree');
-        });
-
-
-
-        $('.qualifier', tree).on('click', function (self) {
-            var parent = (self.currentTarget.parentNode)
-            $('.children', parent).first().toggle()
-            drawTree();
-        });
-
-
-        function drawTree() {
-
-        jsPlumb.repaint();
-
-            var nodeList = $('.qualifier', tree);
-            $.each(nodeList, function (key, value) {
-                var s = jsPlumb.addEndpoint(value, {anchor: 'Bottom'});
-                var parent = (value.parentNode);
-                var child = $('.children', parent).first();
-                if (child[0]) {
-                    var children = child[0].children;
-                    $.each(children, function (key2, value2) {
-                        var targetDiv = $('.qualifier', value2).first(); //top endpiont
-                        var t = jsPlumb.addEndpoint(targetDiv, {anchor: 'Top'})
-                         if(($(value).is(":visible")) && ($(targetDiv).is(":visible"))){
-                        jsPlumb.connect({source: s, target: t});
-                         }
-                    })
-
-
-                }
-            })
-
-            if(($('#gp').is(":visible")) && ($('#i3').is(":visible"))){
-                var s = jsPlumb.addEndpoint($('#gp'),{anchor: 'Bottom'} );
-                var t = jsPlumb.addEndpoint($('#i3'), {anchor: 'Top'});
-                jsPlumb.connect({source:s, target:t});
-            }
-        }
-
-
-        $('span[data-toggle="tooltip"]').tooltip({
-            animated: 'fade',
-            placement: 'left',
-            container: 'body'
-        });
-
-
-        jsPlumb.importDefaults({
-            container: '#pathway-container',
-            MaxConnections : -1,
-            Endpoint: 'Blank',
-            PaintStyle: {
-                lineWidth: 2,
-                strokeStyle: '#ccc'
-            },
-            HoverPaintStyle: {
-                lineWidth: 3,
-                strokeStyle: '#61B7CF'
-            },
-            DragOptions: { cursor: "crosshair" },
-            Endpoints: [
-                [ "Dot", { radius: 1 } ],
-                [ "Dot", { radius: 1 } ]
-            ],
-            EndpointStyles: [
-                { fillStyle: "#ccc" },
-                { fillStyle: "#ccc" }
-            ],
-            Connector: [ "Flowchart",{
-                cornerRadius: 3
-            }],
-            Anchors: [ "Bottom", "Top" ]
-            /* ConnectionOverlays: [
-             [ "Arrow", { location: 2 } ],
-             [ "Label", {
-             location: 0.1,
-             id: "label",
-             cssClass: "aLabel"
-             }]
-             ]*/
-
-        });
-
-        //jsPlumb.draggable($('#pathway-container'));
-        $('#pathway-container').draggable();
-
-    </script>
