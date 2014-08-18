@@ -41,7 +41,7 @@ define([
                     lineWidth: 3,
                     strokeStyle: '#61B7CF'
                 },
-                DragOptions: { cursor: "crosshair" },
+                DragOptions: {cursor: "crosshair" },
                 Endpoints: [
                     [ "Dot", { radius: 1 } ],
                     [ "Dot", { radius: 1 } ]
@@ -182,9 +182,9 @@ define([
         },
         suggested: function () {
             console.log('suggested');
-            $('#n1').click();
-            $('.children').toggle();
-            this.drawTree();
+           // $('#n1').click();
+           // $('.children').toggle();
+           // this.drawTree();
 
             $('.suggested').css({
                 "border": "2px solid orange"
@@ -195,6 +195,10 @@ define([
             $('#n1').click();
             $('.children').toggle();
             this.drawTree();
+
+            $('.suggested').css({
+                "border": "2px solid #46bdec"
+            })
 
 
             $("#pathway-container").css({
