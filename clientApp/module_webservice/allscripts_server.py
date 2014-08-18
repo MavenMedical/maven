@@ -17,16 +17,13 @@ __author__ = 'Yuki Uchino'
 # LAST MODIFIED FOR JIRA ISSUE: MAV-289
 # *************************************************************************
 import asyncio
-import os
 import json
 import pickle
-import traceback
 import maven_config as MC
 import maven_logging as ML
 import utils.streaming.stream_processor as SP
 import utils.streaming.http_responder as HR
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
-from clientApp.module_webservice.emr_parser import VistaParser
 import clientApp.notification_generator.notification_generator as NG
 import clientApp.module_webservice.notification_service as NS
 from clientApp.allscripts.allscripts_scheduler import scheduler, CONFIG_SLEEPINTERVAL
@@ -160,10 +157,9 @@ def main(loop):
         notification_service.send_messages(provider,
                                            ["patient %s is set with icd9 %s" % (patient, icd9)])
 
-
-#    reader = sp_consumer.schedule(loop)
+    #    reader = sp_consumer.schedule(loop)
     allscripts_scheduler = scheduler('scheduler', translate)
-    emr_writer = sp_producer.schedule(loop)
+    # emr_writer = sp_producer.schedule(loop)
     notification_service.schedule(loop)
 
     try:

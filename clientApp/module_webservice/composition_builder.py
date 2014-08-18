@@ -16,8 +16,6 @@ __author__ = 'Yuki Uchino'
 # ************************
 # LAST MODIFIED FOR JIRA ISSUE: MAV-289
 # *************************************************************************
-import xml.etree.ElementTree as ET
-import datetime
 import uuid
 import dateutil.parser
 from enum import Enum
@@ -25,12 +23,9 @@ import json
 import asyncio
 from maven_config import MavenConfig
 import maven_logging as ML
-import utils.web_client.http_client as http
 import utils.web_client.allscripts_http_client as AHC
 from utils.web_client.builder import builder
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
-import uuid
-from utils.database.memory_cache import MemoryCache
 
 
 COMP_BUILD_LOG = ML.get_logger('clientApp.module_webservice.allscripts_server')

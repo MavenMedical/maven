@@ -16,7 +16,6 @@ __author__ = 'Yuki Uchino'
 # ************************
 # LAST MODIFIED FOR JIRA ISSUE: MAV-150
 # *************************************************************************
-import os
 import asyncio
 import maven_config as MC
 import maven_logging as ML
@@ -26,7 +25,6 @@ import html
 import math
 import jinja2
 from utils.enums import ALERT_VALIDATION_STATUS, ALERT_TYPES, ALERT_PRIORITY
-from jinja2 import Environment, PackageLoader
 
 
 EMR_TYPE = "emrtype"
@@ -243,7 +241,7 @@ class NotificationGenerator():
         # TEMPLATE3_FILE = "notification.js"
         template = templateEnv.get_template(TEMPLATE_FILE)
         # template3 = templateEnv.get_template(TEMPLATE3_FILE)
-        cost_alert = composition.get_alerts_by_type(type=ALERT_TYPES.PATHWAY)
+        # cost_alert = composition.get_alerts_by_type(type=ALERT_TYPES.PATHWAY)
         templateVars = {"http_address": MC.http_addr,
                         "encounter_id": urllib.parse.quote(composition.encounter.get_csn()),
                         "patient_id": composition.subject.get_pat_id(),
@@ -263,7 +261,7 @@ class NotificationGenerator():
         template = templateEnv.get_template(TEMPLATE_FILE)
         # template2 = templateEnv.get_template(TEMPLATE2_FILE)
         # template3 = templateEnv.get_template(TEMPLATE3_FILE)
-        cost_alert = composition.get_alerts_by_type(type=ALERT_TYPES.COST)
+        # cost_alert = composition.get_alerts_by_type(type=ALERT_TYPES.COST)
         templateVars = self._generate_cost_alert_template_vars(composition)
         notification_body = template.render(templateVars)
 
