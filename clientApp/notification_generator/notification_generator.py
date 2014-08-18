@@ -248,7 +248,8 @@ class NotificationGenerator():
                         "encounter_id": urllib.parse.quote(composition.encounter.get_csn()),
                         "patient_id": composition.subject.get_pat_id(),
                         "user": composition.get_author_id(),
-                        "user_auth": composition.userAuth}
+                        "user_auth": composition.userAuth,
+                        "customer_id": composition.customer_id}
         notification_body = template.render(templateVars)
 
         return notification_body

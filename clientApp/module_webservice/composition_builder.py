@@ -59,7 +59,7 @@ class CompositionBuilder(builder):
     def build_composition(self, obj, username, patient):
         obj.author = self.provs[username]
         # TODO - Fix this hardcoded customer ID
-        obj.customer_id = 5
+        obj.customer_id = 2
         obj.encounter = FHIR_API.Encounter(identifier=[FHIR_API.Identifier(label="Internal",
                                                                            system="clientEMR",
                                                                            value=str(uuid.uuid1()))])

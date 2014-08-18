@@ -158,7 +158,7 @@ class HTTPProcessor(SP.StreamProcessor):
     def read_object(self, obj, key):
         """ read_object takes an http request and a writer key, determines which
         handler should process request, invokes that handler, and responds with its output.
-        
+
         It should handle catch-all errors, string sanitization, authentication, etc.,
         so that the handler
         functions only worry about the business logic.
@@ -175,7 +175,7 @@ class HTTPProcessor(SP.StreamProcessor):
         ML.INFO("path: %s" % headers.get_path())
         # ML.DEBUG("status: %s" % headers.get_status_code())
         ML.DEBUG("body: %s" % body)
-        req_line = headers.get_method()+' '+headers.get_path()
+        req_line = headers.get_method() + ' ' + headers.get_path()
         query_string = urllib.parse.parse_qs(headers.get_query_string())
         ML.DEBUG("query: %s" % str(query_string))
         # print(req_line)
@@ -231,7 +231,7 @@ class HTTPProcessor(SP.StreamProcessor):
 
         if 'GET' in methods and 'HEAD' not in methods:
             methods.append('HEAD')
-        regexp = '(?:'+'|'.join(methods)+')\s+'+regexpstring + "$"
+        regexp = '(?:' + '|'.join(methods) + ')\s+' + regexpstring + "$"
         self.handlers.append((re.compile(regexp), fn))
         # print(regexp)
         # print(re.match(regexp,b'GET /users/1 HTTP/1.0'))
@@ -241,7 +241,7 @@ class BackboneService(HTTPProcessor):
     """ BackboneService is a subclass of HTTPProcessor which interacts with
     the backbone.js turorial available
     from git clone https://github.com/thomasdavis/backbonetutorials.git
-    
+
     It keeps an in-memory list of users, with first/last names and ages.
     The web service supports adding, deleting, editing, and listing user(s)
     """
@@ -251,7 +251,7 @@ class BackboneService(HTTPProcessor):
         HTTPProcessor.__init__(self, configname)
         self.allusers = {'1': {'id': '1', 'firstname': 'Tom', 'lastname': 'D', 'age': '33'}}
         self.nextid = 2
-        
+
         self.add_handler(['POST'], '/user', self.create_user)
         self.add_handler(['GET', 'OPTIONS'], '/users', self.get_users)
         self.add_handler(['GET', 'OPTIONS'], '/user/(\d+)', self.get_user)

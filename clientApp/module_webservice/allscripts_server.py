@@ -133,7 +133,7 @@ def main(loop):
             SP.CONFIG_HOST: 'localhost',
             SP.CONFIG_PORT: 8092,
             SP.CONFIG_PARSERTIMEOUT: 120,
-            NS.CONFIG_QUEUEDELAY: 60,
+            NS.CONFIG_QUEUEDELAY: 45,
         },
         allscriptsscheduler:
         {
@@ -142,7 +142,7 @@ def main(loop):
             AHC.CONFIG_APPNAME: 'MavenPathways.TestApp',
             AHC.CONFIG_APPUSERNAME: 'MavenPathways',
             AHC.CONFIG_APPPASSWORD: 'MavenPathways123!!',
-            CONFIG_SLEEPINTERVAL: 60,
+            CONFIG_SLEEPINTERVAL: 20,
         },
         'scheduler': {CONFIG_API: 'allscripts_demo',
                       "SP": outgoingtomavenmessagehandler}
