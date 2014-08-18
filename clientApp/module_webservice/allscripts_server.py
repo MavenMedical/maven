@@ -34,6 +34,7 @@ import utils.web_client.allscripts_http_client as AHC
 
 
 CONFIG_API = 'api'
+CLIENT_SERVER_LOG = ML.get_logger('clientApp.module_webservice.allscripts_server')
 
 
 class IncomingFromMavenMessageHandler(HR.HTTPWriter):
@@ -52,14 +53,17 @@ class IncomingFromMavenMessageHandler(HR.HTTPWriter):
         # composition = FHIR_API.Composition().create_composition_from_json(json_composition)
 
         composition = pickle.loads(obj)
+        CLIENT_SERVER_LOG.debug(("Received Composition Object from the Maven backend engine: ID = %s" % composition.id))
 
         # ## tom: this has no authentication yet
         # composition.customer_id
         user = composition.write_key[0]
         msg = yield from self.notification_generator.generate_alert_content(composition, 'web', None)
+        CLIENT_SERVER_LOG.debug(("Generated Message content: %s" % msg))
         self.notification_service.send_messages(user, msg)
 
         if self.notification_service.send_messages(user, None):
+            CLIENT_SERVER_LOG.debug(("Successfully sent msg to: %s" % composition.write_key[0]))
             return (HR.OK_RESPONSE, b'', [], composition.write_key[0])
         else:
             notifications = yield from self.notification_generator.generate_alert_content(composition, 'web', None)

@@ -542,7 +542,7 @@ def get_snomeds_and_append_to_encounter_dx(composition, conn):
     try:
         for condition in composition.get_encounter_conditions():
             snomed_ids = []
-            for coding in condition.code.coding:
+            for coding in [c for c in condition.code.coding if c.code is not None]:
                 column_map = ["snomedid"]
                 columns = DBMapper.select_rows_from_map(column_map)
                 cur = yield from conn.execute_single("select " + columns + " from terminology.codemap where code=%s and codetype=%s", extra=[coding.code, coding.system])

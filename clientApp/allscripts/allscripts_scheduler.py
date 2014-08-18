@@ -24,17 +24,15 @@ from dateutil.parser import parse
 from collections import defaultdict
 import utils.web_client.allscripts_http_client as AHC
 import clientApp.module_webservice.notification_service as NS
-from maven_config import MavenConfig
+import maven_config as MC
 import pickle
 from clientApp.module_webservice.composition_builder import CompositionBuilder
 from utils.streaming import stream_processor as SP
 import maven_logging as ML
 
 icd9_match = re.compile('\(V?[0-9]+(?:\.[0-9]+)?\)')
-
 CONFIG_API = 'api'
-
-ML.get_logger()
+CLIENT_SERVER_LOG = ML.get_logger('clientApp.module_webservice.allscripts_server')
 
 
 class Types(Enum):
@@ -46,8 +44,8 @@ class Types(Enum):
 class scheduler(SP.StreamProcessor):
 
     def __init__(self, configname, messenger):
-        SP.StreamProcessor.__init__(self, MavenConfig[configname]['SP'])
-        self.config = MavenConfig[configname]
+        SP.StreamProcessor.__init__(self, MC.MavenConfig[configname]['SP'])
+        self.config = MC.MavenConfig[configname]
         self.apiname = self.config[CONFIG_API]
         self.allscripts_api = AHC.allscripts_api(self.apiname)
         self.processed = set()
@@ -69,7 +67,7 @@ class scheduler(SP.StreamProcessor):
                 try:
                     sched = yield from self.allscripts_api.GetSchedule('CliffHux', today)
                 except AHC.AllscriptsError as e:
-                    ML.EXCEPTION(e)
+                    CLIENT_SERVER_LOG.EXCEPTION(e)
                 # print([(sch['patientID'], sch['ApptTime2'], sch['ProviderID']) for sch in sched])
                 tasks = set()
                 for appointment in sched:
@@ -80,8 +78,8 @@ class scheduler(SP.StreamProcessor):
                 for task in tasks:
                     asyncio.Task(self.evaluate(*task))
             except Exception as e:
-                ML.EXCEPTION(e)
-            yield from asyncio.sleep(5)
+                CLIENT_SERVER_LOG.EXCEPTION(e)
+            yield from asyncio.sleep(10)
             first = False
 
     @asyncio.coroutine
@@ -109,18 +107,20 @@ class scheduler(SP.StreamProcessor):
                         # self.processed.add((patient, provider, today))
                         if not first:
                             start, stop = match.span()
+                            CLIENT_SERVER_LOG.debug("About to send to Composition Builder...")
                             composition = yield from self.comp_builder.build_composition("CLIFFHUX", patient)
+                            CLIENT_SERVER_LOG.debug(("Built composition, about to send to Data Router. Composition ID = %s" % composition.id))
                             self.write_object(pickle.dumps([composition, "CLIFFHUX"]), self.wk)
-                            self.messenger(patient, provider, keywords[start:stop])
+                            # self.messenger(patient, provider, keywords[start:stop])
                             break
                 # processed.update({doc['DocumentID'] for doc in documents})
         except AHC.AllscriptsError as e:
-            ML.EXCEPTION(e)
+            CLIENT_SERVER_LOG.EXCEPTION(e)
         except:
-            ML.EXCEPTION(e)
+            CLIENT_SERVER_LOG.EXCEPTION(e)
 
 if __name__ == '__main__':
-    MavenConfig['allscripts_old_demo'] = {
+    MC.MavenConfig['allscripts_old_demo'] = {
         AHC.http.CONFIG_BASEURL: 'http://aws-eehr-11.4.1.unitysandbox.com/Unity/UnityService.svc',
         AHC.http.CONFIG_OTHERHEADERS: {
             'Content-Type': 'application/json'
@@ -130,7 +130,7 @@ if __name__ == '__main__':
         AHC.CONFIG_APPPASSWORD: 'www!web20!',
     }
 
-    MavenConfig['allscripts_demo'] = {
+    MC.MavenConfig['allscripts_demo'] = {
         AHC.http.CONFIG_BASEURL: 'http://pro14ga.unitysandbox.com/Unity/UnityService.svc',
         AHC.http.CONFIG_OTHERHEADERS: {
             'Content-Type': 'application/json'
@@ -140,19 +140,19 @@ if __name__ == '__main__':
         AHC.CONFIG_APPPASSWORD: 'MavenPathways123!!',
     }
 
-    MavenConfig['notificationserver'] = {
+    MC.MavenConfig['notificationserver'] = {
         NS.SP.CONFIG_HOST: 'localhost',
         NS.SP.CONFIG_PORT: 8092,
         NS.SP.CONFIG_PARSERTIMEOUT: 120,
         NS.CONFIG_QUEUEDELAY: 30,
     }
 
-    MavenConfig['scheduler'] = {CONFIG_API: 'allscripts_demo'}
+    MC.MavenConfig['scheduler'] = {CONFIG_API: 'allscripts_demo'}
 
     ns = NS.NotificationService('notificationserver')
 
     def translate(patient, provider, icd9):
-        ML.DEBUG(provider)
+        CLIENT_SERVER_LOG.DEBUG(provider)
         ns.send_messages(provider,
                          ["patient %s is set with icd9 %s" % (patient, icd9)])
     sched = scheduler('scheduler', translate)
