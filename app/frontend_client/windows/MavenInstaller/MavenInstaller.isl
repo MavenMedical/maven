@@ -343,6 +343,7 @@
 		<col def="S0">ISDotNetInstallerArgsRollback</col>
 		<row><td>ISX_DEFAULTCOMPONENT1</td><td>{9A16FFC5-4D27-402B-8A22-76B52BD5E504}</td><td>INSTALLDIR</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>MavenDesktop.exe</td><td>{F6C0962A-BD3D-4417-823D-9299AE42C0C5}</td><td>INSTALLDIR</td><td>2</td><td/><td>mavendesktop.exe</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>Microsoft.VisualBasic.PowerPacks.Vs.dll</td><td>{214D8F36-13D2-4888-A0CF-C532F01B98D2}</td><td>INSTALLDIR</td><td>2</td><td/><td>microsoft.visualbasic.powerp</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 	</table>
 
 	<table name="Condition">
@@ -1860,6 +1861,7 @@
 		<col key="yes" def="s72">Component_</col>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT1</td></row>
 		<row><td>AlwaysInstall</td><td>MavenDesktop.exe</td></row>
+		<row><td>AlwaysInstall</td><td>Microsoft.VisualBasic.PowerPacks.Vs.dll</td></row>
 	</table>
 
 	<table name="File">
@@ -1876,6 +1878,7 @@
 		<col def="S72">ISComponentSubFolder_</col>
 		<row><td>maven.ico</td><td>ISX_DEFAULTCOMPONENT1</td><td>maven.ico</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\dave\Documents\Visual Studio 2012\Projects\MavenAsDemo\bin\Debug\maven.ico</td><td>1</td><td/></row>
 		<row><td>mavendesktop.exe</td><td>MavenDesktop.exe</td><td>MAVEND~1.EXE|MavenDesktop.exe</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\dave\Documents\Visual Studio 2012\Projects\MavenAsDemo\bin\Debug\MavenDesktop.exe</td><td>1</td><td/></row>
+		<row><td>microsoft.visualbasic.powerp</td><td>Microsoft.VisualBasic.PowerPacks.Vs.dll</td><td>MICROS~1.DLL|Microsoft.VisualBasic.PowerPacks.Vs.dll</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\dave\Documents\Visual Studio 2012\Projects\MavenAsDemo\bin\Debug\Microsoft.VisualBasic.PowerPacks.Vs.dll</td><td>1</td><td/></row>
 	</table>
 
 	<table name="FileSFPCatalog">
@@ -2021,6 +2024,7 @@
 		<col def="S0">Miscellaneous</col>
 		<row><td>ISX_DEFAULTCOMPONENT1</td><td/><td/><td>_A7059A0C_27E1_4F9E_ABBF_06BE74079DC5_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>MavenDesktop.exe</td><td/><td/><td>_CEB440B4_D824_44FB_8E28_2618A8F77000_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>Microsoft.VisualBasic.PowerPacks.Vs.dll</td><td/><td/><td>_C7FF9FDE_2EC1_4BA8_B2D0_77FE96A93E9B_FILTER</td><td/><td/><td/><td/></row>
 	</table>
 
 	<table name="ISCustomActionReference">
