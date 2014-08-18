@@ -81,17 +81,21 @@ namespace MavenAsDemo
                 this.Dispose();
                 return;
             }
-            //Take the clipboard text and get it to the clipboard. Then get rid of the clipboard text from the document
-            HtmlElement elm = browserDisplay.Document.GetElementById("copiedText");
-            if (elm != null) //check to see if the clipboard element is there
-            { 
-                string copytext = elm.InnerHtml; //if the clipboard element is there, then check the inner text
-                if (copytext!=null&&copytext.Length > 0) //if it has inner text, then grab it and remove it so we don't re-copy on future runs 
+            try
+            {
+                //Take the clipboard text and get it to the clipboard. Then get rid of the clipboard text from the document
+                HtmlElement elm = browserDisplay.Document.GetElementById("copiedText");
+                if (elm != null) //check to see if the clipboard element is there
                 {
-                    Clipboard.SetText(copytext);
-                    elm.InnerText = "";
+                    string copytext = elm.InnerHtml; //if the clipboard element is there, then check the inner text
+                    if (copytext != null && copytext.Length > 0) //if it has inner text, then grab it and remove it so we don't re-copy on future runs 
+                    {
+                        Clipboard.SetText(copytext);
+                        elm.InnerText = "";
+                    }
                 }
             }
+            catch { }
         }
         /// <summary>
         /// Figure out where to put the form
