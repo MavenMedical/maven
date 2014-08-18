@@ -17,7 +17,7 @@ namespace MavenAsDemo
         public static AlertMode mode = AlertMode.deskSoft;
         private static double fadeSlowness = 3;
         private static string location = "BR";
-        public static string url = "https://onedrive.live.com/view.aspx?cid=FFF6838D9AE151C8&resid=FFF6838D9AE151C8%219693&app=PowerPoint";
+        public static string url = "http://mavenmedical.net";
         private static bool continueOn = true;
         private static byte[] EncryptedKey = null;
         private static string pollingServer = "162.222.177.174";
@@ -196,14 +196,19 @@ namespace MavenAsDemo
                         string responseFromServer = reader.ReadToEnd();
                         if (responseFromServer != "[]")
                         {
-                            string alertUrl = responseFromServer.Split(',')[0].Replace("[{\"LINK\": \"", "").Replace("\"", "");
+                            //string alertUrl = responseFromServer.Split(',')[0].Replace("[{\"LINK\": \"", "").Replace("\"", "");
+                            string alertUrl = responseFromServer.Replace("[\"", "").Replace("\"]", "");
                             alert("1", "66556", alertUrl);
                         }
                     }
                 }
                 catch (Exception e)
                 {
-                    LogMessage("Polling Exception: "+e.Message);
+                    //don't fill up the log with timeouts. but log everything else
+                    if (!e.Message.Contains("Timeout"))
+                    {
+                        LogMessage("Polling Exception: "+e.Message);
+                    }
                 }
             }
             
@@ -340,7 +345,9 @@ namespace MavenAsDemo
         static void DummyAlert(object sender, EventArgs e)
         {
             //TODO: I am placed here for no reason other than demo trickery. Eradicate me. 
-            alert("0", "66556", "http://162.222.177.174/");
+            //update: i think this now should handle the actual last alert by using the value of the public url var. 
+            //test and rename to something other than DummyAlert
+            alert("0", "66556", url);
         }
         /// <summary>
         /// TODO: Replace me with a web service call to the cloud. 
@@ -455,8 +462,9 @@ namespace MavenAsDemo
                 //Created during install
                 EventLog el = new EventLog("Application");
                 el.Source = "MavenDesktop";
-                el.WriteEntry(msg, System.Diagnostics.EventLogEntryType.Warning);
+                el.WriteEntry(msg, System.Diagnostics.EventLogEntryType.Warning,234);
                 //TODO: handle an actual registered event id. now it's event 0 which is getting a "desc cannot be found" message
+                //http://www.codeproject.com/Articles/4153/Getting-the-most-out-of-Event-Viewer
             }
             catch
             {
