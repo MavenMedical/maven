@@ -67,7 +67,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         except KeyError:
             raise MC.InvalidConfig('some real error')
 
-        self.stylesheet = 'original'
+        self.stylesheet = 'demo'
         self.add_handler(['POST'], '/login', self.post_login)
         self.add_handler(['GET'], '/save_user_settings', self.save_user_settings)
         self.add_handler(['GET'], '/rate_alert', self.rate_alert)
@@ -320,7 +320,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
             user_auth = AK.authorization_key([user, provider, customer],
                                              AUTH_LENGTH, LOGIN_TIMEOUT)
             if not self.stylesheet == 'original':
-                self.stylesheet = 'original'
+                self.stylesheet = 'demo'
 
             desired_layout = {
                 WP.Results.widget: 'widget',
