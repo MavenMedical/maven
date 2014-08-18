@@ -33,6 +33,7 @@ import maven_logging as ML
 icd9_match = re.compile('\(V?[0-9]+(?:\.[0-9]+)?\)')
 CONFIG_API = 'api'
 CLIENT_SERVER_LOG = ML.get_logger('clientApp.module_webservice.allscripts_server')
+CONFIG_SLEEPINTERVAL = 'sleep interval'
 
 
 class Types(Enum):
@@ -53,6 +54,7 @@ class scheduler(SP.StreamProcessor):
         self.messenger = messenger
         self.comp_builder = CompositionBuilder(configname)
         self.wk = 2
+        self.sleep_interval = self.config.get(CONFIG_SLEEPINTERVAL, 60)
 
     @asyncio.coroutine
     def get_updated_schedule(self):
@@ -70,22 +72,23 @@ class scheduler(SP.StreamProcessor):
                     CLIENT_SERVER_LOG.EXCEPTION(e)
                 # print([(sch['patientID'], sch['ApptTime2'], sch['ProviderID']) for sch in sched])
                 tasks = set()
+                # ML.DEBUG(sched)
                 for appointment in sched:
                     patient = appointment['patientID']
                     provider = appointment['ProviderID']
-                    if (patient, provider, today) not in self.processed:
-                        tasks.add((patient, provider, today, first))
+                    tasks.add((patient, provider, today, first))
                 for task in tasks:
                     asyncio.Task(self.evaluate(*task))
             except Exception as e:
                 CLIENT_SERVER_LOG.EXCEPTION(e)
-            yield from asyncio.sleep(10)
+            yield from asyncio.sleep(self.sleep_interval)
             first = False
 
     @asyncio.coroutine
     def evaluate(self, patient, provider, today, first):
+        # ML.DEBUG('evaluating %s/%s' % (patient, provider))
         try:
-            # print('evaluating %s for %s' % (patient, provider))
+            # print('evaluating %\s for %s' % (patient, provider))
             now = datetime.now()
             prior = now - timedelta(seconds=12000)
         except:
@@ -95,18 +98,21 @@ class scheduler(SP.StreamProcessor):
             documents = yield from self.allscripts_api.GetDocuments('CliffHux', patient,
                                                                     prior, now)
             # print('got %d documents' % len(documents))
+            # ML.DEBUG('documents: %d' % len(documents))
             if documents:
                 # print('\n'.join([str((doc['DocumentID'], doc['SortDate'], doc['keywords'])) for doc in documents]))
                 for doc in documents:
                     keywords = doc.get('keywords', '')
                     match = icd9_match.search(keywords)
+                    docid = doc.get('DocumentID')
                     doctime = doc.get('SortDate', None)
                     newdoc = doctime and parse(doctime) >= prior
-
-                    if match and newdoc:
-                        # self.processed.add((patient, provider, today))
+                    newdoc = True
+                    if match and newdoc and (patient, provider, today, docid) not in self.processed:
+                        ML.DEBUG('got doc, (match, newdoc, docid, first) = %s' % str((match, newdoc, docid, first)))
+                        self.processed.add((patient, provider, today, docid))
                         if not first:
-                            start, stop = match.span()
+                            # start, stop = match.span()
                             CLIENT_SERVER_LOG.debug("About to send to Composition Builder...")
                             composition = yield from self.comp_builder.build_composition("CLIFFHUX", patient)
                             CLIENT_SERVER_LOG.debug(("Built composition, about to send to Data Router. Composition ID = %s" % composition.id))

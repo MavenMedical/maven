@@ -29,7 +29,7 @@ import utils.api.pyfhir.pyfhir_generated as FHIR_API
 from clientApp.module_webservice.emr_parser import VistaParser
 import clientApp.notification_generator.notification_generator as NG
 import clientApp.module_webservice.notification_service as NS
-from clientApp.allscripts.allscripts_scheduler import scheduler
+from clientApp.allscripts.allscripts_scheduler import scheduler, CONFIG_SLEEPINTERVAL
 import utils.web_client.allscripts_http_client as AHC
 
 
@@ -131,7 +131,7 @@ def main(loop):
         notificationservicename:
         {
             SP.CONFIG_HOST: 'localhost',
-            SP.CONFIG_PORT: 8091,
+            SP.CONFIG_PORT: 8092,
             SP.CONFIG_PARSERTIMEOUT: 120,
             NS.CONFIG_QUEUEDELAY: 60,
         },
@@ -142,6 +142,7 @@ def main(loop):
             AHC.CONFIG_APPNAME: 'MavenPathways.TestApp',
             AHC.CONFIG_APPUSERNAME: 'MavenPathways',
             AHC.CONFIG_APPPASSWORD: 'MavenPathways123!!',
+            CONFIG_SLEEPINTERVAL: 60,
         },
         'scheduler': {CONFIG_API: 'allscripts_demo',
                       "SP": outgoingtomavenmessagehandler}

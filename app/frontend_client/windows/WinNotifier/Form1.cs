@@ -13,16 +13,26 @@ namespace MavenAsDemo
     public partial class frmAlert : Form
     {
         //track how many ticks since the timer was reset
-        public int tix = 0;
-        public Point downPoint=Point.Empty;
-        public int timerspeed = 200;
-        public string loc = "BR";
-        public string url = "http://mavenmedical.net";
-
+        private int tix = 0;
+        //where should i render myself?
+        private Point downPoint = Point.Empty;
+        //how fast should i [as mike tyson would say] "fade into Bolivia"
+        private int timerspeed = 200;
+        //let's start by assuming i will render in the bottom right
+        private string loc = "BR";
+        //I  store the place we're supposed to navigate to 
+        private string url = "http://mavenmedical.net";
+        /// <summary>
+        /// Creates the form object.
+        /// </summary>
+        /// <param name="fadeslowness">Give me a number between 1 and 10ish to say how slowly to fade. 1 is fast.</param>
+        /// <param name="location">give me a string that tells me where to render myself. See the documentation in Program.cs for valid strings. Invalid strings are handled gracefully, but don't be THAT guy...</param>
+        /// <param name="inUrl">where do you want me to sent the doc on click?</param>
         public frmAlert(double fadeslowness,string location,string inUrl)
         {
             try
             {
+                //set things up and initialize. 
                 timerspeed = Convert.ToInt32(Math.Round(50 * fadeslowness, 0));
                 loc = location;
                 url = inUrl;
@@ -35,10 +45,17 @@ namespace MavenAsDemo
                 this.Dispose();
             }
         }
-
+        /// <summary>
+        /// Lights, camera, action
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Form1_Load(object sender, EventArgs e)
         {
+            //custom event handlers
+            //the form should unfade on mouseover
             this.MouseEnter += new System.EventHandler(Form1_MouseEnter);
+            //make the form dragable on the logo or the other picture
             imgLogo.MouseDown += new MouseEventHandler(MouseDown);
             imgLogo.MouseMove += new MouseEventHandler(MouseMove);
             imgLogo.MouseUp += new MouseEventHandler(MouseUp);
@@ -46,6 +63,7 @@ namespace MavenAsDemo
             imgAlertType.MouseMove += new MouseEventHandler(MouseMove);
             imgAlertType.MouseUp += new MouseEventHandler(MouseUp);
            
+            //double check a few important style things. 
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             Rectangle workingArea = Screen.GetWorkingArea(this);
             this.Location = getLocation(loc);
@@ -57,11 +75,13 @@ namespace MavenAsDemo
             string s = "<head><script language=\"JavaScript\">function jsfunction(strURL){window.open(strURL, \"_blank\",\"height=800 width=800 top=0 left=0 scrollbars=no titlebar=no\");} "
                  +"</script></head><body> "
                 + " 		 <p style=\"color:#443361;font-family:verdana, sans-serif; font-size:small\"> Patient matches an AUA Pathway.<br/> "
-                + " 		<a href=\"https://onedrive.live.com/view.aspx?cid=FFF6838D9AE151C8&resid=FFF6838D9AE151C8%219693&app=PowerPoint\" "
+                + " 		<a href=\""+url+"\" "
                 //onclick=\"jsfunction('"+url+"')\"
             +">Click</a> to view the pathway. </p>"
                 +" </body></head>";
             browserDisplay.DocumentText = s;
+
+            //This is actually very important. Capture the hyperlink and instead of launching in a browser, launch in the hard alert custom control. 
             browserDisplay.Navigating += browser_navigate;
         }
         /// <summary>
@@ -74,18 +94,30 @@ namespace MavenAsDemo
             this.Opacity = 1;
             tix = 0;
         }
+        /// <summary>
+        /// close out if the x is clicked
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void pictureBox1_Click(object sender, EventArgs e)
         {
             timer.Stop();
             this.Close();
             this.Dispose();
         }
+        /// <summary>
+        /// keep ontop stuff. 
+        /// </summary>
         protected override bool ShowWithoutActivation
         {
             //always display without focus. 
             get { return true; }
         }
-
+        /// <summary>
+        /// Stuff that we can do asynchronously as the form is being displayed. 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void timer_Tick(object sender, EventArgs e)
         {
             //you have to count the ticks
@@ -103,7 +135,7 @@ namespace MavenAsDemo
                 this.Dispose();
             }
         }
-        private void MouseDown(object sender, MouseEventArgs e)
+        private new void MouseDown(object sender, MouseEventArgs e)
         {
             if (e.Button != MouseButtons.Left)
             {
@@ -111,7 +143,7 @@ namespace MavenAsDemo
             }
             downPoint = new Point(e.X, e.Y);
         }
-        private void MouseMove(object sender, MouseEventArgs e)
+        private new void MouseMove(object sender, MouseEventArgs e)
         {
             if (downPoint == Point.Empty)
             {
@@ -122,7 +154,7 @@ namespace MavenAsDemo
                 this.Top + e.Y - downPoint.Y);
             this.Location = location;
         }
-        private void MouseUp(object sender, MouseEventArgs e)
+        private new void MouseUp(object sender, MouseEventArgs e)
         {
             if (e.Button != MouseButtons.Left)
             {
@@ -134,6 +166,11 @@ namespace MavenAsDemo
         {
 
         }
+        /// <summary>
+        /// Take the location string and convert it to a point that specifies where the form will be drawn. 
+        /// </summary>
+        /// <param name="locstring">A string that helps me figure out where to  draw the form.</param>
+        /// <returns></returns>
         private Point getLocation(string locstring)
         {
             Rectangle workingArea = Screen.GetWorkingArea(this);
@@ -169,6 +206,11 @@ namespace MavenAsDemo
             }
             return new Point(h,v);
         }
+        /// <summary>
+        /// When the browser navigates (a url clicked) capture it here and handle it in a custom way. 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void browser_navigate(object sender, WebBrowserNavigatingEventArgs e)
         {
             Program.url= e.Url.AbsoluteUri;
@@ -179,6 +221,9 @@ namespace MavenAsDemo
             this.Visible = false;
             this.Close();
         }
+        /// <summary>
+        /// launch the hard alert
+        /// </summary>
         private void launchHardAlert()
         {
             Program.ShowAlertForm(Program.AlertMode.deskHard);
