@@ -165,7 +165,7 @@ def main(loop):
 
     #    reader = sp_consumer.schedule(loop)
     allscripts_scheduler = scheduler('scheduler', translate)
-    # emr_writer = sp_producer.schedule(loop)
+    emr_writer = sp_producer.schedule(loop)
     notification_service.schedule(loop)
 
     try:
