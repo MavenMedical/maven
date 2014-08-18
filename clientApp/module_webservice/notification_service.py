@@ -70,6 +70,7 @@ class NotificationService(HR.HTTPProcessor):
 
     @ML.trace(logger.info)
     def send_messages(self, key, messages=None):
+        ML.DEBUG(str(key) + ": " + str(messages))
         if key in self.message_queues:
             if messages:
                 for message in messages:
@@ -77,6 +78,7 @@ class NotificationService(HR.HTTPProcessor):
                     print('new queue size is ' + str(self.message_queues[key].qsize()))
             return True
         else:
+            ML.DEBUG('key not in queue')
             return False
 
 if __name__ == '__main__':

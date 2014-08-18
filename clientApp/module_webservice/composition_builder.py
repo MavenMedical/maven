@@ -33,7 +33,7 @@ import uuid
 from utils.database.memory_cache import MemoryCache
 
 
-COMP_BUILD_LOG = ML.get_logger()
+COMP_BUILD_LOG = ML.get_logger('clientApp.module_webservice.allscripts_server')
 CONFIG_API = 'api'
 
 
@@ -63,7 +63,8 @@ class CompositionBuilder(builder):
         obj.encounter = FHIR_API.Encounter(identifier=[FHIR_API.Identifier(label="Internal",
                                                                            system="clientEMR",
                                                                            value=str(uuid.uuid1()))])
-        ML.DEBUG(json.dumps(FHIR_API.remove_none(json.loads(json.dumps(obj, default=FHIR_API.jdefault))), default=FHIR_API.jdefault, indent=4))
+        COMP_BUILD_LOG.debug(json.dumps(FHIR_API.remove_none(json.loads(json.dumps(obj, default=FHIR_API.jdefault))), indent=4))
+        COMP_BUILD_LOG.debug(("Finished building Composition ID=%s" % obj.id))
         return obj
 
     @builder.provide(Types.Practitioners)
@@ -164,7 +165,8 @@ class CompositionBuilder(builder):
                                                                                        code=code,
                                                                                        display=problem['description'])])
             else:
-                ML.PRINT("Diagnosis Dx not identified for %s" % problem)
+                fhir_condition.code = FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(display=problem['description'])])
+                COMP_BUILD_LOG.DEBUG("Diagnosis Terminology (ICD-9/10, SNOMED CT) not provided for %s" % problem)
 
             fhir_dx_section.content.append(fhir_condition)
 
