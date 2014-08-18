@@ -55,16 +55,21 @@ define([
 			 this);
 
         },
+        //when the remove button is clicked
     	handleRemove: function() {
 
             var temp;
+            //get the params
+            //dont set the context model, as this would change the selected rule, instead just set the params
             temp = contextModel.toParams();
             temp.id = this.model.get('id');
-
+            //if the id is the selected rule, empty the rule model and set the context model to hide the triggers and
+            //details
             if (this.model.get('id')==ruleModel.get('id')) {
                                                             ruleModel.clearData();
                                                             contextModel.set({showTriggers: false, showDetails:false})
-                                                           }
+            }
+           //set the url and destroy the rule in the persistance
            this.model.url = "/rule?" + decodeURIComponent($.param(temp));
            this.model.destroy();
 

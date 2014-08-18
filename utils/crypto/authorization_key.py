@@ -1,7 +1,7 @@
 from Crypto.Hash import SHA256
 import base64
 import time
-import pickle
+import json
 
 # When the user creates a list of something, every element in that list is checked to make
 # sure the user is authorized to see it.  If we later get details on that object,
@@ -13,50 +13,57 @@ import pickle
 # authorization is confirmed.
 # For now this is random, so it will not work between servers and is intentionally broken.
 _TEMPORARY_SECRET = SHA256.new()
-_TEMPORARY_SECRET.update(b'123')  #"""bytes([random.randint(0,255) for _ in range(128)]))
+_TEMPORARY_SECRET.update(b'123')  # """bytes([random.randint(0,255) for _ in range(128)]))
+
 
 class UnauthorizedException(Exception):
     pass
 
 
 def bytestostring(b):
-    return base64.b64encode(b).decode().replace('/','_').replace('+','-').replace('=','.')
+    return base64.b64encode(b).decode().replace('/', '_').replace('+', '-').replace('=', '.')
+
 
 def stringtobytes(s):
-    return base64.b64decode(s.replace('_','/').replace('-','+').replace('.','='))
+    return base64.b64decode(s.replace('_', '/').replace('-', '+').replace('.', '='))
 
-def authorization_key(data, length = 44, timeout = None, timecode = None):
+
+def authorization_key(data, length=44, timeout=None, timecode=None):
     global _TEMPORARY_SECRET
     sha = _TEMPORARY_SECRET.copy()
     return _authorization_key(sha, data, length, timeout, timecode)
 
-def _authorization_key(sha, data, length = 44, timeout = None, timecode = None):
+
+def _authorization_key(sha, data, length=44, timeout=None, timecode=None):
     if timecode:
         data = (data, timecode)
     elif timeout:
         timecode = int(time.time() + timeout)
-        timecode = bytestostring(timecode.to_bytes(4,'big'))
+        timecode = bytestostring(timecode.to_bytes(4, 'big'))
         data = (data, timecode)
-    sha.update(pickle.dumps(data))
+    # print(data)
+    # print(pickle.dumps(data))
+    sha.update(bytes(json.dumps(data), 'utf-8'))
     ret = bytestostring(sha.digest())
     if length:
         ret = ret[:length]
     if timecode:
-        ret = ''.join([timecode,ret])
+        ret = ''.join([timecode, ret])
     return ret
 
-def check_authorization(data, auth, length=44):
-    if len(auth)<length:
-        raise UnauthorizedException('User is not logged in.') # this is an invalid auth key - hacking?
 
-    if len(auth)>length:
+def check_authorization(data, auth, length=44):
+    if len(auth) < length:
+        raise UnauthorizedException('User is not logged in.')  # this is an invalid auth key?
+
+    if len(auth) > length:
         # a timeout is added, should be 8 bytes
         if not len(auth) == 8 + length:
-            raise UnauthorizedException('User is not logged in.') # this is an invalid auth key - hacking?
-        
+            raise UnauthorizedException('User is not logged in.')  # this is an invalid auth key?
+
         auth_time = auth[:8]
         auth_key = auth[8:]
-        t=int.from_bytes(stringtobytes(auth_time),'big')
+        t = int.from_bytes(stringtobytes(auth_time), 'big')
         if t < time.time():
             raise UnauthorizedException("User's login has timed out.")
         data = (data, auth_time)
@@ -65,8 +72,4 @@ def check_authorization(data, auth, length=44):
 
     # make sure the user's auth key is valid
     if not authorization_key(data, length) == auth_key:
-        raise UnauthorizedException('User is not logged in.') # this is an invalid auth key - hacking?
-
-
-
-                  
+        raise UnauthorizedException('User is not logged in.')  # this is an invalid auth key?

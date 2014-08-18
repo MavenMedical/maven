@@ -5,26 +5,23 @@
 #  Description: This module extends the StreamProcessor class into a REST web server.
 #               I also give a sample application, which interacts with a slightly modified
 #               version of the backbone tutorial's user manager application.
-#               
+#
 #  Author: Tom DuBois
-#  Assumes: Nothing for now, eventually that Rabbit will send a message 
+#  Assumes: Nothing for now, eventually that Rabbit will send a message
 #           with a specific format
 #  Side Effects: None
-#  Last Modified: 
+#  Last Modified:
 ##############################################################################
 
 import urllib.parse
 import json
 import traceback
 import re
-
 import asyncio
-from http_parser.parser import HttpParser
-
 import maven_config as MC
 import maven_logging as ML
 import utils.streaming.stream_processor as SP
-
+from utils.streaming.http_responder import _HTTPStreamParser
 
 CONFIGVALUE_HTTPPARSER = 'http parser'
 
@@ -62,7 +59,7 @@ UNAVAILABLE_RESPONSE = b'HTTP/1.0 503 Service Unavailable'
 CREATED_RESPONSE = b'HTTP/1.0 201 Created'
 NOCONTENT_RESPONSE = b'HTTP/1.0 204 No Content'
 BAD_RESPONSE = b'HTTP/1.0 400 Bad Request'
-UNAUTHORIZED_RESPONSE = b'HTTP/1.0 401 Unauthorized' # needs to let the client know how to get authorization
+UNAUTHORIZED_RESPONSE = b'HTTP/1.0 401 Unauthorized'
 NOTFOUND_RESPONSE = b'HTTP/1.0 404 Not Found'
 NOTALLOWED_RESPONSE = b'HTTP/1.0 405 Method Not Allowed'
 ERROR_RESPONSE = b'HTTP/1.0 500 Internal Server Error'
@@ -72,7 +69,7 @@ DEFAULT_HEADERS = \
         b'Content-Type: application/json',
         b'Connection: close',
     ]
-    # text/plain
+# text/plain
 
 
 def wrap_response(response_type, text, extra_header_list=None):
@@ -92,62 +89,6 @@ def wrap_response(response_type, text, extra_header_list=None):
                          (text if type(text) == bytes else bytes(text, "utf-8"))])
 
 
-class _HTTPStreamParser(SP.MappingParser):
-    """ _HTTPStreamParser is a stream parser that takes a stream of (either one, or multiple 
-    pipelined) HTTP requests, divides them into individual requests, parses them into a 
-    HttpParser object and a body, and calls read_object (see stream_processor for more info
-    on parsers
-    """
-    
-    # Every HTTP message should start with one of these.  So each occurence is a 
-    # potential delimited between messages.  Used for breaking up potentially 
-    # pipelined messages
-    _starting_re = re.compile(b"(GET|POST|OPTIONS|DELETE|PUT|HEAD|TRACE)")
-
-    def __init__(self, configname, read_fn, loop, register_fn):
-        """ __init__ initializes the _HttpStreamParser.
-        It has a base stream_processor.MappingParser, plus an HttpParser and a body.
-        :param configname: the name of this parser in the config file
-        :param read_fn: the function to pass completed http request objects
-        :param loop: the event loop
-        :param register_fn: when a new socket is opened, register a writer for it here
-        """
-        SP.MappingParser.__init__(self, configname, read_fn, lambda x: x, loop, register_fn)
-        ML.INFO("created a new http parser")
-        self.p = HttpParser()
-        self.body = []
-
-    def data_received(self, data):
-        """ data_received is called whenever an open socket receives data.
-        see http://docs.python.org/3.4/library/asyncio-protocol.html for info on asyncio protocols
-        :params data: the bytes received over the socket
-        """
-
-        ML.DEBUG("RECV: " + str(data))
-        
-        # split the data on potential http request boundaries
-        splits = _HTTPStreamParser._starting_re.split(data)
-        
-        # for each non-empty split, parse it
-        for sp in filter(None,splits):
-            #print("SP: "+str(sp))
-            self.p.execute(sp, len(sp))  # parse the chunk of bytes
-            
-            # if it contains part of the request's body, process that
-            if self.p.is_partial_body():
-                self.body.append(self.p.recv_body())
-
-            # if the message is complete, put everything together, and launch a coroutine to handle it
-            if self.p.is_message_complete():
-                coro = self.read_fn([self.p, b''.join(self.body)], self.registered_key)
-                self.loop.call_soon_threadsafe(SP.MappingParser.create_task, coro, self.loop)
-                self.p = HttpParser()
-                self.body = []
-
-    def eof_received(self):
-        ML.DEBUG("EOF")
-        pass#self.unregister_fn(self.registered_key)
-
 class IncompleteRequest(Exception):
     pass
 
@@ -156,14 +97,16 @@ class HTTPProcessor(SP.StreamProcessor):
     """ HTTPProcessor extends stream_processor.StreamProcessor with a web server
     It can create many kinds of web servers, but the motivation is RESTful web services
 
-    As written, when a client connects, a coroutine is schedule to handle the request and respond 
+    As written, when a client connects, a coroutine is schedule to handle the request and respond
     immediately.  Without much effort it could be re-configured to bundle the request, send it to
-    another machine for processing, and pair the reply back with the original socket when it comes back.
+    another machine for processing, and pair the reply back with the original socket when
+    it comes back.
     """
 
     def __init__(self, configname):
-        """ Initialize the StreamProcessor superclass, getting all of the IO and helper functions from 
-        the MavenConfig structure.  It creates the StreamProcess, but does not yet make network connections.
+        """ Initialize the StreamProcessor superclass, getting all of the IO and helper
+        functions from the MavenConfig structure.  It creates the StreamProcess, but does
+        not yet make network connections.
 
         :param configname: the name of the instance to pull config parameters
         """
@@ -174,8 +117,8 @@ class HTTPProcessor(SP.StreamProcessor):
             self.host = self.config.get(SP.CONFIG_HOST, None)
             self.port = self.config[SP.CONFIG_PORT]
         except KeyError:
-            raise MC.InvalidConfig(configname + " did not have sufficient parameters.")            
-        
+            raise MC.InvalidConfig(configname + " did not have sufficient parameters.")
+
         # the web service only needs host and port parameters, but stream processor needs
         # more detailed information.  create detailed configuration parameters here
         readername = configname + '.reader'
@@ -206,55 +149,57 @@ class HTTPProcessor(SP.StreamProcessor):
         # initialize the base StreamProcessor with this new configuration pameters
         SP.StreamProcessor.__init__(self, configname)
 
-        # The one piece of state specific to this base class - the handler functions and their regexes
+        # The one piece of state specific to this base class - the handler functions
+        # and their regexes
         # Any subclass of HttpProcessor should populate this in its __init__
         self.handlers = []
 
-
     @asyncio.coroutine
     def read_object(self, obj, key):
-        """ read_object takes an http request and a writer key, determines which handler should process 
-        request, invokes that handler, and responds with its output.
+        """ read_object takes an http request and a writer key, determines which
+        handler should process request, invokes that handler, and responds with its output.
         
-        It should handle catch-all errors, string sanitization, authentication, etc., so that the handler
+        It should handle catch-all errors, string sanitization, authentication, etc.,
+        so that the handler
         functions only worry about the business logic.
 
         :param obj: a list of [HttpParse, message_body]
         :param key: the key to be used when responding with self.write_object(response_bytes, key)
-        """        
-        
+        """
+
         headers = obj[0]
         body = obj[1]
-        #ML.DEBUG("errno: %s" % headers.get_errno())
+        # ML.DEBUG("errno: %s" % headers.get_errno())
         ML.DEBUG("header: %s" % headers.get_headers())
         ML.DEBUG("method: %s" % headers.get_method())
         ML.INFO("path: %s" % headers.get_path())
-        #ML.DEBUG("status: %s" % headers.get_status_code())
+        # ML.DEBUG("status: %s" % headers.get_status_code())
         ML.DEBUG("body: %s" % body)
         req_line = headers.get_method()+' '+headers.get_path()
         query_string = urllib.parse.parse_qs(headers.get_query_string())
         ML.DEBUG("query: %s" % str(query_string))
-        #print(req_line)
+        # print(req_line)
         ret = None
         try:
             for (r, fn) in self.handlers:
-            #print(r, fn)
+                # print(r, fn)
                 m = r.match(req_line)
                 if m:  # if the regex matches, call the handler and return a response
-                    (resp, body, extras) = yield from fn(headers, body, query_string, m.groups(), key)
+                    (resp, body, extras) = yield from fn(headers, body, query_string,
+                                                         m.groups(), key)
                     if headers.get_method() == 'HEAD':  # don't send a body with HEAD
-                        ret=wrap_response(resp, b'', extras)
+                        ret = wrap_response(resp, b'', extras)
                     else:
-                        if resp == OK_RESPONSE and not body: # use No Content when called for
+                        if resp == OK_RESPONSE and not body:  # use No Content when called for
                             resp = NOCONTENT_RESPONSE
-                        ret=wrap_response(resp, body, extras)
+                        ret = wrap_response(resp, body, extras)
                     break
         except KeyError:  # key error means an object isn't found
             ret = wrap_response(NOTFOUND_RESPONSE, b'')
         except ValueError:
             ret = wrap_response(BAD_RESPONSE, b'')
-        except IncompleteRequest as e :  # key error means an object isn't found
-            ret = wrap_response(BAD_RESPONSE, bytes(str(e),'utf-8'))
+        except IncompleteRequest as e:  # key error means an object isn't found
+            ret = wrap_response(BAD_RESPONSE, bytes(str(e), 'utf-8'))
         except:  # handle general errors gracefully
             traceback.print_exc()
             ret = wrap_response(ERROR_RESPONSE, b'')
@@ -263,9 +208,9 @@ class HTTPProcessor(SP.StreamProcessor):
             ret = wrap_response(UNAVAILABLE_RESPONSE, b'')
 
         try:
-            self.write_object(ret, writer_key = key)  # send the response
+            self.write_object(ret, writer_key=key)  # send the response
             ML.DEBUG("done writing")
-            if headers.get_headers().get('Connection','').upper()=='CLOSE':
+            if headers.get_headers().get('Connection', '').upper() == 'CLOSE':
                 self.unregister_writer(key)
                 ML.DEBUG("unregistering")
             else:
@@ -279,21 +224,22 @@ class HTTPProcessor(SP.StreamProcessor):
         The first match gets to handle the message
         :param methods: a list of http methods (ex ['GET'])
         :param regexpstring: a string representing urls to match.
-                             it may contain groups (ex "(\d+)") whose 
+                             it may contain groups (ex "(\d+)") whose
                              matches contents are passed to the handler.
         :param fn: the handler function
         """
 
-        if 'GET' in methods and not 'HEAD' in methods:
+        if 'GET' in methods and 'HEAD' not in methods:
             methods.append('HEAD')
         regexp = '(?:'+'|'.join(methods)+')\s+'+regexpstring + "$"
         self.handlers.append((re.compile(regexp), fn))
-        #print(regexp)
-        #print(re.match(regexp,b'GET /users/1 HTTP/1.0'))
+        # print(regexp)
+        # print(re.match(regexp,b'GET /users/1 HTTP/1.0'))
 
 
 class BackboneService(HTTPProcessor):
-    """ BackboneService is a subclass of HTTPProcessor which interacts with the backbone.js turorial available 
+    """ BackboneService is a subclass of HTTPProcessor which interacts with
+    the backbone.js turorial available
     from git clone https://github.com/thomasdavis/backbonetutorials.git
     
     It keeps an in-memory list of users, with first/last names and ages.
@@ -323,9 +269,11 @@ class BackboneService(HTTPProcessor):
         :param body: the request body
         :param qs: a map from the query string (ex ?x=&y=1&y=2&Y&z=4 becomes {y:[1,2],z:[4]})
         :param matches: a list of url parts matches from the handler's regex
-        :param key: not used here, but potentially useful for passing off processing to another machine
+        :param key: not used here, but potentially useful for passing off processing
+        to another machine
         """
-        return (OK_RESPONSE, json.dumps([self.allusers[x] for x in sorted(self.allusers.keys())]),None)
+        return (OK_RESPONSE,
+                json.dumps([self.allusers[x] for x in sorted(self.allusers.keys())]), None)
 
     @asyncio.coroutine
     def get_user(self, _header, _body, _qs, matches, _key):

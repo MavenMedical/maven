@@ -29,6 +29,7 @@ import utils.web_client.http_client as http
 import utils.web_client.allscripts_http_client as AHC
 from utils.web_client.builder import builder
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
+import uuid
 from utils.database.memory_cache import MemoryCache
 
 
@@ -56,7 +57,12 @@ class CompositionBuilder(builder):
 
     @builder.build(FHIR_API.Composition)
     def build_composition(self, obj, username, patient):
-        obj.author.append(self.provs[username])
+        obj.author = self.provs[username]
+        # TODO - Fix this hardcoded customer ID
+        obj.customer_id = 5
+        obj.encounter = FHIR_API.Encounter(identifier=[FHIR_API.Identifier(label="Internal",
+                                                                           system="clientEMR",
+                                                                           value=str(uuid.uuid1()))])
         ML.DEBUG(json.dumps(FHIR_API.remove_none(json.loads(json.dumps(obj, default=FHIR_API.jdefault))), default=FHIR_API.jdefault, indent=4))
         return obj
 

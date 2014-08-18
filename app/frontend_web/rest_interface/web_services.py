@@ -316,7 +316,9 @@ class FrontendWebService(HTTP.HTTPProcessor):
                 # at the point, the user has succeeded to login
             user = str(user_info[WP.Results.userid])
             provider = user_info[WP.Results.provid]
-            user_auth = AK.authorization_key([user, provider], AUTH_LENGTH, LOGIN_TIMEOUT)
+            customer = str(user_info[WP.Results.customerid])
+            user_auth = AK.authorization_key([user, provider, customer],
+                                             AUTH_LENGTH, LOGIN_TIMEOUT)
             if not self.stylesheet == 'original':
                 self.stylesheet = 'original'
 

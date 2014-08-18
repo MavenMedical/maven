@@ -1,11 +1,14 @@
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="../js/libs/jsplumb2/js/jsplumb.js"></script>
     <style>
+
 
         #pathway-container {
             position: relative;
-            width: 2000px;
-
+            transform: scale(1)
 
         }
+
         #pathway-container:active{
             cursor: url(https://mail.google.com/mail/images/2/openhand.cur), default !important;
         }
@@ -189,7 +192,6 @@
         #copiedText{
             display: none;
         }
-
     </style>
 
     <div id="toast">
@@ -209,8 +211,7 @@
                 <img src="../images/pathway-icon.png" style="width: 20px; height: 20px"></button>
         </span>
 
-
-        <div id="pathway-container">
+        <div id="pathway-container" style="transform: scale(1); width: 2000px">
 
             <div class="tree">
                 <ul>

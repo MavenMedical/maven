@@ -92,6 +92,14 @@ def wrap_response(response_type, text, extra_header_list=None):
                          (text if type(text) == bytes else bytes(text, "utf-8"))])
 
 
+class IncompleteRequest(Exception):
+    pass
+
+
+class UnauthorizedRequest(Exception):
+    pass
+
+
 class _HTTPStreamParser(SP.MappingParser):
     """ _HTTPStreamParser is a stream parser that takes a stream of (either one, or multiple
     pipelined) HTTP requests, divides them into individual requests, parses them into a
@@ -123,8 +131,6 @@ class _HTTPStreamParser(SP.MappingParser):
         :params data: the bytes received over the socket
         """
 
-        # self.update_last_activity()
-
         ML.DEBUG("RECV: " + str(data))
 
         # split the data on potential http request boundaries
@@ -136,6 +142,9 @@ class _HTTPStreamParser(SP.MappingParser):
             base = 0
             while base < len(sp):
                 c = self.p.execute(sp[base:], len(sp[base:]))  # parse the chunk of bytes
+                if c == 0:
+                    self.close()
+                    raise IncompleteRequest
                 # l = len(sp[base:])
                 base = base + c
 
@@ -153,14 +162,6 @@ class _HTTPStreamParser(SP.MappingParser):
     def eof_received(self):
         # ML.DEBUG("EOF")
         return True
-
-
-class IncompleteRequest(Exception):
-    pass
-
-
-class UnauthorizedRequest(Exception):
-    pass
 
 
 def ssl_check(header):

@@ -67,24 +67,25 @@ define([
 
             $('#pathway-container').draggable();
 
-            /*
-             $('#pathway-container').on('wheel', function(data){
-             data.preventDefault()
-             var re = /scale\((.*)\)/
-             var n = that.treeEl[0].style.transform
-             var result = re.exec(n)
-             if (data.originalEvent.deltaY > 0){
-             var newScale = result[1] -.05
-             } else {
-             var newScale = (result[1]-0) + .05
+            $('#pathway-container').on('wheel', function(data){
+                    data.preventDefault()
+/*
+ */                  var re = /scale\((.*)\)/
 
-             }
-             var scaleString = 'scale(' + newScale +')'
-             that.treeEl.css({'transform': scaleString})
+                     var n = $('#pathway-container')[0].style.transform
+                     var result = re.exec(n)
+                     console.log(result)
 
-             })
+                     if (data.originalEvent.deltaY > 0){
+                         var newScale = result[1] -.05
+                     } else {
+                          var newScale = (result[1]-0) + .05
 
-             */
+                     }
+                     var scaleString = 'scale(' + newScale +')'
+                     $('#pathway-container').css({'transform': scaleString})
+
+                 })
         },
         events: {
             'click button#copybutton': 'copyIndex',

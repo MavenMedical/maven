@@ -36,7 +36,7 @@ define([
                 var that = this
 
                 jsPlumb.setContainer(this.treeEl[0])
-                 this.$el.on('wheel', function(data){
+                this.$el.on('wheel', function(data){
                     data.preventDefault()
 /*
  */                    var re = /scale\((.*)\)/

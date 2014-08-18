@@ -26,9 +26,9 @@ define([
 
         },
         handleConfirm: function(){
-               that.parent.unset('protocol', {silent: true})
+               this.parent.unset('protocol', {silent: true})
                var n = new NodeModel({description: $('#newNodeDescription', this.$el).val(), name: $('#newNodeText', this.$el).val(), text: $('#newNodeText', this.$el).val()})
-               that.parent.get('children').add(n)
+               this.parent.get('children').add(n)
                contextModel.set('selectedNode', n )
                $('#detail-modal').modal('hide')
         }

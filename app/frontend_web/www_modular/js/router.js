@@ -44,7 +44,7 @@ define([
     
     var AppRouter = Backbone.Router.extend({
 	routes: {
-	    "(/login/:provider/:customer/:userAuth)": 'showHome',
+	    "(login/:provider/:customer/:userAuth)": 'showHome',
 	    "patient/:id(/login/:provider/:customer/:userAuth)": 'showPatient',
 	    "episode/:id/patient/:id/:date(/login/:provider/:customer/:userAuth)": 'showEpisode',
             "pathway/:id/patient/:id/:date(/login/:provider/:customer/:userAuth)": 'showPathway',

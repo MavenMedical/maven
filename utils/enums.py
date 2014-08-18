@@ -24,6 +24,7 @@ class ALERT_TYPES(Enum):
     COST = "Transparent"
     REC_RESULT = "Recent Results"
     ALT_MED = "Alternative Medications"
+    PATHWAY = "Pathways"
 
 
 class ALERT_PRIORITY(Enum):

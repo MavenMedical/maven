@@ -29,7 +29,7 @@ import utils.api.pyfhir.pyfhir_generated as FHIR_API
 from clientApp.module_webservice.emr_parser import VistaParser
 import clientApp.notification_generator.notification_generator as NG
 import clientApp.module_webservice.notification_service as NS
-from clientApp.allscripts.allscripts_scheduler import scheduler
+from clientApp.allscripts.allscripts_scheduler import scheduler, CONFIG_SLEEPINTERVAL
 import utils.web_client.allscripts_http_client as AHC
 
 
@@ -55,14 +55,14 @@ class IncomingFromMavenMessageHandler(HR.HTTPWriter):
 
         # ## tom: this has no authentication yet
         # composition.customer_id
-        user = composition.get_author_id()
+        user = composition.write_key[0]
+        msg = yield from self.notification_generator.generate_alert_content(composition, 'web', None)
+        self.notification_service.send_messages(user, msg)
 
         if self.notification_service.send_messages(user, None):
-            notifications = yield from self.notification_generator.generate_alert_content(composition, 'web', None)
-            self.notification_service.send_messages(user, notifications)
             return (HR.OK_RESPONSE, b'', [], composition.write_key[0])
         else:
-            notifications = yield from self.notification_generator.generate_alert_content(composition, 'vista', None)
+            notifications = yield from self.notification_generator.generate_alert_content(composition, 'web', None)
 
             alert_notification_content = ""
 
@@ -117,8 +117,8 @@ def main(loop):
 
         clientemrconfig:
         {
-            NG.EMR_TYPE: "vista",
-            NG.EMR_VERSION: "2.0",
+            NG.EMR_TYPE: "allscripts",
+            NG.EMR_VERSION: "14.0",
             NG.CLIENTAPP_LOCATION: "cloud",
             NG.DEBUG: True,
             NG.COST_ALERT_ICON: "/clientApp",
@@ -127,7 +127,7 @@ def main(loop):
         notificationservicename:
         {
             SP.CONFIG_HOST: 'localhost',
-            SP.CONFIG_PORT: 8091,
+            SP.CONFIG_PORT: 8092,
             SP.CONFIG_PARSERTIMEOUT: 120,
             NS.CONFIG_QUEUEDELAY: 60,
         },
@@ -138,6 +138,7 @@ def main(loop):
             AHC.CONFIG_APPNAME: 'MavenPathways.TestApp',
             AHC.CONFIG_APPUSERNAME: 'MavenPathways',
             AHC.CONFIG_APPPASSWORD: 'MavenPathways123!!',
+            CONFIG_SLEEPINTERVAL: 60,
         },
         'scheduler': {CONFIG_API: 'allscripts_demo',
                       "SP": outgoingtomavenmessagehandler}
