@@ -21,7 +21,6 @@ from enum import Enum
 from datetime import date, datetime, timedelta
 import re
 from dateutil.parser import parse
-from collections import defaultdict
 import utils.web_client.allscripts_http_client as AHC
 import clientApp.module_webservice.notification_service as NS
 import maven_config as MC
@@ -44,14 +43,13 @@ class Types(Enum):
 
 class scheduler(SP.StreamProcessor):
 
-    def __init__(self, configname, messenger):
+    def __init__(self, configname):
         SP.StreamProcessor.__init__(self, MC.MavenConfig[configname]['SP'])
         self.config = MC.MavenConfig[configname]
         self.apiname = self.config[CONFIG_API]
         self.allscripts_api = AHC.allscripts_api(self.apiname)
         self.processed = set()
         self.lastday = None
-        self.messenger = messenger
         self.comp_builder = CompositionBuilder(configname)
         self.wk = 2
         self.sleep_interval = self.config.get(CONFIG_SLEEPINTERVAL, 60)
@@ -69,7 +67,7 @@ class scheduler(SP.StreamProcessor):
                 try:
                     sched = yield from self.allscripts_api.GetSchedule('CliffHux', today)
                 except AHC.AllscriptsError as e:
-                    CLIENT_SERVER_LOG.EXCEPTION(e)
+                    CLIENT_SERVER_LOG.exception(e)
                 # print([(sch['patientID'], sch['ApptTime2'], sch['ProviderID']) for sch in sched])
                 tasks = set()
                 # ML.DEBUG(sched)
@@ -80,7 +78,7 @@ class scheduler(SP.StreamProcessor):
                 for task in tasks:
                     asyncio.Task(self.evaluate(*task))
             except Exception as e:
-                CLIENT_SERVER_LOG.EXCEPTION(e)
+                CLIENT_SERVER_LOG.exception(e)
             yield from asyncio.sleep(self.sleep_interval)
             first = False
 
@@ -117,13 +115,12 @@ class scheduler(SP.StreamProcessor):
                             composition = yield from self.comp_builder.build_composition("CLIFFHUX", patient)
                             CLIENT_SERVER_LOG.debug(("Built composition, about to send to Data Router. Composition ID = %s" % composition.id))
                             self.write_object(pickle.dumps([composition, "CLIFFHUX"]), self.wk)
-                            # self.messenger(patient, provider, keywords[start:stop])
                             break
                 # processed.update({doc['DocumentID'] for doc in documents})
         except AHC.AllscriptsError as e:
-            CLIENT_SERVER_LOG.EXCEPTION(e)
+            CLIENT_SERVER_LOG.exception(e)
         except:
-            CLIENT_SERVER_LOG.EXCEPTION(e)
+            CLIENT_SERVER_LOG.exception(e)
 
 if __name__ == '__main__':
     MC.MavenConfig['allscripts_old_demo'] = {
@@ -157,11 +154,7 @@ if __name__ == '__main__':
 
     ns = NS.NotificationService('notificationserver')
 
-    def translate(patient, provider, icd9):
-        CLIENT_SERVER_LOG.DEBUG(provider)
-        ns.send_messages(provider,
-                         ["patient %s is set with icd9 %s" % (patient, icd9)])
-    sched = scheduler('scheduler', translate)
+    sched = scheduler('scheduler')
 
     loop = asyncio.get_event_loop()
     ns.schedule(loop)
