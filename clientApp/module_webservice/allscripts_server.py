@@ -164,8 +164,8 @@ def main(loop):
                                            ["patient %s is set with icd9 %s" % (patient, icd9)])
 
     #    reader = sp_consumer.schedule(loop)
-    allscripts_scheduler = scheduler('scheduler', translate)
-    emr_writer = sp_producer.schedule(loop)
+    allscripts_scheduler = scheduler('scheduler')
+    sp_producer.schedule(loop)
     notification_service.schedule(loop)
 
     try:
