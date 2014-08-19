@@ -22,6 +22,8 @@ import asyncio
 import maven_config as MC
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
 import utils.crypto.authorization_key as AK
+import maven_logging as ML
+
 ARGS = argparse.ArgumentParser(description='Maven Client Receiver Configs.')
 ARGS.add_argument(
     '--emr', action='store', dest='emr',
@@ -42,7 +44,7 @@ class IncomingMessageHandler(SP.StreamProcessor):
         obj_list = pickle.loads(obj)
         composition = obj_list[0]
         key1 = obj_list[1]
-
+        ML.DEBUG(key1)
         #composition = api.Composition().create_composition_from_json(json_composition)
         composition.write_key = [key1, key2]
         self.write_object(composition, writer_key="CostEval")

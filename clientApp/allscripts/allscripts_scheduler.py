@@ -70,7 +70,7 @@ class scheduler(SP.StreamProcessor):
                     CLIENT_SERVER_LOG.exception(e)
                 # print([(sch['patientID'], sch['ApptTime2'], sch['ProviderID']) for sch in sched])
                 tasks = set()
-                # ML.DEBUG(sched)
+                # CLIENT_SERVER_LOG.debug(sched)
                 for appointment in sched:
                     patient = appointment['patientID']
                     provider = appointment['ProviderID']
@@ -84,7 +84,7 @@ class scheduler(SP.StreamProcessor):
 
     @asyncio.coroutine
     def evaluate(self, patient, provider, today, first):
-        # ML.DEBUG('evaluating %s/%s' % (patient, provider))
+        CLIENT_SERVER_LOG.debug('evaluating %s/%s' % (patient, provider))
         try:
             # print('evaluating %\s for %s' % (patient, provider))
             now = datetime.now()

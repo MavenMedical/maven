@@ -116,8 +116,13 @@ def write_composition_conditions(composition, conn):
         for condition in condition_list:
             snomed_id = condition.get_snomed_id()
             dx_coding = condition.get_ICD9_id()
-            dx_code_id = dx_coding.code
-            dx_code_system = dx_coding.system
+            
+            if dx_coding:
+                dx_code_id = dx_coding.code
+                dx_code_system = dx_coding.system
+            else:
+                dx_code_id = None
+                dx_code_system = None
 
             columns = [pat_id,
                        customer_id,

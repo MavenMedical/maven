@@ -51,6 +51,7 @@ class CompositionBuilder(builder):
 #        self.providers = yield from self.build_practitioners()
 
     @builder.build(FHIR_API.Composition)
+    @ML.trace(COMP_BUILD_LOG.debug, True)
     def build_composition(self, obj, username, patient):
         obj.author = self.provs[username]
         # TODO - Fix this hardcoded customer ID
@@ -63,6 +64,7 @@ class CompositionBuilder(builder):
         return obj
 
     @builder.provide(Types.Practitioners)
+    @ML.coroutine_trace(COMP_BUILD_LOG.debug, True)
     def _practitioners(self, username, patient):
         # TODO - MemoryCache timeout=3600s
         ret = yield from self.allscripts_api.GetProviders(username=username)
@@ -71,16 +73,19 @@ class CompositionBuilder(builder):
         return [{prov['EntryCode']: self._build_partial_practitioner(prov)} for prov in ret]
 
     @builder.provide(Types.Patient)
+    @ML.coroutine_trace(COMP_BUILD_LOG.debug, True)
     def _patient(self, username, patient):
         ret = yield from self.allscripts_api.GetPatient(username, patient)
         return ret
 
     @builder.provide(Types.ClinicalSummary)
+    @ML.coroutine_trace(COMP_BUILD_LOG.debug, True)
     def _clin_summary(self, username, patient):
         ret = yield from self.allscripts_api.GetClinicalSummary(username, patient, AHC.CLINICAL_SUMMARY.All)
         return ret
 
     @builder.require(Types.Patient, Types.ClinicalSummary, Types.Practitioners)
+    @ML.coroutine_trace(COMP_BUILD_LOG.debug, True)
     def _build_composition_components(self, composition, patient_result, clin_summary_result, practitioners_result):
 
         # Create the FHIR Composition Object with a Type=LOINC coded version of
@@ -161,7 +166,7 @@ class CompositionBuilder(builder):
                                                                                        display=problem['description'])])
             else:
                 fhir_condition.code = FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(display=problem['description'])])
-                COMP_BUILD_LOG.DEBUG("Diagnosis Terminology (ICD-9/10, SNOMED CT) not provided for %s" % problem)
+                COMP_BUILD_LOG.debug("Diagnosis Terminology (ICD-9/10, SNOMED CT) not provided for %s" % problem)
 
             fhir_dx_section.content.append(fhir_condition)
 
@@ -245,7 +250,7 @@ if __name__ == '__main__':
     }
 
     MavenConfig['allscripts_demo'] = {
-        AHC.http.CONFIG_BASEURL: 'http://pro14ga.unitysandbox.com/Unity/UnityService.svc',
+        AHC.http.CONFIG_BASEURL: 'http://192.237.182.238/Unity/UnityService.svc',
         AHC.http.CONFIG_OTHERHEADERS: {
             'Content-Type': 'application/json'
         },
@@ -256,6 +261,6 @@ if __name__ == '__main__':
 
     MavenConfig['scheduler'] = {CONFIG_API: 'allscripts_demo'}
 
-    comp_builder = CompositionBuilder(MavenConfig['scheduler'])
+    comp_builder = CompositionBuilder('scheduler')
     loop = asyncio.get_event_loop()
     print(loop.run_until_complete(comp_builder.build_composition("CLIFFHUX", "66556")))

@@ -57,7 +57,8 @@ def check_output(jobj, empty_ok=False):
         if "Error" in obj[0]:
             exc = AllscriptsError(obj[0]["Error"])
         elif (not empty_ok) and len(list(obj[0].values())[0]) == 0:
-            exc = AllscriptsError("Query returned empty list")
+            # exc = AllscriptsError("Query returned empty list")
+            return obj
         else:
             return obj
     except:
@@ -422,7 +423,8 @@ if __name__ == '__main__':
     }
 
     MavenConfig['allscripts_demo'] = {
-        http.CONFIG_BASEURL: 'http://pro14ga.unitysandbox.com/Unity/UnityService.svc',
+#        http.CONFIG_BASEURL: 'http://pro14ga.unitysandbox.com/Unity/UnityService.svc',
+        http.CONFIG_BASEURL: 'http://192.237.182.238/Unity/UnityService.svc',
         http.CONFIG_OTHERHEADERS: {
             'Content-Type': 'application/json'
         },

@@ -140,7 +140,7 @@ def main(loop):
         },
         allscriptsscheduler:
         {
-            AHC.http.CONFIG_BASEURL: 'http://pro14ga.unitysandbox.com/Unity/UnityService.svc',
+            AHC.http.CONFIG_BASEURL: 'http://192.237.182.238/Unity/UnityService.svc',
             AHC.http.CONFIG_OTHERHEADERS: {'Content-Type': 'application/json'},
             AHC.CONFIG_APPNAME: 'MavenPathways.TestApp',
             AHC.CONFIG_APPUSERNAME: 'MavenPathways',
