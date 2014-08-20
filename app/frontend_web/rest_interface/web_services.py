@@ -48,6 +48,7 @@ CONTEXT_OFFICIALNAME = 'official_name'
 CONTEXT_DISPLAYNAME = 'display_name'
 CONTEXT_ACTION = 'action'
 CONTEXT_ACTIONCOMMENT = 'action_comment'
+CONTEXT_TARGETUSER = 'target_user'
 
 LOGIN_TIMEOUT = 60 * 60  # 1 hour
 AUTH_LENGTH = 44  # 44 base 64 encoded bits gives the entire 256 bites of SHA2 hash
@@ -82,6 +83,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
         self.add_handler(['GET'], '/autocomplete_patient', self.get_autocomplete_patient)
         self.add_handler(['GET'], '/autocomplete_diagnosis', self.get_autocomplete_diagnosis)
         self.add_handler(['GET'], '/hist_spending', self.get_hist_spend)
+        self.add_handler(['GET'], '/users(?:(\d+)-(\d+)?)?', self.get_users)
+        self.add_handler(['GET'], '/audits(?:(\d+)-(\d+)?)?', self.get_audits)
         self.helper = HH.HTTPHelper([CONTEXT_USER, CONTEXT_PROVIDER], CONTEXT_KEY, AUTH_LENGTH)
         self.persistence_interface = WP.WebPersistence(persistence_name)
 
@@ -345,6 +348,28 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                                                header.get_headers().get('X-Real-IP'),
                                                                info['userAuth'] if method == 'forward' else None)
 
+    users_required_contexts = [CONTEXT_USER, CONTEXT_PROVIDER]
+    users_available_contexts = {CONTEXT_PROVIDER: str, CONTEXT_USER: int}
+
+    @asyncio.coroutine
+    def get_users(self, _header, _body, qs, matches, _key):
+        context = self.helper.restrict_context(qs,
+                                               FrontendWebService.users_required_contexts,
+                                               FrontendWebService.users_available_contexts)
+
+        desired = {
+            WP.Results.userid: 'user_id',
+            WP.Results.customerid: 'customer_id',
+            WP.Results.provid: 'prov_id',
+            WP.Results.username: 'user_name',
+            WP.Results.officialname: 'official_name',
+            WP.Results.displayname: 'display_name',
+            WP.Results.state: 'state'
+        }
+        results = yield from self.persistence_interface.user_info(desired)
+
+        return HTTP.OK_RESPONSE, json.dumps(results), None
+
     patients_required_contexts = [CONTEXT_PROVIDER, CONTEXT_CUSTOMERID]
     patients_available_contexts = {CONTEXT_PROVIDER: str, CONTEXT_CUSTOMERID: int,
                                    CONTEXT_STARTDATE: date, CONTEXT_ENDDATE: date}
@@ -532,6 +557,40 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                                                enddate=enddate,
                                                                limit=limit, orderid=orderid,
                                                                categories=categories)
+
+        return HTTP.OK_RESPONSE, json.dumps(results), None
+
+    audits_required_contexts = [CONTEXT_PROVIDER, CONTEXT_USER, CONTEXT_CUSTOMERID]
+    audits_available_contexts = {CONTEXT_PROVIDER: str, CONTEXT_PATIENTLIST: list,
+                                 CONTEXT_CUSTOMERID: int, CONTEXT_ENCOUNTER: str,
+                                 CONTEXT_STARTDATE: date, CONTEXT_ENDDATE: date,
+                                 CONTEXT_ORDERID: str, CONTEXT_CATEGORIES: list,
+                                 CONTEXT_USER: int, CONTEXT_TARGETUSER: int}
+
+    @asyncio.coroutine
+    def get_audits(self, _header, _body, qs, matches, _key):
+
+        context = self.helper.restrict_context(qs,
+                                               FrontendWebService.audits_required_contexts,
+                                               FrontendWebService.audits_available_contexts)
+        targetuser = context.get(CONTEXT_TARGETUSER, None)
+        if not targetuser:
+            targetuser = context[CONTEXT_USER]
+
+        startdate = self.helper.get_date(context, CONTEXT_STARTDATE)
+        enddate = self.helper.get_date(context, CONTEXT_ENDDATE)
+        limit = self.helper.limit_clause(matches)
+
+        desired = {
+            WP.Results.auditid: 'id',
+            WP.Results.datetime: 'date',
+            WP.Results.userid: 'user',
+            WP.Results.patientid: 'patient',
+            WP.Results.action: 'action',
+            WP.Results.datatype: 'data_type'
+        }
+
+        results = yield from self.persistence_interface.audit_info(desired, targetuser, limit=limit)
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
 

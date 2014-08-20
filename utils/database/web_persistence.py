@@ -69,6 +69,9 @@ Results = Enum('Results',
     template
     element
     priority
+    state
+    auditid
+    datatype
 """)
 
 
@@ -291,6 +294,32 @@ class WebPersistence():
 
         results = yield from self.execute(cmd, cmdargs, self._display_pre_login, desired)
         return results[0]
+
+    _default_user_info = set((Results.userid,))
+    _available_user_info = {
+        Results.userid: "users.user_id",
+        Results.customerid: "users.customer_id",
+        Results.provid: "users.prov_id",
+        Results.username: "users.user_name",
+        Results.officialname: "users.official_name",
+        Results.displayname: "users.display_name",
+        Results.state: "users.state"
+    }
+    _display_user_info = _build_format({})
+
+    @asyncio.coroutine
+    def user_info(self, desired):
+        columns = build_columns(desired.keys(), self._available_user_info,
+                                self._default_user_info)
+
+        cmd = []
+        cmdargs = []
+        cmd.append("SELECT")
+        cmd.append(columns)
+        cmd.append("FROM users")
+
+        results = yield from self.execute(cmd, cmdargs, self._display_user_info, desired)
+        return results
 
     _default_patient_info = set((Results.encounter_date,))
     _available_patient_info = {
@@ -519,6 +548,38 @@ class WebPersistence():
                       limit, self._available_alerts)
 
         results = yield from self.execute(cmd, cmdargs, self._display_alerts, desired)
+        return results
+
+    _default_audit_info = set((Results.auditid,))
+    _available_audit_info = {
+        Results.auditid: "audit.id",
+        Results.datetime: "audit.datetime",
+        Results.userid: "audit.user_id",
+        Results.patientid: "audit.patient_id",
+        Results.action: "audit.action",
+        Results.datatype: "audit.data_type"
+    }
+    _display_audit_info = _build_format({
+        Results.auditid: lambda x: x,
+        Results.datetime: lambda x: x and _prettify_datetime(x)
+    })
+
+    @asyncio.coroutine
+    def audit_info(self, desired, userid, limit=""):
+        columns = build_columns(desired.keys(), self._available_audit_info,
+                                self._default_audit_info)
+
+        cmd = []
+        cmdargs = []
+        cmd.append("SELECT")
+        cmd.append(columns)
+        cmd.append("FROM audit")
+        cmd.append("WHERE audit.user_id = %s")
+        cmdargs.append(userid)
+        if limit:
+            cmd.append(limit)
+
+        results = yield from self.execute(cmd, cmdargs, self._display_audit_info, desired)
         return results
 
     _default_layout_info = set()
