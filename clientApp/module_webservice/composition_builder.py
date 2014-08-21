@@ -56,9 +56,6 @@ class CompositionBuilder(builder):
         obj.author = self.provs[username]
         # TODO - Fix this hardcoded customer ID
         obj.customer_id = 2
-        obj.encounter = FHIR_API.Encounter(identifier=[FHIR_API.Identifier(label="Internal",
-                                                                           system="clientEMR",
-                                                                           value=str(uuid.uuid1()))])
         COMP_BUILD_LOG.debug(json.dumps(FHIR_API.remove_none(json.loads(json.dumps(obj, default=FHIR_API.jdefault))), indent=4))
         COMP_BUILD_LOG.debug(("Finished building Composition ID=%s" % obj.id))
         return obj
@@ -263,4 +260,4 @@ if __name__ == '__main__':
 
     comp_builder = CompositionBuilder('scheduler')
     loop = asyncio.get_event_loop()
-    print(loop.run_until_complete(comp_builder.build_composition("CLIFFHUX", "66556")))
+    print(loop.run_until_complete(comp_builder.build_composition("CLIFFHUX", "66561")))
