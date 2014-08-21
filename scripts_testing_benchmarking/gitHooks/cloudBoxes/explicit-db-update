@@ -1,0 +1,33 @@
+#!/bin/bash
+
+cd $MAVEN_ROOT
+UPDATESSQL=../schema_updates.sql
+UPDATESLOG=../schema_updates.log
+for f in `find app/schema/updates/schema -name "*.sql"| sort -n` `find app/schema/updates/data -name "*.sql"| sort -n`; do
+  if grep -q "SUCCEEDED: $f" $UPDATESLOG; then
+    echo $f succeeded in log
+  else
+    if grep -q "FAILED: $f" $UPDATESLOG; then
+      echo $f previously failed - rerun it?
+      read -p "rerun it (y/n)? " -n 1 -r
+      echo
+      if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo not applying $f
+        continue
+      fi
+    fi
+    echo "------------------`date`---------------">>$UPDATESSQL
+    echo "------------------$f------------------">>$UPDATESSQL
+    echo "M-----------------`date`---------------">>$UPDATESLOG
+    echo "M-----------------$f---------------">>$UPDATESLOG
+    psql maven  -v ON_ERROR_STOP=1 "`cat ~/.postgresql/command-line-connect`" -f $f >> $UPDATESLOG 2>&1
+    if [ $? -eq 0 ]; then
+      cat $f>>$UPDATESSQL
+      echo M-----------------SUCCEEDED: $f------->>$UPDATESLOG
+    else
+      echo FAILED on $f
+      echo M-----------------FAILED: $f------->>$UPDATESLOG
+    fi
+  fi
+done
+

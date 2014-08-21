@@ -121,6 +121,7 @@ html, body {
     position: relative;
     margin-left: 0px; /*var-float-left-size*/
     width: 70%; /*100 minus var-float-left-size minus var-floating-right-size*/
+    min-height: 500px;
 }
 
 .mavenpadding {

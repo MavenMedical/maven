@@ -116,8 +116,13 @@ def write_composition_conditions(composition, conn):
         for condition in condition_list:
             snomed_id = condition.get_snomed_id()
             dx_coding = condition.get_ICD9_id()
-            dx_code_id = dx_coding.code
-            dx_code_system = dx_coding.system
+            
+            if dx_coding:
+                dx_code_id = dx_coding.code
+                dx_code_system = dx_coding.system
+            else:
+                dx_code_id = None
+                dx_code_system = None
 
             columns = [pat_id,
                        customer_id,
@@ -144,6 +149,9 @@ def write_composition_conditions(composition, conn):
 @ML.coroutine_trace(timing=True, write=FHIR_DB_LOG.debug)
 def write_composition_encounter_orders(composition, conn):
     try:
+        if composition.get_encounter_orders() is None:
+            return
+
         for order in [(order) for order in composition.get_encounter_orders() if isinstance(order.detail[0], (FHIR_API.Medication, FHIR_API.Procedure))]:
             yield from write_composition_encounter_order(order, composition, conn)
     except:
@@ -539,7 +547,7 @@ def get_snomeds_and_append_to_encounter_dx(composition, conn):
     try:
         for condition in composition.get_encounter_conditions():
             snomed_ids = []
-            for coding in condition.code.coding:
+            for coding in [c for c in condition.code.coding if c.code is not None]:
                 column_map = ["snomedid"]
                 columns = DBMapper.select_rows_from_map(column_map)
                 cur = yield from conn.execute_single("select " + columns + " from terminology.codemap where code=%s and codetype=%s", extra=[coding.code, coding.system])

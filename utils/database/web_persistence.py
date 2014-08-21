@@ -72,6 +72,7 @@ Results = Enum('Results',
     state
     auditid
     datatype
+    roles
 """)
 
 
@@ -270,8 +271,11 @@ class WebPersistence():
         Results.userstate: 'users.state',
         #        Results.failedlogins: 'array_agg(logins.logintime)',
         Results.recentkeys: 'NULL',
+        Results.roles: 'users.roles',
     }
-    _display_pre_login = _build_format()
+    _display_pre_login = _build_format({
+        Results.roles: (lambda x: x[1:-1].split(','))
+    })
 
     @asyncio.coroutine
     def pre_login(self, desired, username=None, provider=None, keycheck=None):
@@ -565,7 +569,8 @@ class WebPersistence():
     })
 
     @asyncio.coroutine
-    def audit_info(self, desired, userid, limit=""):
+    def audit_info(self, desired, userid, startdate=None, enddate=None, orderby=Results.datetime,
+                   ascending=True, limit=""):
         columns = build_columns(desired.keys(), self._available_audit_info,
                                 self._default_audit_info)
 
@@ -576,8 +581,8 @@ class WebPersistence():
         cmd.append("FROM audit")
         cmd.append("WHERE audit.user_id = %s")
         cmdargs.append(userid)
-        if limit:
-            cmd.append(limit)
+        append_extras(cmd, cmdargs, Results.datetime, startdate, enddate, orderby, ascending,
+                      None, limit, self._available_audit_info)
 
         results = yield from self.execute(cmd, cmdargs, self._display_audit_info, desired)
         return results

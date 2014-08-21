@@ -14,22 +14,16 @@ define([
 ], function ($, _, Backbone, curTree, newPathwayTemplate) {
     var NewPathway = Backbone.View.extend({
         template: _.template(newPathwayTemplate),
-        events:{
-          'click #create-button' : 'handle_createPathway'
-        },
         initialize: function () {
-            this.render();
-        },
-        render: function () {
             this.$el.html(this.template());
+             $('#create-button', this.$el).on('click',this.handle_createPathway)
         },
+
         handle_createPathway: function(){
             //hide modal
             $("#createNewPath-modal").modal('hide');
             curTree.loadNewPathway({name: $('#newPathName').val()});
 
-            //navigate to new pathway page
-            Backbone.history.navigate('createpathway', {trigger: true});
         }
     });
     return NewPathway;

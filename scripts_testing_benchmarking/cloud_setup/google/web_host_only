@@ -67,3 +67,5 @@ done
 sudo chmod 644 /etc/mavenmedical/*
 
 echo MUST SETUP /etc/mavenmedical/maven.config
+
+mkdir ~/.postgresql

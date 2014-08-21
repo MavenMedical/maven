@@ -85,7 +85,7 @@ class pathway_service(HTTP.HTTPProcessor):
             CONTEXT_AUTH: user_auth,
             CONTEXT_USER: user,
             'widgets': [
-                ['#rowA-1-2', 'TreeView', 'treeTemplate.html'],
+                ['#rowA-1-1', 'TreeView', 'treeTemplate.html'],
                 ['#fixed-topA-1-1', 'topBanner', 'treeTemplate.html'],
                 ['#fixed-topB-1-1', 'pathwaySearch', 'treeTemplate.html'],
                 ['#floating-right', 'actionList', 'treeTemplate.html'],
@@ -114,8 +114,6 @@ class pathway_service(HTTP.HTTPProcessor):
     search_required_context = [CONTEXT_USER, SEARCH_PARAM, 'type']
     search_available_context = {CONTEXT_USER: str, CONTEXT_PATHID: int, SEARCH_PARAM: str, 'type': str}
 
-
-
     @asyncio.coroutine
     def search(self, _header, body, qs, _matches, _key):
         hasSearch = qs.get(SEARCH_PARAM, None)
@@ -135,6 +133,8 @@ class pathway_service(HTTP.HTTPProcessor):
         print(qs['id'][0])
         ret = yield from self.save_interface.get_tree(qs['id'][0])
         ret = json.loads(ret)
+        ret['id'] = qs['id'][0]
+
         return (HTTP.OK_RESPONSE, json.dumps(ret), None)
 
     @asyncio.coroutine

@@ -25,9 +25,7 @@ define([
             'click #save-button': 'handle_save'
         },
 	initialize: function(){
-	    curCollection.on('sync', function(){
-            this.render()
-        }, this)
+	    curCollection.on('sync',this.render, this)
         this.render();
 
 	},

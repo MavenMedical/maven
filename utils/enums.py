@@ -24,6 +24,7 @@ class ALERT_TYPES(Enum):
     COST = "Transparent"
     REC_RESULT = "Recent Results"
     ALT_MED = "Alternative Medications"
+    PATHWAY = "Pathways"
 
 
 class ALERT_PRIORITY(Enum):
@@ -96,6 +97,12 @@ class PROCEDURE_TERMINOLOGIES(Enum):
     CPT4 = "Current Procedural Terminology v4"
     HCPCS = "Healthcare Common Procedure Coding System"
     hcpcs = "Healthcare Common Procedure Coding System"
+
+
+class USER_ROLES(Enum):
+    mavensupport = "mavensupport"
+    provider = "provider"
+    supervisor = "supervisor"
 
 
 class DIAGNOSTIC_TERMINOLOGIES(Enum):

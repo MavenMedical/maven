@@ -70,10 +70,13 @@ define([
         settingsTemplate: 'settings.html',
         },
 	toParams: function() {
+	    //console.log(this);
 	    var ret = _.pick(this.attributes,['user','provider','startdate','enddate','encounter',
-		 			      'patients','department','userAuth', 'customer_id']);
+		 			      'patients','department','userAuth', 'customer_id',
+					      'roles']);
+	    //console.log(ret);
 	    for(var x in ret) {
-		if(!ret[x]) {delete ret[x];}
+		if(ret[x] === null || ret[x] === '') {delete ret[x];}
 	    }
 	    return ret;
 	},

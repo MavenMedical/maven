@@ -4,6 +4,7 @@ import json
 from collections import defaultdict
 
 import maven_config as MC
+import maven_logging as ML
 import utils.streaming.http_responder as HR
 import utils.streaming.stream_processor as SP
 
@@ -12,6 +13,9 @@ CONFIG_QUEUEDELAY = 'queue delay'
 
 RESPONSE_TEXT = 'TEXT'
 RESPONSE_LINK = 'LINK'
+
+logger = ML.get_logger()
+ML.set_debug()
 
 
 class NotificationService(HR.HTTPProcessor):
@@ -22,7 +26,7 @@ class NotificationService(HR.HTTPProcessor):
         self.message_queues = defaultdict(asyncio.queues.Queue)
         self.queue_delay = self.config.get(CONFIG_QUEUEDELAY, 0)
 
-    @asyncio.coroutine
+    @ML.coroutine_trace(logger.debug)
     def get_poll(self, _header, _body, qs, _matches, _key):
         ret = []  # build the list of pending messages here.
         key = qs[QS_KEY][0]
@@ -38,6 +42,7 @@ class NotificationService(HR.HTTPProcessor):
                 f.cancel()
         try:
             while True:  # read and append all available messages on the queue
+                print("Reading queue")
                 ret.append(queue.get_nowait())
         except:
             pass
@@ -63,7 +68,9 @@ class NotificationService(HR.HTTPProcessor):
                 RESPONSE_LINK: 'http://www.google.com',
                 }
 
+    @ML.trace(logger.info)
     def send_messages(self, key, messages=None):
+        ML.DEBUG(str(key) + ": " + str(messages))
         if key in self.message_queues:
             if messages:
                 for message in messages:
@@ -71,6 +78,7 @@ class NotificationService(HR.HTTPProcessor):
                     print('new queue size is ' + str(self.message_queues[key].qsize()))
             return True
         else:
+            ML.DEBUG('key not in queue')
             return False
 
 if __name__ == '__main__':

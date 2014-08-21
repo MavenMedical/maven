@@ -6,25 +6,21 @@ using System.Data;
 using System.Text.RegularExpressions;
 using System.Net;
 using System.IO;
+using System.Diagnostics;
 
 namespace MavenAsDemo
 {
     static class Program
     {
         //TODO: Move all of this stuff to a settings object
-        public static string serviceUser = "MavenPathways";
-        public static string servicePwd = "MavenPathways123!!";
-        public static string appName = "MavenPathways.TestApp";
-        public static string token = "";
-        public static string appUserName = "cliffhux";
-        public static DataTable quietlist = new DataTable();
-        public static int priorityThreadId = 0;
+        
         public static AlertMode mode = AlertMode.deskSoft;
-        public static double fadeSlowness = 3;
-        public static string location = "BR";
-        public static string url = "https://23.251.150.28/broadcaster/poll?key=";
-        public static bool continueOn = true;
-        public static byte[] EncryptedKey = null;
+        private static double fadeSlowness = 3;
+        private static string location = "BR";
+        public static string url = "http://mavenmedical.net";
+        private static bool continueOn = true;
+        private static byte[] EncryptedKey = null;
+        private static string pollingServer = "162.222.177.174";
 
         /// <summary>
         /// The main entry point for the application.
@@ -37,7 +33,6 @@ namespace MavenAsDemo
                 Application.SetCompatibleTextRenderingDefault(false);
                 EncryptedKey = Authenticator.GetEncryptedAuthKey();
                 Application.EnableVisualStyles();
-                prepQuietList();
                 ThreadStart startTray = new ThreadStart(prepTray);
                 Thread traythread = new Thread(startTray);
                 traythread.Start();
@@ -51,31 +46,60 @@ namespace MavenAsDemo
             catch (Exception ex)
             {
                 //you've just failed at the highest possible level
-                //kill yourself
+                //kill yourself and leave a suicide note in the application event log
+                LogMessage("Main Program Exception: " + ex.Message+"\r\nGoodbye Cruel World.");
                 CommitSuicide(null, null);
             }
         }
-        
-        public static void JobOffAlertThread()
+        /// <summary>
+        /// I am responsible for creating a thread that shows an alert form. 
+        /// </summary>
+        private static void JobOffAlertThread()
         {
             ThreadStart start = new ThreadStart(ShowAlertForm);
             Thread thrd = new Thread(start);
             thrd.IsBackground = true;
             thrd.SetApartmentState(ApartmentState.STA);
-            priorityThreadId =thrd.ManagedThreadId;
             thrd.Start();
         }
-        public static Thread JobOffPollingThread()
+        /// <summary>
+        /// I am responsible for jobbing off a thread that polls the maven cloud for new alerts. 
+        /// </summary>
+        /// <returns>Returns a thread that allows an observer to watch whether i'm still alive or dead. Schrodinger would be proud.</returns>
+        private static Thread JobOffPollingThread()
         {
             ThreadStart start = new ThreadStart(startPolling);
             Thread thrd = new Thread(start);
             thrd.IsBackground = true;
             thrd.SetApartmentState(ApartmentState.STA);
-            priorityThreadId = thrd.ManagedThreadId;
             thrd.Start();
             return thrd;
         }
-        public static void ShowAlertForm()
+        /// <summary>
+        /// Call to display an alert form which doesnt necessarily conform to the mode in the settings.  
+        /// </summary>
+        /// <param name="m">The mode for the alert. This doesn't have to match the mode in the settings.</param>
+        public static void ShowAlertForm(AlertMode m)
+        {
+            if (m == AlertMode.combo || m == AlertMode.deskSoft)
+            {
+                frmAlert frm = new frmAlert(fadeSlowness, location, url);
+                frm.ShowInTaskbar = false;
+                frm.Visible = true;
+                Application.Run(frm);
+            }
+            else if (m == AlertMode.deskHard)
+            {
+                frmHardAlert frm = new frmHardAlert(url,location);
+                frm.ShowInTaskbar = false;
+                frm.Visible = true;
+                Application.Run(frm);
+            }
+        }
+        /// <summary>
+        /// Call me to display an alert that conforms to the settings .
+        /// </summary>
+        private static void ShowAlertForm()
         {
             if (mode == AlertMode.combo || mode == AlertMode.deskSoft)
             {
@@ -86,16 +110,22 @@ namespace MavenAsDemo
             }
             else if (mode == AlertMode.deskHard)
             {
-                frmHardAlert frm = new frmHardAlert(url,location);
+                frmHardAlert frm = new frmHardAlert(url, location);
                 frm.ShowInTaskbar = false;
                 frm.Visible = true;
                 Application.Run(frm);
             }
         }
-        public static void prepTray()
+        /// <summary>
+        /// Prepare the system tray for the user. 
+        /// </summary>
+        private static void prepTray()
         {
             NotifyIcon tray = new NotifyIcon();
-            tray.Icon = new System.Drawing.Icon("Maven256.ico");
+            //note that Maven.ico needs to be packaged up with the installer
+            string iconpath = System.IO.Path.GetDirectoryName(Application.ExecutablePath)+"\\Maven.ico";
+            //MessageBox.Show(iconpath);
+            tray.Icon = new System.Drawing.Icon(iconpath);
             ContextMenu ctx = new ContextMenu();
 
             MenuItem modeitm = new MenuItem("Alert Mode");
@@ -130,6 +160,7 @@ namespace MavenAsDemo
             locitm.MenuItems.Add(hitm);
             ctx.MenuItems.Add(locitm);
 
+            //TODO: Actually store the last alert and replay it. Remove dummyAlert. 
             MenuItem itm6 = new MenuItem("Replay Last Alert", DummyAlert);
             ctx.MenuItems.Add(itm6);
 
@@ -143,7 +174,10 @@ namespace MavenAsDemo
             tray.Visible = true;
             Application.Run();
         }
-        public static void startPolling()
+        /// <summary>
+        /// Actually does the job of polling the maven cloud for new messages. 
+        /// </summary>
+        private static void startPolling()
         {
 
             ServicePointManager.ServerCertificateValidationCallback = new System.Net.Security.RemoteCertificateValidationCallback(AcceptAllCertifications);
@@ -151,8 +185,8 @@ namespace MavenAsDemo
             {
                 try
                 {
-                    WebRequest rqst = WebRequest.Create("https://23.251.150.28/broadcaster/poll?key=" + WindowsDPAPI.Decrypt(EncryptedKey));
-                    rqst.Timeout = 60000;
+                    WebRequest rqst = WebRequest.Create("http://"+pollingServer+"/broadcaster/poll?key=" + WindowsDPAPI.Decrypt(EncryptedKey));
+                    rqst.Timeout = 600000;
                     HttpWebResponse rsp = (HttpWebResponse)rqst.GetResponse();
                     HttpStatusCode status = rsp.StatusCode;
                     if (status == HttpStatusCode.OK)
@@ -162,31 +196,39 @@ namespace MavenAsDemo
                         string responseFromServer = reader.ReadToEnd();
                         if (responseFromServer != "[]")
                         {
-                            string alertUrl = responseFromServer.Split(',')[0].Replace("[{\"LINK\": \"", "").Replace("\"", "");
+                            //string alertUrl = responseFromServer.Split(',')[0].Replace("[{\"LINK\": \"", "").Replace("\"", "");
+                            string alertUrl = responseFromServer.Replace("[\"", "").Replace("\"]", "");
                             alert("1", "66556", alertUrl);
                         }
                     }
                 }
                 catch (Exception e)
                 {
+                    //don't fill up the log with timeouts. but log everything else
+                    if (!e.Message.Contains("Timeout"))
+                    {
+                        LogMessage("Polling Exception: "+e.Message);
+                    }
                 }
             }
             
         }
+        /// <summary>
+        /// I'm here simply to force the polling guy to not reject the Maven Cloud Cert. 
+        /// </summary>
         public static bool AcceptAllCertifications(object sender, System.Security.Cryptography.X509Certificates.X509Certificate certification, System.Security.Cryptography.X509Certificates.X509Chain chain, System.Net.Security.SslPolicyErrors sslPolicyErrors)
         {
             return true;
         }
-        public static void alert(string documentId,string patId, string inUrl)
+        /// <summary>
+        /// Fire an alert. 
+        /// </summary>
+        /// <param name="documentId">The document id of the alert.  Can be safely spoofed. </param>
+        /// <param name="patId">The patient ID. Can be spoofed as long as this program isnt responsible for sending an Inbox message. (It is as of when this comment was written.)</param>
+        /// <param name="inUrl">The URL of the alert target page. Absolutely essential. Do not spoof.</param>
+        private static void alert(string documentId,string patId, string inUrl)
         {
-            DataRow row = quietlist.NewRow();
-            row["documentId"] = documentId;
             url = inUrl;
-            try
-            {
-                quietlist.Rows.Add(row);
-            }
-            catch { }
             //Console.WriteLine("Alert now!");
             if (mode == AlertMode.deskSoft || mode == AlertMode.deskHard || mode == AlertMode.combo)
             {
@@ -201,143 +243,77 @@ namespace MavenAsDemo
                 mail(patId);
             }
         }
-        public static bool isEnabled(string documentId)
-        {
-            bool rtn = true;
-            DataRow[] dr = quietlist.Select("documentId=" + documentId);
-            if (dr.Length > 0)
-            {
-                rtn = false;
-            }
-            return rtn;
-
-        }
-        public static void prepQuietList()
-        {
-            quietlist.Columns.Add("documentId");
-            quietlist.PrimaryKey = new DataColumn[] { quietlist.Columns["documentId"] };
-
-        }
-        public static DataSet getSchedule(string day)
-        {
-            Unity.UnityServiceClient unitySvc = new Unity.UnityServiceClient();
-            return unitySvc.Magic("GetSchedule",       // Action    
-                                     appUserName,            // UserID    
-                                     appName,                // Appname   
-                                     "",                     // PatientID 
-                                     token,                  // Token     
-                                     day,   // Parameter1 @SINCE
-                                     "",                     // Parameter2
-                                     "",                     // Parameter3
-                                     "",                     // Parameter4
-                                     "",                     // Parameter5
-                                     "",                     // Parameter6
-                                     null);                  // data                // data    
-        }
-        public static string getIcdFromKeywords(string keywords)
-        {
-            string pattern = @"\(V?\d+\.?\d*\)";
-            Regex rex = new Regex(pattern);
-            Match m = rex.Match(keywords);
-            return m.Value.Replace("(", "").Replace(")", "");
-        }
-        public static DataSet getDocuments(string pat, string day)
-        {
-            Unity.UnityServiceClient unitySvc = new Unity.UnityServiceClient();
-            return unitySvc.Magic("GetDocuments",       // Action    
-                                     appUserName,            // UserID    
-                                     appName,                // Appname   
-                                     pat,                     // PatientID 
-                                     token,                  // Token     
-                                     day,   // Parameter1 @SINCE
-                                     day,                     // Parameter2
-                                     "",                     // Parameter3
-                                     "",                     // Parameter4
-                                     "",                     // Parameter5
-                                     "",                     // Parameter6
-                                     null);                  // data                // data    
-        }
-        public static DataSet getPatientsBySomething(string strSince)
-        {
-            Unity.UnityServiceClient unitySvc = new Unity.UnityServiceClient();
-            return unitySvc.Magic("GetPatientsBySomething",       // Action    
-                                     appUserName,            // UserID    
-                                     appName,                // Appname   
-                                     "",                     // PatientID 
-                                     token,                  // Token     
-                                     "VisitType",   // Parameter1 @SINCE
-                                     "Outpatient",                     // Parameter2
-                                     strSince,                     // Parameter3
-                                     "",                     // Parameter4
-                                     "",                     // Parameter5
-                                     "",                     // Parameter6
-                                     null);                  // data    
-        }
         /// <summary>
-        /// Just saving off some useful stuff to dump an entire row to the console
+        /// The different ways to alert people of stuff. 
         /// </summary>
-        /// <param name="reader"></param>
-        static void DumpToConsole(DataSet ds)
-        {
-
-            DataTableReader reader = ds.CreateDataReader();
-            int i = 0;
-            while (reader.Read())
-            {
-                Console.WriteLine("Record " + i.ToString() + ": ");
-                object[] stuff = new object[100];
-                reader.GetValues(stuff);
-                foreach (object obj in stuff)
-                {
-                    if (obj != null)
-                    {
-                        Console.WriteLine("   " + obj.ToString());
-                        //System.Windows.Forms.Clipboard.SetText(obj.ToString());
-                    }
-                }
-                i++;
-            }
-        }
         public enum AlertMode
         {
             inbox,mobile,deskSoft,deskHard,combo
         };
-        static void AlertModeClick(object sender, EventArgs e)
+        /// <summary>
+        /// Handle a change to the settings for the alert mode. 
+        /// </summary>
+        /// <param name="sender">can be null. i don't respect this parameter, but it's required by .net</param>
+        /// <param name="e">can be null. i don't respect this parameter, but it's required by .net</param>
+        private static void AlertModeClick(object sender, EventArgs e)
         {
             MenuItem itm = (MenuItem)sender;
             switch (itm.Text)
             {
+                    //send a message to the clinians inbox in the EMR.
                 case "Inbox":
                     mode = AlertMode.inbox;
                     break;
+                    //send a message to the clinician's mobile app
                 case "Mobile":
                     mode = AlertMode.mobile;
                     break;
+                    //send a message to the clinician's desktop, but don't pop up the big browser thing. 
                 case "Desktop Soft Alert":
                     mode = AlertMode.deskSoft;
                     break;
+                    //send  the message to the desktop and go right to the full alert in the browser. 
                 case "Desktop Hard Alert":
                     mode = AlertMode.deskHard;
                     break;
+                    //blast the clinician with reckless abandon.
                 case "Combo":
                     mode = AlertMode.combo;
                     break;
             }
         }
-        static void FadeSlownessClick(object sender, EventArgs e)
+        /// <summary>
+        /// If the softdesktop alert is set, how fast should it fade away? handle a change to the settings. 
+        /// </summary>
+        /// <param name="sender">can be null. i don't respect this parameter, but it's required by .net</param>
+        /// <param name="e">can be null.  i don't respect this parameter, but it's required by .net</param>
+        private static void FadeSlownessClick(object sender, EventArgs e)
         {
+            //the options must be convertable to numbers. Every 50ms, the alert will fade (1/slowness)%. 
+            //So if the setting is 1, we'll fade 1% every 50ms 
+            //if the setting is 10, we'll only fade .1% every 50ms
             MenuItem itm = (MenuItem)sender;
             try
             {
                 fadeSlowness = Convert.ToDouble(itm.Text);
             }
-            catch { }
+            catch { LogMessage("An invalid menu option was selected for the fade slowness."); }
         }
-        static void LocationClick(object sender, EventArgs e)
+        /// <summary>
+        /// Where does the alert come up on the screen?
+        /// </summary>
+        /// <param name="sender">this can be null. i don't look at it, but it's required by .net</param>
+        /// <param name="e">this can be null. i don't look at it, but .net wants it</param>
+        private static void LocationClick(object sender, EventArgs e)
         {
+            //There's a vertical section and a horizontal section that have mutually exclusive options. 
+            //(Note that vertical used "middle" and horizontal uses "Center" to ensure that they are mutally exclusive.
+            //This is due to laziness and the desire to handle both vertical and horizontal settings in this one function.)
+            //we split the screen into a tic-tac-toe board and allow you to choose which box the alert should try to fall into.
             MenuItem itm = (MenuItem)sender;
             switch (itm.Text)
             {
+                //First look at the vertical settings. The vertical settings can be T, M, or B and they comprise the FIRST character of the "setting" string
                 case "Top":
                     location="T"+location.Substring(1);
                     break;
@@ -347,6 +323,7 @@ namespace MavenAsDemo
                 case "Bottom":
                     location = "B" + location.Substring(1);
                     break;
+                //Next look at the horizontal settings. The horizontal settings can be L, C, or R and they comprise the SECOND character of the "setting" string
                 case "Left":
                     location =location.Substring(0,1)+"L";
                     break;
@@ -357,22 +334,41 @@ namespace MavenAsDemo
                     location = location.Substring(0, 1) + "R";
                     break;
             }
+            //Hey, it works. and it's well documented. Don't knock it. 
+            //Once the setting is set, it will be handled (or ignored) by the forms themselves. 
         }
+        /// <summary>
+        /// TODO: Eradicate me. I am an abomination. 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         static void DummyAlert(object sender, EventArgs e)
         {
-            alert("0","66556","http://mavenmedical.net");
+            //TODO: I am placed here for no reason other than demo trickery. Eradicate me. 
+            //update: i think this now should handle the actual last alert by using the value of the public url var. 
+            //test and rename to something other than DummyAlert
+            alert("0", "66556", url);
         }
+        /// <summary>
+        /// TODO: Replace me with a web service call to the cloud. 
+        /// </summary>
+        /// <param name="patId">The patient id for whom this message is relevant. </param>
         static void mail(string patId)
         {
+            string serviceUser = "MavenPathways";
+            string servicePwd = "MavenPathways123!!";
+            string appName = "MavenPathways.TestApp";
+            string appUserName = "cliffhux";
             string namepro=getPatientNameAndPronoun(patId);
             string name=namepro.Split('|')[0];
             string pronoun=namepro.Split('|')[1];
-            Unity.UnityServiceClient unitySvc = new Unity.UnityServiceClient();
-            DataSet ds = unitySvc.Magic("SaveTask",       // Action    
+            Unity.UnityServiceClient mailsvc = new Unity.UnityServiceClient();
+            string mailtoken = mailsvc.GetSecurityToken(serviceUser, servicePwd);
+            DataSet ds = mailsvc.Magic("SaveTask",       // Action    
                                      appUserName,            // UserID    
                                      appName,                // Appname   
                                      patId,                     // PatientID 
-                                     token,                  // Token     
+                                     mailtoken,                  // Token     
                                      "Send Chart",   // Parameter1 @SINCE
                                      appUserName,                     // Parameter2
                                      "",                     // Parameter3
@@ -381,9 +377,19 @@ namespace MavenAsDemo
                                      "",                     // Parameter6
                                      null);                  // data                // data 
         }
+        /// <summary>
+        /// TODO: Remove me as soon as the mail() function is handled in the cloud. 
+        /// </summary>
+        /// <param name="patId"></param>
+        /// <returns></returns>
         static string getPatientNameAndPronoun(string patId)
         {
+            string serviceUser = "MavenPathways";
+            string servicePwd = "MavenPathways123!!";
+            string appName = "MavenPathways.TestApp";
+            string appUserName = "cliffhux";
             Unity.UnityServiceClient unitySvc = new Unity.UnityServiceClient();
+            string token = unitySvc.GetSecurityToken(serviceUser, servicePwd);
             DataSet ds = unitySvc.Magic("GetPatient",       // Action    
                                      appUserName,            // UserID    
                                      appName,                // Appname   
@@ -411,20 +417,59 @@ namespace MavenAsDemo
             catch { }
             return name + "|" + pronoun;
         }
+        /// <summary>
+        /// On a major error, or when the user request it, I will kill my own process and all child processes. 
+        /// </summary>
+        /// <param name="sender">can be null. required by .net</param>
+        /// <param name="e">can be null. required by .net</param>
         static void CommitSuicide(object sender, EventArgs e)
         {
             try
             {
+                //inform everyone that we're closing out
                 continueOn = false;
+                //close out gracefully
                 Application.Exit();
             }
-            catch { }
+            catch(Exception ex)
+            {
+                //darn it. maybe i'll die anyway. who knows. At least log the message to inform the user that if i'm still running, they need to resort to task manager. 
+                LogMessage("Error closing the application. Please try task manager if the process is still running.\r\n"+ex.Message);
+            }
            
         }
+        /// <summary>
+        /// Log out and also clear the key stored in the registry so that next time, you need to log in. 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         static void LogOut(object sender, EventArgs e)
         {
+            //clear the setting
             Authenticator.ClearLoginSettings();
+            //end the process. consider not ending, but instead calling authenticator.login. 
             CommitSuicide(null, null);
+        }
+        /// <summary>
+        /// handle logging debug messages
+        /// </summary>
+        /// <param name="msg">the entire message that should be logged.</param>
+        public static void LogMessage(string msg)
+        {
+            try
+            {
+                //HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\eventlog\Application\MavenDesktop must exist  
+                //Created during install
+                EventLog el = new EventLog("Application");
+                el.Source = "MavenDesktop";
+                el.WriteEntry(msg, System.Diagnostics.EventLogEntryType.Warning,234);
+                //TODO: handle an actual registered event id. now it's event 0 which is getting a "desc cannot be found" message
+                //http://www.codeproject.com/Articles/4153/Getting-the-most-out-of-Event-Viewer
+            }
+            catch
+            {
+                //TODO: Call this function recursively if writing to the error log fails. Just kidding...
+            }
         }
     }
 }

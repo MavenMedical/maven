@@ -780,9 +780,12 @@ class Composition(Resource):
                     return sec
 
     def get_encounter_orders(self):
-        enc_orders_section = self.get_section_by_coding("http://loinc.org", "46209-3")
-        if enc_orders_section.content is not None:
-            return enc_orders_section.content
+        try:
+            enc_orders_section = self.get_section_by_coding("http://loinc.org", "46209-3")
+            if enc_orders_section.content is not None:
+                return enc_orders_section.content
+        except:
+            return None
 
     def get_encounter_order_by_clientEMR_uuid(self, id):
         for order in self.get_encounter_orders():
@@ -1084,6 +1087,13 @@ class Condition(Resource):
         for coding in self.code.coding:
             if coding.system == "SNOMED CT":
                 return coding.code
+
+    def get_snomed_ids(self):
+        ret_snomeds = []
+        for coding in self.code.coding:
+            if coding.system == "SNOMED CT":
+                ret_snomeds.append(coding.code)
+        return ret_snomeds
 
 
 class Conformance(Resource):
@@ -1799,6 +1809,7 @@ class Encounter(Resource):
         for id in self.identifier:
             if id.system == "clientEMR" and id.label == "Internal":
                 return id.value
+        return None
 
     def get_prov_id(self):
         for participant in self.participant:

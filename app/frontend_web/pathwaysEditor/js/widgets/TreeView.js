@@ -22,10 +22,37 @@ define([
                  jsPlumb.Defaults.PaintStyle=  { lineWidth : 2, strokeStyle : "#456" }
                  jsPlumb.Defaults.Endpoint ="Blank"
                  jsPlumb.Defaults.MaxConnections =-1
+
+                 jsPlumb.Defaults.PaintStyle =  {
+                  lineWidth: 2,
+                  strokeStyle: '#ccc'
+                 },
+                  jsPlumb.Defaults.HoverPaintStyle= {
+                    lineWidth: 3,
+                    strokeStyle: '#61B7CF'
+                  },
                  this.treeEl = $('.tree', this.$el)
                  this.treeEl.draggable()
+                var that = this
 
-                jsPlumb.setContainer(this.treeEl)
+                jsPlumb.setContainer(this.treeEl[0])
+                this.$el.on('wheel', function(data){
+                    data.preventDefault()
+/*
+ */                    var re = /scale\((.*)\)/
+                     var n = that.treeEl[0].style.transform
+                     var result = re.exec(n)
+                     if (data.originalEvent.deltaY > 0){
+                         var newScale = result[1] -.05
+                     } else {
+                          var newScale = (result[1]-0) + .05
+
+                     }
+                     var scaleString = 'scale(' + newScale +')'
+                     that.treeEl.css({'transform': scaleString})
+
+                 })
+
                  var resizetimer
                  var that = this
                window.onresize = function(){
@@ -36,21 +63,14 @@ define([
                     }, 100)
                }
                 curTree.on('propagate', this.render, this)
-                curTree.on('sync', function(){
-                    this.render()
-                },this )
+                curTree.on('sync', this.render, this)
+                contextModel.on('change', this.render, this)
                this.render()
             },
             render: function(){
                curTree.elPairs=[]
                 jsPlumb.detachEveryConnection();
-
                 this.treeEl.html('')
-
-
-
-
-
                $('#drawPaths', this.$el).on('click', function(){
                    this.render();
                })
@@ -73,18 +93,14 @@ define([
                   }
                 })
 
-
+                contextModel.trigger('rendered')
             },
 
             drawNodes: function(){
 
 
             },
-            loadTreeFunction: function(){
-                contextModel.set('id', parseInt($('#idcode').val()))
-                curTree.fetch()
 
-            },
             saveTreeFunction: function(){
                 curTree.save()
             }

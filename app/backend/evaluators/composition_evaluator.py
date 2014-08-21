@@ -92,6 +92,9 @@ class CompositionEvaluator(SP.StreamProcessor):
         # Analyze Choosing Wisely/CDS Rules
         yield from self.evaluate_CDS_rules(composition)
 
+        # Maven Pathways
+        yield from self.evaluate_clinical_pathways(composition)
+
         # Write everything to persistent DB storage
         yield from FHIR_DB.write_composition_to_db(composition, self.conn)
 
@@ -117,18 +120,24 @@ class CompositionEvaluator(SP.StreamProcessor):
     @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
     def identify_encounter_orderables(self, composition):
 
-        for order in composition.get_encounter_orders():
+        try:
+            if composition.get_encounter_orders() is None:
+                return
 
-            # Loop through each order_detail in each order to identify
-            detail_orders = yield from [(yield from FHIR_DB.identify_encounter_orderable(item, order, composition, self.conn)) for item in order.detail]
+            for order in composition.get_encounter_orders():
 
-            # TODO - Check to make sure duplicate codes that reference the same orderable don't result in duplicate FHIR Procedures/Medications
+                # Loop through each order_detail in each order to identify
+                detail_orders = yield from [(yield from FHIR_DB.identify_encounter_orderable(item, order, composition, self.conn)) for item in order.detail]
 
-            # Remove the placeholder(s) CodeableConcept/FHIR Procedure/FHIR Medication from the order.detail list
-            del order.detail[:]
+                # TODO - Check to make sure duplicate codes that reference the same orderable don't result in duplicate FHIR Procedures/Medications
 
-            # Add the fully-matched FHIR Procedure/Medication(s) to the Composition Order
-            order.detail.extend(detail_orders)
+                # Remove the placeholder(s) CodeableConcept/FHIR Procedure/FHIR Medication from the order.detail list
+                del order.detail[:]
+
+                # Add the fully-matched FHIR Procedure/Medication(s) to the Composition Order
+                order.detail.extend(detail_orders)
+        except:
+            raise Exception("Error extracting encounter orders from composition object")
 
     ##########################################################################################
     ##########################################################################################
@@ -142,22 +151,28 @@ class CompositionEvaluator(SP.StreamProcessor):
     @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
     def detect_removed_orders(self, composition):
 
-        # Build a list of FHIR_API.Orders encounter orders in the database.order_ord
-        orders_from_db = yield from FHIR_DB.construct_encounter_orders_from_db(composition, self.conn)
+        try:
+            if composition.get_encounter_orders() is None:
+                return
 
-        # Check the tuple of (internal ID, orderable_id) to see if there's overlap
-        new_orders_clientEMR_IDs = [(order.get_clientEMR_uuid(), order.get_orderable_ID()) for order in composition.get_encounter_orders()]
-        old_orders_clientEMR_IDs = [(order.get_clientEMR_uuid(), order.get_orderable_ID()) for order in orders_from_db]
+            # Build a list of FHIR_API.Orders encounter orders in the database.order_ord
+            orders_from_db = yield from FHIR_DB.construct_encounter_orders_from_db(composition, self.conn)
 
-        missing_orders = [old_order for old_order in old_orders_clientEMR_IDs if old_order not in new_orders_clientEMR_IDs]
+            # Check the tuple of (internal ID, orderable_id) to see if there's overlap
+            new_orders_clientEMR_IDs = [(order.get_clientEMR_uuid(), order.get_orderable_ID()) for order in composition.get_encounter_orders()]
+            old_orders_clientEMR_IDs = [(order.get_clientEMR_uuid(), order.get_orderable_ID()) for order in orders_from_db]
 
-        # Update FHIR_Order.status and write changes to DB for each of the orders found in missing_orders
-        if missing_orders is not None and len(missing_orders) > 0:
-            for order in [(db_order) for db_order in orders_from_db for order in missing_orders if order[0] == db_order.identifier[0].value]:
+            missing_orders = [old_order for old_order in old_orders_clientEMR_IDs if old_order not in new_orders_clientEMR_IDs]
 
-                # Put the Order in a status of ON HOLD which means we need to figure out if it was Completed/Removed/Canceled
-                order.status = ORDER_STATUS.HD.name
-                yield from FHIR_DB.write_composition_encounter_order(order, composition, self.conn)
+            # Update FHIR_Order.status and write changes to DB for each of the orders found in missing_orders
+            if missing_orders is not None and len(missing_orders) > 0:
+                for order in [(db_order) for db_order in orders_from_db for order in missing_orders if order[0] == db_order.identifier[0].value]:
+
+                    # Put the Order in a status of ON HOLD which means we need to figure out if it was Completed/Removed/Canceled
+                    order.status = ORDER_STATUS.HD.name
+                    yield from FHIR_DB.write_composition_encounter_order(order, composition, self.conn)
+        except:
+            raise Exception("Error detecting removed orders")
 
     ##########################################################################################
     ##########################################################################################
@@ -169,7 +184,6 @@ class CompositionEvaluator(SP.StreamProcessor):
     ##########################################################################################
     ##########################################################################################
     @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
-    @asyncio.coroutine
     def evaluate_encounter_cost(self, composition):
         """
         :param composition: FHIR Composition object with fully identified FHIR Order objects (i.e. already run through order identifier
@@ -223,6 +237,10 @@ class CompositionEvaluator(SP.StreamProcessor):
     ##########################################################################################
     @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
     def evaluate_recent_results(self, composition):
+        # Check to see if recent results alert_config should event generate alerts
+        recent_results_alert_validation_status = yield from FHIR_DB.get_alert_configuration(ALERT_TYPES.REC_RESULT, composition, self.conn)
+        if recent_results_alert_validation_status == ALERT_VALIDATION_STATUS.SUPPRESS.value:
+            return
 
         # Check to see if there are exact duplicate orders (order code AND order code type)from within the last year
         duplicate_orders = yield from FHIR_DB.get_recently_resulted_orders(composition, self.conn)
@@ -291,6 +309,11 @@ class CompositionEvaluator(SP.StreamProcessor):
     ##########################################################################################
     @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
     def evaluate_alternative_meds(self, composition):
+        # Check to see if recent results alert_config should event generate alerts
+        alt_meds_alert_validation_status = yield from FHIR_DB.get_alert_configuration(ALERT_TYPES.ALT_MED, composition, self.conn)
+        if alt_meds_alert_validation_status == ALERT_VALIDATION_STATUS.SUPPRESS.value:
+            return
+
         for order in composition.get_encounter_orders():
             if isinstance(order.detail[0], FHIR_API.Medication):
                 alt_meds = yield from FHIR_DB.get_alternative_meds(order, composition, self.conn)
@@ -309,6 +332,11 @@ class CompositionEvaluator(SP.StreamProcessor):
         """
 
         """
+        # Check to see if recent results alert_config should event generate alerts
+        CDS_rules_alert_validation_status = yield from FHIR_DB.get_alert_configuration(ALERT_TYPES.CDS, composition, self.conn)
+        if CDS_rules_alert_validation_status == ALERT_VALIDATION_STATUS.SUPPRESS.value:
+            return
+
         # Gather any matching CDS Rules that hit according to Dave's rules.evalrules PL/pgsql function
         CDS_rules = yield from FHIR_DB.get_matching_CDS_rules(composition, self.conn)
 
@@ -416,6 +444,35 @@ class CompositionEvaluator(SP.StreamProcessor):
             override_indications.append(result)
 
         return override_indications
+
+    ##########################################################################################
+    ##########################################################################################
+    ##########################################################################################
+    #####
+    # EVALUATE CHOOSING WISELY RULES
+    #####
+    ##########################################################################################
+    ##########################################################################################
+    ##########################################################################################
+    @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
+    def evaluate_clinical_pathways(self, composition):
+        alerts_section = composition.get_section_by_coding(code_system="maven", code_value="alerts")
+        for condition in composition.get_encounter_conditions():
+            if 399068003 in condition.get_snomed_ids():
+                ICD9_coding = condition.get_ICD9_id()
+                FHIR_alert = FHIR_API.Alert(customer_id=composition.customer_id,
+                                            category=ALERT_TYPES.PATHWAY,
+                                            subject=composition.subject.get_pat_id(),
+                                            provider_id=composition.get_author_id(),
+                                            encounter_id=composition.encounter.get_csn(),
+                                            code_trigger=ICD9_coding.code,
+                                            code_trigger_type="ICD-9",
+                                            alert_datetime=datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                                            short_title=("Clinical Pathway Detected for: %s" % ICD9_coding.display),
+                                            short_description=("Clinical Pathway recommendations are available for %s" % ICD9_coding.display),
+                                            long_description=("Clinical Pathway recommendations are available for %s" % ICD9_coding.display))
+
+                alerts_section.content.append(FHIR_alert)
 
 
 def run_composition_evaluator():

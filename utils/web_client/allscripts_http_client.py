@@ -5,7 +5,8 @@ from xml.etree import ElementTree as ETree
 from enum import Enum
 from functools import wraps, lru_cache
 from maven_config import MavenConfig
-from maven_logging import WARN
+from maven_logging import WARN, EXCEPTION
+import utils.database.memory_cache as memory_cache
 
 ALLSCRIPTS_NUM_PARAMETERS = 6
 
@@ -56,7 +57,8 @@ def check_output(jobj, empty_ok=False):
         if "Error" in obj[0]:
             exc = AllscriptsError(obj[0]["Error"])
         elif (not empty_ok) and len(list(obj[0].values())[0]) == 0:
-            exc = AllscriptsError("Query returned empty list")
+            # exc = AllscriptsError("Query returned empty list")
+            return obj
         else:
             return obj
     except:
@@ -80,6 +82,8 @@ def isoformatday(d: {'date', 'datetime'}):
         return d.date().isoformat()
     except AttributeError:
         return d.isoformat()
+
+hour_cache = memory_cache.MemoryCache(timeout=3600)
 
 
 @lru_cache()
@@ -122,25 +126,53 @@ class allscripts_api(http.http_api):
         ret.update(zip(['Parameter' + str(n + 1) for n in range(ALLSCRIPTS_NUM_PARAMETERS)], args))
         return ret
 
+    @asyncio.coroutine
+    def _login(self, fut):
+        """ function to acquire a new unity token.
+        It takes a future to set when it's done.  Only one
+        of these functions can be active at a time (other
+        tasks needing the token must wait on the future).
+        :param fut: an empty future to set_result on when
+                    the token is acquired
+        """
+        while not fut.done():
+            try:
+                req = yield from self.post('/json/GetToken',
+                                           Username=self.appusername,
+                                           Password=self.apppassword)
+                if req.startswith('error'):
+                    raise AllscriptsError('Could not get token - ' + req)
+                self.unitytoken = req
+                fut.set_result(req)
+            except Exception as e:
+                EXCEPTION(e)
+                yield from asyncio.sleep(10)
+
     def _require_token(func: 'function') -> 'function':
         """ decorator for functions which require a security token before executing
         """
         co_func = asyncio.coroutine(func)
 
         def worker(self, *args, **kwargs):
-            if not self.unitytoken:
-                f = asyncio.Future()
-                self.unitytoken = f
-                req = yield from self.post('/json/GetToken',
-                                           Username=self.appusername, Password=self.apppassword)
-                f.set_result(req)
-                self.unitytoken = req
-            elif isinstance(self.unitytoken, asyncio.Future):
-                yield from self.unitytoken
-            ret = yield from co_func(self, *args, **kwargs)
+            ret = None
+            while not ret:
+                if not self.unitytoken:
+                    fut = asyncio.Future()
+                    self.unitytoken = fut
+                    asyncio.Task(self._login(fut))
+                if isinstance(self.unitytoken, asyncio.Future):
+                    yield from self.unitytoken
+                try:
+                    ret = yield from co_func(self, *args, **kwargs)
+                except AllscriptsError as e:
+                    if e.args[0].find('you have been logged out due to inactivity') >= 0:
+                        self.unitytoken = None
+                        yield from asyncio.sleep(1)
             return ret
         return asyncio.coroutine(wraps(func)(worker))
 
+    @hour_cache.cache_lookup('GetServerInfo', lookup_on_none=True,
+                             key_function=memory_cache.allargs)
     @_require_token
     def GetServerInfo(self):
         """ Takes no arguments and returns:
@@ -343,8 +375,10 @@ class allscripts_api(http.http_api):
                                                             user=username, patient=patient))
         return self.postprocess(check_output(ret))
 
+    @hour_cache.cache_lookup('GetProviders', lookup_on_none=True,
+                             key_function=memory_cache.allargs)
     @_require_token
-    def GetProviders(self, username):
+    def GetProviders(self, username: str):
         """
         :param username:
         :return:
@@ -354,18 +388,24 @@ class allscripts_api(http.http_api):
                                                             user=username))
         return self.postprocess(check_output(ret))
 
+    @hour_cache.cache_lookup('GetProvider', lookup_on_none=True,
+                             key_function=memory_cache.allargs)
     @_require_token
-    def GetProvider(self, username):
-        """ Searches for and returns provider information based on either Provider ID or Provider user name.
-
+    def GetProvider(self, username, searchname=None, searchid=None):
+        """ returns provider information from either username or userid
+        :param username: the allscripts user on whose behave we are querying
+        :param searchname: the username to search for
+        :param searchid: the userid to search for
         """
         ret = yield from self.post('/json/MagicJson',
                                    data=self._build_message('GetProvider',
-                                                            "68",
-                                                            'terry',
+                                                            searchid or '',
+                                                            searchname or '',
                                                             user=username))
         return self.postprocess(check_output(ret))
 
+    @hour_cache.cache_lookup('GetUserID', lookup_on_none=True,
+                             key_function=memory_cache.allargs)
     @_require_token
     def GetUserID(self, username: str):
         """ Returns the UserID (Internal clientEMR Integer) for the specified username.
@@ -409,7 +449,9 @@ if __name__ == '__main__':
     }
 
     MavenConfig['allscripts_demo'] = {
-        http.CONFIG_BASEURL: 'http://pro14ga.unitysandbox.com/Unity/UnityService.svc',
+        # http.CONFIG_BASEURL: 'http://pro14ga.unitysandbox.com/Unity/UnityService.svc',
+        http.CONFIG_BASEURL: 'http://192.237.182.238/Unity/UnityService.svc',
+        # http.CONFIG_BASEURL: 'http://doesnotexist.somejunk.cs.umd.edu/Unity/UnityService.svc',
         http.CONFIG_OTHERHEADERS: {
             'Content-Type': 'application/json'
         },
@@ -431,6 +473,7 @@ if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     Ehr_username = 'CliffHux'
     # break
+    wrapexn(api.GetProvider(Ehr_username, searchid='10041'))
     patient = input('Enter a Patient ID to display (e.g., 22): ')
     if not patient:
         patient = '22'
@@ -449,7 +492,7 @@ if __name__ == '__main__':
                                        "2014-08-04T12:00:00"))
     if input('GetScheduleChanged (y/n)? ') == 'y':
         wrapexn(api.GetSchedule(Ehr_username,
-                                "2014-08-05"))
+                                "2014-08-06"))
     if input('GetProcedures (y/n)? ') == 'y':
         gp = api.GetProcedures(Ehr_username, patient,
                                completionstatuses=[COMPLETION_STATUSES.Ordered])
@@ -470,7 +513,7 @@ if __name__ == '__main__':
     if input('GetProviders (y/n)? ') == 'y':
         wrapexn(api.GetProviders(Ehr_username))
     if input('GetProvider (y/n)? ') == 'y':
-        wrapexn(api.GetProvider(Ehr_username))
+        wrapexn(api.GetProvider(Ehr_username, searchname='terry'))
     if input('GetUserID (y/n)? ') == 'y':
         wrapexn(api.GetUserID(Ehr_username))
     if input('GetDocuments (y/n)? '):
