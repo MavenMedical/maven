@@ -5,7 +5,7 @@ from xml.etree import ElementTree as ETree
 from enum import Enum
 from functools import wraps, lru_cache
 from maven_config import MavenConfig
-from maven_logging import WARN
+from maven_logging import WARN, EXCEPTION
 import utils.database.memory_cache as memory_cache
 
 ALLSCRIPTS_NUM_PARAMETERS = 6
@@ -126,22 +126,48 @@ class allscripts_api(http.http_api):
         ret.update(zip(['Parameter' + str(n + 1) for n in range(ALLSCRIPTS_NUM_PARAMETERS)], args))
         return ret
 
+    @asyncio.coroutine
+    def _login(self, fut):
+        """ function to acquire a new unity token.
+        It takes a future to set when it's done.  Only one
+        of these functions can be active at a time (other
+        tasks needing the token must wait on the future).
+        :param fut: an empty future to set_result on when
+                    the token is acquired
+        """
+        while not fut.done():
+            try:
+                req = yield from self.post('/json/GetToken',
+                                           Username=self.appusername,
+                                           Password=self.apppassword)
+                if req.startswith('error'):
+                    raise AllscriptsError('Could not get token - ' + req)
+                self.unitytoken = req
+                fut.set_result(req)
+            except Exception as e:
+                EXCEPTION(e)
+                yield from asyncio.sleep(10)
+
     def _require_token(func: 'function') -> 'function':
         """ decorator for functions which require a security token before executing
         """
         co_func = asyncio.coroutine(func)
 
         def worker(self, *args, **kwargs):
-            if not self.unitytoken:
-                f = asyncio.Future()
-                self.unitytoken = f
-                req = yield from self.post('/json/GetToken',
-                                           Username=self.appusername, Password=self.apppassword)
-                f.set_result(req)
-                self.unitytoken = req
-            elif isinstance(self.unitytoken, asyncio.Future):
-                yield from self.unitytoken
-            ret = yield from co_func(self, *args, **kwargs)
+            ret = None
+            while not ret:
+                if not self.unitytoken:
+                    fut = asyncio.Future()
+                    self.unitytoken = fut
+                    asyncio.Task(self._login(fut))
+                if isinstance(self.unitytoken, asyncio.Future):
+                    yield from self.unitytoken
+                try:
+                    ret = yield from co_func(self, *args, **kwargs)
+                except AllscriptsError as e:
+                    if e.args[0].find('you have been logged out due to inactivity') >= 0:
+                        self.unitytoken = None
+                        yield from asyncio.sleep(1)
             return ret
         return asyncio.coroutine(wraps(func)(worker))
 
@@ -423,8 +449,9 @@ if __name__ == '__main__':
     }
 
     MavenConfig['allscripts_demo'] = {
-#        http.CONFIG_BASEURL: 'http://pro14ga.unitysandbox.com/Unity/UnityService.svc',
+        # http.CONFIG_BASEURL: 'http://pro14ga.unitysandbox.com/Unity/UnityService.svc',
         http.CONFIG_BASEURL: 'http://192.237.182.238/Unity/UnityService.svc',
+        # http.CONFIG_BASEURL: 'http://doesnotexist.somejunk.cs.umd.edu/Unity/UnityService.svc',
         http.CONFIG_OTHERHEADERS: {
             'Content-Type': 'application/json'
         },
@@ -446,10 +473,10 @@ if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     Ehr_username = 'CliffHux'
     # break
+    wrapexn(api.GetProvider(Ehr_username, searchid='10041'))
     patient = input('Enter a Patient ID to display (e.g., 22): ')
     if not patient:
         patient = '22'
-    wrapexn(api.GetProvider(Ehr_username, searchid='10041'))
     if input('GetServerInfo (y/n)? ') == 'y':
         wrapexn(api.GetServerInfo())
     if input('GetDocuments (y/n)? ') == 'y':
