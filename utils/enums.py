@@ -99,6 +99,12 @@ class PROCEDURE_TERMINOLOGIES(Enum):
     hcpcs = "Healthcare Common Procedure Coding System"
 
 
+class USER_ROLES(Enum):
+    mavensupport = "mavensupport"
+    provider = "provider"
+    supervisor = "supervisor"
+
+
 class DIAGNOSTIC_TERMINOLOGIES(Enum):
     icd9 = "International Statistical Classification of Diseases Version 9"
     ICD9 = "International Statistical Classification of Diseases Version 9"

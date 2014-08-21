@@ -69,6 +69,7 @@ Results = Enum('Results',
     template
     element
     priority
+    roles
 """)
 
 
@@ -267,8 +268,11 @@ class WebPersistence():
         Results.userstate: 'users.state',
         #        Results.failedlogins: 'array_agg(logins.logintime)',
         Results.recentkeys: 'NULL',
+        Results.roles: 'users.roles',
     }
-    _display_pre_login = _build_format()
+    _display_pre_login = _build_format({
+        Results.roles: (lambda x: x[1:-1].split(','))
+    })
 
     @asyncio.coroutine
     def pre_login(self, desired, username=None, provider=None, keycheck=None):

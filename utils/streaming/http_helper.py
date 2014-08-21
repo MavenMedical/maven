@@ -16,6 +16,13 @@ class HTTPHelper:
         self.auth_length = auth_length
 
     def restrict_context(self, qs, required, available):
+        for k in list(qs.keys()):
+            try:
+                if k[-2:] == '[]':
+                    qs[k[:-2]] = qs.pop(k)
+            except (KeyError, IndexError):
+                pass
+
         if not set(required).issubset(qs.keys()):
             raise HTTP.IncompleteRequest('Request is incomplete.  Required arguments are: '
                                          + ', '.join(required) + ".\n")
@@ -24,7 +31,7 @@ class HTTPHelper:
         if self.context_key not in qs:
             raise HTTP.UnauthorizedRequest('User is not logged in.')
         try:
-            AK.check_authorization([qs[x][0] for x in self.contexts_user],
+            AK.check_authorization([sorted(qs[x]) for x in self.contexts_user],
                                    qs[self.context_key][0], self.auth_length)
         except AK.UnauthorizedException as ue:
             raise HTTP.UnauthorizedRequest(str(ue))

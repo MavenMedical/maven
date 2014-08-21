@@ -21,33 +21,38 @@ import asyncio
 import bcrypt
 import utils.crypto.authorization_key as AK
 import maven_config as MC
+from utils.enums import USER_ROLES
+from functools import partial, wraps
 import re
 
 CONFIG_PERSISTENCE = 'persistence'
 
-CONTEXT_USER = 'user'
-CONTEXT_PROVIDER = 'provider'
-CONTEXT_DATE = 'date'
-CONTEXT_DATERANGE = 'daterange'
-CONTEXT_PATIENTLIST = 'patients'
-CONTEXT_DEPARTMENT = 'department'
-CONTEXT_ORDERTYPE = 'ordertype'
-CONTEXT_ORDERID = 'order_id'
-CONTEXT_ALERTID = 'alert_id'
-CONTEXT_RULEID = 'rule_id'
-CONTEXT_KEY = 'userAuth'
-CONTEXT_ENCOUNTER = 'encounter'
-CONTEXT_CUSTOMERID = 'customer_id'
-CONTEXT_DIAGNOSIS = 'diagnosis'
-CONTEXT_PATIENTNAME = 'patientname'
-CONTEXT_STARTDATE = 'startdate'
-CONTEXT_ENDDATE = 'enddate'
-CONTEXT_CATEGORY = 'category'
-CONTEXT_CATEGORIES = 'categories'
-CONTEXT_OFFICIALNAME = 'official_name'
-CONTEXT_DISPLAYNAME = 'display_name'
-CONTEXT_ACTION = 'action'
-CONTEXT_ACTIONCOMMENT = 'action_comment'
+
+class CONTEXT():
+    USER = 'user'
+    PROVIDER = 'provider'
+    ROLES = 'roles'
+    DATE = 'date'
+    DATERANGE = 'daterange'
+    PATIENTLIST = 'patients'
+    DEPARTMENT = 'department'
+    ORDERTYPE = 'ordertype'
+    ORDERID = 'order_id'
+    ALERTID = 'alert_id'
+    RULEID = 'rule_id'
+    KEY = 'userAuth'
+    ENCOUNTER = 'encounter'
+    CUSTOMERID = 'customer_id'
+    DIAGNOSIS = 'diagnosis'
+    PATIENTNAME = 'patientname'
+    STARTDATE = 'startdate'
+    ENDDATE = 'enddate'
+    CATEGORY = 'category'
+    CATEGORIES = 'categories'
+    OFFICIALNAME = 'official_name'
+    DISPLAYNAME = 'display_name'
+    ACTION = 'action'
+    ACTIONCOMMENT = 'action_comment'
 
 LOGIN_TIMEOUT = 60 * 60  # 1 hour
 AUTH_LENGTH = 44  # 44 base 64 encoded bits gives the entire 256 bites of SHA2 hash
@@ -57,6 +62,38 @@ class LoginError(Exception):
     pass
 
 date = str
+_handlers = []
+
+
+def http_service(methods, url, required, available, roles):
+    """ decorator for http handlers
+    :param methods: the http methods to handle
+    :param url: the url to handle
+    :param required: a list of keys required to be in the query string
+    :param available: a list of keys (and their types) to be extracted
+                      from the query string and put into the context
+    :param roles: a list of user roles, at least one of which is required
+                  to use this service
+    """
+    roles = roles and {r.value for r in roles}
+
+    def decorator(func):
+        cofunc = asyncio.coroutine(func)
+
+        @wraps(func)
+        def worker(self, header, body, qs, matches, key):
+            # the UI sends a list 'roles' as 'roles[]', so we adjust that here
+            if roles and not roles.intersection(qs.get(CONTEXT.ROLES + '[]', set())):
+                return HTTP.UNAUTHORIZED_RESPONSE, b'', None
+            context = qs
+            if required or available:
+                context = self.helper.restrict_context(qs, required, available)
+            res = yield from cofunc(self, header, body, context, matches, key)
+            return res
+
+        _handlers.append([methods, url, asyncio.coroutine(worker)])
+        return None
+    return decorator
 
 
 class FrontendWebService(HTTP.HTTPProcessor):
@@ -65,48 +102,29 @@ class FrontendWebService(HTTP.HTTPProcessor):
         try:
             persistence_name = self.config[CONFIG_PERSISTENCE]
         except KeyError:
-            raise MC.InvalidConfig('some real error')
+            raise MC.InvalidConfig('No persistence layout specified for the web service')
 
         self.stylesheet = 'demo'
-        self.add_handler(['POST'], '/login', self.post_login)
-        self.add_handler(['GET'], '/save_user_settings', self.save_user_settings)
-        self.add_handler(['GET'], '/rate_alert', self.rate_alert)
-        self.add_handler(['GET'], '/critique_alert', self.critique_alert)
-        self.add_handler(['GET'], '/patients(?:(\d+)-(\d+)?)?', self.get_patients)
-        self.add_handler(['GET'], '/patient_details', self.get_patient_details)
-        self.add_handler(['GET'], '/total_spend', self.get_total_spend)
-        self.add_handler(['GET'], '/spending', self.get_daily_spending)
-        self.add_handler(['GET'], '/alerts(?:(\d+)-(\d+)?)?', self.get_alerts)
-        self.add_handler(['GET'], '/orders(?:(\d+)-(\d+)?)?', self.get_orders)
-        self.add_handler(['GET'], '/autocomplete', self.get_autocomplete)
-        self.add_handler(['GET'], '/autocomplete_patient', self.get_autocomplete_patient)
-        self.add_handler(['GET'], '/autocomplete_diagnosis', self.get_autocomplete_diagnosis)
-        self.add_handler(['GET'], '/hist_spending', self.get_hist_spend)
-        self.helper = HH.HTTPHelper([CONTEXT_USER, CONTEXT_PROVIDER,
-                                     CONTEXT_CUSTOMERID], CONTEXT_KEY, AUTH_LENGTH)
+        for handler in _handlers:
+            self.add_handler(handler[0], handler[1], partial(handler[2], self))
+
+        self.helper = HH.HTTPHelper([CONTEXT.USER, CONTEXT.PROVIDER, CONTEXT.CUSTOMERID,
+                                     CONTEXT.ROLES], CONTEXT.KEY, AUTH_LENGTH)
         self.persistence_interface = WP.WebPersistence(persistence_name)
 
     def schedule(self, loop):
         HTTP.HTTPProcessor.schedule(self, loop)
         self.persistence_interface.schedule(loop)
 
-    @asyncio.coroutine
-    def get_autocomplete(self, _header, _body, qs, _matches, _key):
-        return HTTP.OK_RESPONSE, json.dumps(['Maven']), None
-
-    patient_name_required_contexts = [CONTEXT_PATIENTNAME, CONTEXT_PROVIDER, CONTEXT_CUSTOMERID]
-    patient_name_available_contexts = {CONTEXT_PATIENTNAME: str, CONTEXT_PROVIDER: str,
-                                       CONTEXT_CUSTOMERID: int}
-
-    @asyncio.coroutine
-    def get_autocomplete_patient(self, _header, _body, qs, matches, _key):
-        context = self.helper.restrict_context(qs,
-                                               FrontendWebService.patient_name_required_contexts,
-                                               FrontendWebService.patient_name_available_contexts)
-
-        provider = context[CONTEXT_PROVIDER]
-        patientname = context[CONTEXT_PATIENTNAME]
-        customerid = context[CONTEXT_CUSTOMERID]
+    @http_service(['GET'], '/autocomplete_patient',
+                  [CONTEXT.PATIENTNAME, CONTEXT.PROVIDER, CONTEXT.CUSTOMERID],
+                  {CONTEXT.PATIENTNAME: str, CONTEXT.PROVIDER: str,
+                   CONTEXT.CUSTOMERID: int},
+                  {USER_ROLES.provider, USER_ROLES.supervisor})
+    def get_autocomplete_patient(self, _header, _body, context, matches, _key):
+        provider = context[CONTEXT.PROVIDER]
+        patientname = context[CONTEXT.PATIENTNAME]
+        customerid = context[CONTEXT.CUSTOMERID]
         desired = {
             WP.Results.patientname: 'label',
             WP.Results.patientid: 'value',
@@ -119,18 +137,18 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
         # return HTTP.OK_RESPONSE, json.dumps(['Maven']), None
 
-    diagnosis_required_contexts = [CONTEXT_DIAGNOSIS, CONTEXT_PROVIDER, CONTEXT_CUSTOMERID]
-    diagnosis_available_contexts = {CONTEXT_DIAGNOSIS: str, CONTEXT_PROVIDER: str,
-                                    CONTEXT_CUSTOMERID: int}
-
-    @asyncio.coroutine
-    def get_autocomplete_diagnosis(self, _header, _body, qs, matches, _key):
+    @http_service(['GET'], '/autocomplete_diagnosis',
+                  [CONTEXT.DIAGNOSIS, CONTEXT.PROVIDER, CONTEXT.CUSTOMERID],
+                  {CONTEXT.DIAGNOSIS: str, CONTEXT.PROVIDER: str,
+                   CONTEXT.CUSTOMERID: int},
+                  {USER_ROLES.provider, USER_ROLES.supervisor})
+    def get_autocomplete_diagnosis(self, _header, _body, context, matches, _key):
         # context = self.helper.restrict_context(qs,
         #                                        FrontendWebService.diagnosis_required_contexts,
         #                                        FrontendWebService.diagnosis_available_contexts)
-        # provider = context[CONTEXT_PROVIDER]
-        # diagnosis = context[CONTEXT_DIAGNOSIS]
-        # customerid = context[CONTEXT_CUSTOMERID]
+        # provider = context[CONTEXT.PROVIDER]
+        # diagnosis = context[CONTEXT.DIAGNOSIS]
+        # customerid = context[CONTEXT.CUSTOMERID]
         # desired = {
         #    WP.Results.diagnosis: 'diagnosis',
         # }
@@ -159,25 +177,19 @@ class FrontendWebService(HTTP.HTTPProcessor):
             traceback.print_exc()
             raise LoginError('expiredPassword')
 
-    rate_alert_required_contexts = [CONTEXT_USER, CONTEXT_CUSTOMERID,
-                                    CONTEXT_ALERTID, CONTEXT_ACTION,
-                                    CONTEXT_RULEID, CONTEXT_CATEGORY]
-    rate_alert_available_contexts = {CONTEXT_USER: str, CONTEXT_CUSTOMERID: int,
-                                     CONTEXT_ALERTID: int, CONTEXT_ACTION: str,
-                                     CONTEXT_RULEID: str, CONTEXT_CATEGORY: str}
-
-    @asyncio.coroutine
-    def rate_alert(self, _header, _body, qs, _matches, _key):
-        context = self.helper.restrict_context(qs,
-                                               FrontendWebService.rate_alert_required_contexts,
-                                               FrontendWebService.rate_alert_available_contexts)
-
-        userid = context[CONTEXT_USER]
-        customer = context[CONTEXT_CUSTOMERID]
-        alertid = context[CONTEXT_ALERTID]
-        action = context[CONTEXT_ACTION]
-        category = context[CONTEXT_CATEGORY]
-        ruleid = context[CONTEXT_RULEID]
+    @http_service(['GET'], '/rate_alert',
+                  [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.ALERTID, CONTEXT.ACTION,
+                   CONTEXT.RULEID, CONTEXT.CATEGORY],
+                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int, CONTEXT.ALERTID: int,
+                   CONTEXT.ACTION: str, CONTEXT.RULEID: str, CONTEXT.CATEGORY: str},
+                  {USER_ROLES.provider})
+    def rate_alert(self, _header, _body, context, _matches, _key):
+        userid = context[CONTEXT.USER]
+        customer = context[CONTEXT.CUSTOMERID]
+        alertid = context[CONTEXT.ALERTID]
+        action = context[CONTEXT.ACTION]
+        category = context[CONTEXT.CATEGORY]
+        ruleid = context[CONTEXT.RULEID]
         if ruleid == "null":
             ruleid = "0"
 
@@ -202,24 +214,19 @@ class FrontendWebService(HTTP.HTTPProcessor):
         else:
             return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
 
-    critique_required_contexts = [CONTEXT_CUSTOMERID, CONTEXT_RULEID, CONTEXT_USER,
-                                  CONTEXT_CATEGORY, CONTEXT_ACTIONCOMMENT, CONTEXT_ALERTID]
-    critique_available_contexts = {CONTEXT_CUSTOMERID: int, CONTEXT_RULEID: int,
-                                   CONTEXT_CATEGORY: str, CONTEXT_ACTIONCOMMENT: str,
-                                   CONTEXT_USER: str, CONTEXT_ALERTID: int}
-
-    @asyncio.coroutine
-    def critique_alert(self, _header, _body, qs, _matches, _key):
-        context = self.helper.restrict_context(qs,
-                                               FrontendWebService.critique_required_contexts,
-                                               FrontendWebService.critique_available_contexts)
-
-        userid = context[CONTEXT_USER]
-        customerid = context[CONTEXT_CUSTOMERID]
-        alertid = context[CONTEXT_ALERTID]
-        actioncomment = context[CONTEXT_ACTIONCOMMENT]
-        category = context[CONTEXT_CATEGORY]
-        ruleid = context[CONTEXT_RULEID]
+    @http_service(['GET'], '/critique_alert',
+                  [CONTEXT.CUSTOMERID, CONTEXT.RULEID, CONTEXT.USER,
+                   CONTEXT.CATEGORY, CONTEXT.ACTIONCOMMENT, CONTEXT.ALERTID],
+                  {CONTEXT.CUSTOMERID: int, CONTEXT.RULEID: int, CONTEXT.CATEGORY: str,
+                   CONTEXT.ACTIONCOMMENT: str, CONTEXT.USER: str, CONTEXT.ALERTID: int},
+                  {USER_ROLES.provider})
+    def critique_alert(self, _header, _body, context, _matches, _key):
+        userid = context[CONTEXT.USER]
+        customerid = context[CONTEXT.CUSTOMERID]
+        alertid = context[CONTEXT.ALERTID]
+        actioncomment = context[CONTEXT.ACTIONCOMMENT]
+        category = context[CONTEXT.CATEGORY]
+        ruleid = context[CONTEXT.RULEID]
         if ruleid == "null":
             ruleid = "0"
 
@@ -231,20 +238,15 @@ class FrontendWebService(HTTP.HTTPProcessor):
         else:
             return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
 
-    settings_required_contexts = [CONTEXT_USER, CONTEXT_CUSTOMERID,
-                                  CONTEXT_OFFICIALNAME, CONTEXT_DISPLAYNAME]
-    settings_available_contexts = {CONTEXT_USER: str, CONTEXT_CUSTOMERID: int,
-                                   CONTEXT_OFFICIALNAME: str, CONTEXT_DISPLAYNAME: str}
-
-    @asyncio.coroutine
-    def save_user_settings(self, _header, _body, qs, _matches, _key):
-        context = self.helper.restrict_context(qs,
-                                               FrontendWebService.settings_required_contexts,
-                                               FrontendWebService.settings_available_contexts)
-
-        userid = context[CONTEXT_USER]
-        officialname = context[CONTEXT_OFFICIALNAME]
-        displayname = context[CONTEXT_DISPLAYNAME]
+    @http_service(['GET'], '/save_user_settings',
+                  [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.OFFICIALNAME, CONTEXT.DISPLAYNAME],
+                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int,
+                   CONTEXT.OFFICIALNAME: str, CONTEXT.DISPLAYNAME: str},
+                  None)
+    def save_user_settings(self, _header, _body, context, _matches, _key):
+        userid = context[CONTEXT.USER]
+        officialname = context[CONTEXT.OFFICIALNAME]
+        displayname = context[CONTEXT.DISPLAYNAME]
 
         result = yield from self.persistence_interface.update_user_settings(userid, officialname,
                                                                             displayname)
@@ -253,11 +255,11 @@ class FrontendWebService(HTTP.HTTPProcessor):
         else:
             return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
 
-    @asyncio.coroutine
-    def post_login(self, header, body, _qs, _matches, _key):
+    @http_service(['POST'], '/login', None, None, None)
+    def post_login(self, header, body, _context, _matches, _key):
         info = json.loads(body.decode('utf-8'))
 
-        user_and_pw = set((CONTEXT_USER, 'password')).issubset(info)
+        user_and_pw = set((CONTEXT.USER, 'password')).issubset(info)
         prov_and_auth = set(('provider', 'customer', 'userAuth')).issubset(info)
         if not user_and_pw and not prov_and_auth:
             return HTTP.BAD_RESPONSE, b'', None
@@ -273,6 +275,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
             WP.Results.userstate,
             # WP.Results.failedlogins,
             WP.Results.recentkeys,
+            WP.Results.roles
         ]}
         attempted = None
         try:
@@ -317,7 +320,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
             user = str(user_info[WP.Results.userid])
             provider = user_info[WP.Results.provid]
             customer = str(user_info[WP.Results.customerid])
-            user_auth = AK.authorization_key([user, provider, customer],
+            roles = user_info[WP.Results.roles]
+            user_auth = AK.authorization_key([[user], [provider], [customer], sorted(roles)],
                                              AUTH_LENGTH, LOGIN_TIMEOUT)
             if not self.stylesheet == 'original':
                 self.stylesheet = 'demo'
@@ -330,13 +334,14 @@ class FrontendWebService(HTTP.HTTPProcessor):
             }
             widgets = yield from self.persistence_interface.layout_info(desired_layout, user_info[WP.Results.userid])
 
-            ret = {CONTEXT_USER: user_info[WP.Results.userid],
+            ret = {CONTEXT.USER: user_info[WP.Results.userid],
                    'display': user_info[WP.Results.displayname],
-                   'stylesheet': self.stylesheet, 'customer_id': user_info[WP.Results.customerid],
+                   'stylesheet': self.stylesheet, 'customer_id': customer,
                    'official_name': user_info[WP.Results.officialname],
-                   CONTEXT_PROVIDER: provider,
-                   CONTEXT_USER: user,
-                   'widgets': widgets, CONTEXT_KEY: user_auth}
+                   CONTEXT.PROVIDER: provider,
+                   CONTEXT.USER: user,
+                   CONTEXT.ROLES: roles,
+                   'widgets': widgets, CONTEXT.KEY: user_auth}
 
             return HTTP.OK_RESPONSE, json.dumps(ret), None
         except LoginError as err:
@@ -348,19 +353,16 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                                                header.get_headers().get('X-Real-IP'),
                                                                info['userAuth'] if method == 'forward' else None)
 
-    patients_required_contexts = [CONTEXT_PROVIDER, CONTEXT_CUSTOMERID]
-    patients_available_contexts = {CONTEXT_PROVIDER: str, CONTEXT_CUSTOMERID: int,
-                                   CONTEXT_STARTDATE: date, CONTEXT_ENDDATE: date}
-
-    @asyncio.coroutine
-    def get_patients(self, _header, _body, qs, matches, _key):
-        context = self.helper.restrict_context(qs,
-                                               FrontendWebService.patients_required_contexts,
-                                               FrontendWebService.patients_available_contexts)
-        provider = context[CONTEXT_PROVIDER]
-        customerid = context[CONTEXT_CUSTOMERID]
-        startdate = self.helper.get_date(context, CONTEXT_STARTDATE)
-        enddate = self.helper.get_date(context, CONTEXT_ENDDATE)
+    @http_service(['GET'], '/patients(?:(\d+)-(\d+)?)?',
+                  [CONTEXT.PROVIDER, CONTEXT.CUSTOMERID],
+                  {CONTEXT.PROVIDER: str, CONTEXT.CUSTOMERID: int,
+                   CONTEXT.STARTDATE: date, CONTEXT.ENDDATE: date},
+                  {USER_ROLES.provider, USER_ROLES.supervisor})
+    def get_patients(self, _header, _body, context, matches, _key):
+        provider = context[CONTEXT.PROVIDER]
+        customerid = context[CONTEXT.CUSTOMERID]
+        startdate = self.helper.get_date(context, CONTEXT.STARTDATE)
+        enddate = self.helper.get_date(context, CONTEXT.ENDDATE)
         desired = {
             WP.Results.patientname: 'name',
             WP.Results.patientid: 'id',
@@ -373,30 +375,24 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                                                      startdate=startdate,
                                                                      enddate=enddate,
                                                                      limit=self.helper.limit_clause(matches))
-
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
-    patient_required_contexts = [CONTEXT_PROVIDER, CONTEXT_KEY,
-                                 CONTEXT_PATIENTLIST, CONTEXT_CUSTOMERID]
-    patient_available_contexts = {CONTEXT_PROVIDER: str, CONTEXT_KEY: str,
-                                  CONTEXT_PATIENTLIST: str,
-                                  CONTEXT_CUSTOMERID: int, CONTEXT_ENCOUNTER: str,
-                                  CONTEXT_STARTDATE: date, CONTEXT_ENDDATE: date}
-
-    @asyncio.coroutine
-    def get_patient_details(self, _header, _body, qs, matches, _key):
+    @http_service(['GET'], '/patient_details',
+                  [CONTEXT.PROVIDER, CONTEXT.KEY, CONTEXT.PATIENTLIST, CONTEXT.CUSTOMERID],
+                  {CONTEXT.PROVIDER: str, CONTEXT.KEY: str, CONTEXT.PATIENTLIST: str,
+                   CONTEXT.CUSTOMERID: int, CONTEXT.ENCOUNTER: str,
+                   CONTEXT.STARTDATE: date, CONTEXT.ENDDATE: date},
+                  {USER_ROLES.provider})
+    def get_patient_details(self, _header, _body, context, matches, _key):
         """
         This method returns Patient Details which include the data in the header of
         the Encounter Page - i.e. Allergies Problem List, Last Encounter, others.
         """
-        context = self.helper.restrict_context(qs,
-                                               FrontendWebService.patient_required_contexts,
-                                               FrontendWebService.patient_available_contexts)
-        provider = context[CONTEXT_PROVIDER]
-        patientid = context[CONTEXT_PATIENTLIST]
-        customerid = context[CONTEXT_CUSTOMERID]
-        startdate = self.helper.get_date(context, CONTEXT_STARTDATE)
-        enddate = self.helper.get_date(context, CONTEXT_ENDDATE)
+        provider = context[CONTEXT.PROVIDER]
+        patientid = context[CONTEXT.PATIENTLIST]
+        customerid = context[CONTEXT.CUSTOMERID]
+        startdate = self.helper.get_date(context, CONTEXT.STARTDATE)
+        enddate = self.helper.get_date(context, CONTEXT.ENDDATE)
         # if not auth_key == _authorization_key((provider, patient_id), AUTH_LENGTH):
         #   raise HTTP.IncompleteRequest('%s has not been authorized to view patient %s.'
         #                                % (provider, patient_id))
@@ -422,24 +418,20 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
         return HTTP.OK_RESPONSE, json.dumps(results[0]), None
 
-    totals_required_contexts = [CONTEXT_PROVIDER, CONTEXT_KEY, CONTEXT_CUSTOMERID]
-    totals_available_contexts = {CONTEXT_PROVIDER: str, CONTEXT_KEY: list,
-                                 CONTEXT_PATIENTLIST: list, CONTEXT_ENCOUNTER: str,
-                                 CONTEXT_CUSTOMERID: int,
-                                 CONTEXT_STARTDATE: date, CONTEXT_ENDDATE: date}
-
-    @asyncio.coroutine
-    def get_total_spend(self, _header, _body, qs, _matches, _key):
-        context = self.helper.restrict_context(qs,
-                                               FrontendWebService.daily_required_contexts,
-                                               FrontendWebService.daily_available_contexts)
-        provider = context[CONTEXT_PROVIDER]
-        patient_ids = context.get(CONTEXT_PATIENTLIST, None)
-        customer = context[CONTEXT_CUSTOMERID]
-        encounter = context.get(CONTEXT_ENCOUNTER, None)
-        startdate = self.helper.get_date(context, CONTEXT_STARTDATE)
-        enddate = self.helper.get_date(context, CONTEXT_ENDDATE)
-        # auth_keys = dict(zip(patient_ids, context[CONTEXT_KEY]))
+    @http_service(['GET'], '/total_spend',
+                  [CONTEXT.PROVIDER, CONTEXT.KEY, CONTEXT.CUSTOMERID],
+                  {CONTEXT.PROVIDER: str, CONTEXT.KEY: list, CONTEXT.PATIENTLIST: list,
+                   CONTEXT.ENCOUNTER: str, CONTEXT.CUSTOMERID: int,
+                   CONTEXT.STARTDATE: date, CONTEXT.ENDDATE: date},
+                  {USER_ROLES.provider, USER_ROLES.supervisor})
+    def get_total_spend(self, _header, _body, context, _matches, _key):
+        provider = context[CONTEXT.PROVIDER]
+        patient_ids = context.get(CONTEXT.PATIENTLIST, None)
+        customer = context[CONTEXT.CUSTOMERID]
+        encounter = context.get(CONTEXT.ENCOUNTER, None)
+        startdate = self.helper.get_date(context, CONTEXT.STARTDATE)
+        enddate = self.helper.get_date(context, CONTEXT.ENDDATE)
+        # auth_keys = dict(zip(patient_ids, context[CONTEXT.KEY]))
 
         desired = {
             WP.Results.spending: 'spending',
@@ -458,25 +450,21 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
-    daily_required_contexts = [CONTEXT_PROVIDER, CONTEXT_KEY, CONTEXT_CUSTOMERID]
-    daily_available_contexts = {CONTEXT_PROVIDER: str, CONTEXT_KEY: list,
-                                CONTEXT_PATIENTLIST: list, CONTEXT_CUSTOMERID: int,
-                                CONTEXT_ENCOUNTER: str,
-                                CONTEXT_STARTDATE: date, CONTEXT_ENDDATE: date}
-
-    @asyncio.coroutine
-    def get_daily_spending(self, _header, _body, qs, _matches, _key):
-        context = self.helper.restrict_context(qs,
-                                               FrontendWebService.daily_required_contexts,
-                                               FrontendWebService.daily_available_contexts)
-        provider = context[CONTEXT_PROVIDER]
-        customer = context[CONTEXT_CUSTOMERID]
+    @http_service(['GET'], '/spending',
+                  [CONTEXT.PROVIDER, CONTEXT.KEY, CONTEXT.CUSTOMERID],
+                  {CONTEXT.PROVIDER: str, CONTEXT.KEY: list, CONTEXT.PATIENTLIST: list,
+                   CONTEXT.CUSTOMERID: int, CONTEXT.ENCOUNTER: str,
+                   CONTEXT.STARTDATE: date, CONTEXT.ENDDATE: date},
+                  {USER_ROLES.provider, USER_ROLES.supervisor})
+    def get_daily_spending(self, _header, _body, context, _matches, _key):
+        provider = context[CONTEXT.PROVIDER]
+        customer = context[CONTEXT.CUSTOMERID]
         ret = defaultdict(lambda: defaultdict(int))
-        encounter = context.get(CONTEXT_ENCOUNTER, None)
-        patient_ids = context.get(CONTEXT_PATIENTLIST, None)
-        startdate = self.helper.get_date(context, CONTEXT_STARTDATE)
-        enddate = self.helper.get_date(context, CONTEXT_ENDDATE)
-        # auth_keys = dict(zip(patient_ids, context[CONTEXT_KEY]))
+        encounter = context.get(CONTEXT.ENCOUNTER, None)
+        patient_ids = context.get(CONTEXT.PATIENTLIST, None)
+        startdate = self.helper.get_date(context, CONTEXT.STARTDATE)
+        enddate = self.helper.get_date(context, CONTEXT.ENDDATE)
+        # auth_keys = dict(zip(patient_ids, context[CONTEXT.KEY]))
 
         desired = {x: x for x in [WP.Results.date, WP.Results.ordertype, WP.Results.spending]}
         # if AK.check_authorization((provider, patient_id), auth_keys[patient_id], AUTH_LENGTH):
@@ -494,26 +482,21 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
         return HTTP.OK_RESPONSE, json.dumps(ret), None
 
-    alerts_required_contexts = [CONTEXT_PROVIDER, CONTEXT_CUSTOMERID]
-    alerts_available_contexts = {CONTEXT_PROVIDER: str, CONTEXT_PATIENTLIST: list,
-                                 CONTEXT_CUSTOMERID: int, CONTEXT_ENCOUNTER: str,
-                                 CONTEXT_STARTDATE: date, CONTEXT_ENDDATE: date,
-                                 CONTEXT_ORDERID: str, CONTEXT_CATEGORIES: list}
+    @http_service(['GET'], '/alerts(?:(\d+)-(\d+)?)?',
+                  [CONTEXT.PROVIDER, CONTEXT.CUSTOMERID],
+                  {CONTEXT.PROVIDER: str, CONTEXT.PATIENTLIST: list, CONTEXT.CUSTOMERID: int,
+                   CONTEXT.ENCOUNTER: str, CONTEXT.STARTDATE: date, CONTEXT.ENDDATE: date,
+                   CONTEXT.ORDERID: str, CONTEXT.CATEGORIES: list},
+                  {USER_ROLES.provider, USER_ROLES.supervisor})
+    def get_alerts(self, _header, _body, context, matches, _key):
+        provider = context[CONTEXT.PROVIDER]
+        patients = context.get(CONTEXT.PATIENTLIST, None)
+        customer = context[CONTEXT.CUSTOMERID]
+        orderid = context.get(CONTEXT.ORDERID, None)
+        categories = context.get(CONTEXT.CATEGORIES, None)
 
-    @asyncio.coroutine
-    def get_alerts(self, _header, _body, qs, matches, _key):
-
-        context = self.helper.restrict_context(qs,
-                                               FrontendWebService.alerts_required_contexts,
-                                               FrontendWebService.alerts_available_contexts)
-        provider = context[CONTEXT_PROVIDER]
-        patients = context.get(CONTEXT_PATIENTLIST, None)
-        customer = context[CONTEXT_CUSTOMERID]
-        orderid = context.get(CONTEXT_ORDERID, None)
-        categories = context.get(CONTEXT_CATEGORIES, None)
-
-        startdate = self.helper.get_date(context, CONTEXT_STARTDATE)
-        enddate = self.helper.get_date(context, CONTEXT_ENDDATE)
+        startdate = self.helper.get_date(context, CONTEXT.STARTDATE)
+        enddate = self.helper.get_date(context, CONTEXT.ENDDATE)
         limit = self.helper.limit_clause(matches)
 
         desired = {
@@ -538,39 +521,35 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
-    orders_required_contexts = [CONTEXT_PROVIDER, CONTEXT_CUSTOMERID]
-    orders_available_contexts = {CONTEXT_PROVIDER: str, CONTEXT_PATIENTLIST: list,
-                                 CONTEXT_CUSTOMERID: int, CONTEXT_ENCOUNTER: str,
-                                 CONTEXT_ORDERTYPE: str,
-                                 CONTEXT_STARTDATE: date, CONTEXT_ENDDATE: date}
-
-    @asyncio.coroutine
-    def get_orders(self, _header, _body, qs, matches, _key):
-        context = self.helper.restrict_context(qs,
-                                               FrontendWebService.orders_required_contexts,
-                                               FrontendWebService.orders_available_contexts)
-        ordertype = context.get(CONTEXT_ORDERTYPE, None)
+    @http_service(['GET'], '/orders(?:(\d+)-(\d+)?)?',
+                  [CONTEXT.PROVIDER, CONTEXT.CUSTOMERID],
+                  {CONTEXT.PROVIDER: str, CONTEXT.PATIENTLIST: list, CONTEXT.CUSTOMERID: int,
+                   CONTEXT.ENCOUNTER: str, CONTEXT.ORDERTYPE: str,
+                   CONTEXT.STARTDATE: date, CONTEXT.ENDDATE: date},
+                  {USER_ROLES.provider, USER_ROLES.supervisor})
+    def get_orders(self, _header, _body, context, matches, _key):
+        ordertype = context.get(CONTEXT.ORDERTYPE, None)
         if ordertype:
             ordertypes = [ordertype]
         else:
             ordertypes = []
-        patient_ids = context.get(CONTEXT_PATIENTLIST, None)
+        patient_ids = context.get(CONTEXT.PATIENTLIST, None)
 
-        encounter = context.get(CONTEXT_ENCOUNTER, None)
-        customer = context[CONTEXT_CUSTOMERID]
-        startdate = self.helper.get_date(context, CONTEXT_STARTDATE)
-        enddate = self.helper.get_date(context, CONTEXT_ENDDATE)
+        encounter = context.get(CONTEXT.ENCOUNTER, None)
+        customer = context[CONTEXT.CUSTOMERID]
+        startdate = self.helper.get_date(context, CONTEXT.STARTDATE)
+        enddate = self.helper.get_date(context, CONTEXT.ENDDATE)
         limit = self.helper.limit_clause(matches)
         if not limit:
             limit = 'LIMIT 10'
-        # auth_keys = dict(zip(patient_ids, context[CONTEXT_KEY]))
+        # auth_keys = dict(zip(patient_ids, context[CONTEXT.KEY]))
 
         desired = {
             WP.Results.ordername: 'name',
             WP.Results.datetime: 'date',
             WP.Results.active: 'result',
             WP.Results.cost: 'cost',
-            WP.Results.ordertype: CONTEXT_ORDERTYPE,
+            WP.Results.ordertype: CONTEXT.ORDERTYPE,
             WP.Results.orderid: 'id',
         }
 
@@ -583,16 +562,11 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
-    hist_spend_required_contexts = [CONTEXT_PROVIDER, CONTEXT_CUSTOMERID]
-    hist_spend_available_contexts = {CONTEXT_PROVIDER: str, CONTEXT_PATIENTLIST: list,
-                                     CONTEXT_CUSTOMERID: int}
-
-    @asyncio.coroutine
-    def get_hist_spend(self, _header, _body, qs, matches, _key):
-        context = self.helper.restrict_context(qs,
-                                               FrontendWebService.hist_spend_required_contexts,
-                                               FrontendWebService.hist_spend_available_contexts)
-
+    @http_service(['GET'], '/hist_spending',
+                  [CONTEXT.PROVIDER, CONTEXT.CUSTOMERID],
+                  {CONTEXT.PROVIDER: str, CONTEXT.PATIENTLIST: list, CONTEXT.CUSTOMERID: int},
+                  {USER_ROLES.supervisor, USER_ROLES.provider})
+    def get_hist_spend(self, _header, _body, context, matches, _key):
         desired = {
             WP.Results.patientid: "patientid",
             WP.Results.patientname: "patientname",
@@ -603,9 +577,9 @@ class FrontendWebService(HTTP.HTTPProcessor):
             WP.Results.diagnosis: "diagnosis",
         }
         results = yield from self.persistence_interface.per_encounter(desired,
-                                                                      context.get(CONTEXT_PROVIDER),
-                                                                      context.get(CONTEXT_CUSTOMERID),
-                                                                      patients=context.get(CONTEXT_PATIENTLIST, None))
+                                                                      context.get(CONTEXT.PROVIDER),
+                                                                      context.get(CONTEXT.CUSTOMERID),
+                                                                      patients=context.get(CONTEXT.PATIENTLIST, None))
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
