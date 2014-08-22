@@ -71,7 +71,8 @@ Results = Enum('Results',
     priority
     state
     auditid
-    datatype
+    details
+    device
     roles
 """)
 
@@ -558,10 +559,11 @@ class WebPersistence():
     _available_audit_info = {
         Results.auditid: "audit.id",
         Results.datetime: "audit.datetime",
-        Results.userid: "audit.user_id",
-        Results.patientid: "audit.patient_id",
+        Results.userid: "audit.username",
+        Results.patientid: "audit.patient",
         Results.action: "audit.action",
-        Results.datatype: "audit.data_type"
+        Results.details: "audit.details",
+        Results.device: "audit.device",
     }
     _display_audit_info = _build_format({
         Results.auditid: lambda x: x,
@@ -749,3 +751,33 @@ class WebPersistence():
 
         results = yield from self.execute(cmd, cmdargs, self._display_per_encounter, desired)
         return results
+
+    @asyncio.coroutine
+    # @ML.coroutine_trace(print)
+    def audit_log(self, username, action, customer=None, patient=None, device=None,
+                  details=None, rows=None):
+        cmd = ['INSERT INTO audit (datetime, username, action']
+        cmdargs = [username, action]
+        extras = ['now(), %s, %s']
+        if customer:
+            cmd.append(', customer')
+            cmdargs.append(customer)
+            extras.append(', %s')
+        if patient:
+            cmd.append(', patient')
+            cmdargs.append(patient)
+            extras.append(', %s')
+        if device:
+            cmd.append(', device')
+            cmdargs.append(device)
+            extras.append(', %s')
+        if details:
+            cmd.append(', details')
+            cmdargs.append(details)
+            extras.append(', %s')
+        if rows:
+            cmd.append(', rows')
+            cmdargs.append(rows)
+            extras.append(', %s')
+        cmd.append(') values (' + ''.join(extras) + ');')
+        yield from self.execute(cmd, cmdargs, {}, {})
