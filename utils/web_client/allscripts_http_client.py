@@ -165,8 +165,9 @@ class allscripts_api(http.http_api):
                 try:
                     ret = yield from co_func(self, *args, **kwargs)
                 except AllscriptsError as e:
-                    if e.args[0].find('you have been logged out due to inactivity') >= 0:
+                    if e.args[0].find('you have been logged out') >= 0:
                         self.unitytoken = None
+                        WARN(e.args[0])
                         yield from asyncio.sleep(1)
             return ret
         return asyncio.coroutine(wraps(func)(worker))

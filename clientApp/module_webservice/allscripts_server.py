@@ -145,10 +145,13 @@ def main(loop):
             AHC.CONFIG_APPNAME: 'MavenPathways.TestApp',
             AHC.CONFIG_APPUSERNAME: 'MavenPathways',
             AHC.CONFIG_APPPASSWORD: 'MavenPathways123!!',
-            CONFIG_SLEEPINTERVAL: 20,
         },
-        'scheduler': {CONFIG_API: 'allscripts_demo',
-                      "SP": outgoingtomavenmessagehandler}
+        'scheduler': 
+        {
+            CONFIG_API: 'allscripts_demo',
+            CONFIG_SLEEPINTERVAL: 30,
+            "SP": outgoingtomavenmessagehandler
+        }
     }
     MC.MavenConfig.update(MavenConfig)
 
