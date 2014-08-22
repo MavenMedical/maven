@@ -154,8 +154,7 @@ class allscripts_api(http.http_api):
         co_func = asyncio.coroutine(func)
 
         def worker(self, *args, **kwargs):
-            ret = None
-            while not ret:
+            while True:
                 if not self.unitytoken:
                     fut = asyncio.Future()
                     self.unitytoken = fut
@@ -163,13 +162,13 @@ class allscripts_api(http.http_api):
                 if isinstance(self.unitytoken, asyncio.Future):
                     yield from self.unitytoken
                 try:
-                    ret = yield from co_func(self, *args, **kwargs)
+                    return (yield from co_func(self, *args, **kwargs))
                 except AllscriptsError as e:
                     if e.args[0].find('you have been logged out') >= 0:
                         self.unitytoken = None
                         WARN(e.args[0])
                         yield from asyncio.sleep(1)
-            return ret
+
         return asyncio.coroutine(wraps(func)(worker))
 
     @hour_cache.cache_lookup('GetServerInfo', lookup_on_none=True,
