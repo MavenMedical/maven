@@ -61,7 +61,7 @@ class IncomingFromMavenMessageHandler(HR.HTTPWriter):
         msg = yield from self.notification_generator.generate_alert_content(composition,
                                                                             'web', None)
         CLIENT_SERVER_LOG.debug(("Generated Message content: %s" % msg))
-        
+
         mobile_msg = [{'TEXT': 'New Pathway', 'LINK': m} for m in msg]
         self.notification_service.send_messages('mobile_' + user, mobile_msg)
 
@@ -90,6 +90,7 @@ def main(loop):
     notificationservicename = 'client notification service'
     clientemrconfig = 'client emr config'
     allscriptsscheduler = 'allscripts_demo'
+    customerid = 'customer_id'
 
     MavenConfig = {
         outgoingtomavenmessagehandler:
@@ -146,12 +147,13 @@ def main(loop):
             AHC.CONFIG_APPUSERNAME: 'MavenPathways',
             AHC.CONFIG_APPPASSWORD: 'MavenPathways123!!',
         },
-        'scheduler': 
+        'scheduler':
         {
             CONFIG_API: 'allscripts_demo',
-            CONFIG_SLEEPINTERVAL: 30,
+            CONFIG_SLEEPINTERVAL: 10,
             "SP": outgoingtomavenmessagehandler
-        }
+        },
+        customerid: 2
     }
     MC.MavenConfig.update(MavenConfig)
 
