@@ -205,7 +205,8 @@ class WebPersistence():
             for row in cur:
                 # results.append({print((type(v),v, k, display[k], display[k](v)))
                 #                or desired[k]: display[k](v) for k,v in zip(desired, row)})
-                results.append({desired[k]: display[k](v) for k, v in zip(desired, row)})
+                print(results)
+                results.append({desired[k]: display[k](v) for k, v in zip(desired, row) })
 
         logger.debug(str(cmd) + " " + str(cmdargs) + " -> " + str(results))
         return results
@@ -271,7 +272,7 @@ class WebPersistence():
         Results.roles: 'users.roles',
     }
     _display_pre_login = _build_format({
-        Results.roles: (lambda x: x[1:-1].split(','))
+        Results.roles: (lambda x: x[1:-1].split(',') if x else None)
     })
 
     @asyncio.coroutine

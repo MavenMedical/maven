@@ -18,7 +18,7 @@
         padding: 0;
     }
 
-    .tree ul {
+    .tree2 ul {
         padding-top: 20px;
         position: relative;
 
@@ -27,7 +27,7 @@
         -moz-transition: all 0.5s;
     }
 
-    .tree li {
+    .tree2 li {
         float: left;
         text-align: center;
         list-style-type: none;
@@ -98,8 +98,8 @@
         width: 0;
         height: 20px;
     }
-*/
-    .tree li div.qualifier {
+    */
+    .tree2 li div.qualifier {
         height: 30px;
         width: 125px;
         border: 2px solid #46bdec;
@@ -121,7 +121,7 @@
         -moz-transition: all 0.5s;
     }
 
-    .tree li div.protocole {
+    .tree2 li div.protocole {
         width: 270px;
         border: 2px solid #18bc9a;
         background-color: whitesmoke;
@@ -159,13 +159,14 @@
 
     /*Time for some hover effects*/
     /*We will apply the hover effect the the lineage of the element also*/
-    .tree li div:hover, .tree li div:hover + ul li div {
+    .tree2 li div:hover, .tree li div:hover + ul li div {
         background: #c8e4f8;
         color: #000;
         border: 1px solid #94a0b4;
     }
 
     /*Connector styles on hover*/
+    /*
     .tree li div:hover + ul li::after,
     .tree li div:hover + ul li::before,
     .tree li div:hover + ul::before,
@@ -196,6 +197,7 @@
     #expandAll:hover{
 
     }
+    */
 </style>
 
 <div id="toast">
@@ -218,7 +220,7 @@
 
     <div id="pathway-container" style="transform: scale(1); width: 2000px">
 
-        <div class="tree">
+        <div class="tree2">
             <ul>
                 <li class='parent'>
                     <div id="n1" class="qualifier suggested">
