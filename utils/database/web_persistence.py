@@ -206,7 +206,7 @@ class WebPersistence():
                 # results.append({print((type(v),v, k, display[k], display[k](v)))
                 #                or desired[k]: display[k](v) for k,v in zip(desired, row)})
                 print(results)
-                results.append({desired[k]: display[k](v) for k, v in zip(desired, row) })
+                results.append({desired[k]: display[k](v) for k, v in zip(desired, row)})
 
         logger.debug(str(cmd) + " " + str(cmdargs) + " -> " + str(results))
         return results
