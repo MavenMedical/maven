@@ -436,6 +436,15 @@ class allscripts_api(http.http_api):
         except ETree.ParseError as e:
             raise AllscriptsError('Error parsing XML ' + e)
 
+    @_require_token
+    def SaveTask(self, username: str, patient: str, tasktype: str,
+                 info: str, subject: str, targetuser: str=None):
+        ret = yield from self.post('/json/MagicJson',
+                                   data=self._build_message('SaveTask', tasktype, self.appnamem,
+                                                            "", info, subject,
+                                                            user=username, patient=patient))
+        return self.postprocess(ret)
+
 
 if __name__ == '__main__':
     MavenConfig['allscripts_old_demo'] = {
