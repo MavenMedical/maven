@@ -1,4 +1,4 @@
-DROP TABLE protocols.unparsed;
+IF EXISTS (protocols.unparse) DROP TABLE protocols.unparsed;
 CREATE TABLE protocols.unparsed
 (
   pathid serial NOT NULL,
