@@ -23,7 +23,7 @@ define([
 ], function ($, _, Backbone, userRowTemplate, contextModel, AuditList, AuditTemplate) {
 
     var UserRow = Backbone.View.extend({
-        tagName: 'tr',
+        tagName: "tr class='user-row'",
         template: _.template(userRowTemplate),
         render: function(){
             $(this.el).html(this.template($.extend({viewid:this.cid},this.model.toJSON())));
@@ -68,37 +68,13 @@ define([
                 maybeHide = function() {
                     if (curTitle == null && !overlist) {
                         //auditList.title = null;
-                        auditList.$el.hide();
+                        $(auditElement).hide();
                        // orderList.typeFilter = 'does not exist';
                         overlist = false;
                     }
                 }
 
-/*
-                $(that.el).on('click', function (e) {
 
-                    //only grab audit data if request has not already been made
-                    if ($(that.el).find(".useraudits").is(':empty')) {
-                        $.ajax({
-                            url: "/audits",
-                            data: $.param(contextModel.toParams()) + "&target_user=" + that.model.get("user_id"),
-                            success: function (data) {
-                                for (var i = 0; i < data.length; i++) {
-                                    $(that.el).find(".useraudits").append(data[i].date + " - " + data[i].action);
-                                   /* var auditrow = new AlertRow({model: data[i]});
-                                    alertrow.render = function () {
-                                        $(this.el).html(this.template(this.model));
-                                        return this;
-                                    };
-                                    //$(that.el).html(this.template(this.model.toJSON()));
-                                    $(that.el).find(".orderalerts").append(alertrow.render().el);
-
-                                    // $(that.el).find(".orderalerts").append(data[i].alerttype + ": " + data[i].html);
-                                }
-                            }
-                        });
-                    }
-                });*/
             });
        }
 

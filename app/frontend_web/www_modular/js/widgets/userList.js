@@ -6,7 +6,9 @@ define([
     //views
     'globalmodels/userCollection',
     'singleRow/userRow',
-], function ($, _, Backbone, userCollection, UserRow) {
+
+    'globalmodels/contextModel'
+], function ($, _, Backbone, userCollection, UserRow, contextModel) {
 
     var UserList = Backbone.View.extend({
 	initialize: function(arg) {
@@ -28,6 +30,28 @@ define([
 		}
 	    });
 	},
+    events: {
+	    'click #save-user-changes': 'saveChanges',
+    },
+    saveChanges: function() {
+        that = this;
+        $(".user-row").each(function () {
+            var user_id  = $(this).find(".user-val-id").html();
+            var state="disabled";
+            if($(this).find('.user-state').is(':checked'))
+            {
+                    state = "active";
+            }
+            $.ajax({
+                url: "/update_user",
+                data: $.param(contextModel.toParams()) + "&target_user=" + user_id +
+                                                         "&state=" + state,
+                success: function (data) {
+                    console.log(data);
+                }
+            });
+        });
+    },
 	render: function() {
 	    this.$el.html(this.template(this));
 	    this.addAll();

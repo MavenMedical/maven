@@ -52,19 +52,20 @@ define([
 		    }
 		}
 	    }
-	    if(nonempty) {
-		this.$el.show();
-	    } else {
-		this.$el.hide();
+	    if(!nonempty) {
+            $('.auditaccordion', this.$el).append("No audits for this user");
 	    }
+        this.$el.show();
 
-        var auditlist = $('.auditlist', this.$el);
-        setTimeout(function() {
-            var auditHeight = auditlist.innerHeight();
-            if (auditHeight > 0 && auditHeight < parseInt(auditlist.css('max-height'))) {
-                auditCollection.more();
-            }
-        },500);
+        if (nonempty) {
+            var auditlist = $('.auditlist', this.$el);
+            setTimeout(function () {
+                var auditHeight = auditlist.innerHeight();
+                if (auditHeight > 0 && auditHeight < parseInt(auditlist.css('max-height'))) {
+                    auditCollection.more();
+                }
+            }, 500);
+        }
 	},
 	addAudit: function(audit) {
 	    var auditrow = new AuditRow({model: audit});

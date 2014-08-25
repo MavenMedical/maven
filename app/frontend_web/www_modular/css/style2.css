@@ -198,6 +198,34 @@ background-color: #eee;
 }
 
 
+/***************************************************************
+ * The following customize the Audit and User List widgets *
+ ***************************************************************/
+
+.auditrow {
+    margin-right:10px;
+}
+
+#mouse-target > .audit-scroll {
+    background-color: white;
+    padding:2px;
+}
+
+#mouse-target > .audit-scroll > .auditlist > .panel-body {
+    background-color: white;
+    padding-top:5px;
+    padding-bottom: 5px;
+    width:100%;
+}
+
+.user-val-input {
+    display:none;
+}
+
+.userlist > .btn {
+    float:right;
+}
+
 
 /***************************************************************
  * The following customize the fonts and colors of the widgets *
@@ -537,6 +565,29 @@ border-right: 1px solid rgb(204, 204, 204);
     background-color: red;
 }
 
+.setting-row {
+    width:100%;
+    float:left;
+}
+
+.setting-row > input {
+    float:right;
+}
+
+.setting-footer {
+    width:100%;
+    float:left;
+    padding-top: 3%;
+}
+
+.setting-footer > button {
+    float:left;
+    margin-right: 10px;
+}
+
+.setting-footer > .save-status {
+    float:right;
+}
 
 /***************************************************************
  * The following adjust the contents on smaller devices *

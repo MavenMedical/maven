@@ -1,17 +1,21 @@
 <td>
+    <div class="user-val-id"><%= user_id %></div>
+</td>
+<td>
     <a>
         <%= user_name %>
     </a>
-    </td>
-    <td>
+</td>
+<td>
         <%= customer_id %>
-    </td>
-    <td>
-        <%= display_name %>
-    </td>
-    <td>
-        <%= official_name %>
-    </td>
-    <td>
-        <%= state %>
-    </td>
+</td>
+<td class="user-val-column">
+    <div class="user-val-text"><%= official_name %></div>
+</td>
+<td class="user-val-column">
+    <% if (state == 'active') { %>
+        <input type="checkbox" checked="checked" class="user-state">
+    <% } else { %>
+        <input type="checkbox" class="user-state">
+    <% } %>
+</td>

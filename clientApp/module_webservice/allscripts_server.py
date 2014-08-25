@@ -61,7 +61,7 @@ class IncomingFromMavenMessageHandler(HR.HTTPWriter):
         msg = yield from self.notification_generator.generate_alert_content(composition,
                                                                             'web', None)
         CLIENT_SERVER_LOG.debug(("Generated Message content: %s" % msg))
-        
+
         mobile_msg = [{'TEXT': 'New Pathway', 'LINK': m} for m in msg]
         self.notification_service.send_messages('mobile_' + user, mobile_msg)
 

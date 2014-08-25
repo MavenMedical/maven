@@ -53,6 +53,8 @@ class CONTEXT():
     DISPLAYNAME = 'display_name'
     ACTION = 'action'
     ACTIONCOMMENT = 'action_comment'
+    TARGETUSER = 'target_user'
+    STATE = 'state'
 
 LOGIN_TIMEOUT = 60 * 60  # 1 hour
 AUTH_LENGTH = 44  # 44 base 64 encoded bits gives the entire 256 bites of SHA2 hash
@@ -248,8 +250,23 @@ class FrontendWebService(HTTP.HTTPProcessor):
         officialname = context[CONTEXT.OFFICIALNAME]
         displayname = context[CONTEXT.DISPLAYNAME]
 
-        result = yield from self.persistence_interface.update_user_settings(userid, officialname,
-                                                                            displayname)
+        result = yield from self.persistence_interface.save_user_settings(userid, officialname,
+                                                                          displayname)
+        if result:
+            return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
+        else:
+            return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
+
+    @http_service(['GET'], '/update_user',
+                  [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.STATE, CONTEXT.TARGETUSER],
+                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int,
+                   CONTEXT.STATE: str, CONTEXT.TARGETUSER: int},
+                  {USER_ROLES.supervisor})
+    def update_user(self, _header, _body, context, _matches, _key):
+        userid = context[CONTEXT.TARGETUSER]
+        state = context[CONTEXT.STATE]
+
+        result = yield from self.persistence_interface.update_user(userid, state)
         if result:
             return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
         else:
@@ -418,6 +435,27 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
         return HTTP.OK_RESPONSE, json.dumps(results[0]), None
 
+    @http_service(['GET'], '/users(?:(\d+)-(\d+)?)?',
+                  [CONTEXT.USER, CONTEXT.PROVIDER],
+                  {CONTEXT.PROVIDER: str, CONTEXT.USER: int},
+                  {USER_ROLES.supervisor})
+    def get_users(self, _header, _body, context, matches, _key):
+
+        limit = self.helper.limit_clause(matches)
+
+        desired = {
+            WP.Results.userid: 'user_id',
+            WP.Results.customerid: 'customer_id',
+            WP.Results.provid: 'prov_id',
+            WP.Results.username: 'user_name',
+            WP.Results.officialname: 'official_name',
+            WP.Results.displayname: 'display_name',
+            WP.Results.state: 'state'
+        }
+        results = yield from self.persistence_interface.user_info(desired, limit=limit)
+
+        return HTTP.OK_RESPONSE, json.dumps(results), None
+
     @http_service(['GET'], '/total_spend',
                   [CONTEXT.PROVIDER, CONTEXT.KEY, CONTEXT.CUSTOMERID],
                   {CONTEXT.PROVIDER: str, CONTEXT.KEY: list, CONTEXT.PATIENTLIST: list,
@@ -518,6 +556,36 @@ class FrontendWebService(HTTP.HTTPProcessor):
                                                                enddate=enddate,
                                                                limit=limit, orderid=orderid,
                                                                categories=categories)
+
+        return HTTP.OK_RESPONSE, json.dumps(results), None
+
+    @http_service(['GET'], '/audits(?:(\d+)-(\d+)?)?',
+                  [CONTEXT.PROVIDER, CONTEXT.USER, CONTEXT.CUSTOMERID],
+                  {CONTEXT.PROVIDER: str, CONTEXT.PATIENTLIST: list, CONTEXT.CUSTOMERID: int,
+                   CONTEXT.ENCOUNTER: str, CONTEXT.STARTDATE: date, CONTEXT.ENDDATE: date,
+                   CONTEXT.ORDERID: str, CONTEXT.CATEGORIES: list, CONTEXT.USER: int,
+                   CONTEXT.TARGETUSER: int},
+                  {USER_ROLES.provider, USER_ROLES.supervisor})
+    def get_audits(self, _header, _body, context, matches, _key):
+        targetuser = context.get(CONTEXT.TARGETUSER, None)
+        if not targetuser:
+            targetuser = context[CONTEXT.USER]
+
+        startdate = self.helper.get_date(context, CONTEXT.STARTDATE)
+        enddate = self.helper.get_date(context, CONTEXT.ENDDATE)
+        limit = self.helper.limit_clause(matches)
+
+        desired = {
+            WP.Results.auditid: 'id',
+            WP.Results.datetime: 'date',
+            WP.Results.userid: 'user',
+            WP.Results.patientid: 'patient',
+            WP.Results.action: 'action',
+            WP.Results.datatype: 'data_type'
+        }
+
+        results = yield from self.persistence_interface.audit_info(desired, targetuser, startdate=startdate,
+                                                                   enddate=enddate, limit=limit)
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
 

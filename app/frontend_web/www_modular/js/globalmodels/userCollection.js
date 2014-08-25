@@ -12,19 +12,15 @@ define([
     userCollection.model = UserModel;
     userCollection.limit = 10;
     userCollection.context = function(){
-        contextModel.on('change:patients change:encounter change:startdate change:enddate',
+        contextModel.on('change:startdate change:enddate',
 		    // this will be needed once the context filters things
 		    function(cm) {
 			if(true && cm.get('userAuth')) {
-			    if (cm.get('patients')) {
                 this.tried = 0;
                 this.offset = 0;
                 userCollection.fetch({
                     data:$.param(contextModel.toParams()),
                     remove:true});
-			    } else {
-				userCollection.reset();
-			    }
 			}
         }, userCollection);
     };

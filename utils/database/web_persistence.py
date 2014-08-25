@@ -220,10 +220,15 @@ class WebPersistence():
                                 [newpw, timeout, user], {}, {})
 
     @asyncio.coroutine
-    def update_user_settings(self, user, officialname, displayname):
+    def save_user_settings(self, user, officialname, displayname):
         yield from self.execute(["UPDATE users set (official_name, display_name) " +
                                  "= (%s, %s) where user_id = %s"],
                                 [officialname, displayname, user], {}, {})
+
+    @asyncio.coroutine
+    def update_user(self, user, state):
+        yield from self.execute(["UPDATE users set (state) = (%s) where user_id = %s"],
+                                [state, user], {}, {})
 
     @asyncio.coroutine
     def update_alert_setting(self, user, customer, alertid, ruleid, category, actioncomment):
@@ -312,7 +317,7 @@ class WebPersistence():
     _display_user_info = _build_format({})
 
     @asyncio.coroutine
-    def user_info(self, desired):
+    def user_info(self, desired, limit=""):
         columns = build_columns(desired.keys(), self._available_user_info,
                                 self._default_user_info)
 
@@ -321,6 +326,8 @@ class WebPersistence():
         cmd.append("SELECT")
         cmd.append(columns)
         cmd.append("FROM users")
+        if limit:
+            cmd.append(limit)
 
         results = yield from self.execute(cmd, cmdargs, self._display_user_info, desired)
         return results

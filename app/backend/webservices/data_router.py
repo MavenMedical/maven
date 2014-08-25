@@ -3,7 +3,7 @@
 #
 # ************************
 # AUTHOR:
-__author__='Yuki Uchino'
+__author__ = 'Yuki Uchino'
 # ************************
 # DESCRIPTION:   This file creates a an asynchronous listening server for incoming messages.
 #
@@ -40,12 +40,12 @@ class IncomingMessageHandler(SP.StreamProcessor):
 
     @asyncio.coroutine
     def read_object(self, obj, key2):
-        #obj_list = json.loads(obj.decode())
+        # obj_list = json.loads(obj.decode())
         obj_list = pickle.loads(obj)
         composition = obj_list[0]
         key1 = obj_list[1]
         ML.DEBUG(key1)
-        #composition = api.Composition().create_composition_from_json(json_composition)
+        # composition = api.Composition().create_composition_from_json(json_composition)
         composition.write_key = [key1, key2]
         self.write_object(composition, writer_key="CostEval")
 
@@ -58,7 +58,7 @@ class OutgoingMessageHandler(SP.StreamProcessor):
     @asyncio.coroutine
     def read_object(self, obj, _):
         obj.user = obj.get_author_id()
-        obj.userAuth = AK.authorization_key([obj.user, str(obj.customer_id)], 44, 60*60)
+        obj.userAuth = AK.authorization_key([obj.user, str(obj.customer_id)], 44, 60 * 60)
         self.write_object(pickle.dumps(obj), writer_key=obj.write_key[1])
 
 
@@ -67,59 +67,58 @@ def main(loop):
     outgoingtohospitalsmessagehandler = 'responder socket'
     incomingtomavenmessagehandler = 'receiver socket'
 
-
     MavenConfig = {
         incomingtomavenmessagehandler:
         {
             SP.CONFIG_READERTYPE: SP.CONFIGVALUE_ASYNCIOSERVERSOCKET,
-            SP.CONFIG_READERNAME: incomingtomavenmessagehandler+".Reader",
+            SP.CONFIG_READERNAME: incomingtomavenmessagehandler + ".Reader",
             SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_THREADEDRABBIT,
-            SP.CONFIG_WRITERNAME: [incomingtomavenmessagehandler+".Writer", incomingtomavenmessagehandler+".Writer_CostEval"],
+            SP.CONFIG_WRITERNAME: [incomingtomavenmessagehandler + ".Writer", incomingtomavenmessagehandler + ".Writer_CostEval"],
             SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_IDENTITYPARSER,
-            SP.CONFIG_WRITERDYNAMICKEY:1,
+            SP.CONFIG_WRITERDYNAMICKEY: 1,
         },
-        incomingtomavenmessagehandler+".Reader":
+        incomingtomavenmessagehandler + ".Reader":
         {
-            SP.CONFIG_HOST:'127.0.0.1',
-            SP.CONFIG_PORT:8090
+            SP.CONFIG_HOST: '127.0.0.1',
+            SP.CONFIG_PORT: 8090
         },
 
-        incomingtomavenmessagehandler+".Writer":
+        incomingtomavenmessagehandler + ".Writer":
         {
-            SP.CONFIG_HOST:'localhost',
-            SP.CONFIG_QUEUE:'incoming_cost_evaluator_work_queue',
-            SP.CONFIG_EXCHANGE:'maven_exchange',
-            SP.CONFIG_KEY:'incomingcost'
+            SP.CONFIG_HOST: 'localhost',
+            SP.CONFIG_QUEUE: 'incoming_cost_evaluator_work_queue',
+            SP.CONFIG_EXCHANGE: 'maven_exchange',
+            SP.CONFIG_KEY: 'incomingcost'
         },
-        incomingtomavenmessagehandler+".Writer_CostEval":
+        incomingtomavenmessagehandler + ".Writer_CostEval":
         {
-            SP.CONFIG_HOST:'localhost',
-            SP.CONFIG_QUEUE:'incoming_cost_evaluator_work_queue',
-            SP.CONFIG_EXCHANGE:'maven_exchange',
-            SP.CONFIG_KEY:'incomingcosteval',
-            SP.CONFIG_WRITERKEY:'CostEval'
+            SP.CONFIG_HOST: 'localhost',
+            SP.CONFIG_QUEUE: 'incoming_cost_evaluator_work_queue',
+            SP.CONFIG_EXCHANGE: 'maven_exchange',
+            SP.CONFIG_KEY: 'incomingcosteval',
+            SP.CONFIG_WRITERKEY: 'CostEval'
         },
         outgoingtohospitalsmessagehandler:
         {
             SP.CONFIG_READERTYPE: SP.CONFIGVALUE_THREADEDRABBIT,
-            SP.CONFIG_READERNAME: outgoingtohospitalsmessagehandler+".Reader",
+            SP.CONFIG_READERNAME: outgoingtohospitalsmessagehandler + ".Reader",
             SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOSOCKETREPLY,
-            SP.CONFIG_WRITERNAME: outgoingtohospitalsmessagehandler+".Writer",
+            SP.CONFIG_WRITERNAME: outgoingtohospitalsmessagehandler + ".Writer",
             SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_UNPICKLEPARSER,
 
         },
-        outgoingtohospitalsmessagehandler+".Reader":
+        outgoingtohospitalsmessagehandler + ".Reader":
         {
-            SP.CONFIG_HOST:'localhost',
-            SP.CONFIG_QUEUE:'aggregator_work_queue',
-            SP.CONFIG_EXCHANGE:'maven_exchange',
-            SP.CONFIG_KEY:'aggregate',
-            #SP.CONFIG_WRITERKEY:'aggregate',
+            SP.CONFIG_HOST: 'localhost',
+            SP.CONFIG_QUEUE: 'aggregator_work_queue',
+            SP.CONFIG_EXCHANGE: 'maven_exchange',
+            SP.CONFIG_KEY: 'aggregate',
+            # SP.CONFIG_WRITERKEY: 'aggregate',
         },
 
-        outgoingtohospitalsmessagehandler+".Writer":
+        outgoingtohospitalsmessagehandler + ".Writer":
         {
-            SP.CONFIG_WRITERKEY:1
+            SP.CONFIG_WRITERKEY: 1
         },
 
     }

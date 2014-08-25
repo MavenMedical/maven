@@ -116,7 +116,7 @@ def write_composition_conditions(composition, conn):
         for condition in condition_list:
             snomed_id = condition.get_snomed_id()
             dx_coding = condition.get_ICD9_id()
-            
+
             if dx_coding:
                 dx_code_id = dx_coding.code
                 dx_code_system = dx_coding.system
