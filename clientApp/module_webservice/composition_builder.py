@@ -52,15 +52,18 @@ class CompositionBuilder(builder):
 
     @builder.build(FHIR_API.Composition)
     @ML.trace(COMP_BUILD_LOG.debug, True)
-    def build_composition(self, obj, username, patient):
+    def build_composition(self, obj, username, patient, doc_id):
         obj.author = self.provs[username]
+        obj.encounter = FHIR_API.Encounter(identifier=[FHIR_API.Identifier(label="Internal",
+                                                                           system="clientEMR",
+                                                                           value=doc_id)])
         COMP_BUILD_LOG.debug(json.dumps(FHIR_API.remove_none(json.loads(json.dumps(obj, default=FHIR_API.jdefault))), indent=4))
         COMP_BUILD_LOG.debug(("Finished building Composition ID=%s" % obj.id))
         return obj
 
     @builder.provide(Types.Practitioners)
     @ML.coroutine_trace(COMP_BUILD_LOG.debug, True)
-    def _practitioners(self, username, patient):
+    def _practitioners(self, username, patient, doc_id):
         # TODO - MemoryCache timeout=3600s
         ret = yield from self.allscripts_api.GetProviders(username=username)
         for prov in ret:
@@ -69,13 +72,13 @@ class CompositionBuilder(builder):
 
     @builder.provide(Types.Patient)
     @ML.coroutine_trace(COMP_BUILD_LOG.debug, True)
-    def _patient(self, username, patient):
+    def _patient(self, username, patient, doc_id):
         ret = yield from self.allscripts_api.GetPatient(username, patient)
         return ret
 
     @builder.provide(Types.ClinicalSummary)
     @ML.coroutine_trace(COMP_BUILD_LOG.debug, True)
-    def _clin_summary(self, username, patient):
+    def _clin_summary(self, username, patient, doc_id):
         ret = yield from self.allscripts_api.GetClinicalSummary(username, patient, AHC.CLINICAL_SUMMARY.All)
         return ret
 
