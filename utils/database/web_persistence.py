@@ -69,6 +69,10 @@ Results = Enum('Results',
     template
     element
     priority
+    state
+    auditid
+    details
+    device
     roles
 """)
 
@@ -296,6 +300,32 @@ class WebPersistence():
 
         results = yield from self.execute(cmd, cmdargs, self._display_pre_login, desired)
         return results[0]
+
+    _default_user_info = set((Results.userid,))
+    _available_user_info = {
+        Results.userid: "users.user_id",
+        Results.customerid: "users.customer_id",
+        Results.provid: "users.prov_id",
+        Results.username: "users.user_name",
+        Results.officialname: "users.official_name",
+        Results.displayname: "users.display_name",
+        Results.state: "users.state"
+    }
+    _display_user_info = _build_format({})
+
+    @asyncio.coroutine
+    def user_info(self, desired):
+        columns = build_columns(desired.keys(), self._available_user_info,
+                                self._default_user_info)
+
+        cmd = []
+        cmdargs = []
+        cmd.append("SELECT")
+        cmd.append(columns)
+        cmd.append("FROM users")
+
+        results = yield from self.execute(cmd, cmdargs, self._display_user_info, desired)
+        return results
 
     _default_patient_info = set((Results.encounter_date,))
     _available_patient_info = {
@@ -526,6 +556,40 @@ class WebPersistence():
         results = yield from self.execute(cmd, cmdargs, self._display_alerts, desired)
         return results
 
+    _default_audit_info = set((Results.auditid,))
+    _available_audit_info = {
+        Results.auditid: "audit.id",
+        Results.datetime: "audit.datetime",
+        Results.userid: "audit.username",
+        Results.patientid: "audit.patient",
+        Results.action: "audit.action",
+        Results.details: "audit.details",
+        Results.device: "audit.device",
+    }
+    _display_audit_info = _build_format({
+        Results.auditid: lambda x: x,
+        Results.datetime: lambda x: x and _prettify_datetime(x)
+    })
+
+    @asyncio.coroutine
+    def audit_info(self, desired, userid, startdate=None, enddate=None, orderby=Results.datetime,
+                   ascending=True, limit=""):
+        columns = build_columns(desired.keys(), self._available_audit_info,
+                                self._default_audit_info)
+
+        cmd = []
+        cmdargs = []
+        cmd.append("SELECT")
+        cmd.append(columns)
+        cmd.append("FROM audit")
+        cmd.append("WHERE audit.user_id = %s")
+        cmdargs.append(userid)
+        append_extras(cmd, cmdargs, Results.datetime, startdate, enddate, orderby, ascending,
+                      None, limit, self._available_audit_info)
+
+        results = yield from self.execute(cmd, cmdargs, self._display_audit_info, desired)
+        return results
+
     _default_layout_info = set()
     _available_layout_info = {
         Results.layoutid: "layouts.layoutid",
@@ -688,3 +752,33 @@ class WebPersistence():
 
         results = yield from self.execute(cmd, cmdargs, self._display_per_encounter, desired)
         return results
+
+    @asyncio.coroutine
+    # @ML.coroutine_trace(print)
+    def audit_log(self, username, action, customer=None, patient=None, device=None,
+                  details=None, rows=None):
+        cmd = ['INSERT INTO audit (datetime, username, action']
+        cmdargs = [username, action]
+        extras = ['now(), %s, %s']
+        if customer:
+            cmd.append(', customer')
+            cmdargs.append(customer)
+            extras.append(', %s')
+        if patient:
+            cmd.append(', patient')
+            cmdargs.append(patient)
+            extras.append(', %s')
+        if device:
+            cmd.append(', device')
+            cmdargs.append(device)
+            extras.append(', %s')
+        if details:
+            cmd.append(', details')
+            cmdargs.append(details)
+            extras.append(', %s')
+        if rows:
+            cmd.append(', rows')
+            cmdargs.append(rows)
+            extras.append(', %s')
+        cmd.append(') values (' + ''.join(extras) + ');')
+        yield from self.execute(cmd, cmdargs, {}, {})

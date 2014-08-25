@@ -212,6 +212,22 @@ background-color: #eee;
     font-size: 20px;
 }
 
+.auditrow {
+    margin-right:10px;
+}
+
+#mouse-target > .audit-scroll {
+    background-color: white;
+    padding:2px;
+}
+
+#mouse-target > .audit-scroll > .auditlist > .panel-body {
+    background-color: white;
+    padding-top:5px;
+    padding-bottom: 5px;
+    width:100%;
+}
+
 body {
     height: 100%;
     margin-top: 50px;
@@ -537,6 +553,29 @@ border-right: 1px solid rgb(204, 204, 204);
     background-color: red;
 }
 
+.setting-row {
+    width:100%;
+    float:left;
+}
+
+.setting-row > input {
+    float:right;
+}
+
+.setting-footer {
+    width:100%;
+    float:left;
+    padding-top: 3%;
+}
+
+.setting-footer > button {
+    float:left;
+    margin-right: 10px;
+}
+
+.setting-footer > .save-status {
+    float:right;
+}
 
 /***************************************************************
  * The following adjust the contents on smaller devices *

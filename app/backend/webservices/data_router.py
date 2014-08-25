@@ -1,19 +1,19 @@
-#*************************************************************************
-#Copyright (c) 2014 - Maven Medical
+# *************************************************************************
+# Copyright (c) 2014 - Maven Medical
 #
-#************************
-#AUTHOR:
+# ************************
+# AUTHOR:
 __author__='Yuki Uchino'
-#************************
-#DESCRIPTION:   This file creates a an asynchronous listening server for incoming messages.
+# ************************
+# DESCRIPTION:   This file creates a an asynchronous listening server for incoming messages.
 #
-#************************
-#ASSUMES:
-#************************
-#SIDE EFFECTS:
-#************************
-#LAST MODIFIED FOR JIRA ISSUE: MAV-1
-#*************************************************************************
+# ************************
+# ASSUMES:
+# ************************
+# SIDE EFFECTS:
+# ************************
+# LAST MODIFIED FOR JIRA ISSUE: MAV-1
+# *************************************************************************
 import argparse
 import json
 import pickle
