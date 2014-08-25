@@ -1,8 +1,10 @@
 @import url('../css/bootstrap/css/bootstrap.min.css');
+@import url('../js/libs/jsplumb/css/jsplumb.css');
+
 
 /* sadly css variables aren't supported by much of anything, so we'll do this with copy and paste.
  * Here is a list of all of the values which can be modified
- * The places where each is used includes a comment with the variable name after it 
+ * The places where each is used includes a comment with the variable name after it
  * This allows changing exactly the right things using search and replace (almost)
     var-fixed-top-size
     var-fixed-bottom-size
@@ -14,43 +16,176 @@
     var-floating-right-size
  */
 
+
+
+
+
+
+
+
+
+
+
+
+    #pathway-container {
+        position: relative;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+    }
+    .selected {
+        border-width: 6px
+        !important;
+    }
+    .tree ul {
+        padding-top: 60px;
+        position: relative;
+
+        transition: all 0.5s;
+        -webkit-transition: all 0.5s;
+        -moz-transition: all 0.5s;
+    }
+
+    .tree li {
+        float: left;
+        text-align: center;
+        list-style-type: none;
+        position: relative;
+        padding: 20px 5px 0 5px;
+
+        transition: all 0.5s;
+        -webkit-transition: all 0.5s;
+        -moz-transition: all 0.5s;
+    }
+
+
+    /*Remove space from the top of single children*/
+    .tree li:only-child {
+        padding-top: 0;
+    }
+
+    .tree li div.treeNode {
+        border: 2px solid #46bdec;
+        background-color: whitesmoke;
+        padding: 5px 10px;
+        text-decoration: none;
+        color: #666;
+        font-family: arial, verdana, tahoma;
+        font-size: 13px;
+        font-weight: bold;
+        display: inline-block;
+
+        border-radius: 5px;
+        -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+
+        transition: all 0.5s;
+        -webkit-transition: all 0.5s;
+        -moz-transition: all 0.5s;
+    }
+
+    .tree li div.protocole {
+        border: 2px solid #18bc9a;
+        background-color: whitesmoke;
+        padding: 5px 10px;
+        text-decoration: none;
+        color: #666;
+        font-family: arial, verdana, tahoma;
+        font-size: 13px;
+        font-weight: bold;
+        display: inline-block;
+
+        border-radius: 5px;
+        -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+
+        transition: all 0.5s;
+        -webkit-transition: all 0.5s;
+        -moz-transition: all 0.5s;
+    }
+
+    /*Time for some hover effects*/
+    /*We will apply the hover effect the the lineage of the element also*/
+    .tree li div.treeNode:hover, .tree li div.treeNode:hover + ul li div.treeNode {
+        background: #c8e4f8;
+        color: #000;
+        border: 1px solid #94a0b4;
+    }
+
+
+
+
 .chart-col-6 {
     width: 100%;
-    height: 350px;
+    height:350px;
 }
 
 .chart-col-12 {
     width: 100%;
-    height: 400px;
 }
 
+.attn-text{
+    font-size: 200%;
+    height: auto;
+    width: auto;
+}
+.range-input{
+    width:100px
+}
+
+.conflict {
+    border-style: solid;
+    border-color: red;
+
+}
+.detail-input{
+    font-size: 130%;
+    height: auto;
+}
+.attn-text-small{
+    font-size: 130%;
+    height: auto;
+    width: auto
+}
+.loinc-list-box{
+    width:300px;
+    height: 200px;
+
+}
+.trigger-list-box{
+    width:45%;
+    height:400px;
+    font-size: 150%;
+}
 html, body {
-    padding: 0px;
-    margin: 0px;
+    padding:0px;
+    margin:0px;
 }
 
 #fixed-top {
-    position: fixed;
-    top: 0px;
-    left: 0px;
-    right: 0px;
-    z-index: 10;
+    position:fixed;
+    top:0px;
+    left:0px;
+    right:0px;
+    z-index:10;
     /*height: 130px; /*var-fixed-top-size*/
     background: #ffffff;
 }
 
 .pat-info {
-    height: 50px;
-    display: table;
+    height:50px;
+    display:table;
 }
 
 #fixed-bottom {
     display: none;
-    position: fixed;
-    bottom: 0px;
-    left: 0px;
-    right: 0px;
-    z-index: 10;
+    position:fixed;
+    bottom:0px;
+    left:0px;
+    right:0px;
+    z-index:10;
     height: 0px; /*var-fixed-bottom-size*/
 }
 
@@ -71,10 +206,9 @@ html, body {
     bottom: 0px; /*var-fixed-bottom-size*/
     right: 0px;
 }
-
 #wrapper {
     position: relative;
-    min-width: 70%; /*100% minus var-fixed-left-size minus var-fixed-right-size */;
+    min-width: 90%; /*100% minus var-fixed-left-size minus var-fixed-right-size */;
     bottom: 0px;
     z-index: 1;
     margin-top: 130px; /*var-fixed-top-size*/
@@ -102,142 +236,62 @@ html, body {
 }
 
 #floating-left {
-    position: relative;
-    visibility: hidden;
-    width: 0px; /*var-floating-left-size*/
-    float: left;
+    position:relative;
+    float:left;
+    width:19%; /*var-floating-right-size*/
+    height: 600px;
+    margin-right: 15px;
 }
 
 #floating-right {
-    position: relative;
-    float: right;
-    width: 30%; /*var-floating-right-size*/
-    padding-left: 5px;
+    position:relative;
+    float:right;
+    width:19%; /*var-floating-right-size*/
+    height: 600px;
+    margin-left: 15px
 }
 
 #content {
-    display: none;
-    overflow: hidden;
-    position: relative;
-    margin-left: 0px; /*var-float-left-size*/
-    width: 100%; /*100 minus var-float-left-size minus var-floating-right-size*/
-    min-height: 500px;
+    overflow:hidden;
+    position:relative;
+    height: 2000px;
+    margin-left:0px; /*var-float-left-size*/
+    width:60%; /*100 minus var-float-left-size minus var-floating-right-size*/
 }
 
 .mavenpadding {
-    padding: 10px;
-    clear: both;
+    padding:10px;
+    clear:both;
 }
 
-/***************************************************************
- * The following customize the Login widget *
- ***************************************************************/
+.detail-entry {
+    border-top:solid;
+    border-color: lightblue;
+    font-size: 110%;
 
-#login{
-    margin: 50px auto;
-	width: 400px;
 }
 
-#login h3 {
-	background-color: #46bdec;
-	-webkit-border-radius: 20px 20px 0 0;
-	-moz-border-radius: 20px 20px 0 0;
-	border-radius: 20px 20px 0 0;
-	color: #fff;
-	font-size: 28px;
-	padding: 20px 26px;
-    margin-top: -20px;
-    margin-right: -20px;
-    margin-left: -20px;
-    margin-bottom: 20px;
+.detail-selector {
+    min-width: 100px;
+    min-width: 100px;
+
+
 }
-
-#login h3 span[class*="glyphicon"] {
-	margin-right: 14px;
-}
-
-#login div {
-	background-color: #fff;
-	-webkit-border-radius: 20px 20px 0 0;
-	-moz-border-radius: 20px 20px 0 0;
-	border-radius: 20px 20px 0 0;
-}
-
-#login div p {
-	color: #777;
-	margin-bottom: 14px;
-}
-
-#login div input {
-	-webkit-border-radius: 3px;
-	-moz-border-radius: 3px;
-	border-radius: 10px;
-background-color: #eee;
-	color: #777;
-	padding: 4px 10px;
-	width: 328px;
-}
-
-#login button {
-	background-color: #46bdec;
-	color: #fff;
-	margin: 0 auto;
-	padding: 4px 0;
-	width: 100px;
-    -webkit-border-radius: 3px;
-	-moz-border-radius: 3px;
-	border-radius: 15px;
-}
-
-#login button:hover {
-	background-color: #465766;
-}
-
-#login-buttons{
-    margin-bottom: 20px;
-}
-
-
-/***************************************************************
- * The following customize the Audit and User List widgets *
- ***************************************************************/
-
-.auditrow {
-    margin-right:10px;
-}
-
-#mouse-target > .audit-scroll {
-    background-color: white;
-    padding:2px;
-}
-
-#mouse-target > .audit-scroll > .auditlist > .panel-body {
-    background-color: white;
-    padding-top:5px;
-    padding-bottom: 5px;
-    width:100%;
-}
-
-.user-val-input {
-    display:none;
-}
-
-.userlist > .btn {
-    float:right;
-}
-
-
 /***************************************************************
  * The following customize the fonts and colors of the widgets *
  ***************************************************************/
 
 .full-height {
-    height: 100%;
+    height:100%;
 }
 
+.detail-editor-heading{
+    font-size: 160%;
+    color: darkblue;
+}
 .alert-type {
-    text-align: center;
-    font-size: 20px;
+    text-align:center;
+    font-size:20px;
 }
 
 body {
@@ -248,92 +302,96 @@ body {
     background-repeat: repeat-x;
 }
 
-.main-header {
+.main-header{
     color: #f6a828;
     background-color: #46bdec;
 
 }
 
-.brand {
+.brand{
     color: #ffffff;
     font-size: 30px;
 
 }
 
-.page-title {
+.page-title{
     margin-left: 8px;
     color: #ffffff;
     font-size: 20px;
 }
 
-.dr {
+.dr{
     color: #ffffff;
 }
 
-.navbar-lower {
+.navbar-lower{
     top: 50px;
     width: 100%;
     background-color: #dff5fd;
 }
 
-.navbar-nav {
+.navbar-nav{
     color: #ffffff;
 }
 
-.pat-nav {
-    height: 100%;
+.pat-nav{
+  height: 100%;
 
 }
 
-.divide-text {
-    color: #fff;
+.divide-text{
+    color:#fff;
     line-height: 20px;
-    font-size: 20px;
+    font-size:20px;
     padding: 15px 0;
 }
 
-.pat-title {
+.pat-title{
     color: #46bdec;
     font-size: 10px;
     padding-bottom: 3px;
     padding-top: 3px;
 }
 
-.pat-sub {
+.pat-sub{
     color: #46bdec;
     font-size: 10px;
     padding-bottom: 3px;
     padding-top: 5px;
 }
 
-#pat-name {
+#pat-name{
     font-size: 18px;
 }
 
-.col-sm-3 {
+.col-sm-3{
     margin-left: 5px;
 }
 
-.col-sm-2 {
+.col-sm-2{
     margin-left: 5px;
 }
 
-.col-sm-1 {
+.col-sm-1{
     margin-left: 5px;
 }
-
-.divider {
+.divider{
     border-right: 1px solid #46bdec;
 }
+.row{
+    overflow: hidden;
+    max-height: 600px;
+}
+.content{
+    overflow: hidden;
 
-.content {
-    margin-top: 8px;
+    margin-top: 8px ;
     background-color: #ffffff;
     box-shadow: 1px 3px 8px rgba(0, 0, 0, 0.2);
     color: #465766;
 }
 
-.side {
+.side{
     margin-left: -2px;
     margin-top: 8px;
     min-height: 100%;
@@ -345,26 +403,31 @@ body {
     font-family: 'Maven Pro', sans-serif;
 }
 
-.enc-date {
+.enc-date{
     font-size: 15px;
     margin-top: -10px;
     margin-bottom: 10px;
 }
 
-.enc-date a {
+.enc-date a{
     font-size: 10px;
 }
 
-.title {
+.title{
     font-size: 20px;
 }
 
-.cost-num {
+.trigger-list {
+    font-size: 60%;
+
+
+}
+.cost-num{
     font-size: 20px;
     font-weight: bold;
 }
 
-.badge {
+.badge{
     float: right;
     color: #465766;
     background-color: transparent;
@@ -372,156 +435,60 @@ body {
 
 .panel-default > .panel-heading {
     color: #465766;
-    background-color: #f0f0f0;
+    background-color: #dff5fd;
 }
 
-.alerts {
+
+.alerts{
     color: #46bdec;
     text-align: center;
     margin-bottom: 15px;
 }
 
-.impact {
+.impact{
     font-weight: bold;
 }
 
-.alert-type {
+.alert-type{
     width: 100%;
     margin-left: auto;
     margin-right: auto;
 }
 
-.alert-type img {
+.alert-type img{
     display: block;
     margin-left: auto;
     margin-right: auto;
 }
 
-.center {
+.center{
+    margin-left: auto;
+    margin-right: auto;
     display: block;
     text-align: center;
 }
 
-.chart-div {
+.chart-div{
     margin-top: -60px;
     width: 100%;
     height: 350px;
 
 }
 
-#order-table div div{
-    margin-bottom: 3px;
-}
-
-.modal-body {
+.modal-body{
     background-color: #fff6f6;
 }
 
 .search-box {
     display: table-cell;
     vertical-align: middle;
-    horizontal-align: middle;
+    horizontal-align:middle;
     margin: auto;
 }
 
-.white {
-    color: #ffffff;
-    font-size: 15px;
-}
-
 .alert-list-panel {
-    background-color: #c0c0c0;
+        background-color: #c0c0c0;
 }
-
-.color-procedure {
-    color: #3598dc;
-}
-
-.bgcolor-procedure {
-    background-color: #3598dc;
-}
-
-.color-laboratory {
-    color: #eb4b3b;
-}
-
-.bgcolor-laboratory {
-    background-color: #eb4b3b;
-}
-
-.color-consultation {
-    color: #18bc9a;
-}
-
-.bgcolor-consultation {
-    background-color: #18bc9a;
-}
-
-.color-imaging {
-    color: #36485c;
-}
-
-.bgcolor-imaging {
-    background-color: #36485c;
-}
-
-.color-medication {
-    color: #9155ad;
-}
-
-.bgcolor-medication {
-    background-color: #9155ad;
-}
-
-.color-other {
-    color: #f2c313;
-}
-
-.bgcolor-other {
-    background-color: #f2c313;
-}
-
-
-/***************************************************************
- * The following customize the colors of the Date picker events *
- ***************************************************************/
-
-.admission{
-    background-color: #18bc9a;
-    font-weight: bold;
-}
-
-.discharge{
-    background-color: #eb4b3b;
-    font-weight: bold;
-
-}
-
-#datepicker-input{
-    -webkit-appearance:none;
-    -moz-appearance:none;
-    appearance:none;
-    outline: none;
-    border: transparent;
-    font-weight: bold;
-    margin-top: 10px;
-}
-
-.fc-header-title h2{
-    font-size: 20px;
-}
-
-.calendar-modal, #chart-modal{
-    height: 340px;
-    width:50%;
-}
-
-
-#calendar{
-    margin: 20px;
-}
-
-
 
 /**********************************************************************
  * The following customize the styles and colors of the profile modal *
@@ -538,13 +505,13 @@ body.modal-open, .modal-open .navbar-fixed-top, .modal-open .navbar-fixed-bottom
 }
 
 
-#profile-tabs {
+#pathway-tabs {
     background-color: rgb(235, 235, 235);
     background-image: linear-gradient(to bottom, rgb(253, 253, 253), rgb(209, 209, 209));
     background-repeat: repeat-x;
 }
 
-#profile-tabs a {
+#pathway-tabs a {
     display: table-cell;
 list-style: none outside none;
 border-left: 1px solid white;
@@ -590,58 +557,35 @@ border-right: 1px solid rgb(204, 204, 204);
 }
 
 /***************************************************************
- * The following adjust the contents on smaller devices *
+ * The following customize action buttons *
  ***************************************************************/
 
+#actions button {
+	background-color: #46bdec;
+	color: #fff;
+	margin: 0 auto;
+	padding: 4px 0;
+	width: 200px;
+    -webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 15px;
+}
+
+#actions button:hover {
+	background-color: #465766;
+}
+
+#action-buttons {
+    text-align: center;
+}
+
+
+/* adjust the contents on smaller devices */
 @media (max-width: 768px) {
-    #wrapper {
-        margin-top: 350px; /*var-fixed-top-size*/
-    }
-
-    #wrapper {
-        display: -webkit-box;
-        display: -moz-box;
-        display: -ms-flexbox;
-        display: -webkit-flex;
-        display: flex;
-        -webkit-box-orient: vertical;
-        -moz-box-orient: vertical;
-        -webkit-flex-direction: column;
-        -ms-flex-direction: column;
-        flex-direction: column;
-        -webkit-box-align: start;
-        -moz-box-align: start;
-        -ms-flex-align: start;
-        -webkit-align-items: flex-start;
-        align-items: flex-start;
-    }
-
-    #wrapper #floating-right {
-        -webkit-box-ordinal-group: 2;
-        -moz-box-ordinal-group: 2;
-        -ms-flex-order: 1;
-        -webkit-order: 1;
-        order: 1;
-    }
-
-    #content {
-        display: block;
-        width: 100%;
-    }
-
-    #floating-right {
-        display: block;
-        width: 100%;
-    }
-
-    .divider {
-        border-right: none;
-    }
-
-    .chart-div {
-        margin-top: -60px;
-        width: 100%;
-        height: 350px;
+    .chart-div{
+	margin-top: -60px;
+	width: 100%;
+	height: 350px;
     }
 }
 

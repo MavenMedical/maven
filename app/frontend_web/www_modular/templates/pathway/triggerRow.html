@@ -1,0 +1,11 @@
+<div class="detail-entry">
+    <a class="detail-item">
+    <% if (exists == "false") { %>
+            Pathway will <b>not be triggered</b> if:  <b><%=term%></b> is in the problem list
+    <%} else { %>
+            Pathway will <b>be triggered only</b> if: <b><%=term%></b> is in the the problem list
+    <%}%>
+    </a>
+    <a style = "float: right" class="remove-detail">&#10006</a>
+
+</div>

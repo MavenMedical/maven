@@ -6,9 +6,8 @@
 __author__ = 'Tom DuBois'
 # ************************
 # DESCRIPTION:
-# This file contains the core web services to support creation and editing of rules
+#  This file contains the core web services to support creation and editing of rules
 # ************************
-# *************************************************************************
 
 import json
 import utils.database.tree_persistance as TP
@@ -108,14 +107,14 @@ class pathway_service(HTTP.HTTPProcessor):
     def search(self, _header, body, qs, _matches, _key):
         hasSearch = qs.get(SEARCH_PARAM, None)
         if (not hasSearch):
-            return (HTTP.OK_RESPONSE, json.dumps(EMPTY_RETURN), None)
+            return HTTP.OK_RESPONSE, json.dumps(EMPTY_RETURN), None
         context = self.helper.restrict_context(qs,
                                                pathway_service.search_required_context,
                                                pathway_service.search_available_context)
         print(context)
         results = yield from self.search_interface.do_search(context[SEARCH_PARAM], context['type'])
 
-        return (HTTP.OK_RESPONSE, json.dumps(results), None)
+        return HTTP.OK_RESPONSE, json.dumps(results), None
 
     @asyncio.coroutine
     def get_tree(self, _header, body, qs, _matches, _key):
@@ -152,6 +151,7 @@ class pathway_service(HTTP.HTTPProcessor):
         info['id'] = resultid
         return (HTTP.OK_RESPONSE, json.dumps(info), None)
 
+
 if __name__ == '__main__':
     print("python execution")
     from utils.database.database import AsyncConnectionPool
@@ -162,15 +162,14 @@ if __name__ == '__main__':
             {
                 SP.CONFIG_HOST: 'localhost',
                 SP.CONFIG_PORT: 8092,
+
             },
         'persistance': {TP.CONFIG_DATABASE: 'webservices conn pool'},
         'search': {TP.CONFIG_DATABASE: 'webservices conn pool'},
-        'webservices conn pool':
-            {
-                AsyncConnectionPool.CONFIG_CONNECTION_STRING: MC.dbconnection,
-                AsyncConnectionPool.CONFIG_MIN_CONNECTIONS: 4,
-                AsyncConnectionPool.CONFIG_MAX_CONNECTIONS: 8
-            }
+        'webservices conn pool': {
+            AsyncConnectionPool.CONFIG_CONNECTION_STRING: MC.dbconnection,
+            AsyncConnectionPool.CONFIG_MIN_CONNECTIONS: 4,
+            AsyncConnectionPool.CONFIG_MAX_CONNECTIONS: 8}
     }
     hp = pathway_service('httpserver')
     event_loop = asyncio.get_event_loop()

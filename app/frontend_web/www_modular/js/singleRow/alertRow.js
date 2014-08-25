@@ -30,7 +30,7 @@ define([
         tagName: 'div',
         template: _.template(alertRowTemplate),
         events:{
-            'click .panel-heading': 'handleClick',
+            //'click .panel-heading': 'handleClick',
             'click .like': 'like',
             'click .dislike': 'dislike',
             'click .dislike_info': 'critique',
@@ -116,10 +116,10 @@ define([
             jQuery.noConflict();
 	    this.evidence = new Evidence({'evi': this.model.get('ruleid')});
         },
-        handleClick: function(){
-		var id = this.model.get('id');
-		$('#collapse'+this.model.get('patient')+'-'+id).toggleClass("in");
-        }
+        //handleClick: function(){
+	//	var id = this.model.get('id');
+	//	$('#collapse'+this.model.get('patient')+'-'+id).toggleClass("in");
+        //}
     });
 
     return AlertRow;

@@ -113,11 +113,8 @@ class scheduler(SP.StreamProcessor):
                         if not first:
                             # start, stop = match.span()
                             CLIENT_SERVER_LOG.debug("About to send to Composition Builder...")
-                            composition = yield from self.comp_builder.build_composition("CLIFFHUX", patient)
-                            composition.encounter = FHIR_API.Encounter(identifier=[FHIR_API.Identifier(label="Internal",
-                                                                                                       system="clientEMR",
-                                                                                                       value=docid)])
-                            CLIENT_SERVER_LOG.debug(("Built composition, about to send to Data Router. Composition ID = %s" % composition.id))
+                            composition = yield from self.comp_builder.build_composition("CLIFFHUX", patient, docid)
+                            CLIENT_SERVER_LOG.debug(("Built composition, about to send to Backend Data Router. Composition ID = %s" % composition.id))
                             self.write_object(pickle.dumps([composition, "CLIFFHUX"]), self.wk)
                             break
                 # processed.update({doc['DocumentID'] for doc in documents})

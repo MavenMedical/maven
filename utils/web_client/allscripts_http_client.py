@@ -154,8 +154,7 @@ class allscripts_api(http.http_api):
         co_func = asyncio.coroutine(func)
 
         def worker(self, *args, **kwargs):
-            ret = None
-            while not ret:
+            while True:
                 if not self.unitytoken:
                     fut = asyncio.Future()
                     self.unitytoken = fut
@@ -163,12 +162,13 @@ class allscripts_api(http.http_api):
                 if isinstance(self.unitytoken, asyncio.Future):
                     yield from self.unitytoken
                 try:
-                    ret = yield from co_func(self, *args, **kwargs)
+                    return (yield from co_func(self, *args, **kwargs))
                 except AllscriptsError as e:
-                    if e.args[0].find('you have been logged out due to inactivity') >= 0:
+                    if e.args[0].find('you have been logged out') >= 0:
                         self.unitytoken = None
+                        WARN(e.args[0])
                         yield from asyncio.sleep(1)
-            return ret
+
         return asyncio.coroutine(wraps(func)(worker))
 
     @hour_cache.cache_lookup('GetServerInfo', lookup_on_none=True,
@@ -435,6 +435,15 @@ class allscripts_api(http.http_api):
             return [{elem.tag: elem.text for elem in row} for row in root]
         except ETree.ParseError as e:
             raise AllscriptsError('Error parsing XML ' + e)
+
+    @_require_token
+    def SaveTask(self, username: str, patient: str, tasktype: str,
+                 info: str, subject: str, targetuser: str=None):
+        ret = yield from self.post('/json/MagicJson',
+                                   data=self._build_message('SaveTask', tasktype, self.appnamem,
+                                                            "", info, subject,
+                                                            user=username, patient=patient))
+        return self.postprocess(ret)
 
 
 if __name__ == '__main__':

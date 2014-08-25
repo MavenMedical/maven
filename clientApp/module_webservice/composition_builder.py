@@ -21,7 +21,7 @@ import dateutil.parser
 from enum import Enum
 import json
 import asyncio
-from maven_config import MavenConfig
+import maven_config as MC
 import maven_logging as ML
 import utils.web_client.allscripts_http_client as AHC
 from utils.web_client.builder import builder
@@ -30,6 +30,7 @@ import utils.api.pyfhir.pyfhir_generated as FHIR_API
 
 COMP_BUILD_LOG = ML.get_logger('clientApp.module_webservice.allscripts_server')
 CONFIG_API = 'api'
+CUSTOMERID = 'customer_id'
 
 
 class Types(Enum):
@@ -43,26 +44,26 @@ class CompositionBuilder(builder):
 
     def __init__(self, configname):
         builder.__init__(self)
-        self.config = MavenConfig[configname]
+        self.config = MC.MavenConfig[configname]
         apiname = self.config[CONFIG_API]
         self.allscripts_api = AHC.allscripts_api(apiname)
         self.provs = {}
-#        provs = yield from self.build_practitioners()
-#        self.providers = yield from self.build_practitioners()
+        self.customer_id = MC.MavenConfig[CUSTOMERID]
 
     @builder.build(FHIR_API.Composition)
     @ML.trace(COMP_BUILD_LOG.debug, True)
-    def build_composition(self, obj, username, patient):
+    def build_composition(self, obj, username, patient, doc_id):
         obj.author = self.provs[username]
-        # TODO - Fix this hardcoded customer ID
-        obj.customer_id = 2
+        obj.encounter = FHIR_API.Encounter(identifier=[FHIR_API.Identifier(label="Internal",
+                                                                           system="clientEMR",
+                                                                           value=doc_id)])
         COMP_BUILD_LOG.debug(json.dumps(FHIR_API.remove_none(json.loads(json.dumps(obj, default=FHIR_API.jdefault))), indent=4))
         COMP_BUILD_LOG.debug(("Finished building Composition ID=%s" % obj.id))
         return obj
 
     @builder.provide(Types.Practitioners)
     @ML.coroutine_trace(COMP_BUILD_LOG.debug, True)
-    def _practitioners(self, username, patient):
+    def _practitioners(self, username, patient, doc_id):
         # TODO - MemoryCache timeout=3600s
         ret = yield from self.allscripts_api.GetProviders(username=username)
         for prov in ret:
@@ -71,13 +72,13 @@ class CompositionBuilder(builder):
 
     @builder.provide(Types.Patient)
     @ML.coroutine_trace(COMP_BUILD_LOG.debug, True)
-    def _patient(self, username, patient):
+    def _patient(self, username, patient, doc_id):
         ret = yield from self.allscripts_api.GetPatient(username, patient)
         return ret
 
     @builder.provide(Types.ClinicalSummary)
     @ML.coroutine_trace(COMP_BUILD_LOG.debug, True)
-    def _clin_summary(self, username, patient):
+    def _clin_summary(self, username, patient, doc_id):
         ret = yield from self.allscripts_api.GetClinicalSummary(username, patient, AHC.CLINICAL_SUMMARY.All)
         return ret
 
@@ -89,7 +90,7 @@ class CompositionBuilder(builder):
         # Virtual Medical Record for Clinical Decision Support ("74028-2") and append to the FHIR Bundle's Entries
         composition.type = FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(system="http://loinc.org",
                                                                             code="74028-2")])
-        # composition.author = self._build_practitioner(practitioner_result)
+        composition.customer_id = self.customer_id
         composition.subject = self._build_subject(patient_result)
         fhir_dx_section = self._build_conditions(clin_summary_result)
         composition.section.append(fhir_dx_section)
@@ -236,7 +237,7 @@ class CompositionBuilder(builder):
 
 
 if __name__ == '__main__':
-    MavenConfig['allscripts_old_demo'] = {
+    MC.MavenConfig['allscripts_old_demo'] = {
         AHC.http.CONFIG_BASEURL: 'http://aws-eehr-11.4.1.unitysandbox.com/Unity/UnityService.svc/json',
         AHC.http.CONFIG_OTHERHEADERS: {
             'Content-Type': 'application/json'
@@ -246,7 +247,7 @@ if __name__ == '__main__':
         AHC.CONFIG_APPPASSWORD: 'www!web20!',
     }
 
-    MavenConfig['allscripts_demo'] = {
+    MC.MavenConfig['allscripts_demo'] = {
         AHC.http.CONFIG_BASEURL: 'http://192.237.182.238/Unity/UnityService.svc',
         AHC.http.CONFIG_OTHERHEADERS: {
             'Content-Type': 'application/json'
@@ -256,7 +257,7 @@ if __name__ == '__main__':
         AHC.CONFIG_APPPASSWORD: 'MavenPathways123!!',
     }
 
-    MavenConfig['scheduler'] = {CONFIG_API: 'allscripts_demo'}
+    MC.MavenConfig['scheduler'] = {CONFIG_API: 'allscripts_demo'}
 
     comp_builder = CompositionBuilder('scheduler')
     loop = asyncio.get_event_loop()

@@ -90,6 +90,7 @@ def main(loop):
     notificationservicename = 'client notification service'
     clientemrconfig = 'client emr config'
     allscriptsscheduler = 'allscripts_demo'
+    customerid = 'customer_id'
 
     MavenConfig = {
         outgoingtomavenmessagehandler:
@@ -145,10 +146,14 @@ def main(loop):
             AHC.CONFIG_APPNAME: 'MavenPathways.TestApp',
             AHC.CONFIG_APPUSERNAME: 'MavenPathways',
             AHC.CONFIG_APPPASSWORD: 'MavenPathways123!!',
-            CONFIG_SLEEPINTERVAL: 20,
         },
-        'scheduler': {CONFIG_API: 'allscripts_demo',
-                      "SP": outgoingtomavenmessagehandler}
+        'scheduler':
+        {
+            CONFIG_API: 'allscripts_demo',
+            CONFIG_SLEEPINTERVAL: 10,
+            "SP": outgoingtomavenmessagehandler
+        },
+        customerid: 2
     }
     MC.MavenConfig.update(MavenConfig)
 

@@ -4,9 +4,9 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
-    'models/contextModel',
-    'text!/pathway/templatesl',
-    'text!/templates/treeNodeActionSet.html'
+   'globalmodels/contextModel',
+    'pathway/models/treeModel',
+    'text!templates/pathway/treeNodeActionSet.html'
 
 ], function ($, _, Backbone, contextModel, curTree, treeNodeActionSetTemplate) {
 
