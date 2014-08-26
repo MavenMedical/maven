@@ -42,6 +42,7 @@ namespace MavenAsDemo
             timer.Start(); //go
             //navigate to where the user should go
             browserDisplay.Navigate(url);
+
             //disable the scrollbars
             browserDisplay.ScrollBarsEnabled = false;
             //make the form movable my grabbing the mover
@@ -83,7 +84,15 @@ namespace MavenAsDemo
             }
             try
             {
+                //there is a bad style in the document. handle that. This piece of code should be temporary, but won't hurt much since it only get's touched first time through.
+                if (tix == 1)
+                {
+                    HtmlElement badForIE = browserDisplay.Document.GetElementById("n1-1");
+                    badForIE.Style = "";
+                }
+
                 //Take the clipboard text and get it to the clipboard. Then get rid of the clipboard text from the document
+
                 HtmlElement elm = browserDisplay.Document.GetElementById("copiedText");
                 if (elm != null) //check to see if the clipboard element is there
                 {
