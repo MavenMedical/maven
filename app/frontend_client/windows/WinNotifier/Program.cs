@@ -12,7 +12,7 @@ namespace MavenAsDemo
 {
     static class Program
     {
-        //TODO: Move all of this stuff to a settings object
+        //TODO: Move all of this stuff to a settings object and store settings
         
         public static AlertMode mode = AlertMode.deskSoft;
         private static double fadeSlowness = 3;
@@ -31,7 +31,8 @@ namespace MavenAsDemo
             try
             {
                 Application.SetCompatibleTextRenderingDefault(false);
-                EncryptedKey = Authenticator.GetEncryptedAuthKey();
+                Authenticator.HandleLoginStickiness(); //clear the login settings if we shouldn't be using them
+                EncryptedKey = Authenticator.GetEncryptedAuthKey(); //get a new key or login with the existing one
                 Application.EnableVisualStyles();
                 ThreadStart startTray = new ThreadStart(prepTray);
                 Thread traythread = new Thread(startTray);

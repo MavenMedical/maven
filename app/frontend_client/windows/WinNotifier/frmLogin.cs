@@ -12,9 +12,28 @@ namespace MavenAsDemo
 {
     public partial class frmLogin : Form
     {
-        public Point downPoint=Point.Empty;
-        public string loc = "BR";
-
+        protected Point downPoint=Point.Empty;
+        protected string loc = "BR";
+        protected string errtext = "";
+        
+        /// <summary>
+        /// Call this if you want to display the form with an error message displayed
+        /// </summary>
+        /// <param name="errmsg">a message to display in a red label</param>
+        public frmLogin(string errmsg)
+        {
+            try
+            {
+                errtext = errmsg;
+                InitializeComponent();
+            }
+            catch (Exception ex)
+            {
+                Program.LogMessage("Error Launching Login Form: \r\n" + ex.Message);
+                this.Close();
+                this.Dispose();
+            }
+        }
         public frmLogin()
         {
             try
@@ -37,7 +56,9 @@ namespace MavenAsDemo
             imgKey.MouseDown += new MouseEventHandler(MouseDown);
             imgKey.MouseMove += new MouseEventHandler(MouseMove);
             imgKey.MouseUp += new MouseEventHandler(MouseUp);
-           
+
+            lblErr.Text = errtext;
+
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             //make the background transparent and whiteish so the white overlay is visible and the shadow appears to be ontop of white. 
             //this.BackColor = System.Drawing.Color.Gray;
@@ -164,11 +185,22 @@ namespace MavenAsDemo
             }
             authKey.SetValue("Auth", keyToSave);
         }
+        private static void WriteSaveLogin(bool shouldStick)
+        {
+            RegistryKey Stick = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Maven\\PathwaysDesktop\\Security\\", true); 
+            if (Stick == null)
+            {
+                Stick = Registry.CurrentUser.CreateSubKey("SOFTWARE\\Maven\\PathwaysDesktop\\Security\\", RegistryKeyPermissionCheck.ReadWriteSubTree);
+            }
+            Stick.SetValue("LoginStick", shouldStick);
+
+        }
 
         private void btnLogin_Click_1(object sender, EventArgs e)
         {
             //TODO: Actually log in
             WriteKey(txtUser.Text);
+            WriteSaveLogin(chkStay.Checked);
             checkAutoStart();
             closeOut();
         }

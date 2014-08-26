@@ -12,7 +12,8 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
-], function ($, _, Backbone) {
+    'dynamicIndex/contentRow'
+], function ($, _, Backbone, contentRow) {
     
     function setActiveStyleSheet(title) {
 	var i, a, main;
@@ -43,10 +44,16 @@ define([
 	    console.log('adding view '+row.widget +' to element #'+row.element +
 			' with template '+ row.template); //templatelist[templatelist.length-1]);
 	}
-	require(viewlist.concat(templatelist),function () {
+	require(viewlist.concat(templatelist), function () {
 	    for(var i=0;i<viewlist.length;i++) {
-		var view = new arguments[i]({el:$("#"+widgetlist[i].element),
-					     template:arguments[i+viewlist.length]});
+        var elToSend
+        if (widgetlist[i].element.substring(0,3) != 'row'){
+            elToSend = $("#"+ widgetlist[i].element)
+        } else {
+            elToSend = null
+        }
+            console.log("sending the el", elToSend)
+		var wrapper =  new contentRow(arguments[i], arguments[i+viewlist.length], elToSend)
 	    }
 	    $("#content").show();
 	    Backbone.history.loadUrl(Backbone.history.fragment);
@@ -67,7 +74,7 @@ define([
 	    searchPatient: null,
 	    searchDiagnosis: null,
 	    loginTemplate: 'login.html',
-        settingsTemplate: 'settings.html',
+        settingsTemplate: 'settings.html'
         },
 	toParams: function() {
 	    //console.log(this);
@@ -97,7 +104,7 @@ define([
 	    var that=this;
 	    this.fetch({success: loginCallback, 
 			error: function(request, response) { that.set(response.responseJSON);},
-			data: JSON.stringify({provider:provider, 
+			data: JSON.stringify({provider:provider,
 					      customer: customer,
 					      userAuth: userAuth}),
 			type: 'POST'});

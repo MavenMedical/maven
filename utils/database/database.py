@@ -35,8 +35,10 @@ import asyncio
 import maven_logging as ML
 import maven_config as MC
 import traceback
+from functools import lru_cache
 
 
+@lru_cache()
 class AsyncConnectionPool():
     """ ConnectionPool subclass supporting parallelism using asyncio and yield from
     Note that execute_single, execute_single_no_result, execute_multiple and
