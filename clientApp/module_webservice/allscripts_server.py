@@ -153,22 +153,18 @@ def main(loop):
             CONFIG_SLEEPINTERVAL: 10,
             "SP": outgoingtomavenmessagehandler
         },
-        customerid: 2
+        customerid: 5
     }
     MC.MavenConfig.update(MavenConfig)
 
+    # Instantiate the (allscripts_server.py --> data_router.py) writer and services and add to event loop
     notification_generator = NG.NotificationGenerator(clientemrconfig)
     notification_service = NS.NotificationService(notificationservicename)
     sp_producer = IncomingFromMavenMessageHandler(incomingfrommavenmessagehandler,
                                                   notification_generator,
                                                   notification_service)
 
-    def translate(patient, provider, icd9):
-        ML.DEBUG(provider)
-        notification_service.send_messages(provider,
-                                           ["patient %s is set with icd9 %s" % (patient, icd9)])
-
-    #    reader = sp_consumer.schedule(loop)
+    # Instantiate the allscripts_scheduler.py polling mechanism
     allscripts_scheduler = scheduler('scheduler')
     sp_producer.schedule(loop)
     notification_service.schedule(loop)

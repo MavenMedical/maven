@@ -456,6 +456,10 @@ class CompositionEvaluator(SP.StreamProcessor):
     ##########################################################################################
     @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
     def evaluate_clinical_pathways(self, composition):
+        pathways_alert_validation_status = yield from FHIR_DB.get_alert_configuration(ALERT_TYPES.PATHWAY, composition, self.conn)
+        if pathways_alert_validation_status == ALERT_VALIDATION_STATUS.SUPPRESS.value:
+            return
+
         alerts_section = composition.get_section_by_coding(code_system="maven", code_value="alerts")
         for condition in composition.get_encounter_conditions():
             if 399068003 in condition.get_snomed_ids():
