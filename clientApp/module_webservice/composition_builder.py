@@ -61,15 +61,6 @@ class CompositionBuilder(builder):
         COMP_BUILD_LOG.debug(("Finished building Composition ID=%s" % obj.id))
         return obj
 
-    @builder.provide(Types.Practitioners)
-    @ML.coroutine_trace(COMP_BUILD_LOG.debug, True)
-    def _practitioners(self, username, patient, doc_id):
-        # TODO - MemoryCache timeout=3600s
-        ret = yield from self.allscripts_api.GetProviders(username=username)
-        for prov in ret:
-            self.provs[prov['UserName']] = self._build_partial_practitioner(prov)
-        return [{prov['EntryCode']: self._build_partial_practitioner(prov)} for prov in ret]
-
     @builder.provide(Types.Patient)
     @ML.coroutine_trace(COMP_BUILD_LOG.debug, True)
     def _patient(self, username, patient, doc_id):
@@ -82,9 +73,9 @@ class CompositionBuilder(builder):
         ret = yield from self.allscripts_api.GetClinicalSummary(username, patient, AHC.CLINICAL_SUMMARY.All)
         return ret
 
-    @builder.require(Types.Patient, Types.ClinicalSummary, Types.Practitioners)
+    @builder.require(Types.Patient, Types.ClinicalSummary)
     @ML.coroutine_trace(COMP_BUILD_LOG.debug, True)
-    def _build_composition_components(self, composition, patient_result, clin_summary_result, practitioners_result):
+    def _build_composition_components(self, composition, patient_result, clin_summary_result):
 
         # Create the FHIR Composition Object with a Type=LOINC coded version of
         # Virtual Medical Record for Clinical Decision Support ("74028-2") and append to the FHIR Bundle's Entries
@@ -170,7 +161,7 @@ class CompositionBuilder(builder):
 
         return fhir_dx_section
 
-    def _build_partial_practitioner(self, provider_result):
+    def build_partial_practitioner(self, provider_result):
 
         # Extract the demographic information
         firstname = provider_result['FirstName']

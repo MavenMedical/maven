@@ -444,7 +444,7 @@
                 document.getElementById('dislike_info_text_form').value = "";
                 dismiss_options();
 
-                var url = "http://localhost/services/critique_alert?user={{ user }}&userAuth={{ user_auth }}&provider={{ provider }}"+
+                var url = "{{ http_address }}/services/critique_alert?user={{ user }}&userAuth={{ user_auth }}&provider={{ provider }}"+
                           "&alert_id={{ alert_id }}&rule_id={{ rule_id }}&customer_id={{ customer }}&category=''&action_comment="+comment;
                 var xmlhttp;
                 if (window.XMLHttpRequest)
@@ -478,7 +478,7 @@
             {
                 dismiss_options();
 
-                var url = "http://localhost/services/critique_alert?user={{ user }}&userAuth={{ user_auth }}&provider={{ provider }}"+
+                var url = "{{ http_address }}/services/critique_alert?user={{ user }}&userAuth={{ user_auth }}&provider={{ provider }}"+
                           "&alert_id={{ alert_id }}&rule_id={{ rule_id }}&customer_id={{ customer }}&category=''&action_comment="+reason;
                 var xmlhttp;
                 if (window.XMLHttpRequest)
@@ -532,7 +532,7 @@
             }
 
             //send action
-            var url = "http://localhost/services/rate_alert?user={{ user }}&userAuth={{ user_auth }}&provider={{ provider }}"+
+            var url = "{{ http_address }}/services/rate_alert?user={{ user }}&userAuth={{ user_auth }}&provider={{ provider }}"+
                         "&alert_id={{ alert_id }}&rule_id={{ rule_id }}&customer_id={{ customer }}&category=test&action="+like;
             var xmlhttp;
             if (window.XMLHttpRequest)

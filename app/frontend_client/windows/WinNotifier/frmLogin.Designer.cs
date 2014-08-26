@@ -40,6 +40,8 @@
             this.lblPass = new System.Windows.Forms.Label();
             this.chkAutoLogin = new System.Windows.Forms.CheckBox();
             this.btnLogin = new System.Windows.Forms.Button();
+            this.lblErr = new System.Windows.Forms.Label();
+            this.chkStay = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.fileSystemWatcher1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.imgLogo)).BeginInit();
@@ -88,14 +90,14 @@
             // 
             // txtUser
             // 
-            this.txtUser.Location = new System.Drawing.Point(182, 27);
+            this.txtUser.Location = new System.Drawing.Point(182, 12);
             this.txtUser.Name = "txtUser";
             this.txtUser.Size = new System.Drawing.Size(165, 20);
             this.txtUser.TabIndex = 3;
             // 
             // txtPass
             // 
-            this.txtPass.Location = new System.Drawing.Point(182, 56);
+            this.txtPass.Location = new System.Drawing.Point(182, 41);
             this.txtPass.Name = "txtPass";
             this.txtPass.PasswordChar = '*';
             this.txtPass.Size = new System.Drawing.Size(165, 20);
@@ -105,7 +107,7 @@
             // 
             this.lblUser.AutoSize = true;
             this.lblUser.BackColor = System.Drawing.Color.Transparent;
-            this.lblUser.Location = new System.Drawing.Point(144, 32);
+            this.lblUser.Location = new System.Drawing.Point(144, 17);
             this.lblUser.Name = "lblUser";
             this.lblUser.Size = new System.Drawing.Size(32, 13);
             this.lblUser.TabIndex = 5;
@@ -115,7 +117,7 @@
             // 
             this.lblPass.AutoSize = true;
             this.lblPass.BackColor = System.Drawing.Color.Transparent;
-            this.lblPass.Location = new System.Drawing.Point(120, 59);
+            this.lblPass.Location = new System.Drawing.Point(120, 44);
             this.lblPass.Name = "lblPass";
             this.lblPass.Size = new System.Drawing.Size(56, 13);
             this.lblPass.TabIndex = 6;
@@ -127,7 +129,7 @@
             this.chkAutoLogin.BackColor = System.Drawing.Color.Transparent;
             this.chkAutoLogin.Checked = true;
             this.chkAutoLogin.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkAutoLogin.Location = new System.Drawing.Point(182, 90);
+            this.chkAutoLogin.Location = new System.Drawing.Point(182, 75);
             this.chkAutoLogin.Name = "chkAutoLogin";
             this.chkAutoLogin.Size = new System.Drawing.Size(127, 17);
             this.chkAutoLogin.TabIndex = 7;
@@ -145,6 +147,29 @@
             this.btnLogin.UseVisualStyleBackColor = false;
             this.btnLogin.Click += new System.EventHandler(this.btnLogin_Click_1);
             // 
+            // lblErr
+            // 
+            this.lblErr.AutoSize = true;
+            this.lblErr.BackColor = System.Drawing.Color.White;
+            this.lblErr.ForeColor = System.Drawing.Color.DarkRed;
+            this.lblErr.Location = new System.Drawing.Point(61, 121);
+            this.lblErr.Name = "lblErr";
+            this.lblErr.Size = new System.Drawing.Size(0, 13);
+            this.lblErr.TabIndex = 9;
+            // 
+            // chkStay
+            // 
+            this.chkStay.AutoSize = true;
+            this.chkStay.BackColor = System.Drawing.Color.Transparent;
+            this.chkStay.Checked = true;
+            this.chkStay.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkStay.Location = new System.Drawing.Point(182, 93);
+            this.chkStay.Name = "chkStay";
+            this.chkStay.Size = new System.Drawing.Size(98, 17);
+            this.chkStay.TabIndex = 10;
+            this.chkStay.Text = "Stay Logged In";
+            this.chkStay.UseVisualStyleBackColor = false;
+            // 
             // frmLogin
             // 
             this.AcceptButton = this.btnLogin;
@@ -154,6 +179,8 @@
             this.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("$this.BackgroundImage")));
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(400, 150);
+            this.Controls.Add(this.chkStay);
+            this.Controls.Add(this.lblErr);
             this.Controls.Add(this.btnLogin);
             this.Controls.Add(this.chkAutoLogin);
             this.Controls.Add(this.lblPass);
@@ -191,6 +218,8 @@
         private System.Windows.Forms.TextBox txtPass;
         private System.Windows.Forms.TextBox txtUser;
         private System.Windows.Forms.Button btnLogin;
+        private System.Windows.Forms.Label lblErr;
+        private System.Windows.Forms.CheckBox chkStay;
     }
 }
 

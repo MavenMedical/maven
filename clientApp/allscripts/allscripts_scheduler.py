@@ -56,8 +56,15 @@ class scheduler(SP.StreamProcessor):
         self.sleep_interval = self.config.get(CONFIG_SLEEPINTERVAL, 60)
 
     @asyncio.coroutine
+    def build_providers(self):
+        ret = yield from self.comp_builder.allscripts_api.GetProviders(username=MC.MavenConfig[self.apiname][AHC.CONFIG_APPUSERNAME])
+        for prov in ret:
+            self.comp_builder.provs[prov['UserName']] = self.comp_builder.build_partial_practitioner(prov)
+
+    @asyncio.coroutine
     def get_updated_schedule(self):
         first = True
+        yield from self.build_providers()
         while True:
             try:
                 today = date.today()

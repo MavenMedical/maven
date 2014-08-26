@@ -21,14 +21,11 @@ import asyncio
 import bcrypt
 import utils.crypto.authorization_key as AK
 import maven_config as MC
-
-
-import utils.database.web_search as WS
-import utils.database.tree_persistance as TP
-
 from utils.enums import USER_ROLES
 from functools import partial, wraps
 import re
+import utils.database.web_search as WS
+import utils.database.tree_persistance as TP
 
 CONFIG_PERSISTENCE = 'persistence'
 
@@ -121,13 +118,13 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
         self.helper = HH.HTTPHelper([CONTEXT.USER, CONTEXT.PROVIDER, CONTEXT.CUSTOMERID,
                                      CONTEXT.ROLES], CONTEXT.KEY, AUTH_LENGTH)
-        self.persistence_interface = WP.WebPersistence(persistence_name)
+        self.persistence = WP.WebPersistence(persistence_name)
         self.save_interface = TP.tree_persistance('persistance')
         self.search_interface = WS.web_search('search')
 
     def schedule(self, loop):
         HTTP.HTTPProcessor.schedule(self, loop)
-        self.persistence_interface.schedule(loop)
+        self.persistence.schedule(loop)
 
     @http_service(['GET'], '/list',
                   [],
@@ -202,9 +199,9 @@ class FrontendWebService(HTTP.HTTPProcessor):
             WP.Results.patientname: 'label',
             WP.Results.patientid: 'value',
         }
-        results = yield from self.persistence_interface.patient_info(desired, provider, customerid,
-                                                                     limit=self.helper.limit_clause(matches),
-                                                                     patient_name=patientname)
+        results = yield from self.persistence.patient_info(desired, provider, customerid,
+                                                           limit=self.helper.limit_clause(matches),
+                                                           patient_name=patientname)
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
@@ -226,7 +223,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         #    WP.Results.diagnosis: 'diagnosis',
         # }
         """ NOT READY YET:
-        results = yield from self.persistence_interface.diagnosis_info(desired, provider,
+        results = yield from self.persistence.diagnosis_info(desired, provider,
                                                                        customerid,
                                                                        diagnosis=diagnosis,
                                                                        limit=self.helper.limit_clause(matches),)
@@ -244,7 +241,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         salt = bcrypt.gensalt(4)
         ret = bcrypt.hashpw(bytes(newpassword, 'utf-8'), salt)
         try:
-            yield from self.persistence_interface.update_password(user, ret)
+            yield from self.persistence.update_password(user, ret)
         except:
             import traceback
             traceback.print_exc()
@@ -271,15 +268,15 @@ class FrontendWebService(HTTP.HTTPProcessor):
         }
 
         update = 0
-        result = yield from self.persistence_interface.alert_settings(desired, userid, customer,
-                                                                      alertid, ruleid, category)
+        result = yield from self.persistence.alert_settings(desired, userid, customer,
+                                                            alertid, ruleid, category)
         if result:
             # record exists so update, don't add
             update = 1
 
-        result = yield from self.persistence_interface.rate_alert(customer, userid, category,
-                                                                  "", alertid, ruleid, "", action,
-                                                                  update=update)
+        result = yield from self.persistence.rate_alert(customer, userid, category,
+                                                        "", alertid, ruleid, "", action,
+                                                        update=update)
 
         # return HTTP.OK_RESPONSE, json.dumps(['ALERT LIKED']), None
         if result:
@@ -303,9 +300,9 @@ class FrontendWebService(HTTP.HTTPProcessor):
         if ruleid == "null":
             ruleid = "0"
 
-        result = yield from self.persistence_interface.update_alert_setting(userid, customerid,
-                                                                            alertid, ruleid,
-                                                                            category, actioncomment)
+        result = yield from self.persistence.update_alert_setting(userid, customerid,
+                                                                  alertid, ruleid,
+                                                                  category, actioncomment)
         if result:
             return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
         else:
@@ -321,8 +318,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
         officialname = context[CONTEXT.OFFICIALNAME]
         displayname = context[CONTEXT.DISPLAYNAME]
 
-        result = yield from self.persistence_interface.save_user_settings(userid, officialname,
-                                                                          displayname)
+        result = yield from self.persistence_interface.update_user_settings(userid, officialname,
+                                                                            displayname)
         if result:
             return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
         else:
@@ -373,8 +370,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
             if user_and_pw:
                 attempted = info['user']
                 try:
-                    user_info = yield from self.persistence_interface.pre_login(desired,
-                                                                                username=attempted)
+                    user_info = yield from self.persistence.pre_login(desired,
+                                                                      username=attempted)
                 except IndexError:
                     raise LoginError('badLogin')
                 passhash = user_info[WP.Results.password].tobytes()
@@ -392,9 +389,9 @@ class FrontendWebService(HTTP.HTTPProcessor):
                     AK.check_authorization(attempted, info['userAuth'], AUTH_LENGTH)
                 except AK.UnauthorizedException:
                     raise LoginError('badLogin')
-                user_info = yield from self.persistence_interface.pre_login(desired,
-                                                                            provider=attempted,
-                                                                            keycheck='1m')
+                user_info = yield from self.persistence.pre_login(desired,
+                                                                  provider=attempted,
+                                                                  keycheck='1m')
                 method = 'forward'
                 # was this auth key used recently
                 if info['userAuth'] in user_info[WP.Results.recentkeys]:
@@ -420,7 +417,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
                 WP.Results.element: 'element',
                 WP.Results.priority: 'priority'
             }
-            widgets = yield from self.persistence_interface.layout_info(desired_layout, user_info[WP.Results.userid])
+            widgets = yield from self.persistence.layout_info(desired_layout,
+                                                              user_info[WP.Results.userid])
 
             ret = {CONTEXT.USER: user_info[WP.Results.userid],
                    'display': user_info[WP.Results.displayname],
@@ -436,10 +434,10 @@ class FrontendWebService(HTTP.HTTPProcessor):
             return HTTP.UNAUTHORIZED_RESPONSE, json.dumps({'loginTemplate':
                                                            err.args[0] + ".html"}), None
         finally:
-            yield from self.persistence_interface.record_login(attempted,
-                                                               method,
-                                                               header.get_headers().get('X-Real-IP'),
-                                                               info['userAuth'] if method == 'forward' else None)
+            yield from self.persistence.record_login(attempted,
+                                                     method,
+                                                     header.get_headers().get('X-Real-IP'),
+                                                     info['userAuth'] if method == 'forward' else None)
 
     @http_service(['GET'], '/patients(?:(\d+)-(\d+)?)?',
                   [CONTEXT.PROVIDER, CONTEXT.CUSTOMERID],
@@ -459,10 +457,16 @@ class FrontendWebService(HTTP.HTTPProcessor):
             WP.Results.diagnosis: 'diagnosis',
             WP.Results.cost: 'cost',
         }
-        results = yield from self.persistence_interface.patient_info(desired, provider, customerid,
-                                                                     startdate=startdate,
-                                                                     enddate=enddate,
-                                                                     limit=self.helper.limit_clause(matches))
+        results = yield from self.persistence.patient_info(desired, provider, customerid,
+                                                           startdate=startdate,
+                                                           enddate=enddate,
+                                                           limit=self.helper.limit_clause(matches))
+
+        if results:
+            asyncio.Task(self.persistence.audit_log(provider, 'patient list web service',
+                                                    customerid, rows=1,
+                                                    details=list({r['id'] for r in results})))
+
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
     @http_service(['GET'], '/patient_details',
@@ -498,11 +502,15 @@ class FrontendWebService(HTTP.HTTPProcessor):
             WP.Results.admission: 'admitdate',
             WP.Results.lengthofstay: 'LOS',
         }
-        results = yield from self.persistence_interface.patient_info(desired, provider, customerid,
-                                                                     patients=patientid,
-                                                                     startdate=startdate,
-                                                                     enddate=enddate,
-                                                                     limit=self.helper.limit_clause(matches))
+        results = yield from self.persistence.patient_info(desired, provider, customerid,
+                                                           patients=patientid,
+                                                           startdate=startdate,
+                                                           enddate=enddate,
+                                                           limit=self.helper.limit_clause(matches))
+
+        if results:
+            asyncio.Task(self.persistence.audit_log(provider, 'patient details web service',
+                                                    customerid, patientid, rows=1))
 
         return HTTP.OK_RESPONSE, json.dumps(results[0]), None
 
@@ -550,12 +558,12 @@ class FrontendWebService(HTTP.HTTPProcessor):
         if patient_ids or encounter:
             provider = None
 
-        results = yield from self.persistence_interface.total_spend(desired, customer,
-                                                                    provider=provider,
-                                                                    startdate=startdate,
-                                                                    enddate=enddate,
-                                                                    patients=patient_ids,
-                                                                    encounter=encounter)
+        results = yield from self.persistence.total_spend(desired, customer,
+                                                          provider=provider,
+                                                          startdate=startdate,
+                                                          enddate=enddate,
+                                                          patients=patient_ids,
+                                                          encounter=encounter)
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
@@ -577,11 +585,11 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
         desired = {x: x for x in [WP.Results.date, WP.Results.ordertype, WP.Results.spending]}
         # if AK.check_authorization((provider, patient_id), auth_keys[patient_id], AUTH_LENGTH):
-        results = yield from self.persistence_interface.daily_spend(desired, provider, customer,
-                                                                    startdate=startdate,
-                                                                    enddate=enddate,
-                                                                    patients=patient_ids,
-                                                                    encounter=encounter)
+        results = yield from self.persistence.daily_spend(desired, provider, customer,
+                                                          startdate=startdate,
+                                                          enddate=enddate,
+                                                          patients=patient_ids,
+                                                          encounter=encounter)
 
         for row in results:
             if WP.Results.spending is int:
@@ -610,7 +618,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
 
         desired = {
             WP.Results.alertid: 'id',
-            WP.Results.patientid: 'patient',
+            # WP.Results.patientid: 'patient',
             WP.Results.datetime: 'date',
             WP.Results.title: 'name',
             WP.Results.description: 'html',
@@ -621,12 +629,16 @@ class FrontendWebService(HTTP.HTTPProcessor):
             WP.Results.dislikes: 'dislikes'
         }
 
-        results = yield from self.persistence_interface.alerts(desired, provider, customer,
-                                                               patients=patients,
-                                                               startdate=startdate,
-                                                               enddate=enddate,
-                                                               limit=limit, orderid=orderid,
-                                                               categories=categories)
+        results = yield from self.persistence.alerts(desired, provider, customer,
+                                                     patients=patients,
+                                                     startdate=startdate,
+                                                     enddate=enddate,
+                                                     limit=limit, orderid=orderid,
+                                                     categories=categories)
+
+        if results and patients and len(patients) == 1:
+            asyncio.Task(self.persistence.audit_log(provider, 'get alerts web service',
+                                                    customer, patients[0], rows=len(results)))
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
@@ -673,7 +685,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
             ordertypes = [ordertype]
         else:
             ordertypes = []
-        patient_ids = context.get(CONTEXT.PATIENTLIST, None)
+        patients = context.get(CONTEXT.PATIENTLIST, None)
 
         encounter = context.get(CONTEXT.ENCOUNTER, None)
         customer = context[CONTEXT.CUSTOMERID]
@@ -693,12 +705,17 @@ class FrontendWebService(HTTP.HTTPProcessor):
             WP.Results.orderid: 'id',
         }
 
-        results = yield from self.persistence_interface.orders(desired, customer,
-                                                               encounter=encounter,
-                                                               patientid=patient_ids,
-                                                               startdate=startdate,
-                                                               enddate=enddate,
-                                                               ordertypes=ordertypes, limit=limit)
+        results = yield from self.persistence.orders(desired, customer,
+                                                     encounter=encounter,
+                                                     patientid=patients,
+                                                     startdate=startdate,
+                                                     enddate=enddate,
+                                                     ordertypes=ordertypes, limit=limit)
+
+        if results and patients and len(patients) == 1:
+            provider = context.get(CONTEXT.PROVIDER)
+            asyncio.Task(self.persistence.audit_log(provider, 'get orders',
+                                                    customer, patients[0], rows=len(results)))
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
@@ -716,10 +733,10 @@ class FrontendWebService(HTTP.HTTPProcessor):
             WP.Results.enddate: "discharge",
             WP.Results.diagnosis: "diagnosis",
         }
-        results = yield from self.persistence_interface.per_encounter(desired,
-                                                                      context.get(CONTEXT.PROVIDER),
-                                                                      context.get(CONTEXT.CUSTOMERID),
-                                                                      patients=context.get(CONTEXT.PATIENTLIST, None))
+        results = yield from self.persistence.per_encounter(desired,
+                                                            context.get(CONTEXT.PROVIDER),
+                                                            context.get(CONTEXT.CUSTOMERID),
+                                                            patients=context.get(CONTEXT.PATIENTLIST, None))
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
 

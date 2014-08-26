@@ -5,7 +5,7 @@ from xml.etree import ElementTree as ETree
 from enum import Enum
 from functools import wraps, lru_cache
 from maven_config import MavenConfig
-from maven_logging import WARN, EXCEPTION
+from maven_logging import WARN, EXCEPTION, INFO
 import utils.database.memory_cache as memory_cache
 
 ALLSCRIPTS_NUM_PARAMETERS = 6
@@ -142,6 +142,7 @@ class allscripts_api(http.http_api):
                                            Password=self.apppassword)
                 if req.startswith('error'):
                     raise AllscriptsError('Could not get token - ' + req)
+                INFO('Acquired token')
                 self.unitytoken = req
                 fut.set_result(req)
             except Exception as e:
