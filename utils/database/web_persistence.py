@@ -589,7 +589,8 @@ class WebPersistence():
         cmd.append("SELECT")
         cmd.append(columns)
         cmd.append("FROM audit")
-        cmd.append("WHERE audit.user_id = %s")
+        cmd.append("LEFT JOIN users ON users.user_name = audit.username")
+        cmd.append("WHERE users.user_id = %s")
         cmdargs.append(userid)
         append_extras(cmd, cmdargs, Results.datetime, startdate, enddate, orderby, ascending,
                       None, limit, self._available_audit_info)

@@ -557,6 +557,49 @@ border-right: 1px solid rgb(204, 204, 204);
 }
 
 /***************************************************************
+ * The following customize the Audit and User List widgets *
+ ***************************************************************/
+
+.auditrow {
+    margin-right:10px;
+}
+
+#mouse-target > .audit-scroll {
+    background-color: white;
+    padding:2px;
+}
+
+#mouse-target > .audit-scroll > .auditlist > .panel-body {
+    background-color: white;
+    padding-top:5px;
+    padding-bottom: 5px;
+    width:100%;
+}
+
+.user-val-input {
+    display:none;
+}
+
+.userlist > .btn {
+    float:right;
+}
+
+.userlist {
+    width: 99%;
+    margin:auto;
+}
+
+.audit-panel > .panel-heading {
+    float:left;
+    width:100%;
+}
+
+.audit-date, .audit-action {
+    width: 50%;
+    float:left;
+}
+
+/***************************************************************
  * The following customize action buttons *
  ***************************************************************/
 

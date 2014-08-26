@@ -290,7 +290,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
     @http_service(['GET'], '/critique_alert',
                   [CONTEXT.CUSTOMERID, CONTEXT.RULEID, CONTEXT.USER,
                    CONTEXT.CATEGORY, CONTEXT.ACTIONCOMMENT, CONTEXT.ALERTID],
-                  {CONTEXT.CUSTOMERID: int, CONTEXT.RULEID: int, CONTEXT.CATEGORY: str,
+                  {CONTEXT.CUSTOMERID: int, CONTEXT.RULEID: str, CONTEXT.CATEGORY: str,
                    CONTEXT.ACTIONCOMMENT: str, CONTEXT.USER: str, CONTEXT.ALERTID: int},
                   {USER_ROLES.provider})
     def critique_alert(self, _header, _body, context, _matches, _key):
@@ -652,7 +652,8 @@ class FrontendWebService(HTTP.HTTPProcessor):
             WP.Results.userid: 'user',
             WP.Results.patientid: 'patient',
             WP.Results.action: 'action',
-            WP.Results.datatype: 'data_type'
+            WP.Results.details: 'details',
+            WP.Results.device: 'device',
         }
 
         results = yield from self.persistence_interface.audit_info(desired, targetuser, startdate=startdate,
