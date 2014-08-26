@@ -82,7 +82,7 @@ define([
 
                 $('.tree', that.$el).append("<div style= 'width:auto' class='nodeEl'></div>")
                 $('.tree', that.$el).append("<div style='height:60px'></div>")
-                var topLevel = new TriggerNode({el:$('.nodeEl').last(), model: curTree});
+                var topLevel = new TriggerNode({el:$('.nodeEl', this.$el).last(), model: curTree});
                  _.each(curTree.elPairs, function(cur){
 
                   if((cur.source.$el.is(":visible")) && (cur.target.$el.is(":visible"))){
