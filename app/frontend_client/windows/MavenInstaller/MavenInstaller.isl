@@ -4434,8 +4434,13 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<col def="s72">Component_</col>
 		<col def="I4">ISAttributes</col>
 		<row><td>Registry1</td><td>2</td><td>SYSTEM\CurrentControlSet\services\eventlog\Application\MavenDesktop</td><td/><td/><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
+		<row><td>Registry10</td><td>1</td><td>Software\Maven\PathwaysDesktop\Settings</td><td>server</td><td>162.222.177.174</td><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
+		<row><td>Registry11</td><td>1</td><td>Software\Maven\PathwaysDesktop\Settings</td><td>location</td><td>BR</td><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
+		<row><td>Registry12</td><td>1</td><td>Software\Maven\PathwaysDesktop\Settings</td><td>FadeSlowness</td><td>3</td><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
+		<row><td>Registry13</td><td>1</td><td>Software\Maven\PathwaysDesktop\Settings</td><td>mode</td><td>deskSoft</td><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
 		<row><td>Registry2</td><td>1</td><td>Software\Maven\PathwaysDesktop\Security</td><td/><td/><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
 		<row><td>Registry3</td><td>1</td><td>Software\Maven\PathwaysDesktop\Security</td><td>Auth</td><td>#x</td><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
+		<row><td>Registry9</td><td>1</td><td>Software\Maven\PathwaysDesktop\Settings</td><td/><td/><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
 	</table>
 
 	<table name="RemoveFile">
