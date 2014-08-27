@@ -40,7 +40,6 @@ namespace MavenAsDemo
             }
             //return the key
             return key;
-            //TODO: clear the auth registry on exit if the user doesnt want to "stay signed in" 
         }
         /// <summary>
         /// clear the login settings to log out. 
@@ -105,6 +104,25 @@ namespace MavenAsDemo
                     ClearLoginSettings();
                 }
             }
+        }
+        /// <summary>
+        /// Gets the current logged in Maven username
+        /// </summary>
+        /// <returns></returns>
+        public static string GetUserName()
+        {
+            string rtn = "";
+            RegistryKey authKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Maven\\PathwaysDesktop\\Security\\", false);
+            if (authKey != null && authKey.GetValue("User") != null)
+            {
+
+
+                //if you found the key and it is ok to use it, then by all means use it
+                byte[] encUser = (byte[])authKey.GetValue("User");
+                rtn = WindowsDPAPI.Decrypt(encUser);
+
+            }
+            return rtn;
         }
     }
 }
