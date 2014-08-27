@@ -46,14 +46,14 @@ define([
 	}
 	require(viewlist.concat(templatelist), function () {
 	    for(var i=0;i<viewlist.length;i++) {
-        var elToSend
+        var el
         if (widgetlist[i].element.substring(0,3) != 'row'){
-            elToSend = $("#"+ widgetlist[i].element)
+            el = $("#"+ widgetlist[i].element)
         } else {
-            elToSend = null
+            $('#dynamic-content').append("<div class='widgetSpot'></div>")
+            el = $('.widgetSpot', $('#dynamic-content')).last()
         }
-            console.log("sending the el", elToSend)
-		var wrapper =  new contentRow(arguments[i], arguments[i+viewlist.length], elToSend)
+            new arguments[i]({template: arguments[i+viewlist.length], el: el})
 	    }
 	    $("#content").show();
 	    Backbone.history.loadUrl(Backbone.history.fragment);
