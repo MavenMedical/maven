@@ -226,7 +226,7 @@ namespace MavenAsDemo
         /// </summary>
         private void launchHardAlert()
         {
-            Program.ShowAlertForm(Program.AlertMode.deskHard);
+            Program.ShowAlertForm(Settings.AlertMode.deskHard);
         }
     }
 }

@@ -1,9 +1,202 @@
-
-
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 <script src="../js/libs/jsplumb2/js/jsplumb.js"></script>
 <style>
 
+
+    #pathway-container {
+        position: relative;
+        transform: scale(1)
+
+    }
+
+    #pathway-container:active {
+        cursor: url(//mail.google.com/mail/images/2/openhand.cur), default !important;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+    }
+
+    .tree2 ul {
+        padding-top: 20px;
+        position: relative;
+
+        transition: all 0.5s;
+        -webkit-transition: all 0.5s;
+        -moz-transition: all 0.5s;
+    }
+
+    .tree2 li {
+        float: left;
+        text-align: center;
+        list-style-type: none;
+        position: relative;
+        padding: 20px 5px 0 5px;
+
+        transition: all 0.5s;
+        -webkit-transition: all 0.5s;
+        -moz-transition: all 0.5s;
+    }
+
+    /*We will use ::before and ::after to draw the connectors
+
+    .tree li::before, .tree li::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 50%;
+        border-top: 2px solid #ccc;
+        width: 50%;
+        height: 20px;
+    }
+
+    .tree li::after {
+        right: auto;
+        left: 50%;
+        border-left: 2px solid #ccc;
+    }
+
+    /*We need to remove left-right connectors from elements without
+    any siblings
+    .tree li:only-child::after, .tree li:only-child::before {
+        display: none;
+    }
+
+    /*Remove space from the top of single children
+    .tree li:only-child {
+        padding-top: 0;
+    }
+
+    /*Remove left connector from first child and
+    right connector from last child
+    .tree li:first-child::before, .tree li:last-child::after {
+        border: 0 none;
+    }
+
+    /*Adding back the vertical connector to the last nodes
+    .tree li:last-child::before {
+        border-right: 2px solid #ccc;
+        border-radius: 0 5px 0 0;
+        -webkit-border-radius: 0 5px 0 0;
+        -moz-border-radius: 0 5px 0 0;
+    }
+
+    .tree li:first-child::after {
+        border-radius: 5px 0 0 0;
+        -webkit-border-radius: 5px 0 0 0;
+        -moz-border-radius: 5px 0 0 0;
+    }
+
+    /*Time to add downward connectors from parents
+    .tree ul ul::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 50%;
+        border-left: 2px solid #ccc;
+        width: 0;
+        height: 20px;
+    }
+    */
+    .tree2 li div.qualifier {
+        height: 30px;
+        width: 125px;
+        border: 2px solid #46bdec;
+        background-color: whitesmoke;
+        padding: 5px 10px;
+        text-decoration: none;
+        color: #666;
+        font-family: arial, verdana, tahoma;
+        font-size: 11px;
+        font-weight: bold;
+        display: inline-block;
+
+        border-radius: 5px;
+        -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+
+        transition: all 0.5s;
+        -webkit-transition: all 0.5s;
+        -moz-transition: all 0.5s;
+    }
+
+    .tree2 li div.protocole {
+        width: 270px;
+        border: 2px solid #18bc9a;
+        background-color: whitesmoke;
+        padding: 5px 10px;
+        text-decoration: none;
+        color: #666;
+        font-family: arial, verdana, tahoma;
+        font-size: 11px;
+        display: inline-block;
+
+        border-radius: 5px;
+        -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+
+        transition: all 0.5s;
+        -webkit-transition: all 0.5s;
+        -moz-transition: all 0.5s;
+    }
+
+    .index {
+        font-size: 11px;
+        border-radius: 5px;
+        -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+
+    }
+
+    .plan {
+        text-align: left;
+    }
+
+    .children {
+        display: none;
+    }
+
+    /*Time for some hover effects*/
+    /*We will apply the hover effect the the lineage of the element also*/
+    .tree2 li div:hover, .tree li div:hover + ul li div {
+        background: #c8e4f8;
+        color: #000;
+        border: 1px solid #94a0b4;
+    }
+
+    /*Connector styles on hover*/
+    /*
+    .tree li div:hover + ul li::after,
+    .tree li div:hover + ul li::before,
+    .tree li div:hover + ul::before,
+    .tree li div:hover + ul ul::before {
+        border-color: #94a0b4;
+    }
+
+    #toast {
+        height: 30px;
+        width: 250px;
+        padding-right: 10px;
+        background-color: whitesmoke;
+        position: fixed;
+        top: 80%;
+        left: 40%;
+        border-radius: 5px;
+        -webkit-border-radius: 5px;
+        color: #36485c;
+        box-shadow: 7px 7px 4px #888888;
+        visibility: hidden;
+        z-index: 5;
+    }
+
+    #copiedText {
+        display: none;
+    }
+
+    #expandAll:hover{
+
+    }
+    */
 </style>
 <div class = "widget-column col-sm-12">
 
