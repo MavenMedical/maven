@@ -23,6 +23,11 @@ namespace MavenAsDemo
         [STAThread]
         static void Main()
         {
+            //first of all, don't do nuthin if there's already a mavendesktop running
+            if (isAlreadyRunning())
+            {
+                return;
+            }
             try
             {
                 cursettings = new Settings();
@@ -44,7 +49,7 @@ namespace MavenAsDemo
             {
                 //you've just failed at the highest possible level
                 //kill yourself and leave a suicide note in the application event log
-                LogMessage("Main Program Exception: " + ex.Message+"\r\nGoodbye Cruel World.");
+                LogMessage("Main Program Exception: " + ex.Message + "\r\nGoodbye Cruel World.");
                 CloseOut(null, null);
             }
         }
@@ -125,7 +130,7 @@ namespace MavenAsDemo
         {
             NotifyIcon tray = new NotifyIcon();
             //note that Maven.ico needs to be packaged up with the installer
-            string iconpath = System.IO.Path.GetDirectoryName(Application.ExecutablePath)+"\\Maven.ico";
+            string iconpath = System.IO.Path.GetDirectoryName(Application.ExecutablePath) + "\\Maven.ico";
             //MessageBox.Show(iconpath);
             tray.Icon = new System.Drawing.Icon(iconpath);
             ContextMenu ctx = new ContextMenu();
@@ -169,7 +174,7 @@ namespace MavenAsDemo
             MenuItem itmClose = new MenuItem("Exit Maven Tray", CloseOut);
             ctx.MenuItems.Add(itmClose);
 
-            string strLogout = ("Log Out ("+Authenticator.GetUserName()+")").Replace(" ()","");
+            string strLogout = ("Log Out (" + Authenticator.GetUserName() + ")").Replace(" ()", "");
             MenuItem itmLogOut = new MenuItem(strLogout, LogOut);
             ctx.MenuItems.Add(itmLogOut);
 
@@ -188,8 +193,8 @@ namespace MavenAsDemo
             {
                 try
                 {
-                    string rqstUrl = "http://" + cursettings.pollingServer + "/broadcaster/poll?key=" + WindowsDPAPI.Decrypt(EncryptedKey)
-                        +"&osUser="+cursettings.user+"&machine="+cursettings.machine+"&osVersion="+cursettings.os;
+                    string rqstUrl = "https://" + cursettings.pollingServer + "/broadcaster/poll?key=" + WindowsDPAPI.Decrypt(EncryptedKey)
+                        + "&osUser=" + cursettings.user + "&machine=" + cursettings.machine + "&osVersion=" + cursettings.os;
                     WebRequest rqst = WebRequest.Create(rqstUrl);
                     rqst.Timeout = 600000;
                     HttpWebResponse rsp = (HttpWebResponse)rqst.GetResponse();
@@ -203,7 +208,7 @@ namespace MavenAsDemo
                         {
                             //string alertUrl = responseFromServer.Split(',')[0].Replace("[{\"LINK\": \"", "").Replace("\"", "");
                             string alertUrl = responseFromServer.Replace("[\"", "").Replace("\"]", "");
-                             alert("", "", alertUrl);
+                            alert("", "", alertUrl);
                         }
                     }
                 }
@@ -212,11 +217,11 @@ namespace MavenAsDemo
                     //don't fill up the log with timeouts. but log everything else
                     if (!e.Message.Contains("Timeout"))
                     {
-                        LogMessage("Polling Exception: "+e.Message);
+                        LogMessage("Polling Exception: " + e.Message);
                     }
                 }
             }
-            
+
         }
         /// <summary>
         /// I'm here simply to force the polling guy to not reject the Maven Cloud Cert. 
@@ -231,7 +236,7 @@ namespace MavenAsDemo
         /// <param name="documentId">The document id of the alert.  Can be safely spoofed. </param>
         /// <param name="patId">The patient ID. Can be spoofed as long as this program isnt responsible for sending an Inbox message. (It is as of when this comment was written.)</param>
         /// <param name="inUrl">The URL of the alert target page. Absolutely essential. Do not spoof.</param>
-        private static void alert(string documentId,string patId, string inUrl)
+        private static void alert(string documentId, string patId, string inUrl)
         {
             url = inUrl;
             //Console.WriteLine("Alert now!");
@@ -248,7 +253,7 @@ namespace MavenAsDemo
                 mail(patId);
             }
         }
-   
+
         /// <summary>
         /// Handle a change to the settings for the alert mode. 
         /// </summary>
@@ -259,23 +264,23 @@ namespace MavenAsDemo
             MenuItem itm = (MenuItem)sender;
             switch (itm.Text)
             {
-                    //send a message to the clinians inbox in the EMR.
+                //send a message to the clinians inbox in the EMR.
                 case "Inbox":
                     cursettings.mode = Settings.AlertMode.inbox;
                     break;
-                    //send a message to the clinician's mobile app
+                //send a message to the clinician's mobile app
                 case "Mobile":
                     cursettings.mode = Settings.AlertMode.mobile;
                     break;
-                    //send a message to the clinician's desktop, but don't pop up the big browser thing. 
+                //send a message to the clinician's desktop, but don't pop up the big browser thing. 
                 case "Desktop Soft Alert":
                     cursettings.mode = Settings.AlertMode.deskSoft;
                     break;
-                    //send  the message to the desktop and go right to the full alert in the browser. 
+                //send  the message to the desktop and go right to the full alert in the browser. 
                 case "Desktop Hard Alert":
                     cursettings.mode = Settings.AlertMode.deskHard;
                     break;
-                    //blast the clinician with reckless abandon.
+                //blast the clinician with reckless abandon.
                 case "Combo":
                     cursettings.mode = Settings.AlertMode.combo;
                     break;
@@ -359,9 +364,9 @@ namespace MavenAsDemo
             string servicePwd = "MavenPathways123!!";
             string appName = "MavenPathways.TestApp";
             string appUserName = "cliffhux";
-            string namepro=getPatientNameAndPronoun(patId);
-            string name=namepro.Split('|')[0];
-            string pronoun=namepro.Split('|')[1];
+            string namepro = getPatientNameAndPronoun(patId);
+            string name = namepro.Split('|')[0];
+            string pronoun = namepro.Split('|')[1];
             Unity.UnityServiceClient mailsvc = new Unity.UnityServiceClient();
             string mailtoken = mailsvc.GetSecurityToken(serviceUser, servicePwd);
             DataSet ds = mailsvc.Magic("SaveTask",       // Action    
@@ -372,7 +377,7 @@ namespace MavenAsDemo
                                      "Send Chart",   // Parameter1 @SINCE
                                      appUserName,                     // Parameter2
                                      "",                     // Parameter3
-                                     "During your appointment with "+name+" today, Maven detected that "+pronoun+" matched a pathway from the AUA.\r\nPlease log into Maven to view the protocol.",                     // Parameter4
+                                     "During your appointment with " + name + " today, Maven detected that " + pronoun + " matched a pathway from the AUA.\r\nPlease log into Maven to view the protocol.",                     // Parameter4
                                      "AUA Pathway detected for your patient. Please review.",                     // Parameter5
                                      "",                     // Parameter6
                                      null);                  // data                // data 
@@ -402,9 +407,9 @@ namespace MavenAsDemo
                                      "",
                                      "",                     // Parameter6
                                      null);                  // data                // data 
-            DataTableReader reader=ds.CreateDataReader();
+            DataTableReader reader = ds.CreateDataReader();
             reader.Read();
-            string name= reader.GetString(2)+" "+reader.GetString(1);
+            string name = reader.GetString(2) + " " + reader.GetString(1);
             string pronoun = "he";
             try
             {
@@ -432,12 +437,12 @@ namespace MavenAsDemo
                 //close out gracefully
                 Application.Exit();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 //darn it. maybe i'll die anyway. who knows. At least log the message to inform the user that if i'm still running, they need to resort to task manager. 
-                LogMessage("Error closing the application. Please try task manager if the process is still running.\r\n"+ex.Message);
+                LogMessage("Error closing the application. Please try task manager if the process is still running.\r\n" + ex.Message);
             }
-           
+
         }
         /// <summary>
         /// Log out and also clear the key stored in the registry so that next time, you need to log in. 
@@ -463,13 +468,28 @@ namespace MavenAsDemo
                 //Created during install
                 EventLog el = new EventLog("Application");
                 el.Source = "MavenDesktop";
-                el.WriteEntry(msg, System.Diagnostics.EventLogEntryType.Warning,234);
+                el.WriteEntry(msg, System.Diagnostics.EventLogEntryType.Warning, 234);
                 //TODO: handle an actual registered event id. now it's event 0 which is getting a "desc cannot be found" message
                 //http://www.codeproject.com/Articles/4153/Getting-the-most-out-of-Event-Viewer
             }
             catch
             {
                 //TODO: Call this function recursively if writing to the error log fails. Just kidding...
+            }
+        }
+        /// <summary>
+        /// checks to see if the maven notifier is already running.
+        /// </summary>
+        static bool isAlreadyRunning()
+        {
+            Process[] pname = Process.GetProcessesByName("MavenDesktop");
+            if (pname.Length < 2)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
             }
         }
     }
