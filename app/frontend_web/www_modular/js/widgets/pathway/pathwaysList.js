@@ -41,7 +41,6 @@ define([
 
         handle_newPath: function () {
             a = new NewPathway({el: '#modal-target'});
-            console.log(a)
 
         },
         handle_save: function(){

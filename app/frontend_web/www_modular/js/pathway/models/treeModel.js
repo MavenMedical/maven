@@ -41,7 +41,7 @@ define([
         },
         toJSON: function(){
             var retMap = _.omit(this.attributes, ['children', 'hideChildren'])
-            retMap.children2 = this.get('children').toJSON()
+            retMap.children = this.get('children').toJSON()
             return retMap
         },
         loadNewPathway: function(params){
@@ -59,18 +59,16 @@ define([
             })
         },
         parse: function(response){
-            console.log ('response', response)
             this.set({text: response.text}, {silent: true})
-
             this.set({id: response.id}, {silent: true})
             this.set({protocol: response.protocol}, {silent: true})
             this.set({name: response.name}, {silent: true})
-            this.set({children: new NodeList(response.children2)}, {silent: true})
+            this.set({children: new NodeList(response.children)}, {silent: true})
             _.each(this.get('children').models, function(cur){
                 cur.set({'hideChildren': "true"}, {silent: true})
             })
-            console.log(this.get('id'))
            this.set({triggers: new Backbone.Collection(response.triggers)}, {silent: true})
+
         }
 
     })

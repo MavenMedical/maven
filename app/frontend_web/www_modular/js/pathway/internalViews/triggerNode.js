@@ -79,21 +79,18 @@ define([
                      var newEditor = new DetailEditor({triggerNode: that.model})
                      newEditor.render()
                 })
+
                 this.getMyElement().off('click')
                 this.getMyElement().on('click', function(){
                     contextModel.set('selectedNode', that.model)
                 })
                 _.each(this.model.get('children').models, function(cur){
 
-
+                    console.log('lets render', cur)
                     $('.children2', this.$el).first().append("<div class='childSpot'></div>")
                     var targ = $('.childSpot',$('.children2', this.$el).first()).last()
                     var thisChild = new TreeNode({model: cur, el:targ})
                     curTree.elPairs.push({source: this, target: thisChild})
-
-
-
-
                 }, this)
 
                 if (this.model.get('hideChildren')=="true"){

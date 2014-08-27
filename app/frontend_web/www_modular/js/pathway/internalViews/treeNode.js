@@ -25,8 +25,11 @@ define([
                     this.el = params.el
                 this.$el.css({'float':'left'})
                 var that = this;
+                if (!this.model.get('children')){
+                    return;
+                } else
                 if(!(this.model.get('children').models)){
-                    this.model.set('children', new nodeList(this.model.get('children')))
+                    this.model.set('children', new nodeList(this.model.get('children')), {silent: true})
                     this.model.set({'hideChildren': "true"}, {silent: true})
                 }
                 var that = this

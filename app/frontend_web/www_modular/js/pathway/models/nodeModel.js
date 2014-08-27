@@ -38,9 +38,11 @@ define([
         },
 
         initialize: function(params){
+
             this.set({text: params.text + " NODE"},{silent:true})
-            if (!params.children2){params.children2 = []}
-            this.set({children: new NodeList(params.children2)}, {silent:true})
+            if (!params.children){params.children = []}
+            this.set({children: new NodeList(params.children)}, {silent:true})
+
             this.set('name', params.name)
             this.set({protocol: params.protocol}, {silent:true})
             this.set({hideChildren: "false"}, {silent: true})
@@ -62,7 +64,7 @@ define([
         },
         toJSON: function(){
             var retMap = _.omit(this.attributes, ['children', 'hideChildren'])
-            retMap.children2 = this.get('children').toJSON()
+            retMap.children = this.get('children').toJSON()
             return retMap
         }
 

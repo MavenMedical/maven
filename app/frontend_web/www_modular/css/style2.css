@@ -1,5 +1,4 @@
 @import url('../css/bootstrap/css/bootstrap.min.css');
-@import url('../js/libs/jsplumb/css/jsplumb.css');
 
 
 /* sadly css variables aren't supported by much of anything, so we'll do this with copy and paste.
@@ -15,17 +14,6 @@
     var-floating-left-size
     var-floating-right-size
  */
-
-
-
-
-
-
-
-
-
-
-
 
     #pathway-container {
         position: relative;
@@ -86,7 +74,7 @@
         -moz-transition: all 0.5s;
     }
 
-    .tree li div.protocole {
+    .tree li div.protocol2 {
         border: 2px solid #18bc9a;
         background-color: whitesmoke;
         padding: 5px 10px;
@@ -250,7 +238,9 @@ html, body {
     height: 600px;
     margin-left: 15px
 }
-
+.widget-column {
+    overflow:hidden
+}
 #content {
     overflow:hidden;
     position:relative;
