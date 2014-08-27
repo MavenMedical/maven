@@ -1,5 +1,5 @@
 @import url('../css/bootstrap/css/bootstrap.min.css');
-@import url('../js/libs/jsplumb/css/jsplumb.css');
+@import url('../js/libs/jsplumb2/css/jsplumb.css');
 
 
 /* sadly css variables aren't supported by much of anything, so we'll do this with copy and paste.
