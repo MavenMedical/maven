@@ -8,6 +8,7 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'globalmodels/contextModel', // current patient (if any)
+    'jquery_autocomplete',
 ], function ($, _, Backbone,  contextModel) {
     
     var PatSearch = Backbone.View.extend({

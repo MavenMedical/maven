@@ -11,6 +11,7 @@ require.config({
     paths: {
         jquery: 'libs/jquery/jquery-min',
         jquery_ui: 'libs/jquery/jquery-ui.min',
+        jquery_autocomplete: 'libs/jquery/jquery.ui.autocomplete.html',
         underscore: 'libs/underscore/underscore',
         backbone: 'libs/backbone/backbone',
         jsplumb: 'libs/jsplumb2/js/jsplumb',

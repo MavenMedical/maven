@@ -6,7 +6,7 @@
  *
  * http://github.com/scottgonzalez/jquery-ui-extensions
  */
-require(['jquery'],
+define(['jquery', 'jquery_ui'],
 
 (function( $ ) {
 
