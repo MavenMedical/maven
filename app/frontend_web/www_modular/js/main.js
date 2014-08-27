@@ -11,6 +11,7 @@ require.config({
     paths: {
         jquery: 'libs/jquery/jquery-min',
         jquery_ui: 'libs/jquery/jquery-ui.min',
+        jquery_autocomplete: 'libs/jquery/jquery.ui.autocomplete.html',
         underscore: 'libs/underscore/underscore',
         backbone: 'libs/backbone/backbone',
         jsplumb: 'libs/jsplumb2/js/jsplumb',
@@ -45,7 +46,8 @@ require([
     //    'globalmodels/spendingModel',
     //    'localmodels/patientRowModel',
     
-    'text'
+    'text',
+    'jsplumb'
 ], function (App) {
     // The "app" dependency is passed in as "App"
     // Again, the other dependencies passed in are not "AMD" therefore don't pass a parameter to this function

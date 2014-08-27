@@ -47,7 +47,7 @@ define([
 	    "(login/:provider/:customer/:userAuth)": 'showHome',
 	    "patient/:id(/login/:provider/:customer/:userAuth)": 'showPatient',
 	    "episode/:id/patient/:id/:date(/login/:provider/:customer/:userAuth)": 'showEpisode',
-            "pathway/:id/patient/:id/:date(/login/:provider/:customer/:userAuth)": 'showPathway',
+        "pathway/:id/patient/:id/:date(/login/:provider/:customer/:userAuth)": 'showPathway',
 	    "evidence/:id/patient/:id/evi/:id(/login/:provider/:customer/:userAuth)": 'showEvidence',
 	    "logout": 'logout',
             "settings": 'settings',

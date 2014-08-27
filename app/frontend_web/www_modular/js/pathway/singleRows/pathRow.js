@@ -42,7 +42,6 @@ define([
                 contextModel.set('id', this.model.get('id'))
                 curTree.fetch()
 
-
         },
     	handleRemove: function() {
             this.model.url = this.getRemoveUrl

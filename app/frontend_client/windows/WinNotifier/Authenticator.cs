@@ -17,23 +17,32 @@ namespace MavenAsDemo
         /// </summary>
         /// <returns>an encrypted byte array representing the key. call the windowsDPAPI decrypion method to use in a url.</returns>
         public static byte[] GetEncryptedAuthKey()
-        { 
+        {
+            return GetEncryptedAuthKey("Please Login to Maven");
+        }
+        /// <summary>
+        /// Gets a key encrypted with DPAPI to use in calls to the cloud. 
+        /// </summary>
+        /// <param name="promptMessage">a SHORT message to use in promping the user for credentials</param>
+        /// <returns>an encrypted byte array representing the key. call the windowsDPAPI decrypion method to use in a url.</returns>
+        public static byte[] GetEncryptedAuthKey(string promptMessage)
+        {
             byte[] key = null;
             //look to the registry which should be where this is usually stored
             RegistryKey authKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Maven\\PathwaysDesktop\\Security\\", false);
             if (authKey != null && authKey.GetValue("Auth") != null)
             {
-                
+
 
                 //if you found the key and it is ok to use it, then by all means use it
-                key= (byte[])authKey.GetValue("Auth");
-                
+                key = (byte[])authKey.GetValue("Auth");
+
             }
             //if you found no key in the registry, or you found a key that isnt valid, then prompt for a login 
             if (!isKeyValidOnServer(key))
             {
                 //prompt for a new login
-                PromptNewLogin();
+                PromptNewLogin(promptMessage);
                 //the login will save the key to the registry. 
                 //come back here recursively until the key is valid
                 key = GetEncryptedAuthKey();
@@ -58,7 +67,7 @@ namespace MavenAsDemo
         /// </summary>
         /// <param name="key">The encrypted byte array for the key</param>
         /// <returns>"True" if the key is valid. Else false.</returns>
-        private static bool isKeyValidOnServer(byte[] key)
+        public static bool isKeyValidOnServer(byte[] key)
         {
             //if there's no token, automatically reprompt without asking the server. 
             //sort of client side validation. 
@@ -73,16 +82,18 @@ namespace MavenAsDemo
             }
         }
         /// <summary>
-        /// show the login screen. 
+        /// Show the login screen. 
         /// </summary>
-        private static void PromptNewLogin()
+        /// <param name="shortMessage">a SHORT message describing why the login prompt is presented</param>
+        private static void PromptNewLogin(string shortMessage)
         {
             //currently just saving the username to the registry. 
             //TODO: Actually check the user/password with the cloud and save the returned key to the registry
-            frmLogin f = new frmLogin("Please Login to Maven");
+            frmLogin f = new frmLogin(shortMessage);
             f.Visible = true;
             System.Windows.Forms.Application.Run(f);
         }
+        
         public static void HandleLoginStickiness()
         {
             //look to the registry which should be where this is usually stored

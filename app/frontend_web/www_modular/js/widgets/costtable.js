@@ -33,9 +33,9 @@ define([
             if ('date' in spendingModel.changed) {
                 datefilter = spendingModel.changed['date'];
                 //		    $('#costbd-restriction')[0].innerHTML='Only spending on <i><b>'+datefilter.toDateString() +'</b></i> <button id="removedatefilter">(remove filter)</button>';
-                $('#costbd-restriction')[0].innerHTML = 'Only spending on <i><b>' + datefilter.toDateString() + '</b></i>';
+                //$('#costbd-restriction')[0].innerHTML = 'Only spending on <i><b>' + datefilter.toDateString() + '</b></i>';
             } else {
-                $('#costbd-restriction')[0].innerHTML = '';
+                //$('#costbd-restriction')[0].innerHTML = '';
             }
 
 	    var colorArray = [];

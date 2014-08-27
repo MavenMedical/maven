@@ -32,7 +32,6 @@ define([
             var newname = prompt("Enter the new title")
             contextModel.get('selectedNode').set('name', newname)
             contextModel.get('selectedNode').set('text', newname)
-            console.log(contextModel)
         },
 
         editDescription: function(){

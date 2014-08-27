@@ -152,7 +152,7 @@
             this.lblErr.AutoSize = true;
             this.lblErr.BackColor = System.Drawing.Color.White;
             this.lblErr.ForeColor = System.Drawing.Color.DarkRed;
-            this.lblErr.Location = new System.Drawing.Point(61, 121);
+            this.lblErr.Location = new System.Drawing.Point(12, 121);
             this.lblErr.Name = "lblErr";
             this.lblErr.Size = new System.Drawing.Size(0, 13);
             this.lblErr.TabIndex = 9;

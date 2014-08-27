@@ -19,7 +19,7 @@ define([
             var that = this
             this.$el.html(this.template())
             $('#addNodeButton')[0].onclick = function(){
-                                   that.parent.unset('protocol', {silent: true})
+                                   parent.unset('protocol', {silent: true})
                                    var n = new NodeModel({description: $('#newNodeDescription', that.$el).val(), name: $('#newNodeText', that.$el).val(), text: $('#newNodeText', that.$el).val()})
                                    that.parent.get('children').add(n)
                                    contextModel.set('selectedNode', n )
