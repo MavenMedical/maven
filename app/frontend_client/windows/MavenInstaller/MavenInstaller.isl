@@ -4439,9 +4439,9 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>Registry11</td><td>1</td><td>Software\Maven\PathwaysDesktop\Settings</td><td>location</td><td>BR</td><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
 		<row><td>Registry12</td><td>1</td><td>Software\Maven\PathwaysDesktop\Settings</td><td>FadeSlowness</td><td>3</td><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
 		<row><td>Registry13</td><td>1</td><td>Software\Maven\PathwaysDesktop\Settings</td><td>mode</td><td>deskSoft</td><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
+		<row><td>Registry16</td><td>1</td><td>Software\Microsoft\Windows\CurrentVersion\Run</td><td>MavenPathways</td><td>[INSTALLDIR]MavenDesktop.EXE</td><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
 		<row><td>Registry2</td><td>1</td><td>Software\Maven\PathwaysDesktop\Security</td><td/><td/><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
 		<row><td>Registry3</td><td>1</td><td>Software\Maven\PathwaysDesktop\Security</td><td>Auth</td><td>#x</td><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
-		<row><td>Registry4</td><td>1</td><td>Software</td><td>MavenPathways</td><td>C:\Users\dave\documents\visual studio 2012\Projects\MavenAsDemo\bin\Debug\MavenDesktop.EXE</td><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
 		<row><td>Registry9</td><td>1</td><td>Software\Maven\PathwaysDesktop\Settings</td><td/><td/><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
 	</table>
 
