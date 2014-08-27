@@ -169,7 +169,8 @@ namespace MavenAsDemo
             MenuItem itmClose = new MenuItem("Exit Maven Tray", CloseOut);
             ctx.MenuItems.Add(itmClose);
 
-            MenuItem itmLogOut = new MenuItem("Log Out", LogOut);
+            string strLogout = ("Log Out ("+Authenticator.GetUserName()+")").Replace(" ()","");
+            MenuItem itmLogOut = new MenuItem(strLogout, LogOut);
             ctx.MenuItems.Add(itmLogOut);
 
             tray.ContextMenu = ctx;
@@ -187,7 +188,9 @@ namespace MavenAsDemo
             {
                 try
                 {
-                    WebRequest rqst = WebRequest.Create("http://" + cursettings.pollingServer + "/broadcaster/poll?key=" + WindowsDPAPI.Decrypt(EncryptedKey));
+                    string rqstUrl = "http://" + cursettings.pollingServer + "/broadcaster/poll?key=" + WindowsDPAPI.Decrypt(EncryptedKey)
+                        +"&osUser="+cursettings.user+"&machine="+cursettings.machine+"&osVersion="+cursettings.os;
+                    WebRequest rqst = WebRequest.Create(rqstUrl);
                     rqst.Timeout = 600000;
                     HttpWebResponse rsp = (HttpWebResponse)rqst.GetResponse();
                     HttpStatusCode status = rsp.StatusCode;
@@ -200,7 +203,7 @@ namespace MavenAsDemo
                         {
                             //string alertUrl = responseFromServer.Split(',')[0].Replace("[{\"LINK\": \"", "").Replace("\"", "");
                             string alertUrl = responseFromServer.Replace("[\"", "").Replace("\"]", "");
-                            alert("1", "66556", alertUrl);
+                             alert("", "", alertUrl);
                         }
                     }
                 }

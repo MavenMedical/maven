@@ -175,7 +175,7 @@ namespace MavenAsDemo
             }
         }
 
-        private static void WriteKey(string key)
+        private void WriteKey(string key)
         {
             byte[] keyToSave = WindowsDPAPI.Encrypt(key);
             RegistryKey authKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Maven\\PathwaysDesktop\\Security\\", true);
@@ -184,6 +184,7 @@ namespace MavenAsDemo
                 authKey=Registry.CurrentUser.CreateSubKey("SOFTWARE\\Maven\\PathwaysDesktop\\Security\\",RegistryKeyPermissionCheck.ReadWriteSubTree);
             }
             authKey.SetValue("Auth", keyToSave);
+            authKey.SetValue("User", WindowsDPAPI.Encrypt(txtUser.Text));
         }
         private static void WriteSaveLogin(bool shouldStick)
         {

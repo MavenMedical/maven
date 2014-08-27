@@ -13,6 +13,9 @@ namespace MavenAsDemo
         public double fadeSlowness = 3;
         public string location = "BR";
         public string pollingServer = "162.222.177.174"; //TODO: Update this to be actual server default. Also install the default via the installer. 
+        public string user = System.Uri.EscapeDataString(System.Environment.UserName);
+        public string machine = System.Uri.EscapeDataString(System.Environment.MachineName);
+        public string os = System.Uri.EscapeDataString(System.Environment.OSVersion.VersionString);
 
         /// <summary>
         /// The different ways to alert people of stuff. 
@@ -39,7 +42,7 @@ namespace MavenAsDemo
                 RegistryKey settingsKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Maven\\PathwaysDesktop\\Settings\\", true);
                 if (settingsKey == null)
                 {
-                    settingsKey = Registry.CurrentUser.CreateSubKey("SOFTWARE\\Maven\\PathwaysDesktop\\Settigs\\", RegistryKeyPermissionCheck.ReadWriteSubTree);
+                    settingsKey = Registry.CurrentUser.CreateSubKey("SOFTWARE\\Maven\\PathwaysDesktop\\Settings\\", RegistryKeyPermissionCheck.ReadWriteSubTree);
                 }
                 settingsKey.SetValue("server", pollingServer);
                 settingsKey.SetValue("location", location);
@@ -91,7 +94,7 @@ namespace MavenAsDemo
             if (settingKey != null && settingKey.GetValue("FadeSlowness") != null)
             {
                 //if you found the key, then by all means use it
-                fadeSlowness = (int) settingKey.GetValue("FadeSlowness");
+                fadeSlowness = Convert.ToInt32((string) settingKey.GetValue("FadeSlowness"));
 
             }
             //else, use the default
@@ -106,8 +109,8 @@ namespace MavenAsDemo
             if (settingKey != null && settingKey.GetValue("mode") != null)
             {
                 //if you found the key, then by all means use it
-                mode = (AlertMode)settingKey.GetValue("mode");
-
+                string strMode=(string)settingKey.GetValue("mode");
+                mode = (AlertMode)Enum.Parse(typeof(AlertMode), strMode);
             }
             //else, use the default
         }
