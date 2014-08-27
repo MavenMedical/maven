@@ -40,7 +40,6 @@ namespace MavenAsDemo
             }
             //return the key
             return key;
-            //TODO: clear the auth registry on exit if the user doesnt want to "stay signed in" 
         }
         /// <summary>
         /// clear the login settings to log out. 

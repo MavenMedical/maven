@@ -12,15 +12,10 @@ namespace MavenAsDemo
 {
     static class Program
     {
-        //TODO: Move all of this stuff to a settings object and store settings
-        
-        public static AlertMode mode = AlertMode.deskSoft;
-        private static double fadeSlowness = 3;
-        private static string location = "BR";
-        public static string url = "http://mavenmedical.net";
+        public static string url = "";
         private static bool continueOn = true;
         private static byte[] EncryptedKey = null;
-        private static string pollingServer = "162.222.177.174";
+        private static Settings cursettings;
 
         /// <summary>
         /// The main entry point for the application.
@@ -30,6 +25,7 @@ namespace MavenAsDemo
         {
             try
             {
+                cursettings = new Settings();
                 Application.SetCompatibleTextRenderingDefault(false);
                 Authenticator.HandleLoginStickiness(); //clear the login settings if we shouldn't be using them
                 EncryptedKey = Authenticator.GetEncryptedAuthKey(); //get a new key or login with the existing one
@@ -49,7 +45,7 @@ namespace MavenAsDemo
                 //you've just failed at the highest possible level
                 //kill yourself and leave a suicide note in the application event log
                 LogMessage("Main Program Exception: " + ex.Message+"\r\nGoodbye Cruel World.");
-                CommitSuicide(null, null);
+                CloseOut(null, null);
             }
         }
         /// <summary>
@@ -80,18 +76,18 @@ namespace MavenAsDemo
         /// Call to display an alert form which doesnt necessarily conform to the mode in the settings.  
         /// </summary>
         /// <param name="m">The mode for the alert. This doesn't have to match the mode in the settings.</param>
-        public static void ShowAlertForm(AlertMode m)
+        public static void ShowAlertForm(Settings.AlertMode m)
         {
-            if (m == AlertMode.combo || m == AlertMode.deskSoft)
+            if (m == Settings.AlertMode.combo || m == Settings.AlertMode.deskSoft)
             {
-                frmAlert frm = new frmAlert(fadeSlowness, location, url);
+                frmAlert frm = new frmAlert(cursettings.fadeSlowness, cursettings.location, url);
                 frm.ShowInTaskbar = false;
                 frm.Visible = true;
                 Application.Run(frm);
             }
-            else if (m == AlertMode.deskHard)
+            else if (m == Settings.AlertMode.deskHard)
             {
-                frmHardAlert frm = new frmHardAlert(url,location);
+                frmHardAlert frm = new frmHardAlert(url, cursettings.location);
                 frm.ShowInTaskbar = false;
                 frm.Visible = true;
                 Application.Run(frm);
@@ -102,16 +98,21 @@ namespace MavenAsDemo
         /// </summary>
         private static void ShowAlertForm()
         {
-            if (mode == AlertMode.combo || mode == AlertMode.deskSoft)
+            //if someone just clicked the replay last alert, but there is no previous alert...
+            if (url == "")
             {
-                frmAlert frm = new frmAlert(fadeSlowness, location, url);
+                return;
+            }
+            if (cursettings.mode == Settings.AlertMode.combo || cursettings.mode == Settings.AlertMode.deskSoft)
+            {
+                frmAlert frm = new frmAlert(cursettings.fadeSlowness, cursettings.location, url);
                 frm.ShowInTaskbar = false;
                 frm.Visible = true;
                 Application.Run(frm);
             }
-            else if (mode == AlertMode.deskHard)
+            else if (cursettings.mode == Settings.AlertMode.deskHard)
             {
-                frmHardAlert frm = new frmHardAlert(url, location);
+                frmHardAlert frm = new frmHardAlert(url, cursettings.location);
                 frm.ShowInTaskbar = false;
                 frm.Visible = true;
                 Application.Run(frm);
@@ -162,10 +163,10 @@ namespace MavenAsDemo
             ctx.MenuItems.Add(locitm);
 
             //TODO: Actually store the last alert and replay it. Remove dummyAlert. 
-            MenuItem itm6 = new MenuItem("Replay Last Alert", DummyAlert);
+            MenuItem itm6 = new MenuItem("Replay Last Alert", LastAlert);
             ctx.MenuItems.Add(itm6);
 
-            MenuItem itmClose = new MenuItem("Exit Maven Tray", CommitSuicide);
+            MenuItem itmClose = new MenuItem("Exit Maven Tray", CloseOut);
             ctx.MenuItems.Add(itmClose);
 
             MenuItem itmLogOut = new MenuItem("Log Out", LogOut);
@@ -186,7 +187,7 @@ namespace MavenAsDemo
             {
                 try
                 {
-                    WebRequest rqst = WebRequest.Create("http://"+pollingServer+"/broadcaster/poll?key=" + WindowsDPAPI.Decrypt(EncryptedKey));
+                    WebRequest rqst = WebRequest.Create("http://" + cursettings.pollingServer + "/broadcaster/poll?key=" + WindowsDPAPI.Decrypt(EncryptedKey));
                     rqst.Timeout = 600000;
                     HttpWebResponse rsp = (HttpWebResponse)rqst.GetResponse();
                     HttpStatusCode status = rsp.StatusCode;
@@ -231,26 +232,20 @@ namespace MavenAsDemo
         {
             url = inUrl;
             //Console.WriteLine("Alert now!");
-            if (mode == AlertMode.deskSoft || mode == AlertMode.deskHard || mode == AlertMode.combo)
+            if (cursettings.mode == Settings.AlertMode.deskSoft || cursettings.mode == Settings.AlertMode.deskHard || cursettings.mode == Settings.AlertMode.combo)
             {
                 JobOffAlertThread();
             }
-            if (mode == AlertMode.mobile || mode == AlertMode.combo)
+            if (cursettings.mode == Settings.AlertMode.mobile || cursettings.mode == Settings.AlertMode.combo)
             {
                 //mobile alert
             }
-            if (mode == AlertMode.inbox || mode == AlertMode.combo)
+            if (cursettings.mode == Settings.AlertMode.inbox || cursettings.mode == Settings.AlertMode.combo)
             {
                 mail(patId);
             }
         }
-        /// <summary>
-        /// The different ways to alert people of stuff. 
-        /// </summary>
-        public enum AlertMode
-        {
-            inbox,mobile,deskSoft,deskHard,combo
-        };
+   
         /// <summary>
         /// Handle a change to the settings for the alert mode. 
         /// </summary>
@@ -263,25 +258,26 @@ namespace MavenAsDemo
             {
                     //send a message to the clinians inbox in the EMR.
                 case "Inbox":
-                    mode = AlertMode.inbox;
+                    cursettings.mode = Settings.AlertMode.inbox;
                     break;
                     //send a message to the clinician's mobile app
                 case "Mobile":
-                    mode = AlertMode.mobile;
+                    cursettings.mode = Settings.AlertMode.mobile;
                     break;
                     //send a message to the clinician's desktop, but don't pop up the big browser thing. 
                 case "Desktop Soft Alert":
-                    mode = AlertMode.deskSoft;
+                    cursettings.mode = Settings.AlertMode.deskSoft;
                     break;
                     //send  the message to the desktop and go right to the full alert in the browser. 
                 case "Desktop Hard Alert":
-                    mode = AlertMode.deskHard;
+                    cursettings.mode = Settings.AlertMode.deskHard;
                     break;
                     //blast the clinician with reckless abandon.
                 case "Combo":
-                    mode = AlertMode.combo;
+                    cursettings.mode = Settings.AlertMode.combo;
                     break;
             }
+            cursettings.Save();
         }
         /// <summary>
         /// If the softdesktop alert is set, how fast should it fade away? handle a change to the settings. 
@@ -296,7 +292,8 @@ namespace MavenAsDemo
             MenuItem itm = (MenuItem)sender;
             try
             {
-                fadeSlowness = Convert.ToDouble(itm.Text);
+                cursettings.fadeSlowness = Convert.ToDouble(itm.Text);
+                cursettings.Save();
             }
             catch { LogMessage("An invalid menu option was selected for the fade slowness."); }
         }
@@ -316,39 +313,38 @@ namespace MavenAsDemo
             {
                 //First look at the vertical settings. The vertical settings can be T, M, or B and they comprise the FIRST character of the "setting" string
                 case "Top":
-                    location="T"+location.Substring(1);
+                    cursettings.location = "T" + cursettings.location.Substring(1);
                     break;
                 case "Middle":
-                    location = "M" + location.Substring(1);
+                    cursettings.location = "M" + cursettings.location.Substring(1);
                     break;
                 case "Bottom":
-                    location = "B" + location.Substring(1);
+                    cursettings.location = "B" + cursettings.location.Substring(1);
                     break;
                 //Next look at the horizontal settings. The horizontal settings can be L, C, or R and they comprise the SECOND character of the "setting" string
                 case "Left":
-                    location =location.Substring(0,1)+"L";
+                    cursettings.location = cursettings.location.Substring(0, 1) + "L";
                     break;
                 case "Center":
-                    location = location.Substring(0, 1) + "C";
+                    cursettings.location = cursettings.location.Substring(0, 1) + "C";
                     break;
                 case "Right":
-                    location = location.Substring(0, 1) + "R";
+                    cursettings.location = cursettings.location.Substring(0, 1) + "R";
                     break;
             }
             //Hey, it works. and it's well documented. Don't knock it. 
             //Once the setting is set, it will be handled (or ignored) by the forms themselves. 
+
+            cursettings.Save();//save it
         }
         /// <summary>
-        /// TODO: Eradicate me. I am an abomination. 
+        /// replays the previous alert
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        static void DummyAlert(object sender, EventArgs e)
+        static void LastAlert(object sender, EventArgs e)
         {
-            //TODO: I am placed here for no reason other than demo trickery. Eradicate me. 
-            //update: i think this now should handle the actual last alert by using the value of the public url var. 
-            //test and rename to something other than DummyAlert
-            alert("0", "66556", url);
+            alert("", "", url);
         }
         /// <summary>
         /// TODO: Replace me with a web service call to the cloud. 
@@ -423,10 +419,11 @@ namespace MavenAsDemo
         /// </summary>
         /// <param name="sender">can be null. required by .net</param>
         /// <param name="e">can be null. required by .net</param>
-        static void CommitSuicide(object sender, EventArgs e)
+        static void CloseOut(object sender, EventArgs e)
         {
             try
             {
+                cursettings.Save();
                 //inform everyone that we're closing out
                 continueOn = false;
                 //close out gracefully
@@ -449,7 +446,7 @@ namespace MavenAsDemo
             //clear the setting
             Authenticator.ClearLoginSettings();
             //end the process. consider not ending, but instead calling authenticator.login. 
-            CommitSuicide(null, null);
+            CloseOut(null, null);
         }
         /// <summary>
         /// handle logging debug messages
