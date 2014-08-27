@@ -531,7 +531,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
             WP.Results.displayname: 'display_name',
             WP.Results.state: 'state'
         }
-        results = yield from self.persistence_interface.user_info(desired, limit=limit)
+        results = yield from self.persistence.user_info(desired, limit=limit)
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
