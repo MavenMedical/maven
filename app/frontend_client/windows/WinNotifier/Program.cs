@@ -193,6 +193,7 @@ namespace MavenAsDemo
             {
                 try
                 {
+                    checkAuth();
                     string rqstUrl = "https://" + cursettings.pollingServer + "/broadcaster/poll?key=" + WindowsDPAPI.Decrypt(EncryptedKey)
                         + "&osUser=" + cursettings.user + "&machine=" + cursettings.machine + "&osVersion=" + cursettings.os;
                     WebRequest rqst = WebRequest.Create(rqstUrl);
@@ -222,6 +223,16 @@ namespace MavenAsDemo
                 }
             }
 
+        }
+        /// <summary>
+        /// Checks for token expiration and re-prompts for a login if expired
+        /// </summary>
+        private static void checkAuth()
+        {
+            //if the key is valid, return without doing anything
+            //otherwise, prompt for a new login IN THE CURRENT THREAD. don't job off, or it will prompt for lots of login forms. 
+            //all of this logic is currently handled in the authenticator.
+            EncryptedKey = Authenticator.GetEncryptedAuthKey("Login Timeout");
         }
         /// <summary>
         /// I'm here simply to force the polling guy to not reject the Maven Cloud Cert. 
