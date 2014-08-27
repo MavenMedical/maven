@@ -199,13 +199,15 @@ namespace MavenAsDemo
 
         private void btnLogin_Click_1(object sender, EventArgs e)
         {
-            if (txtUser.Text == "" || txtPass.Text == "")
+            string user = txtUser.Text.Trim();
+            string pass = txtPass.Text.Trim();
+            if (user=="" || pass=="")
             {
                 lblErr.Text = "Specify Valid Credentials";
                 return;
             }
             //TODO: Actually log in
-            WriteKey(txtUser.Text);
+            WriteKey(user);
             WriteSaveLogin(chkStay.Checked);
             checkAutoStart();
             closeOut();

@@ -1896,6 +1896,7 @@
 		<col def="S255">Data</col>
 		<row><td>PROJECT_ASSISTANT_DEFAULT_FEATURE</td><td>AlwaysInstall</td></row>
 		<row><td>PROJECT_ASSISTANT_FEATURES</td><td>NonSelectable</td></row>
+		<row><td>RegistryPageEnabled</td><td>Yes</td></row>
 	</table>
 
 	<table name="ISBillBoard">
@@ -3745,7 +3746,7 @@
 		<row><td>ID_STRING2</td><td>1033</td><td>MAVEND~1|MavenDesktop</td><td>0</td><td/><td>2082606958</td></row>
 		<row><td>ID_STRING3</td><td>1033</td><td>MAVEND~1|MavenDesktop</td><td>0</td><td/><td>2082662222</td></row>
 		<row><td>ID_STRING4</td><td>1033</td><td>UNINST~1|Uninstall Maven</td><td>0</td><td/><td>2082615150</td></row>
-		<row><td>ID_STRING5</td><td>1033</td><td>http://www.MavenMedical.com</td><td>0</td><td/><td>2082621584</td></row>
+		<row><td>ID_STRING5</td><td>1033</td><td>http://www.MavenMedical.net</td><td>0</td><td/><td>-601707698</td></row>
 		<row><td>ID_STRING6</td><td>1033</td><td>Maven Medical</td><td>0</td><td/><td>2082621584</td></row>
 		<row><td>IIDS_UITEXT_FeatureUninstalled</td><td>1033</td><td>This feature will remain uninstalled.</td><td>0</td><td/><td>1948406638</td></row>
 	</table>
@@ -4440,6 +4441,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>Registry13</td><td>1</td><td>Software\Maven\PathwaysDesktop\Settings</td><td>mode</td><td>deskSoft</td><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
 		<row><td>Registry2</td><td>1</td><td>Software\Maven\PathwaysDesktop\Security</td><td/><td/><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
 		<row><td>Registry3</td><td>1</td><td>Software\Maven\PathwaysDesktop\Security</td><td>Auth</td><td>#x</td><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
+		<row><td>Registry4</td><td>1</td><td>Software</td><td>MavenPathways</td><td>C:\Users\dave\documents\visual studio 2012\Projects\MavenAsDemo\bin\Debug\MavenDesktop.EXE</td><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
 		<row><td>Registry9</td><td>1</td><td>Software\Maven\PathwaysDesktop\Settings</td><td/><td/><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
 	</table>
 
@@ -4535,8 +4537,8 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<col def="S255">ISShortcutName</col>
 		<col def="I4">ISAttributes</col>
 		<row><td>NewShortcut1</td><td>DesktopFolder</td><td>##ID_STRING2##</td><td>MavenDesktop.exe</td><td>[INSTALLDIR]MavenDesktop.exe</td><td/><td/><td/><td>NewShortcut1_214BBDF73D10419185D1E15950EEC1CB.exe</td><td>0</td><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
-		<row><td>NewShortcut2</td><td>StartupFolder</td><td>##ID_STRING3##</td><td>MavenDesktop.exe</td><td>[INSTALLDIR]MavenDesktop.exe</td><td/><td/><td/><td>NewShortcut2_40F4F62B28DB4B6C97DC1BD094771648.exe</td><td>1</td><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
-		<row><td>NewShortcut3</td><td>StartupFolder</td><td>##ID_STRING4##</td><td>ISX_DEFAULTCOMPONENT1</td><td>[SystemFolder]MsiExec.exe</td><td>/x [ProductCode]</td><td/><td/><td>NewShortcut3_B056B2D638A04214A393D12D9FCCF55E.exe</td><td>0</td><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
+		<row><td>NewShortcut2</td><td>ProgramMenuFolder</td><td>##ID_STRING3##</td><td>MavenDesktop.exe</td><td>[INSTALLDIR]MavenDesktop.exe</td><td/><td/><td/><td>NewShortcut2_40F4F62B28DB4B6C97DC1BD094771648.exe</td><td>1</td><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
+		<row><td>NewShortcut3</td><td>ProgramMenuFolder</td><td>##ID_STRING4##</td><td>ISX_DEFAULTCOMPONENT1</td><td>[SystemFolder]MsiExec.exe</td><td>/x [ProductCode]</td><td/><td/><td>NewShortcut3_B056B2D638A04214A393D12D9FCCF55E.exe</td><td>0</td><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 	</table>
 
 	<table name="Signature">
