@@ -18,7 +18,11 @@ require.config({
         bootstrap: '../css/bootstrap/js/bootstrap.min',
         fullcalendar: 'libs/fullCalendar/fullcalendar.min',
         moment: 'libs/fullCalendar/moment.min',
-	    templates: '../templates'
+	templates: '../templates',
+	amchartspie: 'libs/amcharts/pie',
+	amchartslight: 'libs/amcharts/themes/light',
+	amchartsserial: 'libs/amcharts/serial',
+	amcharts: 'libs/amcharts/amcharts',
     },
     shim: {
         bootstrap :{
@@ -29,7 +33,13 @@ require.config({
         },
         fullCalendar :{
             deps: ['jquery','moment', 'jquery_ui']
-        }
+        },
+	jquery_ui: {
+	    deps: ['jquery'],
+	},
+	amchartspie: { deps: ['amcharts'], exports: 'AmCharts', init: function() {AmCharts.isReady = true;}},
+	amchartsserial: { deps: ['amcharts'], exports: 'AmCharts', init: function() {AmCharts.isReady = true;}},
+	amchartslight: { deps: ['amcharts'], exports: 'AmCharts', init: function() {AmCharts.isReady = true;}},
     }
 });
 
@@ -43,9 +53,6 @@ require([
     'router',
     'globalmodels/contextModel',
     'globalmodels/patientModel',
-    //    'globalmodels/spendingModel',
-    //    'localmodels/patientRowModel',
-    
     'text',
     'jsplumb'
 ], function (App) {
