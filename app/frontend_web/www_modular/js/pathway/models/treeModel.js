@@ -72,6 +72,9 @@ define([
             this.set({protocol: response.protocol}, {silent: true})
             this.set({name: response.name}, {silent: true})
             this.set({children: new NodeList(response.children)}, {silent: true})
+            _.each(this.get('children').models, function(cur){
+                cur.set({'hideChildren': "false"}, {silent: true})
+            })
            this.set({triggers: new Backbone.Collection(response.triggers)}, {silent: true})
 
         }
