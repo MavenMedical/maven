@@ -11,8 +11,9 @@
 define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
-    'backbone',    // lib/backbone/backbone
+    'backbone'    // lib/backbone/backbone
 ], function ($, _, Backbone) {
+
     
     function setActiveStyleSheet(title) {
 	var i, a, main;
@@ -45,14 +46,15 @@ define([
 	}
 	require(viewlist.concat(templatelist), function () {
 	    for(var i=0;i<viewlist.length;i++) {
-		var el
-		if (widgetlist[i].element.substring(0,3) != 'row'){
-		    el = $("#"+ widgetlist[i].element)
-		} else {
-		    $('#dynamic-content').append("<div class='row'></div>")
+
+        var el
+        if (widgetlist[i].element !='contentRow'){
+            el = $("#"+ widgetlist[i].element)
+        } else {
+            $('#dynamic-content').append("<div class='row'></div>")
 		    el = $('.row', $('#dynamic-content')).last()
-		}
-		new arguments[i]({template: arguments[i+viewlist.length], el: el})
+        }
+            new arguments[i]({template: arguments[i+viewlist.length], el: el})
 	    }
 	    $("#content").show();
 	    Backbone.history.loadUrl(Backbone.history.fragment);
@@ -67,6 +69,7 @@ define([
             patients: '',
             patientAuth: '',
             patientName:'',
+            pathid: 0,
             provider: null,
             encounter: null,
             department: null,
@@ -79,7 +82,7 @@ define([
 	    //console.log(this);
 	    var ret = _.pick(this.attributes,['user','provider','startdate','enddate','encounter',
 		 			      'patients','department','userAuth', 'customer_id',
-					      'roles', 'id']);
+					      'roles', 'pathid']);
 	    //console.log(ret);
 	    for(var x in ret) {
 		if(ret[x] === null || ret[x] === '') {delete ret[x];}
@@ -107,7 +110,7 @@ define([
 					      customer: customer,
 					      userAuth: userAuth}),
 			type: 'POST'});
-	},
+	}
     });
 
     contextModel = new ContextModel;
