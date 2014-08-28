@@ -25,6 +25,7 @@ define([
             var that = this
             contextModel.on('change:pathid', function(){
                 that.fetch()
+                Backbone.history.navigate("pathway/1/pathid/"+contextModel.get('pathid'));
             })
 
             this.elPairs = []
