@@ -12,8 +12,7 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
-    'dynamicIndex/contentRow'
-], function ($, _, Backbone, contentRow) {
+], function ($, _, Backbone) {
     
     function setActiveStyleSheet(title) {
 	var i, a, main;
@@ -46,14 +45,14 @@ define([
 	}
 	require(viewlist.concat(templatelist), function () {
 	    for(var i=0;i<viewlist.length;i++) {
-        var el
-        if (widgetlist[i].element.substring(0,3) != 'row'){
-            el = $("#"+ widgetlist[i].element)
-        } else {
-            $('#dynamic-content').append("<div class='widgetSpot'></div>")
-            el = $('.widgetSpot', $('#dynamic-content')).last()
-        }
-            new arguments[i]({template: arguments[i+viewlist.length], el: el})
+		var el
+		if (widgetlist[i].element.substring(0,3) != 'row'){
+		    el = $("#"+ widgetlist[i].element)
+		} else {
+		    $('#dynamic-content').append("<div class='row'></div>")
+		    el = $('.row', $('#dynamic-content')).last()
+		}
+		new arguments[i]({template: arguments[i+viewlist.length], el: el})
 	    }
 	    $("#content").show();
 	    Backbone.history.loadUrl(Backbone.history.fragment);
