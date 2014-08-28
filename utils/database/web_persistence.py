@@ -579,7 +579,7 @@ class WebPersistence():
     })
 
     @asyncio.coroutine
-    def audit_info(self, desired, userid, startdate=None, enddate=None, orderby=Results.datetime,
+    def audit_info(self, desired, provider, customer, startdate=None, enddate=None, orderby=Results.datetime,
                    ascending=True, limit=""):
         columns = build_columns(desired.keys(), self._available_audit_info,
                                 self._default_audit_info)
@@ -589,9 +589,9 @@ class WebPersistence():
         cmd.append("SELECT")
         cmd.append(columns)
         cmd.append("FROM audit")
-        cmd.append("LEFT JOIN users ON users.user_name = audit.username")
-        cmd.append("WHERE users.user_id = %s")
-        cmdargs.append(userid)
+        cmd.append("WHERE audit.username = %s AND audit.customer = %s")
+        cmdargs.append(provider)
+        cmdargs.append(customer)
         append_extras(cmd, cmdargs, Results.datetime, startdate, enddate, orderby, ascending,
                       None, limit, self._available_audit_info)
 

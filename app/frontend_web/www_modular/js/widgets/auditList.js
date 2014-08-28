@@ -9,13 +9,14 @@ define([
 ], function ($, _, Backbone, auditCollection, AuditRow) {
 
     var AuditList = Backbone.View.extend({
-    targetUser:null,
+    targetProvider:null,
+    targetCustomer:null,
 	initialize: function(arg) {
 	    //this.userFilter = null;//arg.userFilter;
-        if (arg.targetUser)
+        if (arg.targetProvider && arg.targetCustomer)
         {
-            this.userFilter = arg.targetUser;
-            auditCollection.data="target_user="+arg.targetUser;
+            this.userFilter = arg.targetProvider;
+            auditCollection.data="target_provider="+arg.targetProvider+"&target_customer="+arg.targetCustomer;
         }
         auditCollection.initialize();
 	    this.template = _.template(arg.template); // this must already be loaded
@@ -53,7 +54,7 @@ define([
 		}
 	    }
 	    if(!nonempty) {
-            $('.auditaccordion', this.$el).append("No audits for this user");
+            //$('.auditaccordion', this.$el).html("No audits for this user");
 	    }
         this.$el.show();
 
@@ -69,12 +70,12 @@ define([
 	},
 	addAudit: function(audit) {
 	    var auditrow = new AuditRow({model: audit});
-	    $('.auditaccordion', this.$el).append(auditrow.render().el);
+	    $('.audittable', this.$el).append(auditrow.render().el);
 	    this.$el.show();
         //auditrow.events();
 	},	
 	reset: function() {
-	    $('.auditaccordion', this.$el).empty();
+	    $('.audittable > tbody', this.$el).empty();
 	    this.$el.hide();
 	},
     });

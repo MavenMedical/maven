@@ -46,7 +46,8 @@ define([
                 $(that.el).mousestop(500, function(e) {
                     if (curTitle) {
                         //mousepos=e;
-                        auditList = new AuditList({el: $(auditElement), template: AuditTemplate, targetUser: that.model.get("user_id")});
+                        auditList = new AuditList({el: $(auditElement), template: AuditTemplate, targetCustomer: that.model.get("customer_id"),
+                                                   targetProvider: that.model.get("prov_id")});
                         auditList.$el[0].style.left = (mousepos.pageX + 10) + 'px';
                         auditList.$el[0].style.top = (mousepos.pageY - 50) + 'px';
                         //console.log(that.model.get("user_id"));

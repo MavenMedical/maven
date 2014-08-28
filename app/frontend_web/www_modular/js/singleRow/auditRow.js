@@ -16,7 +16,7 @@ define([
 ], function ($, _, Backbone, auditRowTemplate) {
 
     var AuditRow = Backbone.View.extend({
-        tagName: 'div',
+        tagName: "tr class='audit-row'",
         template: _.template(auditRowTemplate),
         render: function(){
             $(this.el).html(this.template($.extend({viewid:this.cid},this.model.toJSON())));

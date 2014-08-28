@@ -1,15 +1,21 @@
-<div class = "widget-column col-sm-12">
-<div class="audit-scroll">
-    <% if (! (typeof userFilter === 'undefined')) { %>
-        User Audits
-    <% } %>
-    <div class="auditlist" style="overflow-y:auto;max-height:200px;width:100%;">
-        <div class='panel-body' >
-            <ul class="list-group auditaccordion">
-
-            </ul>
-       </div>
+<div class = "widget-column">
+    <div class="auditlist audit-scroll">
+        <% if (! (typeof userFilter === 'undefined')) { %>
+            <h4>Audits from this user</h4>
+        <% } %>
+        <div class="auditaccordion">
+        <table class="table table-condensed table-hover audittable">
+        <col width="50%">
+        <col width="50%">
+        <thead >
+            <tr>
+                <th align="left" id="audit_date" class="panel-heading rule">Date</th>
+                <th align="left" id="audit_action" class="last_audit_header">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+        </table>
+        </div>
     </div>
-</div>
-
 </div>

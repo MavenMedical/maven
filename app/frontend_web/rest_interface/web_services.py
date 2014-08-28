@@ -58,6 +58,8 @@ class CONTEXT():
     ACTION = 'action'
     ACTIONCOMMENT = 'action_comment'
     TARGETUSER = 'target_user'
+    TARGETCUSTOMER = 'target_customer'
+    TARGETPROVIDER = 'target_provider'
     STATE = 'state'
     PATHID = 'id'
     SEARCH_PARAM = 'search_param'
@@ -647,12 +649,15 @@ class FrontendWebService(HTTP.HTTPProcessor):
                   {CONTEXT.PROVIDER: str, CONTEXT.PATIENTLIST: list, CONTEXT.CUSTOMERID: int,
                    CONTEXT.ENCOUNTER: str, CONTEXT.STARTDATE: date, CONTEXT.ENDDATE: date,
                    CONTEXT.ORDERID: str, CONTEXT.CATEGORIES: list, CONTEXT.USER: int,
-                   CONTEXT.TARGETUSER: int},
+                   CONTEXT.TARGETPROVIDER: str, CONTEXT.TARGETCUSTOMER: int},
                   {USER_ROLES.provider, USER_ROLES.supervisor})
     def get_audits(self, _header, _body, context, matches, _key):
-        targetuser = context.get(CONTEXT.TARGETUSER, None)
-        if not targetuser:
-            targetuser = context[CONTEXT.USER]
+        provider = context.get(CONTEXT.TARGETPROVIDER, None)
+        customer = context.get(CONTEXT.TARGETCUSTOMER, None)
+        if not provider:
+            provider = context[CONTEXT.PROVIDER]
+        if not customer:
+            customer = context[CONTEXT.CUSTOMERID]
 
         startdate = self.helper.get_date(context, CONTEXT.STARTDATE)
         enddate = self.helper.get_date(context, CONTEXT.ENDDATE)
@@ -668,8 +673,9 @@ class FrontendWebService(HTTP.HTTPProcessor):
             WP.Results.device: 'device',
         }
 
-        results = yield from self.persistence_interface.audit_info(desired, targetuser, startdate=startdate,
-                                                                   enddate=enddate, limit=limit)
+        results = yield from self.persistence.audit_info(desired, provider, customer,
+                                                         startdate=startdate,
+                                                         enddate=enddate, limit=limit)
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
 

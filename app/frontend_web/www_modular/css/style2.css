@@ -560,10 +560,12 @@ border-right: 1px solid rgb(204, 204, 204);
     padding:2px;
 }
 
-#mouse-target > .audit-scroll > .auditlist > .panel-body {
+#mouse-target > .audit-scroll > .auditlist {
     background-color: white;
     padding-top:5px;
     padding-bottom: 5px;
+    padding-left: 0;
+    padding-right: 0;
     width:100%;
 }
 
@@ -580,14 +582,45 @@ border-right: 1px solid rgb(204, 204, 204);
     margin:auto;
 }
 
-.audit-panel > .panel-heading {
-    float:left;
+.audit-scroll {
+    overflow-y:auto;
+    max-height:200px;
     width:100%;
+    margin-bottom: 10px;
 }
 
-.audit-date, .audit-action {
-    width: 50%;
-    float:left;
+.audittable {
+    width:100%;
+    padding: 0;
+}
+
+.audittable > tbody > tr > td {
+    padding: 10px 15px;
+}
+
+.audittable > thead > tr > .first_audit_header {
+    border-top-left-radius: 3px;
+}
+
+.audittable > thead > tr > .last_audit_header {
+    border-top-right-radius: 3px;
+}
+
+.audittable > thead > tr > th {
+    background-color: rgb(223, 245, 253);
+    color: rgb(70, 87, 102);
+    border-bottom: 1px solid transparent;
+    border-top: 1px solid transparent;
+    font-weight: normal;
+    padding: 10px 15px;
+}
+
+.audit-panel > .col-sm-12{
+    padding:0;
+}
+
+..audittable > tbody {
+    background-color: white;
 }
 
 /***************************************************************
