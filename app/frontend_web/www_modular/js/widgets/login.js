@@ -13,7 +13,8 @@ define([
         initialize: function (options) {
 	    contextModel.on('change:loginTemplate', this.render, this);
 	    $("#login-modal").modal({'show':'true', 'backdrop':'static',keyboard:false});
-	    this.render();	    
+	    this.user = '';
+	    this.render();
         },
 	events: {
 	    'click #login-button': 'dologin',
@@ -29,7 +30,7 @@ define([
 		var that=this;
 		require(["text!../templates/"+contextModel.get('loginTemplate')], function(loginTemplate) {
 		    that.template = _.template(loginTemplate);
-		    that.$el.html(that.template({user:'maven', password:'maven'}));
+		    that.$el.html(that.template({user:that.user}));
 		    that.newPasswordChange();
 		});
 	    } else {
@@ -54,6 +55,7 @@ define([
 	},
 	dologin: function(event) {
 	    var user = $("#login-user").val();
+	    this.user = user;
 	    var password = $("#login-password").val();
 	    if( user && password ) {
 		var jqnewpassword = $("#login-new-password");
@@ -70,6 +72,7 @@ define([
 	},
 	newPasswordChange: function() {
 	    var newpw = $("#login-new-password").val();
+	    if (!newpw) return false;
 	    var check = "<big><big><font color='#00b000'>&#x2714</font></big></big>";
 	    var X = "<big><font color='#ff0000'>&#x2718</font></big>";
 	    var len = newpw.length<8;

@@ -8,7 +8,8 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'globalmodels/contextModel',
-    'globalmodels/histogramModel'
+    'globalmodels/histogramModel',
+    'amchartsserial',
 ], function ($, _, Backbone, contextModel, histogramModel) {
 
     var downloadorder = ['diagnosis', 'admission', 'discharge', 'spending'];
