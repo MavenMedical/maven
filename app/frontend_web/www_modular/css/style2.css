@@ -561,6 +561,7 @@ border-right: 1px solid rgb(204, 204, 204);
 }
 
 #mouse-target > .audit-scroll > .auditlist {
+    clear: both;
     background-color: white;
     padding-top:5px;
     padding-bottom: 5px;
@@ -596,6 +597,7 @@ border-right: 1px solid rgb(204, 204, 204);
 
 .audittable > tbody > tr > td {
     padding: 10px 15px;
+    background-color: white;
 }
 
 .audittable > thead > tr > .first_audit_header {
@@ -615,12 +617,26 @@ border-right: 1px solid rgb(204, 204, 204);
     padding: 10px 15px;
 }
 
+.audit-header {
+    background-color: rgb(235, 235, 235);
+    border-bottom: 1px solid transparent;
+    border-top: 1px solid transparent;
+    font-weight: normal;
+    padding: 5px 15px;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+}
+
 .audit-panel > .col-sm-12{
     padding:0;
 }
 
-..audittable > tbody {
+.audittable > tbody {
     background-color: white;
+}
+
+.audit-header h4 {
+    margin: 0;
 }
 
 /***************************************************************

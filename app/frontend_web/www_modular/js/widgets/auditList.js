@@ -12,11 +12,14 @@ define([
     targetProvider:null,
     targetCustomer:null,
 	initialize: function(arg) {
-	    //this.userFilter = null;//arg.userFilter;
-        if (arg.targetProvider && arg.targetCustomer)
+        if (arg.targetProvider || arg.targetCustomer)
         {
-            this.userFilter = arg.targetProvider;
+            this.userFilter = "active";
             auditCollection.data="target_provider="+arg.targetProvider+"&target_customer="+arg.targetCustomer;
+        }
+        else
+        {
+            auditCollection.data = "";
         }
         auditCollection.initialize();
 	    this.template = _.template(arg.template); // this must already be loaded
@@ -24,7 +27,6 @@ define([
 	    auditCollection.bind('add', this.addAudit, this);
 	    auditCollection.bind('reset', this.reset, this);
 	    auditCollection.bind('sync', this.addAll, this);
-	    //spendingModel.on('change:userFilter', function() {
 		//this.render();
 	    //}, this);
 	    this.render();
@@ -42,23 +44,19 @@ define([
 	},
 	addAll: function() {
 	    this.reset();
-	    var userfilter = this.userFilter; 
 	    var nonempty = false;
 	    if (auditCollection.length) {
 		for(audit in auditCollection.models) {
-		    if(!userfilter 
-		       || auditCollection.models[audit].get('user') == userfilter) {
 			this.addAudit(auditCollection.models[audit]);
 			nonempty = true;
-		    }
 		}
 	    }
 	    if(!nonempty) {
-            //$('.auditaccordion', this.$el).html("No audits for this user");
+            $('.audittable > tbody', this.$el).html("<tr><td colspan=\"2\">None available</td></tr>");
+           this.$el.show();
 	    }
-        this.$el.show();
-
-        if (nonempty) {
+        else {
+            this.$el.show();
             var auditlist = $('.auditlist', this.$el);
             setTimeout(function () {
                 var auditHeight = auditlist.innerHeight();
