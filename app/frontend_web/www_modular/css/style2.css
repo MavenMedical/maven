@@ -153,7 +153,17 @@ html, body {
     margin:0px;
 }
 
-#fixed-top {
+#fixed-topA {
+    position:fixed;
+    top:0px;
+    left:0px;
+    right:0px;
+    z-index:11;
+    /*height: 130px; /*var-fixed-top-size*/
+    background: #ffffff;
+}
+
+#fixed-topB {
     position:fixed;
     top:0px;
     left:0px;
@@ -161,6 +171,14 @@ html, body {
     z-index:10;
     /*height: 130px; /*var-fixed-top-size*/
     background: #ffffff;
+}
+
+#fixed-topA > .col-sm-12{
+    padding: 0;
+}
+
+#fixed-topA > .widget-column > .navbar {
+    margin: 0;
 }
 
 .pat-info {
@@ -240,8 +258,9 @@ html, body {
     margin-left: 15px
 }
 .widget-column {
-    overflow:hidden
+
 }
+
 #content {
     overflow:hidden;
     position:relative;
