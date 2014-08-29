@@ -30,7 +30,8 @@ define([
     var loginCallback = function (res) {
 	contextModel.set({'loginTemplate':null});
 	//if(res.get('stylesheet')) {
-	//    setActiveStyleSheet(res.get('stylesheet'));
+
+	    setActiveStyleSheet('demo');
 	//}
 	// each row is {element, widget, template}
 	var widgetlist = res.get('widgets');
