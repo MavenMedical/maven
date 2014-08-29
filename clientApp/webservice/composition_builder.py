@@ -16,7 +16,6 @@ __author__ = 'Yuki Uchino'
 # ************************
 # LAST MODIFIED FOR JIRA ISSUE: MAV-289
 # *************************************************************************
-import uuid
 import dateutil.parser
 from enum import Enum
 import json
@@ -28,7 +27,7 @@ from utils.web_client.builder import builder
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
 
 
-COMP_BUILD_LOG = ML.get_logger('clientApp.module_webservice.allscripts_server')
+COMP_BUILD_LOG = ML.get_logger('clientApp.webservice.allscripts_server')
 CONFIG_API = 'api'
 CUSTOMERID = 'customer_id'
 

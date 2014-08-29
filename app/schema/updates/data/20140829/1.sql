@@ -1,0 +1,2 @@
+INSERT INTO layouts (layout_id, widget, template, element, priority) VALUES (1, 'auditList', 'auditScroll.html', 'pane5-content', 2);
+INSERT INTO layouts (layout_id, widget, template, element, priority) VALUES (2, 'userList', 'userScroll.html', 'rowD-1-1', 2);

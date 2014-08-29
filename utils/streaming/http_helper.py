@@ -1,4 +1,5 @@
 import utils.streaming.http_responder as HTTP
+from app.backend.webservices.authentication import AUTH_LENGTH
 import utils.crypto.authorization_key as AK
 import itertools
 import asyncio
@@ -10,10 +11,10 @@ ML.set_debug('/tmp/http_helper.log')
 
 
 class HTTPHelper:
-    def __init__(self, contexts_user, context_key, auth_length):
+    def __init__(self, contexts_user, context_key):
         self.contexts_user = contexts_user
         self.context_key = context_key
-        self.auth_length = auth_length
+        self.auth_length = AUTH_LENGTH
 
     def restrict_context(self, qs, required, available):
         for k in list(qs.keys()):

@@ -1,27 +1,26 @@
-#*************************************************************************
-#Copyright (c) 2014 - Maven Medical
-#************************
-#AUTHOR:
+# *************************************************************************
+# Copyright (c) 2014 - Maven Medical
+# ************************
+# AUTHOR:
 
-__author__='Yuki Uchino'
-#************************
-#DESCRIPTION:   This emr_parser.py contains the classes required to parse the incoming
+__author__ = 'Yuki Uchino'
+# ************************
+# DESCRIPTION:   This emr_parser.py contains the classes required to parse the incoming
 #               SOAP XML messages from Epic, VistA and any other EMRs that Maven integrates
 #               with.
 #
 #
-#************************
-#ASSUMES:
-#************************
-#SIDE EFFECTS:
-#************************
-#LAST MODIFIED FOR JIRA ISSUE: MAV-91
-#*************************************************************************
+# ************************
+# ASSUMES:
+# ************************
+# SIDE EFFECTS:
+# ************************
+# LAST MODIFIED FOR JIRA ISSUE: MAV-91
+# *************************************************************************
 import xml.etree.ElementTree as ET
 import datetime
 import uuid
 import dateutil.parser
-import json
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
 from utils.enums import ORDER_STATUS
 
@@ -29,7 +28,7 @@ from utils.enums import ORDER_STATUS
 class EpicParser():
 
     def __init__(self):
-        #raise NotImplementedError
+        # raise NotImplementedError
         pass
 
     def create_composition(self, xml_root):
@@ -55,7 +54,7 @@ class EpicParser():
 
         demog_root = ET.fromstring(xml_demog)
         try:
-            #Parse important data elements out of incoming XML using Python's ElementTree object
+            # Parse important data elements out of incoming XML using Python's ElementTree object
             self.zipcode = demog_root.findall(".//Zip")[0].text
             self.firstName = demog_root.findall(".//FirstName")[0].text
             self.lastName = demog_root.findall(".//LastName")[0].text
@@ -69,7 +68,7 @@ class EpicParser():
             raise Exception('Error parsing XML demographics')
 
         try:
-            #Create Patient from the API using data from above
+            # Create Patient from the API using data from above
             pat = FHIR_API.Patient()
             pat.add_name(given=[self.firstName], family=[self.lastName])
             pat.add_maven_identifier(value=uuid.uuid1())
@@ -111,9 +110,9 @@ class EpicParser():
             if patclass == "E":
                 pat_encounter.encounter_class = "Emergency"
             elif patclass == "I":
-                pat_encounter.encounter_class ="Inpatient"
+                pat_encounter.encounter_class = "Inpatient"
             else:
-                pat_encounter.encounter_class ="Ambulatory"
+                pat_encounter.encounter_class = "Ambulatory"
 
         except:
             raise Exception("Error parsing Encounter information")
@@ -163,12 +162,12 @@ class EpicParser():
             if "internal" in idtp.findall(".//Type")[0].text.lower():
                 prob.identifier.append(
                     FHIR_API.Identifier(label="Internal", system="clientEMR", value=idtp.findall(".//ID")[0].text))
-                #self.diagnosis = cliDiagnosis.cliDiagnosis(idtp.findall(".//ID")[0].text, config)
+                # self.diagnosis = cliDiagnosis.cliDiagnosis(idtp.findall(".//ID")[0].text, config)
                 break
 
         prob.date_asserted = dateutil.parser.parse(root.findall(".//NotedDate")[0].text)
 
-        chron=root.findall(".//IsChronic")[0].text
+        chron = root.findall(".//IsChronic")[0].text
         if chron is not None and "true" in chron.lower():
             prob.isChronic = True
 
@@ -195,7 +194,7 @@ class VistaParser():
     def create_composition(self, xml_enc):
         ###
         # Create the FHIR Bundle Object for bundling the FHIR Composition and it's Resources up.
-        #fhir_bundle = FHIR_API.Bundle(title="Vista EMR Message")
+        # fhir_bundle = FHIR_API.Bundle(title="Vista EMR Message")
 
         ##
         # Create the FHIR Composition Object with a Type=LOINC coded version of
@@ -203,9 +202,9 @@ class VistaParser():
         composition = FHIR_API.Composition(type=FHIR_API.CodeableConcept())
         composition.type.coding.append(FHIR_API.Coding(system="http://loinc.org", code="74028-2"))
 
-        #fhir_bundle.entry.append(composition)
+        # fhir_bundle.entry.append(composition)
 
-        #TODO - Hardcoded customer id
+        # TODO - Hardcoded customer id
         composition.customer_id = 1
         composition.encounter = FHIR_API.Encounter(customer_id=composition.customer_id)
         composition.author = FHIR_API.Practitioner(customer_id=composition.customer_id)
@@ -240,10 +239,10 @@ class VistaParser():
         try:
             composition.subject = FHIR_API.Patient(customer_id=composition.customer_id)
 
-            #Parse important data elements out of incoming XML using Python's ElementTree object
+            # Parse important data elements out of incoming XML using Python's ElementTree object
             city = xml_root.findall(".//City")[0].text
             country = xml_root.findall(".//Country")[0].text
-            county = xml_root.findall(".//County")[0].text
+            # county = xml_root.findall(".//County")[0].text
             state = xml_root.findall(".//State")[0].text
             street = xml_root.findall(".//Street")[0].text
             zipcode = xml_root.findall(".//Zip")[0].text
@@ -304,26 +303,26 @@ class VistaParser():
             encounter_orders = []
             for enc_ord in xml_root.findall(".//Order"):
 
-                #Get Client EHR's UUID for Order_ID and store as Identifier
+                # Get Client EHR's UUID for Order_ID and store as Identifier
                 ord_id = enc_ord.findall(".//ID")[0].text
 
-                #Order Name
+                # Order Name
                 ord_name = enc_ord.findall(".//Name")[0].text
 
-                #Order Type
+                # Order Type
                 ord_type = enc_ord.findall(".//Type")[0].text
 
-                #Procedure Code
+                # Procedure Code
                 if enc_ord.findall(".//ProcedureCode")[0].text:
                     procedure_code = enc_ord.findall(".//ProcedureCode")[0].text
 
-                #Procedure Code Type
+                # Procedure Code Type
                 if enc_ord.findall(".//CodeType")[0].text:
                     ord_code_type = enc_ord.findall(".//CodeType")[0].text
                 elif ord_code_type is None:
                     ord_code_type = "Internal"
 
-                #Order Date
+                # Order Date
                 if enc_ord.findall(".//OrderingDate")[0].text.replace('@', ' '):
                     datetime_raw = enc_ord.findall(".//OrderingDate")[0].text.replace('@', ' ')
                     ord_datetime = dateutil.parser.parse(datetime_raw)
@@ -375,7 +374,6 @@ class VistaParser():
                 condition = self._parse_condition(prb)
                 encounter_dxs.append(condition)
 
-
             fhir_encounter_dx_section.content = encounter_dxs
             composition.section.append(fhir_encounter_dx_section)
 
@@ -399,7 +397,7 @@ class VistaParser():
                 if prob.code is None:
                     prob.code = FHIR_API.CodeableConcept()
                 prob.code.coding.append(FHIR_API.Coding(system="ICD-9", code=dx_code_value))
-                #prob.code.coding.append(FHIR_API.Coding(system=dx_code_type, code=dx_code_value))
+                # prob.code.coding.append(FHIR_API.Coding(system=dx_code_type, code=dx_code_value))
 
         chron = xml_root.findall(".//IsChronic")[0].text
         if chron is not None and "true" in chron.lower():
@@ -434,6 +432,7 @@ def delete_none(d):
         elif isinstance(value, dict):
             delete_none(value)
     return d
+
 
 def _get_composition(file_path):
     with open(file_path) as f:

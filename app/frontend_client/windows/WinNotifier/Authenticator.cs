@@ -12,6 +12,7 @@ namespace MavenAsDemo
     /// </summary>
     class Authenticator
     {
+        public static bool quitLogin = false;
         /// <summary>
         /// Gets a key encrypted with DPAPI to use in calls to the cloud. 
         /// </summary>
@@ -27,13 +28,17 @@ namespace MavenAsDemo
         /// <returns>an encrypted byte array representing the key. call the windowsDPAPI decrypion method to use in a url.</returns>
         public static byte[] GetEncryptedAuthKey(string promptMessage)
         {
+            if (quitLogin)
+            {
+                //if we want to cancel out of the login process, this will stop the recursive login prompting
+                ClearLoginSettings();
+                return null;
+            }
             byte[] key = null;
             //look to the registry which should be where this is usually stored
             RegistryKey authKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Maven\\PathwaysDesktop\\Security\\", false);
             if (authKey != null && authKey.GetValue("Auth") != null)
             {
-
-
                 //if you found the key and it is ok to use it, then by all means use it
                 key = (byte[])authKey.GetValue("Auth");
 
@@ -46,6 +51,12 @@ namespace MavenAsDemo
                 //the login will save the key to the registry. 
                 //come back here recursively until the key is valid
                 key = GetEncryptedAuthKey();
+                if (quitLogin)
+                {
+                    //if we want to cancel out of the login process, this will stop the recursive login prompting
+                    ClearLoginSettings();
+                    return null;
+                }
             }
             //return the key
             return key;

@@ -1,10 +1,10 @@
 #!/bin/bash
 MAVEN_TESTING=1
 export MAVEN_TESTING
-cd $MAVEN_ROOT/clientApp/module_webservice
+cd $MAVEN_ROOT/clientApp/webservice
 sleep 100 | nc -l 8090 | ${MAVEN_ROOT}/strip_ephemeral.bash &
 sleep .1
-python ${MAVEN_ROOT}/clientApp/module_webservice/client_server.py 2> /dev/null&
+python ${MAVEN_ROOT}/clientApp/webservice/client_server.py 2> /dev/null&
 sleep .2
 (sleep .3; cat test_message_from_ehr) | nc localhost 8088 &
 sleep .2

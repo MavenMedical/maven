@@ -1,7 +1,7 @@
 <div class = "widget-column">
     <div class="auditlist audit-scroll">
         <% if (! (typeof userFilter === 'undefined')) { %>
-            <h4>Audits from this user</h4>
+            <div class="audit-header">Audits From This User</div>
         <% } %>
         <div class="auditaccordion">
         <table class="table table-condensed table-hover audittable">
@@ -9,7 +9,7 @@
         <col width="50%">
         <thead >
             <tr>
-                <th align="left" id="audit_date" class="panel-heading rule">Date</th>
+                <th align="left" id="audit_date" class="first_audit_header panel-heading rule">Date</th>
                 <th align="left" id="audit_action" class="last_audit_header">Action</th>
             </tr>
         </thead>
