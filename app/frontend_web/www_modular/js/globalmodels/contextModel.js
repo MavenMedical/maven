@@ -29,9 +29,9 @@ define([
 
     var loginCallback = function (res) {
 	contextModel.set({'loginTemplate':null});
-	if(res.get('stylesheet')) {
-	    setActiveStyleSheet(res.get('stylesheet'));
-	}
+	//if(res.get('stylesheet')) {
+	//    setActiveStyleSheet(res.get('stylesheet'));
+	//}
 	// each row is {element, widget, template}
 	var widgetlist = res.get('widgets');
 	var viewlist = [];

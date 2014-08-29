@@ -68,10 +68,9 @@ define([
                }
                 curTree.on('propagate', function(){
                     that.render()
-                })
-                curTree.on('change:selectedNode', this.render)
+                }, this)
                 curTree.on('sync', this.render, this)
-                contextModel.on('change:pathid', this.render, this)
+                contextModel.on('change', this.render, this)
                this.render()
             },
             render: function(){
