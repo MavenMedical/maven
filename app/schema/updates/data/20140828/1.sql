@@ -1,4 +1,4 @@
-﻿UPDATE LAYOUTS SET (element, priority) = ('fixed-topB', 1) where widget = 'patientInfo';
+UPDATE LAYOUTS SET (element, priority) = ('fixed-topB', 1) where widget = 'patientInfo';
 
 UPDATE LAYOUTS SET (element, priority) = ('fixed-topB', 2) where widget = 'patientSearch';
 

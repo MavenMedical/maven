@@ -25,13 +25,13 @@ import utils.streaming.stream_processor as SP
 import utils.streaming.http_responder as HR
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
 import clientApp.notification_generator.notification_generator as NG
-import clientApp.module_webservice.notification_service as NS
+import clientApp.webservice.notification_service as NS
 from clientApp.allscripts.allscripts_scheduler import scheduler, CONFIG_SLEEPINTERVAL
 import utils.web_client.allscripts_http_client as AHC
 
 
 CONFIG_API = 'api'
-CLIENT_SERVER_LOG = ML.get_logger('clientApp.module_webservice.allscripts_server')
+CLIENT_SERVER_LOG = ML.get_logger('clientApp.webservice.allscripts_server')
 
 
 class IncomingFromMavenMessageHandler(HR.HTTPWriter):
@@ -150,7 +150,7 @@ def main(loop):
         'scheduler':
         {
             CONFIG_API: 'allscripts_demo',
-            CONFIG_SLEEPINTERVAL: 10,
+            CONFIG_SLEEPINTERVAL: 30,
             "SP": outgoingtomavenmessagehandler
         },
         customerid: 5

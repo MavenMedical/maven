@@ -14,23 +14,19 @@ __author__ = 'Yuki Uchino'
 # ************************
 # LAST MODIFIED FOR JIRA ISSUE: MAV-303
 # *************************************************************************
-from utils.streaming.webservices_core import *
 from app.backend.webservices.transparent import TransparentWebservices
 from app.backend.webservices.pathways import PathwaysWebservices
-
-
-class AllWebservices(WebserviceCore, PathwaysWebservices, TransparentWebservices):
-
-    def __init__(self, configname):
-
-        # Run the init method (which contains pretty much all set-up)
-        super(AllWebservices, self).__init__(configname)
-
-        # Loop through each base classes's functions and find the functions that were decorated with @http_service
-        # and add them as handlers
-        for base_class in expand_base_class_methods(set(), self.__class__):
-            for f in filter(lambda x: (hasattr(x, 'maven_webservice') and hasattr(x, '__call__')), base_class.__dict__.values()):
-                self.add_handler(f.maven_webservice[0], f.maven_webservice[1], partial(f, self))
+from app.backend.webservices.authentication import AuthenticationWebservices
+from app.backend.webservices.patient_mgmt import PatientMgmtWebservices
+from app.backend.webservices.user_mgmt import UserMgmtWebservices
+from app.backend.webservices.search import SearchWebservices
+import utils.streaming.stream_processor as SP
+import utils.database.tree_persistance as TP
+import utils.streaming.webservices_core as WC
+import utils.database.web_persistence as WP
+import asyncio
+import maven_config as MC
+from utils.streaming.http_svcs_wrapper import CONFIG_PERSISTENCE
 
 
 def run():
@@ -54,9 +50,15 @@ def run():
                     AsyncConnectionPool.CONFIG_MAX_CONNECTIONS: 8
                 }
         }
-    scvs = AllWebservices('httpserver')
+    core_scvs = WC.WebserviceCore('httpserver')
+    for c in [AuthenticationWebservices, PatientMgmtWebservices,
+              UserMgmtWebservices, SearchWebservices,
+              TransparentWebservices, PathwaysWebservices]:
+        print(c)
+        core_scvs.register_services(c('httpserver'))
+
     event_loop = asyncio.get_event_loop()
-    scvs.schedule(event_loop)
+    core_scvs.schedule(event_loop)
     event_loop.run_forever()
 
 if __name__ == '__main__':

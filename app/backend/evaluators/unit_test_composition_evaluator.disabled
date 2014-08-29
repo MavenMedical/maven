@@ -28,7 +28,7 @@ import app.backend.evaluators.composition_evaluator as CE
 class TestCompositionEvaluator(unittest.TestCase):
 
     def setUp(self):
-        with open("/home/devel/maven/clientApp/module_webservice/test_message_from_ehr") as f:
+        with open("/home/devel/maven/clientApp/webservice/test_message_from_ehr") as f:
             r = f.readlines()
             self.composition = VistaParser().create_composition(r[11])
         self.composition_evaluator = CE.CompositionEvaluator(testhandler)

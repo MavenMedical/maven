@@ -198,7 +198,7 @@ class WebPersistence():
     def __init__(self, configname):
         self.db = AsyncConnectionPool(MC.MavenConfig[configname][CONFIG_DATABASE])
 
-    def schedule(self, loop):
+    def schedule(self, loop=asyncio.get_event_loop()):
         self.db.schedule(loop)
 
     @asyncio.coroutine

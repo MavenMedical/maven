@@ -2,6 +2,9 @@ import asyncio
 from functools import wraps
 import utils.streaming.http_responder as HTTP
 
+CONFIG_PERSISTENCE = 'persistence'
+EMPTY_RETURN = [{'id': 000000, 'term': "No Results Found", 'code': 000000, 'type': 'none'}]
+
 
 class CONTEXT():
     USER = 'user'
