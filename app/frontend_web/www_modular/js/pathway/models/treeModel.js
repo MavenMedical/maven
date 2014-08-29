@@ -2,12 +2,21 @@ define([
     'jquery',
     'underscore',
     'backbone',
-   'globalmodels/contextModel',
+    'globalmodels/contextModel',
     'pathway/models/nodeList',
     'pathway/models/pathwayCollection'
 ], function($, _, Backbone, contextModel, NodeList, pathwayCollection){
     var treeModel;
 
+    var deleteRecur = function(me , toDelete){
+            _.each(me.get('children').models, function(cur){
+                if (cur == toDelete){
+                    me.get('children').remove(toDelete)
+                } else {
+                    deleteRecur(cur, toDelete)
+                }
+        })
+    }
 
     var TreeModel = Backbone.Model.extend({
         elPairs: [],
@@ -39,7 +48,7 @@ define([
                     if (cur == toDelete){
                       that.get('children').remove(toDelete)
                     } else {
-                       cur.deleteNode(toDelete)
+                       deleteRecur(cur, toDelete)
                     }
                 })
             this.trigger('propagate')
@@ -72,6 +81,7 @@ define([
             this.set({protocol: response.protocol}, {silent: true})
             this.set({name: response.name}, {silent: true})
             this.set({children: new NodeList(response.children)}, {silent: true})
+            this.set({hideChildren: false}, {silent: true})
             _.each(this.get('children').models, function(cur){
                 cur.set({'hideChildren': "false"}, {silent: true})
             })

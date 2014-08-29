@@ -36,6 +36,7 @@ define([
                 this.model.get('children').on('add', function(){
                     curTree.trigger('propagate')
                 },this)
+                this.model.off('change')
                 this.model.on('change', function(){
                     curTree.trigger('propagate')
                 }, this)
@@ -43,6 +44,7 @@ define([
                 this.model.get('triggers').on('add', function(){
                     curTree.trigger('propagate')
                 },this)
+                this.model.get('triggers').off('remove')
                 this.model.get('triggers').on('remove', function(){
                     curTree.trigger('propagate')
                 },this)
@@ -65,6 +67,9 @@ define([
                     return $('.treeNode', this.$el).first()
             },
             render: function(){
+                 if (!this.model.get('hideChildren')){
+                    this.model.set('hideChildren', false, {silent: true})
+                }
                 this.$el.html(this.template({protocol: this.model.get('protocol'), children: this.model.get('children'), text: this.model.get('text')}))
 
                   var that = this;
@@ -82,7 +87,8 @@ define([
 
                 this.getMyElement().off('click')
                 this.getMyElement().on('click', function(){
-                    contextModel.set('selectedNode', that.model)
+                    curTree.set('selectedNode', that.model, {silent: true})
+                    curTree.trigger('propagate')
                 })
                 _.each(this.model.get('children').models, function(cur){
 
@@ -98,7 +104,7 @@ define([
                 } else {
                     $('.children2', this.$el).first()[0].hidden = false;
                 }
-                if (this.model == contextModel.get('selectedNode')){
+                if (this.model == curTree.get('selectedNode')){
                     that.getMyElement().addClass('selected')
                 }
 
@@ -122,9 +128,6 @@ define([
                         curRemoveButton.on('click', function(){
                             that.model.get('triggers').remove(cur)
                         })
-
-
-
 
                     }, this)
 

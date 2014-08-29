@@ -153,7 +153,18 @@ html, body {
     margin:0px;
 }
 
-#fixed-top {
+#fixed-topA {
+    position:fixed;
+    top:0px;
+    left:0px;
+    right:0px;
+    z-index:10;
+    /*height: 130px; /*var-fixed-top-size*/
+    background: #ffffff;
+}
+
+
+#fixed-topB {
     position:fixed;
     top:0px;
     left:0px;
