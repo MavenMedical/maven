@@ -14,10 +14,21 @@ __author__ = 'Yuki Uchino'
 # ************************
 # LAST MODIFIED FOR JIRA ISSUE: MAV-303
 # *************************************************************************
-from utils.streaming.webservices_core import *
-import bcrypt
-import utils.crypto.authorization_key as AK
 import re
+import json
+import bcrypt
+import asyncio
+import utils.crypto.authorization_key as AK
+import utils.database.web_persistence as WP
+from utils.streaming.http_svcs_wrapper import http_service, CONTEXT
+import utils.streaming.http_responder as HTTP
+
+AUTH_LENGTH = 44  # 44 base 64 encoded bits gives the entire 256 bites of SHA2 hash
+LOGIN_TIMEOUT = 60 * 60  # 1 hour
+
+
+class LoginError(Exception):
+    pass
 
 
 class AuthenticationWebservices():

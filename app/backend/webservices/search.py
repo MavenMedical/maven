@@ -14,7 +14,12 @@ __author__ = 'Yuki Uchino'
 # ************************
 # LAST MODIFIED FOR JIRA ISSUE: MAV-303
 # *************************************************************************
-from utils.streaming.webservices_core import *
+# from utils.streaming.webservices_core import *
+import json
+from utils.streaming.http_svcs_wrapper import http_service, CONTEXT
+from utils.enums import USER_ROLES
+import utils.database.web_persistence as WP
+import utils.streaming.http_responder as HTTP
 
 
 class SearchWebservices():

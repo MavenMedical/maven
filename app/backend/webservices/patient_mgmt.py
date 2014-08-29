@@ -14,7 +14,14 @@ __author__ = 'Yuki Uchino'
 # ************************
 # LAST MODIFIED FOR JIRA ISSUE: MAV-303
 # *************************************************************************
-from utils.streaming.webservices_core import *
+from utils.enums import USER_ROLES
+import json
+import asyncio
+import utils.database.web_persistence as WP
+from utils.streaming.http_svcs_wrapper import http_service, CONTEXT
+import utils.streaming.http_responder as HTTP
+
+date = str
 
 
 class PatientMgmtWebservices():
