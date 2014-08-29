@@ -43,14 +43,14 @@
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="MavenDesktop.exe" size="188416">
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="MavenDesktop.exe" size="189440">
       <assemblyIdentity name="MavenDesktop" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>gvlNQJxsOILCKtSPLQ22BbD5HglREppUYLgG0Li6i9M=</dsig:DigestValue>
+        <dsig:DigestValue>EtkaCEakoZD5Hl008OINBhhO/Y/xEXiye6lw1wnqfdY=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>
@@ -100,6 +100,15 @@
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
       <dsig:DigestValue>ldAJBd1yes5xAFbXgoroAl3P8qfZLZmStQsAX7M+qe4=</dsig:DigestValue>
+    </hash>
+  </file>
+  <file name="OverrideSettings.xml" size="80" writeableType="applicationData">
+    <hash>
+      <dsig:Transforms>
+        <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
+      </dsig:Transforms>
+      <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
+      <dsig:DigestValue>r+EO/ila/RqxZM6VoB5tPsUoQji8ABdCRbKMwr4+j60=</dsig:DigestValue>
     </hash>
   </file>
 </asmv1:assembly>
