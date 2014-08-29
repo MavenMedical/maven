@@ -22,17 +22,16 @@ from datetime import date, datetime, timedelta
 import re
 from dateutil.parser import parse
 import utils.web_client.allscripts_http_client as AHC
-import clientApp.module_webservice.notification_service as NS
+import clientApp.webservice.notification_service as NS
 import maven_config as MC
 import pickle
-from clientApp.module_webservice.composition_builder import CompositionBuilder
+from clientApp.webservice.composition_builder import CompositionBuilder
 from utils.streaming import stream_processor as SP
 import maven_logging as ML
-import utils.api.pyfhir.pyfhir_generated as FHIR_API
 
 icd9_match = re.compile('\(V?[0-9]+(?:\.[0-9]+)?\)')
 CONFIG_API = 'api'
-CLIENT_SERVER_LOG = ML.get_logger('clientApp.module_webservice.allscripts_server')
+CLIENT_SERVER_LOG = ML.get_logger('clientApp.webservice.allscripts_server')
 CONFIG_SLEEPINTERVAL = 'sleep interval'
 
 
