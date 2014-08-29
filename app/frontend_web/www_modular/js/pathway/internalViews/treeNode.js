@@ -30,7 +30,6 @@ define([
                 } else
                 if(!(this.model.get('children').models)){
                     this.model.set('children', new nodeList(this.model.get('children')), {silent: true})
-                    this.model.set({'hideChildren': "true"}, {silent: true})
                 }
                 var that = this
                 this.model.get('children').off('add')

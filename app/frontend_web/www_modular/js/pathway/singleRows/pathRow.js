@@ -27,7 +27,7 @@ define([
         },
         getRemoveUrl: function() {
             var n = contextModel.toParams()
-            n.id = this.id
+            n.pathid = this.model.get('id')
             return '/tree?' + decodeURIComponent($.param(n));
         },
         render: function(){
@@ -36,15 +36,16 @@ define([
         },
         initialize: function(params){
             this.model = params.model
+            console.log(this.model)
         },
         handleSelect: function() {
-
-                contextModel.set('id', this.model.get('id'))
-                curTree.fetch()
+                contextModel.set('pathid', this.model.get('id'))
 
         },
     	handleRemove: function() {
-            this.model.url = this.getRemoveUrl
+            var n = contextModel.toParams()
+            n.pathid = this.model.get('id')
+            this.model.url = '/tree?' + decodeURIComponent($.param(n));
             this.model.destroy({success: function(){
                 pathwayCollection.fetch()
             }})

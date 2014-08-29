@@ -76,6 +76,7 @@ namespace MavenAsDemo
         /// <param name="e"></param>
         private void pictureBox1_Click(object sender, EventArgs e)
         {
+            Authenticator.quitLogin = true;
             closeOut();
         }
         protected override bool ShowWithoutActivation

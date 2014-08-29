@@ -369,10 +369,6 @@ body {
 .divider{
     border-right: 1px solid #46bdec;
 }
-.row{
-    overflow: hidden;
-#    max-height: 600px;
-}
 .content{
     overflow: hidden;
 

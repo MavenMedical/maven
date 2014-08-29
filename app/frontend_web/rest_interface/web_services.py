@@ -61,7 +61,7 @@ class CONTEXT():
     TARGETCUSTOMER = 'target_customer'
     TARGETPROVIDER = 'target_provider'
     STATE = 'state'
-    PATHID = 'id'
+    PATHID = 'pathid'
     SEARCH_PARAM = 'search_param'
 
 LOGIN_TIMEOUT = 60 * 60  # 1 hour
@@ -157,7 +157,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
     def get_tree(self, _header, body, context, _matches, _key):
         ret = yield from self.save_interface.get_tree(context[CONTEXT.PATHID])
         ret = json.loads(ret)
-        ret['id'] = context[CONTEXT.PATHID]
+        ret[CONTEXT.PATHID] = context[CONTEXT.PATHID]
 
         return (HTTP.OK_RESPONSE, json.dumps(ret), None)
 
@@ -168,6 +168,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
     def put_update(self, _header, body, context, _matches, _key):
         info = json.loads(body.decode('utf-8'))
         yield from self.save_interface.update_tree(info)
+        info[CONTEXT.PATHID] = info['id']
         return (HTTP.OK_RESPONSE, json.dumps(info), None)
 
     @http_service(['DELETE'], '/tree',
@@ -185,7 +186,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
     def post_create(self, _header, body, qs, _matches, _key):
         info = json.loads(body.decode('utf-8'))
         resultid = yield from self.save_interface.create_tree(info)
-        info['id'] = resultid
+        info[CONTEXT.PATHID] = resultid
         return (HTTP.OK_RESPONSE, json.dumps(info), None)
 
     @http_service(['GET'], '/autocomplete_patient',

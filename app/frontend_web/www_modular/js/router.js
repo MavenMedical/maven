@@ -49,6 +49,7 @@ define([
 	    "episode/:id/patient/:id/:date(/login/:provider/:customer/:userAuth)": 'showEpisode',
         "pathway/:id/patient/:id/:date(/login/:provider/:customer/:userAuth)": 'showPathway',
 	    "evidence/:id/patient/:id/evi/:id(/login/:provider/:customer/:userAuth)": 'showEvidence',
+        "pathway/:id/pathid/:id(/login/:provider/:customer/:userAuth)": 'showPath',
 	    "logout": 'logout',
             "settings": 'settings',
 	    //default
@@ -84,6 +85,13 @@ define([
 		}
 	    }
 	},
+    showPath: function(enc, path, provider, customer, userAuth){
+
+        if (CheckLogin()){
+                currentContext.set({page: 'pathEditor', encounter: enc, pathid: path})
+                currentContext.once('change:auth', function(){currentContext.set({page: 'pathEditor', encounter: enc, pathid: path})})
+        }
+    },
 	logout: function() {
 	    currentContext.clear({silent:true});
 	    location.href="/index.html";

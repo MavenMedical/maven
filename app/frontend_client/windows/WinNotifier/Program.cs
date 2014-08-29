@@ -34,6 +34,7 @@ namespace MavenAsDemo
                 Application.SetCompatibleTextRenderingDefault(false);
                 Authenticator.HandleLoginStickiness(); //clear the login settings if we shouldn't be using them
                 EncryptedKey = Authenticator.GetEncryptedAuthKey(); //get a new key or login with the existing one
+                if (EncryptedKey == null) { return; } //if you came back with no key, then you haven't successfully logged in. quit. 
                 Application.EnableVisualStyles();
                 ThreadStart startTray = new ThreadStart(prepTray);
                 Thread traythread = new Thread(startTray);
@@ -438,7 +439,7 @@ namespace MavenAsDemo
         /// </summary>
         /// <param name="sender">can be null. required by .net</param>
         /// <param name="e">can be null. required by .net</param>
-        static void CloseOut(object sender, EventArgs e)
+        public static void CloseOut(object sender, EventArgs e)
         {
             try
             {

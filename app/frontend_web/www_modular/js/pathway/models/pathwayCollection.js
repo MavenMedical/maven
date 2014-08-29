@@ -2,9 +2,8 @@ define([
     'jquery',
     'underscore',
     'backbone',
-   'globalmodels/contextModel',
     'globalmodels/contextModel'
-], function($, _, Backbone, c, contextModel){
+], function($, _, Backbone, contextModel){
 
 
     var pathCollection = Backbone.Collection.extend({

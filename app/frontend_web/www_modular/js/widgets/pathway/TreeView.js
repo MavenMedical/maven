@@ -36,8 +36,8 @@ define([
                     }
                 })
 
-                 this.treeEl = $('.tree', this.$el)
-                 this.treeEl.draggable()
+                this.treeEl = $('.tree', this.$el)
+                this.treeEl.draggable()
                 var that = this
                 this.plumb.setContainer(this.treeEl[0])
                 this.$el.on('wheel', function(data){

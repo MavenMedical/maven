@@ -33,8 +33,9 @@ define([
         this.$el.html(this.template());
         var appendEl =  $('.table-body', this.$el)
         _.each(curCollection.models, function(cur){
-            var thisModel = new Backbone.Model({id: cur[0], name: cur[1]})
-            var thisRow = new PathRow({model: cur})
+            console.log(cur.get('pathid'))
+            var thisModel = new Backbone.Model({id: cur.get('pathid'), name: cur.get('name')})
+            var thisRow = new PathRow({model: thisModel})
             appendEl.append(thisRow.render().$el)
         }, this)
     },
