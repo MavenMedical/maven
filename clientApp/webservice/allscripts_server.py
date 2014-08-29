@@ -150,7 +150,7 @@ def main(loop):
         'scheduler':
         {
             CONFIG_API: 'allscripts_demo',
-            CONFIG_SLEEPINTERVAL: 10,
+            CONFIG_SLEEPINTERVAL: 30,
             "SP": outgoingtomavenmessagehandler
         },
         customerid: 5

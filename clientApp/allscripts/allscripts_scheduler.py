@@ -111,9 +111,9 @@ class scheduler(SP.StreamProcessor):
                     match = icd9_match.search(keywords)
                     docid = doc.get('DocumentID')
                     doctime = doc.get('SortDate', None)
-                    newdoc = doctime and parse(doctime) >= prior
+                    todaydoc = doctime and datetime.date(parse(doctime)) == today
                     newdoc = True
-                    if match and newdoc and (patient, provider, today, docid) not in self.processed:
+                    if match and newdoc and todaydoc and (patient, provider, today, docid) not in self.processed:
                         ML.DEBUG('got doc, (match, newdoc, docid, first) = %s' % str((match, newdoc, docid, first)))
                         self.processed.add((patient, provider, today, docid))
                         if not first:
