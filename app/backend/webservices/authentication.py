@@ -20,8 +20,9 @@ import bcrypt
 import asyncio
 import utils.crypto.authorization_key as AK
 import utils.database.web_persistence as WP
-from utils.streaming.http_svcs_wrapper import http_service, CONTEXT
+from utils.streaming.http_svcs_wrapper import http_service, CONTEXT, CONFIG_PERSISTENCE
 import utils.streaming.http_responder as HTTP
+import maven_config as MC
 
 AUTH_LENGTH = 44  # 44 base 64 encoded bits gives the entire 256 bites of SHA2 hash
 LOGIN_TIMEOUT = 60 * 60  # 1 hour
@@ -32,6 +33,10 @@ class LoginError(Exception):
 
 
 class AuthenticationWebservices():
+
+    def __init__(self, configname):
+        config = MC.MavenConfig[configname]
+        self.persistence = WP.WebPersistence(config[CONFIG_PERSISTENCE])
 
     @http_service(['POST'], '/login', None, None, None)
     def post_login(self, header, body, _context, _matches, _key):
@@ -101,8 +106,6 @@ class AuthenticationWebservices():
             roles = user_info[WP.Results.roles]
             user_auth = AK.authorization_key([[user], [provider], [customer], sorted(roles)],
                                              AUTH_LENGTH, LOGIN_TIMEOUT)
-            if not self.stylesheet == 'original':
-                self.stylesheet = 'demo'
 
             desired_layout = {
                 WP.Results.widget: 'widget',
@@ -115,7 +118,7 @@ class AuthenticationWebservices():
 
             ret = {CONTEXT.USER: user_info[WP.Results.userid],
                    'display': user_info[WP.Results.displayname],
-                   'stylesheet': self.stylesheet, 'customer_id': customer,
+                   'customer_id': customer,
                    'official_name': user_info[WP.Results.officialname],
                    CONTEXT.PROVIDER: provider,
                    CONTEXT.USER: user,

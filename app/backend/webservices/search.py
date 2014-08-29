@@ -16,13 +16,18 @@ __author__ = 'Yuki Uchino'
 # *************************************************************************
 # from utils.streaming.webservices_core import *
 import json
-from utils.streaming.http_svcs_wrapper import http_service, CONTEXT
+from utils.streaming.http_svcs_wrapper import http_service, CONTEXT, CONFIG_PERSISTENCE
 from utils.enums import USER_ROLES
 import utils.database.web_persistence as WP
 import utils.streaming.http_responder as HTTP
+import maven_config as MC
 
 
 class SearchWebservices():
+
+    def __init__(self, configname):
+        config = MC.MavenConfig[configname]
+        self.persistence = WP.WebPersistence(config[CONFIG_PERSISTENCE])
 
     @http_service(['GET'], '/autocomplete_patient',
                   [CONTEXT.PATIENTNAME, CONTEXT.PROVIDER, CONTEXT.CUSTOMERID],

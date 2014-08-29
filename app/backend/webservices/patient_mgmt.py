@@ -18,13 +18,17 @@ from utils.enums import USER_ROLES
 import json
 import asyncio
 import utils.database.web_persistence as WP
-from utils.streaming.http_svcs_wrapper import http_service, CONTEXT
+from utils.streaming.http_svcs_wrapper import http_service, CONTEXT, CONFIG_PERSISTENCE
 import utils.streaming.http_responder as HTTP
-
+import maven_config as MC
 date = str
 
 
 class PatientMgmtWebservices():
+
+    def __init__(self, configname):
+        config = MC.MavenConfig[configname]
+        self.persistence = WP.WebPersistence(config[CONFIG_PERSISTENCE])
 
     @http_service(['GET'], '/patients(?:(\d+)-(\d+)?)?',
                   [CONTEXT.PROVIDER, CONTEXT.CUSTOMERID],

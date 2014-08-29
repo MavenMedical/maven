@@ -14,11 +14,24 @@ __author__ = 'Yuki Uchino'
 # ************************
 # LAST MODIFIED FOR JIRA ISSUE: MAV-303
 # *************************************************************************
-from utils.streaming.webservices_core import *
+# from utils.streaming.webservices_core import *
+from utils.streaming.http_svcs_wrapper import CONFIG_PERSISTENCE, http_service, CONTEXT
+from utils.enums import USER_ROLES
 from collections import defaultdict
+import maven_config as MC
+from datetime import date
+import utils.database.web_persistence as WP
+import utils.streaming.http_responder as HTTP
+import json
+import asyncio
 
 
 class TransparentWebservices():
+
+    def __init__(self, configname):
+        config = MC.MavenConfig[configname]
+        self.persistence = WP.WebPersistence(config[CONFIG_PERSISTENCE])
+        self.persistence.schedule()
 
     @http_service(['GET'], '/total_spend',
                   [CONTEXT.PROVIDER, CONTEXT.KEY, CONTEXT.CUSTOMERID],
@@ -154,6 +167,12 @@ class TransparentWebservices():
 
 def run():
     from utils.database.database import AsyncConnectionPool
+    import utils.streaming.webservices_core as WC
+    from app.backend.webservices.authentication import AuthenticationWebservices
+    from app.backend.webservices.patient_mgmt import PatientMgmtWebservices
+    from app.backend.webservices.user_mgmt import UserMgmtWebservices
+    from app.backend.webservices.search import SearchWebservices
+    import utils.streaming.stream_processor as SP
 
     MC.MavenConfig = \
         {
@@ -164,8 +183,6 @@ def run():
                     CONFIG_PERSISTENCE: "persistence layer",
                 },
             'persistence layer': {WP.CONFIG_DATABASE: 'webservices conn pool', },
-            'persistance': {TP.CONFIG_DATABASE: 'webservices conn pool'},
-            'search': {TP.CONFIG_DATABASE: 'webservices conn pool'},
             'webservices conn pool':
                 {
                     AsyncConnectionPool.CONFIG_CONNECTION_STRING: MC.dbconnection,
@@ -173,8 +190,13 @@ def run():
                     AsyncConnectionPool.CONFIG_MAX_CONNECTIONS: 8
                 }
         }
-    core_scvs = WebserviceCore('httpserver')
-    core_scvs.register_services([TransparentWebservices])
+
+    core_scvs = WC.WebserviceCore('httpserver')
+    for c in [AuthenticationWebservices, PatientMgmtWebservices,
+              UserMgmtWebservices, SearchWebservices,
+              TransparentWebservices]:
+        core_scvs.register_services(c('httpserver'))
+
     event_loop = asyncio.get_event_loop()
     core_scvs.schedule(event_loop)
     event_loop.run_forever()

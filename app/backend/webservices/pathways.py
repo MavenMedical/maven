@@ -14,10 +14,21 @@ __author__ = 'Yuki Uchino'
 # ************************
 # LAST MODIFIED FOR JIRA ISSUE: MAV-303
 # *************************************************************************
-from utils.streaming.webservices_core import *
+import utils.database.web_search as WS
+import utils.database.tree_persistance as TP
+import maven_config as MC
+from utils.streaming.http_svcs_wrapper import CONTEXT, http_service, EMPTY_RETURN
+from utils.enums import USER_ROLES
+import utils.streaming.http_responder as HTTP
+import json
 
 
 class PathwaysWebservices():
+
+    def __init__(self, configname):
+        # config = MC.MavenConfig[configname]
+        self.search_interface = WS.web_search('search')
+        self.save_interface = TP.tree_persistance('persistance')
 
     @http_service(['GET'], '/list',
                   [],
@@ -82,6 +93,10 @@ class PathwaysWebservices():
 
 def run():
     from utils.database.database import AsyncConnectionPool
+    import utils.streaming.stream_processor as SP
+    import utils.database.tree_persistance as TP
+    import utils.streaming.webservices_core as WC
+    import asyncio
 
     MC.MavenConfig = \
         {
@@ -89,9 +104,9 @@ def run():
                 {
                     SP.CONFIG_HOST: 'localhost',
                     SP.CONFIG_PORT: 8087,
-                    CONFIG_PERSISTENCE: "persistence layer",
+                    TP.CONFIG_PERSISTENCE: "persistence layer",
                 },
-            'persistence layer': {WP.CONFIG_DATABASE: 'webservices conn pool', },
+            'persistence layer': {TP.CONFIG_DATABASE: 'webservices conn pool', },
             'persistance': {TP.CONFIG_DATABASE: 'webservices conn pool'},
             'search': {TP.CONFIG_DATABASE: 'webservices conn pool'},
             'webservices conn pool':
@@ -101,8 +116,8 @@ def run():
                     AsyncConnectionPool.CONFIG_MAX_CONNECTIONS: 8
                 }
         }
-    core_scvs = WebserviceCore('httpserver')
-    core_scvs.register_services([PathwaysWebservices])
+    core_scvs = WC.WebserviceCore('httpserver')
+    core_scvs.register_services(PathwaysWebservices('httpserver'))
     event_loop = asyncio.get_event_loop()
     core_scvs.schedule(event_loop)
     event_loop.run_forever()
