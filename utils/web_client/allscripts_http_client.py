@@ -5,14 +5,20 @@ from xml.etree import ElementTree as ETree
 from enum import Enum
 from functools import wraps, lru_cache
 from maven_config import MavenConfig
+import maven_logging as ML
 from maven_logging import WARN, EXCEPTION, INFO
 import utils.database.memory_cache as memory_cache
+import utils.api.pyfhir.pyfhir_generated as FHIR_API
+import dateutil.parser
 
 ALLSCRIPTS_NUM_PARAMETERS = 6
 
 CONFIG_APPNAME = 'appname'
 CONFIG_APPUSERNAME = 'appusername'
 CONFIG_APPPASSWORD = 'apppassword'
+
+logger = ML.get_logger()
+ML.set_debug()
 
 
 class COMPLETION_STATUSES(Enum):
@@ -445,6 +451,144 @@ class allscripts_api(http.http_api):
                                                             "", info, subject,
                                                             user=username, patient=patient))
         return self.postprocess(ret)
+
+    def build_subject(self, get_patient_result):
+
+        # Extract the demographic information
+        firstname = get_patient_result['Firstname']
+        lastname = get_patient_result['LastName']
+        birthDate = dateutil.parser.parse(get_patient_result['dateofbirth'])
+        street = get_patient_result['Addressline1']
+        street2 = get_patient_result['AddressLine2']
+        city = get_patient_result['City']
+        state = get_patient_result['State']
+        zip = get_patient_result['ZipCode']
+        sex = get_patient_result['gender']
+        maritalStatus = get_patient_result['MaritalStatus']
+
+        # Create Medical Record Number (MRN) FHIR Identifier
+        fhir_MRN_identifier = FHIR_API.Identifier(label="MRN",
+                                                  system="clientEMR",
+                                                  value=get_patient_result['mrn'])
+
+        # Create SSN FHIR Identifier
+        fhir_SSN_identifier = FHIR_API.Identifier(label="NationalIdentifier",
+                                                  system="clientEMR",
+                                                  value=get_patient_result['ssn'])
+
+        # Create clientEMR Internal Identifier
+        fhir_EMR_identifier = FHIR_API.Identifier(system="clientEMR",
+                                                  label="Internal",
+                                                  value=get_patient_result['ID'])
+
+        fhir_patient = FHIR_API.Patient(identifier=[fhir_EMR_identifier, fhir_MRN_identifier, fhir_SSN_identifier],
+                                        birthDate=birthDate,
+                                        name=[FHIR_API.HumanName(given=[firstname],
+                                                                 family=[lastname])],
+                                        gender=sex,
+                                        maritalStatus=maritalStatus,
+                                        address=[FHIR_API.Address(line=[street, street2],
+                                                                  city=city,
+                                                                  state=state,
+                                                                  zip=zip)])
+        return fhir_patient
+
+    def build_conditions(self, clin_summary):
+
+        fhir_dx_section = FHIR_API.Section(title="Encounter Dx",
+                                           code=FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(system="http://loinc.org",
+                                                                                                 code="11450-4")]))
+        for problem in [detail for detail in clin_summary if detail['section'] == "problems"]:
+
+            # Instantiate the FHIR Condition
+            fhir_condition = FHIR_API.Condition()
+
+            # Figure out whether it's a Problem List/Encounter Dx, or Past Medical History
+            # Parsing this string 'Promoted: Yes'
+            if len(problem['detail']) > 0 and problem['detail'].replace(" ", "").split(":")[1] == "Yes":
+                fhir_condition.category = "Encounter"
+            else:
+                fhir_condition.category = "History"
+
+            # Get the date the condition was asserted
+            fhir_condition.dateAsserted = dateutil.parser.parse(problem['displaydate']) or None
+
+            # Create the FHIR CodeableConcept that contains the Display Name and terminology (ICD-9) coding
+            code, system = problem['entrycode'].split("|")
+
+            if system in ["ICD-9", "ICD9"]:
+                fhir_condition.code = FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(system="ICD-9",
+                                                                                       code=code,
+                                                                                       display=problem['description'])])
+            else:
+                fhir_condition.code = FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(display=problem['description'])])
+                logger.debug("Diagnosis Terminology (ICD-9/10, SNOMED CT) not provided for %s" % problem)
+
+            fhir_dx_section.content.append(fhir_condition)
+
+        return fhir_dx_section
+
+    def build_partial_practitioner(self, provider_result):
+
+        # Extract the demographic information
+        firstname = provider_result['FirstName']
+        lastname = provider_result['LastName']
+
+        specialty = provider_result['PrimSpecialty']
+
+        # Create clientEMR Internal Identifier
+        fhir_identifiers = [FHIR_API.Identifier(system="clientEMR",
+                                                label="Internal",
+                                                value=provider_result['EntryCode']),
+                            FHIR_API.Identifier(system="clientEMR",
+                                                label="Username",
+                                                value=provider_result['UserName'])]
+
+        # Instantiate and build the FHIR Practitioner from the data
+        fhir_practitioner = FHIR_API.Practitioner(identifier=fhir_identifiers,
+                                                  name=FHIR_API.HumanName(given=[firstname],
+                                                                          family=[lastname]),
+                                                  specialty=[specialty])
+        return fhir_practitioner
+
+    def build_full_practitioner(self, get_provider_result):
+
+        # Extract the demographic information
+        firstname = get_provider_result['FirstName']
+        lastname = get_provider_result['LastName']
+        suffix = get_provider_result['SuffixName']
+        specialty = get_provider_result['Specialty']
+        street1 = get_provider_result['AddressLine1'].strip()
+        street2 = get_provider_result['AddressLine2']
+        city = get_provider_result['City']
+        state = get_provider_result['State'].strip()
+        zipcode = get_provider_result['ZipCode']
+
+        contactInfo = [FHIR_API.Contact(system="Phone",
+                                        value=get_provider_result['Phone'].strip()),
+                       FHIR_API.Contact(system="Fax",
+                                        value=get_provider_result['Fax'].strip())]
+
+        # Create clientEMR Internal Identifier
+        fhir_identifiers = [FHIR_API.Identifier(system="clientEMR",
+                                                label="Internal",
+                                                value=get_provider_result['EntryCode']),
+                            FHIR_API.Identifier(system="clientEMR",
+                                                label="NPI",
+                                                value=get_provider_result['NPI'])]
+
+        # Instantiate and build the FHIR Practitioner from the data
+        fhir_practitioner = FHIR_API.Practitioner(identifier=fhir_identifiers,
+                                                  name=FHIR_API.HumanName(given=[firstname],
+                                                                          family=[lastname],
+                                                                          suffix=[suffix]),
+                                                  specialty=[specialty],
+                                                  telecom=contactInfo,
+                                                  address=[FHIR_API.Address(line=[street1, street2],
+                                                                            city=city,
+                                                                            state=state,
+                                                                            zip=zipcode)])
+        return fhir_practitioner
 
 
 if __name__ == '__main__':
