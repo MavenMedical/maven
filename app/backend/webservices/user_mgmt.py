@@ -151,3 +151,38 @@ class UserMgmtWebservices():
             return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
         else:
             return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
+
+    @http_service(['GET'], '/audits(?:(\d+)-(\d+)?)?',
+                  [CONTEXT.PROVIDER, CONTEXT.USER, CONTEXT.CUSTOMERID],
+                  {CONTEXT.PROVIDER: str, CONTEXT.PATIENTLIST: list, CONTEXT.CUSTOMERID: int,
+                   CONTEXT.ENCOUNTER: str, CONTEXT.STARTDATE: date, CONTEXT.ENDDATE: date,
+                   CONTEXT.ORDERID: str, CONTEXT.CATEGORIES: list, CONTEXT.USER: int,
+                   CONTEXT.TARGETPROVIDER: str, CONTEXT.TARGETCUSTOMER: int},
+                  {USER_ROLES.provider, USER_ROLES.supervisor})
+    def get_audits(self, _header, _body, context, matches, _key):
+        provider = context.get(CONTEXT.TARGETPROVIDER, None)
+        customer = context.get(CONTEXT.TARGETCUSTOMER, None)
+        if not provider:
+            provider = context[CONTEXT.PROVIDER]
+        if not customer:
+            customer = context[CONTEXT.CUSTOMERID]
+
+        startdate = self.helper.get_date(context, CONTEXT.STARTDATE)
+        enddate = self.helper.get_date(context, CONTEXT.ENDDATE)
+        limit = self.helper.limit_clause(matches)
+
+        desired = {
+            WP.Results.auditid: 'id',
+            WP.Results.datetime: 'date',
+            WP.Results.userid: 'user',
+            WP.Results.patientid: 'patient',
+            WP.Results.action: 'action',
+            WP.Results.details: 'details',
+            WP.Results.device: 'device',
+        }
+
+        results = yield from self.persistence.audit_info(desired, provider, customer,
+                                                         startdate=startdate,
+                                                         enddate=enddate, limit=limit)
+
+        return HTTP.OK_RESPONSE, json.dumps(results), None
