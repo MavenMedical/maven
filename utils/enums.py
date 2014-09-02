@@ -103,6 +103,7 @@ class USER_ROLES(Enum):
     mavensupport = "mavensupport"
     provider = "provider"
     supervisor = "supervisor"
+    notification = "notification"
 
 
 class DIAGNOSTIC_TERMINOLOGIES(Enum):

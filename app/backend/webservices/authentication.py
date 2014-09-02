@@ -34,9 +34,12 @@ class LoginError(Exception):
 
 class AuthenticationWebservices():
 
-    def __init__(self, configname):
+    def __init__(self, configname, specific_role=None, timeout=None):
         config = MC.MavenConfig[configname]
         self.persistence = WP.WebPersistence(config[CONFIG_PERSISTENCE])
+        self.persistence.schedule()
+        self.specific_role = specific_role and specific_role.value
+        self.timeout = timeout or LOGIN_TIMEOUT
 
     @http_service(['POST'], '/login', None, None, None)
     def post_login(self, header, body, _context, _matches, _key):
@@ -103,9 +106,9 @@ class AuthenticationWebservices():
             user = str(user_info[WP.Results.userid])
             provider = user_info[WP.Results.provid]
             customer = str(user_info[WP.Results.customerid])
-            roles = user_info[WP.Results.roles]
+            roles = [self.specific_role] if self.specific_role else user_info[WP.Results.roles]
             user_auth = AK.authorization_key([[user], [provider], [customer], sorted(roles)],
-                                             AUTH_LENGTH, LOGIN_TIMEOUT)
+                                             AUTH_LENGTH, self.timeout)
 
             desired_layout = {
                 WP.Results.widget: 'widget',

@@ -1,4 +1,3 @@
-
 /***************************************************************************
  * Copyright (c) 2014 - Maven Medical
  * AUTHOR: 'Asmaa Aljuhani'
@@ -12,101 +11,137 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone,
-    
+
     'globalmodels/contextModel',
     'widgets/evidence',
     'widgets/login',
     'widgets/settings'
 ], function ($, _, Backbone, currentContext, Evidence, Login, Settings) {
-    
-    var CheckLogin = function() {
-	if (!currentContext.get('user') || !currentContext.get('userAuth')) {
-	    new Login({el: '#login-modal'})
-	    return false;
-	}
-	return true;
-    };
-    
-    var showPage = function(provider, customer, userAuth) {
-	if(provider && !currentContext.get('user')) {
-	    console.log('pre-authenticated login');
-	    currentContext.setProvider(provider, customer, userAuth);
-	} else {
-	    if (CheckLogin()) {
-		console.log('showing page '+currentContext.get('page'));
-		/* do more stuff here */
-		window.scrollTo(0,0);
-	    } else {
-		console.log('trying to log in');
-	    }
-	}
-    };
-    
-    var AppRouter = Backbone.Router.extend({
-	routes: {
-	    "(login/:provider/:customer/:userAuth)": 'showHome',
-	    "patient/:id(/login/:provider/:customer/:userAuth)": 'showPatient',
-	    "episode/:id/patient/:id/:date(/login/:provider/:customer/:userAuth)": 'showEpisode',
-        "pathway/:id/patient/:id/:date(/login/:provider/:customer/:userAuth)": 'showPathway',
-	    "evidence/:id/patient/:id/evi/:id(/login/:provider/:customer/:userAuth)": 'showEvidence',
-        "pathway/:id/pathid/:id(/login/:provider/:customer/:userAuth)": 'showPath',
-	    "logout": 'logout',
-            "settings": 'settings',
-	    //default
-	    '*action': 'defaultAction'
-	},
-	showHome: function (provider, customer, userAuth) {
-	    /* remove the current patient list, encounter, etc to revert the view to the doctor's user page */
-	    currentContext.set({page:'home',patients:null,encounter:null,patientName:null});
-	    showPage(provider, customer, userAuth);
-	},
-	showPatient: function (patid, provider, customer, userAuth) {
-	    currentContext.set({page:'patient', encounter:null, patients:patid});
-	    showPage(provider, customer, userAuth);
-	},
-	showEpisode: function(enc, pat, date, provider, customer, userAuth){
-	    currentContext.set({page:'episode',encounter:enc,patients:pat, enc_date:date, 
-				startdate:null, enddate:null});
-	    showPage(provider, customer, userAuth);
-	},
-	showPathway: function(enc, pat, date, provider, customer, userAuth){
-	    currentContext.set({page:'pathway',encounter:enc,patients:pat, enc_date:date,
-				startdate:null, enddate:null});
-	    showPage(provider, customer, userAuth);
-	},
-	showEvidence: function (enc, pat, evi, provider, customer, userAuth) {
-	    currentContext.set({page:'episode',encounter:enc,patients:pat});
-	    if(provider && provider != currentContext.get('user')) {
-		currentContext.setProvider(provider, customer, userAuth);
-	    } else {
-		if(CheckLogin()) {
-		    var evidence = new Evidence({'evi':evi});
-		    //$('#evidence-' + evi).modal();
-		}
-	    }
-	},
-    showPath: function(enc, path, provider, customer, userAuth){
 
-        if (CheckLogin()){
-                currentContext.set({page: 'pathEditor', encounter: enc, pathid: path})
-                currentContext.once('change:auth', function(){currentContext.set({page: 'pathEditor', encounter: enc, pathid: path})})
+    var CheckLogin = function () {
+        if (!currentContext.get('user') || !currentContext.get('userAuth')) {
+            new Login({el: '#login-modal'})
+            return false;
         }
-    },
-	logout: function() {
-	    currentContext.clear({silent:true});
-	    location.href="/index.html";
-	},
-	defaultAction: function (action) {
-	    console.log('No route:', action);
-	},
-	initialize: function () {
-	    //ajaxPrefilter
-	    $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
-		options.url = 'services' + options.url;
-	    });
-	    Backbone.history.start();
-	}
+        return true;
+    };
+    //This variables holds an array of the content of the container in index.html
+    var layout = ["#floating-left",
+        "#dynamic-content",
+        "#floating-right"];
+    //This variable holds each page and its layout
+    // array length should match the number of layouts
+    // the sum of each array should be 12 (Following bootstrap grid)
+    var pageLayout = {
+        "home": [0, 9, 3],
+        "patient": [0, 9, 3],
+        "episode": [0, 9, 3],
+        "pathEditor": [0, 9, 3]
+    };
+    changePageLayout = function (page) {
+        console.log("change page layout");
+        if (page in pageLayout) {
+            console.log(pageLayout[page]);
+            $.each(layout, function (index, value) {
+                console.log(pageLayout[page][index], value);
+                if (pageLayout[page][index] == 0) {
+                    $(value).hide();
+                }
+                else {
+                    $(value).show();
+                    $(value).removeClass();
+                    //$(value)[0].className = $(value)[0].className.replace(/(\s)*(col-md-.*?)(?=\s)/g, "col-md-"+pageLayout[page][index]);
+                    $(value).addClass("content col-md-"+pageLayout[page][index]);
+                }
+            });
+        }
+        else
+            return;//"#f2c313";
+    };
+
+    var showPage = function (provider, customer, userAuth) {
+        if (provider && !currentContext.get('user')) {
+            console.log('pre-authenticated login');
+            currentContext.setProvider(provider, customer, userAuth);
+        } else {
+            if (CheckLogin()) {
+                console.log('showing page ' + currentContext.get('page'));
+                changePageLayout(currentContext.get('page'));
+                /* do more stuff here */
+                window.scrollTo(0, 0);
+            } else {
+                console.log('trying to log in');
+            }
+        }
+    };
+
+    var AppRouter = Backbone.Router.extend({
+        routes: {
+            "(login/:provider/:customer/:userAuth)": 'showHome',
+            "patient/:id(/login/:provider/:customer/:userAuth)": 'showPatient',
+            "episode/:id/patient/:id/:date(/login/:provider/:customer/:userAuth)": 'showEpisode',
+            "evidence/:id/patient/:id/evi/:id(/login/:provider/:customer/:userAuth)": 'showEvidence',
+            "pathway/:id/patient/:id/:date(/login/:provider/:customer/:userAuth)": 'showPathway',
+            "pathway/:id/pathid/:id(/login/:provider/:customer/:userAuth)": 'showPath',
+            "logout": 'logout',
+            "settings": 'settings',
+            //default
+            '*action': 'defaultAction'
+        },
+        showHome: function (provider, customer, userAuth) {
+            /* remove the current patient list, encounter, etc to revert the view to the doctor's user page */
+            currentContext.set({page: 'home', patients: null, encounter: null, patientName: null});
+            showPage(provider, customer, userAuth);
+        },
+        showPatient: function (patid, provider, customer, userAuth) {
+            currentContext.set({page: 'patient', encounter: null, patients: patid});
+            showPage(provider, customer, userAuth);
+        },
+        showEpisode: function (enc, pat, date, provider, customer, userAuth) {
+            currentContext.set({page: 'episode', encounter: enc, patients: pat, enc_date: date,
+                startdate: null, enddate: null});
+            showPage(provider, customer, userAuth);
+        },
+        showPathway: function (enc, pat, date, provider, customer, userAuth) {
+            currentContext.set({page: 'pathway', encounter: enc, patients: pat, enc_date: date,
+                startdate: null, enddate: null});
+            showPage(provider, customer, userAuth);
+        },
+        showEvidence: function (enc, pat, evi, provider, customer, userAuth) {
+            currentContext.set({page: 'episode', encounter: enc, patients: pat});
+            if (provider && provider != currentContext.get('user')) {
+                currentContext.setProvider(provider, customer, userAuth);
+            } else {
+                if (CheckLogin()) {
+                    var evidence = new Evidence({'evi': evi});
+                    //$('#evidence-' + evi).modal();
+                }
+            }
+        },
+        showPath: function (enc, path, provider, customer, userAuth) {
+
+            if (CheckLogin()) {
+                currentContext.set({page: 'pathEditor', encounter: enc, pathid: path})
+                currentContext.once('change:auth', function () {
+                    currentContext.set({page: 'pathEditor', encounter: enc, pathid: path})
+                })
+            }
+        },
+        logout: function () {
+            currentContext.clear({silent: true});
+            location.href = "/index.html";
+        },
+        defaultAction: function (action) {
+            console.log('No route:', action);
+        },
+        initialize: function () {
+            //ajaxPrefilter
+            $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
+                options.url = 'services' + options.url;
+            });
+            Backbone.history.start();
+        }
     });
-    
+
     return AppRouter;
 });

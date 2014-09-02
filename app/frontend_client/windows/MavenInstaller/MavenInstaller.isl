@@ -1879,6 +1879,7 @@
 		<row><td>maven.ico</td><td>ISX_DEFAULTCOMPONENT1</td><td>maven.ico</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\dave\Documents\Visual Studio 2012\Projects\MavenAsDemo\bin\Debug\maven.ico</td><td>1</td><td/></row>
 		<row><td>mavendesktop.exe</td><td>MavenDesktop.exe</td><td>MAVEND~1.EXE|MavenDesktop.exe</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\dave\Documents\Visual Studio 2012\Projects\MavenAsDemo\bin\Debug\MavenDesktop.exe</td><td>1</td><td/></row>
 		<row><td>microsoft.visualbasic.powerp</td><td>Microsoft.VisualBasic.PowerPacks.Vs.dll</td><td>MICROS~1.DLL|Microsoft.VisualBasic.PowerPacks.Vs.dll</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\dave\Documents\Visual Studio 2012\Projects\MavenAsDemo\bin\Debug\Microsoft.VisualBasic.PowerPacks.Vs.dll</td><td>1</td><td/></row>
+		<row><td>overridesettings.xml</td><td>ISX_DEFAULTCOMPONENT1</td><td>OVERRI~1.XML|OverrideSettings.xml</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\dave\Documents\Visual Studio 2012\Projects\MavenAsDemo\bin\Debug\OverrideSettings.xml</td><td>1</td><td/></row>
 	</table>
 
 	<table name="FileSFPCatalog">
@@ -4439,7 +4440,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>Registry11</td><td>1</td><td>Software\Maven\PathwaysDesktop\Settings</td><td>location</td><td>BR</td><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
 		<row><td>Registry12</td><td>1</td><td>Software\Maven\PathwaysDesktop\Settings</td><td>FadeSlowness</td><td>3</td><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
 		<row><td>Registry13</td><td>1</td><td>Software\Maven\PathwaysDesktop\Settings</td><td>mode</td><td>deskSoft</td><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
-		<row><td>Registry16</td><td>1</td><td>Software\Microsoft\Windows\CurrentVersion\Run</td><td>MavenPathways</td><td>[INSTALLDIR]MavenDesktop.EXE</td><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
+		<row><td>Registry16</td><td>1</td><td>Software\Microsoft\Windows\CurrentVersion\Run</td><td/><td/><td>ISX_DEFAULTCOMPONENT1</td><td>1</td></row>
 		<row><td>Registry2</td><td>1</td><td>Software\Maven\PathwaysDesktop\Security</td><td/><td/><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
 		<row><td>Registry3</td><td>1</td><td>Software\Maven\PathwaysDesktop\Security</td><td>Auth</td><td>#x</td><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
 		<row><td>Registry9</td><td>1</td><td>Software\Maven\PathwaysDesktop\Settings</td><td/><td/><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>

@@ -35,8 +35,9 @@ CUSTOMERID = 'customer_id'
 class Types(Enum):
     Patient = 1
     ClinicalSummary = 2
-    Practitioners = 3
-    Practitioner = 4
+    CDASummary = 3
+    Practitioners = 4
+    Practitioner = 5
 
 
 class CompositionBuilder(builder):
@@ -72,9 +73,15 @@ class CompositionBuilder(builder):
         ret = yield from self.allscripts_api.GetClinicalSummary(username, patient, AHC.CLINICAL_SUMMARY.All)
         return ret
 
-    @builder.require(Types.Patient, Types.ClinicalSummary)
+    @builder.provide(Types.CDASummary)
     @ML.coroutine_trace(COMP_BUILD_LOG.debug, True)
-    def _build_composition_components(self, composition, patient_result, clin_summary_result):
+    def _CDA_summary(self, username, patient, doc_id):
+        ret = yield from self.allscripts_api.GetPatientCDA(username, patient)
+        return ret
+
+    @builder.require(Types.Patient, Types.ClinicalSummary, Types.CDASummary)
+    @ML.coroutine_trace(COMP_BUILD_LOG.debug, True)
+    def _build_composition_components(self, composition, patient_result, clin_summary_result, CDA_summary_result):
 
         # Create the FHIR Composition Object with a Type=LOINC coded version of
         # Virtual Medical Record for Clinical Decision Support ("74028-2") and append to the FHIR Bundle's Entries

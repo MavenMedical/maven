@@ -15,3 +15,4 @@ C:\Users\dave\documents\visual studio 2012\Projects\MavenAsDemo\obj\Debug\MavenD
 C:\Users\dave\documents\visual studio 2012\Projects\MavenAsDemo\obj\Debug\MavenDesktop.pdb
 C:\Users\dave\documents\visual studio 2012\Projects\MavenAsDemo\bin\Debug\Microsoft.VisualBasic.PowerPacks.Vs.dll
 C:\Users\dave\documents\visual studio 2012\Projects\MavenAsDemo\bin\Debug\Microsoft.VisualBasic.PowerPacks.Vs.xml
+C:\Users\dave\documents\visual studio 2012\Projects\MavenAsDemo\bin\Debug\OverrideSettings.xml

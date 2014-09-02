@@ -233,6 +233,9 @@
     <Content Include="maven.ico" />
     <Content Include="maven256.ico" />
     <Content Include="maven32.ico" />
+    <Content Include="OverrideSettings.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
