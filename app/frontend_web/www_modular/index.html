@@ -16,7 +16,7 @@
 
     <title>maven</title>
 
-    <link  rel="stylesheet" href="js/libs/jquery/jquery-ui.css" />
+    <link rel="stylesheet" href="js/libs/jquery/jquery-ui.css"/>
 
     <!-- Load the require script-->
     <script data-main="js/main" src="js/libs/require/require.js"></script>
@@ -25,22 +25,20 @@
     <link href="js/libs/fullCalendar/fullcalendar.css" rel="stylesheet" type="text/css">
 
     <script type="text/javascript">
-      var colorMap = {
-      "Consultation": "#18bc9a",
-      "Imaging": "#36485c",
-      "Laboratory": "#eb4b3b",
-      "Medication": "#9155ad",
-      "Procedure": "#3598dc",
-      };
-      findColor = function(type) {
-      if(type in colorMap) 
-      return colorMap[type];
-      else
-      return "#f2c313";
-      }
+        var colorMap = {
+            "Consultation": "#18bc9a",
+            "Imaging": "#36485c",
+            "Laboratory": "#eb4b3b",
+            "Medication": "#9155ad",
+            "Procedure": "#3598dc",
+        };
+        findColor = function (type) {
+            if (type in colorMap)
+                return colorMap[type];
+            else
+                return "#f2c313";
+        }
     </script>
-
-
 
 
     <link href="css/style1.css" rel="stylesheet" type="text/css" title='original'>
@@ -50,29 +48,25 @@
 
 <body>
 <div id='modal-target'></div>
-<div id="login-modal" class="modal fade" role="login" ></div>
-<div id="datepicker-modal" class="modal fade" role="datepicker" ></div>
-<div id="profile-modal" class="modal fade" role="profile" ></div>
-<div id="settings-modal" class="modal fade" role="login" ></div>
+<div id="login-modal" class="modal fade" role="login"></div>
+<div id="datepicker-modal" class="modal fade" role="datepicker"></div>
+<div id="profile-modal" class="modal fade" role="profile"></div>
+<div id="settings-modal" class="modal fade" role="login"></div>
 <div id='mouse-target' style='display:none; position:absolute; z-index:100'></div>
 
 
 <div id="wrapper" class="container">
-
-        <div id='fixed-topA' class='row'>
-        </div>
-        <div id='fixed-topB' class='row'>
-        </div>
-    <div class="row">
-            <div id="floating-left" class="col-sm-3 content">
-                <div id = "fixed-left-parent-row" class = "row"></div>
-            </div>
-            <div id = "dynamic-content" class = "content col-sm-content col-lg-6"></div>
-            <div id="floating-right" class="col-sm-3 content">
-                <div id = "fixed-right-parent-row" class = "row"></div>
-            </div>
-    </div>
-  </div>
+    <div id='fixed-topA' class='row'></div>
+    <div id='fixed-topB' class='row'></div>
 </div>
+
+<div class="container">
+    <div class="row">
+        <div id="floating-left" class="col-md-3 content"></div>
+        <div id="dynamic-content" class="col-md-6 content"></div>
+        <div id="floating-right" class="col-md-3 content"></div>
+    </div>
+</div>
+
 </body>
 </html>

@@ -243,19 +243,19 @@ html, body {
 }
 
 #floating-left {
-    position:relative;
+    /*position:relative;
     float:left;
     width:19%; /*var-floating-right-size*/
-    height: 600px;
-    margin-right: 15px;
+   /* height: 600px;
+    margin-right: 15px;*/
 }
 
 #floating-right {
-    position:relative;
+    /*position:relative;
     float:right;
     width:19%; /*var-floating-right-size*/
-    height: 600px;
-    margin-left: 15px
+    /*height: 600px;
+    margin-left: 15px */
 }
 .widget-column {
 
@@ -267,6 +267,9 @@ html, body {
     height: 2000px;
     margin-left:0px; /*var-float-left-size*/
     width:60%; /*100 minus var-float-left-size minus var-floating-right-size*/
+}
+
+#dynamic-content{
 }
 
 .mavenpadding {
