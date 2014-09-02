@@ -67,3 +67,22 @@ class AdministrationWebservices():
             return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
         else:
             return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
+
+    @http_service(['GET'], '/syncusers',
+                  [CONTEXT.CUSTOMERID], {CONTEXT.CUSTOMERID: int}, {USER_ROLES.maventask})
+    def sync_get_users(self, _header, _body, context, matches, _key):
+
+        limit = self.helper.limit_clause(matches)
+
+        desired = {
+            WP.Results.userid: 'user_id',
+            WP.Results.customerid: 'customer_id',
+            WP.Results.provid: 'prov_id',
+            WP.Results.username: 'user_name',
+            WP.Results.officialname: 'official_name',
+            WP.Results.displayname: 'display_name',
+            WP.Results.state: 'state'
+        }
+        results = yield from self.persistence.user_info(desired, limit=limit)
+
+        return HTTP.OK_RESPONSE, json.dumps(results), None

@@ -536,6 +536,12 @@ class allscripts_api(http.http_api):
 
         specialty = provider_result['PrimSpecialty']
 
+        # Extract User State (active vs inactive)
+        if provider_result['ProviderInactive'] == "N":
+            user_state = True
+        else:
+            user_state = False
+
         # Create clientEMR Internal Identifier
         fhir_identifiers = [FHIR_API.Identifier(system="clientEMR",
                                                 label="Internal",
@@ -548,7 +554,8 @@ class allscripts_api(http.http_api):
         fhir_practitioner = FHIR_API.Practitioner(identifier=fhir_identifiers,
                                                   name=FHIR_API.HumanName(given=[firstname],
                                                                           family=[lastname]),
-                                                  specialty=[specialty])
+                                                  specialty=[specialty],
+                                                  active=user_state)
         return fhir_practitioner
 
     def build_full_practitioner(self, get_provider_result):
