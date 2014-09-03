@@ -70,7 +70,7 @@ define([
                  if (!this.model.get('hideChildren')){
                     this.model.set('hideChildren', false, {silent: true})
                 }
-                this.$el.html(this.template({protocol: this.model.get('protocol'), children: this.model.get('children'), text: this.model.get('text')}))
+                this.$el.html(this.template(this.model.attributes))
 
                   var that = this;
                 $("#addChildButton", this.$el).off('click')

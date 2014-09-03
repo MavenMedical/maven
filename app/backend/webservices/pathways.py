@@ -30,6 +30,8 @@ class PathwaysWebservices():
         self.search_interface = WS.web_search('search')
         self.save_interface = TP.tree_persistance('persistance')
 
+
+
     @http_service(['GET'], '/list',
                   [],
                   {},
@@ -59,7 +61,7 @@ class PathwaysWebservices():
     def get_tree(self, _header, body, context, _matches, _key):
         ret = yield from self.save_interface.get_tree(context[CONTEXT.PATHID])
         ret = json.loads(ret)
-        ret['id'] = context[CONTEXT.PATHID]
+        ret[CONTEXT.PATHID] = context[CONTEXT.PATHID]
 
         return (HTTP.OK_RESPONSE, json.dumps(ret), None)
 
@@ -70,6 +72,7 @@ class PathwaysWebservices():
     def put_update(self, _header, body, context, _matches, _key):
         info = json.loads(body.decode('utf-8'))
         yield from self.save_interface.update_tree(info)
+        info[CONTEXT.PATHID] = info['id']
         return (HTTP.OK_RESPONSE, json.dumps(info), None)
 
     @http_service(['DELETE'], '/tree',
@@ -87,9 +90,8 @@ class PathwaysWebservices():
     def post_create(self, _header, body, qs, _matches, _key):
         info = json.loads(body.decode('utf-8'))
         resultid = yield from self.save_interface.create_tree(info)
-        info['id'] = resultid
+        info[CONTEXT.PATHID] = resultid
         return (HTTP.OK_RESPONSE, json.dumps(info), None)
-
 
 def run():
     from utils.database.database import AsyncConnectionPool

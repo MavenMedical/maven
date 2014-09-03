@@ -36,12 +36,12 @@ define([
 
         editDescription: function(){
             var newdesc = prompt("Enter the new description")
-            curTree.get('selectedNode').set('description', newdesc)
+            curTree.get('selectedNode').set('tooltip', newdesc)
         },
 
         editHelpText: function (){
             var newht = prompt("Enter the new description")
-            curTree.get('selectedNode').set('helpText', newht)
+            curTree.get('selectedNode').set('sidePanel', newht)
         },
         deleteNode: function(){
             curTree.deleteNode(curTree.get('selectedNode'))

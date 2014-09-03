@@ -45,6 +45,7 @@ define([
 
         },
         handle_save: function(){
+            console.log('lets save', curTree)
             curTree.save()
         }
     });

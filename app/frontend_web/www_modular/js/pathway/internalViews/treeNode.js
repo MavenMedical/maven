@@ -90,8 +90,6 @@ define([
                     var targ = $('.childSpot',$('.children2', this.$el).first()).last()
                     var thisChild = new treeNode({model: cur, el:targ})
                     curTree.elPairs.push({source: this, target: thisChild})
-
-
                 }, this)
                 if (this.model.get('hideChildren') == "true"){
                     $('.children2', this.$el).first()[0].hidden = true;
@@ -99,9 +97,11 @@ define([
                     $('.children2', this.$el).first()[0].hidden = false;
 
                 }
+
                 if (this.model == curTree.get('selectedNode')){
                     that.getMyElement().addClass('selected')
                 }
+
                 if (this.model.get('protocol')){
                     var protoNode = new ProtocolNode({model: this.model})
                     $('.protocol', this.$el).first().append(protoNode.render().$el)
