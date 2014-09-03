@@ -17,7 +17,7 @@ define([
             curTree.on('change:name', this.render,this)
         },
         render: function(){
-            this.$el.html(this.template(contextModel.get('selectedNode').attributes))
+            this.$el.html(this.template(curTree.get('selectedNode').attributes))
             return this;
         },
 
@@ -30,21 +30,21 @@ define([
 
         editName: function(){
             var newname = prompt("Enter the new title")
-            contextModel.get('selectedNode').set('name', newname)
-            contextModel.get('selectedNode').set('text', newname)
+            curTree.get('selectedNode').set('name', newname)
+            curTree.get('selectedNode').set('text', newname)
         },
 
         editDescription: function(){
             var newdesc = prompt("Enter the new description")
-            contextModel.get('selectedNode').set('description', newdesc)
+            curTree.get('selectedNode').set('tooltip', newdesc)
         },
 
         editHelpText: function (){
             var newht = prompt("Enter the new description")
-            contextModel.get('selectedNode').set('helpText', newht)
+            curTree.get('selectedNode').set('sidePanel', newht)
         },
         deleteNode: function(){
-            curTree.deleteNode(contextModel.get('selectedNode'))
+            curTree.deleteNode(curTree.get('selectedNode'))
 
         }
 

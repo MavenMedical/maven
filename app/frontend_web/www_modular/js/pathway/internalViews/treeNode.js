@@ -56,8 +56,11 @@ define([
 
             },
             render: function(){
+                if (!this.model.get('hideChildren')){
+                    this.model.set('hideChildren', false, {silent: true})
+                }
                 this.$el.html(this.template(this.model.attributes))
-                  var that = this;
+                var that = this;
 
                 //Set on clicks
                 $('.collapseButton', this.$el).first().off('click')
@@ -77,7 +80,9 @@ define([
                 })
                 this.getMyElement().off('click')
                 this.getMyElement().on('click', function(){
-                    contextModel.set('selectedNode', that.model)
+                    curTree.set('selectedNode', that.model, {silent: true})
+                    curTree.trigger('propagate')
+
                 })
 
                 _.each(this.model.get('children').models, function(cur){
@@ -85,8 +90,6 @@ define([
                     var targ = $('.childSpot',$('.children2', this.$el).first()).last()
                     var thisChild = new treeNode({model: cur, el:targ})
                     curTree.elPairs.push({source: this, target: thisChild})
-
-
                 }, this)
                 if (this.model.get('hideChildren') == "true"){
                     $('.children2', this.$el).first()[0].hidden = true;
@@ -94,9 +97,11 @@ define([
                     $('.children2', this.$el).first()[0].hidden = false;
 
                 }
-                if (this.model == contextModel.get('selectedNode')){
+
+                if (this.model == curTree.get('selectedNode')){
                     that.getMyElement().addClass('selected')
                 }
+
                 if (this.model.get('protocol')){
                     var protoNode = new ProtocolNode({model: this.model})
                     $('.protocol', this.$el).first().append(protoNode.render().$el)

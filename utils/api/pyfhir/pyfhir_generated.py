@@ -3696,6 +3696,7 @@ class Practitioner(Resource):
                  location=None,
                  qualification=None,
                  communication=None,
+                 active=None,
                  ):
         Resource.__init__(self,
                           customer_id=customer_id,
@@ -3714,6 +3715,7 @@ class Practitioner(Resource):
         self.qualification_code = qualification_code                                     # , Coded representation of the qualification
         self.qualification_period = qualification_period                                     # , Period during which the qualification is valid
         self.qualification_issuer = qualification_issuer                                     # , Organization that regulates and issues the qualification
+        self.active = active or True
 
         self.telecom = telecom or []
         self.photo = photo or []
@@ -3722,6 +3724,11 @@ class Practitioner(Resource):
         self.location = location or []
         self.qualification = qualification or []
         self.communication = communication or []
+
+    def get_provider_id(self):
+        for id in self.identifier:
+            if id.system == "clientEMR" and id.label == "Internal":
+                return id.value
 
 
 class Procedure(Resource):

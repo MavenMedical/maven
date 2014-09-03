@@ -5,11 +5,12 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'pathway/models/nodeModel',
+    'pathway/models/treeModel',
    'globalmodels/contextModel',
     'text!templates/pathway/NewNodeModal.html',
 
 
-], function ($, _, Backbone, NodeModel,  contextModel, nodeTemplate) {
+], function ($, _, Backbone, NodeModel,  curTree, contextModel, nodeTemplate) {
 
     var savingModal = Backbone.View.extend({
         template: _.template(nodeTemplate),
@@ -20,9 +21,9 @@ define([
             this.$el.html(this.template())
             $('#addNodeButton')[0].onclick = function(){
                                    parent.unset('protocol', {silent: true})
-                                   var n = new NodeModel({description: $('#newNodeDescription', that.$el).val(), name: $('#newNodeText', that.$el).val(), text: $('#newNodeText', that.$el).val()})
+                                   var n = new NodeModel({tooltip: $('#newNodeTooltip', that.$el).val(), name: $('#newNodeText', that.$el).val(), sidePanelText: $('#newNodeSideInfo', that.$el).val()})
                                    that.parent.get('children').add(n)
-                                   contextModel.set('selectedNode', n )
+                                   curTree.set('selectedNode', n )
                                    $('#detail-modal').modal('hide')
                           }
             var that = this

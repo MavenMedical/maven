@@ -30,6 +30,7 @@ define([
     var loginCallback = function (res) {
 	contextModel.set({'loginTemplate':null});
 	//if(res.get('stylesheet')) {
+
 	    setActiveStyleSheet('demo');
 	//}
 	// each row is {element, widget, template}
@@ -83,6 +84,7 @@ define([
 	    var ret = _.pick(this.attributes,['user','provider','startdate','enddate','encounter',
 		 			      'patients','department','userAuth', 'customer_id',
 					      'roles', 'pathid']);
+        ret.id = ret.pathid
 	    //console.log(ret);
 	    for(var x in ret) {
 		if(ret[x] === null || ret[x] === '') {delete ret[x];}

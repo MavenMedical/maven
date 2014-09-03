@@ -7,23 +7,27 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
-   'globalmodels/contextModel',
+    'globalmodels/contextModel',
     'pathway/models/treeModel',
     'pathway/internalViews/treeNodeActionSet',
     'text!templates/pathway/actionList.html'
-], function ($, _, Backbone, contextModel,  curModel, treeNodeActionSet, actionListTemplate) {
+], function ($, _, Backbone, contextModel,  curTree, treeNodeActionSet, actionListTemplate) {
 
     var ActionList = Backbone.View.extend({
         template: _.template(actionListTemplate),
 
         initialize: function () {
-            contextModel.on('change:selectedNode', this.render, this)
+            console.log(curTree)
+            var that = this
+             curTree.on('all', function(){
+                    that.render()
+                })
 
             this.render();
         },
         render: function () {
             this.$el.html(this.template());
-            if (contextModel.get('selectedNode')){
+            if (curTree.get('selectedNode')){
                 var myActions = new treeNodeActionSet()
                     $('#action-set', this.$el).append(myActions.render().$el)
                 }

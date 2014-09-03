@@ -66,7 +66,9 @@ define([
                         that.render()
                     }, 100)
                }
-                curTree.on('propagate', this.render, this)
+                curTree.on('propagate', function(){
+                    that.render()
+                }, this)
                 curTree.on('sync', this.render, this)
                 contextModel.on('change', this.render, this)
                this.render()

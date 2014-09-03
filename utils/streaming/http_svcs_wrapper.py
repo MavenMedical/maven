@@ -31,7 +31,7 @@ class CONTEXT():
     DISPLAYNAME = 'display_name'
     ACTION = 'action'
     ACTIONCOMMENT = 'action_comment'
-    PATHID = 'id'
+    PATHID = 'pathid'
     SEARCH_PARAM = 'search_param'
     TARGETUSER = 'target_user'
     TARGETPROVIDER = 'target_provider'

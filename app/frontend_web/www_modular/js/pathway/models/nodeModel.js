@@ -39,25 +39,20 @@ define([
 
         initialize: function(params){
 
-            this.set({text: params.text + " NODE"},{silent:true})
             if (!params.children){params.children = []}
             this.set({children: new NodeList(params.children)}, {silent:true})
 
-            this.set('name', params.name)
-            this.set({protocol: params.protocol}, {silent:true})
-            this.set({hideChildren: "false"}, {silent: true})
-
-
-        },
-        deleteNode: function(toDelete){
-            var that = this
             _.each(this.get('children').models, function(cur){
-                if (cur == toDelete){
-                    that.get('children').remove(toDelete)
-                } else {
-                    cur.deleteNode(toDelete)
-                }
+                cur.set({'hideChildren': "false"}, {silent: true})
             })
+            this.set('hideChildren', "false", {silent: true})
+            this.set('name', params.name, {silent: true})
+            this.set('tooltip', params.tooltip, {silent: true})
+            this.set('sidePanelText', params.sidePanelText, {silent: true})
+            this.set('protocol', params.protocol, {silent:true})
+
+
+
 
 
 

@@ -133,7 +133,7 @@ namespace MavenAsDemo
             try
             {
                 XmlDocument xdoc = new XmlDocument();
-                xdoc.Load("OverrideSettings.xml");//look to the current directory for the override
+                xdoc.Load(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\OverrideSettings.xml");//look to the current directory for the override
                 XmlNode custnode = xdoc.GetElementsByTagName("customerId")[0];
                 custId = custnode.InnerText.Trim();
                 //write to the registry
