@@ -52,7 +52,7 @@ define([
 		}
 	    }
 	    if(!nonempty) {
-            $('.audittable > tbody', this.$el).html("<tr><td colspan=\"2\">None available</td></tr>");
+            $('.audittable > tbody', this.$el).html("<tr><td colspan=\"5\">None available</td></tr>");
            this.$el.show();
 	    }
         else {

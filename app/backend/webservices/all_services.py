@@ -21,6 +21,7 @@ from app.backend.webservices.patient_mgmt import PatientMgmtWebservices
 from app.backend.webservices.user_mgmt import UserMgmtWebservices
 from app.backend.webservices.search import SearchWebservices
 from app.backend.webservices.administration import AdministrationWebservices
+from app.backend.webservices.support import SupportWebservices
 import utils.streaming.stream_processor as SP
 import utils.database.tree_persistance as TP
 import utils.streaming.webservices_core as WC
@@ -55,7 +56,7 @@ def run():
     for c in [AuthenticationWebservices, PatientMgmtWebservices,
               UserMgmtWebservices, SearchWebservices,
               TransparentWebservices, PathwaysWebservices,
-              AdministrationWebservices]:
+              AdministrationWebservices, SupportWebservices]:
         print(c)
         core_scvs.register_services(c('httpserver'))
 

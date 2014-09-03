@@ -74,6 +74,11 @@ Results = Enum('Results',
     details
     device
     roles
+    name
+    abbr
+    license
+    license_exp
+    config
 """)
 
 
@@ -335,6 +340,35 @@ class WebPersistence():
             cmd.append(limit)
 
         results = yield from self.execute(cmd, cmdargs, self._display_user_info, desired)
+        return results
+
+    _default_customer_info = set((Results.abbr,))
+    _available_customer_info = {
+        Results.customerid: "customer.customer_id",
+        Results.name: "customer.name",
+        Results.abbr: "customer.abbr",
+        Results.license: "customer.license_type",
+        Results.license_exp: "customer.license_exp",
+        Results.config: "customer.clientapp_config",
+    }
+    _display_customer_info = _build_format({
+        Results.license_exp: lambda x: x and _prettify_datetime(x),
+    })
+
+    @asyncio.coroutine
+    def customer_info(self, desired, limit=""):
+        columns = build_columns(desired.keys(), self._available_customer_info,
+                                self._default_customer_info)
+
+        cmd = []
+        cmdargs = []
+        cmd.append("SELECT")
+        cmd.append(columns)
+        cmd.append("FROM customer")
+        if limit:
+            cmd.append(limit)
+
+        results = yield from self.execute(cmd, cmdargs, self._display_customer_info, desired)
         return results
 
     _default_patient_info = set((Results.encounter_date,))
