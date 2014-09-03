@@ -102,17 +102,11 @@ html, body {
 }
 
 #floating-left {
-    position: relative;
-    visibility: hidden;
-    width: 0px; /*var-floating-left-size*/
-    float: left;
+    display: none;
 }
 
 #floating-right {
-    position: relative;
-    float: right;
-    width: 30%; /*var-floating-right-size*/
-    padding-left: 5px;
+
 }
 
 #content {

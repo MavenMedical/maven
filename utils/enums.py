@@ -101,8 +101,10 @@ class PROCEDURE_TERMINOLOGIES(Enum):
 
 class USER_ROLES(Enum):
     mavensupport = "mavensupport"
+    maventask = "maventask"
     provider = "provider"
     supervisor = "supervisor"
+    notification = "notification"
 
 
 class DIAGNOSTIC_TERMINOLOGIES(Enum):

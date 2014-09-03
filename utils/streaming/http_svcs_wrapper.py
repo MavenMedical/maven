@@ -33,6 +33,10 @@ class CONTEXT():
     ACTIONCOMMENT = 'action_comment'
     PATHID = 'id'
     SEARCH_PARAM = 'search_param'
+    TARGETUSER = 'target_user'
+    TARGETPROVIDER = 'target_provider'
+    TARGETCUSTOMER = 'target_customer'
+    STATE = 'state'
 
 
 def http_service(methods, url, required, available, roles):

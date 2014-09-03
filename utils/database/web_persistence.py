@@ -197,9 +197,12 @@ def append_extras(cmd, cmdargs, datefield, startdate, enddate, orderby, ascendin
 class WebPersistence():
     def __init__(self, configname):
         self.db = AsyncConnectionPool(MC.MavenConfig[configname][CONFIG_DATABASE])
+        self.scheduled = False
 
     def schedule(self, loop=asyncio.get_event_loop()):
-        self.db.schedule(loop)
+        if not self.scheduled:
+            self.db.schedule(loop)
+        self.scheduled = True
 
     @asyncio.coroutine
     def execute(self, cmd, cmdargs, display, desired):

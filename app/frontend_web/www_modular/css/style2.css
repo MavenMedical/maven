@@ -158,11 +158,10 @@ html, body {
     top:0px;
     left:0px;
     right:0px;
-    z-index:10;
+    z-index:11;
     /*height: 130px; /*var-fixed-top-size*/
     background: #ffffff;
 }
-
 
 #fixed-topB {
     position:fixed;
@@ -172,6 +171,14 @@ html, body {
     z-index:10;
     /*height: 130px; /*var-fixed-top-size*/
     background: #ffffff;
+}
+
+#fixed-topA > .col-sm-12{
+    padding: 0;
+}
+
+#fixed-topA > .widget-column > .navbar {
+    margin: 0;
 }
 
 .pat-info {
@@ -236,29 +243,33 @@ html, body {
 }
 
 #floating-left {
-    position:relative;
+    /*position:relative;
     float:left;
     width:19%; /*var-floating-right-size*/
-    height: 600px;
-    margin-right: 15px;
+   /* height: 600px;
+    margin-right: 15px;*/
 }
 
 #floating-right {
-    position:relative;
+    /*position:relative;
     float:right;
     width:19%; /*var-floating-right-size*/
-    height: 600px;
-    margin-left: 15px
+    /*height: 600px;
+    margin-left: 15px */
 }
 .widget-column {
-    overflow:hidden
+
 }
+
 #content {
     overflow:hidden;
     position:relative;
     height: 2000px;
     margin-left:0px; /*var-float-left-size*/
     width:60%; /*100 minus var-float-left-size minus var-floating-right-size*/
+}
+
+#dynamic-content{
 }
 
 .mavenpadding {

@@ -7,14 +7,14 @@
     <framework targetVersion="4.5" profile="Full" supportedRuntime="4.0.30319" />
   </compatibleFrameworks>
   <dependency>
-    <dependentAssembly dependencyType="install" codebase="MavenDesktop.exe.manifest" size="5462">
+    <dependentAssembly dependencyType="install" codebase="MavenDesktop.exe.manifest" size="5890">
       <assemblyIdentity name="MavenDesktop.exe" version="1.0.0.1" publicKeyToken="0000000000000000" language="neutral" processorArchitecture="msil" type="win32" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>VK49ddaJ0A6T/LU0/aJeI2n3o6J6K6W4MnEAUkh8acI=</dsig:DigestValue>
+        <dsig:DigestValue>pKH/474F/YR3skrnUoZvWLkQOYY5oLG2ZPEalCIftLs=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>

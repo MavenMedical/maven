@@ -196,7 +196,8 @@ namespace MavenAsDemo
                 {
                     checkAuth();
                     string rqstUrl = "https://" + cursettings.pollingServer + "/broadcaster/poll?key=" + WindowsDPAPI.Decrypt(EncryptedKey)
-                        + "&osUser=" + cursettings.user + "&machine=" + cursettings.machine + "&osVersion=" + cursettings.os;
+                        + "&osUser=" + cursettings.osUser + "&machine=" + cursettings.machine + "&osVersion=" + cursettings.os
+                        +"&user="+Authenticator.GetUserName()+"&customerId="+cursettings.custId;
                     WebRequest rqst = WebRequest.Create(rqstUrl);
                     rqst.Timeout = 600000;
                     HttpWebResponse rsp = (HttpWebResponse)rqst.GetResponse();
