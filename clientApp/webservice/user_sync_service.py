@@ -34,6 +34,7 @@ ML.set_debug()
 class UserSyncService(http.http_api):
     def __init__(self, configname, loop=None):
         self.config = MC.MavenConfig[configname]
+        self.customer_id = self.config['customer_id']
         self.sync_delay = self.config.get(CONFIG_SYNCDELAY, 60 * 60)
         self.api_name = self.config[CONFIG_API]
         self.ehr_api = AHC.allscripts_api(self.api_name)
@@ -64,7 +65,7 @@ class UserSyncService(http.http_api):
 
             try:
                 ret = yield from self.get('/syncusers', rawdata=False, params={"roles[]": "maventask",
-                                                                               "customer_id": 5})
+                                                                               "customer_id": self.customer_id})
                 self.maven_providers = ast.literal_eval(ret)
 
                 for prov in self.maven_providers:

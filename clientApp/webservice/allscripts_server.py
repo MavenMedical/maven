@@ -159,7 +159,7 @@ def main(loop):
 
     # Instantiate the (allscripts_server.py --> data_router.py) writer and services and add to event loop
     notification_generator = NG.NotificationGenerator(clientemrconfig)
-    notification_service = NS.NotificationService(notificationservicename)
+    notification_service = NS.NotificationService(notificationservicename, loop=loop)
     sp_producer = IncomingFromMavenMessageHandler(incomingfrommavenmessagehandler,
                                                   notification_generator,
                                                   notification_service)
@@ -167,7 +167,7 @@ def main(loop):
     # Instantiate the allscripts_scheduler.py polling mechanism
     allscripts_scheduler = scheduler('scheduler')
     sp_producer.schedule(loop)
-    notification_service.schedule(loop)
+    # notification_service.schedule(loop)
 
     try:
         loop.run_until_complete(allscripts_scheduler.get_updated_schedule())
