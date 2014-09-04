@@ -23,6 +23,8 @@ namespace MavenAsDemo
         [STAThread]
         static void Main()
         {
+
+
             //first of all, don't do nuthin if there's already a mavendesktop running
             if (isAlreadyRunning())
             {
@@ -188,7 +190,7 @@ namespace MavenAsDemo
         /// </summary>
         private static void startPolling()
         {
-
+            string lastExceptionMessage = "";
             ServicePointManager.ServerCertificateValidationCallback = new System.Net.Security.RemoteCertificateValidationCallback(AcceptAllCertifications);
             while (continueOn)
             {
@@ -218,10 +220,16 @@ namespace MavenAsDemo
                 catch (Exception e)
                 {
                     //don't fill up the log with timeouts. but log everything else
-                    if (!e.Message.Contains("Timeout"))
+                    //also don't log the exception multiple multiple times. only log it if it is a new exception
+                    if (!e.Message.Contains("Timeout") && e.Message != lastExceptionMessage)
                     {
                         LogMessage("Polling Exception: " + e.Message);
                     }
+                    if (!e.Message.Contains("Timeout"))
+                    {
+                        Thread.Sleep(10000); //we just got an error. wait a few seconds before going on unless it was a timeout (which could be normal if there is no alert). 
+                    }
+                    lastExceptionMessage = e.Message;
                 }
             }
 
