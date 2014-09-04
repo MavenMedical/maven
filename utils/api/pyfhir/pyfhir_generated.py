@@ -3696,7 +3696,8 @@ class Practitioner(Resource):
                  location=None,
                  qualification=None,
                  communication=None,
-                 active=None,
+                 ehr_active=None,
+                 maven_active=None,
                  ):
         Resource.__init__(self,
                           customer_id=customer_id,
@@ -3715,7 +3716,8 @@ class Practitioner(Resource):
         self.qualification_code = qualification_code                                     # , Coded representation of the qualification
         self.qualification_period = qualification_period                                     # , Period during which the qualification is valid
         self.qualification_issuer = qualification_issuer                                     # , Organization that regulates and issues the qualification
-        self.active = active or True
+        self.ehr_active = ehr_active or True
+        self.maven_active = maven_active or False
 
         self.telecom = telecom or []
         self.photo = photo or []
