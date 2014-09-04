@@ -121,3 +121,8 @@ class ALERT_SETTING_ACTIONS(Enum):
     DI = "dislike"
     OI = "opt in"
     OO = "opt out"
+
+
+class USER_STATE(Enum):
+    ACTIVE = "active"
+    DISABLED = "disabled"

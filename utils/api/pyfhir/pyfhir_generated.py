@@ -24,7 +24,7 @@ from decimal import Decimal
 import itertools
 import json
 from utils.api.pyfhir.pyfhir_datatypes_generated import *
-from utils.enums import ALERT_TYPES
+from utils.enums import ALERT_TYPES, USER_STATE
 
 PROCEDURE_CODE_TERMINOLOGY = ["CPT", "cpt", "CPT4", "cpt4"]
 
@@ -3696,8 +3696,8 @@ class Practitioner(Resource):
                  location=None,
                  qualification=None,
                  communication=None,
-                 ehr_active=None,
-                 maven_active=None,
+                 ehr_state=None,
+                 state=None,
                  ):
         Resource.__init__(self,
                           customer_id=customer_id,
@@ -3716,8 +3716,8 @@ class Practitioner(Resource):
         self.qualification_code = qualification_code                                     # , Coded representation of the qualification
         self.qualification_period = qualification_period                                     # , Period during which the qualification is valid
         self.qualification_issuer = qualification_issuer                                     # , Organization that regulates and issues the qualification
-        self.ehr_active = ehr_active or True
-        self.maven_active = maven_active or False
+        self.ehr_state = ehr_state or USER_STATE.ACTIVE.value                   # Assume the EHR user is active in their respective EHR
+        self.state = state or USER_STATE.DISABLED.value             # Assume Maven has not yet been activated for Practitioner
 
         self.telecom = telecom or []
         self.photo = photo or []
