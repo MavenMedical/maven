@@ -538,9 +538,9 @@ class allscripts_api(http.http_api):
 
         # Extract User State (active vs inactive)
         if provider_result['ProviderInactive'] == "N":
-            user_state = True
+            ehr_user_state = True
         else:
-            user_state = False
+            ehr_user_state = False
 
         # Create clientEMR Internal Identifier
         fhir_identifiers = [FHIR_API.Identifier(system="clientEMR",
@@ -555,7 +555,7 @@ class allscripts_api(http.http_api):
                                                   name=FHIR_API.HumanName(given=[firstname],
                                                                           family=[lastname]),
                                                   specialty=[specialty],
-                                                  active=user_state)
+                                                  ehr_active=ehr_user_state)
         return fhir_practitioner
 
     def build_full_practitioner(self, get_provider_result):

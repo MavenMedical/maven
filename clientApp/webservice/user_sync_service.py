@@ -83,7 +83,7 @@ class UserSyncService(http.http_api):
 
     def diff_users(self):
         # create 2 new lists of tuples containing (provider_id, active state)
-        ehr_prov_list = Counter([(prov.get_provider_id(), prov.active) for prov in self.ehr_providers])
+        ehr_prov_list = Counter([(prov.get_provider_id(), prov.ehr_active) for prov in self.ehr_providers])
         maven_prov_list = Counter([(prov['prov_id'], prov['active']) for prov in self.maven_providers])
 
         print(list((ehr_prov_list - maven_prov_list).elements()))
