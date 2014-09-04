@@ -10,6 +10,7 @@ from maven_logging import WARN, EXCEPTION, INFO
 import utils.database.memory_cache as memory_cache
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
 import dateutil.parser
+from utils.enums import USER_STATE
 
 ALLSCRIPTS_NUM_PARAMETERS = 6
 
@@ -538,9 +539,9 @@ class allscripts_api(http.http_api):
 
         # Extract User State (active vs inactive)
         if provider_result['ProviderInactive'] == "N":
-            ehr_user_state = True
+            ehr_user_state = USER_STATE.ACTIVE.value
         else:
-            ehr_user_state = False
+            ehr_user_state = USER_STATE.DISABLED.value
 
         # Create clientEMR Internal Identifier
         fhir_identifiers = [FHIR_API.Identifier(system="clientEMR",
@@ -555,7 +556,7 @@ class allscripts_api(http.http_api):
                                                   name=FHIR_API.HumanName(given=[firstname],
                                                                           family=[lastname]),
                                                   specialty=[specialty],
-                                                  ehr_active=ehr_user_state)
+                                                  ehr_state=ehr_user_state)
         return fhir_practitioner
 
     def build_full_practitioner(self, get_provider_result):

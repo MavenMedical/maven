@@ -70,6 +70,7 @@ Results = Enum('Results',
     element
     priority
     state
+    ehrstate
     auditid
     details
     device
@@ -268,6 +269,58 @@ class WebPersistence():
                                      rule_id, scope, action], {}, {})
 
     @asyncio.coroutine
+    def EHRsync_create_user_provider(self, new_provider_dict):
+
+        column_map = ["customer_id",          # 0
+                      "prov_id",
+                      "user_name",
+                      "official_name",         # 3
+                      "display_name",
+                      "state",
+                      "ehr_state"]
+        columns = DBMapUtils().select_rows_from_map(column_map)
+        cmdargs = [new_provider_dict["customer_id"],
+                   new_provider_dict["prov_id"],
+                   new_provider_dict["user_name"],
+                   new_provider_dict["official_name"],
+                   new_provider_dict["display_name"],
+                   new_provider_dict["state"],
+                   new_provider_dict["ehr_state"]]
+        cmd = []
+        cmd.append("INSERT INTO users (" + columns + ")")
+        cmd.append("VALUES (%s, %s, %s, %s, %s, %s, %s)")
+        yield from self.execute(cmd, cmdargs, {}, {})
+
+        column_map = ["prov_id",          # 0
+                      "customer_id",
+                      "prov_name",
+                      "specialty"]         # 3
+
+        columns = DBMapUtils().select_rows_from_map(column_map)
+        cmdargs = [new_provider_dict["prov_id"],
+                   new_provider_dict["customer_id"],
+                   new_provider_dict["official_name"],
+                   new_provider_dict["specialty"]]
+        cmd = []
+        cmd.append("INSERT INTO provider (" + columns + ")")
+        cmd.append("VALUES (%s, %s, %s, %s)")
+        yield from self.execute(cmd, cmdargs, {}, {})
+
+    @asyncio.coroutine
+    def EHRsync_update_user_provider(self, new_provider_dict):
+
+        column_map = ["ehr_state"]
+        columns = DBMapUtils().select_rows_from_map(column_map)
+        cmdargs = [new_provider_dict["ehr_state"],
+                   new_provider_dict["customer_id"],
+                   new_provider_dict["prov_id"]]
+        cmd = []
+        cmd.append("UPDATE users")
+        cmd.append("SET (" + columns + ") = (%s)")
+        cmd.append("WHERE customer_id=%s and prov_id=%s")
+        yield from self.execute(cmd, cmdargs, {}, {})
+
+    @asyncio.coroutine
     def record_login(self, username, method, ip, authkey):
         yield from self.execute(["INSERT INTO logins (user_name, method, logintime, ip, authkey)" +
                                  "VALUES (%s, %s, now(), %s, %s)"],
@@ -322,7 +375,8 @@ class WebPersistence():
         Results.username: "users.user_name",
         Results.officialname: "users.official_name",
         Results.displayname: "users.display_name",
-        Results.state: "users.state"
+        Results.state: "users.state",
+        Results.ehrstate: "users.ehr_state"
     }
     _display_user_info = _build_format({})
 
@@ -336,6 +390,26 @@ class WebPersistence():
         cmd.append("SELECT")
         cmd.append(columns)
         cmd.append("FROM users")
+        if limit:
+            cmd.append(limit)
+
+        results = yield from self.execute(cmd, cmdargs, self._display_user_info, desired)
+        return results
+
+    @asyncio.coroutine
+    def customer_specific_user_info(self, desired, limit="", customer_id=None):
+        columns = build_columns(desired.keys(), self._available_user_info,
+                                self._default_user_info)
+
+        if customer_id is None:
+            return
+
+        cmd = []
+        cmdargs = [customer_id]
+        cmd.append("SELECT")
+        cmd.append(columns)
+        cmd.append("FROM users")
+        cmd.append("WHERE customer_id=%s")
         if limit:
             cmd.append(limit)
 

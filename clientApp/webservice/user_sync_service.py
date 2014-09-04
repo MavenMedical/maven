@@ -16,13 +16,14 @@ __author__ = 'Yuki Uchino'
 # ************************
 # LAST MODIFIED FOR JIRA ISSUE: MAV-303
 # *************************************************************************
-import ast
+import json
 import utils.web_client.http_client as http
 import asyncio
 from collections import Counter
 import maven_config as MC
 import maven_logging as ML
 import utils.web_client.allscripts_http_client as AHC
+from utils.enums import USER_STATE
 
 CONFIG_USERSYNCSERVICE = 'sync user service'
 CONFIG_SYNCDELAY = 'sync delay'
@@ -41,7 +42,7 @@ class UserSyncService(http.http_api):
         super(UserSyncService, self).__init__(CONFIG_USERSYNCSERVICE)
         self.postprocess = (lambda x: list(x[0].values())[0])
         self.loop = loop or asyncio.get_event_loop()
-        self.ehr_providers = []
+        self.ehr_providers = {}
         self.maven_providers = []
         self.active_providers = []
 
@@ -59,39 +60,86 @@ class UserSyncService(http.http_api):
 
                 for provider in ehr_providers:
                     fhir_provider = self.ehr_api.build_partial_practitioner(provider)
-                    self.ehr_providers.append(fhir_provider)
+                    self.ehr_providers[fhir_provider.get_provider_id()] = fhir_provider
             except AHC.AllscriptsError as e:
                 logger.exception(e)
 
             try:
                 ret = yield from self.get('/syncusers', rawdata=False, params={"roles[]": "maventask",
                                                                                "customer_id": self.customer_id})
-                self.maven_providers = ast.literal_eval(ret)
+                self.maven_providers = json.loads(ret)
 
-                for prov in self.maven_providers:
-                    if prov['state'] == "active":
-                        prov['active'] = True
-                    else:
-                        prov['active'] = False
             except Exception as e:
                 logger.exception(e)
 
-            self.diff_users()
+            yield from self.diff_users()
 
         except Exception as e:
                 logger.exception(e)
 
+    @ML.coroutine_trace(logger.debug)
     def diff_users(self):
-        # create 2 new lists of tuples containing (provider_id, active state)
-        ehr_prov_list = Counter([(prov.get_provider_id(), prov.ehr_active) for prov in self.ehr_providers])
-        maven_prov_list = Counter([(prov['prov_id'], prov['active']) for prov in self.maven_providers])
+        # create 2 lists containing provider_id to see if we need to CREATE new users
+        ehr_prov_list = Counter([prov.get_provider_id() for prov in self.ehr_providers.values()])
+        maven_prov_list = Counter([(prov['prov_id']) for prov in self.maven_providers])
 
-        print(list((ehr_prov_list - maven_prov_list).elements()))
-        print(list((maven_prov_list - ehr_prov_list).elements()))
+        # Identify new EHR Providers that Maven is not aware of and write new users to Maven DB
+        new_provider_list = list((ehr_prov_list - maven_prov_list).elements())
+        if new_provider_list:
+            for deactivated_provider in new_provider_list:
+                yield from self.create_maven_user(self.ehr_providers[deactivated_provider])
+
+        # create 2 lists of tuples containing (provider_id, active state) to see if we need to UPDATE user's EHR state
+        ehr_prov_list2 = Counter([(prov.get_provider_id(), prov.ehr_state) for prov in self.ehr_providers.values()])
+        maven_prov_list2 = Counter([(prov['prov_id'], prov['ehr_state']) for prov in self.maven_providers])
+
+        # Identify EHR Providers that have been deactivated in their EHR and write changes to Maven DB
+        deactivated_provider_list = list((maven_prov_list2 - ehr_prov_list2).elements())
+        if deactivated_provider_list:
+            for deactivated_provider in deactivated_provider_list:
+                yield from self.update_maven_user_state(deactivated_provider[0])
 
     @ML.coroutine_trace(logger.debug)
-    def update_maven_users(self):
-        raise NotImplementedError
+    def create_maven_user(self, missing_provider):
+
+        for identifier in missing_provider.identifier:
+            if identifier.system == "clientEMR" and identifier.label == "Internal":
+                provider_id = identifier.value
+            elif identifier.system == "clientEMR" and identifier.label == "Username":
+                provider_username = identifier.value
+
+        provider_official_name = missing_provider.name.given[0] + " " + missing_provider.name.family[0]
+        provider_display_name = provider_official_name
+
+        new_provider = {"customer_id": self.customer_id,
+                        "prov_id": provider_id,
+                        "user_name": provider_username,
+                        "official_name": provider_official_name,
+                        "display_name": provider_display_name,
+                        "state": missing_provider.state,
+                        "ehr_state": missing_provider.ehr_state,
+                        "specialty": missing_provider.specialty[0]
+                        }
+
+        ret = yield from self.post('/synccreateuser',
+                                   rawdata=True,
+                                   params={"roles[]": "maventask",
+                                           "customer_id": self.customer_id},
+                                   data=json.dumps(new_provider))
+
+    @ML.coroutine_trace(logger.debug)
+    def update_maven_user_state(self, deactivated_provider_id):
+
+        provider = {"customer_id": self.customer_id,
+                    "prov_id": deactivated_provider_id,
+                    "ehr_state": USER_STATE.DISABLED.value
+                    }
+
+        ret = yield from self.post('/syncupdateuser',
+                                   rawdata=True,
+                                   params={"roles[]": "maventask",
+                                           "customer_id": self.customer_id},
+                                   data=json.dumps(provider))
 
 
 def run():
