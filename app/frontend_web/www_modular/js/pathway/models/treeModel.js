@@ -62,7 +62,6 @@ define([
             return retMap
         },
         loadNewPathway: function(params){
-            console.log('params', params)
             this.set('triggers', new Backbone.Collection(), {silent: true})
             this.set('sidePanelText', params.sidePanelText,  {silent: true})
             this.set('tooltip', params.tooltip, {silent: true})
@@ -77,7 +76,6 @@ define([
             })
         },
         parse: function(response){
-            console.log(response)
             this.set({tooltip: response.tooltip}, {silent: true})
             this.set({sidePanelText: response.sidePanelText}, {silent: true})
             this.set({id: response.pathid}, {silent: true})
