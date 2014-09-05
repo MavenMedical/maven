@@ -33,7 +33,6 @@ define([
         this.$el.html(this.template());
         var appendEl =  $('.table-body', this.$el)
         _.each(curCollection.models, function(cur){
-            console.log(cur.get('pathid'))
             var thisModel = new Backbone.Model({id: cur.get('pathid'), name: cur.get('name')})
             var thisRow = new PathRow({model: thisModel})
             appendEl.append(thisRow.render().$el)
@@ -45,7 +44,6 @@ define([
 
         },
         handle_save: function(){
-            console.log('lets save', curTree)
             curTree.save()
         }
     });

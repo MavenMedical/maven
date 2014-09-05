@@ -17,7 +17,6 @@ define([
         template: _.template(actionListTemplate),
 
         initialize: function () {
-            console.log(curTree)
             var that = this
              curTree.on('all', function(){
                     that.render()

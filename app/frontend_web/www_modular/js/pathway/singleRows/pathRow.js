@@ -36,7 +36,6 @@ define([
         },
         initialize: function(params){
             this.model = params.model
-            console.log(this.model)
         },
         handleSelect: function() {
                 contextModel.set('pathid', this.model.get('id'))
