@@ -30,18 +30,20 @@ define([
 
         editName: function(){
             var newname = prompt("Enter the new title")
-            curTree.get('selectedNode').set('name', newname)
-            curTree.get('selectedNode').set('text', newname)
+            if (newname)
+                curTree.get('selectedNode').set('name', newname)
         },
 
         editDescription: function(){
             var newdesc = prompt("Enter the new description")
-            curTree.get('selectedNode').set('tooltip', newdesc)
+            if (newdesc)
+                curTree.get('selectedNode').set('tooltip', newdesc)
         },
 
         editHelpText: function (){
             var newht = prompt("Enter the new description")
-            curTree.get('selectedNode').set('sidePanel', newht)
+            if (newht)
+                curTree.get('selectedNode').set('sidePanel', newht)
         },
         deleteNode: function(){
             curTree.deleteNode(curTree.get('selectedNode'))
