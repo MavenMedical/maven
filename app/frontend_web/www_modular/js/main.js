@@ -18,6 +18,7 @@ require.config({
         bootstrap: '../css/bootstrap/js/bootstrap.min',
         fullcalendar: 'libs/fullCalendar/fullcalendar.min',
         moment: 'libs/fullCalendar/moment.min',
+        ckeditor: 'libs/ckeditor/ckeditor',
 	templates: '../templates',
 	amchartspie: 'libs/amcharts/pie',
 	amchartslight: 'libs/amcharts/themes/light',
@@ -54,9 +55,12 @@ require([
     'globalmodels/contextModel',
     'globalmodels/patientModel',
     'text',
-    'jsplumb'
+    'jsplumb',
+    'ckeditor'
+
 ], function (App) {
     // The "app" dependency is passed in as "App"
     // Again, the other dependencies passed in are not "AMD" therefore don't pass a parameter to this function
+
     App.initialize();
 });
