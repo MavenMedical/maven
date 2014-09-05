@@ -153,6 +153,10 @@ html, body {
     margin:0px;
 }
 
+.content-row {
+    overflow:hidden;
+}
+
 #fixed-topA {
     position:fixed;
     top:0px;

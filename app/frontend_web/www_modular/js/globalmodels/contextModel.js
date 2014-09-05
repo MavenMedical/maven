@@ -52,7 +52,7 @@ define([
         if (widgetlist[i].element !='contentRow'){
             el = $("#"+ widgetlist[i].element)
         } else {
-            $('#dynamic-content').append("<div class='row'></div>")
+            $('#dynamic-content').append("<div class='row content-row'></div>")
 		    el = $('.row', $('#dynamic-content')).last()
         }
             new arguments[i]({template: arguments[i+viewlist.length], el: el})
