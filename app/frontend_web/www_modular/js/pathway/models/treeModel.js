@@ -57,7 +57,7 @@ define([
           return "treeModel"
         },
         toJSON: function(){
-            var retMap = _.omit(this.attributes, ['children', 'hideChildren'])
+            var retMap = _.omit(this.attributes, ['children', 'hideChildren', 'selectedNode'])
             retMap.children = this.get('children').toJSON()
             return retMap
         },
