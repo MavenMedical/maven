@@ -1,4 +1,3 @@
-
 define([
     // These are path alias that we configured in our main.js
     'jquery',     // lib/jquery/jquery
@@ -6,11 +5,11 @@ define([
     'backbone',    // lib/backbone/backbone
     'pathway/models/nodeModel',
     'pathway/models/treeModel',
-   'globalmodels/contextModel',
+    'globalmodels/contextModel',
     'text!templates/pathway/NewNodeModal.html',
 
 
-], function ($, _, Backbone, NodeModel,  curTree, contextModel, nodeTemplate) {
+], function ($, _, Backbone, NodeModel, curTree, contextModel, nodeTemplate) {
 
     var savingModal = Backbone.View.extend({
         template: _.template(nodeTemplate),
