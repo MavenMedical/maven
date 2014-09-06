@@ -485,7 +485,9 @@ body {
 }
 
 .modal-body{
-    background-color: #fff6f6;
+    background-color: rgb(235, 235, 235);
+    background-image: linear-gradient(to top, rgb(253, 253, 253), rgb(229, 229, 229));
+    background-repeat: repeat-x;
 }
 
 .search-box {

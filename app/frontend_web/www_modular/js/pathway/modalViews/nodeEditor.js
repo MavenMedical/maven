@@ -21,7 +21,7 @@ define([
             this.$el.html(this.template())
             $('#addNodeButton')[0].onclick = function(){
                                    parent.unset('protocol', {silent: true})
-                                   var n = new NodeModel({tooltip: $('#newNodeTooltip', that.$el).val(), name: $('#newNodeText', that.$el).val(), sidePanelText: $('#newNodeSideInfo', that.$el).val()})
+                                   var n = new NodeModel({tooltip: $('#newNodeTooltip', that.$el).val(), name: $('#newNodeText', that.$el).val(), sidePanelText: ""});//$('#newNodeSideInfo', that.$el).val()})
                                    that.parent.get('children').add(n)
                                    curTree.set('selectedNode', n )
                                    $('#detail-modal').modal('hide')

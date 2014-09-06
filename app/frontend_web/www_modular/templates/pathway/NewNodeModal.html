@@ -1,14 +1,30 @@
-<div class = "widget-column col-sm-12">
+<div class="widget-column col-sm-12">
+    <div id="detail-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">New Node</h4>
+                </div>
 
- <div id="detail-modal" class="modal fade" role="edit" >
-     <div class="modal-dialog modal-lg"   style="width: 1400px">
-        <div class="modal-content">
-            <div class="modal-body">
-                    Node Name: <textarea id = "newNodeText"></textarea>
-                    Node Tooltip <textarea id = "newNodeTooltip"></textarea>
-                    Node Side Panel Text <textarea id = "newNodeSideText"></textarea>
-                    <button id = "addNodeButton">Confirm</button>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <span class="headings">Node Name:</span>
+                        <input id="newNodeText" type="text" class="form-control" placeholder="">
+                    </div>
+
+                    <div class="form-group">
+                        <span class="headings">Node Description:</span>
+                        <textarea id="newNodeTooltip" class="form-control" placeholder=""></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="addNodeButton">Confirm</button>
                 </div>
             </div>
-         </div>
- </div></div>
+        </div>
+    </div>
+</div>
