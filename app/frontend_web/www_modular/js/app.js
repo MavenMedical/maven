@@ -8,9 +8,10 @@ define([
     'backbone',
     'bootstrap',
     'router', // Request router.js
-], function ($, _, Backbone, Bootstrap, AppRouter) {
+    'ckeditor'
+], function ($, _, Backbone, Bootstrap, AppRouter, editor) {
     var initialize = function () {
-        // Pass in our Router module and call it's initialize function
+        // Pass in our Router module and        call it's initialize function
         new AppRouter;
     };
 
