@@ -6,12 +6,16 @@
 
             <div class="btn-toolbar" role="toolbar">
                 <div class="btn-group btn-group-xs">
-                    <button type="button" class="btn btn-default" id="addChildButton">+ Child</button>
+                    <button type="button" class="btn btn-default" id="addChildButton"><img src="../images/temp/newChild.jpg" style="width: 25px; height: 25px"></button>
                     <% if (children.length == 0){%>
-                    <button type="button" class="btn btn-default addProtocolButton">+ Protocol</button>
+                    <button type="button" class="btn btn-default addProtocolButton"><img src="../images/temp/newProtocole.jpg" style="width: 25px; height: 25px"></button>
                     <%} else {%>
-                    <button type="button" class="btn btn-default collapseButton"><% if (hideChildren=="true"){%>Show
-                        Children<%}else{%>Collapse<%}%>
+                    <button type="button" class="btn btn-default collapseButton">
+                        <% if (hideChildren=="true"){%>
+                        <img src="../images/temp/expand.jpg" style="width: 25px; height: 25px">
+                        <%}else{%>
+                        <img src="../images/temp/collapse.jpg" style="width: 25px; height: 25px">
+                        <%}%>
                     </button>
                     <%}%>
                 </div>
