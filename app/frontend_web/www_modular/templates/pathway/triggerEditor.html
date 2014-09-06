@@ -1,27 +1,35 @@
-
- <div id="detail-modal" class="modal fade" role="edit" >
-     <div class="modal-dialog modal-lg"   style="width: 1400px">
+<div id="detail-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
         <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span
+                        aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title">Triggering Snomed</h4>
+            </div>
+
             <div class="modal-body">
 
-
-	        <div class = 'detail-editor-heading'>Create/Edit Problem List Diagnosis Constraint</div>
-            <div>
+                <div class='detail-editor-heading'>Create/Edit Problem List Diagnosis Constraint</div>
 
 
-                 <select id = "existsField" class="detail-input form-control attn-text" style ="min-width: 200px" name="exists">
-                   <option value="true" selected>Alert the clinician only if </option>
-                   <option value="false"> Do not alert the clinician if</option>
-                 </select>
-		         <p class = "attn-text"> The patient's problem list contains any of the diagnosis </p><div style="clear:both" class="multi-select-search" type="snomed_diagnosis" name = "code"></div>
-	        </div>
-	        <div style = "clear:both">
-              <br>
-		  <button style = "float:left" class="btn btn-info cancel-edit-button">Cancel</button>
-          <button style = "float:right" class="btn btn-info confirm-detail-button">Confirm</button>
-	      </div>
-          <div style = "clear:both"></div>'
-         </div>
-     </div>
-   </div>
- </div>
+                <select id="existsField" class="detail-input form-control attn-text"
+                        name="exists">
+                    <option value="true" selected>Alert the clinician only if</option>
+                    <option value="false"> Do not alert the clinician if</option>
+                </select>
+
+                <p class="attn-text"> The patient's problem list contains any of the diagnosis </p>
+
+                <div class="multi-select-search" type="snomed_diagnosis" name="code"></div>
+            </div>
+
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="addNodeButton">Confirm</button>
+            </div>
+
+        </div>
+    </div>
+</div>

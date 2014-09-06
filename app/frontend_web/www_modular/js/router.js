@@ -33,17 +33,15 @@ define([
     // array length should match the number of layouts
     // the sum of each array should be 12 (Following bootstrap grid)
     var pageLayout = {
-        "home": [0, 9, 3],
+        "home": [3, 6, 3],
         "patient": [0, 9, 3],
         "episode": [0, 9, 3],
-        "pathEditor": [0, 9, 3]
+        "pathEditor": [3, 6, 3],
     };
     changePageLayout = function (page) {
-        console.log("change page layout");
+
         if (page in pageLayout) {
-            console.log(pageLayout[page]);
             $.each(layout, function (index, value) {
-                console.log(pageLayout[page][index], value);
                 if (pageLayout[page][index] == 0) {
                     $(value).hide();
                 }
