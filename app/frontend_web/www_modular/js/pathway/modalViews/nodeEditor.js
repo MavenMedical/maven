@@ -25,7 +25,7 @@ define([
             $('#addNodeButton')[0].onclick = function(){
                                    parent.unset('protocol', {silent: true})
                                    var data =  CKEDITOR.instances.newNodeSideText.getData()
-                                       var n = new NodeModel({tooltip: encodeURIComponent($('#newNodeTooltip', that.$el).val()), name: encodeURIComponent($('#newNodeText', this.$el).val()), sidePanelText: encodeURIComponent(data)})
+                                       var n = new NodeModel({tooltip: $('#newNodeTooltip', that.$el).val(), name: $('#newNodeText', this.$el).val(), sidePanelText: data})
                                    that.parent.get('children').add(n)
                                    curTree.set('selectedNode', n )
                                    $('#detail-modal').modal('hide')

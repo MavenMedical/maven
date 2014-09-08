@@ -60,7 +60,7 @@ class PathwaysWebservices():
                   {USER_ROLES.provider, USER_ROLES.supervisor})
     def get_tree(self, _header, body, context, _matches, _key):
         ret = yield from self.save_interface.get_tree(context[CONTEXT.PATHID])
-        ret = json.loads(ret)
+        ret = json.loads(ret[0])
         ret[CONTEXT.PATHID] = context[CONTEXT.PATHID]
 
         return (HTTP.OK_RESPONSE, json.dumps(ret), None)
