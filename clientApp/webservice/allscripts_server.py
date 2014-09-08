@@ -36,10 +36,10 @@ CLIENT_SERVER_LOG = ML.get_logger('clientApp.webservice.allscripts_server')
 
 class IncomingFromMavenMessageHandler(HR.HTTPWriter):
 
-    def __init__(self, configname, notification_generator, notification_service=None):
+    def __init__(self, configname, notification_generator, notification_fn=None):
         HR.HTTPWriter.__init__(self, configname)
         self.notification_generator = notification_generator
-        self.notification_service = notification_service
+        self.notification_fn = notification_fn
 
     @asyncio.coroutine
     def format_response(self, obj, _):
@@ -58,14 +58,15 @@ class IncomingFromMavenMessageHandler(HR.HTTPWriter):
         # ## tom: this has no authentication yet
         # composition.customer_id
         user = composition.write_key[0]
+        customer = str(composition.customer_id)
         msg = yield from self.notification_generator.generate_alert_content(composition,
                                                                             'web', None)
         CLIENT_SERVER_LOG.debug(("Generated Message content: %s" % msg))
 
         mobile_msg = [{'TEXT': 'New Pathway', 'LINK': m} for m in msg]
-        self.notification_service.send_messages('mobile_' + user, mobile_msg)
+        self.notification_fn('mobile_' + user, customer, mobile_msg)
 
-        if self.notification_service.send_messages(user, msg):
+        if self.notification_fn(user, customer, msg):
             CLIENT_SERVER_LOG.debug(("Successfully sent msg to: %s" % composition.write_key[0]))
             return (HR.OK_RESPONSE, b'', [], composition.write_key[0])
         else:
@@ -92,6 +93,9 @@ def main(loop):
     allscriptsscheduler = 'allscripts_demo'
     customerid = 'customer_id'
 
+    from utils.database.database import AsyncConnectionPool
+    import utils.database.web_persistence as WP
+    
     MavenConfig = {
         outgoingtomavenmessagehandler:
         {
@@ -138,6 +142,14 @@ def main(loop):
             SP.CONFIG_PORT: 8092,
             SP.CONFIG_PARSERTIMEOUT: 120,
             NS.CONFIG_QUEUEDELAY: 45,
+            "persistence": "persistence layer",
+        },
+        'persistence layer': {WP.CONFIG_DATABASE: 'webservices conn pool', },
+        'webservices conn pool':
+        {
+            AsyncConnectionPool.CONFIG_CONNECTION_STRING: MC.dbconnection,
+            AsyncConnectionPool.CONFIG_MIN_CONNECTIONS: 4,
+            AsyncConnectionPool.CONFIG_MAX_CONNECTIONS: 8
         },
         allscriptsscheduler:
         {
@@ -159,15 +171,15 @@ def main(loop):
 
     # Instantiate the (allscripts_server.py --> data_router.py) writer and services and add to event loop
     notification_generator = NG.NotificationGenerator(clientemrconfig)
-    notification_service = NS.NotificationService(notificationservicename, loop=loop)
+    notification_service, notification_fn = NS.standalone_notification_server(notificationservicename)
     sp_producer = IncomingFromMavenMessageHandler(incomingfrommavenmessagehandler,
                                                   notification_generator,
-                                                  notification_service)
+                                                  notification_fn)
 
     # Instantiate the allscripts_scheduler.py polling mechanism
     allscripts_scheduler = scheduler('scheduler')
     sp_producer.schedule(loop)
-    # notification_service.schedule(loop)
+    notification_service.schedule(loop)
 
     try:
         loop.run_until_complete(allscripts_scheduler.get_updated_schedule())
