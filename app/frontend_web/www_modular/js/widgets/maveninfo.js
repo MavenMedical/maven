@@ -7,20 +7,24 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
-    'globalmodels/contextModel'
-], function ($, _, Backbone, contextModel) {
+    'globalmodels/contextModel',
+    'pathway/models/treeModel'
+], function ($, _, Backbone, contextModel, curTree) {
     var MavenInfo = Backbone.View.extend({
         initialize: function (arg) {
             this.template = _.template(arg.template);
-            console.log('maveninfo ini');
             this.$el.html(this.template());
-            //this.render();
+            console.log('curTree', curTree);
+            curTree.on('change:name', this.render,this);
+
         },
         events: {
 
         },
         render: function () {
-
+            console.log('render maveninfo');
+            this.$el.html(this.template(curTree.get('selectedNode').attributes))
+            return this;
         }
     });
     return MavenInfo;

@@ -15,7 +15,7 @@ define([
     'text!templates/pathway/triggerNode.html',
     'text!templates/pathway/triggerRow.html'
 
-    ], function($, _, Backbone,  NodeEditor, ProtocolEditor, DetailEditor, contextModel,  nodeList, nodeModel, curTree, ProtocolNode, TreeNode, nodeTemplate, rowTemplate){
+    ], function($, _, Backbone,  NodeEditor, ProtocolEditor, DetailEditor, currentContext,  nodeList, nodeModel, curTree, ProtocolNode, TreeNode, nodeTemplate, rowTemplate){
 
         var TriggerNode = TreeNode.extend({
 
@@ -69,7 +69,7 @@ define([
                  if (!this.model.get('hideChildren')){
                     this.model.set('hideChildren', false, {silent: true})
                 }
-                this.$el.html(this.template(this.model.attributes))
+                this.$el.html(this.template({triggerNode: this.model.attributes, page: currentContext.get('page')}))
 
                   var that = this;
                 $("#addChildButton", this.$el).off('click')

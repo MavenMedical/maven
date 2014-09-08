@@ -3,10 +3,11 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
+    'globalmodels/contextModel',
 
     'text!templates/pathway/protocolNode.html',
 
-    ], function($, _, Backbone,nodeTemplate){
+    ], function($, _, Backbone,currentContext,nodeTemplate){
 
         var treeNode = Backbone.View.extend({
 
@@ -29,9 +30,9 @@ define([
             },
             render: function(){
                 if (this.model.get('protocol').attributes){
-                    this.$el.html(this.template(this.model.get('protocol').attributes))
+                    this.$el.html(this.template({protocolNode:this.model.get('protocol').attributes, page: currentContext.get('page')}));
                 } else  {
-                    this.$el.html(this.template(this.model.get('protocol')))
+                    this.$el.html(this.template({protocolNode:this.model.get('protocol'), page: currentContext.get('page')}));
                 }
 
                 return this

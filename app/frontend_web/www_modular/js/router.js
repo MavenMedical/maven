@@ -36,6 +36,7 @@ define([
         "home": [0, 9, 3],
         "patient": [0, 9, 3],
         "episode": [0, 9, 3],
+        "pathway": [0, 9, 3],
         "pathEditor": [3, 6, 3],
     };
     changePageLayout = function (page) {
@@ -80,7 +81,7 @@ define([
             "episode/:id/patient/:id/:date(/login/:provider/:customer/:userAuth)": 'showEpisode',
             "evidence/:id/patient/:id/evi/:id(/login/:provider/:customer/:userAuth)": 'showEvidence',
             "pathway/:id/patient/:id/:date(/login/:provider/:customer/:userAuth)": 'showPathway',
-            "pathway/:id/pathid/:id(/login/:provider/:customer/:userAuth)": 'showPath',
+            "pathway/:id/pathid/:id(/login/:provider/:customer/:userAuth)": 'EditPathway',
             "logout": 'logout',
             "settings": 'settings',
             //default
@@ -107,8 +108,8 @@ define([
                 startdate: null, enddate: null});
             showPage(provider, customer, userAuth);
         },
-        showPathway: function (enc, pat, date, provider, customer, userAuth) {
-            currentContext.set({page: 'pathway', encounter: enc, patients: pat, enc_date: date,
+        showPathway: function (path, pat, date, provider, customer, userAuth) {
+            currentContext.set({page: 'pathway', pathid: path, patients: pat, enc_date: date,
                 startdate: null, enddate: null});
             showPage(provider, customer, userAuth);
         },
@@ -123,7 +124,7 @@ define([
                 }
             }
         },
-        showPath: function (enc, path, provider, customer, userAuth) {
+        EditPathway: function (enc, path, provider, customer, userAuth) {
 
             if (CheckLogin()) {
                 currentContext.set({page: 'pathEditor', encounter: enc, pathid: path})

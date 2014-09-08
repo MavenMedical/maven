@@ -13,7 +13,7 @@ define([
     'pathway/internalViews/protocolNode',
     'text!templates/pathway/treeNode.html'
 
-    ], function($, _, Backbone, contextModel,  NodeEditor, ProtocolEditor, nodeList, nodeModel, curTree, ProtocolNode, nodeTemplate){
+    ], function($, _, Backbone, currentContext,  NodeEditor, ProtocolEditor, nodeList, nodeModel, curTree, ProtocolNode, nodeTemplate){
 
         var treeNode = Backbone.View.extend({
 
@@ -59,7 +59,7 @@ define([
                 if (!this.model.get('hideChildren')){
                     this.model.set('hideChildren', false, {silent: true})
                 }
-                this.$el.html(this.template(this.model.attributes))
+                this.$el.html(this.template({treeNode: this.model.attributes, page: currentContext.get('page')}));
                 var that = this;
 
                 //Set on clicks
