@@ -170,7 +170,6 @@ namespace MavenAsDemo
             locitm.MenuItems.Add(hitm);
             ctx.MenuItems.Add(locitm);
 
-            //TODO: Actually store the last alert and replay it. Remove dummyAlert. 
             MenuItem itm6 = new MenuItem("Replay Last Alert", LastAlert);
             ctx.MenuItems.Add(itm6);
 
@@ -197,9 +196,10 @@ namespace MavenAsDemo
                 try
                 {
                     checkAuth();
-                    string rqstUrl = "https://" + cursettings.pollingServer + "/broadcaster/poll?key=" + WindowsDPAPI.Decrypt(EncryptedKey)
+                    string rqstUrl = "https://" + cursettings.pollingServer + "/broadcaster/poll?userAuth=" + WindowsDPAPI.Decrypt(EncryptedKey)
                         + "&osUser=" + cursettings.osUser + "&machine=" + cursettings.machine + "&osVersion=" + cursettings.os
-                        +"&user="+Authenticator.GetUserName()+"&customerId="+cursettings.custId;
+                        +"&user="+Authenticator.getMavenUserId()+"&customer_id="+cursettings.custId
+                        +"&provider="+Authenticator.getProviderId()+"&roles[]=notification";
                     WebRequest rqst = WebRequest.Create(rqstUrl);
                     rqst.Timeout = 600000;
                     HttpWebResponse rsp = (HttpWebResponse)rqst.GetResponse();

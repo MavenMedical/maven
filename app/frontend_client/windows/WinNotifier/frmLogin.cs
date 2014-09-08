@@ -7,6 +7,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Win32;
+using System.Net;
+using System.IO;
 
 namespace MavenAsDemo
 {
@@ -176,16 +178,15 @@ namespace MavenAsDemo
             }
         }
 
-        private void WriteKey(string key)
+        private void WriteKey(string value,string key)
         {
-            byte[] keyToSave = WindowsDPAPI.Encrypt(key);
+            byte[] keyToSave = WindowsDPAPI.Encrypt(value);
             RegistryKey authKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Maven\\PathwaysDesktop\\Security\\", true);
             if (authKey == null)
             {
                 authKey=Registry.CurrentUser.CreateSubKey("SOFTWARE\\Maven\\PathwaysDesktop\\Security\\",RegistryKeyPermissionCheck.ReadWriteSubTree);
             }
-            authKey.SetValue("Auth", keyToSave);
-            authKey.SetValue("User", WindowsDPAPI.Encrypt(txtUser.Text));
+            authKey.SetValue(key, keyToSave);
         }
         private static void WriteSaveLogin(bool shouldStick)
         {
@@ -202,16 +203,83 @@ namespace MavenAsDemo
         {
             string user = txtUser.Text.Trim();
             string pass = txtPass.Text.Trim();
-            if (user=="" || pass=="")
+            if (user=="" || pass==""||!loginSuccess())
             {
                 lblErr.Text = "Specify Valid Credentials";
                 return;
             }
-            //TODO: Actually log in
-            WriteKey(user);
+            //save the login stickiness
             WriteSaveLogin(chkStay.Checked);
-            checkAutoStart();
+            checkAutoStart(); //save the autostart setting
             closeOut();
+        }
+        private bool loginSuccess()
+        {
+            Settings set = new Settings();
+            bool rtn = false;
+            //TODO: HTTPS
+            WebRequest rqst= WebRequest.Create("http://"+set.pollingServer+"/broadcaster/login");
+            rqst.Method = "POST";
+            string postData = "{\"user\":\""+txtUser.Text+"\",\"password\":\""+txtPass.Text+"\"}";
+            byte[] bytes = Encoding.UTF8.GetBytes(postData);
+            // Set the ContentType property of the WebRequest.
+            rqst.ContentType = "application/x-www-form-urlencoded";
+            // Set the ContentLength property of the WebRequest.
+            rqst.ContentLength = bytes.Length;
+            // Get the request stream.
+            try
+            {
+                Stream dataStream = rqst.GetRequestStream();
+                // Write the data to the request stream.
+                dataStream.Write(bytes, 0, bytes.Length);
+                // Close the Stream object.
+                dataStream.Close();
+                // Get the response.
+                WebResponse response = rqst.GetResponse();
+                // Display the status.
+                string status = ((HttpWebResponse)response).StatusDescription;
+                // Get the stream containing content returned by the server.
+                dataStream = response.GetResponseStream();
+                // Open the stream using a StreamReader for easy access.
+                StreamReader reader = new StreamReader(dataStream);
+                // Read the content.
+                string responseFromServer = reader.ReadToEnd();
+                // Clean up the streams.
+                reader.Close();
+                dataStream.Close();
+                response.Close();
+
+                //get the provider id and auth key
+                string provider = trimKeyValue("provider", responseFromServer);
+                string Auth = trimKeyValue("userAuth", responseFromServer);
+
+                //write the provider id and auth key, etc
+                WriteKey(provider, "provider");
+                WriteKey(Auth, "Auth");
+                WriteKey(trimKeyValue("user", responseFromServer), "MavenUser");
+
+                rtn = true;
+            }
+            catch (Exception ex)
+            {
+                //this gets hit if the login fails. 
+                Program.LogMessage("Login Failure: \r\n" + ex.Message);  
+            }
+            
+            return rtn;
+        }
+        private string trimKeyValue(string key,string trimfrom)
+        {
+            string rtn = "";
+            try
+            {
+                trimfrom = trimfrom.Substring(trimfrom.IndexOf("\"" + key + "\": \""));
+                trimfrom = trimfrom.Replace("\"" + key + "\": \"", "");
+                rtn = trimfrom.Substring(0, trimfrom.IndexOf("\"")).Replace("\"","").Trim();
+
+            }
+            catch { }
+            return rtn;
         }
     }
 }
