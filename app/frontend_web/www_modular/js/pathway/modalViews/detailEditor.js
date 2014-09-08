@@ -29,7 +29,6 @@ define([
                 $('#detail-modal').modal('hide')
             })
             $('#confirmDetailButton', this.$el).on('click', function(){
-                alert()
 
                 _.each(panel.searchBox.selected_items.models, function(cur){
 
