@@ -18,14 +18,14 @@ define([
 
 
             },
-            makeExit: function(){
+            makeExit: function(jsPlumb2){
 
-                var exit = jsPlumb.addEndpoint(this.$el, {anchor: 'Bottom'})
+                var exit = jsPlumb2.addEndpoint(this.$el, {anchor: 'Bottom'})
                 return exit
             },
-            makeEntrance: function(){
+            makeEntrance: function(jsPlumb2){
 
-                var entrance = jsPlumb.addEndpoint(this.$el, {anchor: 'Top'})
+                var entrance = jsPlumb2.addEndpoint(this.$el, {anchor: 'Top'})
                 return entrance
             },
             render: function(){

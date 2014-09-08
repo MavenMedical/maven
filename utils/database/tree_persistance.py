@@ -1,7 +1,7 @@
 import asyncio
 from utils.database.database import AsyncConnectionPool
 import maven_config as MC
-
+import json
 CONFIG_DATABASE = 'database'
 CONFIG_PERSISTENCE = 'search'
 EMPTY_RETURN = [{'id': 000000, 'term': "No Results Found", 'code': 000000, 'type': 'none'}]
@@ -35,10 +35,11 @@ class tree_persistance():
         cmd = []
         cmdArgs = []
         cmd.append("INSERT INTO protocols.unparsed (\"JSONSpec\", \"pathName\") VALUES (%s, %s) RETURNING pathid")
-        cmdArgs. append(str(treeJSON).replace("'", '"'))
+        viableStr = json.dumps(treeJSON)
+        cmdArgs.append(viableStr)
         cmdArgs.append(treeJSON['name'])
         id = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
-        return (id.fetchone()[0])
+        return (id.fetchone())
 
 
     @asyncio.coroutine
@@ -49,7 +50,8 @@ class tree_persistance():
         n = int(treeid)
         cmdArgs.append(n)
         json = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
-        return (json.fetchone()[0])
+        result = json.fetchone()
+        return result
     @asyncio.coroutine
     def delete_pathway(self, treeid):
         cmd = []
@@ -65,7 +67,8 @@ class tree_persistance():
         cmd = []
         cmdArgs = []
         cmd.append("UPDATE protocols.unparsed SET (\"JSONSpec\") = (%s) WHERE pathid = %s")
-        cmdArgs.append(str(treeJSON).replace("'", '"'))
+        viableStr = json.dumps(treeJSON)
+        cmdArgs.append(viableStr)
         cmdArgs.append(treeJSON['id'])
         yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
         return
