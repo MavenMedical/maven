@@ -6,7 +6,8 @@ define([
     'pathway/models/nodeModel',
     'pathway/models/treeModel',
     'globalmodels/contextModel',
-    'text!templates/pathway/NewNodeModal.html',
+       'text!templates/pathway/NewNodeModal.html',
+
 
 
 ], function ($, _, Backbone, NodeModel, curTree, contextModel, nodeTemplate) {
@@ -18,9 +19,7 @@ define([
         initialize: function(parent){
             var that = this
 
-             String.prototype.htmlEscape = function() {
-                 return $('<div/>').text(this.toString()).html();
-            };
+
             this.$el.html(this.template())
             $('#addNodeButton')[0].onclick = function(){
                                    parent.unset('protocol', {silent: true})

@@ -4,11 +4,12 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
-   'globalmodels/contextModel',
+    'globalmodels/contextModel',
     'pathway/models/treeModel',
+    'pathway/modalViews/sidePanelEditor',
     'text!templates/pathway/treeNodeActionSet.html'
 
-], function ($, _, Backbone, contextModel, curTree, treeNodeActionSetTemplate) {
+], function ($, _, Backbone, contextModel, curTree, sidePanelEditor, treeNodeActionSetTemplate) {
 
 
     var treeNodeActionSet = Backbone.View.extend({
@@ -22,12 +23,15 @@ define([
         },
 
         events: {
+            'click #editSidePanelButton': 'editSidePanel',
             'click #setNodeTitleButton' : 'editName',
             'click #setNodeDescriptionButton': 'editDescription',
             'click #deleteNodeButton': 'deleteNode'
 
         },
-
+        editSidePanel: function(){
+            new sidePanelEditor()
+        },
         editName: function(){
             var newname = prompt("Enter the new title")
             if (newname)
