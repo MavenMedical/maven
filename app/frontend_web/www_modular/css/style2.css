@@ -75,15 +75,15 @@
         -moz-transition: all 0.5s;
     }
 
-    .tree li div.protocol2 {
+    .tree li div.protocolNode {
+        width: 270px;
         border: 2px solid #18bc9a;
         background-color: whitesmoke;
         padding: 5px 10px;
         text-decoration: none;
         color: #666;
         font-family: arial, verdana, tahoma;
-        font-size: 13px;
-        font-weight: bold;
+        font-size: 11px;
         display: inline-block;
 
         border-radius: 5px;
@@ -151,6 +151,10 @@
 html, body {
     padding:0px;
     margin:0px;
+}
+
+.content-row {
+    overflow:hidden;
 }
 
 #fixed-topA {
@@ -485,7 +489,9 @@ body {
 }
 
 .modal-body{
-    background-color: #fff6f6;
+    background-color: rgb(235, 235, 235);
+    background-image: linear-gradient(to top, rgb(253, 253, 253), rgb(229, 229, 229));
+    background-repeat: repeat-x;
 }
 
 .search-box {

@@ -4,11 +4,12 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
-   'globalmodels/contextModel',
+    'globalmodels/contextModel',
     'pathway/models/treeModel',
+    'pathway/modalViews/sidePanelEditor',
     'text!templates/pathway/treeNodeActionSet.html'
 
-], function ($, _, Backbone, contextModel, curTree, treeNodeActionSetTemplate) {
+], function ($, _, Backbone, contextModel, curTree, sidePanelEditor, treeNodeActionSetTemplate) {
 
 
     var treeNodeActionSet = Backbone.View.extend({
@@ -22,26 +23,31 @@ define([
         },
 
         events: {
+            'click #editSidePanelButton': 'editSidePanel',
             'click #setNodeTitleButton' : 'editName',
             'click #setNodeDescriptionButton': 'editDescription',
             'click #deleteNodeButton': 'deleteNode'
 
         },
-
+        editSidePanel: function(){
+            new sidePanelEditor()
+        },
         editName: function(){
             var newname = prompt("Enter the new title")
-            curTree.get('selectedNode').set('name', newname)
-            curTree.get('selectedNode').set('text', newname)
+            if (newname)
+                curTree.get('selectedNode').set('name', newname)
         },
 
         editDescription: function(){
             var newdesc = prompt("Enter the new description")
-            curTree.get('selectedNode').set('tooltip', newdesc)
+            if (newdesc)
+                curTree.get('selectedNode').set('tooltip', newdesc)
         },
 
         editHelpText: function (){
             var newht = prompt("Enter the new description")
-            curTree.get('selectedNode').set('sidePanel', newht)
+            if (newht)
+                curTree.get('selectedNode').set('sidePanel', newht)
         },
         deleteNode: function(){
             curTree.deleteNode(curTree.get('selectedNode'))

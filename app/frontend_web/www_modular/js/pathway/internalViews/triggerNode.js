@@ -55,7 +55,6 @@ define([
             makeExit: function(jsPlumb2){
 
                 this.exit = jsPlumb2.addEndpoint(this.getMyElement(), {anchor: 'Bottom'})
-                                console.log(jsPlumb2)
 
                 return this.exit
             },
@@ -92,7 +91,6 @@ define([
                 })
                 _.each(this.model.get('children').models, function(cur){
 
-                    console.log('lets render', cur)
                     $('.children2', this.$el).first().append("<div class='childSpot'></div>")
                     var targ = $('.childSpot',$('.children2', this.$el).first()).last()
                     var thisChild = new TreeNode({model: cur, el:targ})

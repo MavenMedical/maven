@@ -1,19 +1,26 @@
 <ul>
-<li>
-<div style="text-align: center; border-style:solid;  width:auto;" class = "treeNode" title="<%=tooltip%>"><%=name%>
-<div class="triggerView">triggers will go here</div>
-<br>
-<button class = 'btn btn-default ' id = "addTriggerButton">Add Triggering Snomed</button>
-<br>
-<button class = 'btn btn-default ' id = "addChildButton">Add Child</button>
+    <li>
+        <div style="text-align: center; border-style:solid;  width:auto;" class="treeNode">
+            <span data-toggle="tooltip" title="<%=tooltip%>"><%=name%></span>
 
-<% if (children.length == 0){%><button class="btn btn-default  addProtocolButton">Add a Protocol</button><%}%>
-</div>
+            <div class="triggerView">triggers will go here</div>
 
-<!--<div style="clear: both; height:100px; width:10px;"></div>-->
-<ul style= "clear: both; width: 100%; text-align: center" class ='children2'></ul>
+            <div class="btn-toolbar" role="toolbar">
+                <div class="btn-group btn-group-xs">
+                    <button type="button" class="btn btn-default" id="addTriggerButton"><img src="../images/temp/trigger.jpg" title="Add Trigger" style="width: 25px; height: 25px"></button>
+                    <button type="button" class="btn btn-default" id="addChildButton"><img src="../images/temp/newChild.jpg" style="width: 25px; height: 25px"></button>
+                    <% if (children.length == 0){%>
+                    <button class="btn btn-default  addProtocolButton"><img src="../images/temp/newProtocole.jpg" style="width: 25px; height: 25px"></button>
+                    <%}%>
+                </div>
+            </div>
 
-      <div  style= 'padding-top: 25px; ' class='protocol'></div>
-</div>
-</li>
+        </div>
+
+        <!--<div style="clear: both; height:100px; width:10px;"></div>-->
+        <ul style="clear: both; width: 100%; text-align: center" class='children2'></ul>
+
+        <div style='padding-top: 25px; ' class='protocol'></div>
+        </div>
+    </li>
 </ul>

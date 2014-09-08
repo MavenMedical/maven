@@ -70,7 +70,7 @@ class AdministrationWebservices():
 
     @http_service(['GET'], '/syncusers',
                   [CONTEXT.CUSTOMERID], {CONTEXT.CUSTOMERID: int}, {USER_ROLES.maventask})
-    def sync_get_users(self, _header, _body, context, matches, _key):
+    def EHRsync_get_users(self, _header, _body, context, matches, _key):
 
         limit = self.helper.limit_clause(matches)
 
@@ -81,8 +81,24 @@ class AdministrationWebservices():
             WP.Results.username: 'user_name',
             WP.Results.officialname: 'official_name',
             WP.Results.displayname: 'display_name',
-            WP.Results.state: 'state'
+            WP.Results.state: 'state',
+            WP.Results.ehrstate: 'ehr_state'
         }
-        results = yield from self.persistence.user_info(desired, limit=limit)
-
+        results = yield from self.persistence.customer_specific_user_info(desired,
+                                                                          limit=limit,
+                                                                          customer_id=context['customer_id'])
         return HTTP.OK_RESPONSE, json.dumps(results), None
+
+    @http_service(['POST'], '/synccreateuser',
+                  [CONTEXT.CUSTOMERID], {CONTEXT.CUSTOMERID: int}, {USER_ROLES.maventask})
+    def EHRsync_create_user_provider(self, _header, _body, context, matches, _key):
+        info = json.loads(_body.decode('utf-8'))
+        yield from self.persistence.EHRsync_create_user_provider(info)
+        return HTTP.OK_RESPONSE, json.dumps(info), None
+
+    @http_service(['POST'], '/syncupdateuser',
+                  [CONTEXT.CUSTOMERID], {CONTEXT.CUSTOMERID: int}, {USER_ROLES.maventask})
+    def EHRsync_update_user_provider(self, _header, _body, context, matches, _key):
+        info = json.loads(_body.decode('utf-8'))
+        yield from self.persistence.EHRsync_update_user_provider(info)
+        return HTTP.OK_RESPONSE, json.dumps(info), None
