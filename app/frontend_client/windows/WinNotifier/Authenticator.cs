@@ -133,14 +133,26 @@ namespace MavenAsDemo
         /// <returns></returns>
         public static string GetUserName()
         {
+            return GetDecryptedRegistryVaue("User");
+        }
+        public static string getProviderId()
+        {
+            return GetDecryptedRegistryVaue("provider");
+        }
+        public static string getMavenUserId()
+        {
+            return GetDecryptedRegistryVaue("MavenUser");
+        }
+        private static string GetDecryptedRegistryVaue(string key)
+        {
             string rtn = "";
             RegistryKey authKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Maven\\PathwaysDesktop\\Security\\", false);
-            if (authKey != null && authKey.GetValue("User") != null)
+            if (authKey != null && authKey.GetValue(key) != null)
             {
 
 
                 //if you found the key and it is ok to use it, then by all means use it
-                byte[] encUser = (byte[])authKey.GetValue("User");
+                byte[] encUser = (byte[])authKey.GetValue(key);
                 rtn = WindowsDPAPI.Decrypt(encUser);
 
             }
