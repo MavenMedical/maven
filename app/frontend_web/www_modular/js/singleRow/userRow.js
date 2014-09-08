@@ -41,11 +41,13 @@ define([
                 $(that.el).unbind('click');
                 var mousepos;
                 //$(that.el).mousemove(function(e) {mousepos=e;});
+                $(that.el).find(".user-state").click(function(){$("#save-user-message").empty();});
 
-		        $(that.el).mouseover(function() {curTitle = "audit";});
-                $(that.el).mousestop(500, function(e) {
+		        $(that.el).find(".audit-hover").mouseover(function() {curTitle = "audit";});
+                $(that.el).find(".audit-hover").mousestop(500, function(e) {
                     if (curTitle) {
                         //mousepos=e;
+                        $(auditElement).hide();
                         auditList = new AuditList({el: $(auditElement), template: AuditTemplate, targetCustomer: that.model.get("customer_id"), targetProvider: that.model.get("prov_id")});
                         auditList.$el[0].style.left = (mousepos.pageX + 10) + 'px';
                         auditList.$el[0].style.top = (mousepos.pageY - 50) + 'px';
@@ -53,11 +55,11 @@ define([
 
                     }
                 });
-                $(that.el).mouseleave(function() {
+                $(that.el).find(".audit-hover").mouseleave(function() {
                     curTitle= null;
                     setTimeout(maybeHide,500);
                 });
-	            $(that.el).mousemove(function(e) {mousepos=e;});
+	            $(that.el).find(".audit-hover").mousemove(function(e) {mousepos=e;});
                 $(auditElement).mouseover(function() {
                     overlist = true;
                 });

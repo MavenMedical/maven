@@ -242,6 +242,14 @@ class WebPersistence():
                                 [state, user], {}, {})
 
     @asyncio.coroutine
+    def add_customer(self, name, abbr, address, license, license_exp):
+        yield from self.execute(["select * from customer;" +
+                                 "INSERT INTO customer (customer_id, name, abbr, license_type, license_exp) " +
+                                 "VALUES(((SELECT MAX(customer_id) FROM customer) + 1), " +
+                                 "%s,%s,%s,%s)"],
+                                [name, abbr, license, license_exp], {}, {})
+
+    @asyncio.coroutine
     def update_alert_setting(self, user, customer, alertid, ruleid, category, actioncomment):
         yield from self.execute(["UPDATE alert_setting_hist set(action_comment, datetime) = " +
                                  "(%s, CURRENT_TIMESTAMP) where alert_id=%s and customer_id = " +
@@ -381,7 +389,7 @@ class WebPersistence():
     _display_user_info = _build_format({})
 
     @asyncio.coroutine
-    def user_info(self, desired, limit=""):
+    def user_info(self, desired, customer, limit=""):
         columns = build_columns(desired.keys(), self._available_user_info,
                                 self._default_user_info)
 
@@ -390,6 +398,9 @@ class WebPersistence():
         cmd.append("SELECT")
         cmd.append(columns)
         cmd.append("FROM users")
+        cmd.append("WHERE users.customer_id = %s")
+        cmdargs.append(customer)
+        cmd.append("ORDER BY user_id")
         if limit:
             cmd.append(limit)
 

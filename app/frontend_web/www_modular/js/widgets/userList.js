@@ -46,8 +46,11 @@ define([
                 url: "/update_user",
                 data: $.param(contextModel.toParams()) + "&target_user=" + user_id +
                                                          "&state=" + state,
-                success: function (data) {
-                    console.log(data);
+                success: function () {
+                    $("#save-user-message").html("Changes Saved!");
+                },
+                error : function () {
+                     $("#save-user-message").html("Sorry, an error occurred. Please try again later");
                 }
             });
         });

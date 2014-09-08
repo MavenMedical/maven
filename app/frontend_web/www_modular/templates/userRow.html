@@ -2,15 +2,10 @@
     <div class="user-val-id"><%= user_id %></div>
 </td>
 <td>
-    <a>
-        <%= user_name %>
-    </a>
+        &nbsp;
 </td>
 <td>
-        <%= customer_id %>
-</td>
-<td class="user-val-column">
-    <div class="user-val-text"><%= official_name %></div>
+        &nbsp;
 </td>
 <td class="user-val-column">
     <% if (state == 'active') { %>
@@ -18,4 +13,9 @@
     <% } else { %>
         <input type="checkbox" class="user-state">
     <% } %>
+</td>
+<td>
+    <a class="audit-hover">
+        View Audits
+    </a>
 </td>

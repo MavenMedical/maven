@@ -27,6 +27,10 @@ class CONTEXT():
     ENDDATE = 'enddate'
     CATEGORY = 'category'
     CATEGORIES = 'categories'
+    NAME = 'name'
+    ABBREVIATION = "abbr"
+    IPADDRESS = "ip"
+    LICENSE = "license"
     OFFICIALNAME = 'official_name'
     DISPLAYNAME = 'display_name'
     ACTION = 'action'

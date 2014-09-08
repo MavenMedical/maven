@@ -1,27 +1,27 @@
 <div class = "widget-column">
-    <div class="auditlist audit-scroll">
-        <% if (! (typeof userFilter === 'undefined')) { %>
-            <div class="audit-header">Audits From This User</div>
-        <% } %>
+    <div class="auditlist audit-scroll" style="clear:both;">
         <div class="auditaccordion">
-        <table class="table table-condensed table-hover audittable">
-        <col width="20%">
-        <col width="20%">
-        <col width="20%">
-        <col width="20%">
-        <col width="20%">
-        <thead >
-            <tr>
-                <th align="left" id="audit_date" class="first_audit_header panel-heading rule">Date</th>
-                <th align="left" id="audit_patient">Patient</th>
-                <th align="left" id="audit_action" >Action</th>
-                <th align="left" id="audit_patient">Device</th>
-                <th align="left" id="audit_patient" class="last_audit_header">Details</th>
-            </tr>
-        </thead>
-        <tbody>
-        </tbody>
-        </table>
+            <table class="table table-condensed table-hover audittable">
+            <col width="20%">
+            <col width="20%">
+            <col width="20%">
+            <col width="20%">
+            <col width="20%">
+            <thead >
+                <tr>
+                    <th align="left">Date</th>
+                    <th align="left">Patient</th>
+                    <th align="left">Action</th>
+                    <th align="left">Device</th>
+                    <th align="left">Details</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+            </table>
         </div>
+    </div>
+    <div class="audit-control-row">
+        <button class="btn btn-default download-user-audits">Download Audits</button>
     </div>
 </div>

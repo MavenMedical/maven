@@ -6,15 +6,19 @@ define([
     //views
     'globalmodels/auditCollection',
     'singleRow/auditRow',
-], function ($, _, Backbone, auditCollection, AuditRow) {
+
+    'globalmodels/contextModel'
+], function ($, _, Backbone, auditCollection, AuditRow, contextModel) {
 
     var AuditList = Backbone.View.extend({
     targetProvider:null,
     targetCustomer:null,
+    lastHeight: 0,
 	initialize: function(arg) {
         if (arg.targetProvider || arg.targetCustomer)
         {
-            this.userFilter = "active";
+            this.targetProvider = arg.targetProvider;
+            this.targetCustomer = arg.targetCustomer;
             auditCollection.data="target_provider="+arg.targetProvider+"&target_customer="+arg.targetCustomer;
         }
         else
@@ -38,6 +42,27 @@ define([
 		}
 	    });
 	},
+    events: {
+	    'click .download-user-audits': 'downloadAudits',
+    },
+    downloadAudits: function() {
+        that = this;
+        var extra_data = "";
+        if (that.targetProvider && that.targetCustomer) {
+            var extra_data = "&target_provider=" + that.targetProvider + "&target_customer=" + that.targetCustomer;
+        }
+
+        $.ajax({
+            url: "/download_audits",
+            data: $.param(contextModel.toParams()) + extra_data,
+            success: function (data) {
+                    //window.open(data);
+            },
+            error : function () {
+            }
+        });
+    },
+
 	render: function() {
 	    this.$el.html(this.template(this));
 	    this.addAll();
@@ -53,14 +78,19 @@ define([
 	    }
 	    if(!nonempty) {
             $('.audittable > tbody', this.$el).html("<tr><td colspan=\"5\">None available</td></tr>");
-           this.$el.show();
+            $('.audittable > thead', this.$el).hide();
+            $('.audit-control-row', this.$el).hide();
+            this.$el.show();
 	    }
         else {
+            $('.audittable > thead', this.$el).show();
+            $('.audit-control-row', this.$el).show();
             this.$el.show();
-            var auditlist = $('.auditlist', this.$el);
+            var auditlist = $('.audit-scroll', this.$el);
             setTimeout(function () {
                 var auditHeight = auditlist.innerHeight();
-                if (auditHeight > 0 && auditHeight < parseInt(auditlist.css('max-height'))) {
+                if (this.lastHeight != auditHeight && auditHeight < parseInt(auditlist.css('max-height'))) {
+                    this.lastHeight = auditHeight;
                     auditCollection.more();
                 }
             }, 500);

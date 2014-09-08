@@ -186,3 +186,54 @@ class UserMgmtWebservices():
                                                          enddate=enddate, limit=limit)
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
+
+    @http_service(['GET'], '/download_audits',
+                  [CONTEXT.PROVIDER, CONTEXT.USER, CONTEXT.CUSTOMERID],
+                  {CONTEXT.PROVIDER: str, CONTEXT.PATIENTLIST: list, CONTEXT.CUSTOMERID: int,
+                   CONTEXT.ENCOUNTER: str, CONTEXT.STARTDATE: date, CONTEXT.ENDDATE: date,
+                   CONTEXT.ORDERID: str, CONTEXT.CATEGORIES: list, CONTEXT.USER: int,
+                   CONTEXT.TARGETPROVIDER: str, CONTEXT.TARGETCUSTOMER: int},
+                  {USER_ROLES.provider, USER_ROLES.supervisor})
+    def download_audits(self, _header, _body, context, matches, _key):
+        provider = context.get(CONTEXT.TARGETPROVIDER, None)
+        customer = context.get(CONTEXT.TARGETCUSTOMER, None)
+        if not provider:
+            provider = context[CONTEXT.PROVIDER]
+        if not customer:
+            customer = context[CONTEXT.CUSTOMERID]
+
+        startdate = self.helper.get_date(context, CONTEXT.STARTDATE)
+        enddate = self.helper.get_date(context, CONTEXT.ENDDATE)
+
+        desired = {
+            WP.Results.auditid: 'id',
+            WP.Results.datetime: 'date',
+            WP.Results.userid: 'user',
+            WP.Results.patientid: 'patient',
+            WP.Results.action: 'action',
+            WP.Results.details: 'details',
+            WP.Results.device: 'device',
+        }
+
+        results = yield from self.persistence.audit_info(desired, provider, customer,
+                                                         startdate=startdate,
+                                                         enddate=enddate, limit=None)
+        """write_string = ""
+        for audit in results:
+            write_string += audit["date"] + "," + audit["patient"] + "," + audit["action"]
+            write_string += audit["device"] + "," + audit["details"] + ",\n"
+
+        filename = "/home/devel/maven/userFiles/" + provider + "_" + str(customer) + "_audit.csv"
+        file = open(filename, 'w+')
+        file.write(write_string)
+        file.close()
+
+        generator = (cell for row in results
+                     for cell in row)
+
+        return Response(generator,
+                        mimetype="text/plain",
+                        headers={"Content-Disposition":
+                        "attachment;filename=audits.txt"})"""
+
+        return HTTP.OK_RESPONSE, json.dumps(results), None

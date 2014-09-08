@@ -33,10 +33,11 @@ class AdministrationWebservices():
         self.persistence = WP.WebPersistence(config[CONFIG_PERSISTENCE])
 
     @http_service(['GET'], '/users(?:(\d+)-(\d+)?)?',
-                  [CONTEXT.USER, CONTEXT.PROVIDER],
-                  {CONTEXT.PROVIDER: str, CONTEXT.USER: int},
+                  [CONTEXT.USER, CONTEXT.PROVIDER, CONTEXT.CUSTOMERID],
+                  {CONTEXT.PROVIDER: str, CONTEXT.USER: int, CONTEXT.CUSTOMERID: int},
                   {USER_ROLES.supervisor})
     def get_users(self, _header, _body, context, matches, _key):
+        customer = context[CONTEXT.CUSTOMERID]
 
         limit = self.helper.limit_clause(matches)
 
@@ -49,7 +50,7 @@ class AdministrationWebservices():
             WP.Results.displayname: 'display_name',
             WP.Results.state: 'state'
         }
-        results = yield from self.persistence.user_info(desired, limit=limit)
+        results = yield from self.persistence.user_info(desired, customer, limit=limit)
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
 

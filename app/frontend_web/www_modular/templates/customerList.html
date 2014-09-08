@@ -2,20 +2,29 @@
 
 <div class="row customerlist" style="margin: auto; width: 100%;">
     <span class="headings title">Customers</span>
-    <div class="panel-group customeraccordion" style="overflow-y:auto; max-height:500px; width:100%">
+    <div class="customeraccordion" style="overflow-y:auto; max-height:500px; width:100%">
         <table class="table table-condensed table-hover customertable" style="width:100%; padding: 0;">
+        <col width="5%">
+        <col width="40%">
         <col width="20%">
         <col width="20%">
+        <col width="15%">
         <thead>
             <tr>
-                <th align="left" id="cus_id">Customer ID</th>
-                <th align="left" id="cus_address">Abbreviation</th>
-                <th align="left" id="cus_address">License Expiration</th>
+                <th align="left" id="cus_id">ID</th>
+                <th align="left" id="cus_name">Name</th>
+                <th align="left" id="cus_abbr">Abbreviation</th>
+                <th align="left" id="cus_license_exp">License Exp</th>
+                <th align="left" id="cus_license_typ">License Type</th>
             </tr>
         </thead>
         <tbody>
         </tbody>
         </table>
+    </div>
+    <div class="edit-customer-row">
+        <span id="save-customer-message"></span>
+        <button id="save-customer-changes" class="btn btn-default">Save Changes</button>
     </div>
 </div>
 

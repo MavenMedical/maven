@@ -23,6 +23,9 @@ import utils.database.web_persistence as WP
 from utils.streaming.http_svcs_wrapper import http_service, CONTEXT, CONFIG_PERSISTENCE
 import utils.streaming.http_responder as HTTP
 import maven_config as MC
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+
 date = str
 
 
@@ -68,15 +71,21 @@ class SupportWebservices():
             return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
 
     @http_service(['GET'], '/add_customer',
-                  [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.STATE, CONTEXT.TARGETUSER],
-                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int,
-                   CONTEXT.STATE: str, CONTEXT.TARGETUSER: int},
-                  {USER_ROLES.supervisor})
+                  [CONTEXT.USER, CONTEXT.IPADDRESS,
+                   CONTEXT.NAME, CONTEXT.ABBREVIATION, CONTEXT.LICENSE],
+                  {CONTEXT.USER: str, CONTEXT.IPADDRESS: str,
+                   CONTEXT.LICENSE: int, CONTEXT.NAME: str,
+                   CONTEXT.ABBREVIATION: str},
+                  {USER_ROLES.mavensupport})
     def add_customer(self, _header, _body, context, _matches, _key):
-        userid = context[CONTEXT.TARGETUSER]
-        state = context[CONTEXT.STATE]
+        name = context[CONTEXT.NAME]
+        abbr = context[CONTEXT.ABBREVIATION]
+        address = context[CONTEXT.IPADDRESS]
+        license = context[CONTEXT.LICENSE]
+        license_exp = datetime.now() + relativedelta(years=1)
 
-        result = yield from self.persistence.update_user(userid, state)
+        result = yield from self.persistence.add_customer(name, abbr, address,
+                                                          license, license_exp)
         if result:
             return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
         else:

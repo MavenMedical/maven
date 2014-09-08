@@ -580,19 +580,14 @@ border-right: 1px solid rgb(204, 204, 204);
     margin-right:10px;
 }
 
-#mouse-target > .audit-scroll {
-    background-color: white;
-    padding:2px;
+.audit-hover:hover {
+    cursor: pointer;
 }
 
-#mouse-target > .audit-scroll > .auditlist {
-    clear: both;
-    background-color: white;
-    padding-top:5px;
-    padding-bottom: 5px;
-    padding-left: 0;
-    padding-right: 0;
-    width:100%;
+#mouse-target > .widget-column > .audit-scroll {
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    border: 1px solid rgb(221, 221, 221);
 }
 
 .user-val-input {
@@ -606,13 +601,15 @@ border-right: 1px solid rgb(204, 204, 204);
 .userlist {
     width: 99%;
     margin:auto;
+    padding-bottom: 15px;
 }
 
 .audit-scroll {
     overflow-y:auto;
     max-height:200px;
     width:100%;
-    margin-bottom: 10px;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
 }
 
 .audittable {
@@ -625,14 +622,6 @@ border-right: 1px solid rgb(204, 204, 204);
     background-color: white;
 }
 
-.audittable > thead > tr > .first_audit_header {
-    border-top-left-radius: 3px;
-}
-
-.audittable > thead > tr > .last_audit_header {
-    border-top-right-radius: 3px;
-}
-
 .audittable > thead > tr > th {
     background-color: rgb(223, 245, 253);
     color: rgb(70, 87, 102);
@@ -642,26 +631,28 @@ border-right: 1px solid rgb(204, 204, 204);
     padding: 10px 15px;
 }
 
-.audit-header {
-    background-color: rgb(235, 235, 235);
-    border-bottom: 1px solid transparent;
-    border-top: 1px solid transparent;
-    font-weight: normal;
-    padding: 5px 15px;
-    border-top-left-radius: 3px;
-    border-top-right-radius: 3px;
-}
-
 .audit-panel > .col-sm-12{
     padding:0;
 }
 
-.audittable > tbody {
+.audittable > tbody, .audit-scroll {
     background-color: white;
 }
 
 .audit-header h4 {
     margin: 0;
+}
+
+.audit-control-row {
+    padding: 9px 10px 10px;
+    border-top: 1px solid rgb(221, 221, 221);
+    background-color: white;
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+}
+
+#mouse-target > .widget-column > .audit-control-row {
+    border: 1px solid rgb(221, 221, 221);
 }
 
 /***************************************************************
@@ -695,4 +686,36 @@ border-right: 1px solid rgb(204, 204, 204);
 	width: 100%;
 	height: 350px;
     }
+}
+
+.customer-creation {
+    float:left;
+}
+
+.customer-creation > title {
+    float:left;
+}
+
+.customer-creation > .row {
+    float:left;
+    margin-top: 5px;
+}
+
+.customer-creation > select {
+    float:right;
+}
+
+.add-customer-row, .edit-customer-row {
+    width:100%;
+    padding-top: 10px;
+    clear:both;
+}
+
+.add-customer-row > .btn, .edit-customer-row > .btn {
+    float:right;
+}
+
+.edit-customer-row {
+    padding-bottom: 10px;
+    float:left;
 }
