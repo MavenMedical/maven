@@ -141,7 +141,7 @@ namespace MavenAsDemo
                 custKey.SetValue("CustomerId", custId);
             }
             
-            catch (Exception thrown)
+            catch 
             {
                 //didnt get an override setting
             }
