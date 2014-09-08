@@ -31,7 +31,7 @@ namespace MavenAsDemo
         public frmHardAlert(string inUrl, string location)
         {
             loc = location;
-            url = inUrl;
+            url = inUrl; //.Replace("http://","https://");
             InitializeComponent();
         }
 
@@ -73,6 +73,7 @@ namespace MavenAsDemo
         {
             tix += 1;
             this.TopMost = true;
+
             //automatically close out after 5 minutes. 
             //this is the case where the user doesnt close out, but just puts it behind  his EMR screen. 
             if (tix == 300)
@@ -87,6 +88,7 @@ namespace MavenAsDemo
                 //there is a bad style in the document. handle that. This piece of code should be temporary, but won't hurt much since it only get's touched first time through.
                 if (tix == 1)
                 {
+
                     HtmlElement badForIE = browserDisplay.Document.GetElementById("n1-1");
                     badForIE.Style = "";
                 }
