@@ -94,11 +94,12 @@ def standalone_notification_server(configname):
     import utils.streaming.webservices_core as WC
     from app.backend.webservices.authentication import AuthenticationWebservices
     core_scvs = WC.WebserviceCore(configname)
-    core_scvs.register_services(NotificationService(configname))
+    ns = NotificationService(configname)
+    core_scvs.register_services(ns)
     core_scvs.register_services(AuthenticationWebservices(configname,
                                                           specific_role=USER_ROLES.notification,
                                                           timeout=60 * 60 * 12))
-    return core_scvs
+    return core_scvs, ns.send_messages
 
 
 def run():
@@ -125,7 +126,7 @@ def run():
         }
     }
 
-    core_scvs = standalone_notification_server('notificationserver')
+    core_scvs, _ = standalone_notification_server('notificationserver')
     event_loop = asyncio.get_event_loop()
     core_scvs.schedule(event_loop)
     event_loop.run_forever()
