@@ -76,14 +76,14 @@
     }
 
     .tree li div.protocolNode {
+        width: 270px;
         border: 2px solid #18bc9a;
         background-color: whitesmoke;
         padding: 5px 10px;
         text-decoration: none;
         color: #666;
         font-family: arial, verdana, tahoma;
-        font-size: 13px;
-        font-weight: bold;
+        font-size: 11px;
         display: inline-block;
 
         border-radius: 5px;
