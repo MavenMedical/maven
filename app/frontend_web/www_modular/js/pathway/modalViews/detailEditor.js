@@ -28,13 +28,17 @@ define([
             $('.cancel-edit-button', this.$el).on('click', function(){
                 $('#detail-modal').modal('hide')
             })
-            $('.confirm-detail-button', this.$el).on('click', function(){
+            $('#confirmDetailButton', this.$el).on('click', function(){
+                alert()
+
                 _.each(panel.searchBox.selected_items.models, function(cur){
+
                     if (!panel.triggerNode.get('triggers')){
                         panel.triggerNode.set({triggers: new Backbone.Collection()}, {silent: true})
 
                     }
                     cur.set('exists', $('#existsField').val());
+                    console.log(panel.triggerNode)
                     panel.triggerNode.get('triggers').add(cur)
 
                 })
