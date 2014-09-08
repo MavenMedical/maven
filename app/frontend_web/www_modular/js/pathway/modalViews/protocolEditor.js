@@ -19,11 +19,12 @@ define([
             this.parent = parent
                 $("#detail-modal").modal({'show':'true'});
                 $("#addNodeButton", this.$el).on("click", function(){
-                    var summary = $('#newProtocolSummary', this.$el).val()
+                    var title = $('#newProtocoleTitle', this.$el).val()
+                    var standard = $('#newProtocolStandard', this.$el).val()
                     var recommendation = $('#newProtocolRecommendation', this.$el).val()
-                    var note = $('#newProtocolNote', this.$el).val()
+                    var option = $('#newProtocolOption', this.$el).val()
 
-                    that.parent.set('protocol', new Backbone.Model({summary: summary, recommendation: recommendation, note: note}))
+                    that.parent.set('protocol', new Backbone.Model({title: title, standard: standard, recommendation: recommendation, option: option}))
                     $('#detail-modal').modal('hide')
 
             })

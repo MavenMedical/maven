@@ -27,13 +27,13 @@ define([
     };
     //This variables holds an array of the content of the container in index.html
     var layout = ["#floating-left",
-        "#dynamic-content",
-        "#floating-right"];
+                  "#dynamic-content",
+                  "#floating-right"];
     //This variable holds each page and its layout
     // array length should match the number of layouts
     // the sum of each array should be 12 (Following bootstrap grid)
     var pageLayout = {
-        "home": [3, 6, 3],
+        "home": [0, 9, 3],
         "patient": [0, 9, 3],
         "episode": [0, 9, 3],
         "pathEditor": [3, 6, 3],
@@ -88,7 +88,14 @@ define([
         },
         showHome: function (provider, customer, userAuth) {
             /* remove the current patient list, encounter, etc to revert the view to the doctor's user page */
+            console.log(currentContext);
             currentContext.set({page: 'home', patients: null, encounter: null, patientName: null});
+
+            //TODO This is only for Demo purpose
+            if(currentContext.get('official_name') == 'Heathcliff Huxtable'){
+                currentContext.set({page: 'pathEditor', patients: null, encounter: null, patientName: null});
+            }
+
             showPage(provider, customer, userAuth);
         },
         showPatient: function (patid, provider, customer, userAuth) {
