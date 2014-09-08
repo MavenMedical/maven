@@ -39,7 +39,7 @@ class tree_persistance():
         cmdArgs.append(viableStr)
         cmdArgs.append(treeJSON['name'])
         id = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
-        return (id.fetchone())
+        return (id.fetchone()[0])
 
 
     @asyncio.coroutine
