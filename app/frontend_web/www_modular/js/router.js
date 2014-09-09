@@ -94,7 +94,7 @@ define([
 
             //TODO This is only for Demo purpose
             if(currentContext.get('official_name') == 'Heathcliff Huxtable'){
-                currentContext.set({page: 'pathEditor', patients: null, encounter: null, patientName: null});
+                currentContext.set({page: 'pathway', patients: null, encounter: null, patientName: null});
             }
 
             showPage(provider, customer, userAuth);

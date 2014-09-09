@@ -21,10 +21,18 @@ define([
              curTree.on('all', function(){
                     that.render()
                 })
-
+	    contextModel.on('change:page', this.showhide, this);
             this.render();
         },
+	showhide: function() {
+	    if (contextModel.get('page') == 'pathEditor') {
+		this.$el.show(); 
+	    } else {
+		this.$el.hide();
+	    }
+	},		    
         render: function () {
+	    this.showhide();
             this.$el.html(this.template());
             if (curTree.get('selectedNode')){
                 var myActions = new treeNodeActionSet()

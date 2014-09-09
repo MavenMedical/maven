@@ -16,8 +16,16 @@ define([
             this.$el.html(this.template());
             console.log('curTree', curTree);
             curTree.on('change:name', this.render,this);
-
+	    contextModel.on('change:page', this.showhide, this);
+	    this.showhide();
         },
+	showhide: function() {
+	    if (contextModel.get('page') != 'pathEditor') {
+		this.$el.show(); 
+	    } else {
+		this.$el.hide();
+	    }	    
+	},
         events: {
 
         },
