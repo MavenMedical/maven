@@ -38,7 +38,7 @@ define([
             this.model = params.model
         },
         handleSelect: function() {
-                contextModel.set('pathid', this.model.get('id'))
+                contextModel.set('pathid', String(this.model.get('id')))
 
         },
     	handleRemove: function() {

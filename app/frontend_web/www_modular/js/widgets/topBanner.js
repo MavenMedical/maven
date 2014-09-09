@@ -28,11 +28,10 @@ define([
         },
         handel_pathway: function(){
             //TODO add the right id for the pathway
-             Backbone.history.navigate("pathway/100/patient/123/123", true);
+            Backbone.history.navigate("pathway/" + contextModel.get('pathid') + "/patient/123/123", {trigger: true});
         },
         handel_pathwayEditor: function(){
-            Backbone.history.navigate("pathway/1/pathid/100", true);
-
+            Backbone.history.navigate("pathway/1/pathid/" + contextModel.get('pathid'), true);
         },
         handle_profile: function () {
             // a modal to be shown after clicking 'my profile' from the dropdown menu
