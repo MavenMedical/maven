@@ -32,6 +32,7 @@ define([
             this.set('triggers', new Backbone.Collection())
             this.set('tooltip', 'triggers tooltip')
             this.set('children', new NodeList())
+            this.set('sidePanelText', "")
             this.set('name', "Triggers")
             var that = this
             contextModel.on('change:pathid', function(){
@@ -65,7 +66,7 @@ define([
         },
         loadNewPathway: function(params){
             this.set('triggers', new Backbone.Collection(), {silent: true})
-            this.set('sidePanelText', params.sidePanelText,  {silent: true})
+            this.set('sidePanelText', "",  {silent: true})
             this.set('tooltip', params.tooltip, {silent: true})
             this.set('children', new NodeList(), {silent: true})
             this.set('name', params.name, {silent: true})
