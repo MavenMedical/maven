@@ -125,13 +125,8 @@ define([
             }
         },
         EditPathway: function (enc, path, provider, customer, userAuth) {
-
-            if (CheckLogin()) {
-                currentContext.set({page: 'pathEditor', encounter: enc, pathid: path})
-                currentContext.once('change:auth', function () {
-                    currentContext.set({page: 'pathEditor', encounter: enc, pathid: path})
-                })
-            }
+            currentContext.set({page: 'pathEditor', encounter: enc, pathid: path});
+            showPage(provider, customer, userAuth);
         },
         logout: function () {
             currentContext.clear({silent: true});

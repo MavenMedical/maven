@@ -315,8 +315,7 @@ html, body {
 body {
     height: 100%;
     margin-top: 50px;
-    background-color: rgb(235, 235, 235);
-    background-image: linear-gradient(to bottom, rgb(253, 253, 253), #fff6f6);
+    background-color: rgb(255, 246, 246);
     background-repeat: repeat-x;
 }
 

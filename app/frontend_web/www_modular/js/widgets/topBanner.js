@@ -22,7 +22,17 @@ define([
         },
         events: {
             'click #settings_button': 'handle_settings',
-            'click #profile_button' : 'handle_profile'
+            'click #profile_button' : 'handle_profile',
+            'click #pathway_button' : 'handel_pathway',
+            'click #pathwayEditor_button': 'handel_pathwayEditor'
+        },
+        handel_pathway: function(){
+            //TODO add the right id for the pathway
+             Backbone.history.navigate("pathway/100/patient/123/123", true);
+        },
+        handel_pathwayEditor: function(){
+            Backbone.history.navigate("pathway/1/pathid/100", true);
+
         },
         handle_profile: function () {
             // a modal to be shown after clicking 'my profile' from the dropdown menu
