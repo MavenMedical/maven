@@ -1,16 +1,21 @@
 <div class="widget-column col-sm-12">
     <!--<div style="width:40px; float:left;"></div> <!-- spacing horizontal -->
     <li style="float:left; width: auto">
-        <div style="text-align: center; border-style:solid;  width:auto;" class="treeNode">
+        <div  class="treeNode">
             <span data-toggle="tooltip" title="<%=decodeURIComponent(treeNode.tooltip)%>"><%=decodeURIComponent(treeNode.name)%></span>
 
-             <% if (page == 'pathEditor') { %>
+
             <div class="btn-toolbar" role="toolbar">
+                <% if (page == 'pathEditor') { %>
                 <div class="btn-group btn-group-xs">
                     <button type="button" class="btn btn-default" id="addChildButton"><img src="../images/temp/newChild.jpg" style="width: 25px; height: 25px"></button>
                     <% if (treeNode.children.length == 0){%>
                     <button type="button" class="btn btn-default addProtocolButton"><img src="../images/temp/newProtocole.jpg" style="width: 25px; height: 25px"></button>
-                    <%} else {%>
+                    <%}%>
+                </div>
+                <%}%>
+                <% if (treeNode.children.length > 0) {%>
+                <div class="btn-group btn-group-xs">
                     <button type="button" class="btn btn-default collapseButton">
                         <% if (treeNode.hideChildren=="true"){%>
                         <img src="../images/temp/expand.jpg" style="width: 25px; height: 25px">
@@ -18,10 +23,9 @@
                         <img src="../images/temp/collapse.jpg" style="width: 25px; height: 25px">
                         <%}%>
                     </button>
-                    <%}%>
                 </div>
+                <% } %>
             </div>
-            <%}%>
         </div>
         <!--<div style="clear: both; height:100px; width:10px;"></div> <!-- spacing, Vertical-->
         <ul class='children2'>
