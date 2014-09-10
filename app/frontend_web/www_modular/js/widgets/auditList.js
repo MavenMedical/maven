@@ -49,9 +49,16 @@ define([
         that = this;
         var extra_data = "";
         if (that.targetProvider && that.targetCustomer) {
-            var extra_data = "&target_provider=" + that.targetProvider + "&target_customer=" + that.targetCustomer;
+            extra_data = "/target_provider/" + that.targetProvider + "/target_customer/" + that.targetCustomer;
         }
+/*
+        var path = "/download_audits/"+$.param(contextModel.toParams());
+        path = path.replace(/&/g,"/");
+        path = path.replace(/=/g,"/");
+        path += extra_data;
+        location.replace(path);
 
+*/
         $.ajax({
             url: "/download_audits",
             data: $.param(contextModel.toParams()) + extra_data,

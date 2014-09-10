@@ -22,6 +22,7 @@ import utils.database.web_persistence as WP
 from utils.streaming.http_svcs_wrapper import http_service, CONTEXT, CONFIG_PERSISTENCE
 import utils.streaming.http_responder as HTTP
 import maven_config as MC
+import csv
 date = str
 
 
@@ -153,15 +154,21 @@ class UserMgmtWebservices():
             return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
 
     @http_service(['GET'], '/audits(?:(\d+)-(\d+)?)?',
-                  [CONTEXT.PROVIDER, CONTEXT.USER, CONTEXT.CUSTOMERID],
-                  {CONTEXT.PROVIDER: str, CONTEXT.PATIENTLIST: list, CONTEXT.CUSTOMERID: int,
-                   CONTEXT.ENCOUNTER: str, CONTEXT.STARTDATE: date, CONTEXT.ENDDATE: date,
-                   CONTEXT.ORDERID: str, CONTEXT.CATEGORIES: list, CONTEXT.USER: int,
+                  [CONTEXT.PROVIDER, CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.ROLES],
+                  {CONTEXT.PROVIDER: str, CONTEXT.CUSTOMERID: int,
+                   CONTEXT.STARTDATE: date, CONTEXT.ENDDATE: date,
+                   CONTEXT.USER: int, CONTEXT.ROLES: list,
                    CONTEXT.TARGETPROVIDER: str, CONTEXT.TARGETCUSTOMER: int},
-                  {USER_ROLES.provider, USER_ROLES.supervisor})
+                  {USER_ROLES.provider, USER_ROLES.supervisor, USER_ROLES.mavensupport})
     def get_audits(self, _header, _body, context, matches, _key):
-        provider = context.get(CONTEXT.TARGETPROVIDER, None)
-        customer = context.get(CONTEXT.TARGETCUSTOMER, None)
+        provider = None
+        customer = None
+
+        if USER_ROLES.supervisor in context[CONTEXT.ROLES] or USER_ROLES.mavensupport in context[CONTEXT.ROLES]:
+            provider = context.get(CONTEXT.TARGETPROVIDER, None)
+        if USER_ROLES.mavensupport in context[CONTEXT.ROLES]:
+            customer = context.get(CONTEXT.TARGETCUSTOMER, None)
+
         if not provider:
             provider = context[CONTEXT.PROVIDER]
         if not customer:
@@ -218,6 +225,10 @@ class UserMgmtWebservices():
         results = yield from self.persistence.audit_info(desired, provider, customer,
                                                          startdate=startdate,
                                                          enddate=enddate, limit=None)
+
+        with open('audits.csv', 'rb') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerows(results)
         """write_string = ""
         for audit in results:
             write_string += audit["date"] + "," + audit["patient"] + "," + audit["action"]
@@ -236,4 +247,4 @@ class UserMgmtWebservices():
                         headers={"Content-Disposition":
                         "attachment;filename=audits.txt"})"""
 
-        return HTTP.OK_RESPONSE, json.dumps(results), None
+        return HTTP.OK_RESPONSE, json.dumps(writer), None
