@@ -427,6 +427,26 @@ class WebPersistence():
         results = yield from self.execute(cmd, cmdargs, self._display_user_info, desired)
         return results
 
+    @asyncio.coroutine
+    def customer_specific_user_info(self, desired, limit="", customer_id=None):
+        columns = build_columns(desired.keys(), self._available_user_info,
+                                self._default_user_info)
+
+        if customer_id is None:
+            return
+
+        cmd = []
+        cmdargs = [customer_id]
+        cmd.append("SELECT")
+        cmd.append(columns)
+        cmd.append("FROM users")
+        cmd.append("WHERE customer_id=%s")
+        if limit:
+            cmd.append(limit)
+
+        results = yield from self.execute(cmd, cmdargs, self._display_user_info, desired)
+        return results
+
     _default_customer_info = set((Results.abbr,))
     _available_customer_info = {
         Results.customerid: "customer.customer_id",
