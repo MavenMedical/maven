@@ -27,6 +27,8 @@ define([
 
         initialize: function(){
 
+            console.log('init treeModel',contextModel.get('pathid') );
+
             this.set('triggers', new Backbone.Collection())
             this.set('tooltip', 'triggers tooltip')
             this.set('children', new NodeList())
@@ -37,7 +39,7 @@ define([
                 that.fetch()
                 Backbone.history.navigate("pathway/1/pathid/"+contextModel.get('pathid'));
             })
-
+            this.fetch();
             this.elPairs = []
 
 

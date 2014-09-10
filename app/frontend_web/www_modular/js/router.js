@@ -36,6 +36,7 @@ define([
         "home": [0, 9, 3],
         "patient": [0, 9, 3],
         "episode": [0, 9, 3],
+        "pathway": [0, 9, 3],
         "pathEditor": [3, 6, 3],
     };
     changePageLayout = function (page) {
@@ -80,7 +81,7 @@ define([
             "episode/:id/patient/:id/:date(/login/:provider/:customer/:userAuth)": 'showEpisode',
             "evidence/:id/patient/:id/evi/:id(/login/:provider/:customer/:userAuth)": 'showEvidence',
             "pathway/:id/patient/:id/:date(/login/:provider/:customer/:userAuth)": 'showPathway',
-            "pathway/:id/pathid/:id(/login/:provider/:customer/:userAuth)": 'showPath',
+            "pathway/:id/pathid/:id(/login/:provider/:customer/:userAuth)": 'EditPathway',
             "logout": 'logout',
             "settings": 'settings',
             //default
@@ -93,7 +94,7 @@ define([
 
             //TODO This is only for Demo purpose
             if(currentContext.get('official_name') == 'Heathcliff Huxtable'){
-                currentContext.set({page: 'pathEditor', patients: null, encounter: null, patientName: null});
+                currentContext.set({page: 'pathway', patients: null, encounter: null, patientName: null});
             }
 
             showPage(provider, customer, userAuth);
@@ -107,8 +108,8 @@ define([
                 startdate: null, enddate: null});
             showPage(provider, customer, userAuth);
         },
-        showPathway: function (enc, pat, date, provider, customer, userAuth) {
-            currentContext.set({page: 'pathway', encounter: enc, patients: pat, enc_date: date,
+        showPathway: function (path, pat, date, provider, customer, userAuth) {
+            currentContext.set({page: 'pathway', pathid: path, patients: pat, enc_date: date,
                 startdate: null, enddate: null});
             showPage(provider, customer, userAuth);
         },
@@ -123,14 +124,9 @@ define([
                 }
             }
         },
-        showPath: function (enc, path, provider, customer, userAuth) {
-
-            if (CheckLogin()) {
-                currentContext.set({page: 'pathEditor', encounter: enc, pathid: path})
-                currentContext.once('change:auth', function () {
-                    currentContext.set({page: 'pathEditor', encounter: enc, pathid: path})
-                })
-            }
+        EditPathway: function (enc, path, provider, customer, userAuth) {
+            currentContext.set({page: 'pathEditor', encounter: enc, pathid: path});
+            showPage(provider, customer, userAuth);
         },
         logout: function () {
             currentContext.clear({silent: true});

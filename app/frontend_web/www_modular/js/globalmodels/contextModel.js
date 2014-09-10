@@ -49,12 +49,18 @@ define([
 	    for(var i=0;i<viewlist.length;i++) {
 
         var el
-        if (widgetlist[i].element !='contentRow'){
-            el = $("#"+ widgetlist[i].element)
-        } else {
+        if (widgetlist[i].element =='contentRow'){
             $('#dynamic-content').append("<div class='row content-row'></div>")
-		    el = $('.row', $('#dynamic-content')).last()
-        }
+	    el = $('.row', $('#dynamic-content')).last()
+	} else if (widgetlist[i].element == 'floating-right') {
+            $('#floating-right').append("<div class='row content-row'></div>")
+	    el = $('.row', $('#floating-right')).last()
+	} else if (widgetlist[i].element =='floating-left') {
+            $('#floating-left').append("<div class='row content-row'></div>")
+	    el = $('.row', $('#floating-left')).last()
+        } else {
+            el = $("#"+ widgetlist[i].element)
+	}
             new arguments[i]({template: arguments[i+viewlist.length], el: el})
 	    }
 	    $("#content").show();

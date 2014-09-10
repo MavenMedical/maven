@@ -15,7 +15,6 @@
 
 import urllib.parse
 import json
-import traceback
 import re
 
 import asyncio
@@ -281,18 +280,18 @@ class HTTPProcessor(SP.StreamProcessor):
                         ret = wrap_response(resp, body, extras)
                     break
         except (KeyError, IndexError):  # key error means an object isn't found
-            traceback.print_exc()
+            ML.WARN("keyerror or indexerror")
             ret = wrap_response(NOTFOUND_RESPONSE, b'')
         except ValueError:
-            traceback.print_exc()
+            ML.EXCEPTION("value error")
             ret = wrap_response(BAD_RESPONSE, b'')
         except IncompleteRequest:
-            traceback.print_exc()
+            ML.WARN("incomplete request: " + str(headers))
             ret = wrap_response(BAD_RESPONSE, b'')
         except UnauthorizedRequest:
             ret = wrap_response(UNAUTHORIZED_RESPONSE, b'')
         except:  # handle general errors gracefully
-            traceback.print_exc()
+            ML.EXCEPTION("unexpected error")
             ret = wrap_response(ERROR_RESPONSE, b'')
 
         if not ret:  # if there are no matches, respond
@@ -311,7 +310,7 @@ class HTTPProcessor(SP.StreamProcessor):
             try:
                 self.unregister_writer(key)
             except:
-                traceback.print_exc()
+                ML.EXCEPTION('error unregistering writer key')
                 pass
             ML.WARN("connection to %s failed before write happened" % key)
 
@@ -405,7 +404,7 @@ class HTTPWriter(SP.StreamProcessor):
         except IncompleteRequest as e:  # key error means an object isn't found
             ret = wrap_response(BAD_RESPONSE, bytes(str(e), 'utf-8'))
         except:  # handle general errors gracefully
-            traceback.print_exc()
+            ML.EXCEPTION('unexpected general exception')
             ret = wrap_response(ERROR_RESPONSE, b'')
 
         if not ret:  # if there are no matches, respond

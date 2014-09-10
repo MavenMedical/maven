@@ -15,7 +15,7 @@ define([
     'text!templates/pathway/triggerNode.html',
     'text!templates/pathway/triggerRow.html'
 
-    ], function($, _, Backbone,  NodeEditor, ProtocolEditor, DetailEditor, contextModel,  nodeList, nodeModel, curTree, ProtocolNode, TreeNode, nodeTemplate, rowTemplate){
+    ], function($, _, Backbone,  NodeEditor, ProtocolEditor, DetailEditor, currentContext,  nodeList, nodeModel, curTree, ProtocolNode, TreeNode, nodeTemplate, rowTemplate){
 
         var TriggerNode = TreeNode.extend({
 
@@ -69,9 +69,20 @@ define([
                  if (!this.model.get('hideChildren')){
                     this.model.set('hideChildren', false, {silent: true})
                 }
-                this.$el.html(this.template(this.model.attributes))
+                this.$el.html(this.template({triggerNode: this.model.attributes, page: currentContext.get('page')}))
 
                   var that = this;
+
+                //Set on clicks
+                $('.collapseButton', this.$el).first().off('click')
+                $('.collapseButton', this.$el).first().on('click', function(){
+                       if (that.model.get('hideChildren') == "false"){
+                           that.model.set('hideChildren', "true")
+                       } else{
+                            that.model.set('hideChildren', "false")
+                       }
+                })
+
                 $("#addChildButton", this.$el).off('click')
                 $("#addChildButton", this.$el).on('click', function(){
                      var newEditor = new NodeEditor(that.model)

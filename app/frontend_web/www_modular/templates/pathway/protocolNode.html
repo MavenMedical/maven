@@ -1,15 +1,28 @@
 
-<div style="text-align: center; border-style:solid; border-color: green;  width:auto;" class = "protocolNode">
+<div id="toast">
+    <span class="glyphicon glyphicon-ok"></span>
+    Note-ready text added to clipboard
+</div>
+
+
+<div class = "protocolNode">
     <span>
         <strong>
             PROTOCOL
         </strong>
-        <p>
-           <%=title%>
-        </p>
+        <span style="max-width: 350px;">
+            <%=protocolNode.title%>
+        </span>
+
     </span>
 
 
     <br>
+     <% if (page == 'pathEditor') { %>
 <button class = "removeProtocolButton">Remove</button>
+    <%} else {%>
+    <button id='copybutton' type="button" class="btn btn-default btn-sm" style="float: right">
+        <img src="../images/copy-icon.png" style="width: 20px; height: 20px;" title="Copy">
+    </button>
+    <% } %>
 </div>
