@@ -127,12 +127,12 @@ html, body {
  * The following customize the Login widget *
  ***************************************************************/
 
-#login{
+.login{
     margin: 50px auto;
 	width: 400px;
 }
 
-#login h3 {
+.login h3 {
 	background-color: #46bdec;
 	-webkit-border-radius: 20px 20px 0 0;
 	-moz-border-radius: 20px 20px 0 0;
@@ -146,23 +146,23 @@ html, body {
     margin-bottom: 20px;
 }
 
-#login h3 span[class*="glyphicon"] {
+.login h3 span[class*="glyphicon"] {
 	margin-right: 14px;
 }
 
-#login div {
+.login div {
 	background-color: #fff;
 	-webkit-border-radius: 20px 20px 0 0;
 	-moz-border-radius: 20px 20px 0 0;
 	border-radius: 20px 20px 0 0;
 }
 
-#login div p {
+.login div p {
 	color: #777;
 	margin-bottom: 14px;
 }
 
-#login div input {
+.login div input {
 	-webkit-border-radius: 3px;
 	-moz-border-radius: 3px;
 	border-radius: 10px;
@@ -172,7 +172,7 @@ background-color: #eee;
 	width: 328px;
 }
 
-#login button {
+.login button {
 	background-color: #46bdec;
 	color: #fff;
 	margin: 0 auto;
@@ -183,11 +183,11 @@ background-color: #eee;
 	border-radius: 15px;
 }
 
-#login button:hover {
+.login button:hover {
 	background-color: #465766;
 }
 
-#login-buttons{
+.login-buttons{
     margin-bottom: 20px;
 }
 
