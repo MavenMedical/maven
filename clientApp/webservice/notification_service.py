@@ -50,7 +50,7 @@ class NotificationService():
             pass
         return (HR.OK_RESPONSE, json.dumps(ret), None)
 
-    # @http_service(['GET'], '/posl',
+    # @http_service(['GET'], '/post',
     #              [CONTEXT.PROVIDER, CONTEXT.CUSTOMERID],
     #              {CONTEXT.PROVIDER: str, CONTEXT.CUSTOMERID: str},
     #              {USER_ROLES.notification})
@@ -89,16 +89,15 @@ class NotificationService():
             logger.debug('user is not listening')
             return False
 
+import app.backend.webservices.authentication as AU
+
 
 def standalone_notification_server(configname):
     import utils.streaming.webservices_core as WC
-    from app.backend.webservices.authentication import AuthenticationWebservices
     core_scvs = WC.WebserviceCore(configname)
     ns = NotificationService(configname)
     core_scvs.register_services(ns)
-    core_scvs.register_services(AuthenticationWebservices(configname,
-                                                          specific_role=USER_ROLES.notification,
-                                                          timeout=60 * 60 * 12))
+    core_scvs.register_services(AU.AuthenticationWebservices(configname, timeout=60 * 60 * 12))
     return core_scvs, ns.send_messages
 
 
@@ -106,6 +105,7 @@ def run():
     import utils.streaming.stream_processor as SP
     import utils.database.web_persistence as WP
     from utils.database.database import AsyncConnectionPool
+
     import asyncio
 
     MC.MavenConfig = {
@@ -116,6 +116,8 @@ def run():
             SP.CONFIG_PARSERTIMEOUT: 120,
             CONFIG_QUEUEDELAY: 30,
             CONFIG_PERSISTENCE: "persistence layer",
+            AU.CONFIG_SPECIFICROLE: USER_ROLES.notification.value,
+            AU.CONFIG_OAUTH: True,
         },
         'persistence layer': {WP.CONFIG_DATABASE: 'webservices conn pool', },
         'webservices conn pool':

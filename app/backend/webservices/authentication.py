@@ -27,6 +27,9 @@ import maven_config as MC
 AUTH_LENGTH = 44  # 44 base 64 encoded bits gives the entire 256 bites of SHA2 hash
 LOGIN_TIMEOUT = 60 * 60  # 1 hour
 
+CONFIG_SPECIFICROLE = 'specificrole'
+CONFIG_OAUTH = 'oauth'
+
 
 class LoginError(Exception):
     pass
@@ -34,11 +37,12 @@ class LoginError(Exception):
 
 class AuthenticationWebservices():
 
-    def __init__(self, configname, specific_role=None, timeout=None):
+    def __init__(self, configname, timeout=None):
         config = MC.MavenConfig[configname]
         self.persistence = WP.WebPersistence(config[CONFIG_PERSISTENCE])
         self.persistence.schedule()
-        self.specific_role = specific_role and specific_role.value
+        self.specific_role = config.get(CONFIG_SPECIFICROLE, None)
+        self.oauth = config.get(CONFIG_OAUTH, None)
         self.timeout = timeout or LOGIN_TIMEOUT
 
     @http_service(['POST'], '/login', None, None, None)
@@ -64,6 +68,7 @@ class AuthenticationWebservices():
             WP.Results.roles
         ]}
         attempted = None
+        rolefilter = lambda r: True
         try:
             method = 'failed'
             user_info = {}
@@ -85,7 +90,11 @@ class AuthenticationWebservices():
                                                       info.get('newpassword', ''))
                 method = 'local'
             else:
-                attempted = [info['provider'], info['customer']]
+                if info['roles']:
+                    attempted = [info['provider'], info['customer'], info['roles']]
+                    rolefilter = lambda r: r == info['roles']
+                else:
+                    attempted = [info['provider'], info['customer']]
                 try:  # this means that the password was a pre-authenticated link
                     AK.check_authorization(attempted, info['userAuth'], AUTH_LENGTH)
                 except AK.UnauthorizedException:
@@ -102,11 +111,12 @@ class AuthenticationWebservices():
             if not user_info[WP.Results.userstate] == 'active':
                 raise LoginError('disabledUser')
 
-                # at the point, the user has succeeded to login
+            # at the point, the user has succeeded to login
             user = str(user_info[WP.Results.userid])
             provider = user_info[WP.Results.provid]
             customer = str(user_info[WP.Results.customerid])
             roles = [self.specific_role] if self.specific_role else user_info[WP.Results.roles]
+            roles = list(filter(rolefilter, roles))
             user_auth = AK.authorization_key([[user], [provider], [customer], sorted(roles)],
                                              AUTH_LENGTH, self.timeout)
 
@@ -128,12 +138,15 @@ class AuthenticationWebservices():
                    CONTEXT.ROLES: roles,
                    'widgets': widgets, CONTEXT.KEY: user_auth}
 
+            if self.oauth and method != 'forward':
+                ak = AK.authorization_key([provider, customer, roles], 44, 365 * 24 * 60 * 60)
+                ret['oauth'] = ak
             return HTTP.OK_RESPONSE, json.dumps(ret), None
         except LoginError as err:
             return HTTP.UNAUTHORIZED_RESPONSE, json.dumps({'loginTemplate':
                                                            err.args[0] + ".html"}), None
         finally:
-            yield from self.persistence.record_login(attempted,
+            yield from self.persistence.record_login(str(attempted),
                                                      method,
                                                      header.get_headers().get('X-Real-IP'),
                                                      info['userAuth'] if method == 'forward' else None)
