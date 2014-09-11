@@ -50,7 +50,9 @@ class AuthenticationWebservices():
         info = json.loads(body.decode('utf-8'))
 
         user_and_pw = set((CONTEXT.USER, 'password')).issubset(info)
-        prov_and_auth = set(('provider', 'customer', 'userAuth')).issubset(info)
+        prov_and_auth = (set(('provider', 'customer')).issubset(info)
+                         and ('oauth' in info or 'userAuth' in info))
+
         if not user_and_pw and not prov_and_auth:
             return HTTP.BAD_RESPONSE, b'', None
 
@@ -69,6 +71,7 @@ class AuthenticationWebservices():
         ]}
         attempted = None
         rolefilter = lambda r: True
+        auth = ''
         try:
             method = 'failed'
             user_info = {}
@@ -95,8 +98,9 @@ class AuthenticationWebservices():
                     rolefilter = lambda r: r == info['roles']
                 else:
                     attempted = [info['provider'], info['customer']]
+                auth = info.get('userAuth', None) or info.get('oauth')
                 try:  # this means that the password was a pre-authenticated link
-                    AK.check_authorization(attempted, info['userAuth'], AUTH_LENGTH)
+                    AK.check_authorization(attempted, auth, AUTH_LENGTH)
                 except AK.UnauthorizedException:
                     raise LoginError('badLogin')
                 user_info = yield from self.persistence.pre_login(desired,
@@ -104,7 +108,7 @@ class AuthenticationWebservices():
                                                                   keycheck='1m')
                 method = 'forward'
                 # was this auth key used recently
-                if info['userAuth'] in user_info[WP.Results.recentkeys]:
+                if auth in user_info[WP.Results.recentkeys]:
                     raise LoginError('reusedLogin')
 
             # make sure this user exists and is active
@@ -149,7 +153,7 @@ class AuthenticationWebservices():
             yield from self.persistence.record_login(str(attempted),
                                                      method,
                                                      header.get_headers().get('X-Real-IP'),
-                                                     info['userAuth'] if method == 'forward' else None)
+                                                     auth if method == 'forward' else None)
 
     @asyncio.coroutine
     def hash_new_password(self, user, newpassword):
