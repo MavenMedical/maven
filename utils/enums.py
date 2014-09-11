@@ -34,6 +34,13 @@ class ALERT_PRIORITY(Enum):
     CDS = 4
 
 
+class ALERT_SETTING_ACTIONS(Enum):
+    LI = "like"
+    DI = "dislike"
+    OI = "opt in"
+    OO = "opt out"
+
+
 class ALERT_VALIDATION_STATUS(Enum):
     SUPPRESS = -1
     NO_SEND = 100
@@ -45,6 +52,28 @@ class ALERT_VALIDATION_STATUS(Enum):
 class CONDITION_TYPE(Enum):
     PL = "Problem List Diagnosis"
     ENC = "Encounter Diagnosis"
+
+
+class DIAGNOSTIC_TERMINOLOGIES(Enum):
+    icd9 = "International Statistical Classification of Diseases Version 9"
+    ICD9 = "International Statistical Classification of Diseases Version 9"
+    icd10 = "International Statistical Classification of Diseases Version 10"
+    ICD10 = "International Statistical Classification of Diseases Version 10"
+    snomed = "SNOMED CT"
+    SNOMED = "SNOMED CT"
+
+
+class MEDICATION_ORDER_TYPES(Enum):
+    med = "Medication"
+    meds = "Medication"
+    medication = "Medication"
+    medications = "Medication"
+
+
+class NOTIFICATION_STATE(Enum):
+    OFF = "User not Connected to Notification Service"
+    DESKTOP = "User Registered with Desktop Notification Service"
+    MOBILE = "User Registered with Mobile Notification Service"
 
 
 class ORDER_SOURCE(Enum):
@@ -83,13 +112,6 @@ class PROCEDURE_ORDER_TYPES(Enum):
     imaging = "Radiological Procedure"
 
 
-class MEDICATION_ORDER_TYPES(Enum):
-    med = "Medication"
-    meds = "Medication"
-    medication = "Medication"
-    medications = "Medication"
-
-
 class PROCEDURE_TERMINOLOGIES(Enum):
     cpt = "Current Procedural Terminology"
     CPT = "Current Procedural Terminology"
@@ -105,22 +127,6 @@ class USER_ROLES(Enum):
     provider = "provider"
     supervisor = "supervisor"
     notification = "notification"
-
-
-class DIAGNOSTIC_TERMINOLOGIES(Enum):
-    icd9 = "International Statistical Classification of Diseases Version 9"
-    ICD9 = "International Statistical Classification of Diseases Version 9"
-    icd10 = "International Statistical Classification of Diseases Version 10"
-    ICD10 = "International Statistical Classification of Diseases Version 10"
-    snomed = "SNOMED CT"
-    SNOMED = "SNOMED CT"
-
-
-class ALERT_SETTING_ACTIONS(Enum):
-    LI = "like"
-    DI = "dislike"
-    OI = "opt in"
-    OO = "opt out"
 
 
 class USER_STATE(Enum):

@@ -26,12 +26,14 @@ import utils.streaming.http_responder as HR
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
 import clientApp.notification_generator.notification_generator as NG
 import clientApp.webservice.notification_service as NS
+import clientApp.webservice.user_sync_service as US
 from clientApp.allscripts.allscripts_scheduler import scheduler, CONFIG_SLEEPINTERVAL
 import utils.web_client.allscripts_http_client as AHC
 
 
 CONFIG_API = 'api'
 CLIENT_SERVER_LOG = ML.get_logger('clientApp.webservice.allscripts_server')
+PROVIDERS = {}
 
 
 class IncomingFromMavenMessageHandler(HR.HTTPWriter):
@@ -57,6 +59,7 @@ class IncomingFromMavenMessageHandler(HR.HTTPWriter):
 
         # ## tom: this has no authentication yet
         # composition.customer_id
+
         user = composition.author.get_provider_id()
         customer = str(composition.customer_id)
         msg = yield from self.notification_generator.generate_alert_content(composition,
@@ -92,6 +95,7 @@ def main(loop):
     clientemrconfig = 'client emr config'
     allscriptsscheduler = 'allscripts_demo'
     customerid = 'customer_id'
+    usersyncservice = 'maven user sync'
 
     from utils.database.database import AsyncConnectionPool
     import utils.database.web_persistence as WP
@@ -169,7 +173,16 @@ def main(loop):
             CONFIG_SLEEPINTERVAL: 30,
             "SP": outgoingtomavenmessagehandler
         },
-        customerid: 5
+        customerid: 2,
+        usersyncservice: {
+            US.CONFIG_USERSYNCSERVICE: US.CONFIG_USERSYNCSERVICE,
+            US.CONFIG_SYNCDELAY: 60 * 60,
+            US.CONFIG_API: 'allscripts_demo'
+        },
+        US.CONFIG_USERSYNCSERVICE: {
+            US.http.CONFIG_BASEURL: 'http://localhost/services',
+            US.http.CONFIG_OTHERHEADERS: {'Content-Type': 'application/json'},
+        }
     }
     MC.MavenConfig.update(MavenConfig)
 
@@ -181,6 +194,7 @@ def main(loop):
     sp_producer = IncomingFromMavenMessageHandler(incomingfrommavenmessagehandler,
                                                   notification_generator,
                                                   notification_fn)
+    user_sync_service = US.UserSyncService(usersyncservice, providers=PROVIDERS, loop=loop)
 
     # Instantiate the allscripts_scheduler.py polling mechanism
     allscripts_scheduler = scheduler('scheduler')
@@ -188,6 +202,7 @@ def main(loop):
     notification_service.schedule(loop)
 
     try:
+        asyncio.Task(user_sync_service.synchronize_users())
         loop.run_until_complete(allscripts_scheduler.get_updated_schedule())
         loop.run_forever()
     except KeyboardInterrupt:
