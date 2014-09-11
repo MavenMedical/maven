@@ -57,7 +57,7 @@ class IncomingFromMavenMessageHandler(HR.HTTPWriter):
 
         # ## tom: this has no authentication yet
         # composition.customer_id
-        user = composition.write_key[0]
+        user = composition.author.get_provider_id()
         customer = str(composition.customer_id)
         msg = yield from self.notification_generator.generate_alert_content(composition,
                                                                             'web', None)
@@ -95,7 +95,9 @@ def main(loop):
 
     from utils.database.database import AsyncConnectionPool
     import utils.database.web_persistence as WP
-    
+    import app.backend.webservices.authentication as AU
+    from utils.enums import USER_ROLES
+
     MavenConfig = {
         outgoingtomavenmessagehandler:
         {
@@ -143,6 +145,8 @@ def main(loop):
             SP.CONFIG_PARSERTIMEOUT: 120,
             NS.CONFIG_QUEUEDELAY: 45,
             "persistence": "persistence layer",
+            AU.CONFIG_SPECIFICROLE: USER_ROLES.notification.value,
+            AU.CONFIG_OAUTH: True,
         },
         'persistence layer': {WP.CONFIG_DATABASE: 'webservices conn pool', },
         'webservices conn pool':
@@ -169,7 +173,9 @@ def main(loop):
     }
     MC.MavenConfig.update(MavenConfig)
 
-    # Instantiate the (allscripts_server.py --> data_router.py) writer and services and add to event loop
+    # Instantiate the (allscripts_server.py --> data_router.py) writer
+    # and services and add to event loop
+
     notification_generator = NG.NotificationGenerator(clientemrconfig)
     notification_service, notification_fn = NS.standalone_notification_server(notificationservicename)
     sp_producer = IncomingFromMavenMessageHandler(incomingfrommavenmessagehandler,
