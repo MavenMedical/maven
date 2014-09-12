@@ -72,13 +72,13 @@ class AuthenticationWebservices():
         attempted = None
         rolefilter = lambda r: True
         auth = ''
+        username = info[CONTEXT.USER]
         customer = info[CONTEXT.CUSTOMERID]
         try:
             method = 'failed'
             user_info = {}
             # if header.get_headers().get('VERIFIED','SUCCESS') == 'SUCCESS':
             if user_and_pw:
-                username = info[CONTEXT.USER]
                 attempted = ' '.join([username, customer])
                 try:
                     user_info = yield from self.persistence.pre_login(desired, customer,
@@ -95,7 +95,7 @@ class AuthenticationWebservices():
                                                       info.get('newpassword', ''))
                 method = 'local'
             else:
-                if info[CONTEXT.ROLES]:
+                if info.get(CONTEXT.ROLES, None):
                     attempted = [info[CONTEXT.USER], info[CONTEXT.CUSTOMERID], info[CONTEXT.ROLES]]
                     rolefilter = lambda r: r == info[CONTEXT.ROLES]
                 else:
@@ -106,7 +106,8 @@ class AuthenticationWebservices():
                 except AK.UnauthorizedException:
                     raise LoginError('badLogin')
                 user_info = yield from self.persistence.pre_login(desired,
-                                                                  provider=attempted,
+                                                                  customer,
+                                                                  username=username,
                                                                   keycheck='1m')
                 method = 'forward'
                 # was this auth key used recently
