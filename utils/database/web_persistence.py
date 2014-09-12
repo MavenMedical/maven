@@ -354,7 +354,7 @@ class WebPersistence():
     })
 
     @asyncio.coroutine
-    def pre_login(self, desired, username=None, provider=None, keycheck=None):
+    def pre_login(self, desired, customer, username=None, provider=None, keycheck=None):
         columns = build_columns(desired.keys(), self._available_pre_login,
                                 self._default_pre_login)
         if not username and not provider:
@@ -363,12 +363,13 @@ class WebPersistence():
         cmdargs = []
         cmd.append("SELECT")
         cmd.append(columns)
-        cmd.append("FROM users")
+        cmd.append("FROM users WHERE customer_id = %s")
+        cmdargs.append(customer)
         if username:
-            cmd.append("WHERE users.user_name = %s")
+            cmd.append(" AND users.user_name = %s")
             cmdargs.append(username)
         else:
-            cmd.append("WHERE users.prov_id = %s AND users.customer_id = %s")
+            cmd.append(" AND users.prov_id = %s AND users.customer_id = %s")
             cmdargs.append(provider[0])
             cmdargs.append(provider[1])
 
@@ -401,26 +402,6 @@ class WebPersistence():
         cmd.append("WHERE users.customer_id = %s")
         cmdargs.append(customer)
         cmd.append("ORDER BY user_id")
-        if limit:
-            cmd.append(limit)
-
-        results = yield from self.execute(cmd, cmdargs, self._display_user_info, desired)
-        return results
-
-    @asyncio.coroutine
-    def customer_specific_user_info(self, desired, limit="", customer_id=None):
-        columns = build_columns(desired.keys(), self._available_user_info,
-                                self._default_user_info)
-
-        if customer_id is None:
-            return
-
-        cmd = []
-        cmdargs = [customer_id]
-        cmd.append("SELECT")
-        cmd.append(columns)
-        cmd.append("FROM users")
-        cmd.append("WHERE customer_id=%s")
         if limit:
             cmd.append(limit)
 

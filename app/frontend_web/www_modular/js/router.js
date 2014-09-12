@@ -58,36 +58,38 @@ define([
             return;//"#f2c313";
     };
 
-    var showPage = function (provider, customer, userAuth) {
-        if (provider && !currentContext.get('user')) {
+    var showPage = function (user, customer, userAuth) {
+        if (user && !currentContext.get('user')) {
             console.log('pre-authenticated login');
-            currentContext.setProvider(provider, customer, userAuth);
+            currentContext.autoSetUser(user, customer, userAuth);
         } else {
             if (CheckLogin()) {
                 console.log('showing page ' + currentContext.get('page'));
                 changePageLayout(currentContext.get('page'));
                 /* do more stuff here */
                 window.scrollTo(0, 0);
+		return true;
             } else {
                 console.log('trying to log in');
             }
         }
+	return false;
     };
 
     var AppRouter = Backbone.Router.extend({
         routes: {
-            "(login/:provider/:customer/:userAuth)": 'showHome',
-            "patient/:id(/login/:provider/:customer/:userAuth)": 'showPatient',
-            "episode/:id/patient/:id/:date(/login/:provider/:customer/:userAuth)": 'showEpisode',
-            "evidence/:id/patient/:id/evi/:id(/login/:provider/:customer/:userAuth)": 'showEvidence',
-            "pathway/:id/patient/:id/:date(/login/:provider/:customer/:userAuth)": 'showPathway',
-            "pathway/:id/pathid/:id(/login/:provider/:customer/:userAuth)": 'EditPathway',
+            "(login/:user/:customer/:userAuth)": 'showHome',
+            "patient/:id(/login/:user/:customer/:userAuth)": 'showPatient',
+            "episode/:id/patient/:id/:date(/login/:user/:customer/:userAuth)": 'showEpisode',
+            "evidence/:id/patient/:id/evi/:id(/login/:user/:customer/:userAuth)": 'showEvidence',
+            "pathway/:id/patient/:id/:date(/login/:user/:customer/:userAuth)": 'showPathway',
+            "pathway/:id/pathid/:id(/login/:user/:customer/:userAuth)": 'EditPathway',
             "logout": 'logout',
             "settings": 'settings',
             //default
             '*action': 'defaultAction'
         },
-        showHome: function (provider, customer, userAuth) {
+        showHome: function (user, customer, userAuth) {
             /* remove the current patient list, encounter, etc to revert the view to the doctor's user page */
             console.log(currentContext);
             currentContext.set({page: 'home', patients: null, encounter: null, patientName: null});
@@ -97,36 +99,32 @@ define([
                 currentContext.set({page: 'pathway', patients: null, encounter: null, patientName: null});
             }
 
-            showPage(provider, customer, userAuth);
+            showPage(user, customer, userAuth);
         },
-        showPatient: function (patid, provider, customer, userAuth) {
+        showPatient: function (patid, user, customer, userAuth) {
             currentContext.set({page: 'patient', encounter: null, patients: patid});
-            showPage(provider, customer, userAuth);
+            showPage(user, customer, userAuth);
         },
-        showEpisode: function (enc, pat, date, provider, customer, userAuth) {
+        showEpisode: function (enc, pat, date, user, customer, userAuth) {
             currentContext.set({page: 'episode', encounter: enc, patients: pat, enc_date: date,
                 startdate: null, enddate: null});
-            showPage(provider, customer, userAuth);
+            showPage(user, customer, userAuth);
         },
-        showPathway: function (path, pat, date, provider, customer, userAuth) {
+        showPathway: function (path, pat, date, user, customer, userAuth) {
             currentContext.set({page: 'pathway', pathid: path, patients: pat, enc_date: date,
                 startdate: null, enddate: null});
-            showPage(provider, customer, userAuth);
+            showPage(user, customer, userAuth);
         },
-        showEvidence: function (enc, pat, evi, provider, customer, userAuth) {
+        showEvidence: function (enc, pat, evi, user, customer, userAuth) {
             currentContext.set({page: 'episode', encounter: enc, patients: pat});
-            if (provider && provider != currentContext.get('user')) {
-                currentContext.setProvider(provider, customer, userAuth);
-            } else {
-                if (CheckLogin()) {
-                    var evidence = new Evidence({'evi': evi});
-                    //$('#evidence-' + evi).modal();
-                }
+	    if(showPage(user, customer, userAuth)) {
+                var evidence = new Evidence({'evi': evi});
+                //$('#evidence-' + evi).modal();
             }
         },
-        EditPathway: function (enc, path, provider, customer, userAuth) {
+        EditPathway: function (enc, path, user, customer, userAuth) {
             currentContext.set({page: 'pathEditor', encounter: enc, pathid: path});
-            showPage(provider, customer, userAuth);
+            showPage(user, customer, userAuth);
         },
         logout: function () {
             currentContext.clear({silent: true});

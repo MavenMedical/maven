@@ -49,9 +49,9 @@ class AuthenticationWebservices():
     def post_login(self, header, body, _context, _matches, _key):
         info = json.loads(body.decode('utf-8'))
 
-        user_and_pw = set((CONTEXT.USER, 'password')).issubset(info)
-        prov_and_auth = (set(('provider', 'customer')).issubset(info)
-                         and ('oauth' in info or 'userAuth' in info))
+        user_and_pw = set((CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.PASSWORD)).issubset(info)
+        prov_and_auth = (set((CONTEXT.USER, CONTEXT.CUSTOMERID)).issubset(info)
+                         and (CONFIG_OAUTH in info or 'userAuth' in info))
 
         if not user_and_pw and not prov_and_auth:
             return HTTP.BAD_RESPONSE, b'', None
@@ -72,20 +72,22 @@ class AuthenticationWebservices():
         attempted = None
         rolefilter = lambda r: True
         auth = ''
+        customer = info[CONTEXT.CUSTOMERID]
         try:
             method = 'failed'
             user_info = {}
             # if header.get_headers().get('VERIFIED','SUCCESS') == 'SUCCESS':
             if user_and_pw:
-                attempted = info['user']
+                username = info[CONTEXT.USER]
+                attempted = ' '.join([username, customer])
                 try:
-                    user_info = yield from self.persistence.pre_login(desired,
-                                                                      username=attempted)
+                    user_info = yield from self.persistence.pre_login(desired, customer,
+                                                                      username=username)
                 except IndexError:
                     raise LoginError('badLogin')
                 passhash = user_info[WP.Results.password].tobytes()
                 if (not passhash or
-                        bcrypt.hashpw(bytes(info['password'], 'utf-8'),
+                        bcrypt.hashpw(bytes(info[CONTEXT.PASSWORD], 'utf-8'),
                                       passhash[:29]) != passhash):
                     raise LoginError('badLogin')
                 if user_info[WP.Results.passexpired] or 'newpassword' in info:
@@ -93,12 +95,12 @@ class AuthenticationWebservices():
                                                       info.get('newpassword', ''))
                 method = 'local'
             else:
-                if info['roles']:
-                    attempted = [info['provider'], info['customer'], info['roles']]
-                    rolefilter = lambda r: r == info['roles']
+                if info[CONTEXT.ROLES]:
+                    attempted = [info[CONTEXT.USER], info[CONTEXT.CUSTOMERID], info[CONTEXT.ROLES]]
+                    rolefilter = lambda r: r == info[CONTEXT.ROLES]
                 else:
-                    attempted = [info['provider'], info['customer']]
-                auth = info.get('userAuth', None) or info.get('oauth')
+                    attempted = [info[CONTEXT.USER], info[CONTEXT.CUSTOMERID]]
+                auth = info.get('userAuth', None) or info.get(CONFIG_OAUTH)
                 try:  # this means that the password was a pre-authenticated link
                     AK.check_authorization(attempted, auth, AUTH_LENGTH)
                 except AK.UnauthorizedException:
@@ -135,7 +137,7 @@ class AuthenticationWebservices():
 
             ret = {CONTEXT.USER: user_info[WP.Results.userid],
                    'display': user_info[WP.Results.displayname],
-                   'customer_id': customer,
+                   CONTEXT.CUSTOMERID: customer,
                    'official_name': user_info[WP.Results.officialname],
                    CONTEXT.PROVIDER: provider,
                    CONTEXT.USER: user,
@@ -143,8 +145,8 @@ class AuthenticationWebservices():
                    'widgets': widgets, CONTEXT.KEY: user_auth}
 
             if self.oauth and method != 'forward':
-                ak = AK.authorization_key([provider, customer, roles], 44, 365 * 24 * 60 * 60)
-                ret['oauth'] = ak
+                ak = AK.authorization_key([user, customer, roles], 44, 365 * 24 * 60 * 60)
+                ret[CONFIG_OAUTH] = ak
             return HTTP.OK_RESPONSE, json.dumps(ret), None
         except LoginError as err:
             return HTTP.UNAUTHORIZED_RESPONSE, json.dumps({'loginTemplate':

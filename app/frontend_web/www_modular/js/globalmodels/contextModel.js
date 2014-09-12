@@ -97,11 +97,11 @@ define([
 	    }
 	    return ret;
 	},
-        setUser: function (user, pw, newpw) {
+        setUser: function (user, pw, customer, newpw) {
 	    if (this.user != user || !this.userAuth) {
 		this.set('user', user);
 		var that=this;
-		var data = {user:user, password:pw};
+		var data = {user:user, password:pw, customer_id:customer};
 		if(newpw)
 		    data.newpassword=newpw;
 		this.fetch({success: loginCallback,
@@ -110,12 +110,12 @@ define([
 			    type: 'POST'});
 	    }
 	},
-        setProvider: function (provider, customer, userAuth) {
+        autoSetUser: function (user, customer, userAuth) {
 	    var that=this;
 	    this.fetch({success: loginCallback, 
 			error: function(request, response) { that.set(response.responseJSON);},
-			data: JSON.stringify({provider:provider,
-					      customer: customer,
+			data: JSON.stringify({user:user,
+					      customer_id: customer,
 					      userAuth: userAuth}),
 			type: 'POST'});
 	}

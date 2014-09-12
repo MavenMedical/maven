@@ -193,7 +193,7 @@ def main(loop):
 
     sp_consumer.schedule(loop)
     sp_producer.schedule(loop)
-    notification_service.schedule(loop)
+    # notification_service.schedule(loop)
 
     try:
         loop.run_forever()
