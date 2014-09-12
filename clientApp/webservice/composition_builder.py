@@ -29,6 +29,7 @@ import utils.api.pyfhir.pyfhir_generated as FHIR_API
 
 COMP_BUILD_LOG = ML.get_logger('clientApp.webservice.allscripts_server')
 CONFIG_API = 'api'
+CONFIG_CLIENTEHR = 'client ehr'
 CUSTOMERID = 'customer_id'
 
 
@@ -45,10 +46,15 @@ class CompositionBuilder(builder):
     def __init__(self, configname):
         builder.__init__(self)
         self.config = MC.MavenConfig[configname]
-        apiname = self.config[CONFIG_API]
-        self.allscripts_api = AHC.allscripts_api(apiname)
+        self.allscripts_api = AHC.allscripts_api(self.config.get(CONFIG_API))
         self.provs = {}
         self.customer_id = MC.MavenConfig[CUSTOMERID]
+
+    @asyncio.coroutine
+    def build_providers(self):
+        ret = yield from self.allscripts_api.GetProviders(username=self.config.get(AHC.CONFIG_APPUSERNAME))
+        for prov in ret:
+            self.provs[prov['UserName']] = self.build_partial_practitioner(prov)
 
     @builder.build(FHIR_API.Composition)
     @ML.trace(COMP_BUILD_LOG.debug, True)

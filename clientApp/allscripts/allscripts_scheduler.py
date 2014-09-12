@@ -34,6 +34,9 @@ icd9_match = re.compile('\(V?[0-9]+(?:\.[0-9]+)?\)')
 CONFIG_API = 'api'
 CLIENT_SERVER_LOG = ML.get_logger('clientApp.webservice.allscripts_server')
 CONFIG_SLEEPINTERVAL = 'sleep interval'
+CONFIG_STREAMPROCESSOR = 'stream processor config'
+CONFIG_COMPOSITIONBUILDER = 'composition builder config'
+CONFIG_CLIENTEHR = 'client ehr'
 
 
 class Types(Enum):
@@ -45,22 +48,15 @@ class Types(Enum):
 class scheduler(SP.StreamProcessor):
 
     def __init__(self, configname):
-        SP.StreamProcessor.__init__(self, MC.MavenConfig[configname]['SP'])
         self.config = MC.MavenConfig[configname]
-        self.apiname = self.config[CONFIG_API]
-        self.allscripts_api = AHC.allscripts_api(self.apiname)
+        SP.StreamProcessor.__init__(self, self.config.get(CONFIG_STREAMPROCESSOR))
+        self.allscripts_api = AHC.allscripts_api(self.config.get(CONFIG_API))
         self.processed = set()
         self.lastday = None
-        self.comp_builder = CompositionBuilder(configname)
+        self.comp_builder = CompositionBuilder(self.config.get(CONFIG_COMPOSITIONBUILDER))
         self.wk = 2
         self.sleep_interval = self.config.get(CONFIG_SLEEPINTERVAL, 60)
         self.active_providers = {}
-
-    @asyncio.coroutine
-    def build_providers(self):
-        ret = yield from self.comp_builder.allscripts_api.GetProviders(username=MC.MavenConfig[self.apiname][AHC.CONFIG_APPUSERNAME])
-        for prov in ret:
-            self.comp_builder.provs[prov['UserName']] = self.comp_builder.build_partial_practitioner(prov)
 
     def update_active_providers(self, active_provider_list):
         self.active_providers = active_provider_list
@@ -68,7 +64,7 @@ class scheduler(SP.StreamProcessor):
     @asyncio.coroutine
     def get_updated_schedule(self):
         first = True
-        yield from self.build_providers()
+        yield from self.comp_builder.build_providers()
         while True:
             try:
                 today = date.today()

@@ -35,11 +35,11 @@ ML.set_debug()
 class UserSyncService(http.http_api):
     def __init__(self, configname, loop=None):
         self.config = MC.MavenConfig[configname]
+        self.api_name = self.config.get(CONFIG_API)
+        self.ehr_api = AHC.allscripts_api(self.api_name)
         self.customer_id = MC.MavenConfig['customer_id']
         self.sync_delay = self.config.get(CONFIG_SYNCDELAY, 60 * 60)
-        self.api_name = self.config[CONFIG_API]
-        self.ehr_api = AHC.allscripts_api(self.api_name)
-        super(UserSyncService, self).__init__(CONFIG_USERSYNCSERVICE)
+        super(UserSyncService, self).__init__(self.config.get(CONFIG_USERSYNCSERVICE))
         self.postprocess = (lambda x: list(x[0].values())[0])
         self.loop = loop or asyncio.get_event_loop()
         self.ehr_providers = {}
