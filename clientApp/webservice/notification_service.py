@@ -23,6 +23,7 @@ class NotificationService():
         self.message_queues = defaultdict(asyncio.queues.Queue)
         self.queue_delay = self.config.get(CONFIG_QUEUEDELAY, 0)
         self.loop = loop or asyncio.get_event_loop()
+        self.active_providers = {}
 
     @http_service(['GET'], '/poll',
                   [CONTEXT.PROVIDER, CONTEXT.CUSTOMERID],
@@ -73,7 +74,10 @@ class NotificationService():
             return {
                 RESPONSE_TEXT: message,
                 RESPONSE_LINK: 'http://www.google.com',
-                }
+            }
+
+    def update_users(self, active_provider_list):
+        self.active_providers = active_provider_list
 
     @ML.trace(logger.info)
     def send_messages(self, provider, customer, messages=None):
@@ -98,7 +102,7 @@ def standalone_notification_server(configname):
     ns = NotificationService(configname)
     core_scvs.register_services(ns)
     core_scvs.register_services(AU.AuthenticationWebservices(configname, timeout=60 * 60 * 12))
-    return core_scvs, ns.send_messages
+    return core_scvs, ns.send_messages, ns.update_users
 
 
 def run():

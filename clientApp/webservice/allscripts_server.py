@@ -42,6 +42,7 @@ class IncomingFromMavenMessageHandler(HR.HTTPWriter):
         HR.HTTPWriter.__init__(self, configname)
         self.notification_generator = notification_generator
         self.notification_fn = notification_fn
+        self.active_providers = {}
 
     @asyncio.coroutine
     def format_response(self, obj, _):
@@ -86,6 +87,9 @@ class IncomingFromMavenMessageHandler(HR.HTTPWriter):
             ML.DEBUG("NOTIFY HTML BODY: " + alert_notification_content)
 
             return (HR.OK_RESPONSE, alert_notification_content, [], composition.write_key[0])
+
+    def update_users(self, active_provider_list):
+        self.active_providers = active_provider_list
 
 
 def main(loop):
@@ -190,11 +194,13 @@ def main(loop):
     # and services and add to event loop
 
     notification_generator = NG.NotificationGenerator(clientemrconfig)
-    notification_service, notification_fn = NS.standalone_notification_server(notificationservicename)
+    notification_service, notification_fn, notification_users_fn = NS.standalone_notification_server(notificationservicename)
     sp_producer = IncomingFromMavenMessageHandler(incomingfrommavenmessagehandler,
                                                   notification_generator,
                                                   notification_fn)
-    user_sync_service = US.UserSyncService(usersyncservice, providers=PROVIDERS, loop=loop)
+    user_sync_service = US.UserSyncService(usersyncservice, loop=loop)
+    user_sync_service.subscribe(sp_producer.update_users)
+    user_sync_service.subscribe(notification_users_fn)
 
     # Instantiate the allscripts_scheduler.py polling mechanism
     allscripts_scheduler = scheduler('scheduler')

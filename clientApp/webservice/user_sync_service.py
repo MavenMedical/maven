@@ -33,7 +33,7 @@ ML.set_debug()
 
 
 class UserSyncService(http.http_api):
-    def __init__(self, configname, providers=None, loop=None):
+    def __init__(self, configname, loop=None):
         self.config = MC.MavenConfig[configname]
         self.customer_id = MC.MavenConfig['customer_id']
         self.sync_delay = self.config.get(CONFIG_SYNCDELAY, 60 * 60)
@@ -44,7 +44,11 @@ class UserSyncService(http.http_api):
         self.loop = loop or asyncio.get_event_loop()
         self.ehr_providers = {}
         self.maven_providers = []
-        self.active_providers = providers
+        self.active_providers = {}
+        self.provider_list_observers = []
+
+    def subscribe(self, observer):
+        self.provider_list_observers.append(observer)
 
     @ML.coroutine_trace(logger.debug)
     def synchronize_users(self):
@@ -75,8 +79,14 @@ class UserSyncService(http.http_api):
             # Go through the two sets of users (Maven, EHR's) and diff/update appropriately
             yield from self.diff_users(customer_id)
 
+            # Add any new users to the in-memory list of active users
             for provider in self.maven_providers:
                 self.active_providers[(provider['prov_id'], customer_id)] = provider
+
+            # Share the in-memory list of active providers with the subscribers to this functionality
+            # i.e. Notification Service, Allscripts_server, etc.
+            for updateProviderList in self.provider_list_observers:
+                updateProviderList(self.active_providers)
 
         except Exception as e:
                 logger.exception(e)
