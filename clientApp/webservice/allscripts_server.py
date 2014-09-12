@@ -29,11 +29,11 @@ import clientApp.webservice.notification_service as NS
 import clientApp.webservice.user_sync_service as US
 from clientApp.allscripts.allscripts_scheduler import scheduler, CONFIG_SLEEPINTERVAL
 import utils.web_client.allscripts_http_client as AHC
+from utils.enums import NOTIFICATION_STATE, USER_STATE
 
 
 CONFIG_API = 'api'
 CLIENT_SERVER_LOG = ML.get_logger('clientApp.webservice.allscripts_server')
-PROVIDERS = {}
 
 
 class IncomingFromMavenMessageHandler(HR.HTTPWriter):
@@ -63,33 +63,42 @@ class IncomingFromMavenMessageHandler(HR.HTTPWriter):
 
         user = composition.author.get_provider_id()
         customer = str(composition.customer_id)
-        msg = yield from self.notification_generator.generate_alert_content(composition,
-                                                                            'web', None)
-        CLIENT_SERVER_LOG.debug(("Generated Message content: %s" % msg))
 
-        mobile_msg = [{'TEXT': 'New Pathway', 'LINK': m} for m in msg]
-        self.notification_fn('mobile_' + user, customer, mobile_msg)
+        if self.check_notification_policy(user, customer):
 
-        if self.notification_fn(user, customer, msg):
-            CLIENT_SERVER_LOG.debug(("Successfully sent msg to: %s" % composition.write_key[0]))
-            return (HR.OK_RESPONSE, b'', [], composition.write_key[0])
-        else:
-            notifications = msg
+            msg = yield from self.notification_generator.generate_alert_content(composition,
+                                                                                'web', None)
+            CLIENT_SERVER_LOG.debug(("Generated Message content: %s" % msg))
 
-            alert_notification_content = ""
+            mobile_msg = [{'TEXT': 'New Pathway', 'LINK': m} for m in msg]
+            self.notification_fn('mobile_' + user, customer, mobile_msg)
 
-            if notifications is not None and len(notifications) > 0:
-                for notification_body in notifications:
-                    alert_notification_content += str(notification_body)
-                    # alert_notification_content += ""
+            if self.notification_fn(user, customer, msg):
+                CLIENT_SERVER_LOG.debug(("Successfully sent msg to: %s" % composition.write_key[0]))
+                return (HR.OK_RESPONSE, b'', [], composition.write_key[0])
+            else:
+                notifications = msg
+                alert_notification_content = ""
 
-            ML.DEBUG(json.dumps(composition, default=FHIR_API.jdefault, indent=4))
-            ML.DEBUG("NOTIFY HTML BODY: " + alert_notification_content)
+                if notifications is not None and len(notifications) > 0:
+                    for notification_body in notifications:
+                        alert_notification_content += str(notification_body)
+                        # alert_notification_content += ""
+                ML.DEBUG("NOTIFY HTML BODY: " + alert_notification_content)
 
-            return (HR.OK_RESPONSE, alert_notification_content, [], composition.write_key[0])
+                return (HR.OK_RESPONSE, alert_notification_content, [], composition.write_key[0])
 
     def update_users(self, active_provider_list):
         self.active_providers = active_provider_list
+
+    def check_notification_policy(self, provider, customer_id):
+        key = provider, customer_id
+        provider = self.active_providers.get(key)
+
+        if provider.get('state') == USER_STATE.ACTIVE.value and provider.get('ehr_state') == USER_STATE.ACTIVE.value and provider.get('notification_state', None) is not None:
+            return True
+        else:
+            return False
 
 
 def main(loop):
@@ -193,17 +202,19 @@ def main(loop):
     # Instantiate the (allscripts_server.py --> data_router.py) writer
     # and services and add to event loop
 
+    user_sync_service = US.UserSyncService(usersyncservice, loop=loop)
     notification_generator = NG.NotificationGenerator(clientemrconfig)
-    notification_service, notification_fn, notification_users_fn = NS.standalone_notification_server(notificationservicename)
+    notification_service, notification_fn, notification_users_fn = NS.standalone_notification_server(notificationservicename, user_sync_svc=user_sync_service)
+    user_sync_service.subscribe(notification_users_fn)
     sp_producer = IncomingFromMavenMessageHandler(incomingfrommavenmessagehandler,
                                                   notification_generator,
                                                   notification_fn)
     user_sync_service = US.UserSyncService(usersyncservice, loop=loop)
     user_sync_service.subscribe(sp_producer.update_users)
-    user_sync_service.subscribe(notification_users_fn)
 
     # Instantiate the allscripts_scheduler.py polling mechanism
     allscripts_scheduler = scheduler('scheduler')
+    user_sync_service.subscribe(allscripts_scheduler.update_active_providers)
     sp_producer.schedule(loop)
     notification_service.schedule(loop)
 

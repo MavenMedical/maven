@@ -81,15 +81,18 @@ class UserSyncService(http.http_api):
 
             # Add any new users to the in-memory list of active users
             for provider in self.maven_providers:
-                self.active_providers[(provider['prov_id'], customer_id)] = provider
+                self.active_providers[(provider['prov_id'], str(customer_id))] = provider
 
             # Share the in-memory list of active providers with the subscribers to this functionality
             # i.e. Notification Service, Allscripts_server, etc.
-            for updateProviderList in self.provider_list_observers:
-                updateProviderList(self.active_providers)
+            self.update_provider_list_observers(self.active_providers)
 
         except Exception as e:
                 logger.exception(e)
+
+    def update_provider_list_observers(self, providers):
+        for updateProviderList in self.provider_list_observers:
+            updateProviderList(providers)
 
     @ML.coroutine_trace(logger.debug)
     def diff_users(self, customer_id):
