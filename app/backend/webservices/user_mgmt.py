@@ -164,9 +164,9 @@ class UserMgmtWebservices():
         provider = None
         customer = None
 
-        if USER_ROLES.supervisor in context[CONTEXT.ROLES] or USER_ROLES.mavensupport in context[CONTEXT.ROLES]:
+        if USER_ROLES.supervisor.name in context[CONTEXT.ROLES] or USER_ROLES.mavensupport.name in context[CONTEXT.ROLES]:
             provider = context.get(CONTEXT.TARGETPROVIDER, None)
-        if USER_ROLES.mavensupport in context[CONTEXT.ROLES]:
+        if USER_ROLES.mavensupport.name in context[CONTEXT.ROLES]:
             customer = context.get(CONTEXT.TARGETCUSTOMER, None)
 
         if not provider:

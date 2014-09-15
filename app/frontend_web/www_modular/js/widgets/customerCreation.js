@@ -20,18 +20,27 @@ define([
         addCustomer: function () {
                 var name = $("#customer-name-input").val();
                 var abbr = $("#customer-abbr-input").val();
-                var ip = $("#customer-ip-input").val();
                 var license = $("#customer-license-input").val();
 
-                $.ajax({
-                    url: "/add_customer",
-                    data: $.param(contextModel.toParams()) + "&name=" + name +
-                        "&ip=" + ip + "&abbr=" + abbr +
-                        "&license=" + license,
-                    success: function (data) {
-                        console.log(data);
-                    }
-                });
+                var reg_num = new RegExp('^[0]*[1-9]+[0]*$');
+                if (!reg_num.test(license))
+                {
+                    $("#add-customer-message").html("Please enter a valid number for # of licenses");
+                }
+                else {
+                    $("#add-customer-message").empty();
+                    $.ajax({
+                        url: "/add_customer",
+                        data: $.param(contextModel.toParams()) + "&name=" + name +
+                            "&abbr=" + abbr + "&license=" + license,
+                        success: function () {
+                            $("#add-customer-message").html("Customer Added!");
+                            $("#customer-name-input").val("");
+                            $("#customer-abbr-input").val("");
+                            $("#customer-license-input").val("");
+                        }
+                    });
+                }
         },
         render: function(){
             this.$el.html(this.template);

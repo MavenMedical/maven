@@ -71,21 +71,18 @@ class SupportWebservices():
             return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
 
     @http_service(['GET'], '/add_customer',
-                  [CONTEXT.USER, CONTEXT.IPADDRESS,
-                   CONTEXT.NAME, CONTEXT.ABBREVIATION, CONTEXT.LICENSE],
-                  {CONTEXT.USER: str, CONTEXT.IPADDRESS: str,
-                   CONTEXT.LICENSE: int, CONTEXT.NAME: str,
-                   CONTEXT.ABBREVIATION: str},
+                  [CONTEXT.USER, CONTEXT.NAME,
+                   CONTEXT.ABBREVIATION, CONTEXT.LICENSE],
+                  {CONTEXT.USER: str, CONTEXT.LICENSE: int,
+                   CONTEXT.NAME: str, CONTEXT.ABBREVIATION: str},
                   {USER_ROLES.mavensupport})
     def add_customer(self, _header, _body, context, _matches, _key):
         name = context[CONTEXT.NAME]
         abbr = context[CONTEXT.ABBREVIATION]
-        address = context[CONTEXT.IPADDRESS]
         license = context[CONTEXT.LICENSE]
         license_exp = datetime.now() + relativedelta(years=1)
 
-        result = yield from self.persistence.add_customer(name, abbr, address,
-                                                          license, license_exp)
+        result = yield from self.persistence.add_customer(name, abbr, license, license_exp)
         if result:
             return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
         else:

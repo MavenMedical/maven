@@ -242,7 +242,7 @@ class WebPersistence():
                                 [state, user], {}, {})
 
     @asyncio.coroutine
-    def add_customer(self, name, abbr, address, license, license_exp):
+    def add_customer(self, name, abbr, license, license_exp):
         yield from self.execute(["select * from customer;" +
                                  "INSERT INTO customer (customer_id, name, abbr, license_type, license_exp) " +
                                  "VALUES(((SELECT MAX(customer_id) FROM customer) + 1), " +

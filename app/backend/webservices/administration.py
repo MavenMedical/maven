@@ -33,8 +33,8 @@ class AdministrationWebservices():
         self.persistence = WP.WebPersistence(config[CONFIG_PERSISTENCE])
 
     @http_service(['GET'], '/users(?:(\d+)-(\d+)?)?',
-                  [CONTEXT.USER, CONTEXT.PROVIDER, CONTEXT.CUSTOMERID],
-                  {CONTEXT.PROVIDER: str, CONTEXT.USER: int, CONTEXT.CUSTOMERID: int},
+                  [CONTEXT.USER, CONTEXT.CUSTOMERID],
+                  {CONTEXT.USER: int, CONTEXT.CUSTOMERID: int},
                   {USER_ROLES.supervisor})
     def get_users(self, _header, _body, context, matches, _key):
         customer = context[CONTEXT.CUSTOMERID]
