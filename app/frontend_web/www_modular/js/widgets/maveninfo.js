@@ -11,11 +11,11 @@ define([
     'pathway/models/treeModel'
 ], function ($, _, Backbone, contextModel, curTree) {
     var MavenInfo = Backbone.View.extend({
+
         initialize: function (arg) {
             this.template = _.template(arg.template);
-            this.$el.html(this.template());
-            console.log('curTree', curTree);
-            curTree.on('change:name', this.render,this);
+            this.$el.html(this.template({selectedNode: null}));
+             curTree.on('propagate', this.render,this);
 	    contextModel.on('change:page', this.showhide, this);
 	    this.showhide();
         },
@@ -30,8 +30,7 @@ define([
 
         },
         render: function () {
-            console.log('render maveninfo');
-            this.$el.html(this.template(curTree.get('selectedNode').attributes))
+            this.$el.html(this.template({selectedNode: curTree.get('selectedNode').attributes}))
             return this;
         }
     });
