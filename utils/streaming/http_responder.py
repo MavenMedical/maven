@@ -279,8 +279,8 @@ class HTTPProcessor(SP.StreamProcessor):
                             resp = NOCONTENT_RESPONSE
                         ret = wrap_response(resp, body, extras)
                     break
-        except (KeyError, IndexError):  # key error means an object isn't found
-            ML.WARN("keyerror or indexerror")
+        except (KeyError, IndexError, TypeError):  # key error means an object isn't found
+            ML.EXCEPTION("keyerror or indexerror")
             ret = wrap_response(NOTFOUND_RESPONSE, b'')
         except ValueError:
             ML.EXCEPTION("value error")

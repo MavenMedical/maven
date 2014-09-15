@@ -1,10 +1,11 @@
 <div class = "widget-column col-sm-12">
-<div class="modal-dialog modal-lg" id="login">
+<div class="modal-dialog modal-lg login">
     <div class="modal-content">
         <div class="modal-body">
                 <h3><span class="glyphicon glyphicon-lock"></span><span class="brand"><b>maven</b></span> Sign In</h3>
             <div class="container col-md-12">
                <p><input id="login-user" type="text" name="user" placeholder="User name" value="<% if(user) print(user); %>" required></p>
+               <p><input id="login-customer" type="text" name="customer" placeholder="Customer ID" required></p>
                 <p><input id="login-password" type="password" placeholder="password" name="password" autofocus></p>
             </div>
             <div id="login-buttons" >

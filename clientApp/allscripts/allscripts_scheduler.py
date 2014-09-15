@@ -28,11 +28,15 @@ import pickle
 from clientApp.webservice.composition_builder import CompositionBuilder
 from utils.streaming import stream_processor as SP
 import maven_logging as ML
+from utils.enums import USER_STATE, NOTIFICATION_STATE
 
 icd9_match = re.compile('\(V?[0-9]+(?:\.[0-9]+)?\)')
 CONFIG_API = 'api'
 CLIENT_SERVER_LOG = ML.get_logger('clientApp.webservice.allscripts_server')
 CONFIG_SLEEPINTERVAL = 'sleep interval'
+CONFIG_STREAMPROCESSOR = 'stream processor config'
+CONFIG_COMPOSITIONBUILDER = 'composition builder config'
+CONFIG_CLIENTEHR = 'client ehr'
 
 
 class Types(Enum):
@@ -44,26 +48,23 @@ class Types(Enum):
 class scheduler(SP.StreamProcessor):
 
     def __init__(self, configname):
-        SP.StreamProcessor.__init__(self, MC.MavenConfig[configname]['SP'])
         self.config = MC.MavenConfig[configname]
-        self.apiname = self.config[CONFIG_API]
-        self.allscripts_api = AHC.allscripts_api(self.apiname)
+        SP.StreamProcessor.__init__(self, self.config.get(CONFIG_STREAMPROCESSOR))
+        self.allscripts_api = AHC.allscripts_api(self.config.get(CONFIG_API))
         self.processed = set()
         self.lastday = None
-        self.comp_builder = CompositionBuilder(configname)
+        self.comp_builder = CompositionBuilder(self.config.get(CONFIG_COMPOSITIONBUILDER))
         self.wk = 2
         self.sleep_interval = self.config.get(CONFIG_SLEEPINTERVAL, 60)
+        self.active_providers = {}
 
-    @asyncio.coroutine
-    def build_providers(self):
-        ret = yield from self.comp_builder.allscripts_api.GetProviders(username=MC.MavenConfig[self.apiname][AHC.CONFIG_APPUSERNAME])
-        for prov in ret:
-            self.comp_builder.provs[prov['UserName']] = self.comp_builder.build_partial_practitioner(prov)
+    def update_active_providers(self, active_provider_list):
+        self.active_providers = active_provider_list
 
     @asyncio.coroutine
     def get_updated_schedule(self):
         first = True
-        yield from self.build_providers()
+        yield from self.comp_builder.build_providers()
         while True:
             try:
                 today = date.today()
@@ -72,7 +73,10 @@ class scheduler(SP.StreamProcessor):
                     self.processed = set()
                     sched = []
                 try:
-                    sched = yield from self.allscripts_api.GetSchedule('CliffHux', today)
+                    for provider in self.active_providers:
+                        if self.check_notification_policy(provider):
+                            sched = yield from self.allscripts_api.GetSchedule(self.active_providers.get(provider)['user_name'], today)
+
                 except AHC.AllscriptsError as e:
                     CLIENT_SERVER_LOG.exception(e)
                 # print([(sch['patientID'], sch['ApptTime2'], sch['ProviderID']) for sch in sched])
@@ -128,6 +132,17 @@ class scheduler(SP.StreamProcessor):
             CLIENT_SERVER_LOG.exception(e)
         except:
             CLIENT_SERVER_LOG.exception(e)
+
+    def check_notification_policy(self, key):
+        provider = self.active_providers.get(key)
+
+        if provider.get('state') == USER_STATE.ACTIVE.value and provider.get('ehr_state') == USER_STATE.ACTIVE.value and provider.get('notification_state', None) is not None:
+            return True
+        elif provider.get('state') == USER_STATE.ACTIVE.value and provider.get('ehr_state') == USER_STATE.ACTIVE.value and provider.get('notification_state', None) == NOTIFICATION_STATE.MOBILE:
+            return True
+        else:
+            return False
+
 
 if __name__ == '__main__':
     MC.MavenConfig['allscripts_old_demo'] = {

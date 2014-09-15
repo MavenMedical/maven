@@ -112,8 +112,8 @@ class NotificationGenerator():
         base_alert_data = {"alert_id": composition.id,
                            "rule_id": 0,
                            "provider": composition.get_author_id(),
-                           "user": composition.customer_id,
-                           "customer": composition.customer_id,
+                           "user": composition.author.get_provider_username(),
+                           "customer_id": composition.customer_id,
                            "userAuth": composition.userAuth,
                            "csn": urllib.parse.quote(composition.encounter.get_csn()),
                            "patient_id": composition.subject.get_pat_id()}
@@ -164,7 +164,7 @@ class NotificationGenerator():
                         "encounter_id": base_alert_data['csn'],
                         "patient_id": base_alert_data['patient_id'],
                         "user": base_alert_data['user'],
-                        "customer": base_alert_data['customer'],
+                        "customer_id": base_alert_data['customer_id'],
                         "user_auth": base_alert_data['userAuth']}
 
         return templateVars
@@ -182,7 +182,7 @@ class NotificationGenerator():
                         "encounter_id": base_alert_data['csn'],
                         "patient_id": base_alert_data['patient_id'],
                         "user": base_alert_data['user'],
-                        "customer": base_alert_data['customer'],
+                        "customer_id": base_alert_data['customer_id'],
                         "user_auth": base_alert_data['userAuth']}
 
         notification_body = template_sleuth_alert.render(templateVars)
@@ -202,7 +202,7 @@ class NotificationGenerator():
                         "encounter_id": base_alert_data['csn'],
                         "patient_id": base_alert_data['patient_id'],
                         "user": base_alert_data['user'],
-                        "customer": base_alert_data['customer'],
+                        "customer_id": base_alert_data['customer_id'],
                         "user_auth": base_alert_data['userAuth']}
 
         notification_body = template_dup_order_alert.render(templateVars)
@@ -245,7 +245,7 @@ class NotificationGenerator():
         templateVars = {"http_address": MC.http_addr,
                         "encounter_id": urllib.parse.quote(composition.encounter.get_csn()),
                         "patient_id": composition.subject.get_pat_id(),
-                        "user": composition.get_author_id(),
+                        "user": composition.author.get_provider_username(),
                         "user_auth": composition.userAuth,
                         "customer_id": composition.customer_id}
         notification_body = template.render(templateVars)
@@ -274,7 +274,7 @@ class NotificationGenerator():
         template_sleuth_alert = templateEnv.get_template(TEMPLATE_FILE)
 
         sleuth_alert_HTML_contents = []
-        user = composition.get_author_id()
+        user = composition.author.get_provider_username()
         customer = composition.customer_id
         userAuth = composition.userAuth
         csn = urllib.parse.quote(composition.encounter.get_csn())
@@ -295,7 +295,7 @@ class NotificationGenerator():
                             "patient_id": patient_id,
                             "evi_id": alert.CDS_rule,
                             "user": user,
-                            "customer": customer,
+                            "customer_id": customer,
                             "user_auth": userAuth}
 
             notification_body = template_sleuth_alert.render(templateVars)

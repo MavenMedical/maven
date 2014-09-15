@@ -3732,6 +3732,11 @@ class Practitioner(Resource):
             if id.system == "clientEMR" and id.label == "Internal":
                 return id.value
 
+    def get_provider_username(self):
+        for id in self.identifier:
+            if id.system == "clientEMR" and id.label == "Username":
+                return id.value
+
 
 class Procedure(Resource):
     """

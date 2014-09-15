@@ -51,19 +51,20 @@ define([
 	    }
 	},
 	fastlogin: function() {
-	    contextModel.setUser('maven','maven', Backbone.history.fragment);
+	    contextModel.setUser('maven','maven', '1', Backbone.history.fragment);
 	},
 	dologin: function(event) {
 	    var user = $("#login-user").val();
+	    var customer = $("#login-customer").val();
 	    this.user = user;
 	    var password = $("#login-password").val();
 	    if( user && password ) {
 		var jqnewpassword = $("#login-new-password");
 		if(!jqnewpassword.is(":visible")) {
-		    contextModel.setUser(user, password, null);
+		    contextModel.setUser(user, password, customer, null);
 		} else {
 		    if(this.newPasswordChange()) {
-			contextModel.setUser(user, password, jqnewpassword.val());
+			contextModel.setUser(user, password, customer, jqnewpassword.val());
 		    } else {
 
 		    } 

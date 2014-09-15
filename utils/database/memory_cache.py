@@ -177,7 +177,7 @@ class MemoryCache():
                 indict, val = self._get_value(data, key)
                 if indict:
                     if type(val) is asyncio.Future:
-                        yield from asyncio.wait(val)
+                        yield from asyncio.wait([val])
                         data.move_to_end(key)
                         return val.result()
                     else:

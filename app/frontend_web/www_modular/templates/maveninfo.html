@@ -1,55 +1,28 @@
-<div class = "widget-column col-sm-12">
-<div class="row">
-    <h2 class="headings alerts">
-        maven info
-    </h2>
+<div class="widget-column col-sm-12">
+    <div class="row">
+        <h2 class="headings alerts">
+            Additional info
+        </h2>
 
-    <div class="col-sm-12">
-        <div class="alertlist">
-            <h2 class="headings title">
-                <span class="glyphicon glyphicon-list"></span>
-                <%=decodeURIComponent(name)%></h2>
+        <div class="col-sm-12">
+            <div class="alertlist">
+                <% if (selectedNode) { %>
+                <h2 class="headings title">
+                    <!--<span class="glyphicon glyphicon-chevron-down"></span>-->
+                    <%=decodeURIComponent(selectedNode.name)%>
+                </h2>
 
-            <ul id="info-tabs" class="nav nav-tabs" role="tablist">
-                <li class="active">
-                    <a href="#info" role="tab" data-toggle="tab" class="headings">
-                        <span class="glyphicon glyphicon-info-sign"></span>
-                        About
-                    </a>
-                </li>
-                <li>
-                    <a href="#res" role="tab" data-toggle="tab" class="headings">
-                        <span class="glyphicon glyphicon-globe"></span>
-                        Resources
-                    </a></li>
-                <li>
-                    <!--li>
-                        <a href="#pane3" role="tab" data-toggle="tab" class="headings">
-                            <span class="glyphicon glyphicon-ok-circle"></span>
-                            Quality </a></li>
-                    <li>-->
-            </ul>
+                <span>
+                    <%=decodeURIComponent(selectedNode.sidePanelText)%>
+                </span>
 
-            <div id="info" class="tab-pane pane-content" style="height: 30px; margin-bottom: 250px;">
-                <div class="container col-md-12" >
-                    Metastatic castration-resistant prostate cancer (mCRPC) is prostate cancer that is resistant to
-                    medical
-                    (e.g. hormonal) or surgical treatments that lower testosterone, and has spread to other parts of the
-                    body.
-                    In other words, your prostate cancer
-                    has progressed on androgen deprivation* therapy (ADT) and has spread to other parts of the body.
-                </div>
-
-                 <div class="container col-md-12">
-                    <a href="http://www.cancer.gov/dictionary">Cancer Dictionary</a>
-                </div>
+                <% } else {%>
+                <h2 class="headings title watermark">Select a node to get Additional info</h2>
+                <% } %>
             </div>
-
-
-
+            <!--/row-->
         </div>
-        <!--/row-->
-    </div>
-    <div class="maven-padding"></div>
+        <div class="maven-padding"></div>
 
+    </div>
 </div>

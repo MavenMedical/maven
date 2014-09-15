@@ -35,25 +35,29 @@ ML.set_debug()
 class UserSyncService(http.http_api):
     def __init__(self, configname, loop=None):
         self.config = MC.MavenConfig[configname]
-        self.customer_id = self.config['customer_id']
-        self.sync_delay = self.config.get(CONFIG_SYNCDELAY, 60 * 60)
-        self.api_name = self.config[CONFIG_API]
+        self.api_name = self.config.get(CONFIG_API)
         self.ehr_api = AHC.allscripts_api(self.api_name)
-        super(UserSyncService, self).__init__(CONFIG_USERSYNCSERVICE)
+        self.customer_id = MC.MavenConfig['customer_id']
+        self.sync_delay = self.config.get(CONFIG_SYNCDELAY, 60 * 60)
+        super(UserSyncService, self).__init__(self.config.get(CONFIG_USERSYNCSERVICE))
         self.postprocess = (lambda x: list(x[0].values())[0])
         self.loop = loop or asyncio.get_event_loop()
         self.ehr_providers = {}
         self.maven_providers = []
-        self.active_providers = []
+        self.active_providers = {}
+        self.provider_list_observers = []
+
+    def subscribe(self, observer):
+        self.provider_list_observers.append(observer)
 
     @ML.coroutine_trace(logger.debug)
     def synchronize_users(self):
         while True:
-            yield from self.evaluate_users()
+            yield from self.evaluate_users(self.customer_id)
             yield from asyncio.sleep(self.sync_delay)
 
     @ML.coroutine_trace(logger.debug)
-    def evaluate_users(self):
+    def evaluate_users(self, customer_id):
         try:
             try:
                 ehr_providers = yield from self.ehr_api.GetProviders(username=MC.MavenConfig[self.api_name][AHC.CONFIG_APPUSERNAME])
@@ -66,19 +70,32 @@ class UserSyncService(http.http_api):
 
             try:
                 ret = yield from self.get('/syncusers', rawdata=False, params={"roles[]": "maventask",
-                                                                               "customer_id": self.customer_id})
+                                                                               "customer_id": customer_id})
                 self.maven_providers = json.loads(ret)
 
             except Exception as e:
                 logger.exception(e)
 
-            yield from self.diff_users()
+            # Go through the two sets of users (Maven, EHR's) and diff/update appropriately
+            yield from self.diff_users(customer_id)
+
+            # Add any new users to the in-memory list of active users
+            for provider in self.maven_providers:
+                self.active_providers[(provider['prov_id'], str(customer_id))] = provider
+
+            # Share the in-memory list of active providers with the subscribers to this functionality
+            # i.e. Notification Service, Allscripts_server, etc.
+            self.update_provider_list_observers(self.active_providers)
 
         except Exception as e:
                 logger.exception(e)
 
+    def update_provider_list_observers(self, providers):
+        for updateProviderList in self.provider_list_observers:
+            updateProviderList(providers)
+
     @ML.coroutine_trace(logger.debug)
-    def diff_users(self):
+    def diff_users(self, customer_id):
         # create 2 lists containing provider_id to see if we need to CREATE new users
         ehr_prov_list = Counter([prov.get_provider_id() for prov in self.ehr_providers.values()])
         maven_prov_list = Counter([(prov['prov_id']) for prov in self.maven_providers])
@@ -87,7 +104,7 @@ class UserSyncService(http.http_api):
         new_provider_list = list((ehr_prov_list - maven_prov_list).elements())
         if new_provider_list:
             for deactivated_provider in new_provider_list:
-                yield from self.create_maven_user(self.ehr_providers[deactivated_provider])
+                yield from self.create_maven_user(self.ehr_providers[deactivated_provider], customer_id)
 
         # create 2 lists of tuples containing (provider_id, active state) to see if we need to UPDATE user's EHR state
         ehr_prov_list2 = Counter([(prov.get_provider_id(), prov.ehr_state) for prov in self.ehr_providers.values()])
@@ -97,10 +114,10 @@ class UserSyncService(http.http_api):
         deactivated_provider_list = list((maven_prov_list2 - ehr_prov_list2).elements())
         if deactivated_provider_list:
             for deactivated_provider in deactivated_provider_list:
-                yield from self.update_maven_user_state(deactivated_provider[0])
+                yield from self.update_maven_user_state(deactivated_provider[0], customer_id)
 
     @ML.coroutine_trace(logger.debug)
-    def create_maven_user(self, missing_provider):
+    def create_maven_user(self, missing_provider, customer_id):
 
         for identifier in missing_provider.identifier:
             if identifier.system == "clientEMR" and identifier.label == "Internal":
@@ -111,7 +128,7 @@ class UserSyncService(http.http_api):
         provider_official_name = missing_provider.name.given[0] + " " + missing_provider.name.family[0]
         provider_display_name = provider_official_name
 
-        new_provider = {"customer_id": self.customer_id,
+        new_provider = {"customer_id": customer_id,
                         "prov_id": provider_id,
                         "user_name": provider_username,
                         "official_name": provider_official_name,
@@ -121,24 +138,30 @@ class UserSyncService(http.http_api):
                         "specialty": missing_provider.specialty[0]
                         }
 
+        # Add user to maven_providers list so that the user can be added to the global providers dictionary
+        self.maven_providers.append(new_provider)
+
         ret = yield from self.post('/synccreateuser',
                                    rawdata=True,
                                    params={"roles[]": "maventask",
-                                           "customer_id": self.customer_id},
+                                           "customer_id": customer_id},
                                    data=json.dumps(new_provider))
 
     @ML.coroutine_trace(logger.debug)
-    def update_maven_user_state(self, deactivated_provider_id):
+    def update_maven_user_state(self, deactivated_provider_id, customer_id):
 
-        provider = {"customer_id": self.customer_id,
+        provider = {"customer_id": customer_id,
                     "prov_id": deactivated_provider_id,
                     "ehr_state": USER_STATE.DISABLED.value
                     }
 
+        for prov in [prov for prov in self.maven_providers if prov['prov_id'] == deactivated_provider_id]:
+            prov['ehr_state'] = USER_STATE.DISABLED.value
+
         ret = yield from self.post('/syncupdateuser',
                                    rawdata=True,
                                    params={"roles[]": "maventask",
-                                           "customer_id": self.customer_id},
+                                           "customer_id": customer_id},
                                    data=json.dumps(provider))
 
 
@@ -164,6 +187,7 @@ def run():
         CONFIG_SYNCDELAY: 60 * 6,
         CONFIG_API: 'allscripts_demo'
     }
+    MC.MavenConfig['customer_id'] = 5
 
     sync_scvs = UserSyncService('maven user sync')
     event_loop = asyncio.get_event_loop()
