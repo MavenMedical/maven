@@ -215,48 +215,28 @@ namespace MavenAsDemo
         }
         private bool loginSuccess()
         {
-            Settings set = new Settings();
-            bool rtn = false;
-            //TODO: HTTPS
-            WebRequest rqst= WebRequest.Create("http://"+set.pollingServer+"/broadcaster/login");
-            rqst.Method = "POST";
-            string postData = "{\"user\":\""+txtUser.Text+"\",\"password\":\""+txtPass.Text+"\"}";
-            byte[] bytes = Encoding.UTF8.GetBytes(postData);
-            // Set the ContentType property of the WebRequest.
-            rqst.ContentType = "application/x-www-form-urlencoded";
-            // Set the ContentLength property of the WebRequest.
-            rqst.ContentLength = bytes.Length;
-            // Get the request stream.
+            bool rtn=false;
+            Settings currsettings = new Settings();
+            string postData = "{\"user\":\""+txtUser.Text+"\",\"password\":\""+txtPass.Text+"\",\"customer_id\":\""+currsettings.custId+"\",\"roles\": [\"notification\"]}";
+            
             try
             {
-                Stream dataStream = rqst.GetRequestStream();
-                // Write the data to the request stream.
-                dataStream.Write(bytes, 0, bytes.Length);
-                // Close the Stream object.
-                dataStream.Close();
-                // Get the response.
-                WebResponse response = rqst.GetResponse();
-                // Display the status.
-                string status = ((HttpWebResponse)response).StatusDescription;
-                // Get the stream containing content returned by the server.
-                dataStream = response.GetResponseStream();
-                // Open the stream using a StreamReader for easy access.
-                StreamReader reader = new StreamReader(dataStream);
-                // Read the content.
-                string responseFromServer = reader.ReadToEnd();
-                // Clean up the streams.
-                reader.Close();
-                dataStream.Close();
-                response.Close();
+
+                string responseFromServer = Authenticator.LoginResponse(postData);
 
                 //get the provider id and auth key
-                string provider = trimKeyValue("provider", responseFromServer);
-                string Auth = trimKeyValue("userAuth", responseFromServer);
+                string provider = Authenticator.trimKeyValue("provider", responseFromServer);
+                string oAuth = Authenticator.trimKeyValue("oauth", responseFromServer);
 
                 //write the provider id and auth key, etc
                 WriteKey(provider, "provider");
-                WriteKey(Auth, "Auth");
-                WriteKey(trimKeyValue("user", responseFromServer), "MavenUser");
+                WriteKey(oAuth, "Auth");
+                WriteKey(Authenticator.trimKeyValue("user", responseFromServer), "MavenUser");
+                WriteKey(txtUser.Text, "User");
+                //hack up the response from server to be a reauth string. then save the reauthstring
+                responseFromServer = responseFromServer;
+                responseFromServer = removeUserauth(responseFromServer); 
+                WriteKey(responseFromServer, "oAuthString");
 
                 rtn = true;
             }
@@ -268,18 +248,13 @@ namespace MavenAsDemo
             
             return rtn;
         }
-        private string trimKeyValue(string key,string trimfrom)
+        private string removeUserauth(string wholestring)
         {
-            string rtn = "";
-            try
-            {
-                trimfrom = trimfrom.Substring(trimfrom.IndexOf("\"" + key + "\": \""));
-                trimfrom = trimfrom.Replace("\"" + key + "\": \"", "");
-                rtn = trimfrom.Substring(0, trimfrom.IndexOf("\"")).Replace("\"","").Trim();
-
-            }
-            catch { }
-            return rtn;
+            int startclip = wholestring.IndexOf("userAuth"); //get the location of userauth and then go back to the last comma
+            startclip = wholestring.Substring(0, startclip).LastIndexOf(",");
+            int endclip = wholestring.IndexOf(",", startclip + 1);//get the next comma after the userauth bit
+            if (endclip < 1) { endclip = wholestring.LastIndexOf("\"")+1; } //if there's no comma, then this is the last element. Get the last quote and clip there
+            return wholestring.Substring(0, startclip) + wholestring.Substring(endclip, wholestring.Length - endclip);
         }
     }
 }
