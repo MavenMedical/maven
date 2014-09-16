@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Win32;
+using System.Net;
+using System.IO;
 
 namespace MavenAsDemo
 {
@@ -13,6 +15,7 @@ namespace MavenAsDemo
     class Authenticator
     {
         public static bool quitLogin = false;
+        private static byte[] encryptedSessionKey;
         /// <summary>
         /// Gets a key encrypted with DPAPI to use in calls to the cloud. 
         /// </summary>
@@ -59,7 +62,7 @@ namespace MavenAsDemo
                 }
             }
             //return the key
-            return key;
+            return encryptedSessionKey;
         }
         /// <summary>
         /// clear the login settings to log out. 
@@ -88,8 +91,15 @@ namespace MavenAsDemo
             }
             else
             {
-                //TODO: Actually validate the key with the server
-                return true;
+                string oAuth = WindowsDPAPI.Decrypt(key);
+                //you have the oauth token, use it to call back and get the session key ("userAuth")
+                string oAuthSendString = GetDecryptedRegistryVaue("oAuthString");
+                try
+                {
+                    encryptedSessionKey = WindowsDPAPI.Encrypt(trimKeyValue("userAuth",LoginResponse(oAuthSendString)));
+                    return true;
+                }
+                catch { return false; }
             }
         }
         /// <summary>
@@ -157,6 +167,56 @@ namespace MavenAsDemo
 
             }
             return rtn;
+        }
+        public static string trimKeyValue(string key, string trimfrom)
+        {
+            string rtn = "";
+            try
+            {
+                trimfrom = trimfrom.Substring(trimfrom.IndexOf("\"" + key + "\": \""));
+                trimfrom = trimfrom.Replace("\"" + key + "\": \"", "");
+                rtn = trimfrom.Substring(0, trimfrom.IndexOf("\"")).Replace("\"", "").Trim();
+
+            }
+            catch { }
+            return rtn;
+        }
+        public static string LoginResponse(string dataToPost)
+        {
+            Settings set = new Settings();
+            bool rtn = false;
+            //TODO: HTTPS
+            WebRequest rqst = WebRequest.Create("http://" + set.pollingServer + "/broadcaster/login");
+            rqst.Method = "POST";
+            Settings currsettings = new Settings();
+            byte[] bytes = Encoding.UTF8.GetBytes(dataToPost);
+            // Set the ContentType property of the WebRequest.
+            rqst.ContentType = "application/x-www-form-urlencoded";
+            // Set the ContentLength property of the WebRequest.
+            rqst.ContentLength = bytes.Length;
+            // Get the request stream.
+
+            Stream dataStream = rqst.GetRequestStream();
+            // Write the data to the request stream.
+            dataStream.Write(bytes, 0, bytes.Length);
+            // Close the Stream object.
+            dataStream.Close();
+            // Get the response.
+            WebResponse response = rqst.GetResponse();
+            // Display the status.
+            string status = ((HttpWebResponse)response).StatusDescription;
+            // Get the stream containing content returned by the server.
+            dataStream = response.GetResponseStream();
+            // Open the stream using a StreamReader for easy access.
+            StreamReader reader = new StreamReader(dataStream);
+            // Read the content.
+            string responseFromServer = reader.ReadToEnd();
+            // Clean up the streams.
+            reader.Close();
+            dataStream.Close();
+            response.Close();
+
+            return responseFromServer;
         }
     }
 }

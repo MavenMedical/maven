@@ -4,6 +4,7 @@ using System.Threading;
 using System.Windows.Forms;
 using System.Data;
 using System.Text.RegularExpressions;
+using System.Text;
 using System.Net;
 using System.IO;
 using System.Diagnostics;
@@ -139,11 +140,11 @@ namespace MavenAsDemo
             ContextMenu ctx = new ContextMenu();
 
             MenuItem modeitm = new MenuItem("Alert Mode");
-            modeitm.MenuItems.Add("Inbox", AlertModeClick);
-            modeitm.MenuItems.Add("Mobile", AlertModeClick);
+            //modeitm.MenuItems.Add("Mobile", AlertModeClick);
             modeitm.MenuItems.Add("Desktop Soft Alert", AlertModeClick);
             modeitm.MenuItems.Add("Desktop Hard Alert", AlertModeClick);
-            modeitm.MenuItems.Add("Combo", AlertModeClick);
+            modeitm.MenuItems.Add("Inbox", AlertModeClick);
+            //modeitm.MenuItems.Add("Combo", AlertModeClick);
             ctx.MenuItems.Add(modeitm);
 
             MenuItem speeditm = new MenuItem("Soft Alert Fade Slowness");
@@ -199,7 +200,7 @@ namespace MavenAsDemo
                     string rqstUrl = "https://" + cursettings.pollingServer + "/broadcaster/poll?userAuth=" + WindowsDPAPI.Decrypt(EncryptedKey)
                         + "&osUser=" + cursettings.osUser + "&machine=" + cursettings.machine + "&osVersion=" + cursettings.os
                         +"&user="+Authenticator.getMavenUserId()+"&customer_id="+cursettings.custId
-                        +"&provider="+Authenticator.getProviderId()+"&roles[]=notification";
+                        + "&provider=" + Authenticator.getProviderId() + "&roles[]=notification";
                     WebRequest rqst = WebRequest.Create(rqstUrl);
                     rqst.Timeout = 600000;
                     HttpWebResponse rsp = (HttpWebResponse)rqst.GetResponse();
