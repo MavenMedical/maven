@@ -34,7 +34,10 @@ class NotificationService():
     def get_poll(self, _header, _body, context, _matches, _key):
         ret = []  # build the list of pending messages here.
         key = context[CONTEXT.PROVIDER], context[CONTEXT.CUSTOMERID]
-        self.active_providers.get(key)['notification_state'] = NOTIFICATION_STATE.DESKTOP
+
+        provider = self.active_providers.get(key, None)
+        if provider:
+            provider['notification_state'] = NOTIFICATION_STATE.DESKTOP
         self.update_users_post()
         queue = self.message_queues[key]
         if not queue.qsize():  # if there are no messages ready to display, wait for one
