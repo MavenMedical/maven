@@ -72,6 +72,7 @@ define([
 	urlRoot: '/login',
         defaults: {
             page: null,
+	    user: null,
             userAuth: '',
             patients: '',
             patientAuth: '',
@@ -97,11 +98,17 @@ define([
 	    }
 	    return ret;
 	},
-        setUser: function (user, pw, customer, newpw) {
+        setUser: function (user, pw, oauth, customer, newpw) {
 	    if (this.user != user || !this.userAuth) {
 		this.set('user', user);
 		var that=this;
-		var data = {user:user, password:pw, customer_id:customer};
+		
+		var data;
+		if (pw) {
+		    data = {user:user, password:pw, customer_id:customer};
+		    } else {
+			data = {user:user, oauth:oauth, customer_id:customer};
+		    }
 		if(newpw)
 		    data.newpassword=newpw;
 		this.fetch({success: loginCallback,

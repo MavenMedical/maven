@@ -30,7 +30,7 @@ define([
 		var that=this;
 		require(["text!../templates/"+contextModel.get('loginTemplate')], function(loginTemplate) {
 		    that.template = _.template(loginTemplate);
-		    that.$el.html(that.template({user:that.user}));
+		    that.$el.html(that.template(contextModel.attributes));
 		    that.newPasswordChange();
 		});
 	    } else {
@@ -51,20 +51,21 @@ define([
 	    }
 	},
 	fastlogin: function() {
-	    contextModel.setUser('maven','maven', '1', Backbone.history.fragment);
+	    contextModel.setUser('maven','maven', null, '1', Backbone.history.fragment);
 	},
 	dologin: function(event) {
 	    var user = $("#login-user").val();
 	    var customer = $("#login-customer").val();
 	    this.user = user;
 	    var password = $("#login-password").val();
-	    if( user && password ) {
+	    var oauth = $("#login-oauth").val();
+	    if( user && (password || oauth)) {
 		var jqnewpassword = $("#login-new-password");
 		if(!jqnewpassword.is(":visible")) {
-		    contextModel.setUser(user, password, customer, null);
+		    contextModel.setUser(user, password, oauth, customer, null);
 		} else {
 		    if(this.newPasswordChange()) {
-			contextModel.setUser(user, password, customer, jqnewpassword.val());
+			contextModel.setUser(user, password, oauth, customer, jqnewpassword.val());
 		    } else {
 
 		    } 

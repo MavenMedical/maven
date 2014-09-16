@@ -165,7 +165,7 @@ class AuthenticationWebservices():
                 or not re.search("[0-9]", newpassword)
                 or not re.search("[a-z]", newpassword)
                 or not re.search("[A-Z]", newpassword)):
-            raise LoginError('expiredPassword')
+            raise LoginError('badNewPassword')
         salt = bcrypt.gensalt(4)
         ret = bcrypt.hashpw(bytes(newpassword, 'utf-8'), salt)
         try:
@@ -173,4 +173,4 @@ class AuthenticationWebservices():
         except:
             import traceback
             traceback.print_exc()
-            raise LoginError('expiredPassword')
+            raise LoginError('badNewPassword')
