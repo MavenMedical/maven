@@ -80,6 +80,7 @@ Results = Enum('Results',
     license
     license_exp
     config
+    lastlogin
 """)
 
 
@@ -385,9 +386,12 @@ class WebPersistence():
         Results.officialname: "users.official_name",
         Results.displayname: "users.display_name",
         Results.state: "users.state",
-        Results.ehrstate: "users.ehr_state"
+        Results.ehrstate: "users.ehr_state",
+        Results.lastlogin: "logins2.last_login"
     }
-    _display_user_info = _build_format({})
+    _display_user_info = _build_format({
+        Results.lastlogin: lambda x: x and _prettify_datetime(x),
+    })
 
     @asyncio.coroutine
     def user_info(self, desired, customer, limit=""):
@@ -399,6 +403,12 @@ class WebPersistence():
         cmd.append("SELECT")
         cmd.append(columns)
         cmd.append("FROM users")
+        if Results.lastlogin in desired:
+            cmd.append("LEFT JOIN ( ")
+            cmd.append("SELECT user_name, max(logintime) as last_login")
+            cmd.append("FROM logins")
+            cmd.append("GROUP BY user_name ) logins2")
+            cmd.append("ON users.user_name = logins2.user_name")
         cmd.append("WHERE users.customer_id = %s")
         cmdargs.append(customer)
         cmd.append("ORDER BY user_id")
@@ -640,7 +650,7 @@ class WebPersistence():
         Results.ruleid: "max(alert.cds_rule)",
         Results.likes: "COUNT(case when alert_setting_hist.action = 'like' then 1 else null end)",
         Results.dislikes: "COUNT(case when alert_setting_hist.action = 'dislike' then 1 else null end)"
-        }
+    }
     _display_alerts = _build_format({
         Results.title: lambda x: x or '',
         Results.ruleid: lambda x: x,

@@ -709,6 +709,10 @@ border-right: 1px solid rgb(204, 204, 204);
     }
 }
 
+/***************************************************************
+ * The following customize the Customer Creation widget *
+ ***************************************************************/
+
 .customer-creation {
     float:left;
 }
@@ -726,17 +730,33 @@ border-right: 1px solid rgb(204, 204, 204);
     float:right;
 }
 
-.add-customer-row, .edit-customer-row {
-    width:100%;
-    padding-top: 10px;
-    clear:both;
+.save-settings-row {
+    padding-top: 15px;
+    padding-bottom: 15px;
 }
 
-.add-customer-row > .btn, .edit-customer-row > .btn {
+/***************************************************************
+ * The following customize the Admin Settings widget *
+ ***************************************************************/
+
+.setting-option {
+    width:45%;
+    float:left;
+    padding: 0px 10px;
+}
+
+.option-left {
+    margin-right: 5%;
+}
+
+.option-right {
+    margin-left: 5%;
+}
+
+.setting-option > input, .setting-option > .btn, .setting-option > select{
     float:right;
 }
 
-.edit-customer-row {
-    padding-bottom: 10px;
-    float:left;
+.time-input {
+    width:60px;
 }

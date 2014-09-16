@@ -1,22 +1,22 @@
 <div class = "widget-column col-sm-12" style="clear: both;">
+    <span class="headings title">Add Customer</span>
     <div class="panel-body customer-creation">
-        <span class="headings title">Add Customer</span>
-        <select id="customerType">
-            <option value="allscripts">Allscripts</option>
-        </select>
-        <div class="row">
-            <div class="col-md-6">
-                <div class="setting-row">Customer Name: <input id="customer-name-input" type="text"> </div>
-                <div class="setting-row">Customer Abbreviation: <input id="customer-abbr-input" type="text"> </div>
 
+        <div class="col-md-12">
+            <div class="row">
+                <div class="setting-option option-left">Customer Name: <input id="customer-name-input" type="text"> </div>
+                <div class="setting-option option-right"># of Licenses: <input id="customer-license-input" type="text"> </div>
+                <div class="setting-option option-left">Customer Abbreviation: <input id="customer-abbr-input" type="text"> </div>
+                <div class="setting-option option-right">Customer Type:
+                    <select id="customerType">
+                        <option value="allscripts">Allscripts</option>
+                    </select>
+                </div>
             </div>
-            <div class="col-md-6">
-                <div class="setting-row"># of Licenses: <input id="customer-license-input" type="text"> </div>
+            <div class="save-settings-row row">
+                <span class="setting-option option-left" id="add-customer-message">&nbsp;</span>
+                <div class="setting-option option-right"><button class="btn btn-default add-customer-button">Add Customer</button></div>
             </div>
-        </div>
-        <div class="add-customer-row">
-            <span id="add-customer-message"></span>
-            <button class="btn btn-default add-customer-button">Add Customer</button>
         </div>
     </div>
 </div>
