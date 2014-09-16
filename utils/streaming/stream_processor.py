@@ -715,7 +715,7 @@ class _SocketReplyWriter(_BaseWriter):
         else:
             _BaseWriter.__init__(self, configname)
             self.transport = None
-        # self.last_writer = None
+        self.last_writer = None
         global _global_writers
         _global_writers[self.writer_key] = self
         # ML.DEBUG('reply writer created: ' + str(self.writer_key))
@@ -727,10 +727,10 @@ class _SocketReplyWriter(_BaseWriter):
     def write_object(self, obj):
         ML.DEBUG(('writing object %s: ' % self.writer_key) + str(obj))
         if not self.transport:
-            # if not self.last_writer:
-            raise StreamProcessorException("SocketReplyWriter needs a socket to reply on!")
-            # else:
-            #    self.last_writer.write_object(obj)
+            if not self.last_writer:
+                raise StreamProcessorException("SocketReplyWriter needs a socket to reply on!")
+            else:
+                self.last_writer.write_object(obj)
         else:
             self.transport.write(obj)
 

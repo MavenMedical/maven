@@ -44,6 +44,12 @@ class CLINICAL_SUMMARY(Enum):
     All = 'list'
 
 
+class TASK_TYPE(Enum):
+    REFERRAL = "Referral"
+    REVIEW = "Review"
+    SENDCHART = "Send Chart"
+
+
 class UnauthorizedUser(Exception):
     pass
 
@@ -246,10 +252,18 @@ class allscripts_api(http.http_api):
         return self.postprocess(check_output(ret))
 
     @staticmethod
-    def _append_xml(root: ETree.Element, name: str, value: str=None):
+    def _append_xml_with_data_as_attribute(root: ETree.Element, name: str, value: str=None):
         child = ETree.Element(name)
         if value:
             child.set('value', value)
+        root.append(child)
+        return child
+
+    @staticmethod
+    def _append_xml_with_data_as_text(root: ETree.Element, name: str, value: str=None):
+        child = ETree.Element(name)
+        if value:
+            child.text = value
         root.append(child)
         return child
 
@@ -267,19 +281,19 @@ class allscripts_api(http.http_api):
         :param rulenameexactmatch: are the rulenames exact matches, or prefix matches
         """
         XML = ETree.Element('ProcedureSearchCriteria')
-        self._append_xml(XML, 'PatientID', patient)
-        self._append_xml(XML, 'UserLoginName', username)
-        completionXML = self._append_xml(XML, 'CompletionStatuses')
+        self._append_xml_with_data_as_attribute(XML, 'PatientID', patient)
+        self._append_xml_with_data_as_attribute(XML, 'UserLoginName', username)
+        completionXML = self._append_xml_with_data_as_attribute(XML, 'CompletionStatuses')
         if completionstatuses:
             for cs in completionstatuses:
-                self._append_xml(completionXML, 'CompletionStatus', cs.value)
+                self._append_xml_with_data_as_attribute(completionXML, 'CompletionStatus', cs.value)
         else:
-            self._append_xml(completionXML, 'CompletionStatus', COMPLETION_STATUSES.All.value)
+            self._append_xml_with_data_as_attribute(completionXML, 'CompletionStatus', COMPLETION_STATUSES.All.value)
         if rulenames:
-            rulenameXML = self._append_xml(XML, 'RuleNames',
-                                           'Y' if rulenameexactmatch else 'N')
+            rulenameXML = self._append_xml_with_data_as_attribute(XML, 'RuleNames',
+                                                                  'Y' if rulenameexactmatch else 'N')
             for rn in rulenames:
-                self._append_xml(rulenameXML, 'RuleName', rn)
+                self._append_xml_with_data_as_attribute(rulenameXML, 'RuleName', rn)
         message = self._build_message('GetProcedures',
                                       ETree.tostring(XML, 'unicode'),
                                       user=username)
@@ -445,13 +459,33 @@ class allscripts_api(http.http_api):
             raise AllscriptsError('Error parsing XML ' + e)
 
     @_require_token
-    def SaveTask(self, username: str, patient: str, tasktype: str,
-                 info: str, subject: str, targetuser: str=None):
-        ret = yield from self.post('/json/MagicJson',
-                                   data=self._build_message('SaveTask', tasktype, self.appnamem,
-                                                            "", info, subject,
-                                                            user=username, patient=patient))
-        return self.postprocess(ret)
+    def SaveTask(self, username: str, patient: str,
+                 msg_subject: str=None, note_format: str="", binary_data: bytes=None,
+                 document_id: str="", message_data: str=None, task_type: str=TASK_TYPE.SENDCHART, targetuser: str=None):
+        """
+        Creates a task/message.
+        :param username:
+        :param patient: Allscripts Internal Patient ID. Supply PatientID when you want to attach the messsage to a specific patient.
+        :param document_id: Not used
+        :param msg_subject: Subject of the Message.
+        :param message_data: Data that will populate the body of the message
+        :param note_format: Not used
+        :param binary_data: Define note data if creating a note.
+        :param task_type: The type of message to create. Value must be TASK_TYPE.SENDCHART.value for Maven's uses
+        :param targetuser: Recipient USERNAME of the message.
+        :return:
+        """
+
+        if targetuser and isinstance(task_type, TASK_TYPE) and message_data and msg_subject:
+            ret = yield from self.post('/json/MagicJson',
+                                       data=self._build_message('SaveTask', task_type.value, targetuser,
+                                                                document_id, message_data, msg_subject,
+                                                                note_format, user=username, patient=patient))
+
+            return self.postprocess(check_output(ret))[0]
+
+        else:
+            ML.ERROR('Error saving Allscripts Task due to lack of parameters (Target User=%s, Task Type= %s, Subject=%s, Message=%s' % (targetuser, task_type, msg_subject, message_data))
 
     def build_subject(self, get_patient_result):
 
@@ -641,6 +675,10 @@ if __name__ == '__main__':
         patient = '22'
     if input('GetServerInfo (y/n)? ') == 'y':
         wrapexn(api.GetServerInfo())
+    if input('SaveTask (y/n)? ') == 'y':
+        wrapexn(api.SaveTask(username=Ehr_username, patient=patient,
+                             msg_subject="Test Message Subject", message_data="This is the text of the message",
+                             targetuser="cliffhux"))
     if input('GetDocuments (y/n)? ') == 'y':
         from datetime import date, timedelta
         wrapexn(api.GetDocuments(Ehr_username, patient, date.today() - timedelta(days=1),

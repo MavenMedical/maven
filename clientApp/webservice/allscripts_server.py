@@ -193,7 +193,7 @@ def main(loop):
             CONFIG_API: ehrapi,
             AS.CONFIG_COMPOSITIONBUILDER: clientehrconfig
         },
-        customerid: 2,
+        customerid: 5,
         usersyncservice: {
             US.CONFIG_USERSYNCSERVICE: US.CONFIG_USERSYNCSERVICE,
             US.CONFIG_SYNCDELAY: 60 * 60,
