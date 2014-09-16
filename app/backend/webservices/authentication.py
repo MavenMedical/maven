@@ -121,12 +121,11 @@ class AuthenticationWebservices():
                 raise LoginError('disabledUser')
 
             # at the point, the user has succeeded to login
-            user = str(user_info[WP.Results.userid])
             provider = user_info[WP.Results.provid]
             customer = str(user_info[WP.Results.customerid])
             roles = [self.specific_role] if self.specific_role else user_info[WP.Results.roles]
             roles = list(filter(rolefilter, roles))
-            user_auth = AK.authorization_key([[user], [provider], [customer], sorted(roles)],
+            user_auth = AK.authorization_key([[username], [provider], [customer], sorted(roles)],
                                              AUTH_LENGTH, self.timeout)
 
             desired_layout = {
@@ -138,17 +137,17 @@ class AuthenticationWebservices():
             widgets = yield from self.persistence.layout_info(desired_layout,
                                                               user_info[WP.Results.userid])
 
-            ret = {CONTEXT.USER: user_info[WP.Results.userid],
+            ret = {CONTEXT.USERID: user_info[WP.Results.userid],
                    'display': user_info[WP.Results.displayname],
                    CONTEXT.CUSTOMERID: customer,
                    'official_name': user_info[WP.Results.officialname],
                    CONTEXT.PROVIDER: provider,
-                   CONTEXT.USER: user,
+                   CONTEXT.USER: username,
                    CONTEXT.ROLES: roles,
                    'widgets': widgets, CONTEXT.KEY: user_auth}
 
             if self.oauth and method != 'forward':
-                ak = AK.authorization_key([user, customer, roles], 44, 365 * 24 * 60 * 60)
+                ak = AK.authorization_key([username, customer, roles], 44, 365 * 24 * 60 * 60)
                 ret[CONFIG_OAUTH] = ak
             return HTTP.OK_RESPONSE, json.dumps(ret), None
         except LoginError as err:

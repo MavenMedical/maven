@@ -9,6 +9,7 @@ EMPTY_RETURN = [{'id': 000000, 'term': "No Results Found", 'code': 000000, 'type
 class CONTEXT():
     PASSWORD = 'password'
     USER = 'user'
+    USERID = 'userid'
     PROVIDER = 'provider'
     ROLES = 'roles'
     DATE = 'date'
