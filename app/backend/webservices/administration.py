@@ -35,7 +35,7 @@ class AdministrationWebservices():
     @http_service(['GET'], '/users(?:(\d+)-(\d+)?)?',
                   [CONTEXT.USER, CONTEXT.CUSTOMERID],
                   {CONTEXT.USER: int, CONTEXT.CUSTOMERID: int},
-                  {USER_ROLES.supervisor})
+                  {USER_ROLES.administrator})
     def get_users(self, _header, _body, context, matches, _key):
         customer = context[CONTEXT.CUSTOMERID]
 
@@ -48,7 +48,8 @@ class AdministrationWebservices():
             WP.Results.username: 'user_name',
             WP.Results.officialname: 'official_name',
             WP.Results.displayname: 'display_name',
-            WP.Results.state: 'state'
+            WP.Results.state: 'state',
+            WP.Results.lastlogin: 'last_login'
         }
         results = yield from self.persistence.user_info(desired, customer, limit=limit)
 
@@ -58,7 +59,7 @@ class AdministrationWebservices():
                   [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.STATE, CONTEXT.TARGETUSER],
                   {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int,
                    CONTEXT.STATE: str, CONTEXT.TARGETUSER: int},
-                  {USER_ROLES.supervisor})
+                  {USER_ROLES.administrator})
     def update_user(self, _header, _body, context, _matches, _key):
         userid = context[CONTEXT.TARGETUSER]
         state = context[CONTEXT.STATE]

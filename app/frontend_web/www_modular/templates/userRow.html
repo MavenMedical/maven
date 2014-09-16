@@ -4,12 +4,21 @@
 <td>
         <%= display_name %>
 </td>
+<td>
+    Eurologist
+</td>
+<td>
+    <%= last_login %>
+</td>
 <td class="user-val-column">
     <% if (state == 'active') { %>
         <input type="checkbox" checked="checked" class="user-state">
     <% } else { %>
         <input type="checkbox" class="user-state">
     <% } %>
+</td>
+<td>
+    <button class="btn btn-xs reset-user-password" value="">Reset Password</button>
 </td>
 <td>
     <a class="audit-hover">

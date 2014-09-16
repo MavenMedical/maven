@@ -166,6 +166,7 @@ class USER_ROLES(Enum):
     provider = "provider"
     supervisor = "supervisor"
     notification = "notification"
+    administrator = "administrator"
 
 
 class USER_STATE(Enum):
