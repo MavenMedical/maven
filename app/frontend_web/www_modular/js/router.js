@@ -86,12 +86,20 @@ define([
             "pathway/:id/pathid/:id(/login/:user/:customer/:userAuth)": 'EditPathway',
             "logout": 'logout',
             "settings": 'settings',
+	    "password/:type/:user/:customer/:oauth": 'password',
             //default
             '*action': 'defaultAction'
         },
+	password: function (type, user, customer, oauth) {
+	    if (currentContext.get('userAuth')) {
+		window.location = '#';
+	    } else {
+		currentContext.set({'loginTemplate': type+'.html', 'user':user, 'customer_id':customer, 'oauth':oauth});
+		new Login({el: '#login-modal'});
+	    }
+	},
         showHome: function (user, customer, userAuth) {
             /* remove the current patient list, encounter, etc to revert the view to the doctor's user page */
-            console.log(currentContext);
             currentContext.set({page: 'home', patients: null, encounter: null, patientName: null});
 
             //TODO This is only for Demo purpose
