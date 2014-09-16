@@ -70,7 +70,10 @@ class AuthenticationWebservices():
             WP.Results.roles
         ]}
         attempted = None
-        rolefilter = lambda r: True
+        if info.get(CONTEXT.ROLES, None):
+            rolefilter = lambda r: r in info[CONTEXT.ROLES]
+        else:
+            rolefilter = lambda r: True
         auth = ''
         username = info[CONTEXT.USER]
         customer = info[CONTEXT.CUSTOMERID]
@@ -97,7 +100,6 @@ class AuthenticationWebservices():
             else:
                 if info.get(CONTEXT.ROLES, None):
                     attempted = [info[CONTEXT.USER], info[CONTEXT.CUSTOMERID], info[CONTEXT.ROLES]]
-                    rolefilter = lambda r: r == info[CONTEXT.ROLES]
                 else:
                     attempted = [info[CONTEXT.USER], info[CONTEXT.CUSTOMERID]]
                 auth = info.get('userAuth', None) or info.get(CONFIG_OAUTH)
