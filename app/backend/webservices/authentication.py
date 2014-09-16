@@ -93,9 +93,6 @@ class AuthenticationWebservices():
                         bcrypt.hashpw(bytes(info[CONTEXT.PASSWORD], 'utf-8'),
                                       passhash[:29]) != passhash):
                     raise LoginError('badLogin')
-                if user_info[WP.Results.passexpired] or 'newpassword' in info:
-                    yield from self.hash_new_password(user_info[WP.Results.userid],
-                                                      info.get('newpassword', ''))
                 method = 'local'
             else:
                 if info.get(CONTEXT.ROLES, None):
@@ -115,6 +112,10 @@ class AuthenticationWebservices():
                 # was this auth key used recently
                 if auth in user_info[WP.Results.recentkeys]:
                     raise LoginError('reusedLogin')
+
+            if user_info[WP.Results.passexpired] or 'newpassword' in info:
+                yield from self.hash_new_password(user_info[WP.Results.userid],
+                                                  info.get('newpassword', ''))
 
             # make sure this user exists and is active
             if not user_info[WP.Results.userstate] == 'active':
