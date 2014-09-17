@@ -45,11 +45,11 @@ class Types(Enum):
     Unused1 = 3
 
 
-class scheduler(SP.StreamProcessor):
+class scheduler():
 
-    def __init__(self, configname):
+    def __init__(self, configname, remote_procedures=None):
         self.config = MC.MavenConfig[configname]
-        SP.StreamProcessor.__init__(self, self.config.get(CONFIG_STREAMPROCESSOR))
+        self.remote_procedures = remote_procedures or Exception("No Remote Procedures Specified for ClientApp")
         self.allscripts_api = AHC.allscripts_api(self.config.get(CONFIG_API))
         self.processed = set()
         self.lastday = None
@@ -125,7 +125,8 @@ class scheduler(SP.StreamProcessor):
                             CLIENT_SERVER_LOG.debug("About to send to Composition Builder...")
                             composition = yield from self.comp_builder.build_composition("CLIFFHUX", patient, docid)
                             CLIENT_SERVER_LOG.debug(("Built composition, about to send to Backend Data Router. Composition ID = %s" % composition.id))
-                            self.write_object(pickle.dumps([composition, "CLIFFHUX"]), self.wk)
+                            # self.write_object(pickle.dumps([composition, "CLIFFHUX"]), self.wk)
+                            self.remote_procedures.evaluate_composition()
                             break
                 # processed.update({doc['DocumentID'] for doc in documents})
         except AHC.AllscriptsError as e:

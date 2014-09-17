@@ -15,12 +15,16 @@ __author__ = 'Yuki Uchino'
 # LAST MODIFIED FOR JIRA ISSUE: MAV-1
 # *************************************************************************
 import argparse
-import json
 import pickle
 from utils.streaming import stream_processor as SP
+import utils.streaming.rpc_processor as RP
+from utils.enums import CONFIG_PARAMS
+from utils.database.database import AsyncConnectionPool
+import utils.database.web_persistence as WP
+import app.backend.remote_procedures.client_app as CA_RPC
+import app.backend.remote_procedures.client_app_manager as CAM_RPC
 import asyncio
 import maven_config as MC
-import utils.api.pyfhir.pyfhir_generated as FHIR_API
 import utils.crypto.authorization_key as AK
 import maven_logging as ML
 
@@ -66,8 +70,24 @@ def main(loop):
 
     outgoingtohospitalsmessagehandler = 'responder socket'
     incomingtomavenmessagehandler = 'receiver socket'
+    rpc_server_stream_processor = 'Server-side RPC Stream Processor'
 
     MavenConfig = {
+        rpc_server_stream_processor: {
+            SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOSOCKETREPLY,
+            SP.CONFIG_WRITERNAME: rpc_server_stream_processor + '.Writer2',
+            SP.CONFIG_READERTYPE: SP.CONFIGVALUE_ASYNCIOSERVERSOCKET,
+            SP.CONFIG_READERNAME: rpc_server_stream_processor + '.Reader2',
+            SP.CONFIG_WRITERDYNAMICKEY: 2,
+            SP.CONFIG_DEFAULTWRITEKEY: 2,
+        },
+        rpc_server_stream_processor + '.Writer2': {
+            SP.CONFIG_WRITERKEY: 2,
+        },
+        rpc_server_stream_processor + '.Reader2': {
+            SP.CONFIG_HOST: '127.0.0.1',
+            SP.CONFIG_PORT: '54728',
+        },
         incomingtomavenmessagehandler:
         {
             SP.CONFIG_READERTYPE: SP.CONFIGVALUE_ASYNCIOSERVERSOCKET,
@@ -120,9 +140,27 @@ def main(loop):
         {
             SP.CONFIG_WRITERKEY: 1
         },
+        CONFIG_PARAMS.PERSISTENCE_SVC.value: {WP.CONFIG_DATABASE: CONFIG_PARAMS.DATABASE_SVC.value, },
+        CONFIG_PARAMS.DATABASE_SVC.value:
+        {
+            AsyncConnectionPool.CONFIG_CONNECTION_STRING: MC.dbconnection,
+            AsyncConnectionPool.CONFIG_MIN_CONNECTIONS: 4,
+            AsyncConnectionPool.CONFIG_MAX_CONNECTIONS: 8
+        },
 
     }
     MC.MavenConfig = MavenConfig
+
+    client_app_rpc_service = RP.rpc(rpc_server_stream_processor)
+    client_app_rpc_service.schedule(loop)
+
+    client_app_RPCs = CA_RPC.ClientAppRemoteProcedureCalls()
+    client_app_RPCs.persistence.schedule(loop)
+    client_app_rpc_service.register(client_app_RPCs)
+
+    client_app_manager_RPCs = CAM_RPC.ClientAppManagerRemoteProcedureCalls()
+    client_app_manager_RPCs.persistence.schedule(loop)
+    client_app_rpc_service.register(client_app_manager_RPCs)
 
     sp_consumer = IncomingMessageHandler(incomingtomavenmessagehandler)
     sp_producer = OutgoingMessageHandler(outgoingtohospitalsmessagehandler)

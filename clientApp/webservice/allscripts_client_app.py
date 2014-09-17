@@ -22,14 +22,19 @@ import pickle
 import maven_config as MC
 import maven_logging as ML
 import utils.streaming.stream_processor as SP
+import utils.streaming.rpc_processor as RP
 import utils.streaming.http_responder as HR
+from utils.database.database import AsyncConnectionPool
+import utils.database.web_persistence as WP
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
 import clientApp.notification_generator.notification_generator as NG
 import clientApp.webservice.notification_service as NS
 import clientApp.webservice.user_sync_service as US
 import clientApp.allscripts.allscripts_scheduler as AS
 import utils.web_client.allscripts_http_client as AHC
-from utils.enums import NOTIFICATION_STATE, USER_STATE, CONFIG_PARAMS
+from utils.enums import USER_ROLES, USER_STATE, CONFIG_PARAMS
+import app.backend.remote_procedures.client_app as CA
+import app.backend.webservices.authentication as AU
 
 
 CONFIG_API = 'api'
@@ -101,15 +106,66 @@ class IncomingFromMavenMessageHandler(HR.HTTPWriter):
             return False
 
 
-def main(loop):
+class AllscriptsClientApp():
+
+    def __init__(self, customer_id, config, loop):
+        MC.MavenConfig[customer_id] = config
+        self.config = config
+        # Set-up the RPC Calling object so it can be shared with the services
+        client_app_rpc = RP.rpc(CONFIG_PARAMS.RPC_CLIENT.value, customer_id=customer_id)
+        client_app_rpc.schedule(loop)
+        remote_procedure_calls = client_app_rpc.create_client(CA.ClientAppRemoteProcedureCalls)
+
+        # Users and User Sync Service
+        self.active_providers = {}
+        self.user_sync_service = US.UserSyncService(CONFIG_PARAMS.EHR_USER_MGMT_SVC.value,
+                                                    remote_procedures=remote_procedure_calls,
+                                                    loop=loop)
+
+        # Notification Formatting Service
+        self.notification_generator = NG.NotificationGenerator(CONFIG_PARAMS.CUSTOMER_SETUP.value)
+
+        # Notification Service
+        self.notification_service, self.notification_fn, self.notification_users_fn = NS.standalone_notification_server(CONFIG_PARAMS.NOTIFY_SVC.value, user_sync_svc=self.user_sync_service)
+        self.notification_service.schedule(loop)
+
+        # EHR API Polling Service
+        self.allscripts_scheduler = AS.scheduler(CONFIG_PARAMS.EHR_API_POLLING_SVC.value)
+
+        self.user_sync_service.subscribe(self.notification_users_fn)
+        self.user_sync_service.subscribe(self.allscripts_scheduler.update_active_providers)
+
+    def run_client_app(self):
+
+        try:
+            asyncio.Task(self.user_sync_service.synchronize_users())
+            asyncio.Task(self.allscripts_scheduler.get_updated_schedule())
+
+        except KeyboardInterrupt:
+            loop.close()
+
+
+if __name__ == '__main__':
+
     outgoingtomavenmessagehandler = 'client consumer socket'
     incomingfrommavenmessagehandler = 'client producer socket'
 
-    from utils.database.database import AsyncConnectionPool
-    import utils.database.web_persistence as WP
-    import app.backend.webservices.authentication as AU
-    from utils.enums import USER_ROLES
     MavenConfig = {
+        CONFIG_PARAMS.RPC_CLIENT.value: {
+            SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOSOCKETREPLY,
+            SP.CONFIG_WRITERNAME: CONFIG_PARAMS.RPC_CLIENT.value + '.Writer1',
+            SP.CONFIG_READERTYPE: SP.CONFIGVALUE_ASYNCIOSOCKETQUERY,
+            SP.CONFIG_READERNAME: CONFIG_PARAMS.RPC_CLIENT.value + '.Reader1',
+            SP.CONFIG_WRITERDYNAMICKEY: 1,
+            SP.CONFIG_DEFAULTWRITEKEY: 1,
+        },
+        CONFIG_PARAMS.RPC_CLIENT.value + ".Writer1": {
+            SP.CONFIG_WRITERKEY: 1,
+        },
+        CONFIG_PARAMS.RPC_CLIENT.value + ".Reader1": {
+            SP.CONFIG_HOST: '127.0.0.1',
+            SP.CONFIG_PORT: '54728',
+        },
         outgoingtomavenmessagehandler:
         {
             SP.CONFIG_READERTYPE: SP.CONFIGVALUE_EXPLICIT,
@@ -183,47 +239,18 @@ def main(loop):
             CONFIG_API: CONFIG_PARAMS.EHR_API_SVCS.value,
             AS.CONFIG_COMPOSITIONBUILDER: CONFIG_PARAMS.CUSTOMER_SETUP.value
         },
-        CONFIG_PARAMS.CUSTOMER_ID.value: 2,
-
         CONFIG_PARAMS.EHR_USER_MGMT_SVC.value: {
+
             US.CONFIG_USERSYNCSERVICE: US.CONFIG_USERSYNCSERVICE,
             US.CONFIG_SYNCDELAY: 60 * 60,
             US.CONFIG_API: CONFIG_PARAMS.EHR_API_SVCS.value
         },
-        US.CONFIG_USERSYNCSERVICE: {
-            US.http.CONFIG_BASEURL: 'http://localhost/services',
-            US.http.CONFIG_OTHERHEADERS: {'Content-Type': 'application/json'},
-        }
     }
-
     MC.MavenConfig.update(MavenConfig)
 
-    # Instantiate the (allscripts_server.py --> data_router.py) writer
-    # and services and add to event loop
+    print(json.dumps(MC.MavenConfig, indent=4))
 
-    user_sync_service = US.UserSyncService(CONFIG_PARAMS.EHR_USER_MGMT_SVC.value, loop=loop)
-    notification_generator = NG.NotificationGenerator(CONFIG_PARAMS.CUSTOMER_SETUP.value)
-    notification_service, notification_fn, notification_users_fn = NS.standalone_notification_server(CONFIG_PARAMS.NOTIFY_SVC.value, user_sync_svc=user_sync_service)
-    user_sync_service.subscribe(notification_users_fn)
-    sp_producer = IncomingFromMavenMessageHandler(incomingfrommavenmessagehandler,
-                                                  notification_generator,
-                                                  notification_fn)
-    user_sync_service.subscribe(sp_producer.update_users)
-
-    # Instantiate the allscripts_scheduler.py polling mechanism
-    allscripts_scheduler = AS.scheduler(CONFIG_PARAMS.EHR_API_POLLING_SVC.value)
-    user_sync_service.subscribe(allscripts_scheduler.update_active_providers)
-    sp_producer.schedule(loop)
-    notification_service.schedule(loop)
-
-    try:
-        asyncio.Task(user_sync_service.synchronize_users())
-        loop.run_until_complete(allscripts_scheduler.get_updated_schedule())
-        loop.run_forever()
-    except KeyboardInterrupt:
-        sp_producer.close()
-        loop.close()
-
-if __name__ == '__main__':
     loop = asyncio.get_event_loop()
-    main(loop)
+    client_app = AllscriptsClientApp(MC.MavenConfig, loop)
+    client_app.run_client_app()
+

@@ -16,7 +16,8 @@ import uuid
 import functools
 import asyncio
 import utils.streaming.stream_processor as SP
-from maven_config import MavenConfig
+import maven_config as MC
+
 
 """
 CONFIGVALUE_RPCPARSER = 'rpc parser'
@@ -100,11 +101,18 @@ class rpc(SP.StreamProcessor):
         instance on the remote machine.
     """
 
-    def __init__(self, configname):
-        MavenConfig[configname].update({
-            SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_UNPICKLESTREAMPARSER,
-        })
-        SP.StreamProcessor.__init__(self, configname)
+    def __init__(self, configname, customer_id=None):
+
+        if customer_id:
+            MC.MavenConfig[customer_id][configname].update({
+                SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_UNPICKLESTREAMPARSER,
+            })
+            SP.StreamProcessor.__init__(self, configname, customer_id=customer_id)
+        else:
+            MC.MavenConfig[configname].update({
+                SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_UNPICKLESTREAMPARSER,
+            })
+            SP.StreamProcessor.__init__(self, configname)
         self.registered = {}
         self.outstanding = {}
 

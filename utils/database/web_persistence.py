@@ -4,6 +4,7 @@ from collections import defaultdict
 from decimal import Decimal
 from datetime import date, datetime
 import utils.enums
+from utils.enums import CONFIG_PARAMS
 
 from utils.database.database import AsyncConnectionPool
 from utils.database.database import MappingUtilites as DBMapUtils
