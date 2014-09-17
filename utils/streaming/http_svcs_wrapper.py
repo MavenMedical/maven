@@ -46,6 +46,7 @@ class CONTEXT():
     CONFIG = 'config'
     POLLING = 'polling'
     TIMEOUT = 'timeout'
+    ITUSER = 'ituser'
 
 
 def http_service(methods, url, required, available, roles):

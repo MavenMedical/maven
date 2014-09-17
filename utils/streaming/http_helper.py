@@ -38,7 +38,7 @@ class HTTPHelper:
             if USER_ROLES.maventask.value in qs['roles']:
                 pass
             else:
-                AK.check_authorization([sorted(qs[x]) for x in self.contexts_user],
+                AK.check_authorization([sorted(qs.get(x, '')) for x in self.contexts_user],
                                        qs[self.context_key][0], self.auth_length)
         except AK.UnauthorizedException as ue:
             raise HTTP.UnauthorizedRequest(str(ue))

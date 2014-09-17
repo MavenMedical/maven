@@ -93,16 +93,13 @@ class AuthenticationWebservices():
                         bcrypt.hashpw(bytes(info[CONTEXT.PASSWORD], 'utf-8'),
                                       passhash[:29]) != passhash):
                     raise LoginError('badLogin')
-                if user_info[WP.Results.passexpired] or 'newpassword' in info:
-                    yield from self.hash_new_password(user_info[WP.Results.userid],
-                                                      info.get('newpassword', ''))
                 method = 'local'
             else:
                 if info.get(CONTEXT.ROLES, None):
                     attempted = [info[CONTEXT.USER], info[CONTEXT.CUSTOMERID], info[CONTEXT.ROLES]]
                 else:
                     attempted = [info[CONTEXT.USER], info[CONTEXT.CUSTOMERID]]
-                auth = info.get('userAuth', None) or info.get(CONFIG_OAUTH)
+                auth = info.get('userAuth', None) or info.get(CONFIG_OAUTH, None)
                 try:  # this means that the password was a pre-authenticated link
                     AK.check_authorization(attempted, auth, AUTH_LENGTH)
                 except AK.UnauthorizedException:
@@ -115,6 +112,10 @@ class AuthenticationWebservices():
                 # was this auth key used recently
                 if auth in user_info[WP.Results.recentkeys]:
                     raise LoginError('reusedLogin')
+
+            if user_info[WP.Results.passexpired] or 'newpassword' in info:
+                yield from self.hash_new_password(user_info[WP.Results.userid],
+                                                  info.get('newpassword', ''))
 
             # make sure this user exists and is active
             if not user_info[WP.Results.userstate] == 'active':
@@ -147,7 +148,8 @@ class AuthenticationWebservices():
                    'widgets': widgets, CONTEXT.KEY: user_auth}
 
             if self.oauth and method != 'forward':
-                ak = AK.authorization_key([username, customer, roles], 44, 365 * 24 * 60 * 60)
+                ak = AK.authorization_key([username, customer, roles], AUTH_LENGTH,
+                                          365 * 24 * 60 * 60)
                 ret[CONFIG_OAUTH] = ak
             return HTTP.OK_RESPONSE, json.dumps(ret), None
         except LoginError as err:
@@ -165,12 +167,10 @@ class AuthenticationWebservices():
                 or not re.search("[0-9]", newpassword)
                 or not re.search("[a-z]", newpassword)
                 or not re.search("[A-Z]", newpassword)):
-            raise LoginError('expiredPassword')
+            raise LoginError('badNewPassword')
         salt = bcrypt.gensalt(4)
         ret = bcrypt.hashpw(bytes(newpassword, 'utf-8'), salt)
         try:
             yield from self.persistence.update_password(user, ret)
         except:
-            import traceback
-            traceback.print_exc()
-            raise LoginError('expiredPassword')
+            raise LoginError('badNewPassword')

@@ -18,7 +18,7 @@ __author__ = 'Carlos Brenneisen'
 
 from utils.enums import USER_ROLES
 import json
-import asyncio
+import utils.crypto.authorization_key as AK
 import utils.database.web_persistence as WP
 from utils.streaming.http_svcs_wrapper import http_service, CONTEXT, CONFIG_PERSISTENCE
 import utils.streaming.http_responder as HTTP
@@ -40,6 +40,7 @@ class SupportWebservices():
                   {CONTEXT.USERID: int},
                   {USER_ROLES.mavensupport})
     def get_customers(self, _header, _body, context, matches, _key):
+
         limit = self.helper.limit_clause(matches)
 
         desired = {
@@ -71,21 +72,36 @@ class SupportWebservices():
             return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
 
     @http_service(['GET'], '/add_customer',
-                  [CONTEXT.USERID, CONTEXT.NAME, CONTEXT.CONFIG,
-                   CONTEXT.ABBREVIATION, CONTEXT.LICENSE],
-                  {CONTEXT.USERID: int, CONTEXT.LICENSE: int,
-                   CONTEXT.NAME: str, CONTEXT.ABBREVIATION: str,
-                   CONTEXT.CONFIG: str},
+                  [CONTEXT.USER, CONTEXT.NAME, CONTEXT.ITUSER,
+                   CONTEXT.ABBREVIATION, CONTEXT.LICENSE, CONTEXT.CONFIG],
+                  {CONTEXT.USER: str, CONTEXT.LICENSE: int, CONTEXT.ITUSER: str,
+                   CONTEXT.NAME: str, CONTEXT.ABBREVIATION: str, CONTEXT.CONFIG: str},
                   {USER_ROLES.mavensupport})
     def add_customer(self, _header, _body, context, _matches, _key):
         name = context[CONTEXT.NAME]
         abbr = context[CONTEXT.ABBREVIATION]
         license = context[CONTEXT.LICENSE]
+        ituser = context[CONTEXT.ITUSER]
         license_exp = datetime.now() + relativedelta(years=1)
         config = context[CONTEXT.CONFIG]
 
         result = yield from self.persistence.add_customer(name, abbr, license, license_exp, config)
+        customer = result[0]
         if result:
-            return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
+            new_provider_dict = {
+                "customer_id": customer,
+                "prov_id": '',
+                "user_name": ituser,
+                "official_name": '',
+                "display_name": ituser,
+                "state": "active",
+                "ehr_state": "active",
+                "roles": ['administrator'],
+                "layouts": [4],
+                }
+            yield from self.persistence.EHRsync_create_user_provider(new_provider_dict)
+            ak = AK.authorization_key([ituser, str(customer)], 44, 365 * 24 * 60 * 60)
+            loginstr = '%s#password/newPassword/%s/%s/%s' % (MC.http_addr, ituser, customer, ak)
+            return HTTP.OK_RESPONSE, json.dumps(loginstr), None
         else:
-            return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
+            return HTTP.BAD_ESPONSE, json.dumps(''), None
