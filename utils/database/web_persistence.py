@@ -216,7 +216,7 @@ class WebPersistence():
     def execute(self, cmd, cmdargs, display, desired):
         cur = yield from self.db.execute_single(' '.join(cmd) + ';', cmdargs)
         results = []
-        if cmd[0] in ['SELECT']:
+        if desired:
             for row in cur:
                 # results.append({print((type(v),v, k, display[k], display[k](v)))
                 #                or desired[k]: display[k](v) for k,v in zip(desired, row)})
@@ -244,11 +244,14 @@ class WebPersistence():
 
     @asyncio.coroutine
     def add_customer(self, name, abbr, license, license_exp):
-        yield from self.execute(["select * from customer;" +
-                                 "INSERT INTO customer (customer_id, name, abbr, license_type, license_exp) " +
-                                 "VALUES(((SELECT MAX(customer_id) FROM customer) + 1), " +
-                                 "%s,%s,%s,%s)"],
-                                [name, abbr, license, license_exp], {}, {})
+        cmd = ['INSERT INTO customer (customer_id, ']
+        cmdargs = []
+        cmd.append('name, abbr, license_type, license_exp')
+        cmdargs.extend([name, abbr, license, license_exp])
+        cmd.append(') VALUES(((SELECT MAX(customer_id) FROM customer) + 1),%s,%s,%s,%s)')
+        cmd.append('returning customer_id')
+        ret = yield from self.execute(cmd, cmdargs, _build_format(), {0: 'customer_id'})
+        return [row['customer_id'] for row in ret]
 
     @asyncio.coroutine
     def update_alert_setting(self, user, customer, alertid, ruleid, category, actioncomment):
@@ -286,7 +289,9 @@ class WebPersistence():
                       "official_name",         # 3
                       "display_name",
                       "state",
-                      "ehr_state"]
+                      "ehr_state",
+                      "roles",
+                      "layouts"]
         columns = DBMapUtils().select_rows_from_map(column_map)
         cmdargs = [new_provider_dict["customer_id"],
                    new_provider_dict["prov_id"],
@@ -294,11 +299,16 @@ class WebPersistence():
                    new_provider_dict["official_name"],
                    new_provider_dict["display_name"],
                    new_provider_dict["state"],
-                   new_provider_dict["ehr_state"]]
+                   new_provider_dict["ehr_state"],
+                   new_provider_dict.get('roles', []),
+                   new_provider_dict.get('layouts', [])]
         cmd = []
         cmd.append("INSERT INTO users (" + columns + ")")
-        cmd.append("VALUES (%s, %s, %s, %s, %s, %s, %s)")
+        cmd.append("VALUES (%s, %s, %s, %s, %s, %s, %s, %s::user_role[], %s)")
         yield from self.execute(cmd, cmdargs, {}, {})
+
+        if not new_provider_dict.get('prov_id', None):
+            return
 
         column_map = ["prov_id",          # 0
                       "customer_id",

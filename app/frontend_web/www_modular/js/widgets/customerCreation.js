@@ -21,6 +21,7 @@ define([
                 var name = $("#customer-name-input").val();
                 var abbr = $("#customer-abbr-input").val();
                 var license = $("#customer-license-input").val();
+                var ituser = $("#customer-ituser-input").val();
 
                 var reg_num = new RegExp('^[0]*[1-9]+[0]*$');
                 if (!reg_num.test(license))
@@ -32,12 +33,15 @@ define([
                     $.ajax({
                         url: "/add_customer",
                         data: $.param(contextModel.toParams()) + "&name=" + name +
-                            "&abbr=" + abbr + "&license=" + license,
-                        success: function () {
+                            "&abbr=" + abbr + "&license=" + license + "&ituser=" +ituser,
+                        success: function (data, status, jqxhr) {
+			    console.log(data);
                             $("#add-customer-message").html("Customer Added!");
                             $("#customer-name-input").val("");
                             $("#customer-abbr-input").val("");
                             $("#customer-license-input").val("");
+                            $("#customer-ituser-input").val("");
+			    alert(data);
                         }
                     });
                 }

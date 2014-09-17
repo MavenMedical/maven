@@ -43,6 +43,7 @@ class CONTEXT():
     TARGETPROVIDER = 'target_provider'
     TARGETCUSTOMER = 'target_customer'
     STATE = 'state'
+    ITUSER = 'ituser'
 
 
 def http_service(methods, url, required, available, roles):
