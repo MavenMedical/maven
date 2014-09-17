@@ -99,7 +99,7 @@ class AuthenticationWebservices():
                     attempted = [info[CONTEXT.USER], info[CONTEXT.CUSTOMERID], info[CONTEXT.ROLES]]
                 else:
                     attempted = [info[CONTEXT.USER], info[CONTEXT.CUSTOMERID]]
-                auth = info.get('userAuth', None) or info.get(CONFIG_OAUTH)
+                auth = info.get('userAuth', None) or info.get(CONFIG_OAUTH, None)
                 try:  # this means that the password was a pre-authenticated link
                     AK.check_authorization(attempted, auth, AUTH_LENGTH)
                 except AK.UnauthorizedException:
@@ -148,7 +148,8 @@ class AuthenticationWebservices():
                    'widgets': widgets, CONTEXT.KEY: user_auth}
 
             if self.oauth and method != 'forward':
-                ak = AK.authorization_key([username, customer, roles], 44, 365 * 24 * 60 * 60)
+                ak = AK.authorization_key([username, customer, roles], AUTH_LENGTH,
+                                          365 * 24 * 60 * 60)
                 ret[CONFIG_OAUTH] = ak
             return HTTP.OK_RESPONSE, json.dumps(ret), None
         except LoginError as err:
@@ -172,6 +173,4 @@ class AuthenticationWebservices():
         try:
             yield from self.persistence.update_password(user, ret)
         except:
-            import traceback
-            traceback.print_exc()
             raise LoginError('badNewPassword')

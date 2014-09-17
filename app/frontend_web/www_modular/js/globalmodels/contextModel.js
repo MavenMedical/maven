@@ -94,7 +94,7 @@ define([
         ret.id = ret.pathid
 	    //console.log(ret);
 	    for(var x in ret) {
-		if(ret[x] === null || ret[x] === '') {delete ret[x];}
+		if(ret[x] === null || (x != 'provider' && ret[x] === '')) {delete ret[x];}
 	    }
 	    return ret;
 	},
