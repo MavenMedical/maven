@@ -36,11 +36,10 @@ class SupportWebservices():
         self.persistence = WP.WebPersistence(config[CONFIG_PERSISTENCE])
 
     @http_service(['GET'], '/customers(?:(\d+)-(\d+)?)?',
-                  [CONTEXT.USER],
-                  {CONTEXT.USER: int},
+                  [CONTEXT.USERID],
+                  {CONTEXT.USERID: int},
                   {USER_ROLES.mavensupport})
     def get_customers(self, _header, _body, context, matches, _key):
-
         limit = self.helper.limit_clause(matches)
 
         desired = {
@@ -49,9 +48,10 @@ class SupportWebservices():
             WP.Results.abbr: 'abbr',
             WP.Results.license: 'license_type',
             WP.Results.license_exp: 'license_exp',
-            WP.Results.config: 'config'
+            WP.Results.config: 'config',
+            WP.Results.settings: 'settings'
         }
-        results = yield from self.persistence.customer_info(desired, limit=limit)
+        results = yield from self.persistence.customer_info(desired, customer=None, limit=limit)
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
@@ -71,18 +71,20 @@ class SupportWebservices():
             return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
 
     @http_service(['GET'], '/add_customer',
-                  [CONTEXT.USER, CONTEXT.NAME,
+                  [CONTEXT.USERID, CONTEXT.NAME, CONTEXT.CONFIG,
                    CONTEXT.ABBREVIATION, CONTEXT.LICENSE],
-                  {CONTEXT.USER: str, CONTEXT.LICENSE: int,
-                   CONTEXT.NAME: str, CONTEXT.ABBREVIATION: str},
+                  {CONTEXT.USERID: int, CONTEXT.LICENSE: int,
+                   CONTEXT.NAME: str, CONTEXT.ABBREVIATION: str,
+                   CONTEXT.CONFIG: str},
                   {USER_ROLES.mavensupport})
     def add_customer(self, _header, _body, context, _matches, _key):
         name = context[CONTEXT.NAME]
         abbr = context[CONTEXT.ABBREVIATION]
         license = context[CONTEXT.LICENSE]
         license_exp = datetime.now() + relativedelta(years=1)
+        config = context[CONTEXT.CONFIG]
 
-        result = yield from self.persistence.add_customer(name, abbr, license, license_exp)
+        result = yield from self.persistence.add_customer(name, abbr, license, license_exp, config)
         if result:
             return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
         else:

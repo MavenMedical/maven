@@ -76,19 +76,19 @@ class UserMgmtWebservices():
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
     @http_service(['GET'], '/rate_alert',
-                  [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.ALERTID, CONTEXT.ACTION,
+                  [CONTEXT.USERID, CONTEXT.CUSTOMERID, CONTEXT.ALERTID, CONTEXT.ACTION,
                    CONTEXT.RULEID, CONTEXT.CATEGORY],
-                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int, CONTEXT.ALERTID: int,
+                  {CONTEXT.USERID: int, CONTEXT.CUSTOMERID: int, CONTEXT.ALERTID: int,
                    CONTEXT.ACTION: str, CONTEXT.RULEID: str, CONTEXT.CATEGORY: str},
                   {USER_ROLES.provider})
     def rate_alert(self, _header, _body, context, _matches, _key):
-        userid = context[CONTEXT.USER]
+        userid = context[CONTEXT.USERID]
         customer = context[CONTEXT.CUSTOMERID]
         alertid = context[CONTEXT.ALERTID]
         action = context[CONTEXT.ACTION]
         category = context[CONTEXT.CATEGORY]
         ruleid = context[CONTEXT.RULEID]
-        if ruleid == "null":
+        if ruleid is not int:
             ruleid = "0"
 
         desired = {
@@ -106,26 +106,25 @@ class UserMgmtWebservices():
                                                         "", alertid, ruleid, "", action,
                                                         update=update)
 
-        # return HTTP.OK_RESPONSE, json.dumps(['ALERT LIKED']), None
         if result:
             return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
         else:
             return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
 
     @http_service(['GET'], '/critique_alert',
-                  [CONTEXT.CUSTOMERID, CONTEXT.RULEID, CONTEXT.USER,
+                  [CONTEXT.CUSTOMERID, CONTEXT.RULEID, CONTEXT.USERID,
                    CONTEXT.CATEGORY, CONTEXT.ACTIONCOMMENT, CONTEXT.ALERTID],
-                  {CONTEXT.CUSTOMERID: int, CONTEXT.RULEID: int, CONTEXT.CATEGORY: str,
-                   CONTEXT.ACTIONCOMMENT: str, CONTEXT.USER: str, CONTEXT.ALERTID: int},
+                  {CONTEXT.CUSTOMERID: int, CONTEXT.RULEID: str, CONTEXT.CATEGORY: str,
+                   CONTEXT.ACTIONCOMMENT: str, CONTEXT.USERID: int, CONTEXT.ALERTID: int},
                   {USER_ROLES.provider})
     def critique_alert(self, _header, _body, context, _matches, _key):
-        userid = context[CONTEXT.USER]
+        userid = context[CONTEXT.USERID]
         customerid = context[CONTEXT.CUSTOMERID]
         alertid = context[CONTEXT.ALERTID]
         actioncomment = context[CONTEXT.ACTIONCOMMENT]
         category = context[CONTEXT.CATEGORY]
         ruleid = context[CONTEXT.RULEID]
-        if ruleid == "null":
+        if ruleid is not int:
             ruleid = "0"
 
         result = yield from self.persistence.update_alert_setting(userid, customerid,
@@ -146,7 +145,7 @@ class UserMgmtWebservices():
         officialname = context[CONTEXT.OFFICIALNAME]
         displayname = context[CONTEXT.DISPLAYNAME]
 
-        result = yield from self.persistence.update_user_settings(userid, officialname,
+        result = yield from self.persistence.update_user_settings(user, officialname,
                                                                   displayname)
         if result:
             return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
@@ -157,14 +156,16 @@ class UserMgmtWebservices():
                   [CONTEXT.PROVIDER, CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.ROLES],
                   {CONTEXT.PROVIDER: str, CONTEXT.CUSTOMERID: int,
                    CONTEXT.STARTDATE: date, CONTEXT.ENDDATE: date,
-                   CONTEXT.USER: int, CONTEXT.ROLES: list,
+                   CONTEXT.USER: str, CONTEXT.ROLES: list,
                    CONTEXT.TARGETPROVIDER: str, CONTEXT.TARGETCUSTOMER: int},
-                  {USER_ROLES.provider, USER_ROLES.supervisor, USER_ROLES.mavensupport})
+                  {USER_ROLES.provider, USER_ROLES.supervisor, USER_ROLES.mavensupport, USER_ROLES.administrator})
     def get_audits(self, _header, _body, context, matches, _key):
         provider = None
         customer = None
 
-        if USER_ROLES.supervisor.name in context[CONTEXT.ROLES] or USER_ROLES.mavensupport.name in context[CONTEXT.ROLES]:
+        if (USER_ROLES.supervisor.name in context[CONTEXT.ROLES] or
+                USER_ROLES.administrator.name in context[CONTEXT.ROLES] or
+                USER_ROLES.mavensupport.name in context[CONTEXT.ROLES]):
             provider = context.get(CONTEXT.TARGETPROVIDER, None)
         if USER_ROLES.mavensupport.name in context[CONTEXT.ROLES]:
             customer = context.get(CONTEXT.TARGETCUSTOMER, None)
@@ -198,7 +199,7 @@ class UserMgmtWebservices():
                   [CONTEXT.PROVIDER, CONTEXT.USER, CONTEXT.CUSTOMERID],
                   {CONTEXT.PROVIDER: str, CONTEXT.PATIENTLIST: list, CONTEXT.CUSTOMERID: int,
                    CONTEXT.ENCOUNTER: str, CONTEXT.STARTDATE: date, CONTEXT.ENDDATE: date,
-                   CONTEXT.ORDERID: str, CONTEXT.CATEGORIES: list, CONTEXT.USER: int,
+                   CONTEXT.ORDERID: str, CONTEXT.CATEGORIES: list, CONTEXT.USER: str,
                    CONTEXT.TARGETPROVIDER: str, CONTEXT.TARGETCUSTOMER: int},
                   {USER_ROLES.provider, USER_ROLES.supervisor})
     def download_audits(self, _header, _body, context, matches, _key):

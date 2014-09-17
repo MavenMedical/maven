@@ -3,29 +3,31 @@
     <div class="panel-body admin-settings">
         <div class="col-md-12">
             <div class="row">
-                <div class="setting-option option-left">Unity Server IP Address: <input id="admin-ip-input" type="text"> </div>
-                <div class="setting-option option-right">App Name: <input id="admin-ip-input" type="text" value="Maven Pathways"> </div>
-                <div class="setting-option option-left">App Password: <input id="admin-pw" type="password"> </div>
-            </div>
-            <div class="row">
-                <span class="setting-option option-left" id="setup-admin-message">&nbsp;</span>
-                <div class="setting-option option-right"><button class="btn btn-default setup-admin-button">Setup</button></div>
+                <div class="setting-option option-left">Unity Server IP Address:
+                    <input id="admin-ip-input" type="text" value="<%= (typeof ip !== 'undefined') ? ip : ''%>"> </div>
+                <div class="setting-option option-right">App Name:
+                    <input id="admin-name-input" type="text" value="<%= (typeof appname !== 'undefined') ? appname : ''%>"> </div>
+                <div class="setting-option option-left">App Password: <input id="admin-pw-input" type="password"> </div>
             </div>
         </div>
     </div>
-
     <span class="headings title">Connection Settings</span>
     <div class="panel-body admin-settings">
         <div class="col-md-12">
             <div class="row">
-                <div class="setting-option option-left">Polling Interval (minutes): <input id="admin-polling" class='time-input' type="text"> </div>
-                <div class="setting-option option-right">Login Inactivity Timeout (minutes): <input id="admin-timeout" class='time-input' type="text"> </div>
+                <div class="setting-option option-left">Polling Interval (seconds):
+                    <input id="admin-polling-input" class='time-input' type="text" value="<%= (typeof polling !== 'undefined') ? polling : ''%>"> </div>
+                <div class="setting-option option-right">Login Inactivity Timeout (minutes):
+                    <input id="admin-timeout-input" class='time-input' type="text" value="<%= (typeof timeout !== 'undefined') ? timeout : ''%>"> </div>
             </div>
+        </div>
+    </div>
+    <div class="panel-body admin-settings">
+        <div class="col-md-12">
             <div class="save-settings-row row">
                 <span class="setting-option option-left" id="save-admin-message">&nbsp;</span>
                 <div class="setting-option option-right"><button class="btn btn-default setup-admin-button">Save Changes</button></div>
             </div>
         </div>
     </div>
-
 </div>

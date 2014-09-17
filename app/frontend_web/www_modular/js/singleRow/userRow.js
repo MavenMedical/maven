@@ -1,9 +1,9 @@
 /***************************************************************************
  * Copyright (c) 2014 - Maven Medical
  * AUTHOR: 'Carlos Brenneisen'
- * DESCRIPTION: This Javascript file handle a hierarchy of orders view
+ * DESCRIPTION: This Javascript file handles a hierarchy of users view
  *              so we can handle events easier.
- * LAST MODIFIED FOR JIRA ISSUE: MAV-97
+ * LAST MODIFIED FOR JIRA ISSUE:
  **************************************************************************/
 define([
     // These are path alias that we configured in our main.js
@@ -30,17 +30,27 @@ define([
             return this;
         },
         events : function() {
-          //Load alerts related to this order whenever the detail portion is expanded
-
             var that = this;
             var curTitle = null;
             var overlist = false;
             var auditElement = "#mouse-target";
 
             $(document).ready(function() {
+
+                $(that.el).find(".reset-user-password").click(function(){
+                    $("#admin-setup-message").empty();
+                    $.ajax({
+                        url: "/reset_password",
+                        data: $.param(contextModel.toParams()) + "&target_user=" + that.model.get("user_name") +
+                            "&target_customer=" + that.model.get("customer_id"),
+                        success: function () {
+                            $("#save-admin-message").html("Settings saved!");
+                        }
+                    });
+                });
+
                 $(that.el).unbind('click');
                 var mousepos;
-                //$(that.el).mousemove(function(e) {mousepos=e;});
                 $(that.el).find(".user-state").click(function(){$("#save-user-message").empty();});
 
 		        $(that.el).find(".audit-hover").mouseover(function() {curTitle = "audit";});
@@ -51,8 +61,6 @@ define([
                         auditList = new AuditList({el: $(auditElement), template: AuditTemplate, targetCustomer: that.model.get("customer_id"), targetProvider: that.model.get("prov_id")});
                         auditList.$el[0].style.left = (mousepos.pageX + 10) + 'px';
                         auditList.$el[0].style.top = (mousepos.pageY - 50) + 'px';
-                        //console.log(that.model.get("user_id"));
-
                     }
                 });
                 $(that.el).find(".audit-hover").mouseleave(function() {
@@ -69,14 +77,10 @@ define([
 
                 maybeHide = function() {
                     if (curTitle == null && !overlist) {
-                        //auditList.title = null;
                         $(auditElement).hide();
-                       // orderList.typeFilter = 'does not exist';
                         overlist = false;
                     }
                 }
-
-
             });
        }
 

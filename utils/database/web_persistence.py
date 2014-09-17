@@ -4,6 +4,7 @@ from collections import defaultdict
 from decimal import Decimal
 from datetime import date, datetime
 import utils.enums
+import json
 
 from utils.database.database import AsyncConnectionPool
 from utils.database.database import MappingUtilites as DBMapUtils
@@ -81,6 +82,7 @@ Results = Enum('Results',
     license_exp
     config
     lastlogin
+    settings
 """)
 
 
@@ -231,10 +233,10 @@ class WebPersistence():
                                 [newpw, timeout, user], {}, {})
 
     @asyncio.coroutine
-    def save_user_settings(self, user, officialname, displayname):
+    def save_user_settings(self, user, customerid, officialname, displayname):
         yield from self.execute(["UPDATE users set (official_name, display_name) " +
-                                 "= (%s, %s) where user_id = %s"],
-                                [officialname, displayname, user], {}, {})
+                                 "= (%s, %s) where user_name = %s and customer_id = %s"],
+                                [officialname, displayname, user, customerid], {}, {})
 
     @asyncio.coroutine
     def update_user(self, user, state):
@@ -242,12 +244,39 @@ class WebPersistence():
                                 [state, user], {}, {})
 
     @asyncio.coroutine
-    def add_customer(self, name, abbr, license, license_exp):
+    def reset_password(self, user, customer):
+        # NOTE: THIS IS PLACEHOLDER CODE - WILL BE ENTIRELY REPLACED
+        expiration = datetime.now()
+        password = "\\x243261243034244c717a616b7864454b522e2f6b586366516454552f4f66"
+        password += "32545869694a674470574a5253733151724a624f4b6837616c3568386c36"
+
+        cmd = []
+        cmdargs = []
+
+        cmd.append("UPDATE users")
+        cmd.append("set pw=%s, pw_expiration=%s")
+        cmdargs.append(password)
+        cmdargs.append(expiration)
+        cmd.append("WHERE user_name=%s AND customer_id=%s")
+        cmdargs.append(user)
+        cmdargs.append(customer)
+
+        yield from self.execute(cmd, cmdargs, {}, {})
+
+    @asyncio.coroutine
+    def setup_customer(self, customer, ip, appname, polling, timeout):
+        clientapp_settings = {'ip': ip, 'appname': appname, 'polling': polling, 'timeout': timeout}
+        yield from self.execute(["UPDATE customer set clientapp_settings = %s where customer_id = %s"],
+                                [json.dumps(clientapp_settings), customer], {}, {})
+
+    @asyncio.coroutine
+    def add_customer(self, name, abbr, license, license_exp, config):
         yield from self.execute(["select * from customer;" +
-                                 "INSERT INTO customer (customer_id, name, abbr, license_type, license_exp) " +
+                                 "INSERT INTO customer " +
+                                 "(customer_id, name, abbr, license_type, license_exp, clientapp_config) " +
                                  "VALUES(((SELECT MAX(customer_id) FROM customer) + 1), " +
-                                 "%s,%s,%s,%s)"],
-                                [name, abbr, license, license_exp], {}, {})
+                                 "%s,%s,%s,%s, %s)"],
+                                [name, abbr, license, license_exp, config], {}, {})
 
     @asyncio.coroutine
     def update_alert_setting(self, user, customer, alertid, ruleid, category, actioncomment):
@@ -445,13 +474,15 @@ class WebPersistence():
         Results.license: "customer.license_type",
         Results.license_exp: "customer.license_exp",
         Results.config: "customer.clientapp_config",
+        Results.settings: "customer.clientapp_settings"
     }
     _display_customer_info = _build_format({
         Results.license_exp: lambda x: x and _prettify_datetime(x),
+        Results.settings: lambda x: x and eval(x)
     })
 
     @asyncio.coroutine
-    def customer_info(self, desired, limit=""):
+    def customer_info(self, desired, customer=None, limit=""):
         columns = build_columns(desired.keys(), self._available_customer_info,
                                 self._default_customer_info)
 
@@ -460,6 +491,9 @@ class WebPersistence():
         cmd.append("SELECT")
         cmd.append(columns)
         cmd.append("FROM customer")
+        if customer:
+            cmd.append("WHERE customer_id = %s")
+            cmdargs.append(customer)
         if limit:
             cmd.append(limit)
 
@@ -712,7 +746,7 @@ class WebPersistence():
 
     @asyncio.coroutine
     def audit_info(self, desired, provider, customer, startdate=None, enddate=None, orderby=Results.datetime,
-                   ascending=True, limit=""):
+                   ascending=False, limit=""):
         columns = build_columns(desired.keys(), self._available_audit_info,
                                 self._default_audit_info)
 

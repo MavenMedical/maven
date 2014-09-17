@@ -43,6 +43,9 @@ class CONTEXT():
     TARGETPROVIDER = 'target_provider'
     TARGETCUSTOMER = 'target_customer'
     STATE = 'state'
+    CONFIG = 'config'
+    POLLING = 'polling'
+    TIMEOUT = 'timeout'
 
 
 def http_service(methods, url, required, available, roles):

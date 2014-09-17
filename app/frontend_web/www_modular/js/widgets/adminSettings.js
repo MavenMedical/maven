@@ -8,17 +8,23 @@ define([
     'backbone',    // lib/backbone/backbone
     'globalmodels/contextModel',
 ], function ($, _, Backbone, contextModel) {
+    var AdminModel = Backbone.Model.extend({url: '/customer_info'});
+    var adminModel = new AdminModel;
 
-    var CustomerCreation = Backbone.View.extend({
+    var AdminSettings = Backbone.View.extend({
+        model: adminModel,
         initialize: function (arg) {
+            this.model.fetch({data:$.param(contextModel.toParams())});
             this.template = _.template(arg.template);
-            this.render();
+            this.model.on('change', this.render, this);
+            //this.render();
         },
         events: {
-            'click .admin-setup': 'adminSetup'
+            'click .setup-admin-button': 'adminSetup'
         },
         adminSetup: function () {
             var ip = $("#admin-ip-input").val();
+            var name = $("#admin-name-input").val();
             var pw = $("#admin-pw-input").val();
             var polling = $("#admin-polling-input").val();
             var timeout = $("#admin-timeout-input").val();
@@ -28,28 +34,28 @@ define([
             {
                 $("#admin-setup-message").html("Please enter a valid number for the polling interval");
             }
+            else if (!reg_num.test(timeout))
+            {
+                $("#admin-setup-message").html("Please enter a valid number for the timeout");
+            }
             else {
                 $("#admin-setup-message").empty();
                 $.ajax({
-                    url: "/admin-setup",
-                    data: $.param(contextModel.toParams()) + "&ip=" + ip +
-                          "&pw=" + pw + "&polling=" + polling + "&timeout="+timeout,
+                    url: "/setup_customer",
+                    data: $.param(contextModel.toParams()) + "&ip=" + ip + "&name=" + name +
+                          "&password=" + pw + "&polling=" + polling + "&timeout="+timeout,
                     success: function () {
-                        $("#admin-setup-message").html("Customer Added!");
-                        $("#admin-ip-input").val("");
-                        $("#admin-pw-input").val("");
-                        $("#admin-polling-input").val("");
-                        $("#admin-timeout-input").val("");
+                        $("#save-admin-message").html("Settings saved!");
                     }
                 });
             }
         },
         render: function(){
-            this.$el.html(this.template);
+            this.$el.html(this.template(this.model.attributes.settings));
             return this;
         },
     });
 
-    return CustomerCreation;
+    return AdminSettings;
 
 });

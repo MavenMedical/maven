@@ -89,7 +89,7 @@ define([
 	    //console.log(this);
 	    var ret = _.pick(this.attributes,['user','provider','startdate','enddate','encounter',
 		 			      'patients','department','userAuth', 'customer_id',
-					      'roles', 'pathid']);
+					      'roles', 'pathid', 'userid']);
         ret.id = ret.pathid
 	    //console.log(ret);
 	    for(var x in ret) {

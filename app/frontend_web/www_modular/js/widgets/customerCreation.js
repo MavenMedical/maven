@@ -21,6 +21,7 @@ define([
                 var name = $("#customer-name-input").val();
                 var abbr = $("#customer-abbr-input").val();
                 var license = $("#customer-license-input").val();
+                var config = $("#customer-config-input").val();
 
                 var reg_num = new RegExp('^[0]*[1-9]+[0]*$');
                 if (!reg_num.test(license))
@@ -32,7 +33,7 @@ define([
                     $.ajax({
                         url: "/add_customer",
                         data: $.param(contextModel.toParams()) + "&name=" + name +
-                            "&abbr=" + abbr + "&license=" + license,
+                            "&abbr=" + abbr + "&license=" + license + "&config=" + config,
                         success: function () {
                             $("#add-customer-message").html("Customer Added!");
                             $("#customer-name-input").val("");
