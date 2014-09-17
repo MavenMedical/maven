@@ -54,6 +54,20 @@ class CONDITION_TYPE(Enum):
     ENC = "Encounter Diagnosis"
 
 
+class CONFIG_PARAMS(Enum):
+    CUSTOMER_SETUP = "Customer/Client Config"
+    CUSTOMER_ID = "Customer/Client Identification Config"
+    EHR_API_SVCS = "Client EHR API Services Config"
+    EHR_API_COMP_BUILDER_SVC = "Client EHR Composition Builder Service Config"
+    EHR_API_POLLING_SVC = "Client EHR API Polling Service Config"
+    EHR_USER_MGMT_SVC = "User Management Service Config"
+    NOTIFY_SVC = "Notification Routing Service Config"
+    PERSISTENCE_SVC = "Persistence Service Config"
+    DATABASE_SVC = "Database Service Config"
+    RPC_CLIENT = "RPC Client Config"
+    RPC_SERVER = "RPC Server Config"
+
+
 class DIAGNOSTIC_TERMINOLOGIES(Enum):
     icd9 = "International Statistical Classification of Diseases Version 9"
     ICD9 = "International Statistical Classification of Diseases Version 9"
@@ -119,6 +133,31 @@ class PROCEDURE_TERMINOLOGIES(Enum):
     CPT4 = "Current Procedural Terminology v4"
     HCPCS = "Healthcare Common Procedure Coding System"
     hcpcs = "Healthcare Common Procedure Coding System"
+
+
+class PROVIDER_TYPE(Enum):
+    ADMIN = "Administrator"
+    ANCILLARY = "Ancillary Services"
+    PHYSICIAN = "Attending / Staff MD"
+    CLERK = "Clerk"
+    DIETICIAN = "Dietician"
+    EKGTECH = "EKG Technician"
+    FELLOW = "Fellow"
+    INTERN = "Intern"
+    RESIDENT = "Resident"
+    LABTECH = "Lab Technician"
+    MEDSTUDENT = "Med Student"
+    MEDASSIST = "Medical Assistant"
+    NP = "Nurse Practitioner"
+    PA = "Physician Assistant"
+    NURSEASSIST = "Nursing Assistant"
+    PHARMACIST = "Pharmacist"
+    PT = "Physical Therapist"
+    RN = "Nurse"
+    RT = "Respiratory Therapist"
+    REFERRAL = "Referral Caregiver"
+    SW = "Social Worker"
+    UNDEFINED = "Undefined"
 
 
 class USER_ROLES(Enum):

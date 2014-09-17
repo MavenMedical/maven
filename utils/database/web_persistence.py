@@ -3,8 +3,8 @@ from enum import Enum
 from collections import defaultdict
 from decimal import Decimal
 from datetime import date, datetime
-import utils.enums
 import json
+from utils.enums import CONFIG_PARAMS, ALERT_VALIDATION_STATUS
 
 from utils.database.database import AsyncConnectionPool
 from utils.database.database import MappingUtilites as DBMapUtils
@@ -716,7 +716,7 @@ class WebPersistence():
         cmdargs.append(provider)
         cmdargs.append(customer)
         cmd.append("AND alert.validation_status > %s")
-        cmdargs.append(utils.enums.ALERT_VALIDATION_STATUS.DEBUG_ALERT.value)
+        cmdargs.append(ALERT_VALIDATION_STATUS.DEBUG_ALERT.value)
         if patients:
             cmd.append("AND alert.pat_id IN %s")
             cmdargs.append(makelist(patients))
