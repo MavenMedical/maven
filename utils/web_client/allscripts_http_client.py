@@ -1,6 +1,7 @@
 import utils.web_client.http_client as http
 import asyncio
 import json
+from functools import wraps
 from xml.etree import ElementTree as ETree
 from enum import Enum
 from maven_config import MavenConfig
@@ -398,14 +399,12 @@ class allscripts_api(http.http_api):
     @hour_cache.cache_lookup('GetProviders', lookup_on_none=True,
                              key_function=memory_cache.allargs)
     @_require_token
-    def GetProviders(self, username: str):
+    def GetProviders(self):
         """
-        :param username:
         :return:
         """
         ret = yield from self.post('/json/MagicJson',
-                                   data=self._build_message('GetProviders',
-                                                            user=username))
+                                   data=self._build_message('GetProviders'))
         return self.postprocess(check_output(ret))
 
     @hour_cache.cache_lookup('GetProvider', lookup_on_none=True,
@@ -709,7 +708,7 @@ if __name__ == '__main__':
     if input('GetEncounter (y/n)? ') == 'y':
         wrapexn(api.GetEncounter(Ehr_username, patient))
     if input('GetProviders (y/n)? ') == 'y':
-        wrapexn(api.GetProviders(Ehr_username))
+        wrapexn(api.GetProviders())
     if input('GetProvider (y/n)? ') == 'y':
         wrapexn(api.GetProvider(Ehr_username, searchname='terry'))
     if input('GetUserID (y/n)? ') == 'y':
