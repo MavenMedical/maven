@@ -217,7 +217,7 @@ def main(loop):
     notification_service.schedule(loop)
 
     try:
-        asyncio.Task(user_sync_service.synchronize_users())
+        asyncio.Task(user_sync_service.run())
         loop.run_until_complete(allscripts_scheduler.get_updated_schedule())
         loop.run_forever()
     except KeyboardInterrupt:

@@ -24,7 +24,7 @@ import utils.web_client.allscripts_http_client as AHC
 
 
 CONFIG_API = 'api'
-CLIENT_SERVER_LOG = ML.get_logger('clientApp.webservice.allscripts_server')
+CLIENT_SERVER_LOG = ML.get_logger('clientApp.webservice.allscripts_customer_interface')
 
 
 class AllscriptsCustomerInterface:
@@ -53,7 +53,7 @@ class AllscriptsCustomerInterface:
         working = yield from self.ahc.GetServerInfo()
         if working:
             self.schedulertask = asyncio.Task(self.allscripts_scheduler.run())
-            self.usersynctask = asyncio.Task(self.user_sync_service.synchronize_users())
+            self.usersynctask = asyncio.Task(self.user_sync_service.run())
             return True
         else:
             return False

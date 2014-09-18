@@ -33,7 +33,7 @@ ML.set_debug()
 
 
 class UserSyncService():
-    def __init__(self, customer_id, config, server_interface=None, ehr_api=None):
+    def __init__(self, customer_id, config, server_interface, ehr_api):
         self.config = config.get(CONFIG_PARAMS.EHR_USER_MGMT_SVC.value)
         self.server_interface = server_interface or Exception("No Remote Procedures Specified for ClientApp")
         self.ehr_api = ehr_api
@@ -49,7 +49,7 @@ class UserSyncService():
         self.provider_list_observers.append(observer)
 
     @ML.coroutine_trace(logger.debug)
-    def synchronize_users(self):
+    def run(self):
         while True:
             yield from self.evaluate_users(self.customer_id)
             yield from asyncio.sleep(self.sync_delay)
@@ -169,7 +169,7 @@ def run():
 
     sync_scvs = UserSyncService('maven user sync')
     event_loop = asyncio.get_event_loop()
-    event_loop.run_until_complete(sync_scvs.synchronize_users())
+    event_loop.run_until_complete(sync_scvs.run())
 
 if __name__ == '__main__':
     run()
