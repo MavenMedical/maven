@@ -110,7 +110,7 @@ class StreamProcessor():
         """
         pass
 
-    def __init__(self, configname, customer_id=None):
+    def __init__(self, configname):
         """ Initialize the StreamProcessor superclass, getting all of the IO and
         helper functions from the MavenConfig structure.  It creates the StreamProcess,
         but does not yet make network connections.
@@ -123,14 +123,9 @@ class StreamProcessor():
             raise MC.InvalidConfig("Stream parser needs a config entry")
         try:
             self.configname = configname
-            if customer_id:
-                if configname not in MC.MavenConfig.get(customer_id):
-                    raise MC.InvalidConfig(configname + " is not in the MavenConfig map.")
-                config = MC.MavenConfig.get(customer_id)[configname]
-            else:
-                if configname not in MC.MavenConfig:
-                    raise MC.InvalidConfig(configname + " is not in the MavenConfig map.")
-                config = MC.MavenConfig[configname]
+            if configname not in MC.MavenConfig:
+                raise MC.InvalidConfig(configname + " is not in the MavenConfig map.")
+            config = MC.MavenConfig[configname]
 
             try:
                 readertype = config.get(CONFIG_READERTYPE, None)
@@ -171,10 +166,7 @@ class StreamProcessor():
             # Create the reader, passing it it's name and the parser_factory_factory which takes
             # messages, buffers and chunks them if needed, and parses them into objects
             try:
-                if customer_id:
-                    self.reader = _reader_map[readertype](readername, self.parser_factory_factory, customer_id=customer_id)
-                else:
-                    self.reader = _reader_map[readertype](readername, self.parser_factory_factory)
+                self.reader = _reader_map[readertype](readername, self.parser_factory_factory)
             except KeyError:
                 raise MC.InvalidConfig("Invalid reader type for " + configname + ": " + readertype)
 
@@ -182,10 +174,7 @@ class StreamProcessor():
             try:
                 self.writers = {}
                 for writername in writernames:
-                    if customer_id:
-                        w = _writer_map[writertype](writername, customer_id=customer_id)
-                    else:
-                        w = _writer_map[writertype](writername)
+                    w = _writer_map[writertype](writername)
                     self.writers[w.writer_key] = w
             except KeyError:
                 raise MC.InvalidConfig("Invalid writer type for " + configname + ": " + writertype)
@@ -389,18 +378,12 @@ class _SocketServerReader():
 
 
 class _SocketQueryReader():
-    def __init__(self, configname, parser_factory_factory, customer_id=None):
+    def __init__(self, configname, parser_factory_factory):
         self.parser_factory_factory = parser_factory_factory
         self.configname = configname
-
-        if customer_id:
-            if configname not in MC.MavenConfig.get(customer_id):
-                raise MC.InvalidConfig("some real error")
-            config = MC.MavenConfig.get(customer_id)[configname]
-        else:
-            if configname not in MC.MavenConfig:
-                raise MC.InvalidConfig("some real error")
-            config = MC.MavenConfig[configname]
+        if configname not in MC.MavenConfig:
+            raise MC.InvalidConfig("some real error")
+        config = MC.MavenConfig[configname]
         # get real parameters here, throwing errors if necessary ones are missing
         try:
             self.host = config.get(CONFIG_HOST, None)
@@ -661,13 +644,10 @@ class _UnPickleStreamParser(MappingParser):
 
 
 class _BaseWriter():
-    def __init__(self, configname, require_config=True, customer_id=None):
+    def __init__(self, configname, require_config=True):
         self.configname = configname
         try:
-            if customer_id:
-                self.config = MC.MavenConfig.get(customer_id)[configname]
-            else:
-                self.config = MC.MavenConfig[configname]
+            self.config = MC.MavenConfig[configname]
             self.writer_key = self.config.get(CONFIG_WRITERKEY, None)
             self.ondisconnect = self.config.get(CONFIG_ONDISCONNECT, CONFIGVALUE_DISCONNECTIGNORE)
         except:
@@ -727,16 +707,13 @@ class _SocketReplyWriter(_BaseWriter):
 
     counter = 1
 
-    def __init__(self, configname, transport=None, customer_id=None):
+    def __init__(self, configname, transport=None):
         if transport:
             self.transport = transport
             self.writer_key = "writer:" + str(_SocketReplyWriter.counter)
             _SocketReplyWriter.counter += 1
         else:
-            if customer_id:
-                _BaseWriter.__init__(self, configname, customer_id=customer_id)
-            else:
-                _BaseWriter.__init__(self, configname)
+            _BaseWriter.__init__(self, configname)
             self.transport = None
         self.last_writer = None
         global _global_writers

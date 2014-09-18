@@ -21,8 +21,7 @@ import utils.streaming.rpc_processor as RP
 from utils.enums import CONFIG_PARAMS
 from utils.database.database import AsyncConnectionPool
 import utils.database.web_persistence as WP
-import app.backend.remote_procedures.client_app as CA_RPC
-import app.backend.remote_procedures.client_app_manager as CAM_RPC
+from app.backend.remote_procedures.rpc_handler import RPCHandler
 import asyncio
 import maven_config as MC
 import utils.crypto.authorization_key as AK
@@ -151,22 +150,19 @@ def main(loop):
     }
     MC.MavenConfig = MavenConfig
 
-    client_app_rpc_service = RP.rpc(rpc_server_stream_processor)
-    client_app_rpc_service.schedule(loop)
+    rpc = RP.rpc(rpc_server_stream_processor)
+    rpc.schedule(loop)
 
-    client_app_RPCs = CA_RPC.ClientAppRemoteProcedureCalls()
-    client_app_RPCs.persistence.schedule(loop)
-    client_app_rpc_service.register(client_app_RPCs)
-
-    client_app_manager_RPCs = CAM_RPC.ClientAppManagerRemoteProcedureCalls()
-    client_app_manager_RPCs.persistence.schedule(loop)
-    client_app_rpc_service.register(client_app_manager_RPCs)
+    client_interface = rpc.create_client(object)
+    rpc_handler = RPCHandler(client_interface)
+    rpc_handler.persistence.schedule(loop)
+    rpc.register(rpc_handler)
 
     sp_consumer = IncomingMessageHandler(incomingtomavenmessagehandler)
     sp_producer = OutgoingMessageHandler(outgoingtohospitalsmessagehandler)
 
-    reader = sp_consumer.schedule(loop)
-    emitter = sp_producer.schedule(loop)
+    sp_consumer.schedule(loop)
+    sp_producer.schedule(loop)
 
     try:
         loop.run_forever()

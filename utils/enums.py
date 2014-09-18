@@ -162,7 +162,6 @@ class PROVIDER_TYPE(Enum):
 
 class USER_ROLES(Enum):
     mavensupport = "mavensupport"
-    maventask = "maventask"
     provider = "provider"
     supervisor = "supervisor"
     notification = "notification"

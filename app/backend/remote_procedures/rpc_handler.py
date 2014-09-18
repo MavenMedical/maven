@@ -22,11 +22,12 @@ import utils.streaming.stream_processor as SP
 from utils.enums import CONFIG_PARAMS
 
 
-class ClientAppRemoteProcedureCalls(SP.StreamProcessor):
+class RPCHandler(SP.StreamProcessor):
 
-    def __init__(self):
+    def __init__(self, client_interface):
 
         self.persistence = WP.WebPersistence(CONFIG_PARAMS.PERSISTENCE_SVC.value)
+        self.client_interface = client_interface
 
     @asyncio.coroutine
     def get_users_from_db(self, customer_id):
@@ -44,7 +45,11 @@ class ClientAppRemoteProcedureCalls(SP.StreamProcessor):
         results = yield from self.persistence.customer_specific_user_info(desired,
                                                                           limit=None,
                                                                           customer_id=customer_id)
-        return results
+
+        for result in results:
+            self.client_interface.update_customer(result)
+
+        return True
 
     @asyncio.coroutine
     def write_user_create_to_db(self, customer_id, provider_info):
@@ -53,6 +58,25 @@ class ClientAppRemoteProcedureCalls(SP.StreamProcessor):
     @asyncio.coroutine
     def write_user_deactivation_to_db(self, customer_id, provider_info):
         yield from self.persistence.EHRsync_update_user_provider(provider_info)
+
+    @asyncio.coroutine
+    def notify_user(self, customer_id, user_name, text):
+        pass
+
+    @asyncio.coroutine
+    def get_customer_configurations(self):
+
+        desired = {
+            WP.Results.customerid: 'customer_id',
+            WP.Results.name: 'name',
+            WP.Results.abbr: 'abbr',
+            WP.Results.license: 'license_type',
+            WP.Results.license_exp: 'license_exp',
+            WP.Results.config: 'config'
+        }
+        results = yield from self.persistence.customer_info(desired, limit=None)
+
+        return results
 
     @asyncio.coroutine
     def evaluate_composition(self, composition):
