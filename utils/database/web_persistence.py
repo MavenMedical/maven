@@ -481,7 +481,8 @@ class WebPersistence():
         Results.license: "customer.license_type",
         Results.license_exp: "customer.license_exp",
         Results.config: "customer.clientapp_config",
-        Results.settings: "customer.clientapp_settings"
+        Results.settings: "customer.clientapp_settings",
+
     }
     _display_customer_info = _build_format({
         Results.license_exp: lambda x: x and _prettify_datetime(x),

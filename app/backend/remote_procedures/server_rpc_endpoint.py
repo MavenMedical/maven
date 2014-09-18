@@ -60,7 +60,7 @@ class ServerEndpoint(SP.StreamProcessor):
         yield from self.persistence.EHRsync_update_user_provider(provider_info)
 
     @asyncio.coroutine
-    def notify_user(self, customer_id, user_name, text):
+    def notify_user(self, customer_id, user_name, msg):
         pass
 
     @asyncio.coroutine
@@ -72,13 +72,13 @@ class ServerEndpoint(SP.StreamProcessor):
             WP.Results.abbr: 'abbr',
             WP.Results.license: 'license_type',
             WP.Results.license_exp: 'license_exp',
-            WP.Results.config: 'config'
+            WP.Results.settings: 'settings'
         }
         results = yield from self.persistence.customer_info(desired, limit=None)
 
         for result in results:
             asyncio.Task(self.client_interface.update_customer_configuration(result['customer_id'],
-                                                                             result['config']))
+                                                                             result['settings']))
 
         return
 
