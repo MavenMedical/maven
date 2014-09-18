@@ -17,32 +17,27 @@ __author__ = 'Yuki Uchino'
 # LAST MODIFIED FOR JIRA ISSUE: MAV-404
 # *************************************************************************
 import asyncio
-# import clientApp.webservice.allscripts_client_app as ALLSCRIPTS_CA
-
-
-class AllscriptsCustomerInterface:
-    def __init__(self, config):
-        pass
-
-    @asyncio.coroutine
-    def test_connection(self):
-        pass
+import json
+import clientApp.allscripts.allscripts_customer_interface as ACI
 
 
 class ClientAppEndpoint():
 
-    def __init__(self, remote_procedures, loop=None):
+    def __init__(self, server_interface, loop=None):
         self.customer_interfaces = {}
-        self.remote_procedures = remote_procedures
+        self.server_interface = server_interface
         self.loop = loop or asyncio.get_event_loop()
 
     @asyncio.coroutine
     def update_customer_configuration(self, customer_id, config):
+        config = json.loads(config)
         if customer_id in self.customer_interfaces:
             yield from self.customer_interfaces[customer_id].test_and_update_config(config)
         else:
-            aci = AllscriptsCustomerInterface(config)
-            yield from aci.test_connection()
+            aci = ACI.AllscriptsCustomerInterface(customer_id, config,
+                                                  self.server_interface)
+            yield from aci.start()
+            
             self.customer_interfaces[customer_id] = aci
         return
 
@@ -53,3 +48,8 @@ class ClientAppEndpoint():
             return True
         except:
             return False
+
+    @asyncio.coroutine
+    def notify_user(self, customer_id, user_name, msg):
+        customer_interface = self.customer_interfaces[customer_id]
+        yield from customer_interface.notify_user(user_name, msg)

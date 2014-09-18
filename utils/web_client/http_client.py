@@ -2,8 +2,6 @@ import aiohttp
 import asyncio
 import json
 
-from maven_config import MavenConfig
-
 CONFIG_BASEURL = 'base url'
 CONFIG_OTHERHEADERS = 'other headers'
 
@@ -21,7 +19,7 @@ class http_api():
     It also handles timeouts, caching, and other common functionality.
     """
 
-    def __init__(self, configname: str, other_headers: {str: str}=None,
+    def __init__(self, config: str, other_headers: {str: str}=None,
                  decode: bool=True):
         """ Create a new instance of the remote query object using the shared parameters
         :param configname: the name of this module in the configuration file.
@@ -29,7 +27,7 @@ class http_api():
         :param other_headers=None: optional parameter for additional headers (api key)
         :param decode: True if the output should be returned as a string, false means bytes
         """
-        self.config = MavenConfig[configname]
+        self.config = config
         self.base_url = self.config[CONFIG_BASEURL]
         self.other_headers = self.config.get(CONFIG_OTHERHEADERS, {})
         if other_headers:

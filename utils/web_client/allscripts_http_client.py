@@ -3,7 +3,6 @@ import asyncio
 import json
 from xml.etree import ElementTree as ETree
 from enum import Enum
-from functools import wraps, lru_cache
 from maven_config import MavenConfig
 import maven_logging as ML
 from maven_logging import WARN, EXCEPTION, INFO
@@ -99,17 +98,16 @@ def isoformatday(d: {'date', 'datetime'}):
 hour_cache = memory_cache.MemoryCache(timeout=3600)
 
 
-@lru_cache()
 class allscripts_api(http.http_api):
 
-    def __init__(self, configname: str):
+    def __init__(self, config: dict):
         """ initialize this adapter for the allscripts professional API
         :params configname: the name of the configuration section in the MavenConfig map
         it's required parameters are:
           CONFIG_BASEURL, CONFIG_APPNAME, CONFIG_APPUSERNAME, CONFIG_APPPASSWORD
         it's optional parameter is CONFIG_OTHERHEADERS
         """
-        http.http_api.__init__(self, configname)
+        http.http_api.__init__(self, config)
         self.postprocess = (lambda x: list(x[0].values())[0])
         self.appname = self.config[CONFIG_APPNAME]
         self.appusername = self.config[CONFIG_APPUSERNAME]
@@ -644,7 +642,7 @@ if __name__ == '__main__':
         CONFIG_APPPASSWORD: 'www!web20!',
     }
 
-    MavenConfig['allscripts_demo'] = {
+    config = {
         # http.CONFIG_BASEURL: 'http://pro14ga.unitysandbox.com/Unity/UnityService.svc',
         http.CONFIG_BASEURL: 'http://192.237.182.238/Unity/UnityService.svc',
         # http.CONFIG_BASEURL: 'http://doesnotexist.somejunk.cs.umd.edu/Unity/UnityService.svc',
@@ -665,7 +663,7 @@ if __name__ == '__main__':
         except:
             traceback.print_exc()
 
-    api = allscripts_api('allscripts_demo')
+    api = allscripts_api(config)
     loop = asyncio.get_event_loop()
     Ehr_username = 'CliffHux'
     # break

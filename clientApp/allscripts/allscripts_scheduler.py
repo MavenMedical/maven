@@ -42,7 +42,7 @@ class scheduler():
         self.active_providers = active_provider_list
 
     @asyncio.coroutine
-    def get_updated_schedule(self):
+    def run(self):
         first = True
         yield from self.comp_builder.build_providers()
         while True:
