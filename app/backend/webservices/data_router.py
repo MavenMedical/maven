@@ -21,7 +21,7 @@ import utils.streaming.rpc_processor as RP
 from utils.enums import CONFIG_PARAMS
 from utils.database.database import AsyncConnectionPool
 import utils.database.web_persistence as WP
-from app.backend.remote_procedures.rpc_handler import RPCHandler
+from app.backend.remote_procedures.server_rpc_endpoint import ServerEndpoint
 import asyncio
 import maven_config as MC
 import utils.crypto.authorization_key as AK
@@ -70,6 +70,7 @@ def main(loop):
     outgoingtohospitalsmessagehandler = 'responder socket'
     incomingtomavenmessagehandler = 'receiver socket'
     rpc_server_stream_processor = 'Server-side RPC Stream Processor'
+    from clientApp.webservice.clientapp_rpc_endpoint import ClientAppEndpoint
 
     MavenConfig = {
         rpc_server_stream_processor: {
@@ -148,15 +149,15 @@ def main(loop):
         },
 
     }
-    MC.MavenConfig = MavenConfig
+    MC.MavenConfig.update(MavenConfig)
 
     rpc = RP.rpc(rpc_server_stream_processor)
     rpc.schedule(loop)
 
-    client_interface = rpc.create_client(object)
-    rpc_handler = RPCHandler(client_interface)
-    rpc_handler.persistence.schedule(loop)
-    rpc.register(rpc_handler)
+    client_interface = rpc.create_client(ClientAppEndpoint)
+    server_endpoint = ServerEndpoint(client_interface)
+    server_endpoint.persistence.schedule(loop)
+    rpc.register(server_endpoint)
 
     sp_consumer = IncomingMessageHandler(incomingtomavenmessagehandler)
     sp_producer = OutgoingMessageHandler(outgoingtohospitalsmessagehandler)

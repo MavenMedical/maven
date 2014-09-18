@@ -7,8 +7,6 @@ __author__ = 'Tom DuBois'
 # DESCRIPTION:
 #
 #
-#
-#
 # ************************
 # ASSUMES:
 # ************************
@@ -17,45 +15,27 @@ __author__ = 'Tom DuBois'
 # LAST MODIFIED FOR JIRA ISSUE: MAV-289
 # *************************************************************************
 import asyncio
-from enum import Enum
+from utils.enums import USER_STATE, NOTIFICATION_STATE
 from datetime import date, datetime, timedelta
 import re
 from dateutil.parser import parse
-import utils.web_client.allscripts_http_client as AHC
-import clientApp.webservice.notification_service as NS
-import maven_config as MC
-import pickle
+from utils.web_client.allscripts_http_client import AllscriptsError
 from clientApp.webservice.composition_builder import CompositionBuilder
-from utils.streaming import stream_processor as SP
 import maven_logging as ML
-from utils.enums import USER_STATE, NOTIFICATION_STATE
 
 icd9_match = re.compile('\(V?[0-9]+(?:\.[0-9]+)?\)')
-CONFIG_API = 'api'
 CLIENT_SERVER_LOG = ML.get_logger('clientApp.webservice.allscripts_server')
-CONFIG_SLEEPINTERVAL = 'sleep interval'
-CONFIG_STREAMPROCESSOR = 'stream processor config'
-CONFIG_COMPOSITIONBUILDER = 'composition builder config'
-CONFIG_CLIENTEHR = 'client ehr'
-
-
-class Types(Enum):
-    StaticTest1 = 1
-    StaticTest2 = 2
-    Unused1 = 3
 
 
 class scheduler():
 
-    def __init__(self, configname, remote_procedures=None):
-        self.config = MC.MavenConfig[configname]
-        self.remote_procedures = remote_procedures or Exception("No Remote Procedures Specified for ClientApp")
-        self.allscripts_api = AHC.allscripts_api(self.config.get(CONFIG_API))
+    def __init__(self, parent, allscripts_api, sleep_interval):
+        self.parent = parent
+        self.allscripts_api = allscripts_api
         self.processed = set()
         self.lastday = None
-        self.comp_builder = CompositionBuilder(self.config.get(CONFIG_COMPOSITIONBUILDER))
-        self.wk = 2
-        self.sleep_interval = self.config.get(CONFIG_SLEEPINTERVAL, 60)
+        self.comp_builder = CompositionBuilder(allscripts_api)
+        self.sleep_interval = sleep_interval
         self.active_providers = {}
 
     def update_active_providers(self, active_provider_list):
@@ -77,7 +57,7 @@ class scheduler():
                         if self.check_notification_policy(provider):
                             sched = yield from self.allscripts_api.GetSchedule(self.active_providers.get(provider)['user_name'], today)
 
-                except AHC.AllscriptsError as e:
+                except AllscriptsError as e:
                     CLIENT_SERVER_LOG.exception(e)
                 # print([(sch['patientID'], sch['ApptTime2'], sch['ProviderID']) for sch in sched])
                 tasks = set()
@@ -125,11 +105,10 @@ class scheduler():
                             CLIENT_SERVER_LOG.debug("About to send to Composition Builder...")
                             composition = yield from self.comp_builder.build_composition("CLIFFHUX", patient, docid)
                             CLIENT_SERVER_LOG.debug(("Built composition, about to send to Backend Data Router. Composition ID = %s" % composition.id))
-                            # self.write_object(pickle.dumps([composition, "CLIFFHUX"]), self.wk)
-                            self.remote_procedures.evaluate_composition()
+                            asyncio.Task(self.parent.evaluate_composition(composition, "CLIFFHUX"))
                             break
                 # processed.update({doc['DocumentID'] for doc in documents})
-        except AHC.AllscriptsError as e:
+        except AllscriptsError as e:
             CLIENT_SERVER_LOG.exception(e)
         except:
             CLIENT_SERVER_LOG.exception(e)
@@ -143,42 +122,3 @@ class scheduler():
             return True
         else:
             return False
-
-
-if __name__ == '__main__':
-    MC.MavenConfig['allscripts_old_demo'] = {
-        AHC.http.CONFIG_BASEURL: 'http://aws-eehr-11.4.1.unitysandbox.com/Unity/UnityService.svc',
-        AHC.http.CONFIG_OTHERHEADERS: {
-            'Content-Type': 'application/json'
-        },
-        AHC.CONFIG_APPNAME: 'web20',
-        AHC.CONFIG_APPUSERNAME: 'webtwozero',
-        AHC.CONFIG_APPPASSWORD: 'www!web20!',
-    }
-
-    MC.MavenConfig['allscripts_demo'] = {
-        AHC.http.CONFIG_BASEURL: 'http://pro14ga.unitysandbox.com/Unity/UnityService.svc',
-        AHC.http.CONFIG_OTHERHEADERS: {
-            'Content-Type': 'application/json'
-        },
-        AHC.CONFIG_APPNAME: 'MavenPathways.TestApp',
-        AHC.CONFIG_APPUSERNAME: 'MavenPathways',
-        AHC.CONFIG_APPPASSWORD: 'MavenPathways123!!',
-    }
-
-    MC.MavenConfig['notificationserver'] = {
-        NS.SP.CONFIG_HOST: 'localhost',
-        NS.SP.CONFIG_PORT: 8092,
-        NS.SP.CONFIG_PARSERTIMEOUT: 120,
-        NS.CONFIG_QUEUEDELAY: 30,
-    }
-
-    MC.MavenConfig['scheduler'] = {CONFIG_API: 'allscripts_demo'}
-
-    ns = NS.NotificationService('notificationserver')
-
-    sched = scheduler('scheduler')
-
-    loop = asyncio.get_event_loop()
-    ns.schedule(loop)
-    print(loop.run_until_complete(sched.get_updated_schedule()))

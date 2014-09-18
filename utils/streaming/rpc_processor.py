@@ -17,6 +17,7 @@ import functools
 import asyncio
 import utils.streaming.stream_processor as SP
 from maven_config import MavenConfig
+import maven_logging as ML
 
 """
 CONFIGVALUE_RPCPARSER = 'rpc parser'
@@ -150,15 +151,15 @@ class rpc(SP.StreamProcessor):
             msg = pickle.dumps((uid, ret))
             self.write_object(msg, key)
 
-    @asyncio.coroutine
+    @ML.coroutine_trace(print)
     def _execute(self, uid, cls, fn, args, kwargs):
         """ The client has requested a proceedure call, run it, capture its output
             or exception, and send it back.
         """
         if cls not in self.registered:
-            raise Exception('class if not available via rpc')
+            raise Exception('class %s is not available via rpc' % cls)
         s = self.registered[cls]
         if fn not in s.__class__.__dict__:
-            raise Exception('class does not expose method via rpc')
+            raise Exception('class does not expose method %s via rpc' % fn)
         ret = yield from s.__class__.__dict__[fn](s, *args, **kwargs)
         return ret
