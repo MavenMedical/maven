@@ -29,12 +29,13 @@ CLIENT_SERVER_LOG = ML.get_logger('clientApp.webservice.allscripts_server')
 
 class scheduler():
 
-    def __init__(self, parent, allscripts_api, sleep_interval):
+    def __init__(self, parent, customer_id, allscripts_api, sleep_interval):
         self.parent = parent
+        self.customer_id = customer_id
         self.allscripts_api = allscripts_api
         self.processed = set()
         self.lastday = None
-        self.comp_builder = CompositionBuilder(allscripts_api)
+        self.comp_builder = CompositionBuilder(customer_id, allscripts_api)
         self.sleep_interval = sleep_interval
         self.active_providers = {}
 

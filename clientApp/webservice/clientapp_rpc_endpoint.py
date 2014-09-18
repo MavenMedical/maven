@@ -36,9 +36,12 @@ class ClientAppEndpoint():
         else:
             aci = ACI.AllscriptsCustomerInterface(customer_id, config,
                                                   self.server_interface)
-            yield from aci.start()
-            
-            self.customer_interfaces[customer_id] = aci
+            config_isValid = yield from aci.validate_config()
+            if config_isValid:
+                yield from aci.start()
+                self.customer_interfaces[customer_id] = aci
+            else:
+                return False  # Need to do some error handling here/warn the IT Admin that connection wasn't successful
         return
 
     @asyncio.coroutine

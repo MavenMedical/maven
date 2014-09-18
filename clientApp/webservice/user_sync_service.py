@@ -132,7 +132,7 @@ class UserSyncService():
         # Add user to maven_providers list so that the user can be added to the global providers dictionary
         self.maven_providers.append(new_provider)
 
-        self.server_interface.write_create_user_to_db(new_provider)
+        yield from self.server_interface.write_user_create_to_db(self.customer_id, new_provider)
 
     @ML.coroutine_trace(logger.debug)
     def update_maven_user_state(self, deactivated_provider_id, customer_id):
@@ -145,7 +145,7 @@ class UserSyncService():
         for prov in [prov for prov in self.maven_providers if prov['prov_id'] == deactivated_provider_id]:
             prov['ehr_state'] = USER_STATE.DISABLED.value
 
-        self.server_interface.write_user_deactivation_to_db(provider)
+        self.server_interface.write_user_deactivation_to_db(self.customer_id, provider)
 
 
 def run():

@@ -484,9 +484,11 @@ class WebPersistence():
         Results.settings: "customer.clientapp_settings",
     }
     _display_customer_info = _build_format({
-        Results.license_exp: lambda x: x and _prettify_datetime(x),
-        Results.settings: lambda x: x and eval(x)
+        Results.license_exp: lambda x: x and _prettify_datetime(x)
     })
+    # Results.settings: lambda x: x and eval(x)
+    # @Tom, @Carlos --> this broke the ability to return the records from the database. Not sure why, and
+    # didn't investigate b/c I wasn't sure why we needed it.
 
     @asyncio.coroutine
     def customer_info(self, desired, customer=None, limit=""):

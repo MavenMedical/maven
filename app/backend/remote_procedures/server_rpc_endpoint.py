@@ -46,10 +46,12 @@ class ServerEndpoint(SP.StreamProcessor):
                                                                           limit=None,
                                                                           customer_id=customer_id)
 
-        for result in results:
-            self.client_interface.update_customer(result)
-
-        return True
+        # for result in results:
+        #    self.client_interface.update_customer(result)
+        # return True
+        # @Tom I call this from the Allscripts Client Interface (user sync service) and expect the values returned to
+        # the function that called it. So I don't think we need to call the clientapp_rpc_endpoint here.
+        return results
 
     @asyncio.coroutine
     def write_user_create_to_db(self, customer_id, provider_info):

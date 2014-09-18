@@ -19,7 +19,7 @@ class http_api():
     It also handles timeouts, caching, and other common functionality.
     """
 
-    def __init__(self, config: str, other_headers: {str: str}=None,
+    def __init__(self, config: dict, other_headers: {str: str}=None,
                  decode: bool=True):
         """ Create a new instance of the remote query object using the shared parameters
         :param configname: the name of this module in the configuration file.

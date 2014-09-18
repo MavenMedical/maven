@@ -37,26 +37,31 @@ class AllscriptsCustomerInterface:
         self.schedulertask = None
         self.usersynctask = None
 
+        # EHR API Polling Service
+        self.allscripts_scheduler = AS.scheduler(self, self.customer_id, self.ahc, config)
+
         # Users and User Sync Service
-        # self.active_providers = {}
         self.user_sync_service = US.UserSyncService(self.customer_id, config,
                                                     self.server_interface, self.ahc)
 
-        # EHR API Polling Service
-        self.allscripts_scheduler = AS.scheduler(self, self.ahc, config)
+        # Register the EHR API Polling Service's "Refresh Active Providers" Function with the User Sync Service
+        self.user_sync_service.subscribe(self.allscripts_scheduler.update_active_providers)
 
         # self.user_sync_service.subscribe(self.notification_users_fn)
         # self.user_sync_service.subscribe(self.allscripts_scheduler.update_active_providers)
 
     @asyncio.coroutine
-    def start(self):
+    def validate_config(self):
         working = yield from self.ahc.GetServerInfo()
         if working:
-            self.schedulertask = asyncio.Task(self.allscripts_scheduler.run())
-            self.usersynctask = asyncio.Task(self.user_sync_service.run())
             return True
         else:
             return False
+
+    @asyncio.coroutine
+    def start(self):
+        self.schedulertask = asyncio.Task(self.allscripts_scheduler.run())
+        self.usersynctask = asyncio.Task(self.user_sync_service.run())
 
     @asyncio.coroutine
     def test_and_update_config(self, config):

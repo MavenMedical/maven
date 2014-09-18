@@ -10,7 +10,7 @@ from maven_logging import WARN, EXCEPTION, INFO
 import utils.database.memory_cache as memory_cache
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
 import dateutil.parser
-from utils.enums import USER_STATE
+from utils.enums import USER_STATE, CONFIG_PARAMS
 
 ALLSCRIPTS_NUM_PARAMETERS = 6
 
@@ -108,7 +108,7 @@ class allscripts_api(http.http_api):
           CONFIG_BASEURL, CONFIG_APPNAME, CONFIG_APPUSERNAME, CONFIG_APPPASSWORD
         it's optional parameter is CONFIG_OTHERHEADERS
         """
-        http.http_api.__init__(self, config)
+        http.http_api.__init__(self, config.get(CONFIG_PARAMS.EHR_API_SVCS.value))
         self.postprocess = (lambda x: list(x[0].values())[0])
         self.appname = self.config[CONFIG_APPNAME]
         self.appusername = self.config[CONFIG_APPUSERNAME]

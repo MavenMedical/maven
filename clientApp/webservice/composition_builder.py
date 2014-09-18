@@ -42,15 +42,15 @@ class Types(Enum):
 
 class CompositionBuilder(builder):
 
-    def __init__(self, allscripts_api):
+    def __init__(self, customer_id, allscripts_api):
         builder.__init__(self)
         self.allscripts_api = allscripts_api
         self.provs = {}
-        self.customer_id = MC.MavenConfig[CUSTOMERID]
+        self.customer_id = customer_id
 
     @asyncio.coroutine
     def build_providers(self):
-        ret = yield from self.allscripts_api.GetProviders(username=self.config.get(AHC.CONFIG_APPUSERNAME))
+        ret = yield from self.allscripts_api.GetProviders()
         for prov in ret:
             self.provs[prov['UserName']] = self.build_partial_practitioner(prov)
 
