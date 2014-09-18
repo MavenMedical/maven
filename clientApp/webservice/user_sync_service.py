@@ -33,14 +33,13 @@ ML.set_debug()
 
 
 class UserSyncService():
-    def __init__(self, configname, remote_procedures=None, loop=None):
-        self.config = MC.MavenConfig[configname]
-        self.remote_procedures = remote_procedures or Exception("No Remote Procedures Specified for ClientApp")
-        self.api_name = self.config.get(CONFIG_API)
-        self.ehr_api = AHC.allscripts_api(self.api_name)
-        self.customer_id = MC.MavenConfig[CONFIG_PARAMS.CUSTOMER_ID.value]
+    def __init__(self, customer_id, config, server_interface=None, ehr_api=None):
+        self.config = config.get(CONFIG_PARAMS.EHR_USER_MGMT_SVC.value)
+        self.server_interface = server_interface or Exception("No Remote Procedures Specified for ClientApp")
+        self.ehr_api = ehr_api
+        self.customer_id = customer_id
         self.sync_delay = self.config.get(CONFIG_SYNCDELAY, 60 * 60)
-        self.loop = loop or asyncio.get_event_loop()
+        self.loop = asyncio.get_event_loop()
         self.ehr_providers = {}
         self.maven_providers = []
         self.active_providers = {}
@@ -59,14 +58,14 @@ class UserSyncService():
     def evaluate_users(self, customer_id):
         try:
             try:
-                ehr_providers = yield from self.ehr_api.GetProviders(username=MC.MavenConfig[self.api_name][AHC.CONFIG_APPUSERNAME])
+                ehr_providers = yield from self.ehr_api.GetProviders()
                 for provider in ehr_providers:
                     fhir_provider = self.ehr_api.build_partial_practitioner(provider)
                     self.ehr_providers[fhir_provider.get_provider_id()] = fhir_provider
             except AHC.AllscriptsError as e:
                 logger.exception(e)
 
-            self.maven_providers = yield from self.remote_procedures.get_users_from_db(self.customer_id)
+            self.maven_providers = yield from self.server_interface.get_users_from_db(self.customer_id)
 
             # Go through the two sets of users (Maven, EHR's) and diff/update appropriately
             yield from self.diff_users(customer_id)
@@ -133,7 +132,7 @@ class UserSyncService():
         # Add user to maven_providers list so that the user can be added to the global providers dictionary
         self.maven_providers.append(new_provider)
 
-        self.remote_procedures.write_create_user_to_db(new_provider)
+        self.server_interface.write_create_user_to_db(new_provider)
 
     @ML.coroutine_trace(logger.debug)
     def update_maven_user_state(self, deactivated_provider_id, customer_id):
@@ -146,7 +145,7 @@ class UserSyncService():
         for prov in [prov for prov in self.maven_providers if prov['prov_id'] == deactivated_provider_id]:
             prov['ehr_state'] = USER_STATE.DISABLED.value
 
-        self.remote_procedures.write_user_deactivation_to_db(provider)
+        self.server_interface.write_user_deactivation_to_db(provider)
 
 
 def run():
