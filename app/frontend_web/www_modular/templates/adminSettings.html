@@ -4,10 +4,19 @@
         <div class="col-md-12">
             <div class="row">
                 <div class="setting-option option-left">Unity Server IP Address:
-                    <input id="admin-ip-input" type="text" value="<%= (typeof ip !== 'undefined') ? ip : ''%>"> </div>
+                    <input id="admin-ip-input" type="text" <%= (typeof ip !== 'undefined') ? "value='"+ip+"' disabled" : '' %>> </div>
                 <div class="setting-option option-right">App Name:
-                    <input id="admin-name-input" type="text" value="<%= (typeof appname !== 'undefined') ? appname : ''%>"> </div>
-                <div class="setting-option option-left">App Password: <input id="admin-pw-input" type="password"> </div>
+                    <input id="admin-name-input" type="text" <%= (typeof appname !== 'undefined') ? "value='"+appname+"' disabled" : "value='Maven Pathways'" %>></div>
+                <div class="setting-option option-left">App Password:
+                    <input id="admin-pw-input" type="password" <%= (typeof ip !== 'undefined') ? "value='password' disabled" : '' %>> </div>
+                <br/>
+                    <span class="setting-option option-left" id="admin-setup-message">&nbsp;</span>
+                    <% if (typeof ip !== 'undefined'){ %>
+                    <div class="setting-option option-right">
+                        <button class="btn btn-default btn-xs unlock-admin-button">Edit EHR Settings</button>
+                        <button class="btn btn-default btn-xs lock-admin-button" style="display: none;">Lock EHR Settings</button>
+                    </div>
+                    <% } %>
             </div>
         </div>
     </div>
@@ -16,9 +25,9 @@
         <div class="col-md-12">
             <div class="row">
                 <div class="setting-option option-left">Polling Interval (seconds):
-                    <input id="admin-polling-input" class='time-input' type="text" value="<%= (typeof polling !== 'undefined') ? polling : ''%>"> </div>
+                    <input id="admin-polling-input" class='time-input' type="text" value="<%= (typeof polling !== 'undefined') ? polling : '30'%>"> </div>
                 <div class="setting-option option-right">Login Inactivity Timeout (minutes):
-                    <input id="admin-timeout-input" class='time-input' type="text" value="<%= (typeof timeout !== 'undefined') ? timeout : ''%>"> </div>
+                    <input id="admin-timeout-input" class='time-input' type="text" value="<%= (typeof timeout !== 'undefined') ? timeout : '20'%>"> </div>
             </div>
         </div>
     </div>

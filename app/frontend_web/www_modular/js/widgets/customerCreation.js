@@ -30,20 +30,22 @@ define([
                     $("#add-customer-message").html("Please enter a valid number for # of licenses");
                 }
                 else {
-                    $("#add-customer-message").empty();
+                    $("#add-customer-message").html("&nbsp;");
                     $.ajax({
                         url: "/add_customer",
                         data: $.param(contextModel.toParams()) + "&name=" + name +
                             "&abbr=" + abbr + "&license=" + license + "&ituser=" + ituser +
                             "&config=" + config,
                         success: function (data, status, jqxhr) {
-			    console.log(data);
                             $("#add-customer-message").html("Customer Added!");
                             $("#customer-name-input").val("");
                             $("#customer-abbr-input").val("");
                             $("#customer-license-input").val("");
                             $("#customer-ituser-input").val("");
-			    alert(data);
+			                alert(data);
+                        },
+                        error: function(){
+                            $("#add-customer-message").html("Sorry, an error occurred");
                         }
                     });
                 }

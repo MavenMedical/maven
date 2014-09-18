@@ -20,7 +20,25 @@ define([
             //this.render();
         },
         events: {
-            'click .setup-admin-button': 'adminSetup'
+            'click .setup-admin-button': 'adminSetup',
+            'click .unlock-admin-button': 'unlockSettings',
+            'click .lock-admin-button': 'lockSettings'
+        },
+        unlockSettings: function() {
+            $("#admin-ip-input").prop("disabled",false);
+            $("#admin-name-input").prop("disabled",false);
+            $("#admin-pw-input").prop("disabled",false);
+            $("#admin-pw-input").val("");
+            $(".lock-admin-button").show();
+            $(".unlock-admin-button").hide();
+        },
+        lockSettings: function() {
+            $("#admin-ip-input").prop("disabled",true);
+            $("#admin-name-input").prop("disabled",true);
+            $("#admin-pw-input").prop("disabled",true);
+            $("#admin-pw-input").val("password");
+            $(".lock-admin-button").hide();
+            $(".unlock-admin-button").show();
         },
         adminSetup: function () {
             var ip = $("#admin-ip-input").val();
@@ -30,23 +48,38 @@ define([
             var timeout = $("#admin-timeout-input").val();
 
             var reg_num = new RegExp('^[0]*[1-9]+[0]*$');
+            /*var reg_ip = new RegExp('^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$');
+            else if (!reg_ip.test(ip))
+            {
+                $("#admin-setup-message").html("Please enter a valid IP Address");
+            }*/
             if (!reg_num.test(polling))
             {
-                $("#admin-setup-message").html("Please enter a valid number for the polling interval");
+                $("#save-admin-message").html("Please enter a valid number for the polling interval");
             }
             else if (!reg_num.test(timeout))
             {
-                $("#admin-setup-message").html("Please enter a valid number for the timeout");
+                $("#save-admin-message").html("Please enter a valid number for the timeout");
+            }
+            else if (ip == "")
+            {
+                $("#save-admin-message").html("Please enter an ip address");
+            }
+            else if (pw == "")
+            {
+                $("#save-admin-message").html("Please enter the password");
             }
             else {
-                $("#admin-setup-message").empty();
                 $.ajax({
                     url: "/setup_customer",
                     data: $.param(contextModel.toParams()) + "&ip=" + ip + "&name=" + name +
                           "&password=" + pw + "&polling=" + polling + "&timeout="+timeout,
-                    success: function () {
-                        $("#save-admin-message").html("Settings saved!");
-                    }
+                        success: function () {
+                            $("#save-admin-message").html("Settings saved!");
+                        },
+                        error: function (){
+                            alert("INVALID CONFIGURATION");
+                        }
                 });
             }
         },

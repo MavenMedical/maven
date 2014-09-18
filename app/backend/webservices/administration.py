@@ -81,13 +81,14 @@ class AdministrationWebservices():
     @http_service(['GET'], '/update_user',
                   [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.STATE, CONTEXT.TARGETUSER],
                   {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int,
-                   CONTEXT.STATE: str, CONTEXT.TARGETUSER: int},
+                   CONTEXT.STATE: str, CONTEXT.TARGETUSER: str},
                   {USER_ROLES.administrator})
     def update_user(self, _header, _body, context, _matches, _key):
-        userid = context[CONTEXT.TARGETUSER]
+        user = context[CONTEXT.TARGETUSER]
+        customer = context[CONTEXT.CUSTOMERID]
         state = context[CONTEXT.STATE]
 
-        result = yield from self.persistence.update_user(userid, state)
+        result = yield from self.persistence.update_user(user, customer, state)
         if result:
             return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
         else:

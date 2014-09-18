@@ -239,21 +239,22 @@ class WebPersistence():
                                 [officialname, displayname, user, customerid], {}, {})
 
     @asyncio.coroutine
-    def update_user(self, user, state):
-        yield from self.execute(["UPDATE users set (state) = (%s) where user_id = %s"],
-                                [state, user], {}, {})
+    def update_user(self, user, customer, state):
+        yield from self.execute(["UPDATE users set (state) = (%s) where user_name = %s and customer_id = %s"],
+                                [state, user, customer], {}, {})
 
     @asyncio.coroutine
-    def add_customer(self, name, abbr, license, license_exp):
+    def add_customer(self, name, abbr, license, license_exp, config):
         cmd = ['INSERT INTO customer (customer_id, ']
         cmdargs = []
-        cmd.append('name, abbr, license_type, license_exp')
-        cmdargs.extend([name, abbr, license, license_exp])
-        cmd.append(') VALUES(((SELECT MAX(customer_id) FROM customer) + 1),%s,%s,%s,%s)')
+        cmd.append('name, abbr, license_type, license_exp, clientapp_config')
+        cmdargs.extend([name, abbr, license, license_exp, config])
+        cmd.append(') VALUES(((SELECT MAX(customer_id) FROM customer) + 1),%s,%s,%s,%s,%s)')
         cmd.append('returning customer_id')
         ret = yield from self.execute(cmd, cmdargs, _build_format(), {0: 'customer_id'})
         return [row['customer_id'] for row in ret]
-    
+
+    @asyncio.coroutine
     def reset_password(self, user, customer):
         # NOTE: THIS IS PLACEHOLDER CODE - WILL BE ENTIRELY REPLACED
         expiration = datetime.now()
@@ -276,8 +277,9 @@ class WebPersistence():
     @asyncio.coroutine
     def setup_customer(self, customer, ip, appname, polling, timeout):
         clientapp_settings = {'ip': ip, 'appname': appname, 'polling': polling, 'timeout': timeout}
-        yield from self.execute(["UPDATE customer set clientapp_settings = %s where customer_id = %s"],
-                                [json.dumps(clientapp_settings), customer], {}, {})
+        results = yield from self.execute(["UPDATE customer set clientapp_settings = %s where customer_id = %s"],
+                                          [json.dumps(clientapp_settings), customer], {}, {})
+        return results
 
     @asyncio.coroutine
     def update_alert_setting(self, user, customer, alertid, ruleid, category, actioncomment):
