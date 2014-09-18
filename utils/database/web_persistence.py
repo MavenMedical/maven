@@ -252,7 +252,7 @@ class WebPersistence():
         cmd.append('returning customer_id')
         ret = yield from self.execute(cmd, cmdargs, _build_format(), {0: 'customer_id'})
         return [row['customer_id'] for row in ret]
-    
+
     def reset_password(self, user, customer):
         # NOTE: THIS IS PLACEHOLDER CODE - WILL BE ENTIRELY REPLACED
         expiration = datetime.now()
@@ -482,7 +482,6 @@ class WebPersistence():
         Results.license_exp: "customer.license_exp",
         Results.config: "customer.clientapp_config",
         Results.settings: "customer.clientapp_settings",
-
     }
     _display_customer_info = _build_format({
         Results.license_exp: lambda x: x and _prettify_datetime(x),
