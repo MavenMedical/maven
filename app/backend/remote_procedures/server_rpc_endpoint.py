@@ -22,7 +22,7 @@ import utils.streaming.stream_processor as SP
 from utils.enums import CONFIG_PARAMS
 
 
-class RPCHandler(SP.StreamProcessor):
+class ServerEndpoint(SP.StreamProcessor):
 
     def __init__(self, client_interface):
 
@@ -76,8 +76,12 @@ class RPCHandler(SP.StreamProcessor):
         }
         results = yield from self.persistence.customer_info(desired, limit=None)
 
-        return results
+        for result in results:
+            asyncio.Task(self.client_interface.update_customer_configuration(result['customer_id'],
+                                                                             result['config']))
+
+        return
 
     @asyncio.coroutine
-    def evaluate_composition(self, composition):
+    def evaluate_composition(self, composition, provider):
         raise NotImplementedError

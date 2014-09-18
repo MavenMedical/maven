@@ -16,7 +16,6 @@ __author__ = 'Yuki Uchino'
 # ************************
 # LAST MODIFIED FOR JIRA ISSUE: MAV-289
 # *************************************************************************
-import dateutil.parser
 from enum import Enum
 import json
 import asyncio
@@ -43,10 +42,9 @@ class Types(Enum):
 
 class CompositionBuilder(builder):
 
-    def __init__(self, configname):
+    def __init__(self, allscripts_api):
         builder.__init__(self)
-        self.config = MC.MavenConfig[configname]
-        self.allscripts_api = AHC.allscripts_api(self.config.get(CONFIG_API))
+        self.allscripts_api = allscripts_api
         self.provs = {}
         self.customer_id = MC.MavenConfig[CUSTOMERID]
 
