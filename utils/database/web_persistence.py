@@ -5,7 +5,6 @@ from decimal import Decimal
 from datetime import date, datetime
 import json
 from utils.enums import CONFIG_PARAMS, ALERT_VALIDATION_STATUS
-
 from utils.database.database import AsyncConnectionPool
 from utils.database.database import MappingUtilites as DBMapUtils
 import maven_config as MC
