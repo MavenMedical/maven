@@ -17,31 +17,14 @@ __author__ = 'Yuki Uchino'
 # LAST MODIFIED FOR JIRA ISSUE: MAV-289
 # *************************************************************************
 import asyncio
-import maven_config as MC
 import maven_logging as ML
-import clientApp.notification_generator.notification_generator as NG
-import clientApp.webservice.notification_service as NS
 import clientApp.webservice.user_sync_service as US
 import clientApp.allscripts.allscripts_scheduler as AS
-import app.backend.remote_procedures.client_app as CA
 import utils.web_client.allscripts_http_client as AHC
 
 
 CONFIG_API = 'api'
 CLIENT_SERVER_LOG = ML.get_logger('clientApp.webservice.allscripts_server')
-
-
-    def update_users(self, active_provider_list):
-        self.active_providers = active_provider_list
-
-    def check_notification_policy(self, provider, customer_id):
-        key = provider, customer_id
-        provider = self.active_providers.get(key)
-
-        if provider.get('state') == USER_STATE.ACTIVE.value and provider.get('ehr_state') == USER_STATE.ACTIVE.value and provider.get('notification_state', None) is not None:
-            return True
-        else:
-            return False
 
 
 class AllscriptsCustomerInterface:
@@ -51,34 +34,43 @@ class AllscriptsCustomerInterface:
         self.customer_id = customer_id
         self.server_interface = server_interface
         self.ahc = AHC.allscripts_api(config)
+        self.schedulertask = None
+        self.usersynctask = None
 
         # Users and User Sync Service
         # self.active_providers = {}
-        # self.user_sync_service = US.UserSyncService(CONFIG_PARAMS.EHR_USER_MGMT_SVC.value,
-        #                                             remote_procedures=remote_procedure_calls,
-        #                                             loop=loop)
+        self.user_sync_service = US.UserSyncService(self.customer_id, config,
+                                                    self.server_interface, self.ahc)
 
         # EHR API Polling Service
-        self.allscripts_scheduler = AS.scheduler(this, self.ahc, config)
+        self.allscripts_scheduler = AS.scheduler(self, self.ahc, config)
 
         # self.user_sync_service.subscribe(self.notification_users_fn)
         # self.user_sync_service.subscribe(self.allscripts_scheduler.update_active_providers)
 
     @asyncio.coroutine
     def start(self):
-        asyncio.Task(aself.allscripts_scheduler.run())
+        working = yield from self.ahc.GetServerInfo()
+        if working:
+            self.schedulertask = asyncio.Task(self.allscripts_scheduler.run())
+            self.usersynctask = asyncio.Task(self.user_sync_service.synchronize_users())
+            return True
+        else:
+            return False
+
+    @asyncio.coroutine
+    def test_and_update_config(self, config):
+        # ahc = AHC.allscripts_api(config)
+        # working = yield from ahc.GetServerInfo()
+        # if working:
+        #     self.ahc = ahc
+        #     self.schedulertask.cancel()
+        #      self.usersynctask.cancel()
+        pass
 
     @asyncio.coroutine
     def notify_user(self, user_name, msg):
         pass
 
-    def run_client_app(self):
-
-        try:
-            asyncio.Task(self.user_sync_service.synchronize_users())
-            asyncio.Task(self.allscripts_scheduler.get_updated_schedule())
-
-        except KeyboardInterrupt:
-            loop.close()
-
-
+    def update_active_providers(self, active_provider_list):
+        self.active_providers = active_provider_list
