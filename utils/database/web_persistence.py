@@ -244,6 +244,18 @@ class WebPersistence():
                                 [state, user, customer], {}, {})
 
     @asyncio.coroutine
+    def update_customer(self, customer, name, abbr, license_num, license_exp):
+        cmd = []
+        cmdargs = []
+        cmd.append("UPDATE customer set")
+        cmd.append("(name, abbr, license_type, license_exp) = (%s,%s,%s,%s)")
+        cmdargs.extend([name, abbr, license_num, license_exp])
+        cmd.append("where customer_id = %s")
+        cmdargs.append(customer)
+        ret = yield from self.execute(cmd, cmdargs, _build_format(), {0: 'customer_id'})
+        return [row['customer_id'] for row in ret]
+
+    @asyncio.coroutine
     def add_customer(self, name, abbr, license, license_exp, config):
         cmd = ['INSERT INTO customer (customer_id, ']
         cmdargs = []
@@ -278,7 +290,7 @@ class WebPersistence():
     def setup_customer(self, customer, ip, appname, polling, timeout):
         clientapp_settings = {'ip': ip, 'appname': appname, 'polling': polling, 'timeout': timeout}
         results = yield from self.execute(["UPDATE customer set clientapp_settings = %s where customer_id = %s"],
-                                          [json.dumps(clientapp_settings), customer], {}, {})
+                                          [json.dumps(clientapp_settings), customer], _build_format(), {0: 'customer_id'})
         return results
 
     @asyncio.coroutine
@@ -488,7 +500,7 @@ class WebPersistence():
     }
     _display_customer_info = _build_format({
         Results.license_exp: lambda x: x and _prettify_datetime(x),
-        Results.settings: lambda x: x and eval(x)
+        Results.settings: lambda x: x and json.loads(x)
     })
 
     @asyncio.coroutine

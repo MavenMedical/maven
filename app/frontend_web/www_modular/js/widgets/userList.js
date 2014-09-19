@@ -34,7 +34,7 @@ define([
 	    'click #save-user-changes': 'saveChanges',
     },
     saveChanges: function() {
-        that = this;
+    /*    that = this;
         $(".user-row").each(function () {
             var user_id  = $(this).find(".user-val-id").html();
             var state="disabled";
@@ -53,7 +53,7 @@ define([
                      $("#save-user-message").html("Sorry, an error occurred. Please try again later");
                 }
             });
-        });
+        });*/
     },
 	render: function() {
 	    this.$el.html(this.template(this));

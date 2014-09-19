@@ -1,15 +1,20 @@
 <td>
     <%= customer_id %>
+    <input class="customer-id-row" type="hidden" value="<%= customer_id %>">
 </td>
 <td>
-    <%= name %>
+    <div class="customer-row-val"><%= name %></div>
+    <input class="customer-name-row customer-row-edit" type="text" value="<%= name.trim() %>">
 </td>
 <td>
-    <%= abbr %>
+    <div class="customer-row-val"><%= abbr %></div>
+    <input class="customer-abbr-row customer-row-edit" type="text" value="<%= abbr %>">
 </td>
 <td>
-    <%= license_exp %>
+    <div class="customer-row-val"><%= license_exp %></div>
+    <input class="customer-license-exp-row customer-row-edit" type="text" value="<%= license_exp %>">
 </td>
 <td>
-    <%= license_type %>
+    <div class="customer-row-val"><%= license_type %></div>
+    <input class="customer-license-num-row customer-row-edit" type="text" value="<%= license_type %>">
 </td>

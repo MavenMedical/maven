@@ -57,15 +57,19 @@ class SupportWebservices():
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
     @http_service(['GET'], '/update_customer',
-                  [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.STATE, CONTEXT.TARGETUSER],
-                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int,
-                   CONTEXT.STATE: str, CONTEXT.TARGETUSER: int},
-                  {USER_ROLES.supervisor})
+                  [CONTEXT.USERID, CONTEXT.TARGETCUSTOMER, CONTEXT.NAME,
+                   CONTEXT.ABBREVIATION, CONTEXT.LICENSE, CONTEXT.LICENSEEXP],
+                  {CONTEXT.USERID: int, CONTEXT.TARGETCUSTOMER: int, CONTEXT.NAME: str,
+                   CONTEXT.ABBREVIATION: str, CONTEXT.LICENSE: int, CONTEXT.LICENSEEXP: str},
+                  {USER_ROLES.mavensupport})
     def update_customer(self, _header, _body, context, _matches, _key):
-        userid = context[CONTEXT.TARGETUSER]
-        state = context[CONTEXT.STATE]
+        customer = context[CONTEXT.TARGETCUSTOMER]
+        name = context[CONTEXT.NAME]
+        abbr = context[CONTEXT.ABBREVIATION]
+        license = context[CONTEXT.LICENSE]
+        license_exp = context[CONTEXT.LICENSEEXP]
 
-        result = yield from self.persistence.update_user(userid, state)
+        result = yield from self.persistence.update_customer(customer, name, abbr, license, license_exp)
         if result:
             return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
         else:
