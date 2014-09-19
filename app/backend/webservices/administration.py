@@ -16,7 +16,7 @@ __author__ = 'Carlos Brenneisen'
 # *************************************************************************
 # from utils.streaming.webservices_core import *
 
-from utils.enums import USER_ROLES
+from utils.enums import USER_ROLES, CONFIG_PARAMS
 import json
 import asyncio
 import utils.database.web_persistence as WP
@@ -44,11 +44,12 @@ class AdministrationWebservices():
 
         customer = context[CONTEXT.CUSTOMERID]
         clientapp_settings = {
-            'ip': body[CONTEXT.IPADDRESS],
-            'appname': body[CONTEXT.NAME],
-            'polling': body[CONTEXT.POLLING],
-            'timeout': body[CONTEXT.TIMEOUT],
-            'apppassword': body[CONTEXT.PASSWORD],
+            CONFIG_PARAMS.EHR_API_BASE_URL.value: body[CONTEXT.IPADDRESS],
+            CONFIG_PARAMS.EHR_API_APPNAME.value: body[CONTEXT.NAME],
+            CONFIG_PARAMS.EHR_API_POLLING_INTERVAL.value: body[CONTEXT.POLLING],
+            CONFIG_PARAMS.EHR_USER_TIMEOUT.value: body[CONTEXT.TIMEOUT],
+            CONFIG_PARAMS.EHR_API_PASSWORD.value: body[CONTEXT.PASSWORD],
+            CONFIG_PARAMS.EHR_USER_SYNC_DELAY.value: 60 * 60,
         }
         if self.client_interface.test_customer_configuration(customer, clientapp_settings):
             yield from self.persistence.setup_customer(customer, clientapp_settings)
