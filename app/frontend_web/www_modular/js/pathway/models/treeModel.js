@@ -89,7 +89,7 @@ define([
             this.set('tooltip', params.tooltip, {silent: true})
             this.set('children', new NodeList(), {silent: true})
             this.set('name', params.name, {silent: true})
-            this.unset('protocol', {silent: true})
+            this.set('protocol', null, {silent: true})
             this.unset('id', {silent: true})
             var that = this
             this.save({}, {success: function(){

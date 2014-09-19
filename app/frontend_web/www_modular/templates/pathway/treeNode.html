@@ -14,6 +14,7 @@
                     <%}%>
                 </div>
                 <%}%>
+                <% if (treeNode.children.length > 0||treeNode.protocol) {%>
                 <div class="btn-group btn-group-xs">
                     <button type="button" class="btn btn-default collapseButton">
                         <% if (treeNode.hideChildren=="true"){%>
@@ -23,6 +24,7 @@
                         <%}%>
                     </button>
                 </div>
+                <% } %>
             </div>
         </div>
         <!--<div style="clear: both; height:100px; width:10px;"></div> <!-- spacing, Vertical-->

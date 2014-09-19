@@ -50,12 +50,6 @@ define([
             this.set('tooltip', params.tooltip, {silent: true})
             this.set('sidePanelText', params.sidePanelText, {silent: true})
             this.set('protocol', params.protocol, {silent:true})
-
-
-
-
-
-
         },
         toJSON: function(){
             var retMap = _.omit(this.attributes, ['children', 'hideChildren'])
