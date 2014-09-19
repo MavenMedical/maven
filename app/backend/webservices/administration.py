@@ -43,8 +43,8 @@ class AdministrationWebservices():
             CONFIG_PARAMS.EHR_API_BASE_URL.value: body[CONTEXT.IPADDRESS],
             CONFIG_PARAMS.EHR_API_APPNAME.value: body[CONTEXT.NAME],
             CONFIG_PARAMS.EHR_API_POLLING_INTERVAL.value: body[CONTEXT.POLLING],
-            'timeout': body[CONTEXT.TIMEOUT],
-            CONFIG_PARAMS.EHR_API_PASSWORD: body[CONTEXT.PASSWORD],
+            CONFIG_PARAMS.EHR_USER_TIMEOUT.value: body[CONTEXT.TIMEOUT],
+            CONFIG_PARAMS.EHR_API_PASSWORD.value: body[CONTEXT.PASSWORD],
             CONFIG_PARAMS.EHR_USER_SYNC_DELAY.value: 60 * 60,
         }
         if self.client_interface.test_customer_configuration(customer, clientapp_settings):
