@@ -16,7 +16,7 @@ __author__ = 'Carlos Brenneisen'
 # *************************************************************************
 # from utils.streaming.webservices_core import *
 
-from utils.enums import USER_ROLES
+from utils.enums import USER_ROLES, CONFIG_PARAMS
 import json
 import utils.database.web_persistence as WP
 from utils.streaming.http_svcs_wrapper import http_service, CONTEXT, CONFIG_PERSISTENCE
@@ -40,18 +40,19 @@ class AdministrationWebservices():
 
         customer = context[CONTEXT.CUSTOMERID]
         clientapp_settings = {
-            'ip': body[CONTEXT.IPADDRESS],
-            'appname': body[CONTEXT.NAME],
-            'polling': body[CONTEXT.POLLING],
+            CONFIG_PARAMS.EHR_API_BASE_URL.value: body[CONTEXT.IPADDRESS],
+            CONFIG_PARAMS.EHR_API_APPNAME.value: body[CONTEXT.NAME],
+            CONFIG_PARAMS.EHR_API_POLLING_INTERVAL.value: body[CONTEXT.POLLING],
             'timeout': body[CONTEXT.TIMEOUT],
-            'apppassword': body[CONTEXT.PASSWORD],
+            CONFIG_PARAMS.EHR_API_PASSWORD: body[CONTEXT.PASSWORD],
+            CONFIG_PARAMS.EHR_USER_SYNC_DELAY.value: 60 * 60,
         }
         if self.client_interface.test_customer_configuration(customer, clientapp_settings):
             results = yield from self.persistence.setup_customer(customer, clientapp_settings)
             if results:
                 return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
         else:
-            return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
+            return HTTP.BAD_RESPONSE, json.dumps(['FALSE']), None
 
     @http_service(['GET'], '/users(?:(\d+)-(\d+)?)?',
                   [CONTEXT.CUSTOMERID],

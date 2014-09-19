@@ -136,7 +136,7 @@ def main(loop):
             SP.CONFIG_PORT: 8090,
             SP.CONFIG_ONDISCONNECT: SP.CONFIGVALUE_DISCONNECTRESTART,
         },
-        CONFIG_PARAMS.CUSTOMER_SETUP.value:
+        CONFIG_PARAMS.CUSTOMER_SETTINGS.value:
         {
             CONFIG_PARAMS.CUSTOMER_ID.value: 2,
             NG.EMR_TYPE: "allscripts",
@@ -181,11 +181,11 @@ def main(loop):
         CONFIG_PARAMS.EHR_API_COMP_BUILDER_SVC.value:
         {
             CONFIG_API: CONFIG_PARAMS.EHR_API_SVCS.value,
-            AS.CONFIG_COMPOSITIONBUILDER: CONFIG_PARAMS.CUSTOMER_SETUP.value
+            AS.CONFIG_COMPOSITIONBUILDER: CONFIG_PARAMS.CUSTOMER_SETTINGS.value
         },
         CONFIG_PARAMS.CUSTOMER_ID.value: 2,
 
-        CONFIG_PARAMS.EHR_USER_MGMT_SVC.value: {
+        CONFIG_PARAMS.EHR_USER_SYNC_DELAY.value: {
             US.CONFIG_USERSYNCSERVICE: US.CONFIG_USERSYNCSERVICE,
             US.CONFIG_SYNCDELAY: 60 * 60,
             US.CONFIG_API: CONFIG_PARAMS.EHR_API_SVCS.value
@@ -201,8 +201,8 @@ def main(loop):
     # Instantiate the (allscripts_server.py --> data_router.py) writer
     # and services and add to event loop
 
-    user_sync_service = US.UserSyncService(CONFIG_PARAMS.EHR_USER_MGMT_SVC.value, loop=loop)
-    notification_generator = NG.NotificationGenerator(CONFIG_PARAMS.CUSTOMER_SETUP.value)
+    user_sync_service = US.UserSyncService(CONFIG_PARAMS.EHR_USER_SYNC_DELAY.value, loop=loop)
+    notification_generator = NG.NotificationGenerator(CONFIG_PARAMS.CUSTOMER_SETTINGS.value)
     notification_service, notification_fn, notification_users_fn = NS.standalone_notification_server(CONFIG_PARAMS.NOTIFY_SVC.value, user_sync_svc=user_sync_service)
     user_sync_service.subscribe(notification_users_fn)
     sp_producer = IncomingFromMavenMessageHandler(incomingfrommavenmessagehandler,

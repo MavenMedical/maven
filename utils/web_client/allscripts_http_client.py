@@ -13,11 +13,6 @@ import dateutil.parser
 from utils.enums import USER_STATE, CONFIG_PARAMS
 
 ALLSCRIPTS_NUM_PARAMETERS = 6
-
-CONFIG_APPNAME = 'appname'
-CONFIG_APPUSERNAME = 'appusername'
-CONFIG_APPPASSWORD = 'apppassword'
-
 logger = ML.get_logger()
 ML.set_debug()
 
@@ -108,11 +103,11 @@ class allscripts_api(http.http_api):
           CONFIG_BASEURL, CONFIG_APPNAME, CONFIG_APPUSERNAME, CONFIG_APPPASSWORD
         it's optional parameter is CONFIG_OTHERHEADERS
         """
-        http.http_api.__init__(self, config.get(CONFIG_PARAMS.EHR_API_SVCS.value))
+        http.http_api.__init__(self, config, other_headers={"Content-Type": "application/json"})
         self.postprocess = (lambda x: list(x[0].values())[0])
-        self.appname = self.config[CONFIG_APPNAME]
-        self.appusername = self.config[CONFIG_APPUSERNAME]
-        self.apppassword = self.config[CONFIG_APPPASSWORD]
+        self.appname = self.config.get(CONFIG_PARAMS.EHR_API_APPNAME.value, "")
+        self.appusername = self.config.get(CONFIG_PARAMS.EHR_API_SVC_USER.value, "")
+        self.apppassword = self.config.get(CONFIG_PARAMS.EHR_API_PASSWORD.value, "")
         self.unitytoken = None
 
     def _build_message(self, action: str, *args: [str], user: str=None,
@@ -636,9 +631,9 @@ if __name__ == '__main__':
         http.CONFIG_OTHERHEADERS: {
             'Content-Type': 'application/json'
         },
-        CONFIG_APPNAME: 'web20',
-        CONFIG_APPUSERNAME: 'webtwozero',
-        CONFIG_APPPASSWORD: 'www!web20!',
+        CONFIG_PARAMS.EHR_API_APPNAME.value: 'web20',
+        CONFIG_PARAMS.EHR_API_SVC_USER.value: 'webtwozero',
+        CONFIG_PARAMS.EHR_API_PASSWORD.value: 'www!web20!',
     }
 
     config = {
@@ -648,9 +643,9 @@ if __name__ == '__main__':
         http.CONFIG_OTHERHEADERS: {
             'Content-Type': 'application/json'
         },
-        CONFIG_APPNAME: 'MavenPathways.TestApp',
-        CONFIG_APPUSERNAME: 'MavenPathways',
-        CONFIG_APPPASSWORD: 'MavenPathways123!!',
+        CONFIG_PARAMS.EHR_API_APPNAME.value: 'MavenPathways.TestApp',
+        CONFIG_PARAMS.EHR_API_SVC_USER.value: 'MavenPathways',
+        CONFIG_PARAMS.EHR_API_PASSWORD.value: 'MavenPathways123!!',
     }
 
     import traceback

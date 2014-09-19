@@ -21,6 +21,7 @@ import maven_logging as ML
 import clientApp.webservice.user_sync_service as US
 import clientApp.allscripts.allscripts_scheduler as AS
 import utils.web_client.allscripts_http_client as AHC
+from utils.enums import CONFIG_PARAMS
 
 
 CONFIG_API = 'api'
@@ -38,10 +39,12 @@ class AllscriptsCustomerInterface:
         self.usersynctask = None
 
         # EHR API Polling Service
-        self.allscripts_scheduler = AS.scheduler(self, self.customer_id, self.ahc, config)
+        EHR_polling_interval = config.get(CONFIG_PARAMS.EHR_API_POLLING_INTERVAL.value, 45)
+        self.allscripts_scheduler = AS.scheduler(self, self.customer_id, self.ahc, EHR_polling_interval)
 
         # Users and User Sync Service
-        self.user_sync_service = US.UserSyncService(self.customer_id, config,
+        user_sync_interval = config.get(CONFIG_PARAMS.EHR_USER_SYNC_INTERVAL.value, 60 * 60)
+        self.user_sync_service = US.UserSyncService(self.customer_id, user_sync_interval,
                                                     self.server_interface, self.ahc)
 
         # Register the EHR API Polling Service's "Refresh Active Providers" Function with the User Sync Service

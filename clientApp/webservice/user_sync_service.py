@@ -33,13 +33,13 @@ ML.set_debug()
 
 
 class UserSyncService():
-    def __init__(self, customer_id, config, server_interface, ehr_api):
-        self.config = config.get(CONFIG_PARAMS.EHR_USER_MGMT_SVC.value)
+    def __init__(self, customer_id, sync_interval, server_interface, ehr_api):
+        self.customer_id = customer_id
+        self.sync_delay = sync_interval
         self.server_interface = server_interface or Exception("No Remote Procedures Specified for ClientApp")
         self.ehr_api = ehr_api
-        self.customer_id = customer_id
-        self.sync_delay = self.config.get(CONFIG_SYNCDELAY, 60 * 60)
         self.loop = asyncio.get_event_loop()
+
         self.ehr_providers = {}
         self.maven_providers = []
         self.active_providers = {}

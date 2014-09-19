@@ -81,11 +81,12 @@ define([
 		    type: 'POST',
 		    dataType: 'json',
                     url: "/setup_customer?" + $.param(contextModel.toParams()),
-                    data: JSON.stringify({"ip": protocol + ip,
-					  "name": name,
-					  "password": pw,
-					  "polling": polling,
-					  "timeout": timeout}),
+                    data: JSON.stringify({"EHRURL": protocol + ip,
+					  "EHRAppName": name,
+                      "EHRServiceUser": username,
+					  "EHRPassword": pw,
+					  "EHRPolling": polling,
+					  "UserTimeout": timeout}),
                     success: function () {
                         $("#save-admin-message").html("Settings saved!");
                     },
