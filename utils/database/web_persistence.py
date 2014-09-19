@@ -275,8 +275,7 @@ class WebPersistence():
         yield from self.execute(cmd, cmdargs, {}, {})
 
     @asyncio.coroutine
-    def setup_customer(self, customer, ip, appname, polling, timeout):
-        clientapp_settings = {'ip': ip, 'appname': appname, 'polling': polling, 'timeout': timeout}
+    def setup_customer(self, customer, clientapp_settings):
         results = yield from self.execute(["UPDATE customer set clientapp_settings = %s where customer_id = %s"],
                                           [json.dumps(clientapp_settings), customer], {}, {})
         return results
