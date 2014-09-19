@@ -81,7 +81,24 @@ class ServerEndpoint(SP.StreamProcessor):
         for result in results:
             asyncio.Task(self.client_interface.update_customer_configuration(result['customer_id'],
                                                                              result['settings']))
+        return
 
+    @asyncio.coroutine
+    def get_customer_configuration(self, customer_id):
+
+        desired = {
+            WP.Results.customerid: 'customer_id',
+            WP.Results.name: 'name',
+            WP.Results.abbr: 'abbr',
+            WP.Results.license: 'license_type',
+            WP.Results.license_exp: 'license_exp',
+            WP.Results.settings: 'settings'
+        }
+        result = yield from self.persistence.customer_info(desired, customer=customer_id, limit=None)
+
+        if result:
+            asyncio.Task(self.client_interface.update_customer_configuration(result['customer_id'],
+                                                                             result['settings']))
         return
 
     @asyncio.coroutine

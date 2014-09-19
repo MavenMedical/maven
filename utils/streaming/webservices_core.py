@@ -36,9 +36,9 @@ def expand_base_class_methods(s, o):
 
 class WebserviceCore(HTTP.HTTPProcessor):
 
-    def __init__(self, configname):
+    def __init__(self, configname, client_interface=None):
         HTTP.HTTPProcessor.__init__(self, configname)
-
+        self.client_interface = client_interface
         self.helper = HH.HTTPHelper([CONTEXT.USER, CONTEXT.PROVIDER, CONTEXT.CUSTOMERID,
                                      CONTEXT.ROLES], CONTEXT.KEY)
 

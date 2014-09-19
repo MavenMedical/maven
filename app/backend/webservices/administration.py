@@ -48,6 +48,10 @@ class AdministrationWebservices():
         polling = context[CONTEXT.POLLING]
         timeout = context[CONTEXT.TIMEOUT]
 
+        customer_config = {}
+
+        self.client_interface.test_customer_configuration(customer, customer_config)
+
         results = yield from self.persistence.setup_customer(customer, ip, appname, polling, timeout)
 
         if results:

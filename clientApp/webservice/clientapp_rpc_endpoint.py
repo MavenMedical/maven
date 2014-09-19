@@ -45,10 +45,13 @@ class ClientAppEndpoint():
         return
 
     @asyncio.coroutine
-    def test_customer_configuration(self, customer_id):
+    def test_customer_configuration(self, customer_id, config):
         try:
-            self.customer_interfaces[customer_id].test()
-            return True
+            aci = ACI.AllscriptsCustomerInterface(customer_id, config,
+                                                  self.server_interface)
+            if aci.validate_config():
+                self.update_customer_configuration(customer_id, config)
+                return True
         except:
             return False
 
