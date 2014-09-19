@@ -57,9 +57,10 @@ define([
                 curTree.get('selectedNode').set('sidePanel', newht)
         },
         deleteNode: function(){
-            var newdesc = prompt("You are about to delete this node and ALL of its children\nDo you wish to continue?\n Type 'Y' to confirm ")
-            if (newdesc == 'Y'|| newdesc =='y' || newdesc == 'yes')
-              curTree.deleteNode(curTree.get('selectedNode'))
+            var x = true
+                if (curTree.get('selectedNode').get('children').length>0)
+                    x = confirm("You are about to delete this node and ALL of its children\nDo you wish to continue?")
+            if (x) curTree.deleteNode(curTree.get('selectedNode'))
 
         }
 

@@ -81,11 +81,12 @@ define([
                    this.render();
                })
                var that = this
-                $('#pathwayName').html(curTree.attributes.name);
                 $('.tree', that.$el).append("<div style= 'width:auto' class='nodeEl'></div>")
                 $('.tree', that.$el).append("<div style='height:60px'></div>")
 
                 var topLevel = new TriggerNode({el:$('.nodeEl', this.$el).last(), model: curTree});
+                $('#pathwayName').html(curTree.attributes.name);
+
                  _.each(curTree.elPairs, function(cur){
 
                   if((cur.source.$el.is(":visible")) && (cur.target.$el.is(":visible"))){
