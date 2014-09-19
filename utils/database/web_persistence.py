@@ -4,7 +4,7 @@ from collections import defaultdict
 from decimal import Decimal
 from datetime import date, datetime
 import json
-from utils.enums import CONFIG_PARAMS, ALERT_VALIDATION_STATUS
+from utils.enums import ALERT_VALIDATION_STATUS
 from utils.database.database import AsyncConnectionPool
 from utils.database.database import MappingUtilites as DBMapUtils
 import maven_config as MC
@@ -252,26 +252,6 @@ class WebPersistence():
         cmd.append('returning customer_id')
         ret = yield from self.execute(cmd, cmdargs, _build_format(), {0: 'customer_id'})
         return [row['customer_id'] for row in ret]
-
-    @asyncio.coroutine
-    def reset_password(self, user, customer):
-        # NOTE: THIS IS PLACEHOLDER CODE - WILL BE ENTIRELY REPLACED
-        expiration = datetime.now()
-        password = "\\x243261243034244c717a616b7864454b522e2f6b586366516454552f4f66"
-        password += "32545869694a674470574a5253733151724a624f4b6837616c3568386c36"
-
-        cmd = []
-        cmdargs = []
-
-        cmd.append("UPDATE users")
-        cmd.append("set pw=%s, pw_expiration=%s")
-        cmdargs.append(password)
-        cmdargs.append(expiration)
-        cmd.append("WHERE user_name=%s AND customer_id=%s")
-        cmdargs.append(user)
-        cmdargs.append(customer)
-
-        yield from self.execute(cmd, cmdargs, {}, {})
 
     @asyncio.coroutine
     def setup_customer(self, customer, clientapp_settings):

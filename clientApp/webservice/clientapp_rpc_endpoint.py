@@ -33,6 +33,7 @@ class ClientAppEndpoint():
         config = json.loads(config)
         if customer_id in self.customer_interfaces:
             yield from self.customer_interfaces[customer_id].test_and_update_config(config)
+            return True
         else:
             aci = ACI.AllscriptsCustomerInterface(customer_id, config,
                                                   self.server_interface)
@@ -40,9 +41,10 @@ class ClientAppEndpoint():
             if config_isValid:
                 yield from aci.start()
                 self.customer_interfaces[customer_id] = aci
+                return True
             else:
-                return False  # Need to do some error handling here/warn the IT Admin that connection wasn't successful
-        return
+                return False
+        return False
 
     @asyncio.coroutine
     def test_customer_configuration(self, customer_id, config):

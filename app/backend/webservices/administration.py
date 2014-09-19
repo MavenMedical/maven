@@ -18,16 +18,20 @@ __author__ = 'Carlos Brenneisen'
 
 from utils.enums import USER_ROLES
 import json
+import asyncio
 import utils.database.web_persistence as WP
 from utils.streaming.http_svcs_wrapper import http_service, CONTEXT, CONFIG_PERSISTENCE
+from clientApp.webservice.clientapp_rpc_endpoint import ClientAppEndpoint
 import utils.streaming.http_responder as HTTP
+import utils.crypto.authorization_key as AK
 import maven_config as MC
 date = str
 
 
 class AdministrationWebservices():
 
-    def __init__(self, configname):
+    def __init__(self, configname, rpc):
+        self.client_interface = rpc.create_client(ClientAppEndpoint)
         config = MC.MavenConfig[configname]
         self.persistence = WP.WebPersistence(config[CONFIG_PERSISTENCE])
 
@@ -86,6 +90,9 @@ class AdministrationWebservices():
         customer = context[CONTEXT.CUSTOMERID]
         state = context[CONTEXT.STATE]
 
+        if state == 'active':
+            asyncio.Task(self.notify_user_reset_password(customer, user))
+
         result = yield from self.persistence.update_user(user, customer, state)
         if result:
             return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
@@ -98,26 +105,16 @@ class AdministrationWebservices():
                    CONTEXT.TARGETCUSTOMER: int, CONTEXT.TARGETUSER: str},
                   {USER_ROLES.administrator, USER_ROLES.mavensupport})
     def reset_password(self, _header, _body, context, _matches, _key):
-        user = None
-        customer = None
-
-        if (USER_ROLES.administrator.name in context[CONTEXT.ROLES] or
-                USER_ROLES.mavensupport.name in context[CONTEXT.ROLES]):
-            user = context.get(CONTEXT.TARGETUSER, None)
+        user = context[CONTEXT.TARGETUSER]
 
         if USER_ROLES.mavensupport.name in context[CONTEXT.ROLES]:
-            customer = context.get(CONTEXT.TARGETCUSTOMER, None)
-
-        if not user:
-            user = context[CONTEXT.USER]
-        if not customer:
+            customer = context[CONTEXT.TARGETCUSTOMER]
+        else:
             customer = context[CONTEXT.CUSTOMERID]
 
-        result = yield from self.persistence.reset_password(user, customer)
-        if result:
-            return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
-        else:
-            return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
+        asyncio.Task(self.notify_user_reset_password(customer, user))
+
+        return HTTP.OK_RESPONSE, b'', None
 
     @http_service(['GET'], '/customer_info',
                   [CONTEXT.CUSTOMERID],
@@ -136,3 +133,10 @@ class AdministrationWebservices():
         results = yield from self.persistence.customer_info(desired, customerid)
 
         return HTTP.OK_RESPONSE, json.dumps(results[0]), None
+
+    @asyncio.coroutine
+    def notify_user_reset_password(self, customer, username):
+        ak = AK.authorization_key([username, str(customer)], 44, 365 * 24 * 60 * 60)
+        loginstr = '%s#password/newPassword/%s/%s/%s' % (MC.http_addr, username, customer, ak)
+        print(loginstr)
+        yield from self.client_interface.notify_user(customer, username, loginstr)

@@ -21,6 +21,7 @@ import asyncio
 import utils.database.web_persistence as WP
 from utils.streaming.http_svcs_wrapper import http_service, CONTEXT, CONFIG_PERSISTENCE
 import utils.streaming.http_responder as HTTP
+from clientApp.webservice.clientapp_rpc_endpoint import ClientAppEndpoint
 import maven_config as MC
 import csv
 date = str
@@ -28,7 +29,8 @@ date = str
 
 class UserMgmtWebservices():
 
-    def __init__(self, configname):
+    def __init__(self, configname, rpc):
+        self.client_interface = rpc.create_client(ClientAppEndpoint)
         config = MC.MavenConfig[configname]
         self.persistence = WP.WebPersistence(config[CONFIG_PERSISTENCE])
 
@@ -141,7 +143,7 @@ class UserMgmtWebservices():
                    CONTEXT.OFFICIALNAME: str, CONTEXT.DISPLAYNAME: str},
                   None)
     def save_user_settings(self, _header, _body, context, _matches, _key):
-        userid = context[CONTEXT.USER]
+        user = context[CONTEXT.USER]
         officialname = context[CONTEXT.OFFICIALNAME]
         displayname = context[CONTEXT.DISPLAYNAME]
 

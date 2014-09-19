@@ -196,8 +196,8 @@ def main(loop):
               UserMgmtWebservices, SearchWebservices,
               TransparentWebservices, PathwaysWebservices,
               AdministrationWebservices, SupportWebservices]:
-        print(c)
-        core_scvs.register_services(c('httpserver'))
+        core_scvs.register_services(c('httpserver', rpc))
+    core_scvs.schedule(loop)
 
     try:
         loop.run_forever()
