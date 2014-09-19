@@ -234,12 +234,12 @@ class WebPersistence():
     @asyncio.coroutine
     def save_user_settings(self, user, customerid, officialname, displayname):
         yield from self.execute(["UPDATE users set (official_name, display_name) " +
-                                 "= (%s, %s) where user_name = %s and customer_id = %s"],
+                                 "= (%s, %s) where user_name = UPPER(%s) and customer_id = %s"],
                                 [officialname, displayname, user, customerid], {}, {})
 
     @asyncio.coroutine
     def update_user(self, user, customer, state):
-        yield from self.execute(["UPDATE users set (state) = (%s) where user_name = %s and customer_id = %s"],
+        yield from self.execute(["UPDATE users set (state) = (%s) where user_name = UPPER(%s) and customer_id = %s"],
                                 [state, user, customer], {}, {})
 
     @asyncio.coroutine
@@ -310,7 +310,7 @@ class WebPersistence():
                    new_provider_dict.get('layouts', [])]
         cmd = []
         cmd.append("INSERT INTO users (" + columns + ")")
-        cmd.append("VALUES (%s, %s, %s, %s, %s, %s, %s, %s::user_role[], %s)")
+        cmd.append("VALUES (%s, %s, UPPER(%s), %s, %s, %s, %s, %s::user_role[], %s)")
         yield from self.execute(cmd, cmdargs, {}, {})
 
         if not new_provider_dict.get('prov_id', None):
@@ -348,7 +348,7 @@ class WebPersistence():
     @asyncio.coroutine
     def record_login(self, username, method, ip, authkey):
         yield from self.execute(["INSERT INTO logins (user_name, method, logintime, ip, authkey)" +
-                                 "VALUES (%s, %s, now(), %s, %s)"],
+                                 "VALUES (UPPER(%s), %s, now(), %s, %s)"],
                                 [username, method, ip, authkey], {}, {})
 
     _default_pre_login = set((Results.username,))
@@ -383,7 +383,7 @@ class WebPersistence():
         cmd.append("FROM users WHERE customer_id = %s")
         cmdargs.append(customer)
         if username:
-            cmd.append(" AND users.user_name = %s")
+            cmd.append(" AND users.user_name = UPPER(%s)")
             cmdargs.append(username)
         else:
             cmd.append(" AND users.prov_id = %s AND users.customer_id = %s")
@@ -467,9 +467,6 @@ class WebPersistence():
     _display_customer_info = _build_format({
         Results.license_exp: lambda x: x and _prettify_datetime(x)
     })
-    # Results.settings: lambda x: x and eval(x)
-    # @Tom, @Carlos --> this broke the ability to return the records from the database. Not sure why, and
-    # didn't investigate b/c I wasn't sure why we needed it.
 
     @asyncio.coroutine
     def customer_info(self, desired, customer=None, limit=""):
