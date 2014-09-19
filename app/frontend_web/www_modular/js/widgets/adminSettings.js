@@ -20,7 +20,31 @@ define([
             //this.render();
         },
         events: {
-            'click .setup-admin-button': 'adminSetup'
+            'click .setup-admin-button': 'adminSetup',
+            'click .unlock-admin-button': 'unlockSettings',
+            'click .lock-admin-button': 'lockSettings',
+	    'change #httphttps': 'httphttps'
+        },
+	httphttps: function() {
+	    if($("#httphttps").find(":selected").text() == 'http://') {
+		alert('Http connections are inherently insecure and must not be used with operational systems.  This option is only for test, or demo systems without any ePHI only.');
+	    }
+	},
+        unlockSettings: function() {
+            $("#admin-ip-input").prop("disabled",false);
+            $("#admin-name-input").prop("disabled",false);
+            $("#admin-pw-input").prop("disabled",false);
+            $("#admin-pw-input").val("");
+            $(".lock-admin-button").show();
+            $(".unlock-admin-button").hide();
+        },
+        lockSettings: function() {
+            $("#admin-ip-input").prop("disabled",true);
+            $("#admin-name-input").prop("disabled",true);
+            $("#admin-pw-input").prop("disabled",true);
+            $("#admin-pw-input").val("password");
+            $(".lock-admin-button").hide();
+            $(".unlock-admin-button").show();
         },
         adminSetup: function () {
             var ip = $("#admin-ip-input").val();
@@ -30,22 +54,43 @@ define([
             var timeout = $("#admin-timeout-input").val();
 
             var reg_num = new RegExp('^[0]*[1-9]+[0]*$');
+            /*var reg_ip = new RegExp('^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$');
+            else if (!reg_ip.test(ip))
+            {
+                $("#admin-setup-message").html("Please enter a valid IP Address");
+            }*/
             if (!reg_num.test(polling))
             {
-                $("#admin-setup-message").html("Please enter a valid number for the polling interval");
+                $("#save-admin-message").html("Please enter a valid number for the polling interval");
             }
             else if (!reg_num.test(timeout))
             {
-                $("#admin-setup-message").html("Please enter a valid number for the timeout");
+                $("#save-admin-message").html("Please enter a valid number for the timeout");
+            }
+            else if (ip == "")
+            {
+                $("#save-admin-message").html("Please enter an ip address");
+            }
+            else if (pw == "")
+            {
+                $("#save-admin-message").html("Please enter the password");
             }
             else {
-                $("#admin-setup-message").empty();
+		var protocol = $("#httphttps").find(":selected").text();
                 $.ajax({
-                    url: "/setup_customer",
-                    data: $.param(contextModel.toParams()) + "&ip=" + ip + "&name=" + name +
-                          "&password=" + pw + "&polling=" + polling + "&timeout="+timeout,
+		    type: 'POST',
+		    dataType: 'json',
+                    url: "/setup_customer?" + $.param(contextModel.toParams()),
+                    data: JSON.stringify({"ip": protocol + ip,
+					  "name": name,
+					  "password": pw,
+					  "polling": polling,
+					  "timeout": timeout}),
                     success: function () {
                         $("#save-admin-message").html("Settings saved!");
+                    },
+                    error: function (){
+                        alert("The server could not successfully connect using this configuration.");
                     }
                 });
             }

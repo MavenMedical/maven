@@ -44,7 +44,25 @@ define([
                         data: $.param(contextModel.toParams()) + "&target_user=" + that.model.get("user_name") +
                             "&target_customer=" + that.model.get("customer_id"),
                         success: function () {
-                            $("#save-admin-message").html("Settings saved!");
+                            $("#save-admin-message").html("Password Reset!");
+                        }
+                    });
+                });
+
+                $(that.el).find(".user-state").click(function(event) {
+                    var state = "disabled";
+                    if ($(event.target).is(':checked')) {
+                        state = "active";
+                    }
+                    $.ajax({
+                        url: "/update_user",
+                        data: $.param(contextModel.toParams()) + "&target_user=" + that.model.get("user_name") +
+                            "&target_customer=" + that.model.get("customer_id")+ "&state=" + state,
+                        success: function () {
+                            $("#save-user-message").html("User Updated!");
+                        },
+                        error: function () {
+                            $("#save-user-message").html("Sorry, an error occurred. Please try again later");
                         }
                     });
                 });

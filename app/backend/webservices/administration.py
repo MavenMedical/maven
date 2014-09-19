@@ -18,7 +18,6 @@ __author__ = 'Carlos Brenneisen'
 
 from utils.enums import USER_ROLES
 import json
-import asyncio
 import utils.database.web_persistence as WP
 from utils.streaming.http_svcs_wrapper import http_service, CONTEXT, CONFIG_PERSISTENCE
 import utils.streaming.http_responder as HTTP
@@ -32,30 +31,25 @@ class AdministrationWebservices():
         config = MC.MavenConfig[configname]
         self.persistence = WP.WebPersistence(config[CONFIG_PERSISTENCE])
 
-    @http_service(['GET'], '/setup_customer',
-                  [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.IPADDRESS,
-                   CONTEXT.NAME, CONTEXT.PASSWORD, CONTEXT.TIMEOUT,
-                   CONTEXT.POLLING],
-                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int,
-                   CONTEXT.NAME: str, CONTEXT.IPADDRESS: str,
-                   CONTEXT.PASSWORD: str, CONTEXT.TIMEOUT: int,
-                   CONTEXT.POLLING: int},
+    @http_service(['POST'], '/setup_customer',
+                  [CONTEXT.USER, CONTEXT.CUSTOMERID],
+                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int},
                   {USER_ROLES.administrator})
-    def setup_customer(self, _header, _body, context, _matches, _key):
+    def setup_customer(self, _header, body, context, _matches, _key):
+        body = json.loads(body.decode('utf-8'))
+
         customer = context[CONTEXT.CUSTOMERID]
-        ip = context[CONTEXT.IPADDRESS]
-        appname = context[CONTEXT.NAME]
-        polling = context[CONTEXT.POLLING]
-        timeout = context[CONTEXT.TIMEOUT]
-
-        customer_config = {}
-
-        self.client_interface.test_customer_configuration(customer, customer_config)
-
-        results = yield from self.persistence.setup_customer(customer, ip, appname, polling, timeout)
-
-        if results:
-            return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
+        clientapp_settings = {
+            'ip': body[CONTEXT.IPADDRESS],
+            'appname': body[CONTEXT.NAME],
+            'polling': body[CONTEXT.POLLING],
+            'timeout': body[CONTEXT.TIMEOUT],
+            'apppassword': body[CONTEXT.PASSWORD],
+        }
+        if self.client_interface.test_customer_configuration(customer, clientapp_settings):
+            results = yield from self.persistence.setup_customer(customer, clientapp_settings)
+            if results:
+                return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
         else:
             return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
 
@@ -85,13 +79,14 @@ class AdministrationWebservices():
     @http_service(['GET'], '/update_user',
                   [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.STATE, CONTEXT.TARGETUSER],
                   {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int,
-                   CONTEXT.STATE: str, CONTEXT.TARGETUSER: int},
+                   CONTEXT.STATE: str, CONTEXT.TARGETUSER: str},
                   {USER_ROLES.administrator})
     def update_user(self, _header, _body, context, _matches, _key):
-        userid = context[CONTEXT.TARGETUSER]
+        user = context[CONTEXT.TARGETUSER]
+        customer = context[CONTEXT.CUSTOMERID]
         state = context[CONTEXT.STATE]
 
-        result = yield from self.persistence.update_user(userid, state)
+        result = yield from self.persistence.update_user(user, customer, state)
         if result:
             return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
         else:

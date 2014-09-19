@@ -72,9 +72,9 @@ class SupportWebservices():
             return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
 
     @http_service(['GET'], '/add_customer',
-                  [CONTEXT.USER, CONTEXT.NAME, CONTEXT.ITUSER,
+                  [CONTEXT.USERID, CONTEXT.NAME, CONTEXT.ITUSER,
                    CONTEXT.ABBREVIATION, CONTEXT.LICENSE, CONTEXT.CONFIG],
-                  {CONTEXT.USER: str, CONTEXT.LICENSE: int, CONTEXT.ITUSER: str,
+                  {CONTEXT.USERID: int, CONTEXT.LICENSE: int, CONTEXT.ITUSER: str,
                    CONTEXT.NAME: str, CONTEXT.ABBREVIATION: str, CONTEXT.CONFIG: str},
                   {USER_ROLES.mavensupport})
     def add_customer(self, _header, _body, context, _matches, _key):
