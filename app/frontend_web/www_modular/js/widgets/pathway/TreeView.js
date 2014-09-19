@@ -85,8 +85,11 @@ define([
                 $('.tree', that.$el).append("<div style='height:60px'></div>")
 
                 var topLevel = new TriggerNode({el:$('.nodeEl', this.$el).last(), model: curTree});
-                $('#pathwayName').html(curTree.attributes.name);
-
+                if (contextModel.get('page') == 'pathEditor')
+                     $('#pathwayName').html("Now Editing Pathway: " + curTree.attributes.name);
+               else {
+                    $('#pathwayName').html("")
+                }
                  _.each(curTree.elPairs, function(cur){
 
                   if((cur.source.$el.is(":visible")) && (cur.target.$el.is(":visible"))){
