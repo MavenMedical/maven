@@ -17,7 +17,24 @@ define([
                 }
         })
     }
-
+    var hideSiblingsRecur = function(me, toHide){
+        var flag = false;
+        var tar = me.get('children').models.indexOf(toHide)
+                        console.log("the parent is", me, "tar is", tar)
+                        console.log("to delete is", toHide)
+        for (var i in me.get('children').models){
+                if (tar != - 1){
+                     if (i != tar){
+                        console.log(me.get('children').models[i])
+                        me.get('children').models[i].set('hideChildren', "true")
+                     }
+                     flag = true;
+                }
+                else {
+                    hideSiblingsRecur(me.get('children').models[i], toHide)
+                }
+        }
+    }
     var TreeModel = Backbone.Model.extend({
         elPairs: [],
         url: function() {
@@ -44,7 +61,9 @@ define([
 
 
         },
-
+        hideSiblings: function(toHide){
+            hideSiblingsRecur(this, toHide)
+        },
         deleteNode: function(toDelete){
             var that = this
                 _.each(this.get('children').models, function(cur){
