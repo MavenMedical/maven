@@ -51,11 +51,10 @@ class AdministrationWebservices():
             'apppassword': body[CONTEXT.PASSWORD],
         }
         if self.client_interface.test_customer_configuration(customer, clientapp_settings):
-            results = yield from self.persistence.setup_customer(customer, clientapp_settings)
-            if results:
-                return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
+            yield from self.persistence.setup_customer(customer, clientapp_settings)
+            return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
         else:
-            return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
+            return HTTP.BAD_RESPONSE, json.dumps(['FALSE']), None
 
     @http_service(['GET'], '/users(?:(\d+)-(\d+)?)?',
                   [CONTEXT.CUSTOMERID],
@@ -114,7 +113,7 @@ class AdministrationWebservices():
 
         asyncio.Task(self.notify_user_reset_password(customer, user))
 
-        return HTTP.OK_RESPONSE, b'', None
+        return HTTP.OK_RESPONSE, json.dumps(''), None
 
     @http_service(['GET'], '/customer_info',
                   [CONTEXT.CUSTOMERID],

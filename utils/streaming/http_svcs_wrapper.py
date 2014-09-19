@@ -67,14 +67,14 @@ def http_service(methods, url, required, available, roles):
         @asyncio.coroutine
         @wraps(func)
         def worker(self, header, body, qs, matches, key):
-
+            cofunc = asyncio.coroutine(func)
             # the UI sends a list 'roles' as 'roles[]', so we adjust that here
             if roles and not roles.intersection(qs.get(CONTEXT.ROLES + '[]', set())):
                 return HTTP.UNAUTHORIZED_RESPONSE, b'', None
             context = qs
             if required or available:
                 context = self.helper.restrict_context(qs, required, available)
-            res = yield from func(self, header, body, context, matches, key)
+            res = yield from cofunc(self, header, body, context, matches, key)
             return res
 
         # Adding the function attribute gives us the ability to filter on hasattr()
