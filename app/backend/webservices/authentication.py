@@ -23,6 +23,7 @@ import utils.database.web_persistence as WP
 from utils.streaming.http_svcs_wrapper import http_service, CONTEXT, CONFIG_PERSISTENCE
 import utils.streaming.http_responder as HTTP
 import maven_config as MC
+import maven_logging as ML
 
 AUTH_LENGTH = 44  # 44 base 64 encoded bits gives the entire 256 bites of SHA2 hash
 LOGIN_TIMEOUT = 60 * 60  # 1 hour
@@ -102,7 +103,8 @@ class AuthenticationWebservices():
                 auth = info.get('userAuth', None) or info.get(CONFIG_OAUTH, None)
                 try:  # this means that the password was a pre-authenticated link
                     AK.check_authorization(attempted, auth, AUTH_LENGTH)
-                except AK.UnauthorizedException:
+                except AK.UnauthorizedException as e:
+                    ML.DEBUG('forward login failed for %s: %s' % (attempted, e))
                     raise LoginError('badLogin')
                 user_info = yield from self.persistence.pre_login(desired,
                                                                   customer,

@@ -54,12 +54,12 @@ def _authorization_key(sha, data, length=44, timeout=None, timecode=None):
 
 def check_authorization(data, auth, length=44):
     if len(auth) < length:
-        raise UnauthorizedException('User is not logged in.')  # this is an invalid auth key?
+        raise UnauthorizedException('Authkey length too short.')
 
     if len(auth) > length:
         # a timeout is added, should be 8 bytes
         if not len(auth) == 8 + length:
-            raise UnauthorizedException('User is not logged in.')  # this is an invalid auth key?
+            raise UnauthorizedException('Authkey length not the right length.')
 
         auth_time = auth[:8]
         auth_key = auth[8:]
@@ -72,4 +72,4 @@ def check_authorization(data, auth, length=44):
 
     # make sure the user's auth key is valid
     if not authorization_key(data, length) == auth_key:
-        raise UnauthorizedException('User is not logged in.')  # this is an invalid auth key?
+        raise UnauthorizedException('Authkey did not match data: ' + str(data))
