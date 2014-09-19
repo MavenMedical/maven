@@ -6,10 +6,15 @@ define([
     'backbone',    // lib/backbone/backbone
     'globalmodels/contextModel',
     'pathway/models/treeModel',
+    'pathway/modalViews/editNode',
+    'pathway/modalViews/newPathway',
+    'pathway/modalViews/detailEditor',
+    'pathway/modalViews/nodeEditor',
+    'pathway/modalViews/protocolEditor',
     'pathway/modalViews/sidePanelEditor',
     'text!templates/pathway/treeNodeActionSet.html'
 
-], function ($, _, Backbone, contextModel, curTree, sidePanelEditor, treeNodeActionSetTemplate) {
+], function ($, _, Backbone, contextModel, curTree, editNode, NewPathway, DetailEditor, nodeModal,protocolModal, sidePanelEditor, treeNodeActionSetTemplate) {
 
 
     var treeNodeActionSet = Backbone.View.extend({
@@ -33,9 +38,11 @@ define([
             new sidePanelEditor()
         },
         editName: function(){
+            new editNode();
+           /* console.log('tree', curTree.get('selectedNode').attributes.triggers);
             var newname = prompt("Enter the new title")
             if (newname)
-                curTree.get('selectedNode').set('name', newname)
+                curTree.get('selectedNode').set('name', newname)*/
         },
 
         editDescription: function(){

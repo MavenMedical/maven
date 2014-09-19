@@ -75,7 +75,7 @@ define([
                 })
             this.trigger('propagate')
         },
-        getType: function(){
+        getNodeType: function(){
           return "treeModel"
         },
         toJSON: function(){
