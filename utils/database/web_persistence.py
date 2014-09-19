@@ -235,12 +235,12 @@ class WebPersistence():
     @asyncio.coroutine
     def save_user_settings(self, user, customerid, officialname, displayname):
         yield from self.execute(["UPDATE users set (official_name, display_name) " +
-                                 "= (%s, %s) where user_name = %s and customer_id = %s"],
+                                 "= (%s, %s) where user_name = UPPER(%s) and customer_id = %s"],
                                 [officialname, displayname, user, customerid], {}, {})
 
     @asyncio.coroutine
     def update_user(self, user, customer, state):
-        yield from self.execute(["UPDATE users set (state) = (%s) where user_name = %s and customer_id = %s"],
+        yield from self.execute(["UPDATE users set (state) = (%s) where user_name = UPPER(%s) and customer_id = %s"],
                                 [state, user, customer], {}, {})
 
     @asyncio.coroutine
@@ -280,15 +280,14 @@ class WebPersistence():
         cmd.append("set pw=%s, pw_expiration=%s")
         cmdargs.append(password)
         cmdargs.append(expiration)
-        cmd.append("WHERE user_name=%s AND customer_id=%s")
+        cmd.append("WHERE user_name=UPPER(%s) AND customer_id=%s")
         cmdargs.append(user)
         cmdargs.append(customer)
 
         yield from self.execute(cmd, cmdargs, {}, {})
 
     @asyncio.coroutine
-    def setup_customer(self, customer, ip, appname, polling, timeout):
-        clientapp_settings = {'ip': ip, 'appname': appname, 'polling': polling, 'timeout': timeout}
+    def setup_customer(self, customer, clientapp_settings):
         results = yield from self.execute(["UPDATE customer set clientapp_settings = %s where customer_id = %s"],
                                           [json.dumps(clientapp_settings), customer], _build_format(), {0: 'customer_id'})
         return results
@@ -344,7 +343,7 @@ class WebPersistence():
                    new_provider_dict.get('layouts', [])]
         cmd = []
         cmd.append("INSERT INTO users (" + columns + ")")
-        cmd.append("VALUES (%s, %s, %s, %s, %s, %s, %s, %s::user_role[], %s)")
+        cmd.append("VALUES (%s, %s, UPPER(%s), %s, %s, %s, %s, %s::user_role[], %s)")
         yield from self.execute(cmd, cmdargs, {}, {})
 
         if not new_provider_dict.get('prov_id', None):
@@ -382,7 +381,7 @@ class WebPersistence():
     @asyncio.coroutine
     def record_login(self, username, method, ip, authkey):
         yield from self.execute(["INSERT INTO logins (user_name, method, logintime, ip, authkey)" +
-                                 "VALUES (%s, %s, now(), %s, %s)"],
+                                 "VALUES (UPPER(%s), %s, now(), %s, %s)"],
                                 [username, method, ip, authkey], {}, {})
 
     _default_pre_login = set((Results.username,))
@@ -417,7 +416,7 @@ class WebPersistence():
         cmd.append("FROM users WHERE customer_id = %s")
         cmdargs.append(customer)
         if username:
-            cmd.append(" AND users.user_name = %s")
+            cmd.append(" AND users.user_name = UPPER(%s)")
             cmdargs.append(username)
         else:
             cmd.append(" AND users.prov_id = %s AND users.customer_id = %s")

@@ -22,8 +22,14 @@ define([
         events: {
             'click .setup-admin-button': 'adminSetup',
             'click .unlock-admin-button': 'unlockSettings',
-            'click .lock-admin-button': 'lockSettings'
+            'click .lock-admin-button': 'lockSettings',
+	    'change #httphttps': 'httphttps'
         },
+	httphttps: function() {
+	    if($("#httphttps").find(":selected").text() == 'http://') {
+		alert('Http connections are inherently insecure and must not be used with operational systems.  This option is only for test, or demo systems without any ePHI only.');
+	    }
+	},
         unlockSettings: function() {
             $("#admin-ip-input").prop("disabled",false);
             $("#admin-name-input").prop("disabled",false);
@@ -70,16 +76,22 @@ define([
                 $("#save-admin-message").html("Please enter the password");
             }
             else {
+		var protocol = $("#httphttps").find(":selected").text();
                 $.ajax({
-                    url: "/setup_customer",
-                    data: $.param(contextModel.toParams()) + "&ip=" + ip + "&name=" + name +
-                          "&password=" + pw + "&polling=" + polling + "&timeout="+timeout,
-                        success: function () {
-                            $("#save-admin-message").html("Settings saved!");
-                        },
-                        error: function (){
-                            alert("INVALID CONFIGURATION");
-                        }
+		    type: 'POST',
+		    dataType: 'json',
+                    url: "/setup_customer?" + $.param(contextModel.toParams()),
+                    data: JSON.stringify({"ip": protocol + ip,
+					  "name": name,
+					  "password": pw,
+					  "polling": polling,
+					  "timeout": timeout}),
+                    success: function () {
+                        $("#save-admin-message").html("Settings saved!");
+                    },
+                    error: function (){
+                        alert("The server could not successfully connect using this configuration.");
+                    }
                 });
             }
         },
