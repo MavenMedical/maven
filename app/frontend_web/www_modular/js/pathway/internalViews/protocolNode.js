@@ -4,10 +4,10 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'globalmodels/contextModel',
-
+    'pathway/models/treeModel',
     'text!templates/pathway/protocolNode.html',
 
-], function ($, _, Backbone, currentContext, nodeTemplate) {
+], function ($, _, Backbone, currentContext, curTree, nodeTemplate) {
 
     var treeNode = Backbone.View.extend({
 
@@ -37,6 +37,12 @@ define([
             } else {
                 this.$el.html(this.template({protocolNode: this.model.get('protocol'), page: currentContext.get('page')}));
             }
+            var that = this;
+                this.$el.off('click')
+                this.$el.on('click', function(){
+                    curTree.set('selectedNode', that.model.get('protocol'), {silent: true})
+                    curTree.trigger('propagate')
+                })
 
             return this
         },

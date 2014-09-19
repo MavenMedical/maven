@@ -10,7 +10,7 @@ define([
 
 ], function ($, _, Backbone, NodeModel, nodeTemplate) {
 
-    var savingModal = Backbone.View.extend({
+    var protocolModal = Backbone.View.extend({
         template: _.template(nodeTemplate),
         el: $("#modal-target"),
         initialize: function(parent){
@@ -30,5 +30,5 @@ define([
         }
 
     });
-    return savingModal
+    return protocolModal
 });

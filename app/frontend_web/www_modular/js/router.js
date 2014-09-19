@@ -91,7 +91,6 @@ define([
         },
         showHome: function (user, customer, userAuth) {
             /* remove the current patient list, encounter, etc to revert the view to the doctor's user page */
-            console.log(currentContext);
             currentContext.set({page: 'home', patients: null, encounter: null, patientName: null});
 
             //TODO This is only for Demo purpose
