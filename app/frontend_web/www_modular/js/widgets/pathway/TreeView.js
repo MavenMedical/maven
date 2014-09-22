@@ -25,11 +25,11 @@ define([
                         lineWidth: 2,
                         strokeStyle: '#ccc'
                     },
-                    HoverPaintStyle: {
-                        lineWidth: 3,
-                        strokeStyle: '#61B7CF'
-                    },
-                    DragOptions: {cursor: "crosshair" },
+                    HoverPaintStyle :  {
+                         lineWidth: 7,
+                         strokeStyle: '#61B7CF'
+                    }
+
                 })
 
                 this.treeEl = $('.tree', this.$el)
@@ -87,28 +87,40 @@ define([
                 else {
                     $('#pathwayName').html("")
                 }
-                _.each(curTree.elPairs, function (cur) {
+                 _.each(curTree.elPairs, function(cur){
 
-                    if ((cur.source.$el.is(":visible")) && (cur.target.$el.is(":visible"))) {
-                        var a = cur.source.makeExit(that.plumb)
-                        var b = cur.target.makeEntrance(that.plumb)
-                        that.plumb.connect({
-                            source: a,
-                            target: b,
-                        })
-                    }
+                  if((cur.source.$el.is(":visible")) && (cur.target.$el.is(":visible"))){
+
+                       var a = cur.source.makeExit(that.plumb)
+                       var b = cur.target.makeEntrance(that.plumb)
+                      if (cur.bold){
+                          that.plumb.connect({
+                               source: a,
+                               target: b,
+                                paintStyle:  {
+                                         lineWidth: 6,
+                                         strokeStyle: '#ccc'
+                                },
+                           })
+                      } else {
+                          that.plumb.connect({
+                               source: a,
+                               target: b
+                          })
+                      }
+                  }
                 })
 
                 contextModel.trigger('rendered')
 
             },
 
-            drawNodes: function () {
+            drawNodes: function(){
 
 
             },
 
-            saveTreeFunction: function () {
+            saveTreeFunction: function(){
                 curTree.save()
             }
 

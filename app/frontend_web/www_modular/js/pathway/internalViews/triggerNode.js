@@ -77,7 +77,7 @@ define([
                 $('.collapseButton', this.$el).first().off('click')
                 $('.collapseButton', this.$el).first().on('click', function(){
                        if (that.model.get('hideChildren') == "false"){
-                           that.model.set('hideChildren', "true")
+                           curTree.collapse()
                        } else{
                             that.model.set('hideChildren', "false")
                        }
@@ -105,7 +105,9 @@ define([
                     $('.children2', this.$el).first().append("<div class='childSpot'></div>")
                     var targ = $('.childSpot',$('.children2', this.$el).first()).last()
                     var thisChild = new TreeNode({model: cur, el:targ})
-                    curTree.elPairs.push({source: this, target: thisChild})
+                    console.log("whattt?", cur)
+                     var n =  (cur.get('hideChildren') == "false")
+                    curTree.elPairs.push({source: this, target: thisChild, bold: n})
                 }, this)
 
                 if (this.model.get('hideChildren')=="true"){
