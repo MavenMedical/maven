@@ -267,9 +267,8 @@ class WebPersistence():
 
     @asyncio.coroutine
     def setup_customer(self, customer, clientapp_settings):
-        results = yield from self.execute(["UPDATE customer set clientapp_settings = %s where customer_id = %s"],
-                                          [json.dumps(clientapp_settings), customer], {}, {})
-        return results
+        yield from self.execute(["UPDATE customer set clientapp_settings = %s where customer_id = %s"],
+                                [json.dumps(clientapp_settings), customer], {}, {})
 
     @asyncio.coroutine
     def update_alert_setting(self, user, customer, alertid, ruleid, category, actioncomment):
