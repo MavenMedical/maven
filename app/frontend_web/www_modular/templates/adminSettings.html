@@ -3,15 +3,16 @@
     <div class="panel-body admin-settings">
         <div class="col-md-12">
             <div class="row">
-                <div class="setting-option option-left">Unity Server Address:<br>
+                <div class="setting-option col-sm-6">Unity Server Address:<br>
                     <div style='float:left'>
-                      <select id='httphttps'>
-                        <option value='https://'>https://</option>
-                        <option value='http://'>http://</option>
+                      <select id='httphttps' <%= (typeof ip !== 'undefined') ? 'disabled': '' %>>
+                        <option value='https://' <%= (typeof ip !== 'undefined') ? (ip.indexOf("https://") > -1) ? 'selected' : '' : ''%>>https://</option>
+                        <option value='http://' <%= (typeof ip !== 'undefined') ? (ip.indexOf("https://") == -1) ? 'selected' : '' : '' %>>http://</option>
                       </select>
                     </div>
                     <div style='float:left'>
-                      <input id="admin-ip-input" type="text" <%= (typeof ip !== 'undefined') ? "value='"+ip+"' disabled" : '' %>>
+                      <input id="admin-ip-input" type="text"
+                        <%= (typeof ip !== 'undefined') ? "value='"+ip.replace("http://","").replace("https://","")+"' disabled" : '' %>>
                     </div>
                     <div style='float:left'>/Unity/UnityService.svc</div>
                 </div>

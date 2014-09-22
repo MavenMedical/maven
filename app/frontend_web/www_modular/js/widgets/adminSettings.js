@@ -34,6 +34,8 @@ define([
             $("#admin-ip-input").prop("disabled",false);
             $("#admin-name-input").prop("disabled",false);
             $("#admin-pw-input").prop("disabled",false);
+            $("#httphttps").prop("disabled",false);
+
             $("#admin-pw-input").val("");
             $(".lock-admin-button").show();
             $(".unlock-admin-button").hide();
@@ -42,6 +44,8 @@ define([
             $("#admin-ip-input").prop("disabled",true);
             $("#admin-name-input").prop("disabled",true);
             $("#admin-pw-input").prop("disabled",true);
+            $("#httphttps").prop("disabled",true);
+
             $("#admin-pw-input").val("password");
             $(".lock-admin-button").hide();
             $(".unlock-admin-button").show();
@@ -90,6 +94,7 @@ define([
                         $("#save-admin-message").html("Settings saved!");
                     },
                     error: function (){
+                        $("#save-admin-message").html("&nbsp;");
                         alert("The server could not successfully connect using this configuration.");
                     }
                 });
