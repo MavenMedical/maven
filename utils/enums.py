@@ -54,6 +54,26 @@ class CONDITION_TYPE(Enum):
     ENC = "Encounter Diagnosis"
 
 
+class CONFIG_PARAMS(Enum):
+    CLIENTAPP_MGR = "Client App Manager Config"
+    CLIENTAPP_BASE = "Client App Base Config"
+    CUSTOMER_SETTINGS = "Customer Config"
+    CUSTOMER_ID = "Customer Identification Config"
+    EHR_API_SVCS = "Customer EHR API Services Config"
+    EHR_API_APPNAME = "EHRAppName"
+    EHR_API_BASE_URL = "EHRURL"
+    EHR_API_SVC_USER = "EHRServiceUser"
+    EHR_API_PASSWORD = "EHRPassword"
+    EHR_API_POLLING_INTERVAL = "EHRPolling"
+    EHR_USER_TIMEOUT = "UserTimeout"
+    EHR_USER_SYNC_INTERVAL = "EHR User Sync Service Delay Interval"
+    NOTIFY_SVC = "Notification Routing Service Config"
+    PERSISTENCE_SVC = "Persistence Service Config"
+    DATABASE_SVC = "Database Service Config"
+    RPC_CLIENT = "RPC Client Config"
+    RPC_SERVER = "RPC Server Config"
+
+
 class DIAGNOSTIC_TERMINOLOGIES(Enum):
     icd9 = "International Statistical Classification of Diseases Version 9"
     ICD9 = "International Statistical Classification of Diseases Version 9"
@@ -121,9 +141,33 @@ class PROCEDURE_TERMINOLOGIES(Enum):
     hcpcs = "Healthcare Common Procedure Coding System"
 
 
+class PROVIDER_TYPE(Enum):
+    ADMIN = "Administrator"
+    ANCILLARY = "Ancillary Services"
+    PHYSICIAN = "Attending / Staff MD"
+    CLERK = "Clerk"
+    DIETICIAN = "Dietician"
+    EKGTECH = "EKG Technician"
+    FELLOW = "Fellow"
+    INTERN = "Intern"
+    RESIDENT = "Resident"
+    LABTECH = "Lab Technician"
+    MEDSTUDENT = "Med Student"
+    MEDASSIST = "Medical Assistant"
+    NP = "Nurse Practitioner"
+    PA = "Physician Assistant"
+    NURSEASSIST = "Nursing Assistant"
+    PHARMACIST = "Pharmacist"
+    PT = "Physical Therapist"
+    RN = "Nurse"
+    RT = "Respiratory Therapist"
+    REFERRAL = "Referral Caregiver"
+    SW = "Social Worker"
+    UNDEFINED = "Undefined"
+
+
 class USER_ROLES(Enum):
     mavensupport = "mavensupport"
-    maventask = "maventask"
     provider = "provider"
     supervisor = "supervisor"
     notification = "notification"

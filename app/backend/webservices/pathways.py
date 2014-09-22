@@ -25,12 +25,10 @@ import json
 
 class PathwaysWebservices():
 
-    def __init__(self, configname):
+    def __init__(self, configname, _rpc):
         # config = MC.MavenConfig[configname]
         self.search_interface = WS.web_search('search')
         self.save_interface = TP.tree_persistance('persistance')
-
-
 
     @http_service(['GET'], '/list',
                   [],
@@ -92,6 +90,7 @@ class PathwaysWebservices():
         resultid = yield from self.save_interface.create_tree(info)
         info[CONTEXT.PATHID] = resultid
         return (HTTP.OK_RESPONSE, json.dumps(info), None)
+
 
 def run():
     from utils.database.database import AsyncConnectionPool

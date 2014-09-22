@@ -25,7 +25,7 @@ import maven_config as MC
 
 class SearchWebservices():
 
-    def __init__(self, configname):
+    def __init__(self, configname, _rpc):
         config = MC.MavenConfig[configname]
         self.persistence = WP.WebPersistence(config[CONFIG_PERSISTENCE])
 

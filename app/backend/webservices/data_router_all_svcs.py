@@ -18,7 +18,7 @@ import argparse
 import pickle
 from utils.streaming import stream_processor as SP
 import utils.streaming.rpc_processor as RP
-from utils.enums import CONFIG_PARAMS
+from utils.enums import CONFIG_PARAMS, USER_ROLES
 from utils.database.database import AsyncConnectionPool
 import utils.database.web_persistence as WP
 from app.backend.remote_procedures.server_rpc_endpoint import ServerEndpoint
@@ -26,6 +26,18 @@ import asyncio
 import maven_config as MC
 import utils.crypto.authorization_key as AK
 import maven_logging as ML
+from utils.streaming.http_svcs_wrapper import CONFIG_PERSISTENCE
+import utils.database.tree_persistance as TP
+import utils.streaming.webservices_core as WC
+from app.backend.webservices.transparent import TransparentWebservices
+from app.backend.webservices.pathways import PathwaysWebservices
+import app.backend.webservices.authentication as AU
+from app.backend.webservices.patient_mgmt import PatientMgmtWebservices
+from app.backend.webservices.user_mgmt import UserMgmtWebservices
+from app.backend.webservices.search import SearchWebservices
+from app.backend.webservices.administration import AdministrationWebservices
+from app.backend.webservices.support import SupportWebservices
+import app.backend.webservices.notification_service as NS
 
 ARGS = argparse.ArgumentParser(description='Maven Client Receiver Configs.')
 ARGS.add_argument(
@@ -93,7 +105,8 @@ def main(loop):
             SP.CONFIG_READERTYPE: SP.CONFIGVALUE_ASYNCIOSERVERSOCKET,
             SP.CONFIG_READERNAME: incomingtomavenmessagehandler + ".Reader",
             SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_THREADEDRABBIT,
-            SP.CONFIG_WRITERNAME: [incomingtomavenmessagehandler + ".Writer", incomingtomavenmessagehandler + ".Writer_CostEval"],
+            SP.CONFIG_WRITERNAME: [incomingtomavenmessagehandler + ".Writer",
+                                   incomingtomavenmessagehandler + ".Writer_CostEval"],
             SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_IDENTITYPARSER,
             SP.CONFIG_WRITERDYNAMICKEY: 1,
         },
@@ -147,7 +160,31 @@ def main(loop):
             AsyncConnectionPool.CONFIG_MIN_CONNECTIONS: 4,
             AsyncConnectionPool.CONFIG_MAX_CONNECTIONS: 8
         },
-
+        "httpserver":
+        {
+            SP.CONFIG_HOST: 'localhost',
+            SP.CONFIG_PORT: 8087,
+            CONFIG_PERSISTENCE: "persistence layer",
+        },
+        'persistence layer': {WP.CONFIG_DATABASE: 'webservices conn pool', },
+        'persistance': {TP.CONFIG_DATABASE: 'webservices conn pool'},
+        'search': {TP.CONFIG_DATABASE: 'webservices conn pool'},
+        'webservices conn pool':
+        {
+            AsyncConnectionPool.CONFIG_CONNECTION_STRING: MC.dbconnection,
+            AsyncConnectionPool.CONFIG_MIN_CONNECTIONS: 4,
+            AsyncConnectionPool.CONFIG_MAX_CONNECTIONS: 8
+        },
+        CONFIG_PARAMS.NOTIFY_SVC.value:
+        {
+            SP.CONFIG_HOST: 'localhost',
+            SP.CONFIG_PORT: 8092,
+            SP.CONFIG_PARSERTIMEOUT: 12,
+            NS.CONFIG_QUEUEDELAY: 45,
+            "persistence": CONFIG_PARAMS.PERSISTENCE_SVC.value,
+            AU.CONFIG_SPECIFICROLE: USER_ROLES.notification.value,
+            AU.CONFIG_OAUTH: True,
+        }
     }
     MC.MavenConfig.update(MavenConfig)
 
@@ -164,6 +201,20 @@ def main(loop):
 
     sp_consumer.schedule(loop)
     sp_producer.schedule(loop)
+
+    core_scvs = WC.WebserviceCore('httpserver', client_interface=client_interface)
+    for c in [AU.AuthenticationWebservices, PatientMgmtWebservices,
+              UserMgmtWebservices, SearchWebservices,
+              TransparentWebservices, PathwaysWebservices,
+              AdministrationWebservices, SupportWebservices]:
+        core_scvs.register_services(c('httpserver', rpc))
+    core_scvs.schedule(loop)
+
+    notification_service, notification_fn = NS.notification_server(CONFIG_PARAMS.NOTIFY_SVC.value,
+                                                                   user_sync_svc=None)
+    notification_service.schedule(loop)
+
+    server_endpoint.set_notification_function(notification_fn)
 
     try:
         loop.run_forever()

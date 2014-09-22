@@ -1,23 +1,19 @@
 import utils.web_client.http_client as http
+from aiohttp import OsConnectionError
 import asyncio
 import json
+from functools import wraps
 from xml.etree import ElementTree as ETree
 from enum import Enum
-from functools import wraps, lru_cache
 from maven_config import MavenConfig
 import maven_logging as ML
 from maven_logging import WARN, EXCEPTION, INFO
 import utils.database.memory_cache as memory_cache
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
 import dateutil.parser
-from utils.enums import USER_STATE
+from utils.enums import USER_STATE, CONFIG_PARAMS
 
 ALLSCRIPTS_NUM_PARAMETERS = 6
-
-CONFIG_APPNAME = 'appname'
-CONFIG_APPUSERNAME = 'appusername'
-CONFIG_APPPASSWORD = 'apppassword'
-
 logger = ML.get_logger()
 ML.set_debug()
 
@@ -99,21 +95,20 @@ def isoformatday(d: {'date', 'datetime'}):
 hour_cache = memory_cache.MemoryCache(timeout=3600)
 
 
-@lru_cache()
 class allscripts_api(http.http_api):
 
-    def __init__(self, configname: str):
+    def __init__(self, config: dict):
         """ initialize this adapter for the allscripts professional API
         :params configname: the name of the configuration section in the MavenConfig map
         it's required parameters are:
           CONFIG_BASEURL, CONFIG_APPNAME, CONFIG_APPUSERNAME, CONFIG_APPPASSWORD
         it's optional parameter is CONFIG_OTHERHEADERS
         """
-        http.http_api.__init__(self, configname)
+        http.http_api.__init__(self, config, other_headers={"Content-Type": "application/json"})
         self.postprocess = (lambda x: list(x[0].values())[0])
-        self.appname = self.config[CONFIG_APPNAME]
-        self.appusername = self.config[CONFIG_APPUSERNAME]
-        self.apppassword = self.config[CONFIG_APPPASSWORD]
+        self.appname = self.config.get(CONFIG_PARAMS.EHR_API_APPNAME.value, "")
+        self.appusername = self.config.get(CONFIG_PARAMS.EHR_API_SVC_USER.value, "")
+        self.apppassword = self.config.get(CONFIG_PARAMS.EHR_API_PASSWORD.value, "")
         self.unitytoken = None
 
     def _build_message(self, action: str, *args: [str], user: str=None,
@@ -185,6 +180,18 @@ class allscripts_api(http.http_api):
 
         return asyncio.coroutine(wraps(func)(worker))
 
+    @asyncio.coroutine
+    def test_login(self):
+        try:
+            req = yield from self.post('/json/GetToken',
+                                       Username=self.appusername,
+                                       Password=self.apppassword)
+            if not req or req.startswith('error'):
+                raise AllscriptsError('Could not get token - ' + req)
+            return True
+        except OsConnectionError:
+            return False
+
     @hour_cache.cache_lookup('GetServerInfo', lookup_on_none=True,
                              key_function=memory_cache.allargs)
     @_require_token
@@ -194,9 +201,12 @@ class allscripts_api(http.http_api):
         what type of unity system, the product version, and the start time of this
         unity installation
         """
-        ret = yield from self.post('/json/MagicJson',
-                                   data=self._build_message('GetServerInfo'))
-        return self.postprocess(check_output(ret))[0]
+        try:
+            ret = yield from self.post('/json/MagicJson',
+                                       data=self._build_message('GetServerInfo'))
+            return self.postprocess(check_output(ret))[0]
+        except OsConnectionError:
+            return False
 
     @_require_token
     def GetPatient(self, username: str, patient: str):
@@ -400,14 +410,12 @@ class allscripts_api(http.http_api):
     @hour_cache.cache_lookup('GetProviders', lookup_on_none=True,
                              key_function=memory_cache.allargs)
     @_require_token
-    def GetProviders(self, username: str):
+    def GetProviders(self):
         """
-        :param username:
         :return:
         """
         ret = yield from self.post('/json/MagicJson',
-                                   data=self._build_message('GetProviders',
-                                                            user=username))
+                                   data=self._build_message('GetProviders'))
         return self.postprocess(check_output(ret))
 
     @hour_cache.cache_lookup('GetProvider', lookup_on_none=True,
@@ -639,21 +647,21 @@ if __name__ == '__main__':
         http.CONFIG_OTHERHEADERS: {
             'Content-Type': 'application/json'
         },
-        CONFIG_APPNAME: 'web20',
-        CONFIG_APPUSERNAME: 'webtwozero',
-        CONFIG_APPPASSWORD: 'www!web20!',
+        CONFIG_PARAMS.EHR_API_APPNAME.value: 'web20',
+        CONFIG_PARAMS.EHR_API_SVC_USER.value: 'webtwozero',
+        CONFIG_PARAMS.EHR_API_PASSWORD.value: 'www!web20!',
     }
 
-    MavenConfig['allscripts_demo'] = {
+    config = {
         # http.CONFIG_BASEURL: 'http://pro14ga.unitysandbox.com/Unity/UnityService.svc',
-        http.CONFIG_BASEURL: 'http://192.237.182.238/Unity/UnityService.svc',
+        CONFIG_PARAMS.EHR_API_BASE_URL.value: 'http://192.237.182.238/Unity/UnityService.svc',
         # http.CONFIG_BASEURL: 'http://doesnotexist.somejunk.cs.umd.edu/Unity/UnityService.svc',
         http.CONFIG_OTHERHEADERS: {
             'Content-Type': 'application/json'
         },
-        CONFIG_APPNAME: 'MavenPathways.TestApp',
-        CONFIG_APPUSERNAME: 'MavenPathways',
-        CONFIG_APPPASSWORD: 'MavenPathways123!!',
+        CONFIG_PARAMS.EHR_API_APPNAME.value: 'MavenPathways.TestApp',
+        CONFIG_PARAMS.EHR_API_SVC_USER.value: 'MavenPathways',
+        CONFIG_PARAMS.EHR_API_PASSWORD.value: 'MavenPathways123!!',
     }
 
     import traceback
@@ -665,7 +673,7 @@ if __name__ == '__main__':
         except:
             traceback.print_exc()
 
-    api = allscripts_api('allscripts_demo')
+    api = allscripts_api(config)
     loop = asyncio.get_event_loop()
     Ehr_username = 'CliffHux'
     # break
@@ -711,7 +719,7 @@ if __name__ == '__main__':
     if input('GetEncounter (y/n)? ') == 'y':
         wrapexn(api.GetEncounter(Ehr_username, patient))
     if input('GetProviders (y/n)? ') == 'y':
-        wrapexn(api.GetProviders(Ehr_username))
+        wrapexn(api.GetProviders())
     if input('GetProvider (y/n)? ') == 'y':
         wrapexn(api.GetProvider(Ehr_username, searchname='terry'))
     if input('GetUserID (y/n)? ') == 'y':

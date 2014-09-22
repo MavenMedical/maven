@@ -38,7 +38,7 @@ class LoginError(Exception):
 
 class AuthenticationWebservices():
 
-    def __init__(self, configname, timeout=None):
+    def __init__(self, configname, _rpc, timeout=None):
         config = MC.MavenConfig[configname]
         self.persistence = WP.WebPersistence(config[CONFIG_PERSISTENCE])
         self.persistence.schedule()
@@ -76,7 +76,7 @@ class AuthenticationWebservices():
         else:
             rolefilter = lambda r: True
         auth = ''
-        username = info[CONTEXT.USER]
+        username = info[CONTEXT.USER].upper()
         customer = info[CONTEXT.CUSTOMERID]
         try:
             method = 'failed'

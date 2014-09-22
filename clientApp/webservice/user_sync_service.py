@@ -23,7 +23,7 @@ from collections import Counter
 import maven_config as MC
 import maven_logging as ML
 import utils.web_client.allscripts_http_client as AHC
-from utils.enums import USER_STATE
+from utils.enums import USER_STATE, CONFIG_PARAMS
 
 CONFIG_USERSYNCSERVICE = 'sync user service'
 CONFIG_SYNCDELAY = 'sync delay'
@@ -32,16 +32,14 @@ logger = ML.get_logger()
 ML.set_debug()
 
 
-class UserSyncService(http.http_api):
-    def __init__(self, configname, loop=None):
-        self.config = MC.MavenConfig[configname]
-        self.api_name = self.config.get(CONFIG_API)
-        self.ehr_api = AHC.allscripts_api(self.api_name)
-        self.customer_id = MC.MavenConfig['customer_id']
-        self.sync_delay = self.config.get(CONFIG_SYNCDELAY, 60 * 60)
-        super(UserSyncService, self).__init__(self.config.get(CONFIG_USERSYNCSERVICE))
-        self.postprocess = (lambda x: list(x[0].values())[0])
-        self.loop = loop or asyncio.get_event_loop()
+class UserSyncService():
+    def __init__(self, customer_id, sync_interval, server_interface, ehr_api):
+        self.customer_id = customer_id
+        self.sync_delay = sync_interval
+        self.server_interface = server_interface or Exception("No Remote Procedures Specified for ClientApp")
+        self.ehr_api = ehr_api
+        self.loop = asyncio.get_event_loop()
+
         self.ehr_providers = {}
         self.maven_providers = []
         self.active_providers = {}
@@ -51,7 +49,7 @@ class UserSyncService(http.http_api):
         self.provider_list_observers.append(observer)
 
     @ML.coroutine_trace(logger.debug)
-    def synchronize_users(self):
+    def run(self):
         while True:
             yield from self.evaluate_users(self.customer_id)
             yield from asyncio.sleep(self.sync_delay)
@@ -60,21 +58,14 @@ class UserSyncService(http.http_api):
     def evaluate_users(self, customer_id):
         try:
             try:
-                ehr_providers = yield from self.ehr_api.GetProviders(username=MC.MavenConfig[self.api_name][AHC.CONFIG_APPUSERNAME])
-
+                ehr_providers = yield from self.ehr_api.GetProviders()
                 for provider in ehr_providers:
                     fhir_provider = self.ehr_api.build_partial_practitioner(provider)
                     self.ehr_providers[fhir_provider.get_provider_id()] = fhir_provider
             except AHC.AllscriptsError as e:
                 logger.exception(e)
 
-            try:
-                ret = yield from self.get('/syncusers', rawdata=False, params={"roles[]": "maventask",
-                                                                               "customer_id": customer_id})
-                self.maven_providers = json.loads(ret)
-
-            except Exception as e:
-                logger.exception(e)
+            self.maven_providers = yield from self.server_interface.get_users_from_db(self.customer_id)
 
             # Go through the two sets of users (Maven, EHR's) and diff/update appropriately
             yield from self.diff_users(customer_id)
@@ -141,11 +132,7 @@ class UserSyncService(http.http_api):
         # Add user to maven_providers list so that the user can be added to the global providers dictionary
         self.maven_providers.append(new_provider)
 
-        ret = yield from self.post('/synccreateuser',
-                                   rawdata=True,
-                                   params={"roles[]": "maventask",
-                                           "customer_id": customer_id},
-                                   data=json.dumps(new_provider))
+        yield from self.server_interface.write_user_create_to_db(self.customer_id, new_provider)
 
     @ML.coroutine_trace(logger.debug)
     def update_maven_user_state(self, deactivated_provider_id, customer_id):
@@ -158,11 +145,7 @@ class UserSyncService(http.http_api):
         for prov in [prov for prov in self.maven_providers if prov['prov_id'] == deactivated_provider_id]:
             prov['ehr_state'] = USER_STATE.DISABLED.value
 
-        ret = yield from self.post('/syncupdateuser',
-                                   rawdata=True,
-                                   params={"roles[]": "maventask",
-                                           "customer_id": customer_id},
-                                   data=json.dumps(provider))
+        self.server_interface.write_user_deactivation_to_db(self.customer_id, provider)
 
 
 def run():
@@ -177,12 +160,7 @@ def run():
         AHC.CONFIG_APPUSERNAME: 'MavenPathways',
         AHC.CONFIG_APPPASSWORD: 'MavenPathways123!!',
     }
-    MC.MavenConfig[CONFIG_USERSYNCSERVICE] = {
-        http.CONFIG_BASEURL: 'http://localhost/services',
-        http.CONFIG_OTHERHEADERS: {'Content-Type': 'application/json'},
-    }
     MC.MavenConfig['maven user sync'] = {
-        CONFIG_USERSYNCSERVICE: CONFIG_USERSYNCSERVICE,
         'customer_id': 5,
         CONFIG_SYNCDELAY: 60 * 6,
         CONFIG_API: 'allscripts_demo'
@@ -191,7 +169,7 @@ def run():
 
     sync_scvs = UserSyncService('maven user sync')
     event_loop = asyncio.get_event_loop()
-    event_loop.run_until_complete(sync_scvs.synchronize_users())
+    event_loop.run_until_complete(sync_scvs.run())
 
 if __name__ == '__main__':
     run()

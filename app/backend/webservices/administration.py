@@ -16,18 +16,22 @@ __author__ = 'Carlos Brenneisen'
 # *************************************************************************
 # from utils.streaming.webservices_core import *
 
-from utils.enums import USER_ROLES
+from utils.enums import USER_ROLES, CONFIG_PARAMS
 import json
+import asyncio
 import utils.database.web_persistence as WP
 from utils.streaming.http_svcs_wrapper import http_service, CONTEXT, CONFIG_PERSISTENCE
+from clientApp.webservice.clientapp_rpc_endpoint import ClientAppEndpoint
 import utils.streaming.http_responder as HTTP
+import utils.crypto.authorization_key as AK
 import maven_config as MC
 date = str
 
 
 class AdministrationWebservices():
 
-    def __init__(self, configname):
+    def __init__(self, configname, rpc):
+        self.client_interface = rpc.create_client(ClientAppEndpoint)
         config = MC.MavenConfig[configname]
         self.persistence = WP.WebPersistence(config[CONFIG_PERSISTENCE])
 
@@ -39,20 +43,15 @@ class AdministrationWebservices():
         body = json.loads(body.decode('utf-8'))
 
         customer = context[CONTEXT.CUSTOMERID]
-        clientapp_settings = {
-            'ip': body[CONTEXT.IPADDRESS],
-            'appname': body[CONTEXT.NAME],
-            'polling': body[CONTEXT.POLLING],
-            'timeout': body[CONTEXT.TIMEOUT],
-            'apppassword': body[CONTEXT.PASSWORD],
-        }
+        clientapp_settings = body
+        body.update({CONFIG_PARAMS.EHR_USER_SYNC_INTERVAL.value: 60 * 60})
 
-        results = yield from self.persistence.setup_customer(customer, clientapp_settings)
-
-        if results:
+        is_valid_config = yield from self.client_interface.test_customer_configuration(customer, clientapp_settings)
+        if is_valid_config:
+            yield from self.persistence.setup_customer(customer, clientapp_settings)
             return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
         else:
-            return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
+            return HTTP.BAD_RESPONSE, json.dumps(['FALSE']), None
 
     @http_service(['GET'], '/users(?:(\d+)-(\d+)?)?',
                   [CONTEXT.CUSTOMERID],
@@ -87,6 +86,9 @@ class AdministrationWebservices():
         customer = context[CONTEXT.CUSTOMERID]
         state = context[CONTEXT.STATE]
 
+        if state == 'active':
+            asyncio.Task(self.notify_user_reset_password(customer, user))
+
         result = yield from self.persistence.update_user(user, customer, state)
         if result:
             return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
@@ -99,47 +101,16 @@ class AdministrationWebservices():
                    CONTEXT.TARGETCUSTOMER: int, CONTEXT.TARGETUSER: str},
                   {USER_ROLES.administrator, USER_ROLES.mavensupport})
     def reset_password(self, _header, _body, context, _matches, _key):
-        user = None
-        customer = None
-
-        if (USER_ROLES.administrator.name in context[CONTEXT.ROLES] or
-                USER_ROLES.mavensupport.name in context[CONTEXT.ROLES]):
-            user = context.get(CONTEXT.TARGETUSER, None)
+        user = context[CONTEXT.TARGETUSER]
 
         if USER_ROLES.mavensupport.name in context[CONTEXT.ROLES]:
-            customer = context.get(CONTEXT.TARGETCUSTOMER, None)
-
-        if not user:
-            user = context[CONTEXT.USER]
-        if not customer:
+            customer = context[CONTEXT.TARGETCUSTOMER]
+        else:
             customer = context[CONTEXT.CUSTOMERID]
 
-        result = yield from self.persistence.reset_password(user, customer)
-        if result:
-            return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
-        else:
-            return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
+        asyncio.Task(self.notify_user_reset_password(customer, user))
 
-    @http_service(['GET'], '/syncusers',
-                  [CONTEXT.CUSTOMERID], {CONTEXT.CUSTOMERID: int}, {USER_ROLES.maventask})
-    def EHRsync_get_users(self, _header, _body, context, matches, _key):
-
-        limit = self.helper.limit_clause(matches)
-
-        desired = {
-            WP.Results.userid: 'user_id',
-            WP.Results.customerid: 'customer_id',
-            WP.Results.provid: 'prov_id',
-            WP.Results.username: 'user_name',
-            WP.Results.officialname: 'official_name',
-            WP.Results.displayname: 'display_name',
-            WP.Results.state: 'state',
-            WP.Results.ehrstate: 'ehr_state'
-        }
-        results = yield from self.persistence.customer_specific_user_info(desired,
-                                                                          limit=limit,
-                                                                          customer_id=context['customer_id'])
-        return HTTP.OK_RESPONSE, json.dumps(results), None
+        return HTTP.OK_RESPONSE, json.dumps(''), None
 
     @http_service(['GET'], '/customer_info',
                   [CONTEXT.CUSTOMERID],
@@ -159,16 +130,9 @@ class AdministrationWebservices():
 
         return HTTP.OK_RESPONSE, json.dumps(results[0]), None
 
-    @http_service(['POST'], '/synccreateuser',
-                  [CONTEXT.CUSTOMERID], {CONTEXT.CUSTOMERID: int}, {USER_ROLES.maventask})
-    def EHRsync_create_user_provider(self, _header, _body, context, matches, _key):
-        info = json.loads(_body.decode('utf-8'))
-        yield from self.persistence.EHRsync_create_user_provider(info)
-        return HTTP.OK_RESPONSE, json.dumps(info), None
-
-    @http_service(['POST'], '/syncupdateuser',
-                  [CONTEXT.CUSTOMERID], {CONTEXT.CUSTOMERID: int}, {USER_ROLES.maventask})
-    def EHRsync_update_user_provider(self, _header, _body, context, matches, _key):
-        info = json.loads(_body.decode('utf-8'))
-        yield from self.persistence.EHRsync_update_user_provider(info)
-        return HTTP.OK_RESPONSE, json.dumps(info), None
+    @asyncio.coroutine
+    def notify_user_reset_password(self, customer, username):
+        ak = AK.authorization_key([username, str(customer)], 44, 365 * 24 * 60 * 60)
+        loginstr = '%s#password/newPassword/%s/%s/%s' % (MC.http_addr, username, customer, ak)
+        print(loginstr)
+        yield from self.client_interface.notify_user(customer, username, loginstr)

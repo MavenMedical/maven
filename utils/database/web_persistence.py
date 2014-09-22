@@ -3,9 +3,8 @@ from enum import Enum
 from collections import defaultdict
 from decimal import Decimal
 from datetime import date, datetime
-import utils.enums
 import json
-
+from utils.enums import ALERT_VALIDATION_STATUS
 from utils.database.database import AsyncConnectionPool
 from utils.database.database import MappingUtilites as DBMapUtils
 import maven_config as MC
@@ -267,30 +266,9 @@ class WebPersistence():
         return [row['customer_id'] for row in ret]
 
     @asyncio.coroutine
-    def reset_password(self, user, customer):
-        # NOTE: THIS IS PLACEHOLDER CODE - WILL BE ENTIRELY REPLACED
-        expiration = datetime.now()
-        password = "\\x243261243034244c717a616b7864454b522e2f6b586366516454552f4f66"
-        password += "32545869694a674470574a5253733151724a624f4b6837616c3568386c36"
-
-        cmd = []
-        cmdargs = []
-
-        cmd.append("UPDATE users")
-        cmd.append("set pw=%s, pw_expiration=%s")
-        cmdargs.append(password)
-        cmdargs.append(expiration)
-        cmd.append("WHERE user_name=UPPER(%s) AND customer_id=%s")
-        cmdargs.append(user)
-        cmdargs.append(customer)
-
-        yield from self.execute(cmd, cmdargs, {}, {})
-
-    @asyncio.coroutine
     def setup_customer(self, customer, clientapp_settings):
-        results = yield from self.execute(["UPDATE customer set clientapp_settings = %s where customer_id = %s"],
-                                          [json.dumps(clientapp_settings), customer], _build_format(), {0: 'customer_id'})
-        return results
+        yield from self.execute(["UPDATE customer set clientapp_settings = %s where customer_id = %s"],
+                                [json.dumps(clientapp_settings), customer], {}, {})
 
     @asyncio.coroutine
     def update_alert_setting(self, user, customer, alertid, ruleid, category, actioncomment):
@@ -495,7 +473,7 @@ class WebPersistence():
         Results.license: "customer.license_type",
         Results.license_exp: "customer.license_exp",
         Results.config: "customer.clientapp_config",
-        Results.settings: "customer.clientapp_settings"
+        Results.settings: "customer.clientapp_settings",
     }
     _display_customer_info = _build_format({
         Results.license_exp: lambda x: x and _prettify_datetime(x),
@@ -729,7 +707,7 @@ class WebPersistence():
         cmdargs.append(provider)
         cmdargs.append(customer)
         cmd.append("AND alert.validation_status > %s")
-        cmdargs.append(utils.enums.ALERT_VALIDATION_STATUS.DEBUG_ALERT.value)
+        cmdargs.append(ALERT_VALIDATION_STATUS.DEBUG_ALERT.value)
         if patients:
             cmd.append("AND alert.pat_id IN %s")
             cmdargs.append(makelist(patients))

@@ -26,7 +26,7 @@ date = str
 
 class PatientMgmtWebservices():
 
-    def __init__(self, configname):
+    def __init__(self, configname, _rpc):
         config = MC.MavenConfig[configname]
         self.persistence = WP.WebPersistence(config[CONFIG_PERSISTENCE])
 
