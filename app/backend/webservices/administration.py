@@ -70,7 +70,8 @@ class AdministrationWebservices():
             WP.Results.officialname: 'official_name',
             WP.Results.displayname: 'display_name',
             WP.Results.state: 'state',
-            WP.Results.lastlogin: 'last_login'
+            WP.Results.lastlogin: 'last_login',
+            WP.Results.profession: 'profession'
         }
         results = yield from self.persistence.user_info(desired, customer, limit=limit)
 

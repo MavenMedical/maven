@@ -126,7 +126,8 @@ class UserSyncService():
                         "display_name": provider_display_name,
                         "state": missing_provider.state,
                         "ehr_state": missing_provider.ehr_state,
-                        "specialty": missing_provider.specialty[0]
+                        "specialty": missing_provider.specialty[0],
+                        "profession": missing_provider.role[0]
                         }
 
         # Add user to maven_providers list so that the user can be added to the global providers dictionary
