@@ -186,8 +186,9 @@ class allscripts_api(http.http_api):
             req = yield from self.post('/json/GetToken',
                                        Username=self.appusername,
                                        Password=self.apppassword)
-            if req:
-                return True
+            if not req or req.startswith('error'):
+                raise AllscriptsError('Could not get token - ' + req)
+            return True
         except OsConnectionError as e:
             return False
 
