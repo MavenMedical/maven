@@ -357,10 +357,10 @@ class WebPersistence():
         yield from self.execute(cmd, cmdargs, {}, {})
 
     @asyncio.coroutine
-    def record_login(self, username, method, ip, authkey):
-        yield from self.execute(["INSERT INTO logins (user_name, method, logintime, ip, authkey)" +
-                                 "VALUES (UPPER(%s), %s, now(), %s, %s)"],
-                                [username, method, ip, authkey], {}, {})
+    def record_login(self, username, customer_id, method, ip, authkey):
+        yield from self.execute(["INSERT INTO logins (user_name, customer_id, method, logintime, ip, authkey)" +
+                                 "VALUES (UPPER(%s), %s, %s, now(), %s, %s)"],
+                                [username, customer_id, method, ip, authkey], {}, {})
 
     _default_pre_login = set((Results.username,))
     _available_pre_login = {
@@ -432,10 +432,11 @@ class WebPersistence():
         cmd.append("FROM users")
         if Results.lastlogin in desired:
             cmd.append("LEFT JOIN ( ")
-            cmd.append("SELECT user_name, max(logintime) as last_login")
+            cmd.append("SELECT user_name, customer_id, max(logintime) as last_login")
             cmd.append("FROM logins")
-            cmd.append("GROUP BY user_name ) logins2")
-            cmd.append("ON users.user_name = logins2.user_name")
+            cmd.append("GROUP BY user_name,customer_id ) logins2")
+            cmd.append("ON (users.user_name = logins2.user_name")
+            cmd.append("AND users.customer_id = logins2.customer_id)")
         cmd.append("WHERE users.customer_id = %s")
         cmdargs.append(customer)
         cmd.append("ORDER BY user_id")
