@@ -135,4 +135,6 @@ class AdministrationWebservices():
         ak = AK.authorization_key([username, str(customer)], 44, 365 * 24 * 60 * 60)
         loginstr = '%s#password/newPassword/%s/%s/%s' % (MC.http_addr, username, customer, ak)
         print(loginstr)
-        yield from self.client_interface.notify_user(customer, username, loginstr)
+        yield from self.client_interface.notify_user(customer, username,
+                                                     "Welcome to Maven, set/reset password",
+                                                     loginstr)
