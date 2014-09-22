@@ -52,6 +52,7 @@ define([
             var pw = $("#admin-pw-input").val();
             var polling = $("#admin-polling-input").val();
             var timeout = $("#admin-timeout-input").val();
+            var username = "MavenPathways";
 
             var reg_num = new RegExp('^[0]*[1-9]+[0]*$');
             /*var reg_ip = new RegExp('^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$');

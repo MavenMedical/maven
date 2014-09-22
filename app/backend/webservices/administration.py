@@ -43,15 +43,11 @@ class AdministrationWebservices():
         body = json.loads(body.decode('utf-8'))
 
         customer = context[CONTEXT.CUSTOMERID]
-        clientapp_settings = {
-            CONFIG_PARAMS.EHR_API_BASE_URL.value: body[CONTEXT.IPADDRESS],
-            CONFIG_PARAMS.EHR_API_APPNAME.value: body[CONTEXT.NAME],
-            CONFIG_PARAMS.EHR_API_POLLING_INTERVAL.value: body[CONTEXT.POLLING],
-            CONFIG_PARAMS.EHR_USER_TIMEOUT.value: body[CONTEXT.TIMEOUT],
-            CONFIG_PARAMS.EHR_API_PASSWORD.value: body[CONTEXT.PASSWORD],
-            CONFIG_PARAMS.EHR_USER_SYNC_DELAY.value: 60 * 60,
-        }
-        if self.client_interface.test_customer_configuration(customer, clientapp_settings):
+        clientapp_settings = body
+        body.update({CONFIG_PARAMS.EHR_USER_SYNC_INTERVAL.value: 60 * 60})
+
+        is_valid_config = yield from self.client_interface.test_customer_configuration(customer, clientapp_settings)
+        if is_valid_config:
             yield from self.persistence.setup_customer(customer, clientapp_settings)
             return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
         else:

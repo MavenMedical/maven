@@ -1,4 +1,5 @@
 import utils.web_client.http_client as http
+from aiohttp import OsConnectionError
 import asyncio
 import json
 from functools import wraps
@@ -188,9 +189,12 @@ class allscripts_api(http.http_api):
         what type of unity system, the product version, and the start time of this
         unity installation
         """
-        ret = yield from self.post('/json/MagicJson',
-                                   data=self._build_message('GetServerInfo'))
-        return self.postprocess(check_output(ret))[0]
+        try:
+            ret = yield from self.post('/json/MagicJson',
+                                       data=self._build_message('GetServerInfo'))
+            return self.postprocess(check_output(ret))[0]
+        except OsConnectionError:
+            return False
 
     @_require_token
     def GetPatient(self, username: str, patient: str):

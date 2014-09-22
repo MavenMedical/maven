@@ -17,6 +17,7 @@ __author__ = 'Yuki Uchino'
 # LAST MODIFIED FOR JIRA ISSUE: MAV-289
 # *************************************************************************
 import asyncio
+from aiohttp import OsConnectionError
 import maven_logging as ML
 import clientApp.webservice.user_sync_service as US
 import clientApp.allscripts.allscripts_scheduler as AS
@@ -55,10 +56,11 @@ class AllscriptsCustomerInterface:
 
     @asyncio.coroutine
     def validate_config(self):
-        working = yield from self.ahc.GetServerInfo()
-        if working:
-            return True
-        else:
+        try:
+            working = yield from self.ahc.GetServerInfo()
+            if working:
+                return True
+        except OsConnectionError:
             return False
 
     @asyncio.coroutine
