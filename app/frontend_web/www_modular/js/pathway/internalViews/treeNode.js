@@ -66,9 +66,9 @@ define([
                 $('.collapseButton', this.$el).first().off('click')
                 $('.collapseButton', this.$el).first().on('click', function(){
                        if (that.model.get('hideChildren') == "false"){
-                           that.model.set('hideChildren', "true")
+                           curTree.collapse(that.model)
                        } else{
-                                 curTree.hideSiblings(that.model)
+                            curTree.hideSiblings(that.model)
                             that.model.set('hideChildren', "false")
                        }
                 })

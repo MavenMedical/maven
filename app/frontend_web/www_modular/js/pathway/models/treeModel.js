@@ -26,7 +26,7 @@ define([
                 if (tar != - 1){
                      if (i != tar){
                         console.log(me.get('children').models[i])
-                        me.get('children').models[i].set('hideChildren', "true")
+                        recursiveCollapse(me.get('children').models[i])
                      }
                      flag = true;
                 }
@@ -34,6 +34,16 @@ define([
                     hideSiblingsRecur(me.get('children').models[i], toHide)
                 }
         }
+    }
+    var recursiveCollapse= function(node){
+        console.log('collapsing', node)
+        node.set('hideChildren', "true")
+        console.log(node.attributes.children.models)
+        _.each(node.attributes.children.models, function(cur){
+            console.log('cur', cur)
+            recursiveCollapse(cur)
+        })
+
     }
     var TreeModel = Backbone.Model.extend({
         elPairs: [],
@@ -64,6 +74,15 @@ define([
         hideSiblings: function(toHide){
             hideSiblingsRecur(this, toHide)
         },
+        collapse: function(node){
+          if (!node){
+            recursiveCollapse(this)
+          } else {
+              recursiveCollapse(node)
+          }
+        },
+
+
         deleteNode: function(toDelete){
             var that = this
                 _.each(this.get('children').models, function(cur){
@@ -104,11 +123,9 @@ define([
             this.set({protocol: response.protocol}, {silent: true})
             this.set({name: response.name}, {silent: true})
             this.set({children: new NodeList(response.children)}, {silent: true})
-            this.set({hideChildren: false}, {silent: true})
-            _.each(this.get('children').models, function(cur){
-                cur.set({'hideChildren': "false"}, {silent: true})
-            })
-           this.set({triggers: new Backbone.Collection(response.triggers)}, {silent: true})
+            this.set({hideChildren: "true"}, {silent: true})
+            this.once('sync',  function(){recursiveCollapse(this)}, this)
+            this.set({triggers: new Backbone.Collection(response.triggers)}, {silent: true})
 
         }
 

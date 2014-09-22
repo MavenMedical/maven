@@ -15,7 +15,9 @@
     var-floating-left-size
     var-floating-right-size
  */
-
+    .expanded-path{
+        border-color: #ffff00 ;
+    }
     #pathway-container {
         position: relative;
     }
