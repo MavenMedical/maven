@@ -55,6 +55,8 @@ class ClientAppEndpoint():
             if is_valid_config:
                 self.update_customer_configuration(customer_id, config)
                 return True
+            else:
+                return False
         except:
             return False
 

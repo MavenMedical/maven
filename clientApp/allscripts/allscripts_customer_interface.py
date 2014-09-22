@@ -56,11 +56,10 @@ class AllscriptsCustomerInterface:
 
     @asyncio.coroutine
     def validate_config(self):
-        try:
-            working = yield from self.ahc.GetServerInfo()
-            if working:
-                return True
-        except OsConnectionError:
+        working = yield from self.ahc.test_login()
+        if working:
+            return True
+        else:
             return False
 
     @asyncio.coroutine
