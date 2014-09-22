@@ -29,7 +29,7 @@ define([
                     HoverPaintStyle :  {
                          lineWidth: 7,
                          strokeStyle: '#61B7CF'
-                    }
+                    },
 
                 })
 
@@ -100,7 +100,7 @@ define([
                                 paintStyle:  {
                                          lineWidth: 6,
                                          strokeStyle: '#ccc'
-                                },
+                                }
                            })
                       } else {
                           that.plumb.connect({
