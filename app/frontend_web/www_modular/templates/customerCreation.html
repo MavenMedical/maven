@@ -1,22 +1,54 @@
 <div class = "widget-column col-sm-12" style="clear: both;">
     <span class="headings title">Add Customer</span>
-    <div class="panel-body customer-creation">
-
+    <div class="panel-body ">
         <div class="col-md-12">
             <div class="row">
-                <div class="setting-option col-sm-6">Customer Name: <input id="customer-name-input" type="text"> </div>
-                <div class="setting-option col-sm-6"># of Licenses: <input id="customer-license-input" type="text"> </div>
-                <div class="setting-option col-sm-6">Customer Abbreviation: <input id="customer-abbr-input" type="text"> </div>
-		<div class="setting-option col-sm-6">Initial IT User: <input id="customer-ituser-input" type="text"> </div>
-                <div class="setting-option col-sm-6">Customer Type:
-                    <select id="customer-config-input">
-                        <option value='{"emr": "Allscripts Professional", "version": "14.0"}'>Allscripts Professional</option>
-                    </select>
+                <div class="col-sm-6">
+                    <div class="row">
+                        <div class="span3">Customer Name:</div>
+                        <input id="customer-name-input" class='form-control' type="text">
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="row">
+                        <div class="span3"># of Licenses:</div>
+                        <input id="customer-license-input" class='form-control' type="text">
+                    </div>
                 </div>
             </div>
-            <div class="save-settings-row row">
-                <span class="setting-option option-left" id="add-customer-message">&nbsp;</span>
-                <div class="setting-option option-right"><button class="btn btn-default add-customer-button">Add Customer</button></div>
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="row">
+                        <div class="span3">Customer Abbreviation:</div>
+                        <input id="customer-abbr-input" class='form-control' type="text">
+                    </div>
+                </div>
+		        <div class="col-sm-6">
+                    <div class="row">
+                        <div class="span3">Initial IT User: </div>
+                        <input id="customer-ituser-input" class='form-control' type="text">
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="row">
+                        <div class="span3">Customer Type:</div>
+                        <select id="customer-config-input" class='form-control'>
+                            <option value='{"emr": "Allscripts Professional", "version": "14.0"}'>Allscripts Professional</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-6">
+                    <div id="add-customer-message" class="span3">&nbsp;</div>
+                </div>
+                <div class="col-sm-6">
+                    <div style='float:right'>
+                        <button class="btn btn-default add-customer-button">Add Customer</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
