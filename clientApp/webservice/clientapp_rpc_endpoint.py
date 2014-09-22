@@ -30,7 +30,7 @@ class ClientAppEndpoint():
 
     @asyncio.coroutine
     def update_customer_configuration(self, customer_id, config):
-        config = json.loads(config)
+
         if customer_id in self.customer_interfaces:
             yield from self.customer_interfaces[customer_id].test_and_update_config(config)
             return True
@@ -53,7 +53,7 @@ class ClientAppEndpoint():
 
             is_valid_config = yield from aci.validate_config()
             if is_valid_config:
-                self.update_customer_configuration(customer_id, config)
+                yield from self.update_customer_configuration(customer_id, config)
                 return True
             else:
                 return False

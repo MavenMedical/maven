@@ -7,7 +7,8 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'globalmodels/contextModel',
-], function ($, _, Backbone, contextModel) {
+    'globalmodels/userCollection',
+], function ($, _, Backbone, contextModel, userCollection) {
     var AdminModel = Backbone.Model.extend({url: '/customer_info'});
     var adminModel = new AdminModel;
 
@@ -90,13 +91,17 @@ define([
 					  "EHRAppName": name,
 					  "EHRPassword": pw,
 					  "EHRPolling": polling,
-					  "UserTimeout": timeout}),
+					  "UserTimeout": timeout,
+                      "EHRServiceUser": username}),
                     success: function () {
                         $("#save-admin-message").html("Settings saved!");
+                        alert("Success! Connection to EHR established.");
+                        userCollection.refresh();
+                        setTimeout(userCollection.refresh, 7);
                     },
                     error: function (){
+                        alert("The server could NOT successfully connect using this configuration.");
                         $("#save-admin-message").html("&nbsp;");
-                        alert("The server could not successfully connect using this configuration.");
                     }
                 });
             }

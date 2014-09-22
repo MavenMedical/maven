@@ -14,18 +14,18 @@ define([
     userCollection.context = function(){
         contextModel.on('change:startdate change:enddate',
 		    // this will be needed once the context filters things
-		    function(cm) {
-			if(true && cm.get('userAuth')) {
-                this.tried = 0;
-                this.offset = 0;
-                userCollection.fetch({
-                    data:$.param(contextModel.toParams()),
-                    remove:true});
-			}
-        }, userCollection);
+		    userCollection.refresh);
     };
 
     userCollection.initialize();
-
+    userCollection.refresh = function() {
+                                        if(contextModel.get('userAuth')) {
+                                            this.tried = 0;
+                                            this.offset = 0;
+                                            userCollection.fetch({
+                                                data:$.param(contextModel.toParams()),
+                                                remove:true});
+                                        }
+    };
     return userCollection;
 });

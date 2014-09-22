@@ -16,7 +16,7 @@
                         </div>
                         <div style='float:left; margin-bottom:10px;'>
                             <input id="admin-ip-input" type="text" class='form-control'
-                            <%= (typeof ip !== 'undefined') ? "value='"+ip.replace("http://","").replace("https://","")+"' disabled" : '' %>>
+                            <%= (typeof ip !== 'undefined') ? "value='"+ip.replace("http://","").replace("https://","")+"' disabled" : "value='192.237.182.238'" %>>
                             <div class='span3' style='float:left'>/Unity/UnityService.svc</div>
                         </div>
                     </div>
@@ -25,13 +25,13 @@
                     <div class="row">
                         <div class="span3">App Name:</div>
                         <input id="admin-name-input" class='form-control' type="text"
-                            <%= (typeof appname !== 'undefined') ? "value='"+appname+"' disabled" : "value='Maven Pathways'" %>>
+                            <%= (typeof appname !== 'undefined') ? "value='"+appname+"' disabled" : "value='MavenPathways.TestApp'" %>>
                     </div>
                 </div>
                 <div class="col-sm-6">
                     <div class="row" style='margin-bottom:10px;'>
                         <div class="span3">App Password:</div>
-                        <input id="admin-pw-input" class='form-control' type="password" <%= (typeof ip !== 'undefined') ? "value='password' disabled" : '' %>>
+                        <input id="admin-pw-input" class='form-control' type="password" <%= (typeof ip !== 'undefined') ? "value='password' disabled" : "value='MavenPathways123!!'" %>>
                         </div>
                     </div>
                 <br/>
