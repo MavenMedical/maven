@@ -189,7 +189,7 @@ class allscripts_api(http.http_api):
             if not req or req.startswith('error'):
                 raise AllscriptsError('Could not get token - ' + req)
             return True
-        except OsConnectionError as e:
+        except OsConnectionError:
             return False
 
     @hour_cache.cache_lookup('GetServerInfo', lookup_on_none=True,
@@ -654,7 +654,7 @@ if __name__ == '__main__':
 
     config = {
         # http.CONFIG_BASEURL: 'http://pro14ga.unitysandbox.com/Unity/UnityService.svc',
-        http.CONFIG_BASEURL: 'http://192.237.182.238/Unity/UnityService.svc',
+        CONFIG_PARAMS.EHR_API_BASE_URL.value: 'http://192.237.182.238/Unity/UnityService.svc',
         # http.CONFIG_BASEURL: 'http://doesnotexist.somejunk.cs.umd.edu/Unity/UnityService.svc',
         http.CONFIG_OTHERHEADERS: {
             'Content-Type': 'application/json'

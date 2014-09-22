@@ -84,7 +84,6 @@ define([
                     url: "/setup_customer?" + $.param(contextModel.toParams()),
                     data: JSON.stringify({"EHRURL": protocol + ip + "/Unity/UnityService.svc",
 					  "EHRAppName": name,
-                      "EHRServiceUser": username,
 					  "EHRPassword": pw,
 					  "EHRPolling": polling,
 					  "UserTimeout": timeout}),

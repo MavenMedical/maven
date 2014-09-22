@@ -29,7 +29,7 @@ class http_api():
         :param decode: True if the output should be returned as a string, false means bytes
         """
         self.config = config
-        self.base_url = self.config.get(CONFIG_PARAMS.EHR_API_BASE_URL.value, "")
+        self.base_url = self.config[CONFIG_PARAMS.EHR_API_BASE_URL.value]
         self.other_headers = self.config.get(CONFIG_OTHERHEADERS, {})
         if other_headers:
             self.other_headers.update(other_headers)

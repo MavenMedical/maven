@@ -2,7 +2,7 @@ import asyncio
 import asyncio.queues
 import json
 from collections import defaultdict
-from utils.streaming.http_svcs_wrapper import CONTEXT, http_service, CONFIG_PERSISTENCE
+from utils.streaming.http_svcs_wrapper import CONTEXT, http_service
 import maven_config as MC
 import maven_logging as ML
 import utils.streaming.http_responder as HR
@@ -82,15 +82,12 @@ class NotificationService():
                 RESPONSE_LINK: 'http://www.google.com',
             }
 
-    def update_users_read(self, active_provider_list):
-        self.active_providers = active_provider_list
-
     def update_users_post(self):
         self.user_sync_svc.update_provider_list_observers(self.active_providers)
 
     @ML.trace(logger.info)
-    def send_messages(self, provider, customer, messages=None):
-        key = provider, customer
+    def send_messages(self, user_name, customer, messages=None):
+        key = user_name, customer
         ML.DEBUG(str(key) + ": " + str(messages))
         if key in self.message_queues:
             if messages:
@@ -105,46 +102,11 @@ class NotificationService():
 import app.backend.webservices.authentication as AU
 
 
-def standalone_notification_server(configname, user_sync_svc=None):
+def notification_server(configname, user_sync_svc=None):
     import utils.streaming.webservices_core as WC
     core_scvs = WC.WebserviceCore(configname)
     ns = NotificationService(configname, user_sync_svc=user_sync_svc)
     core_scvs.register_services(ns)
-    core_scvs.register_services(AU.AuthenticationWebservices(configname, timeout=60 * 60 * 12))
-    return core_scvs, ns.send_messages, ns.update_users_read
-
-
-def run():
-    import utils.streaming.stream_processor as SP
-    import utils.database.web_persistence as WP
-    from utils.database.database import AsyncConnectionPool
-
-    import asyncio
-
-    MC.MavenConfig = {
-        'notificationserver':
-        {
-            SP.CONFIG_HOST: 'localhost',
-            SP.CONFIG_PORT: 8092,
-            SP.CONFIG_PARSERTIMEOUT: 120,
-            CONFIG_QUEUEDELAY: 30,
-            CONFIG_PERSISTENCE: "persistence layer",
-            AU.CONFIG_SPECIFICROLE: USER_ROLES.notification.value,
-            AU.CONFIG_OAUTH: True,
-        },
-        'persistence layer': {WP.CONFIG_DATABASE: 'webservices conn pool', },
-        'webservices conn pool':
-        {
-            AsyncConnectionPool.CONFIG_CONNECTION_STRING: MC.dbconnection,
-            AsyncConnectionPool.CONFIG_MIN_CONNECTIONS: 4,
-            AsyncConnectionPool.CONFIG_MAX_CONNECTIONS: 8
-        }
-    }
-
-    core_scvs, _ = standalone_notification_server('notificationserver')
-    event_loop = asyncio.get_event_loop()
-    core_scvs.schedule(event_loop)
-    event_loop.run_forever()
-
-if __name__ == '__main__':
-    run()
+    core_scvs.register_services(AU.AuthenticationWebservices(configname, None,
+                                                             timeout=60 * 60 * 12))
+    return core_scvs, ns.send_messages

@@ -28,6 +28,7 @@ class ServerEndpoint(SP.StreamProcessor):
 
         self.persistence = WP.WebPersistence(CONFIG_PARAMS.PERSISTENCE_SVC.value)
         self.client_interface = client_interface
+        self.notification_fn = None
 
     @asyncio.coroutine
     def get_users_from_db(self, customer_id):
@@ -61,9 +62,13 @@ class ServerEndpoint(SP.StreamProcessor):
     def write_user_deactivation_to_db(self, customer_id, provider_info):
         yield from self.persistence.EHRsync_update_user_provider(provider_info)
 
+    def set_notification_function(self, fn):
+        self.notification_fn = fn
+
     @asyncio.coroutine
     def notify_user(self, customer_id, user_name, msg):
-        pass
+        if self.notification_fn:
+            self.notification_fn(user_name, customer_id, messages=[msg])
 
     @asyncio.coroutine
     def get_customer_configurations(self):
@@ -94,7 +99,8 @@ class ServerEndpoint(SP.StreamProcessor):
             WP.Results.license_exp: 'license_exp',
             WP.Results.settings: 'settings'
         }
-        result = yield from self.persistence.customer_info(desired, customer=customer_id, limit=None)
+        result = yield from self.persistence.customer_info(desired, customer=customer_id,
+                                                           limit=None)
 
         if result:
             asyncio.Task(self.client_interface.update_customer_configuration(result['customer_id'],
