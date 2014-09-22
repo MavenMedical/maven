@@ -1,0 +1,2 @@
+ALTER TABLE logins ADD COLUMN customer_id NUMERIC(18,0) NOT NULL;
+DELETE FROM logins;

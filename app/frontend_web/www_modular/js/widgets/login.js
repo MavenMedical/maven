@@ -19,7 +19,6 @@ define([
 	events: {
 	    'click #login-button': 'dologin',
 	    'click #update-password': 'dologin',
-	    'click #fastlogin-button': 'fastlogin',
 	    'keyup #login-user':'doenterlogin',
 	    'keyup #login-password':'doenterlogin',
 	    'keyup #login-new-password':'doenterchange',
@@ -49,9 +48,6 @@ define([
 	    } else {
 		this.newPasswordChange();
 	    }
-	},
-	fastlogin: function() {
-	    contextModel.setUser('maven','maven', null, '1', Backbone.history.fragment);
 	},
 	dologin: function(event) {
 	    var user = $("#login-user").val();

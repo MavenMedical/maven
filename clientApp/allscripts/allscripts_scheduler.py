@@ -55,8 +55,7 @@ class scheduler():
                     sched = []
                 try:
                     for provider in self.active_providers:
-                        if self.check_notification_policy(provider):
-                            sched = yield from self.allscripts_api.GetSchedule(self.active_providers.get(provider)['user_name'], today)
+                        sched = yield from self.allscripts_api.GetSchedule(self.active_providers.get(provider)['user_name'], today)
 
                 except AllscriptsError as e:
                     CLIENT_SERVER_LOG.exception(e)

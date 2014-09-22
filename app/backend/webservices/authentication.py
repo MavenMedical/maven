@@ -158,7 +158,7 @@ class AuthenticationWebservices():
             return HTTP.UNAUTHORIZED_RESPONSE, json.dumps({'loginTemplate':
                                                            err.args[0] + ".html"}), None
         finally:
-            yield from self.persistence.record_login(str(attempted),
+            yield from self.persistence.record_login(username, customer,
                                                      method,
                                                      header.get_headers().get('X-Real-IP'),
                                                      auth if method == 'forward' else None)
