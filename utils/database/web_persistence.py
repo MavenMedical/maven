@@ -317,8 +317,8 @@ class WebPersistence():
                    new_provider_dict["display_name"],
                    new_provider_dict["state"],
                    new_provider_dict["ehr_state"],
-                   new_provider_dict.get('roles', []),
-                   new_provider_dict.get('layouts', [])]
+                   new_provider_dict.get('roles', ["provider"]),
+                   new_provider_dict.get('layouts', [2])]
         cmd = []
         cmd.append("INSERT INTO users (" + columns + ")")
         cmd.append("VALUES (%s, %s, UPPER(%s), %s, %s, %s, %s, %s::user_role[], %s)")
