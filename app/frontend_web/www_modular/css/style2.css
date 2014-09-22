@@ -27,11 +27,11 @@
         padding: 0;
     }
     .selected {
-        border-width: 6px
-        !important;
+        border-width: 4px !important;
+
     }
     .tree ul {
-        padding-top: 60px;
+        padding-top: 20px;
         position: relative;
 
         transition: all 0.5s;
@@ -59,7 +59,7 @@
 
     .tree li div.treeNode {
         max-width: 600px;
-        border: 2px solid #46bdec;
+        border: 0px solid #2c2f74 ;
         background-color: whitesmoke;
         padding: 5px 10px;
         text-decoration: none;
