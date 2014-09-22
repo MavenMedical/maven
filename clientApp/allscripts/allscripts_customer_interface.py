@@ -17,7 +17,6 @@ __author__ = 'Yuki Uchino'
 # LAST MODIFIED FOR JIRA ISSUE: MAV-289
 # *************************************************************************
 import asyncio
-from aiohttp import OsConnectionError
 import maven_logging as ML
 import clientApp.webservice.user_sync_service as US
 import clientApp.allscripts.allscripts_scheduler as AS
@@ -75,8 +74,9 @@ class AllscriptsCustomerInterface:
         pass
 
     @asyncio.coroutine
-    def notify_user(self, user_name, msg):
-        pass
+    def notify_user(self, user_name, subject, msg):
+        yield from self.ahc.SaveTask(user_name, None, msg_subject=subject,
+                                     message_data=msg, targetuser=user_name)
 
     def update_active_providers(self, active_provider_list):
         self.active_providers = active_provider_list

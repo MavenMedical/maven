@@ -61,6 +61,6 @@ class ClientAppEndpoint():
             return False
 
     @asyncio.coroutine
-    def notify_user(self, customer_id, user_name, msg):
+    def notify_user(self, customer_id, user_name, subject, msg):
         customer_interface = self.customer_interfaces[customer_id]
-        yield from customer_interface.notify_user(user_name, msg)
+        yield from customer_interface.notify_user(user_name, subject, msg)
