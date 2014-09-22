@@ -38,13 +38,13 @@ define([
             $(document).ready(function() {
 
                 $(that.el).find(".reset-user-password").click(function(){
-                    $("#admin-setup-message").empty();
+                    $("#save-user-message").html("&nbsp;");
                     $.ajax({
                         url: "/reset_password",
                         data: $.param(contextModel.toParams()) + "&target_user=" + that.model.get("user_name") +
                             "&target_customer=" + that.model.get("customer_id"),
                         success: function () {
-                            $("#save-admin-message").html("Password Reset!");
+                            $("#save-user-message").html("Password Reset!");
                         }
                     });
                 });

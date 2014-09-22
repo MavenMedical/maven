@@ -33,6 +33,7 @@ class CONTEXT():
     ABBREVIATION = "abbr"
     IPADDRESS = "ip"
     LICENSE = "license"
+    LICENSEEXP = "license_exp"
     OFFICIALNAME = 'official_name'
     DISPLAYNAME = 'display_name'
     ACTION = 'action'

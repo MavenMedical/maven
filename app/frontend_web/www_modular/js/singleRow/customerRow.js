@@ -12,17 +12,34 @@ define([
     'text!templates/customerRow.html'
 ], function ($, _, Backbone, contextModel, customerRowTemplate) {
     var customerRow = Backbone.View.extend({
-        tagName: 'tr',
+        tagName: 'tr class=\'customer-row\'',
         template: _.template(customerRowTemplate),
-        events:{
-            'click': 'handleClick'
-        },
         render: function(){
             $(this.el).html(this.template(this.model.toJSON()));
             return this;
         },
         events: function() {
+            var that = this;
+            $(document).ready(function() {
+                $(that.el).unbind('click');
+                $(that.el).on('click', function (e) {
+                    //hide all customer edit fields in case others are active
+                    $(".customer-row > td").each(function(){
+                        $(this).find(".customer-row-val").html($(this).find(".customer-row-edit").val());
+                    });
+                    $(".customer-row-edit").hide();
+                    $(".customer-row-val").show();
 
+                    //show customer edit fields for this row
+                    //$(that.el).find(".customer-row-edit").show();
+                    $(that.el).find(".customer-row-val").hide();
+                    $(that.el).find(".customer-row-edit").each(function(){
+                        $(this).width($(this).parent().width()-5);
+                      //  $(this).attr('width')
+                        $(this).show();
+                    });
+                });
+            });
         }
     });
 
