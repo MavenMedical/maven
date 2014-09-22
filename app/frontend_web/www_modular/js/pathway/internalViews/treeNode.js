@@ -65,11 +65,12 @@ define([
                 //Set on clicks
                 $('.collapseButton', this.$el).first().off('click')
                 $('.collapseButton', this.$el).first().on('click', function(){
-                       if (that.model.get('hideChildren') == "false"){
-                           curTree.collapse(that.model)
-                       } else{
-                            curTree.hideSiblings(that.model)
-                            that.model.set('hideChildren', "false")
+                       if (currentContext.get('page')=='pathEditor'){
+                           if (that.model.get('hideChildren') == "false"){
+                               curTree.collapse(that.model)
+                           } else{
+                               that.model.set('hideChildren', "false")
+                           }
                        }
                 })
                 $("#addChildButton", this.$el).off('click')
@@ -82,6 +83,15 @@ define([
                 this.getMyElement().off('click')
                 this.getMyElement().on('click', function(){
                     curTree.set('selectedNode', that.model, {silent: true})
+                    if (currentContext.get('page')!='pathEditor'){
+                       if (that.model.get('hideChildren') == "false"){
+                           curTree.collapse(that.model)
+                       } else{
+                            curTree.hideSiblings(that.model)
+                            that.model.set('hideChildren', "false")
+                       }
+
+                    }
                     curTree.trigger('propagate')
 
                 })
@@ -90,7 +100,7 @@ define([
                     $('.children2', this.$el).first().append("<div class='childSpot'></div>")
                     var targ = $('.childSpot',$('.children2', this.$el).first()).last()
                     var thisChild = new treeNode({model: cur, el:targ})
-                    var n =  (cur.get('hideChildren') == "false")
+                    var n =  ((cur.get('hideChildren') == "false") || cur == curTree.get('selectedNode')  )
                     curTree.elPairs.push({source: this, target: thisChild, bold: n})
                 }, this)
                 if (this.model.get('hideChildren') == "true"){
@@ -107,7 +117,7 @@ define([
                 if (this.model.get('protocol')){
                     var protoNode = new ProtocolNode({model: this.model})
                     $('.protocol', this.$el).first().append(protoNode.render().$el)
-                    curTree.elPairs.push({source: this, target: protoNode})
+                    curTree.elPairs.push({source: this, target: protoNode, bold: true})
                     $('.removeProtocolButton', this.$el).on("click", function(){
                         that.model.unset('protocol')
                     })

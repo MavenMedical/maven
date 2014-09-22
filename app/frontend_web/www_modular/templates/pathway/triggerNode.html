@@ -16,14 +16,16 @@
                 </div>
             <%}%>
 
-             <% if (triggerNode.children.length > 0) {%>
+            <% if (page == 'pathEditor' && (triggerNode.children.length > 0||triggerNode.protocol) ) {%>
                 <div class="btn-group btn-group-xs">
                     <button type="button" class="btn btn-default collapseButton">
+                     <% if (page == 'pathEditor') { %>
                         <% if (triggerNode.hideChildren=="true"){%>
                         <img src="../images/temp/expand.jpg" style="width: 25px; height: 25px">
                         <%}else{%>
                         <img src="../images/temp/collapse.jpg" style="width: 25px; height: 25px">
                         <%}%>
+                     <%}%>
                     </button>
                 </div>
             <% } %>
