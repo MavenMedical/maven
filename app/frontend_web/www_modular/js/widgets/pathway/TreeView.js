@@ -27,13 +27,10 @@ define([
                          strokeStyle: '#ccc'
                     },
                     HoverPaintStyle :  {
-                         lineWidth: 3,
+                         lineWidth: 7,
                          strokeStyle: '#61B7CF'
-                    },
-                    HoverPaintStyle :  {
-                        lineWidth: 3,
-                        strokeStyle: '#61B7CF'
                     }
+
                 })
 
                 this.treeEl = $('.tree', this.$el)
@@ -93,14 +90,24 @@ define([
                  _.each(curTree.elPairs, function(cur){
 
                   if((cur.source.$el.is(":visible")) && (cur.target.$el.is(":visible"))){
+
                        var a = cur.source.makeExit(that.plumb)
                        var b = cur.target.makeEntrance(that.plumb)
-                       that.plumb.connect({
-                           source: a,
-                           target: b,
-
-                           overlays: [["Arrow", {location:1}]]
-                       })
+                      if (cur.bold){
+                          that.plumb.connect({
+                               source: a,
+                               target: b,
+                                paintStyle:  {
+                                         lineWidth: 6,
+                                         strokeStyle: '#ccc'
+                                },
+                           })
+                      } else {
+                          that.plumb.connect({
+                               source: a,
+                               target: b
+                          })
+                      }
                   }
                 })
 

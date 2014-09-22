@@ -90,7 +90,8 @@ define([
                     $('.children2', this.$el).first().append("<div class='childSpot'></div>")
                     var targ = $('.childSpot',$('.children2', this.$el).first()).last()
                     var thisChild = new treeNode({model: cur, el:targ})
-                    curTree.elPairs.push({source: this, target: thisChild})
+                    var n =  (cur.get('hideChildren') == "false")
+                    curTree.elPairs.push({source: this, target: thisChild, bold: n})
                 }, this)
                 if (this.model.get('hideChildren') == "true"){
                     $('.children2', this.$el).first()[0].hidden = true;

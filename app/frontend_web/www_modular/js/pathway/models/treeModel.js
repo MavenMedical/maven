@@ -18,17 +18,13 @@ define([
         })
     }
     var hideSiblingsRecur = function(me, toHide){
-        var flag = false;
         var tar = me.get('children').models.indexOf(toHide)
-                        console.log("the parent is", me, "tar is", tar)
-                        console.log("to delete is", toHide)
         for (var i in me.get('children').models){
                 if (tar != - 1){
                      if (i != tar){
                         console.log(me.get('children').models[i])
                         recursiveCollapse(me.get('children').models[i])
                      }
-                     flag = true;
                 }
                 else {
                     hideSiblingsRecur(me.get('children').models[i], toHide)
@@ -36,7 +32,6 @@ define([
         }
     }
     var recursiveCollapse= function(node){
-        console.log('collapsing', node)
         node.set('hideChildren', "true")
         console.log(node.attributes.children.models)
         _.each(node.attributes.children.models, function(cur){
@@ -76,7 +71,7 @@ define([
         },
         collapse: function(node){
           if (!node){
-            recursiveCollapse(this)
+             recursiveCollapse(this)
           } else {
               recursiveCollapse(node)
           }
