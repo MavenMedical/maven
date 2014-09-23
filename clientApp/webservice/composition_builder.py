@@ -52,7 +52,7 @@ class CompositionBuilder(builder):
     def build_providers(self):
         ret = yield from self.allscripts_api.GetProviders()
         for prov in ret:
-            self.provs[prov['UserName']] = self.build_partial_practitioner(prov)
+            self.provs[prov['UserName'].upper()] = self.build_partial_practitioner(prov)
 
     @builder.build(FHIR_API.Composition)
     @ML.trace(COMP_BUILD_LOG.debug, True)

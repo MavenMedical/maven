@@ -64,3 +64,8 @@ class ClientAppEndpoint():
     def notify_user(self, customer_id, user_name, subject, msg):
         customer_interface = self.customer_interfaces[customer_id]
         yield from customer_interface.notify_user(user_name, subject, msg)
+
+    @asyncio.coroutine
+    def handle_evaluated_composition(self, customer_id, composition):
+        customer_interface = self.customer_interfaces[customer_id]
+        yield from customer_interface.handle_evaluated_composition(composition)

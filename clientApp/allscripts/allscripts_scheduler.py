@@ -44,8 +44,9 @@ class scheduler():
 
     @asyncio.coroutine
     def run(self):
-        first = True
+
         yield from self.comp_builder.build_providers()
+        first = True
         while True:
             try:
                 today = date.today()
@@ -56,26 +57,30 @@ class scheduler():
                 try:
                     for provider in self.active_providers:
                         sched = yield from self.allscripts_api.GetSchedule(self.active_providers.get(provider)['user_name'], today)
+                        tasks = set()
+                        for appointment in sched:
+                            patient = appointment['patientID']
+                            provider = appointment['ProviderID']
+                            tasks.add((patient, provider, today, first))
+                        for task in tasks:
+                            ML.TASK(self.evaluate(*task))
 
                 except AllscriptsError as e:
                     CLIENT_SERVER_LOG.exception(e)
                 # print([(sch['patientID'], sch['ApptTime2'], sch['ProviderID']) for sch in sched])
-                tasks = set()
+
                 # CLIENT_SERVER_LOG.debug(sched)
-                for appointment in sched:
-                    patient = appointment['patientID']
-                    provider = appointment['ProviderID']
-                    tasks.add((patient, provider, today, first))
-                for task in tasks:
-                    asyncio.Task(self.evaluate(*task))
+
             except Exception as e:
                 CLIENT_SERVER_LOG.exception(e)
             yield from asyncio.sleep(self.sleep_interval)
             first = False
 
     @asyncio.coroutine
-    def evaluate(self, patient, provider, today, first):
-        CLIENT_SERVER_LOG.debug('evaluating %s/%s' % (patient, provider))
+    def evaluate(self, patient, provider_id, today, first):
+        CLIENT_SERVER_LOG.debug('evaluating %s/%s' % (patient, provider_id))
+        provider = self.active_providers.get((provider_id, str(self.customer_id)))
+        provider_username = provider.get('user_name')
         try:
             # print('evaluating %\s for %s' % (patient, provider))
             now = datetime.now()
@@ -84,7 +89,7 @@ class scheduler():
             import traceback
             traceback.print_exc()
         try:
-            documents = yield from self.allscripts_api.GetDocuments('CliffHux', patient,
+            documents = yield from self.allscripts_api.GetDocuments(provider_username, patient,
                                                                     prior, now)
             # print('got %d documents' % len(documents))
             # ML.DEBUG('documents: %d' % len(documents))
@@ -97,20 +102,20 @@ class scheduler():
                     doctime = doc.get('SortDate', None)
                     todaydoc = doctime and datetime.date(parse(doctime)) == today
                     newdoc = True
-                    if match and newdoc and todaydoc and (patient, provider, today, docid) not in self.processed:
+                    if match and newdoc and todaydoc and (patient, provider_id, today, docid) not in self.processed:
                         ML.DEBUG('got doc, (match, newdoc, docid, first) = %s' % str((match, newdoc, docid, first)))
-                        self.processed.add((patient, provider, today, docid))
+                        self.processed.add((patient, provider_id, today, docid))
                         if not first:
                             # start, stop = match.span()
                             CLIENT_SERVER_LOG.debug("About to send to Composition Builder...")
-                            composition = yield from self.comp_builder.build_composition("CLIFFHUX", patient, docid)
+                            composition = yield from self.comp_builder.build_composition(provider_username, patient, docid)
                             CLIENT_SERVER_LOG.debug(("Built composition, about to send to Backend Data Router. Composition ID = %s" % composition.id))
-                            asyncio.Task(self.parent.evaluate_composition(composition, "CLIFFHUX"))
+                            ML.TASK(self.parent.evaluate_composition(composition))
                             break
                 # processed.update({doc['DocumentID'] for doc in documents})
         except AllscriptsError as e:
             CLIENT_SERVER_LOG.exception(e)
-        except:
+        except Exception as e:
             CLIENT_SERVER_LOG.exception(e)
 
     def check_notification_policy(self, key):

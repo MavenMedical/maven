@@ -40,26 +40,22 @@ NG_LOG = ML.get_logger()
 
 class NotificationGenerator():
 
-    def __init__(self, configname):
+    def __init__(self, config):
 
         """ Initialize the Notification Generator class, instantiating all of the helper functions
         required to generate an EMR-specific Notification alert
 
-        :param configname: the name of the instance to pull config parameters
+        :param config: the name of the instance to pull config parameters
         """
 
-        if not configname:
+        if not config:
             raise MC.InvalidConfig("Notification Generator needs a config entry")
         try:
-            self.configname = configname
-            if configname not in MC.MavenConfig:
-                raise MC.InvalidConfig(configname + " is not in the MavenConfig map.")
-            config = MC.MavenConfig[configname]
-
+            self.config = config
             try:
                 # self.emrtype = config.get(EMR_TYPE, None)
                 # self.emrversion = config.get(EMR_VERSION, None)
-                self.DEBUG = config.get(DEBUG, None)
+                self.DEBUG = config.get(DEBUG, True)
                 self.templateEnv = {}
 
                 self.max_msg_load = config.get(MAX_MSG_LOAD, None)
@@ -74,10 +70,10 @@ class NotificationGenerator():
                 self.templateEnv['web'] = jinja2.Environment(loader=templateLoader)
 
             except KeyError:
-                raise MC.InvalidConfig(configname + " did not have sufficient parameters.")
+                raise MC.InvalidConfig(config + " did not have sufficient parameters.")
 
         except Exception as e:
-            ML.ERROR("MC.InvalidConfig in " + self.configname)
+            ML.ERROR("MC.InvalidConfig in " + self.config)
             raise e
 
     @asyncio.coroutine

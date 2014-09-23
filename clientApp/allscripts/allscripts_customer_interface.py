@@ -21,6 +21,7 @@ import maven_logging as ML
 import clientApp.webservice.user_sync_service as US
 import clientApp.allscripts.allscripts_scheduler as AS
 import utils.web_client.allscripts_http_client as AHC
+import clientApp.notification_generator.notification_generator as NG
 from utils.enums import CONFIG_PARAMS
 
 
@@ -47,6 +48,8 @@ class AllscriptsCustomerInterface:
         self.user_sync_service = US.UserSyncService(self.customer_id, user_sync_interval,
                                                     self.server_interface, self.ahc)
 
+        self.notification_generator = NG.NotificationGenerator(config)
+
         # Register the EHR API Polling Service's "Refresh Active Providers" Function with the User Sync Service
         self.user_sync_service.subscribe(self.allscripts_scheduler.update_active_providers)
 
@@ -60,8 +63,8 @@ class AllscriptsCustomerInterface:
 
     @asyncio.coroutine
     def start(self):
-        self.schedulertask = asyncio.Task(self.allscripts_scheduler.run())
-        self.usersynctask = asyncio.Task(self.user_sync_service.run())
+        self.schedulertask = ML.TASK(self.allscripts_scheduler.run())
+        self.usersynctask = ML.TASK(self.user_sync_service.run())
 
     @asyncio.coroutine
     def test_and_update_config(self, config):
@@ -78,5 +81,25 @@ class AllscriptsCustomerInterface:
         yield from self.ahc.SaveTask(user_name, None, msg_subject=subject,
                                      message_data=msg, targetuser=user_name)
 
-    def update_active_providers(self, active_provider_list):
-        self.active_providers = active_provider_list
+    @asyncio.coroutine
+    def handle_evaluated_composition(self, composition):
+
+        CLIENT_SERVER_LOG.debug(("Received Composition Object from the Maven backend engine: ID = %s" % composition.id))
+        # ## tom: this has no authentication yet
+        # composition.customer_id
+        user = composition.author.get_provider_username().upper()
+        customer = str(composition.customer_id)
+        msg = yield from self.notification_generator.generate_alert_content(composition, 'web', None)
+        CLIENT_SERVER_LOG.debug(("Generated Message content: %s" % msg))
+        # mobile_msg = [{'TEXT': 'New Pathway', 'LINK': m} for m in msg]
+
+        yield from self.server_interface.notify_user(customer, user, msg)
+
+    @asyncio.coroutine
+    def evaluate_composition(self, composition):
+        yield from self.server_interface.evaluate_composition(composition)
+
+        # self.notification_fn('mobile_' + user, customer, mobile_msg)
+
+    # def update_active_providers(self, active_provider_list):
+        # self.active_providers = active_provider_list
