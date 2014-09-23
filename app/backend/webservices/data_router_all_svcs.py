@@ -67,14 +67,20 @@ class IncomingMessageHandler(SP.StreamProcessor):
 
 class OutgoingMessageHandler(SP.StreamProcessor):
 
-    def __init__(self, configname):
+    def __init__(self, configname, client_interface):
         SP.StreamProcessor.__init__(self, configname)
+        self.client_interface = client_interface
 
     @asyncio.coroutine
     def read_object(self, obj, _):
         obj.user = obj.author.get_provider_username()
         obj.userAuth = AK.authorization_key([obj.user, str(obj.customer_id)], 44, 60 * 60)
-        self.write_object(pickle.dumps(obj), writer_key=obj.write_key[1])
+
+        if obj.write_key is not None:
+            self.write_object(pickle.dumps(obj), writer_key=obj.write_key[1])
+        else:
+            customer_id = obj.customer_id
+            yield from self.client_interface.handle_evaluated_composition(customer_id, obj)
 
 
 def main(loop):
@@ -191,15 +197,15 @@ def main(loop):
     rpc = RP.rpc(rpc_server_stream_processor)
     rpc.schedule(loop)
 
+    sp_consumer = IncomingMessageHandler(incomingtomavenmessagehandler)
+    sp_consumer.schedule(loop)
+
     client_interface = rpc.create_client(ClientAppEndpoint)
-    server_endpoint = ServerEndpoint(client_interface)
+    server_endpoint = ServerEndpoint(client_interface, lambda x: sp_consumer.write_object(x, writer_key="CostEval"))
     server_endpoint.persistence.schedule(loop)
     rpc.register(server_endpoint)
 
-    sp_consumer = IncomingMessageHandler(incomingtomavenmessagehandler)
-    sp_producer = OutgoingMessageHandler(outgoingtohospitalsmessagehandler)
-
-    sp_consumer.schedule(loop)
+    sp_producer = OutgoingMessageHandler(outgoingtohospitalsmessagehandler, client_interface)
     sp_producer.schedule(loop)
 
     core_scvs = WC.WebserviceCore('httpserver', client_interface=client_interface)

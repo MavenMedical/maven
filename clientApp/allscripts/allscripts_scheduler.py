@@ -44,8 +44,13 @@ class scheduler():
 
     @asyncio.coroutine
     def run(self):
-        first = True
         yield from self.comp_builder.build_providers()
+        composition = yield from self.comp_builder.build_composition("CLIFFHUX", "66561", "8097")
+        try:
+            yield from self.parent.evaluate_composition(composition)
+        except Exception as e:
+            ML.EXCEPTION(e)
+        first = True
         while True:
             try:
                 today = date.today()
@@ -56,18 +61,20 @@ class scheduler():
                 try:
                     for provider in self.active_providers:
                         sched = yield from self.allscripts_api.GetSchedule(self.active_providers.get(provider)['user_name'], today)
+                        tasks = set()
+                        for appointment in sched:
+                            patient = appointment['patientID']
+                            provider = appointment['ProviderID']
+                            tasks.add((patient, provider, today, first))
+                        for task in tasks:
+                            asyncio.Task(self.evaluate(*task))
 
                 except AllscriptsError as e:
                     CLIENT_SERVER_LOG.exception(e)
                 # print([(sch['patientID'], sch['ApptTime2'], sch['ProviderID']) for sch in sched])
-                tasks = set()
+
                 # CLIENT_SERVER_LOG.debug(sched)
-                for appointment in sched:
-                    patient = appointment['patientID']
-                    provider = appointment['ProviderID']
-                    tasks.add((patient, provider, today, first))
-                for task in tasks:
-                    asyncio.Task(self.evaluate(*task))
+
             except Exception as e:
                 CLIENT_SERVER_LOG.exception(e)
             yield from asyncio.sleep(self.sleep_interval)

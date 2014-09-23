@@ -24,11 +24,12 @@ from utils.enums import CONFIG_PARAMS
 
 class ServerEndpoint(SP.StreamProcessor):
 
-    def __init__(self, client_interface):
+    def __init__(self, client_interface, comp_eval_writer_fn):
 
         self.persistence = WP.WebPersistence(CONFIG_PARAMS.PERSISTENCE_SVC.value)
         self.client_interface = client_interface
         self.notification_fn = None
+        self.comp_eval_writer_fn = comp_eval_writer_fn
 
     @asyncio.coroutine
     def get_users_from_db(self, customer_id):
@@ -108,5 +109,5 @@ class ServerEndpoint(SP.StreamProcessor):
         return
 
     @asyncio.coroutine
-    def evaluate_composition(self, composition, provider):
-        raise NotImplementedError
+    def evaluate_composition(self, composition):
+        self.comp_eval_writer_fn(composition)
