@@ -94,8 +94,8 @@ class UserSyncService():
         # Identify new EHR Providers that Maven is not aware of and write new users to Maven DB
         new_provider_list = list((ehr_prov_list - maven_prov_list).elements())
         if new_provider_list:
-            for deactivated_provider in new_provider_list:
-                yield from self.create_maven_user(self.ehr_providers[deactivated_provider], customer_id)
+            for new_provider in new_provider_list:
+                yield from self.create_maven_user(self.ehr_providers[new_provider], customer_id)
 
         # create 2 lists of tuples containing (provider_id, active state) to see if we need to UPDATE user's EHR state
         ehr_prov_list2 = Counter([(prov.get_provider_id(), prov.ehr_state) for prov in self.ehr_providers.values()])
@@ -104,8 +104,14 @@ class UserSyncService():
         # Identify EHR Providers that have been deactivated in their EHR and write changes to Maven DB
         deactivated_provider_list = list((maven_prov_list2 - ehr_prov_list2).elements())
         if deactivated_provider_list:
-            for deactivated_provider in deactivated_provider_list:
-                yield from self.update_maven_user_state(deactivated_provider[0], customer_id)
+            for deactivated_provider in [prov for prov in deactivated_provider_list if prov[1] == USER_STATE.ACTIVE.value]:
+                yield from self.deactivate_user_state(deactivated_provider, customer_id)
+
+        # Identify EHR Providers that have been reactivated in their EHR and write changes to Maven DB
+        reactivated_provider_list = list((ehr_prov_list2 - maven_prov_list2).elements())
+        if reactivated_provider_list:
+            for updated_provider in reactivated_provider_list:
+                yield from self.reactivate_user_state(updated_provider, customer_id)
 
     @ML.coroutine_trace(logger.debug)
     def create_maven_user(self, missing_provider, customer_id):
@@ -136,17 +142,21 @@ class UserSyncService():
         yield from self.server_interface.write_user_create_to_db(self.customer_id, new_provider)
 
     @ML.coroutine_trace(logger.debug)
-    def update_maven_user_state(self, deactivated_provider_id, customer_id):
+    def deactivate_user_state(self, updated_provider, customer_id):
+
+        if updated_provider[1] == USER_STATE.ACTIVE.value:
+            provider = {"customer_id": customer_id,
+                        "prov_id": updated_provider[0],
+                        "ehr_state": USER_STATE.DISABLED.value}
+            yield from self.server_interface.write_user_update_to_db(self.customer_id, provider)
+
+    @ML.coroutine_trace(logger.debug)
+    def reactivate_user_state(self, updated_provider, customer_id):
 
         provider = {"customer_id": customer_id,
-                    "prov_id": deactivated_provider_id,
-                    "ehr_state": USER_STATE.DISABLED.value
-                    }
-
-        for prov in [prov for prov in self.maven_providers if prov['prov_id'] == deactivated_provider_id]:
-            prov['ehr_state'] = USER_STATE.DISABLED.value
-
-        yield from self.server_interface.write_user_deactivation_to_db(self.customer_id, provider)
+                    "prov_id": updated_provider[0],
+                    "ehr_state": USER_STATE.ACTIVE.value}
+        yield from self.server_interface.write_user_update_to_db(self.customer_id, provider)
 
 
 def run():
