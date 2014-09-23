@@ -179,7 +179,7 @@ def main(loop):
         {
             SP.CONFIG_HOST: 'localhost',
             SP.CONFIG_PORT: 8092,
-            SP.CONFIG_PARSERTIMEOUT: 12,
+            SP.CONFIG_PARSERTIMEOUT: 50,
             NS.CONFIG_QUEUEDELAY: 45,
             "persistence": CONFIG_PARAMS.PERSISTENCE_SVC.value,
             AU.CONFIG_SPECIFICROLE: USER_ROLES.notification.value,
@@ -211,7 +211,7 @@ def main(loop):
     core_scvs.schedule(loop)
 
     notification_service, notification_fn = NS.notification_server(CONFIG_PARAMS.NOTIFY_SVC.value,
-                                                                   user_sync_svc=None)
+                                                                   client_interface.notify_user)
     notification_service.schedule(loop)
 
     server_endpoint.set_notification_function(notification_fn)

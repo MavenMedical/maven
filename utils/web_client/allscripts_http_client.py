@@ -578,6 +578,7 @@ class allscripts_api(http.http_api):
         lastname = provider_result['LastName']
 
         specialty = provider_result['PrimSpecialty']
+        profession = provider_result['Profession']
 
         # Extract User State (active vs inactive)
         if provider_result['ProviderInactive'] == "N":
@@ -598,7 +599,8 @@ class allscripts_api(http.http_api):
                                                   name=FHIR_API.HumanName(given=[firstname],
                                                                           family=[lastname]),
                                                   specialty=[specialty],
-                                                  ehr_state=ehr_user_state)
+                                                  ehr_state=ehr_user_state,
+                                                  role=[profession])
         return fhir_practitioner
 
     def build_full_practitioner(self, get_provider_result):

@@ -82,6 +82,7 @@ Results = Enum('Results',
     config
     lastlogin
     settings
+    profession
 """)
 
 
@@ -308,7 +309,8 @@ class WebPersistence():
                       "state",
                       "ehr_state",
                       "roles",
-                      "layouts"]
+                      "layouts",
+                      "profession"]
         columns = DBMapUtils().select_rows_from_map(column_map)
         cmdargs = [new_provider_dict["customer_id"],
                    new_provider_dict["prov_id"],
@@ -318,10 +320,11 @@ class WebPersistence():
                    new_provider_dict["state"],
                    new_provider_dict["ehr_state"],
                    new_provider_dict.get('roles', ["provider"]),
-                   new_provider_dict.get('layouts', [2])]
+                   new_provider_dict.get('layouts', [2]),
+                   new_provider_dict.get('profession')]
         cmd = []
         cmd.append("INSERT INTO users (" + columns + ")")
-        cmd.append("VALUES (%s, %s, UPPER(%s), %s, %s, %s, %s, %s::user_role[], %s)")
+        cmd.append("VALUES (%s, %s, UPPER(%s), %s, %s, %s, %s, %s::user_role[], %s, %s)")
         yield from self.execute(cmd, cmdargs, {}, {})
 
         if not new_provider_dict.get('prov_id', None):
@@ -414,6 +417,7 @@ class WebPersistence():
         Results.displayname: "users.display_name",
         Results.state: "users.state",
         Results.ehrstate: "users.ehr_state",
+        Results.profession: "users.profession",
         Results.lastlogin: "logins2.last_login"
     }
     _display_user_info = _build_format({
