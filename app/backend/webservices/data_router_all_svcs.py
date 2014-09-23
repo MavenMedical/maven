@@ -211,7 +211,7 @@ def main(loop):
     core_scvs.schedule(loop)
 
     notification_service, notification_fn = NS.notification_server(CONFIG_PARAMS.NOTIFY_SVC.value,
-                                                                   user_sync_svc=None)
+                                                                   client_interface.notify_user)
     notification_service.schedule(loop)
 
     server_endpoint.set_notification_function(notification_fn)

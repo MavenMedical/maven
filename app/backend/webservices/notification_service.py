@@ -1,12 +1,12 @@
 import asyncio
 import asyncio.queues
 import json
-from collections import defaultdict
+from utils.database.timeout_dict import TimeoutDict
 from utils.streaming.http_svcs_wrapper import CONTEXT, http_service
 import maven_config as MC
 import maven_logging as ML
 import utils.streaming.http_responder as HR
-from utils.enums import USER_ROLES, NOTIFICATION_STATE
+from utils.enums import USER_ROLES  # , NOTIFICATION_STATE
 
 CONFIG_QUEUEDELAY = 'queue delay'
 
@@ -18,94 +18,68 @@ ML.set_debug()
 
 
 class NotificationService():
-    def __init__(self, configname, user_sync_svc=None, loop=None):
+    def __init__(self, configname, save_task_fn, loop=None):
         self.config = MC.MavenConfig[configname]
-        self.message_queues = defaultdict(asyncio.queues.Queue)
+
+        def expire_fn(key, value):
+            user, customer = key
+            for v in [] and value:
+                asyncio.Task(save_task_fn(customer, user, 'Notification from Maven',
+                                          v))
+
+        self.messages = TimeoutDict(expire_fn, 2)
+        self.listeners = {}
         self.queue_delay = self.config.get(CONFIG_QUEUEDELAY, 0)
         self.loop = loop or asyncio.get_event_loop()
-        self.active_providers = {}
-        self.user_sync_svc = user_sync_svc
+        # self.send_messages('MAVEN', '1', ['SOME TEXT HERE'])
 
     @http_service(['GET'], '/poll',
-                  [CONTEXT.PROVIDER, CONTEXT.CUSTOMERID],
-                  {CONTEXT.PROVIDER: str, CONTEXT.CUSTOMERID: str},
+                  [CONTEXT.USER, CONTEXT.CUSTOMERID],
+                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: str},
                   {USER_ROLES.notification})
     @ML.coroutine_trace(logger.debug)
     def get_poll(self, _header, _body, context, _matches, _key):
         ret = []  # build the list of pending messages here.
-        key = context[CONTEXT.PROVIDER], context[CONTEXT.CUSTOMERID]
+        key = context[CONTEXT.USER], context[CONTEXT.CUSTOMERID]
 
-        provider = self.active_providers.get(key, None)
-        if provider:
-            provider['notification_state'] = NOTIFICATION_STATE.DESKTOP
-        self.update_users_post()
-        queue = self.message_queues[key]
-        if not queue.qsize():  # if there are no messages ready to display, wait for one
-            f = asyncio.async(queue.get())
+        if key in self.messages:
+            ret = self.messages.pop(key)
+        else:
+            if key in self.listeners and not self.listeners[key].done():
+                f = self.listeners[key]
+            else:
+                f = asyncio.Future()
+                self.listeners[key] = f
             try:
                 # wait for a message
-                y = yield from asyncio.wait_for(f, self.queue_delay, loop=self.loop)
-                ret.append(y)
+                ret = yield from asyncio.wait_for(f, self.queue_delay, loop=self.loop)
             except:
+                pass
+            finally:
                 # wait_for does not cancel the future, so do that explicitly upon any error
-                f.cancel()
-        try:
-            while True:  # read and append all available messages on the queue
-                logger.debug(("Reading queue"))
-                ret.append(queue.get_nowait())
-        except:
-            pass
+                if not f.done():
+                    f.cancel()
+
         return (HR.OK_RESPONSE, json.dumps(ret), None)
 
-    # @http_service(['GET'], '/post',
-    #              [CONTEXT.PROVIDER, CONTEXT.CUSTOMERID],
-    #              {CONTEXT.PROVIDER: str, CONTEXT.CUSTOMERID: str},
-    #              {USER_ROLES.notification})
-    @ML.coroutine_trace(logger.debug)
-    def get_post(self, _header, _body, context, _matches, _key):
-        # this function will not work as is
-        # key = qs[QS_KEY][0]
-        # message = qs['message'][0]
-        # self.send_messages(key, [self._convert_message(message)])
-        return (HR.OK_RESPONSE, b'', None)
-
-    def _convert_message(self, message):
-        m = message.split('\n', 1)
-        if len(m) == 2:
-            return {
-                RESPONSE_TEXT: m[1],
-                RESPONSE_LINK: m[0],
-                }
-        else:
-            return {
-                RESPONSE_TEXT: message,
-                RESPONSE_LINK: 'http://www.google.com',
-            }
-
-    def update_users_post(self):
-        self.user_sync_svc.update_provider_list_observers(self.active_providers)
-
     @ML.trace(logger.info)
-    def send_messages(self, user_name, customer, messages=None):
+    def send_messages(self, user_name, customer, messages):
         key = user_name, customer
         ML.DEBUG(str(key) + ": " + str(messages))
-        if key in self.message_queues:
-            if messages:
-                for message in messages:
-                    self.message_queues[key].put_nowait(message)
-                    logger.debug(('new queue size is ' + str(self.message_queues[key].qsize())))
-            return True
+        if key in self.listeners:
+            f = self.listeners.pop(key)
+            f.set_result(messages)
         else:
-            logger.debug('user is not listening')
-            return False
+            self.messages.extend(key, messages)
+        return True
 
 import app.backend.webservices.authentication as AU
 
 
-def notification_server(configname, user_sync_svc=None):
+def notification_server(configname, save_task_fn=None):
     import utils.streaming.webservices_core as WC
     core_scvs = WC.WebserviceCore(configname)
-    ns = NotificationService(configname, user_sync_svc=user_sync_svc)
+    ns = NotificationService(configname, save_task_fn=save_task_fn)
     core_scvs.register_services(ns)
     core_scvs.register_services(AU.AuthenticationWebservices(configname, None,
                                                              timeout=60 * 60 * 12))
