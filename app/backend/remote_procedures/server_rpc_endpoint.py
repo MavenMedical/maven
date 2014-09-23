@@ -60,7 +60,7 @@ class ServerEndpoint(SP.StreamProcessor):
         yield from self.persistence.EHRsync_create_user_provider(provider_info)
 
     @asyncio.coroutine
-    def write_user_deactivation_to_db(self, customer_id, provider_info):
+    def write_user_update_to_db(self, customer_id, provider_info):
         yield from self.persistence.EHRsync_update_user_provider(provider_info)
 
     def set_notification_function(self, fn):
