@@ -146,7 +146,7 @@ class UserSyncService():
         for prov in [prov for prov in self.maven_providers if prov['prov_id'] == deactivated_provider_id]:
             prov['ehr_state'] = USER_STATE.DISABLED.value
 
-        self.server_interface.write_user_deactivation_to_db(self.customer_id, provider)
+        yield from self.server_interface.write_user_deactivation_to_db(self.customer_id, provider)
 
 
 def run():
