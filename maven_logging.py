@@ -161,3 +161,18 @@ INFO = root.info
 WARN = root.warn
 ERROR = root.error
 EXCEPTION = root.exception
+
+
+def TASK(coroutine):
+    stack = [s[1:4] for s in inspect.stack()[1:]]
+
+    @asyncio.coroutine
+    def wrapper():
+        try:
+            yield from coroutine
+        except asyncio.CancelledError:
+            pass
+        except:
+            EXCEPTION('Error in asyncio.Task %s' % stack)
+
+    return asyncio.Task(wrapper())

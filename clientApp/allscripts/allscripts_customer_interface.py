@@ -63,8 +63,8 @@ class AllscriptsCustomerInterface:
 
     @asyncio.coroutine
     def start(self):
-        self.schedulertask = asyncio.Task(self.allscripts_scheduler.run())
-        self.usersynctask = asyncio.Task(self.user_sync_service.run())
+        self.schedulertask = ML.TASK(self.allscripts_scheduler.run())
+        self.usersynctask = ML.TASK(self.user_sync_service.run())
 
     @asyncio.coroutine
     def test_and_update_config(self, config):
@@ -91,7 +91,7 @@ class AllscriptsCustomerInterface:
         customer = str(composition.customer_id)
         msg = yield from self.notification_generator.generate_alert_content(composition, 'web', None)
         CLIENT_SERVER_LOG.debug(("Generated Message content: %s" % msg))
-        mobile_msg = [{'TEXT': 'New Pathway', 'LINK': m} for m in msg]
+        # mobile_msg = [{'TEXT': 'New Pathway', 'LINK': m} for m in msg]
 
         yield from self.server_interface.notify_user(customer, user, msg)
 

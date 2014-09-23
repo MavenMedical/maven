@@ -67,7 +67,7 @@ class scheduler():
                             provider = appointment['ProviderID']
                             tasks.add((patient, provider, today, first))
                         for task in tasks:
-                            asyncio.Task(self.evaluate(*task))
+                            ML.TASK(self.evaluate(*task))
 
                 except AllscriptsError as e:
                     CLIENT_SERVER_LOG.exception(e)
@@ -112,7 +112,7 @@ class scheduler():
                             CLIENT_SERVER_LOG.debug("About to send to Composition Builder...")
                             composition = yield from self.comp_builder.build_composition("CLIFFHUX", patient, docid)
                             CLIENT_SERVER_LOG.debug(("Built composition, about to send to Backend Data Router. Composition ID = %s" % composition.id))
-                            asyncio.Task(self.parent.evaluate_composition(composition, "CLIFFHUX"))
+                            ML.TASK(self.parent.evaluate_composition(composition, "CLIFFHUX"))
                             break
                 # processed.update({doc['DocumentID'] for doc in documents})
         except AllscriptsError as e:
