@@ -44,12 +44,8 @@ class scheduler():
 
     @asyncio.coroutine
     def run(self):
+
         yield from self.comp_builder.build_providers()
-        composition = yield from self.comp_builder.build_composition("CLIFFHUX", "66561", "8097")
-        try:
-            yield from self.parent.evaluate_composition(composition)
-        except Exception as e:
-            ML.EXCEPTION(e)
         first = True
         while True:
             try:
@@ -81,8 +77,10 @@ class scheduler():
             first = False
 
     @asyncio.coroutine
-    def evaluate(self, patient, provider, today, first):
-        CLIENT_SERVER_LOG.debug('evaluating %s/%s' % (patient, provider))
+    def evaluate(self, patient, provider_id, today, first):
+        CLIENT_SERVER_LOG.debug('evaluating %s/%s' % (patient, provider_id))
+        provider = self.active_providers.get((provider_id, str(self.customer_id)))
+        provider_username = provider.get('user_name')
         try:
             # print('evaluating %\s for %s' % (patient, provider))
             now = datetime.now()
@@ -91,7 +89,7 @@ class scheduler():
             import traceback
             traceback.print_exc()
         try:
-            documents = yield from self.allscripts_api.GetDocuments('CliffHux', patient,
+            documents = yield from self.allscripts_api.GetDocuments(provider_username, patient,
                                                                     prior, now)
             # print('got %d documents' % len(documents))
             # ML.DEBUG('documents: %d' % len(documents))
@@ -104,20 +102,20 @@ class scheduler():
                     doctime = doc.get('SortDate', None)
                     todaydoc = doctime and datetime.date(parse(doctime)) == today
                     newdoc = True
-                    if match and newdoc and todaydoc and (patient, provider, today, docid) not in self.processed:
+                    if match and newdoc and todaydoc and (patient, provider_id, today, docid) not in self.processed:
                         ML.DEBUG('got doc, (match, newdoc, docid, first) = %s' % str((match, newdoc, docid, first)))
-                        self.processed.add((patient, provider, today, docid))
+                        self.processed.add((patient, provider_id, today, docid))
                         if not first:
                             # start, stop = match.span()
                             CLIENT_SERVER_LOG.debug("About to send to Composition Builder...")
-                            composition = yield from self.comp_builder.build_composition("CLIFFHUX", patient, docid)
+                            composition = yield from self.comp_builder.build_composition(provider_username, patient, docid)
                             CLIENT_SERVER_LOG.debug(("Built composition, about to send to Backend Data Router. Composition ID = %s" % composition.id))
-                            ML.TASK(self.parent.evaluate_composition(composition, "CLIFFHUX"))
+                            ML.TASK(self.parent.evaluate_composition(composition))
                             break
                 # processed.update({doc['DocumentID'] for doc in documents})
         except AllscriptsError as e:
             CLIENT_SERVER_LOG.exception(e)
-        except:
+        except Exception as e:
             CLIENT_SERVER_LOG.exception(e)
 
     def check_notification_policy(self, key):

@@ -592,7 +592,7 @@ class allscripts_api(http.http_api):
                                                 value=provider_result['EntryCode']),
                             FHIR_API.Identifier(system="clientEMR",
                                                 label="Username",
-                                                value=provider_result['UserName'])]
+                                                value=provider_result['UserName'].upper())]
 
         # Instantiate and build the FHIR Practitioner from the data
         fhir_practitioner = FHIR_API.Practitioner(identifier=fhir_identifiers,
