@@ -179,7 +179,7 @@ def main(loop):
         {
             SP.CONFIG_HOST: 'localhost',
             SP.CONFIG_PORT: 8092,
-            SP.CONFIG_PARSERTIMEOUT: 12,
+            SP.CONFIG_PARSERTIMEOUT: 50,
             NS.CONFIG_QUEUEDELAY: 45,
             "persistence": CONFIG_PARAMS.PERSISTENCE_SVC.value,
             AU.CONFIG_SPECIFICROLE: USER_ROLES.notification.value,

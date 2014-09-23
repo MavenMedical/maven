@@ -37,7 +37,6 @@ class NotificationService():
                   [CONTEXT.USER, CONTEXT.CUSTOMERID],
                   {CONTEXT.USER: str, CONTEXT.CUSTOMERID: str},
                   {USER_ROLES.notification})
-    @ML.coroutine_trace(logger.debug)
     def get_poll(self, _header, _body, context, _matches, _key):
         ret = []  # build the list of pending messages here.
         key = context[CONTEXT.USER], context[CONTEXT.CUSTOMERID]
