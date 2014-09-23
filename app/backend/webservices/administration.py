@@ -70,6 +70,7 @@ class AdministrationWebservices():
             WP.Results.officialname: 'official_name',
             WP.Results.displayname: 'display_name',
             WP.Results.state: 'state',
+            WP.Results.ehrstate: 'ehr_state',
             WP.Results.lastlogin: 'last_login',
             WP.Results.profession: 'profession'
         }

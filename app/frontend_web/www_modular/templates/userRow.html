@@ -8,11 +8,9 @@
     <%= last_login %>
 </td>
 <td class="user-val-column">
-    <% if (state == 'active') { %>
-        <input type="checkbox" checked="checked" class="user-state">
-    <% } else { %>
-        <input type="checkbox" class="user-state">
-    <% } %>
+        <input type="checkbox" class="user-state"
+            <%= (state == 'active' && ehr_state == 'active') ? "checked='checked'" : '' %>
+            <%= (ehr_state != 'active') ? "disabled" : '' %> >
 </td>
 <td>
     <button class="btn btn-xs reset-user-password btn-default" value="">Reset Password</button>
