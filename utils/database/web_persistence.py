@@ -376,6 +376,7 @@ class WebPersistence():
         Results.password: 'users.pw',
         Results.passexpired: 'users.pw_expiration < now()',
         Results.userstate: 'users.state',
+        Results.ehrstate: 'users.ehr_state',
         #        Results.failedlogins: 'array_agg(logins.logintime)',
         Results.recentkeys: 'NULL',
         Results.roles: 'users.roles',

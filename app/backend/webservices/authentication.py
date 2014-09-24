@@ -68,7 +68,8 @@ class AuthenticationWebservices():
             WP.Results.userstate,
             # WP.Results.failedlogins,
             WP.Results.recentkeys,
-            WP.Results.roles
+            WP.Results.roles,
+            WP.Results.ehrstate,
         ]}
         attempted = None
         if info.get(CONTEXT.ROLES, None):
@@ -81,14 +82,18 @@ class AuthenticationWebservices():
         try:
             method = 'failed'
             user_info = {}
+            try:
+                user_info = yield from self.persistence.pre_login(desired, customer,
+                                                                  username=username)
+            except IndexError:
+                raise LoginError('badLogin')
+            if (user_info[WP.Results.userstate] != 'active'
+               or user_info[WP.Results.ehrstate] == 'disabled'):
+                raise LoginError('disabledLogin')
+
             # if header.get_headers().get('VERIFIED','SUCCESS') == 'SUCCESS':
             if user_and_pw:
                 attempted = ' '.join([username, customer])
-                try:
-                    user_info = yield from self.persistence.pre_login(desired, customer,
-                                                                      username=username)
-                except IndexError:
-                    raise LoginError('badLogin')
                 passhash = user_info[WP.Results.password].tobytes()
                 if (not passhash or
                         bcrypt.hashpw(bytes(info[CONTEXT.PASSWORD], 'utf-8'),
