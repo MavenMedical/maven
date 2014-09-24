@@ -36,8 +36,13 @@ class scheduler():
         self.processed = set()
         self.lastday = None
         self.comp_builder = CompositionBuilder(customer_id, allscripts_api)
-        self.sleep_interval = sleep_interval
         self.active_providers = {}
+
+        try:
+            self.sleep_interval = float(sleep_interval)
+        except ValueError as e:
+            CLIENT_SERVER_LOG.exception(e)
+            self.sleep_interval = float(45)
 
     def update_active_providers(self, active_provider_list):
         self.active_providers = active_provider_list
