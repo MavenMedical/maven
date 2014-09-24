@@ -108,16 +108,16 @@ class NotificationService():
                                            messages))
             return True
 
-    @http_service(['POST'], '/notifypref',
+    @http_service(['GET'], '/notifypref',
                   [CONTEXT.USER, CONTEXT.CUSTOMERID],
-                  {CONTEXT.PROVIDER: str, CONTEXT.CUSTOMERID: str,
+                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int,
                    CONTEXT.NOTIFY_PRIMARY: str, CONTEXT.NOTIFY_SECONDARY: str},
                   {USER_ROLES.notification})
     @ML.coroutine_trace(logger.debug)
     def post_notify_pref(self, _header, _body, context, _matches, _key):
 
         customer_id = context.get(CONTEXT.CUSTOMERID, None)
-        prov_user_name = context.get(CONTEXT.TARGETUSER, None)
+        prov_user_name = context.get(CONTEXT.USER, None)
         notify_primary = context.get(CONTEXT.NOTIFY_PRIMARY, None)
         notify_secondary = context.get(CONTEXT.NOTIFY_SECONDARY, None)
 
@@ -125,17 +125,23 @@ class NotificationService():
         is_valid_msg = self.check_notify_pref_message_body(notify_primary, notify_secondary)
         if customer_id and prov_user_name and is_valid_msg:
 
-            is_successful_update = yield from self.server_endpoint.persistence.update_user_notify_preference(prov_user_name, customer_id, notify_primary, notify_secondary)
+            is_successful_update = yield from self.server_endpoint.persistence.update_user_notify_preferences(prov_user_name, customer_id, notify_primary, notify_secondary)
             if is_successful_update:
                 self.user_notify_settings[(prov_user_name, customer_id)] = {"notify_primary": notify_primary,
                                                                             "notify_secondary": notify_secondary}
                 return HR.OK_RESPONSE, json.dumps(['TRUE']), None
             else:
                 return HR.BAD_RESPONSE, json.dumps(['FALSE']), None
+        else:
+            return HR.BAD_RESPONSE, json.dumps(['FALSE']), None
 
     def check_notify_pref_message_body(self, notify_primary, notify_secondary):
 
-        if notify_primary in NOTIFICATION_STATE.__members__ and notify_secondary in NOTIFICATION_STATE.__members__:
+        valid_notification_states = []
+        for state in NOTIFICATION_STATE:
+            valid_notification_states.append(state.value)
+
+        if set([notify_primary, notify_secondary]).issubset(set(valid_notification_states)):
             return True
         else:
             return False
