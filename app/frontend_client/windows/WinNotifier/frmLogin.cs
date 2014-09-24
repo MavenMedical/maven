@@ -217,7 +217,7 @@ namespace MavenAsDemo
         {
             bool rtn=false;
             Settings currsettings = new Settings();
-            string postData = "{\"user\":\""+txtUser.Text+"\",\"password\":\""+txtPass.Text+"\",\"customer_id\":\""+currsettings.custId+"\",\"roles\": [\"notification\"]}";
+            string postData = "{\"user\":\""+txtUser.Text.ToUpper()+"\",\"password\":\""+txtPass.Text+"\",\"customer_id\":\""+currsettings.custId+"\",\"roles\": [\"notification\"]}";
             
             try
             {
@@ -232,9 +232,8 @@ namespace MavenAsDemo
                 WriteKey(provider, "provider");
                 WriteKey(oAuth, "Auth");
                 WriteKey(Authenticator.trimKeyValue("user", responseFromServer), "MavenUser");
-                WriteKey(txtUser.Text, "User");
+                WriteKey(txtUser.Text.ToUpper(), "User");
                 //hack up the response from server to be a reauth string. then save the reauthstring
-                responseFromServer = responseFromServer;
                 responseFromServer = removeUserauth(responseFromServer); 
                 WriteKey(responseFromServer, "oAuthString");
 

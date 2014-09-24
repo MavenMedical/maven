@@ -151,7 +151,7 @@ namespace MavenAsDemo
         }
         public static string getMavenUserId()
         {
-            return GetDecryptedRegistryVaue("MavenUser");
+            return GetDecryptedRegistryVaue("MavenUser").ToUpper();
         }
         private static string GetDecryptedRegistryVaue(string key)
         {

@@ -43,14 +43,14 @@
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="MavenDesktop.exe" size="186880">
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="MavenDesktop.exe" size="186368">
       <assemblyIdentity name="MavenDesktop" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>rmsqe6a3Z5CjUHe1yYwsuUZ+gjotF7R8ZTwmTnlaZDU=</dsig:DigestValue>
+        <dsig:DigestValue>cDu5ZgLQQoqTyZgrwXcihbdL8kWI4Icwq5ghV9kYldg=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>
