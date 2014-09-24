@@ -135,8 +135,16 @@ class AdministrationWebservices():
     @asyncio.coroutine
     def notify_user_reset_password(self, customer, username):
         ak = AK.authorization_key([username, str(customer)], 44, 365 * 24 * 60 * 60)
-        loginstr = '%s#password/newPassword/%s/%s/%s' % (MC.http_addr, username, customer, ak)
-        print(loginstr)
+        loginstr = """Welcome to Maven Pathways!
+
+Below are the instructions on how to access Maven for the first time:
+
+1 - Copy the link below to your browser
+""" + ('%s#password/newPassword/%s/%s/%s' % (MC.http_addr, username, customer, ak)) + """
+
+2 - Create a new password for your account
+Contact Maven Support or your System Admin with any questions."""
+
         yield from self.client_interface.notify_user(customer, username,
                                                      "Welcome to Maven, set/reset password",
                                                      loginstr)
