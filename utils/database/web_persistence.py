@@ -129,7 +129,7 @@ def _invalid_num(x):
 
 
 def _invalid_string(x):
-    return "NOTVALIDYET"
+    return ""
 
 
 def _build_format(override=None):
