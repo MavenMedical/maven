@@ -548,8 +548,11 @@ class allscripts_api(http.http_api):
 
             # Figure out whether it's a Problem List/Encounter Dx, or Past Medical History
             # Parsing this string 'Promoted: Yes'
-            if len(problem['detail']) > 0 and problem['detail'].replace(" ", "").split(":")[1] == "Yes":
-                fhir_condition.category = "Encounter"
+            if len(problem['detail']) > 0:
+                if problem['detail'].replace(" ", "").split(":")[1] == "Yes":
+                    fhir_condition.category = "Encounter"
+                else:
+                    fhir_condition.category = "History"
             else:
                 fhir_condition.category = "History"
 
