@@ -57,25 +57,30 @@ class AdministrationWebservices():
 
     @http_service(['GET'], '/users(?:(\d+)-(\d+)?)?',
                   [CONTEXT.CUSTOMERID],
-                  {CONTEXT.CUSTOMERID: int},
-                  {USER_ROLES.administrator})
+                  {CONTEXT.CUSTOMERID: int, CONTEXT.ROLES: list},
+                  {USER_ROLES.administrator, USER_ROLES.provider,
+                   USER_ROLES.mavensupport, USER_ROLES.supervisor})
     def get_users(self, _header, _body, context, matches, _key):
         customer = context[CONTEXT.CUSTOMERID]
-
+        roles = context[CONTEXT.ROLES]
         limit = self.helper.limit_clause(matches)
 
-        desired = {
-            WP.Results.userid: 'user_id',
-            WP.Results.customerid: 'customer_id',
-            WP.Results.provid: 'prov_id',
-            WP.Results.username: 'user_name',
-            WP.Results.officialname: 'official_name',
-            WP.Results.displayname: 'display_name',
-            WP.Results.state: 'state',
-            WP.Results.ehrstate: 'ehr_state',
-            WP.Results.lastlogin: 'last_login',
-            WP.Results.profession: 'profession'
-        }
+        if {USER_ROLES.administrator.value, USER_ROLES.provider.value,
+           USER_ROLES.mavensupport.value}.intersection(roles):
+            desired = {
+                WP.Results.userid: 'user_id',
+                WP.Results.customerid: 'customer_id',
+                WP.Results.provid: 'prov_id',
+                WP.Results.username: 'user_name',
+                WP.Results.officialname: 'official_name',
+                WP.Results.displayname: 'display_name',
+                WP.Results.state: 'state',
+                WP.Results.ehrstate: 'ehr_state',
+                WP.Results.lastlogin: 'last_login',
+                WP.Results.profession: 'profession'
+            }
+        else:
+            desired = {WP.Results.username: 'user_name'}
         results = yield from self.persistence.user_info(desired, customer,
                                                         orderby=[WP.Results.ehrstate, WP.Results.profession,
                                                                  WP.Results.displayname],
