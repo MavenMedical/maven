@@ -104,9 +104,8 @@ class NotificationService():
             else:
                 return False
         elif notify_preference == NOTIFICATION_STATE.EHR_INBOX.value:
-            if key[0] == "TERRY":
-                asyncio.Task(self.save_task_fn(key[1], key[0], 'Notification from Maven',
-                                               messages))
+            asyncio.Task(self.save_task_fn(key[1], key[0], 'Notification from Maven',
+                                           messages))
             return True
 
     @http_service(['POST'], '/notifypref',
@@ -122,7 +121,7 @@ class NotificationService():
         notify_primary = context.get(CONTEXT.NOTIFY_PRIMARY, None)
         notify_secondary = context.get(CONTEXT.NOTIFY_SECONDARY, None)
 
-        # Check to make sure the body of the message contains strings as defined in NOTIFICATION_STATE enums
+        # Check to make sure the query string contains strings as defined in NOTIFICATION_STATE enums
         is_valid_msg = self.check_notify_pref_message_body(notify_primary, notify_secondary)
         if customer_id and prov_user_name and is_valid_msg:
 
