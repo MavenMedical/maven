@@ -23,13 +23,13 @@
                     <% } else { %>
 	                <span class="page-title" onclick="location.href='#'">provider</span>
                     <% if(patients) { %>
-                    <span class="glyphicon glyphicon-chevron-right white"></span>
+                    <span class="glyphicon glyphicon-chevron-right white" style="color: whitesmoke;"></span>
 	                <span class="page-title" onclick="location.href='#patient/<%= patients %>'">patient</span>
                     <% if(encounter && page != 'pathway') { %>
-                    <span class="glyphicon glyphicon-chevron-right white"></span>
+                    <span class="glyphicon glyphicon-chevron-right white" style="color: whitesmoke;"></span>
 	                <span class="page-title">encounter</span>
                     <% } else { %>
-                    <span class="glyphicon glyphicon-chevron-right white"></span>
+                    <span class="glyphicon glyphicon-chevron-right white" style="color: whitesmoke;"></span>
 	                <span class="page-title">pathway</span>
                     <% } } } %>
                 </div>
@@ -39,7 +39,7 @@
                 <ul class="nav navbar-nav navbar-right">
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                            <i class="glyphicon glyphicon-user"></i>
+                            <i class="glyphicon glyphicon-user" style="color: whitesmoke;"></i>
                             <span class="dr"><%= display %></span><b class="caret"></b></a>
                         <ul class="dropdown-menu" style='z-index:1035'>
                             <li><a id="profile_button">My Profile</a></li>

@@ -25,9 +25,9 @@ define([
                         lineWidth: 2,
                         strokeStyle: '#ccc'
                     },
-                    HoverPaintStyle :  {
-                         lineWidth: 7,
-                         strokeStyle: '#61B7CF'
+                    HoverPaintStyle: {
+                        lineWidth: 2,
+                        strokeStyle: '#61B7CF'
                     }
 
                 })
@@ -64,7 +64,7 @@ define([
                     }, 100)
                 }
                 curTree.on('propagate', function () {
-                    that.render()
+                    that.render();
                 }, this)
                 curTree.on('sync', this.render, this)
                 contextModel.on('change', this.render, this)
@@ -78,8 +78,8 @@ define([
                     this.render();
                 })
                 var that = this
-                $('.tree', that.$el).append("<div style= 'width:auto' class='nodeEl'></div>")
-                $('.tree', that.$el).append("<div style='height:60px'></div>")
+                $('.tree', that.$el).append("<div style= 'width:auto; height: auto' class='nodeEl'></div>")
+                $('.tree', that.$el).append("<div style='height:100px'></div>")
 
                 var topLevel = new TriggerNode({el: $('.nodeEl', this.$el).last(), model: curTree});
                 if (contextModel.get('page') == 'pathEditor')
@@ -87,44 +87,43 @@ define([
                 else {
                     $('#pathwayName').html("")
                 }
-                 _.each(curTree.elPairs, function(cur){
+                _.each(curTree.elPairs, function (cur) {
 
-                  if((cur.source.$el.is(":visible")) && (cur.target.$el.is(":visible"))){
+                    if ((cur.source.$el.is(":visible")) && (cur.target.$el.is(":visible"))) {
 
-                       var a = cur.source.makeExit(that.plumb)
-                       var b = cur.target.makeEntrance(that.plumb)
-                      if (cur.bold){
-                          that.plumb.connect({
-                               source: a,
-                               target: b,
-                                paintStyle:  {
-                                         lineWidth: 6,
-                                         strokeStyle: '#ccc'
-                                },
-                           })
-                      } else {
-                          that.plumb.connect({
-                               source: a,
-                               target: b
-                          })
-                      }
-                  }
+                        var a = cur.source.makeExit(that.plumb)
+                        var b = cur.target.makeEntrance(that.plumb)
+                        if (cur.bold) {
+                            that.plumb.connect({
+                                source: a,
+                                target: b,
+                                paintStyle: {
+                                    lineWidth: 4,
+                                    strokeStyle: '#46bdec'
+                                }
+                            })
+                        } else {
+                            that.plumb.connect({
+                                source: a,
+                                target: b
+                            })
+                        }
+                    }
                 })
 
                 contextModel.trigger('rendered')
 
             },
+            showExtraInfo: function(){
 
-            drawNodes: function(){
+            },
+            drawNodes: function () {
 
 
             },
-
-            saveTreeFunction: function(){
+            saveTreeFunction: function () {
                 curTree.save()
             }
-
-
         })
 
         return TreeView
