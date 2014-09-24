@@ -197,6 +197,22 @@ class UserMgmtWebservices():
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
+    @http_service(['POST'], '/send_message',
+                  [CONTEXT.CUSTOMERID, CONTEXT.USER, CONTEXT.TARGETUSER],
+                  {CONTEXT.CUSTOMERID: int, CONTEXT.USER: str, CONTEXT.TARGETUSER: str},
+                  {USER_ROLES.provider, USER_ROLES.supervisor, USER_ROLES.administrator})
+    def send_message(self, _header, body, context, _matches, _key):
+        user = context[CONTEXT.USER]
+        customer = context[CONTEXT.CUSTOMERID]
+        target = context[CONTEXT.TARGETUSER]
+        body = json.loads(body.decode('utf-8'))
+        subject = body['subject']
+        message = body['message']
+        patient = body.get('patient', None)
+        yield from self.client_interface.notify_user(customer, user, subject, message,
+                                                     patient=patient, target=target)
+        return HTTP.OK_RESPONSE, b'', None
+
     @http_service(['GET'], '/download_audits',
                   [CONTEXT.PROVIDER, CONTEXT.USER, CONTEXT.CUSTOMERID],
                   {CONTEXT.PROVIDER: str, CONTEXT.PATIENTLIST: list, CONTEXT.CUSTOMERID: int,
