@@ -425,7 +425,8 @@ class WebPersistence():
     })
 
     @asyncio.coroutine
-    def user_info(self, desired, customer, limit=""):
+    def user_info(self, desired, customer, orderby=Results.userid,
+                  ascending=True, startdate=None, enddate=None, limit=None):
         columns = build_columns(desired.keys(), self._available_user_info,
                                 self._default_user_info)
 
@@ -441,11 +442,15 @@ class WebPersistence():
             cmd.append("GROUP BY user_name,customer_id ) logins2")
             cmd.append("ON (users.user_name = logins2.user_name")
             cmd.append("AND users.customer_id = logins2.customer_id)")
+        else:
+            # can't sort by date if login field is not being used
+            startdate = None
+            enddate = None
         cmd.append("WHERE users.customer_id = %s")
         cmdargs.append(customer)
-        cmd.append("ORDER BY user_id")
-        if limit:
-            cmd.append(limit)
+
+        append_extras(cmd, cmdargs, Results.lastlogin, startdate, enddate, orderby, ascending,
+                      None, limit, self._available_user_info)
 
         results = yield from self.execute(cmd, cmdargs, self._display_user_info, desired)
         return results

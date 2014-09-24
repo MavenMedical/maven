@@ -74,7 +74,10 @@ class AdministrationWebservices():
             WP.Results.lastlogin: 'last_login',
             WP.Results.profession: 'profession'
         }
-        results = yield from self.persistence.user_info(desired, customer, limit=limit)
+        results = yield from self.persistence.user_info(desired, customer,
+                                                        orderby=[WP.Results.ehrstate, WP.Results.profession,
+                                                                 WP.Results.displayname],
+                                                        limit=limit)
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
