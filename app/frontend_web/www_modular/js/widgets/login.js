@@ -14,6 +14,7 @@ define([
 	    contextModel.on('change:loginTemplate', this.render, this);
 	    $("#login-modal").modal({'show':'true', 'backdrop':'static',keyboard:false});
 	    this.user = '';
+	    this.customer = '';
 	    this.render();
         },
 	events: {
@@ -53,6 +54,7 @@ define([
 	    var user = $("#login-user").val();
 	    var customer = $("#login-customer").val();
 	    this.user = user;
+	    this.customer = customer;
 	    var password = $("#login-password").val();
 	    var oauth = $("#login-oauth").val();
 	    if( user && (password || oauth)) {
