@@ -33,9 +33,11 @@ class PatientMgmtWebservices():
     @http_service(['GET'], '/patients(?:(\d+)-(\d+)?)?',
                   [CONTEXT.PROVIDER, CONTEXT.CUSTOMERID],
                   {CONTEXT.PROVIDER: str, CONTEXT.CUSTOMERID: int,
-                   CONTEXT.STARTDATE: date, CONTEXT.ENDDATE: date},
+                   CONTEXT.STARTDATE: date, CONTEXT.ENDDATE: date,
+                   CONTEXT.USER: str},
                   {USER_ROLES.provider, USER_ROLES.supervisor})
     def get_patients(self, _header, _body, context, matches, _key):
+        user = context[CONTEXT.USER]
         provider = context[CONTEXT.PROVIDER]
         customerid = context[CONTEXT.CUSTOMERID]
         startdate = self.helper.get_date(context, CONTEXT.STARTDATE)
@@ -54,7 +56,7 @@ class PatientMgmtWebservices():
                                                            limit=self.helper.limit_clause(matches))
 
         if results:
-            asyncio.Task(self.persistence.audit_log(provider, 'patient list web service',
+            asyncio.Task(self.persistence.audit_log(user, 'patient list web service',
                                                     customerid, rows=1,
                                                     details=list({r['id'] for r in results})))
 
@@ -63,7 +65,7 @@ class PatientMgmtWebservices():
     @http_service(['GET'], '/patient_details',
                   [CONTEXT.PROVIDER, CONTEXT.KEY, CONTEXT.PATIENTLIST, CONTEXT.CUSTOMERID],
                   {CONTEXT.PROVIDER: str, CONTEXT.KEY: str, CONTEXT.PATIENTLIST: str,
-                   CONTEXT.CUSTOMERID: int, CONTEXT.ENCOUNTER: str,
+                   CONTEXT.CUSTOMERID: int, CONTEXT.ENCOUNTER: str, CONTEXT.USER: str,
                    CONTEXT.STARTDATE: date, CONTEXT.ENDDATE: date},
                   {USER_ROLES.provider})
     def get_patient_details(self, _header, _body, context, matches, _key):
@@ -71,6 +73,7 @@ class PatientMgmtWebservices():
         This method returns Patient Details which include the data in the header of
         the Encounter Page - i.e. Allergies Problem List, Last Encounter, others.
         """
+        user = context[CONTEXT.USER]
         provider = context[CONTEXT.PROVIDER]
         patientid = context[CONTEXT.PATIENTLIST]
         customerid = context[CONTEXT.CUSTOMERID]
@@ -100,7 +103,7 @@ class PatientMgmtWebservices():
                                                            limit=self.helper.limit_clause(matches))
 
         if results:
-            asyncio.Task(self.persistence.audit_log(provider, 'patient details web service',
+            asyncio.Task(self.persistence.audit_log(user, 'patient details web service',
                                                     customerid, patientid, rows=1))
 
         return HTTP.OK_RESPONSE, json.dumps(results[0]), None

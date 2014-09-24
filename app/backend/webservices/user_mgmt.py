@@ -35,12 +35,13 @@ class UserMgmtWebservices():
         self.persistence = WP.WebPersistence(config[CONFIG_PERSISTENCE])
 
     @http_service(['GET'], '/alerts(?:(\d+)-(\d+)?)?',
-                  [CONTEXT.PROVIDER, CONTEXT.CUSTOMERID],
+                  [CONTEXT.PROVIDER, CONTEXT.USER, CONTEXT.CUSTOMERID],
                   {CONTEXT.PROVIDER: str, CONTEXT.PATIENTLIST: list, CONTEXT.CUSTOMERID: int,
                    CONTEXT.ENCOUNTER: str, CONTEXT.STARTDATE: date, CONTEXT.ENDDATE: date,
-                   CONTEXT.ORDERID: str, CONTEXT.CATEGORIES: list},
+                   CONTEXT.ORDERID: str, CONTEXT.CATEGORIES: list, CONTEXT.USER: str},
                   {USER_ROLES.provider, USER_ROLES.supervisor})
     def get_alerts(self, _header, _body, context, matches, _key):
+        user = context[CONTEXT.USER]
         provider = context[CONTEXT.PROVIDER]
         patients = context.get(CONTEXT.PATIENTLIST, None)
         customer = context[CONTEXT.CUSTOMERID]
@@ -72,7 +73,7 @@ class UserMgmtWebservices():
                                                      categories=categories)
 
         if results and patients and len(patients) == 1:
-            asyncio.Task(self.persistence.audit_log(provider, 'get alerts web service',
+            asyncio.Task(self.persistence.audit_log(user, 'get alerts web service',
                                                     customer, patients[0], rows=len(results)))
 
         return HTTP.OK_RESPONSE, json.dumps(results), None

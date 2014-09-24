@@ -98,8 +98,8 @@ class TransparentWebservices():
         return HTTP.OK_RESPONSE, json.dumps(ret), None
 
     @http_service(['GET'], '/orders(?:(\d+)-(\d+)?)?',
-                  [CONTEXT.PROVIDER, CONTEXT.CUSTOMERID],
-                  {CONTEXT.PROVIDER: str, CONTEXT.PATIENTLIST: list, CONTEXT.CUSTOMERID: int,
+                  [CONTEXT.USER, CONTEXT.CUSTOMERID],
+                  {CONTEXT.USER: str, CONTEXT.PATIENTLIST: list, CONTEXT.CUSTOMERID: int,
                    CONTEXT.ENCOUNTER: str, CONTEXT.ORDERTYPE: str,
                    CONTEXT.STARTDATE: date, CONTEXT.ENDDATE: date},
                   {USER_ROLES.provider, USER_ROLES.supervisor})
@@ -137,8 +137,8 @@ class TransparentWebservices():
                                                      ordertypes=ordertypes, limit=limit)
 
         if results and patients and len(patients) == 1:
-            provider = context.get(CONTEXT.PROVIDER)
-            asyncio.Task(self.persistence.audit_log(provider, 'get orders',
+            user = context.get(CONTEXT.USER)
+            asyncio.Task(self.persistence.audit_log(user, 'get orders',
                                                     customer, patients[0], rows=len(results)))
 
         return HTTP.OK_RESPONSE, json.dumps(results), None

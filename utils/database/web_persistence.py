@@ -993,15 +993,11 @@ class WebPersistence():
 
     @asyncio.coroutine
     # @ML.coroutine_trace(print)
-    def audit_log(self, username, action, customer=None, patient=None, device=None,
-                  details=None, rows=None):
-        cmd = ['INSERT INTO audit (datetime, username, action']
-        cmdargs = [username, action]
-        extras = ['now(), %s, %s']
-        if customer:
-            cmd.append(', customer')
-            cmdargs.append(customer)
-            extras.append(', %s')
+    def audit_log(self, username, action, customer, patient=None, device=None,
+                  details=None, rows=None, target_user=None):
+        cmd = ['INSERT INTO audit (datetime, username, action, customer']
+        cmdargs = [username, action, customer]
+        extras = ['now(), %s, %s, %s']
         if patient:
             cmd.append(', patient')
             cmdargs.append(patient)
@@ -1017,6 +1013,10 @@ class WebPersistence():
         if rows:
             cmd.append(', rows')
             cmdargs.append(rows)
+            extras.append(', %s')
+        if target_user:
+            cmd.append(', target_user')
+            cmdargs.append(target_user)
             extras.append(', %s')
         cmd.append(') values (' + ''.join(extras) + ');')
         yield from self.execute(cmd, cmdargs, {}, {})

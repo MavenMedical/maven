@@ -41,7 +41,7 @@ class AdministrationWebservices():
                   {USER_ROLES.administrator})
     def setup_customer(self, _header, body, context, _matches, _key):
         body = json.loads(body.decode('utf-8'))
-
+        user = context[CONTEXT.USER]
         customer = context[CONTEXT.CUSTOMERID]
         clientapp_settings = body
         body.update({CONFIG_PARAMS.EHR_USER_SYNC_INTERVAL.value: 60 * 60})
@@ -49,6 +49,8 @@ class AdministrationWebservices():
         is_valid_config = yield from self.client_interface.test_customer_configuration(customer, clientapp_settings)
         if is_valid_config:
             yield from self.persistence.setup_customer(customer, clientapp_settings)
+            asyncio.Task(self.persistence.audit_log(user, 'change customer ehr settings', customer,
+                                                    details=json.dumps(clientapp_settings)))
             return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
         else:
             return HTTP.BAD_RESPONSE, json.dumps(['FALSE']), None
@@ -87,33 +89,36 @@ class AdministrationWebservices():
                    CONTEXT.STATE: str, CONTEXT.TARGETUSER: str},
                   {USER_ROLES.administrator})
     def update_user(self, _header, _body, context, _matches, _key):
-        user = context[CONTEXT.TARGETUSER]
+        user = context[CONTEXT.USER]
+        target_user = context[CONTEXT.TARGETUSER]
         customer = context[CONTEXT.CUSTOMERID]
         state = context[CONTEXT.STATE]
 
+        yield from self.persistence.update_user(target_user, customer, state)
         if state == 'active':
-            asyncio.Task(self.notify_user_reset_password(customer, user))
+            asyncio.Task(self.notify_user_reset_password(customer, target_user))
+        asyncio.Task(self.persistence.audit_log(user, 'change user state', customer,
+                                                target_user=target_user, details=state))
 
-        result = yield from self.persistence.update_user(user, customer, state)
-        if result:
-            return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
-        else:
-            return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
+        return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
 
     @http_service(['GET'], '/reset_password',
-                  [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.ROLES],
+                  [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.TARGETUSER],
                   {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int, CONTEXT.ROLES: list,
                    CONTEXT.TARGETCUSTOMER: int, CONTEXT.TARGETUSER: str},
                   {USER_ROLES.administrator, USER_ROLES.mavensupport})
     def reset_password(self, _header, _body, context, _matches, _key):
-        user = context[CONTEXT.TARGETUSER]
+        user = context[CONTEXT.USER]
+        target_user = context[CONTEXT.TARGETUSER]
 
         if USER_ROLES.mavensupport.name in context[CONTEXT.ROLES]:
             customer = context[CONTEXT.TARGETCUSTOMER]
         else:
             customer = context[CONTEXT.CUSTOMERID]
 
-        asyncio.Task(self.notify_user_reset_password(customer, user))
+        asyncio.Task(self.notify_user_reset_password(customer, target_user))
+        asyncio.Task(self.persistence.audit_log(user, 'reset user password', customer,
+                                                target_user=target_user))
 
         return HTTP.OK_RESPONSE, json.dumps(''), None
 

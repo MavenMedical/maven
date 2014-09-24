@@ -79,21 +79,21 @@ class AuthenticationWebservices():
         auth = ''
         username = info[CONTEXT.USER].upper()
         customer = info[CONTEXT.CUSTOMERID]
+        method = 'failed'
+        user_info = {}
+        # import pdb
+        # pdb.set_trace()
         try:
-            method = 'failed'
-            user_info = {}
-            try:
-                user_info = yield from self.persistence.pre_login(desired, customer,
-                                                                  username=username)
-            except IndexError:
-                raise LoginError('badLogin')
-            if (user_info[WP.Results.userstate] != 'active'
-               or user_info[WP.Results.ehrstate] == 'disabled'):
-                raise LoginError('disabledLogin')
-
             # if header.get_headers().get('VERIFIED','SUCCESS') == 'SUCCESS':
             if user_and_pw:
                 attempted = ' '.join([username, customer])
+                try:
+                    user_info = yield from self.persistence.pre_login(desired, customer,
+                                                                      username=username)
+                    # pdb.set_trace()
+
+                except IndexError:
+                    raise LoginError('badLogin')
                 passhash = user_info[WP.Results.password].tobytes()
                 if (not passhash or
                         bcrypt.hashpw(bytes(info[CONTEXT.PASSWORD], 'utf-8'),
@@ -120,17 +120,18 @@ class AuthenticationWebservices():
                 if auth in user_info[WP.Results.recentkeys]:
                     raise LoginError('reusedLogin')
 
+            if (user_info[WP.Results.userstate] != 'active'
+               or user_info[WP.Results.ehrstate] == 'disabled'):
+                raise LoginError('disabledLogin')
+
+            customer = str(user_info[WP.Results.customerid])
             if user_info[WP.Results.passexpired] or 'newpassword' in info:
                 yield from self.hash_new_password(user_info[WP.Results.userid],
                                                   info.get('newpassword', ''))
-
-            # make sure this user exists and is active
-            if not user_info[WP.Results.userstate] == 'active':
-                raise LoginError('disabledUser')
+                asyncio.Task(self.persistence.audit_log(username, 'updated password', customer))
 
             # at the point, the user has succeeded to login
             provider = user_info[WP.Results.provid]
-            customer = str(user_info[WP.Results.customerid])
             roles = [self.specific_role] if self.specific_role else user_info[WP.Results.roles]
             roles = list(filter(rolefilter, roles))
             user_auth = AK.authorization_key([[username], [provider], [customer], sorted(roles)],
