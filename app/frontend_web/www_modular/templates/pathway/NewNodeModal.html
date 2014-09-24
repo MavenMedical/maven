@@ -1,34 +1,59 @@
 <div class="widget-column col-sm-12">
-    <div id="detail-modal" class="modal fade" role="dialog" aria-hidden="true">
+    <div id="detail-modal" class="modal fade" role="dialog" aria-hidden="true" data-backdrop="static">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal"><span
                             aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                    <h4 class="modal-title">New Node</h4>
+                    <h4 class="modal-title">
+                        <% if (name) { %>
+                        Editing : <%= name %>
+                        <% } else { %>
+                        New Node
+                        <% } %>
+                    </h4>
                 </div>
 
                 <div class="modal-body">
                     <div class="form-group">
                         <span class="headings">Node Name:</span>
-                        <input id="newNodeText" type="text" class="form-control" placeholder="">
+                        <input id="newNodeText" type="text" class="form-control" placeholder=""
+                        <% if (name) { %>
+                        value="<%= name %>"
+                        <% } %>
+                        >
+
                     </div>
 
                     <div class="form-group">
                         <span class="headings">Node Tooltip (helping text):</span>
-                        <input id="newNodeTooltip" class="form-control" placeholder="">
+                        <input id="newNodeTooltip" class="form-control" placeholder=""
+                        <% if (name) { %>
+                        value="<%= tooltip %>"
+                        <% } %>
+                        >
                     </div>
 
                     <div class="form-group">
                         <span class="headings">Node Side Panel Text:</span>
-                        <textarea id="newNodeSideText" class="form-control" placeholder=""></textarea>
+                        <textarea id="newNodeSideText" class="form-control" placeholder="">
+                            <% if (name) { %>
+                            <%= sidePanelText %>
+                            <% } %>
+                        </textarea>
                     </div>
 
                 </div>
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="addNodeButton">Confirm</button>
+                    <button type="button" class="btn btn-primary" id="addNodeButton">
+                        <% if (name) { %>
+                            Save Changes
+                        <% } else { %>
+                        Confirm
+                        <% } %>
+                    </button>
                 </div>
             </div>
         </div>

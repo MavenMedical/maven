@@ -1,8 +1,8 @@
 <div class="widget-column col-sm-12">
     <!--<div style="width:40px; float:left;"></div> <!-- spacing horizontal -->
     <li style="float:left; width: auto">
-        <div  class="treeNode">
-            <span data-toggle="tooltip" title="<%=decodeURIComponent(treeNode.tooltip)%>"><%=decodeURIComponent(treeNode.name)%></span>
+        <div  <%if (treeNode.hideChildren=="true"){%> style = "background-color: lightyellow" <%}%> class="treeNode">
+            <span data-toggle="tooltip" title="<%=treeNode.tooltip%>"> <%=treeNode.name%></span>
 
 
             <div class="btn-toolbar" role="toolbar">
@@ -14,25 +14,27 @@
                     <%}%>
                 </div>
                 <%}%>
-                <% if (treeNode.children.length > 0) {%>
+
+                <% if (page == 'pathEditor' && (treeNode.children.length > 0||treeNode.protocol) ) {%>
                 <div class="btn-group btn-group-xs">
                     <button type="button" class="btn btn-default collapseButton">
-                        <% if (treeNode.hideChildren=="true"){%>
-                        <img src="../images/temp/expand.jpg" style="width: 25px; height: 25px">
-                        <%}else{%>
-                        <img src="../images/temp/collapse.jpg" style="width: 25px; height: 25px">
+                            <% if (treeNode.hideChildren=="true"){%>
+                            <img src="../images/temp/expand.jpg" style="width: 25px; height: 25px">
+                            <%}else{%>
+                            <img src="../images/temp/collapse.jpg" style="width: 25px; height: 25px">
                         <%}%>
                     </button>
                 </div>
                 <% } %>
+
             </div>
         </div>
         <!--<div style="clear: both; height:100px; width:10px;"></div> <!-- spacing, Vertical-->
         <ul class='children2'>
+                    <div style='padding-top: 25px; ' class='protocol'></div>
 
 
         </ul>
 
-        <div style='padding-top: 25px; ' class='protocol'></div>
     </li>
 </div>

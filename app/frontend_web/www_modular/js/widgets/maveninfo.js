@@ -12,27 +12,39 @@ define([
 ], function ($, _, Backbone, contextModel, curTree) {
     var MavenInfo = Backbone.View.extend({
 
-        initialize: function (arg) {
-            this.template = _.template(arg.template);
-            this.$el.html(this.template({selectedNode: null}));
-             curTree.on('propagate', this.render,this);
-	    contextModel.on('change:page', this.showhide, this);
-	    this.showhide();
-        },
-	showhide: function() {
-	    if (contextModel.get('page') != 'pathEditor') {
-		this.$el.show(); 
-	    } else {
-		this.$el.hide();
-	    }	    
-	},
-        events: {
+            initialize: function (arg) {
+                this.template = _.template(arg.template);
+                curTree.on('propagate', this.render, this);
+            },
+            showhide: function () {
+                if (contextModel.get('page') != 'pathEditor') {
+                    this.$el.show();
+                } else {
+                    this.$el.hide();
+                }
+            },
+            events: {
+                'click button.close':'hidePopup'
 
-        },
-        render: function () {
-            this.$el.html(this.template({selectedNode: curTree.get('selectedNode').attributes}))
-            return this;
-        }
-    });
+            },
+            render: function () {
+                var that = this;
+                this.$el.html(this.template({selectedNode: curTree.get('selectedNode').attributes}))
+                this.$el.show(1000, function () {
+                    /*setTimeout(function () {
+                        that.$el.hide(3000);
+                    }, 5000);
+                    */
+                });
+
+
+                return this;
+            },
+            hidePopup: function(){
+                this.$el.hide(400);
+            }
+        })
+        ;
     return MavenInfo;
-});
+})
+;

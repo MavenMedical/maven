@@ -1,28 +1,16 @@
 <div class="widget-column col-sm-12">
-    <div class="row">
-        <h2 class="headings alerts">
-            Additional info
-        </h2>
+    <div class="row heading">
+         <span class="headings title"> <%=decodeURIComponent(selectedNode.name)%> </span>
 
-        <div class="col-sm-12">
-            <div class="alertlist">
-                <% if (selectedNode) { %>
-                <h2 class="headings title">
-                    <!--<span class="glyphicon glyphicon-chevron-down"></span>-->
-                    <%=decodeURIComponent(selectedNode.name)%>
-                </h2>
 
-                <span>
-                    <%=decodeURIComponent(selectedNode.sidePanelText)%>
-                </span>
+            <button type="button" class="close">
+            <span class="glyphicon glyphicon-remove" style="font-size: 13px; color: #ffffff;"></span>
+        </button>
 
-                <% } else {%>
-                <h2 class="headings title watermark">Select a node to get Additional info</h2>
-                <% } %>
-            </div>
-            <!--/row-->
-        </div>
-        <div class="maven-padding"></div>
-
+    </div>
+    <div class="row nodeInfo">
+        <span>
+        <%=decodeURIComponent(selectedNode.sidePanelText)%>
+        </span>
     </div>
 </div>

@@ -17,7 +17,29 @@ define([
                 }
         })
     }
+    var hideSiblingsRecur = function(me, toHide){
+        var tar = me.get('children').models.indexOf(toHide)
+        for (var i in me.get('children').models){
+                if (tar != - 1){
+                     if (i != tar){
+                        console.log(me.get('children').models[i])
+                        recursiveCollapse(me.get('children').models[i])
+                     }
+                }
+                else {
+                    hideSiblingsRecur(me.get('children').models[i], toHide)
+                }
+        }
+    }
+    var recursiveCollapse= function(node){
+        node.set('hideChildren', "true")
+        console.log(node.attributes.children.models)
+        _.each(node.attributes.children.models, function(cur){
+            console.log('cur', cur)
+            recursiveCollapse(cur)
+        })
 
+    }
     var TreeModel = Backbone.Model.extend({
         elPairs: [],
         url: function() {
@@ -44,6 +66,17 @@ define([
 
 
         },
+        hideSiblings: function(toHide){
+            hideSiblingsRecur(this, toHide)
+        },
+        collapse: function(node){
+          if (!node){
+             recursiveCollapse(this)
+          } else {
+              recursiveCollapse(node)
+          }
+        },
+
 
         deleteNode: function(toDelete){
             var that = this
@@ -56,7 +89,7 @@ define([
                 })
             this.trigger('propagate')
         },
-        getType: function(){
+        getNodeType: function(){
           return "treeModel"
         },
         toJSON: function(){
@@ -70,7 +103,7 @@ define([
             this.set('tooltip', params.tooltip, {silent: true})
             this.set('children', new NodeList(), {silent: true})
             this.set('name', params.name, {silent: true})
-            this.unset('protocol', {silent: true})
+            this.set('protocol', null, {silent: true})
             this.unset('id', {silent: true})
             var that = this
             this.save({}, {success: function(){
@@ -85,11 +118,9 @@ define([
             this.set({protocol: response.protocol}, {silent: true})
             this.set({name: response.name}, {silent: true})
             this.set({children: new NodeList(response.children)}, {silent: true})
-            this.set({hideChildren: false}, {silent: true})
-            _.each(this.get('children').models, function(cur){
-                cur.set({'hideChildren': "false"}, {silent: true})
-            })
-           this.set({triggers: new Backbone.Collection(response.triggers)}, {silent: true})
+            this.set({hideChildren: "true"}, {silent: true})
+            this.once('sync',  function(){recursiveCollapse(this)}, this)
+            this.set({triggers: new Backbone.Collection(response.triggers)}, {silent: true})
 
         }
 

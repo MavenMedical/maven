@@ -3,9 +3,8 @@ define([
     'underscore',
     'backbone',
    'globalmodels/contextModel',
-    'pathway/models/nodeModel'
 
-], function($, _, Backbone, contextModel, NodeModel){
+], function($, _, Backbone, contextModel){
 
 
 
@@ -40,22 +39,16 @@ define([
         initialize: function(params){
 
             if (!params.children){params.children = []}
-            this.set({children: new NodeList(params.children)}, {silent:true})
+                 this.set({children: new NodeList(params.children)}, {silent:true})
 
             _.each(this.get('children').models, function(cur){
-                cur.set({'hideChildren': "false"}, {silent: true})
+                cur.set({'hideChildren': "true"}, {silent: true})
             })
-            this.set('hideChildren', "false", {silent: true})
+            this.set('hideChildren', "true", {silent: true})
             this.set('name', params.name, {silent: true})
             this.set('tooltip', params.tooltip, {silent: true})
             this.set('sidePanelText', params.sidePanelText, {silent: true})
             this.set('protocol', params.protocol, {silent:true})
-
-
-
-
-
-
         },
         toJSON: function(){
             var retMap = _.omit(this.attributes, ['children', 'hideChildren'])
