@@ -13,7 +13,9 @@
         <%= (ehr_state != 'active') ? "disabled" : '' %> >
 </td>
 <td>
+    <% if (ehr_state == 'active') { %>
     <button class="btn btn-xs reset-user-password btn-default" value="">Reset Password</button>
+    <% } %>
 </td>
 <td>
     <a class="audit-hover">
