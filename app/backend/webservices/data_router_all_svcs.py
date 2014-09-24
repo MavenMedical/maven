@@ -216,11 +216,13 @@ def main(loop):
         core_scvs.register_services(c('httpserver', rpc))
     core_scvs.schedule(loop)
 
-    notification_service, notification_fn = NS.notification_server(CONFIG_PARAMS.NOTIFY_SVC.value,
-                                                                   client_interface.notify_user)
+    notification_service, notification_fn, update_notify_prefs_fn = NS.notification_server(CONFIG_PARAMS.NOTIFY_SVC.value,
+                                                                                           server_endpoint,
+                                                                                           client_interface.notify_user)
     notification_service.schedule(loop)
 
     server_endpoint.set_notification_function(notification_fn)
+    server_endpoint.set_update_notify_prefs_fn(update_notify_prefs_fn)
 
     try:
         loop.run_forever()

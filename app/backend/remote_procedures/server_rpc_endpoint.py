@@ -30,6 +30,14 @@ class ServerEndpoint(SP.StreamProcessor):
         self.client_interface = client_interface
         self.notification_fn = None
         self.comp_eval_writer_fn = comp_eval_writer_fn
+        self.update_notify_user_prefs_fn = None
+
+    def set_update_notify_prefs_fn(self, fn):
+        self.update_notify_user_prefs_fn = fn
+
+    @asyncio.coroutine
+    def update_notify_prefs(self, customer_id):
+        yield from self.update_notify_user_prefs_fn(customer_id)
 
     @asyncio.coroutine
     def get_users_from_db(self, customer_id):

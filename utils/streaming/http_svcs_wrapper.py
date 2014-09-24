@@ -48,6 +48,8 @@ class CONTEXT():
     POLLING = 'polling'
     TIMEOUT = 'timeout'
     ITUSER = 'ituser'
+    NOTIFY_PRIMARY = 'notify1'
+    NOTIFY_SECONDARY = 'notify2'
 
 
 def http_service(methods, url, required, available, roles):

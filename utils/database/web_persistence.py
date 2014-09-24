@@ -83,6 +83,8 @@ Results = Enum('Results',
     lastlogin
     settings
     profession
+    notify1
+    notify2
 """)
 
 
@@ -242,6 +244,58 @@ class WebPersistence():
     def update_user(self, user, customer, state):
         yield from self.execute(["UPDATE users set (state) = (%s) where user_name = UPPER(%s) and customer_id = %s"],
                                 [state, user, customer], {}, {})
+
+    @asyncio.coroutine
+    def update_user_notify_preferences(self, user, customer_id, notify_primary, notify_secondary):
+        column_map = ["notify_primary",          # 0
+                      "notify_secondary"]
+        columns = DBMapUtils().select_rows_from_map(column_map)
+        cmd = []
+        cmd.append("UPDATE user_pref SET (" + columns + ") = (%s, %s)")
+        cmd.append("WHERE customer_id=%s and user_name=%s")
+        cmdargs = [notify_primary, notify_secondary, customer_id, user]
+
+        try:
+            yield from self.execute(cmd, cmdargs, {}, {})
+            return True
+        except Exception as e:
+            ML.EXCEPTION(e)
+            return False
+
+    _default_user_notify_prefs_info = set()
+    _available_user_notify_prefs_info = {
+        Results.customerid: "user_pref.customer_id",
+        Results.username: "user_pref.user_name",
+        Results.notify1: "user_pref.notify_primary",
+        Results.notify2: "user_pref.notify_secondary",
+    }
+    _display_user_notify_prefs_info = _build_format({
+        Results.customerid: lambda x: int(x),
+        Results.username: lambda x: str(x),
+        Results.notify1: lambda x: str(x),
+        Results.notify2: lambda x: str(x)
+    })
+
+    @asyncio.coroutine
+    def get_users_notify_preferences(self, customer_id):
+        desired = {
+            Results.customerid: 'customer_id',
+            Results.username: 'user_name',
+            Results.notify1: 'notify_primary',
+            Results.notify2: 'notify_secondary'
+        }
+        columns = build_columns(desired.keys(), self._available_user_notify_prefs_info,
+                                self._default_user_notify_prefs_info)
+        cmd = []
+        cmd.append("SELECT")
+        cmd.append(columns)
+        cmd.append("FROM user_pref WHERE customer_id=%s")
+
+        cmdargs = [customer_id]
+
+        results = yield from self.execute(cmd, cmdargs, self._display_user_notify_prefs_info, desired)
+
+        return results
 
     @asyncio.coroutine
     def update_customer(self, customer, name, abbr, license_num, license_exp):

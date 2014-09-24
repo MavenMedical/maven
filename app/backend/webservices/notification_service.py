@@ -6,7 +6,7 @@ from utils.streaming.http_svcs_wrapper import CONTEXT, http_service
 import maven_config as MC
 import maven_logging as ML
 import utils.streaming.http_responder as HR
-from utils.enums import USER_ROLES  # , NOTIFICATION_STATE
+from utils.enums import USER_ROLES, NOTIFICATION_STATE
 
 CONFIG_QUEUEDELAY = 'queue delay'
 
@@ -18,8 +18,10 @@ ML.set_debug()
 
 
 class NotificationService():
-    def __init__(self, configname, save_task_fn, loop=None):
+    def __init__(self, configname, server_endpoint, save_task_fn, loop=None):
         self.config = MC.MavenConfig[configname]
+        self.server_endpoint = server_endpoint
+        self.user_notify_settings = {}
 
         def expire_fn(key, value):
             user, customer = key
@@ -31,7 +33,19 @@ class NotificationService():
         self.listeners = {}
         self.queue_delay = self.config.get(CONFIG_QUEUEDELAY, 0)
         self.loop = loop or asyncio.get_event_loop()
+        self.save_task_fn = save_task_fn
         # self.send_messages('MAVEN', '1', ['SOME TEXT HERE'])
+
+    @asyncio.coroutine
+    def update_customer_users_notification_prefs(self, customer_id):
+        user_prefs = yield from self.server_endpoint.persistence.get_users_notify_preferences(customer_id)
+        for user_pref in user_prefs:
+            self.update_user_notify_prefs(user_pref)
+
+    def update_user_notify_prefs(self, user_pref):
+        notify_prefs = {"notify_primary": user_pref["notify_primary"],
+                        "notify_secondary": user_pref["notify_secondary"]}
+        self.user_notify_settings[(user_pref['user_name'], user_pref['customer_id'])] = notify_prefs
 
     @http_service(['GET'], '/poll',
                   [CONTEXT.USER, CONTEXT.CUSTOMERID],
@@ -39,7 +53,7 @@ class NotificationService():
                   {USER_ROLES.notification})
     def get_poll(self, _header, _body, context, _matches, _key):
         ret = []  # build the list of pending messages here.
-        key = context[CONTEXT.USER], context[CONTEXT.CUSTOMERID]
+        key = context[CONTEXT.USER], int(context[CONTEXT.CUSTOMERID])
 
         if key in self.messages:
             ret = self.messages.pop(key)
@@ -63,23 +77,79 @@ class NotificationService():
 
     @ML.trace(logger.info)
     def send_messages(self, user_name, customer, messages):
-        key = user_name, customer
+        key = user_name, int(customer)
         ML.DEBUG(str(key) + ": " + str(messages))
-        if key in self.listeners:
-            f = self.listeners.pop(key)
-            f.set_result(messages)
+
+        # Get the user's notification preferences
+        notify_primary = self.user_notify_settings.get(key).get("notify_primary")
+        notify_secondary = self.user_notify_settings.get(key).get("notify_secondary")
+
+        if notify_primary == NOTIFICATION_STATE.OFF.value:
+            return True
+
+        # Try sending via Primary Notification Preference
+        if self.notify_via_preference(key, notify_primary, messages):
+            return True
         else:
-            self.messages.extend(key, messages)
-        return True
+            if notify_secondary == NOTIFICATION_STATE.OFF.value:
+                return True
+            return self.notify_via_preference(key, notify_secondary, messages)
+
+    def notify_via_preference(self, key, notify_preference, messages):
+        if notify_preference == NOTIFICATION_STATE.DESKTOP.value:
+            if key in self.listeners:
+                f = self.listeners.pop(key)
+                f.set_result(messages)
+                return True
+            else:
+                return False
+        elif notify_preference == NOTIFICATION_STATE.EHR_INBOX.value:
+            if key[0] == "TERRY":
+                asyncio.Task(self.save_task_fn(key[1], key[0], 'Notification from Maven',
+                                               messages))
+            return True
+
+    @http_service(['POST'], '/notifypref',
+                  [CONTEXT.USER, CONTEXT.CUSTOMERID],
+                  {CONTEXT.PROVIDER: str, CONTEXT.CUSTOMERID: str,
+                   CONTEXT.NOTIFY_PRIMARY: str, CONTEXT.NOTIFY_SECONDARY: str},
+                  {USER_ROLES.notification})
+    @ML.coroutine_trace(logger.debug)
+    def post_notify_pref(self, _header, _body, context, _matches, _key):
+
+        customer_id = context.get(CONTEXT.CUSTOMERID, None)
+        prov_user_name = context.get(CONTEXT.TARGETUSER, None)
+        notify_primary = context.get(CONTEXT.NOTIFY_PRIMARY, None)
+        notify_secondary = context.get(CONTEXT.NOTIFY_SECONDARY, None)
+
+        # Check to make sure the body of the message contains strings as defined in NOTIFICATION_STATE enums
+        is_valid_msg = self.check_notify_pref_message_body(notify_primary, notify_secondary)
+        if customer_id and prov_user_name and is_valid_msg:
+
+            is_successful_update = yield from self.server_endpoint.persistence.update_user_notify_preference(prov_user_name, customer_id, notify_primary, notify_secondary)
+            if is_successful_update:
+                self.user_notify_settings[(prov_user_name, customer_id)] = {"notify_primary": notify_primary,
+                                                                            "notify_secondary": notify_secondary}
+                return HR.OK_RESPONSE, json.dumps(['TRUE']), None
+            else:
+                return HR.BAD_RESPONSE, json.dumps(['FALSE']), None
+
+    def check_notify_pref_message_body(self, notify_primary, notify_secondary):
+
+        if notify_primary in NOTIFICATION_STATE.__members__ and notify_secondary in NOTIFICATION_STATE.__members__:
+            return True
+        else:
+            return False
+
 
 import app.backend.webservices.authentication as AU
 
 
-def notification_server(configname, save_task_fn=None):
+def notification_server(configname, server_endpoint, save_task_fn=None):
     import utils.streaming.webservices_core as WC
     core_scvs = WC.WebserviceCore(configname)
-    ns = NotificationService(configname, save_task_fn=save_task_fn)
+    ns = NotificationService(configname, server_endpoint, save_task_fn=save_task_fn)
     core_scvs.register_services(ns)
     core_scvs.register_services(AU.AuthenticationWebservices(configname, None,
                                                              timeout=60 * 60 * 12))
-    return core_scvs, ns.send_messages
+    return core_scvs, ns.send_messages, ns.update_customer_users_notification_prefs

@@ -484,6 +484,10 @@ class allscripts_api(http.http_api):
         :return:
         """
 
+        if isinstance(message_data, list):
+            msg_data = message_data[0][0]
+            message_data = msg_data
+
         if targetuser and isinstance(task_type, TASK_TYPE) and message_data and msg_subject:
             ret = yield from self.post('/json/MagicJson',
                                        data=self._build_message('SaveTask', task_type.value, targetuser,
