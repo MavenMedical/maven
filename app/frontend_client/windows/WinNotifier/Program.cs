@@ -340,13 +340,10 @@ namespace MavenAsDemo
             try
             {
                 WebRequest rqst = WebRequest.Create(rqstUrl);
-                rqst.Timeout = 5000;
-                HttpWebResponse rsp = (HttpWebResponse)rqst.GetResponse();
-                HttpStatusCode status = rsp.StatusCode;
-                if (status == HttpStatusCode.OK)
-                {
-                    LogMessage("Successfully changed alert mode to \"" + primary + "\"");
-                }
+                rqst.Timeout = 60000;
+                rqst.GetResponse();
+                rqst.Abort();
+                rqst = null;
             }
 
             catch (Exception e)
