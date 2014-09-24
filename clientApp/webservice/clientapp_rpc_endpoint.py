@@ -17,7 +17,6 @@ __author__ = 'Yuki Uchino'
 # LAST MODIFIED FOR JIRA ISSUE: MAV-404
 # *************************************************************************
 import asyncio
-import json
 import clientApp.allscripts.allscripts_customer_interface as ACI
 
 
@@ -61,9 +60,10 @@ class ClientAppEndpoint():
             return False
 
     @asyncio.coroutine
-    def notify_user(self, customer_id, user_name, subject, msg):
+    def notify_user(self, customer_id, user_name, subject, msg, patient=None, target=None):
         customer_interface = self.customer_interfaces[customer_id]
-        yield from customer_interface.notify_user(user_name, subject, msg)
+        yield from customer_interface.notify_user(user_name, patient, subject,
+                                                  msg, target or user_name)
 
     @asyncio.coroutine
     def handle_evaluated_composition(self, customer_id, composition):
