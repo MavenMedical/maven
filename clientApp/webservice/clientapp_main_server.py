@@ -38,7 +38,16 @@ if __name__ == '__main__':
     clientapp_endpoint = ClientAppEndpoint(server_interface, loop=loop)
     CLIENT_RPC_SVC.register(clientapp_endpoint)
 
-    TASK(server_interface.get_customer_configurations())
+    @asyncio.coroutine
+    def get_customer_configurations():
+        while True:
+            try:
+                yield from server_interface.get_customer_configurations()
+                return
+            except SP.StreamProcessorException:
+                yield from asyncio.sleep(5)
+                
+    TASK(get_customer_configurations())
 
     try:
         loop.run_forever()

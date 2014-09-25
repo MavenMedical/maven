@@ -22,6 +22,7 @@ from dateutil.parser import parse
 from utils.web_client.allscripts_http_client import AllscriptsError
 from clientApp.webservice.composition_builder import CompositionBuilder
 import maven_logging as ML
+from collections import defaultdict
 
 icd9_match = re.compile('\(V?[0-9]+(?:\.[0-9]+)?\)')
 CLIENT_SERVER_LOG = ML.get_logger('clientApp.webservice.allscripts_server')
@@ -51,7 +52,7 @@ class scheduler():
     def run(self):
 
         yield from self.comp_builder.build_providers()
-        first = True
+        firsts = defaultdict(lambda: True)
         while True:
             try:
                 today = date.today()
@@ -60,16 +61,17 @@ class scheduler():
                     self.processed = set()
                     sched = []
                 try:
+                    CLIENT_SERVER_LOG.debug('processing %s providers for %s' % (len(self.active_providers), self.customer_id))
                     for provider in self.active_providers:
                         sched = yield from self.allscripts_api.GetSchedule(self.active_providers.get(provider)['user_name'], today)
                         tasks = set()
                         for appointment in sched:
                             patient = appointment['patientID']
                             provider = appointment['ProviderID']
-                            tasks.add((patient, provider, today, first))
+                            tasks.add((patient, provider, today, firsts[provider]))
+                        firsts[provider] = False
                         for task in tasks:
                             ML.TASK(self.evaluate(*task))
-
                 except AllscriptsError as e:
                     CLIENT_SERVER_LOG.exception(e)
                 # print([(sch['patientID'], sch['ApptTime2'], sch['ProviderID']) for sch in sched])
@@ -79,7 +81,6 @@ class scheduler():
             except Exception as e:
                 CLIENT_SERVER_LOG.exception(e)
             yield from asyncio.sleep(self.sleep_interval)
-            first = False
 
     @asyncio.coroutine
     def evaluate(self, patient, provider_id, today, first):
@@ -103,11 +104,13 @@ class scheduler():
                 for doc in documents:
                     keywords = doc.get('keywords', '')
                     match = icd9_match.search(keywords)
+                    mydoc = doc.get('mydocument', 'N') == 'Y'
                     docid = doc.get('DocumentID')
                     doctime = doc.get('SortDate', None)
                     todaydoc = doctime and datetime.date(parse(doctime)) == today
                     newdoc = True
-                    if match and newdoc and todaydoc and (patient, provider_id, today, docid) not in self.processed:
+                    if (mydoc and match and newdoc and todaydoc and 
+                       (patient, provider_id, today, docid) not in self.processed):
                         ML.DEBUG('got doc, (match, newdoc, docid, first) = %s' % str((match, newdoc, docid, first)))
                         self.processed.add((patient, provider_id, today, docid))
                         if not first:
