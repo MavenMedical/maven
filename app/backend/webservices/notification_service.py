@@ -111,7 +111,7 @@ class NotificationService():
             return ret
 
         elif preference == NOTIFICATION_STATE.EHR_INBOX.value:
-            asyncio.Task(self.save_task_fn(key[1], key[0], 'Notification from Maven (Yuki Local Machine Test)',
+            asyncio.Task(self.save_task_fn(key[1], key[0], 'Notification from Maven',
                                            messages))
             return True
 
