@@ -3,7 +3,7 @@ from clientApp.webservice.clientapp_rpc_endpoint import ClientAppEndpoint
 import utils.streaming.rpc_processor as RP
 import utils.streaming.stream_processor as SP
 import maven_config as MC
-from maven_logging import TASK
+from maven_logging import TASK, EXCEPTION
 
 if __name__ == '__main__':
     from app.backend.remote_procedures.server_rpc_endpoint import ServerEndpoint
@@ -44,7 +44,8 @@ if __name__ == '__main__':
             try:
                 yield from server_interface.get_customer_configurations()
                 return
-            except SP.StreamProcessorException:
+            except:
+                EXCEPTION('starting up clientapp')
                 yield from asyncio.sleep(5)
                 
     TASK(get_customer_configurations())
