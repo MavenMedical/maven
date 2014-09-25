@@ -13,7 +13,9 @@ define([
 
         template: _.template(nodeTemplate),
         events: {
-            'click button#copybutton': 'copyProtocole'
+            'click button#copybutton': 'copyProtocole',
+            'click button#sendSetup-button': 'sendSetup',
+            'click button#send-button':'send'
         },
         initialize: function (params) {
             this.model = params.model
@@ -47,17 +49,18 @@ define([
             return this
         },
         copyProtocole: function () {
-
+            console.log('copy protocol', this.model.get('protocol'));
+/*
             if (this.model.get('protocol').attributes) {
                 console.log('copy text att', this.model.get('protocol').attributes.title)
                 $('<div>'+this.model.get("protocol").title+'</div>').attr('id', 'copiedText').appendTo('.container');
 
             } else {
-                console.log('copy text', this.model.get('protocol').title)
+                console.log('copy text', this.model.get('protocol').protocol)
                 $('<div>'+this.model.get("protocol").title+'</div>').attr('id', 'copiedText').appendTo('.container');
 
             }
-
+*/
             $('#toast').css('visibility', 'visible');
 
             setTimeout(function () {
@@ -70,6 +73,15 @@ define([
 
         },
 
+        send: function(){
+            console.log('send');
+
+        },
+        sendSetup: function(){
+             console.log('send setup');
+
+
+        },
         treeToJSON: function (node) {
 
         }

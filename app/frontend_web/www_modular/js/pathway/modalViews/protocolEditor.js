@@ -15,14 +15,17 @@ define([
         el: $("#modal-target"),
         initialize: function(parent){
             this.$el.html(this.template())
-            CKEDITOR.replace('newProtocolTitle');
+            CKEDITOR.replace('ProtocolText');
+            CKEDITOR.replace('NoteToCopyText');
+
 
             var that = this
             this.parent = parent
                 $("#detail-modal").modal({'show':'true'});
                 $("#addNodeButton", this.$el).on("click", function(){
-                    var title = CKEDITOR.instances.newProtocolTitle.getData()
-                    that.parent.set('protocol', new Backbone.Model({title: title}))
+                    var protocolText = CKEDITOR.instances.ProtocolText.getData();
+                    var noteToCopyText = CKEDITOR.instances.NoteToCopyText.getData();
+                    that.parent.set('protocol', new Backbone.Model({protocol: protocolText, noteToCopy:noteToCopyText}))
                     $('#detail-modal').modal('hide')
 
             })

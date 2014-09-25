@@ -29,13 +29,19 @@ define([
             },
             render: function () {
                 var that = this;
-                this.$el.html(this.template({selectedNode: curTree.get('selectedNode').attributes}))
+                console.log('selectedNode', curTree.get('selectedNode').attributes)
+
+
+                this.$el.html(this.template(curTree.get('selectedNode')));
+
+                if (contextModel.get('page') != 'pathEditor') {
                 this.$el.show(1000, function () {
                     /*setTimeout(function () {
                         that.$el.hide(3000);
                     }, 5000);
                     */
                 });
+                }
 
 
                 return this;

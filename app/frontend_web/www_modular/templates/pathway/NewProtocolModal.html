@@ -1,6 +1,6 @@
 <div class="widget-column col-sm-12">
     <div id="detail-modal" class="modal fade" role="dialog" aria-hidden="true" data-backdrop="static">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
 
                 <div class="modal-header">
@@ -11,10 +11,15 @@
 
                 <div class="modal-body">
                     <div class="form-group">
-                        <textarea id="newProtocolTitle" type="text" class="form-control" placeholder=""></textarea>
+                        <span class="headings">Protocol:</span>
+                        <textarea id="ProtocolText" type="text" class="form-control" placeholder=""></textarea>
                     </div>
 
-
+                    <div class="form-group">
+                        <span class="headings">Note to copy:</span>
+                        <textarea id="NoteToCopyText" class="form-control" placeholder="">
+                        </textarea>
+                    </div>
                 </div>
 
 
@@ -26,3 +31,4 @@
             </div>
         </div>
     </div>
+</div>
