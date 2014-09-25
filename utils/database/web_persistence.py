@@ -324,6 +324,9 @@ class WebPersistence():
     def setup_customer(self, customer, clientapp_settings):
         yield from self.execute(["UPDATE customer set clientapp_settings = %s where customer_id = %s"],
                                 [json.dumps(clientapp_settings), customer], {}, {})
+        if clientapp_settings.get('EHRServiceUser', None) == "MavenPathways":
+            yield from self.db.execute_single("SELECT upsert_alert_config(%s, %s, %s, %s, %s, %s)",
+                                              extra=[customer, -1, 'PATHWAY', None, 400, None])
 
     @asyncio.coroutine
     def update_alert_setting(self, user, customer, alertid, ruleid, category, actioncomment):
