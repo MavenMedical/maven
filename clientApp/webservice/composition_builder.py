@@ -78,13 +78,13 @@ class CompositionBuilder(builder):
         return ret
 
     @builder.provide(Types.CDASummary)
-    @ML.coroutine_trace(COMP_BUILD_LOG.debug, True)
+    # @ML.coroutine_trace(COMP_BUILD_LOG.debug, True)
     def _CDA_summary(self, username, patient, doc_id):
         ret = yield from self.allscripts_api.GetPatientCDA(username, patient)
         return ret
 
     @builder.require(Types.Patient, Types.ClinicalSummary, Types.CDASummary)
-    @ML.coroutine_trace(COMP_BUILD_LOG.debug, True)
+    # @ML.coroutine_trace(COMP_BUILD_LOG.debug, True)
     def _build_composition_components(self, composition, patient_result, clin_summary_result, CDA_summary_result):
 
         # Create the FHIR Composition Object with a Type=LOINC coded version of

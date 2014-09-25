@@ -99,7 +99,7 @@ class CompositionEvaluator(SP.StreamProcessor):
         yield from FHIR_DB.write_composition_to_db(composition, self.conn)
 
         # Debug Message
-        COMP_EVAL_LOG.debug(json.dumps(FHIR_API.remove_none(json.loads(json.dumps(composition, default=FHIR_API.jdefault))), default=FHIR_API.jdefault, indent=4))
+        # COMP_EVAL_LOG.debug(json.dumps(FHIR_API.remove_none(json.loads(json.dumps(composition, default=FHIR_API.jdefault))), default=FHIR_API.jdefault, indent=4))
 
         # Send message back to data_router (or aggregate)
         self.write_object(composition, writer_key='aggregate')
