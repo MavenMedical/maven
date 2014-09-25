@@ -358,6 +358,7 @@ class WebPersistence():
     @asyncio.coroutine
     def EHRsync_create_user_provider(self, new_provider_dict):
 
+        # Insert into USERS table
         column_map = ["customer_id",          # 0
                       "prov_id",
                       "user_name",
@@ -384,9 +385,24 @@ class WebPersistence():
         cmd.append("VALUES (%s, %s, UPPER(%s), %s, %s, %s, %s, %s::user_role[], %s, %s)")
         yield from self.execute(cmd, cmdargs, {}, {})
 
+        # Insert default Notification Settings into USER_PREF table
+        column_map = ["customer_id",          # 0
+                      "user_name",
+                      "notify_primary",
+                      "notify_secondary"]
+        columns = DBMapUtils().select_rows_from_map(column_map)
+        cmd = []
+        cmd.append("INSERT INTO user_pref (" + columns + ")")
+        cmd.append("VALUES (%s, %s, %s, %s)")
+        cmdargs = [new_provider_dict['customer_id'],
+                   new_provider_dict['user_name'],
+                   'desktop',
+                   'off']
+        yield from self.execute(cmd, cmdargs, {}, {})
+
+        # If the User is a provider, add them to the provider table
         if not new_provider_dict.get('prov_id', None):
             return
-
         column_map = ["prov_id",          # 0
                       "customer_id",
                       "prov_name",
