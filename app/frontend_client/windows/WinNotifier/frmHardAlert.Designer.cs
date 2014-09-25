@@ -44,8 +44,9 @@
             this.browserDisplay.MinimumSize = new System.Drawing.Size(20, 20);
             this.browserDisplay.Name = "browserDisplay";
             this.browserDisplay.ScriptErrorsSuppressed = true;
-            this.browserDisplay.Size = new System.Drawing.Size(796, 777);
+            this.browserDisplay.Size = new System.Drawing.Size(1020, 745);
             this.browserDisplay.TabIndex = 2;
+            this.browserDisplay.DocumentCompleted += new System.Windows.Forms.WebBrowserDocumentCompletedEventHandler(this.browserDisplay_DocumentCompleted);
             // 
             // timer
             // 
@@ -60,7 +61,7 @@
             this.shapeContainer1.Shapes.AddRange(new Microsoft.VisualBasic.PowerPacks.Shape[] {
             this.mover,
             this.boxHeader});
-            this.shapeContainer1.Size = new System.Drawing.Size(800, 800);
+            this.shapeContainer1.Size = new System.Drawing.Size(1024, 768);
             this.shapeContainer1.TabIndex = 3;
             this.shapeContainer1.TabStop = false;
             // 
@@ -68,9 +69,9 @@
             // 
             this.mover.BackColor = System.Drawing.Color.Transparent;
             this.mover.BorderColor = System.Drawing.Color.Transparent;
-            this.mover.Location = new System.Drawing.Point(0, -100);
+            this.mover.Location = new System.Drawing.Point(-1, -95);
             this.mover.Name = "mover";
-            this.mover.Size = new System.Drawing.Size(800, 200);
+            this.mover.Size = new System.Drawing.Size(1024, 200);
             // 
             // boxHeader
             // 
@@ -80,7 +81,7 @@
             this.boxHeader.FillStyle = Microsoft.VisualBasic.PowerPacks.FillStyle.Solid;
             this.boxHeader.Location = new System.Drawing.Point(2, 2);
             this.boxHeader.Name = "boxHeader";
-            this.boxHeader.Size = new System.Drawing.Size(796, 18);
+            this.boxHeader.Size = new System.Drawing.Size(1019, 18);
             // 
             // pictureBox1
             // 
@@ -89,7 +90,7 @@
             this.pictureBox1.ErrorImage = null;
             this.pictureBox1.Image = global::MavenAsDemo.Properties.Resources.icon_close_small;
             this.pictureBox1.InitialImage = null;
-            this.pictureBox1.Location = new System.Drawing.Point(782, 3);
+            this.pictureBox1.Location = new System.Drawing.Point(1007, 3);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(15, 15);
             this.pictureBox1.TabIndex = 1;
@@ -101,7 +102,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.LightGray;
-            this.ClientSize = new System.Drawing.Size(800, 800);
+            this.ClientSize = new System.Drawing.Size(1024, 768);
             this.Controls.Add(this.pictureBox1);
             this.Controls.Add(this.browserDisplay);
             this.Controls.Add(this.shapeContainer1);
