@@ -22,7 +22,7 @@ import utils.crypto.authorization_key as AK
 import utils.database.web_persistence as WP
 from utils.streaming.http_svcs_wrapper import http_service, CONTEXT, CONFIG_PERSISTENCE
 import utils.streaming.http_responder as HTTP
-from utils.enums import CONFIG_PARAMS
+from utils.enums import CONFIG_PARAMS, USER_ROLES
 import maven_config as MC
 import maven_logging as ML
 
@@ -123,7 +123,7 @@ class AuthenticationWebservices():
                     raise LoginError('reusedLogin')
 
             if (user_info[WP.Results.userstate] != 'active'
-               or user_info[WP.Results.ehrstate] == 'disabled'):
+               or (user_info[WP.Results.ehrstate] == 'disabled' and USER_ROLES.administrator.value not in user_info[WP.Results.roles])):
                 raise LoginError('disabledLogin')
 
             customer = str(user_info[WP.Results.customerid])
