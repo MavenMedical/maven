@@ -141,7 +141,6 @@ class AuthenticationWebservices():
                 timeout = float(clientapp_settings[CONFIG_PARAMS.EHR_USER_TIMEOUT.value]) * 60
             except (KeyError, ValueError):
                 timeout = self.timeout
-            print(timeout)
             user_auth = AK.authorization_key([[username], [provider], [customer], sorted(roles)],
                                              AUTH_LENGTH, timeout)
 
@@ -165,7 +164,7 @@ class AuthenticationWebservices():
 
             if self.oauth and method != 'forward':
                 ak = AK.authorization_key([username, customer, roles], AUTH_LENGTH,
-                                          365 * 24 * 60 * 60)
+                                          180 * 24 * 60 * 60)  # half a year for oauth
                 ret[CONFIG_OAUTH] = ak
             return HTTP.OK_RESPONSE, json.dumps(ret), None
         except LoginError as err:
