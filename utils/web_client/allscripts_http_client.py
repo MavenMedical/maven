@@ -485,7 +485,7 @@ class allscripts_api(http.http_api):
         """
 
         if isinstance(message_data, list):
-            msg_data = message_data[0][0]
+            msg_data = "\n".join(message_data)
             message_data = msg_data
 
         if targetuser and isinstance(task_type, TASK_TYPE) and message_data and msg_subject:
