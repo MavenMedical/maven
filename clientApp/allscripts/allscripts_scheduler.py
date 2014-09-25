@@ -107,16 +107,17 @@ class scheduler():
                     mydoc = doc.get('mydocument', 'N') == 'Y'
                     docid = doc.get('DocumentID')
                     doctime = doc.get('SortDate', None)
-                    todaydoc = doctime and datetime.date(parse(doctime)) == today
+                    enc_datetime = doctime and parse(doctime)
+                    todaydoc = enc_datetime and enc_datetime.date() == today
                     newdoc = True
-                    if (mydoc and match and newdoc and todaydoc and 
+                    if (mydoc and match and newdoc and todaydoc and
                        (patient, provider_id, today, docid) not in self.processed):
                         ML.DEBUG('got doc, (match, newdoc, docid, first) = %s' % str((match, newdoc, docid, first)))
                         self.processed.add((patient, provider_id, today, docid))
                         if not first:
                             # start, stop = match.span()
                             CLIENT_SERVER_LOG.debug("About to send to Composition Builder...")
-                            composition = yield from self.comp_builder.build_composition(provider_username, patient, docid)
+                            composition = yield from self.comp_builder.build_composition(provider_username, patient, docid, enc_datetime)
                             CLIENT_SERVER_LOG.debug(("Built composition, about to send to Backend Data Router. Composition ID = %s" % composition.id))
                             ML.TASK(self.parent.evaluate_composition(composition))
                             break
