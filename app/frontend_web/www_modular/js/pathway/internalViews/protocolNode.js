@@ -5,9 +5,10 @@ define([
     'backbone',    // lib/backbone/backbone
     'globalmodels/contextModel',
     'pathway/models/treeModel',
+    'pathway/modalViews/sendProtocol',
     'text!templates/pathway/protocolNode.html',
 
-], function ($, _, Backbone, currentContext, curTree, nodeTemplate) {
+], function ($, _, Backbone, currentContext, curTree, SendProtocol, nodeTemplate) {
 
     var treeNode = Backbone.View.extend({
 
@@ -41,8 +42,6 @@ define([
                 this.$el.html(this.template({protocolNode: this.model.get('protocol'), page: currentContext.get('page')}));
             }
 
-
-
             return this
         },
         copyProtocole: function () {
@@ -67,6 +66,7 @@ define([
 
         send: function () {
             console.log('send');
+                var newSendProtocol = new SendProtocol(this.model);
 
         },
         sendSetup: function () {
