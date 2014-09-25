@@ -74,7 +74,7 @@ namespace MavenAsDemo
             //TODO: Get the html from the maven cloud
             string s = "<head><script language=\"JavaScript\">function jsfunction(strURL){window.open(strURL, \"_blank\",\"height=800 width=800 top=0 left=0 scrollbars=no titlebar=no\");} "
                  +"</script></head><body> "
-                + " 		 <p style=\"color:#443361;font-family:verdana, sans-serif; font-size:small\"> Patient matches an AUA Pathway.<br/> "
+                + " 		 <p style=\"color:#443361;font-family:verdana, sans-serif; font-size:small\">There is a standard of care for this patient.<br/> "
                 + " 		<a href=\""+url+"\" "
                 //onclick=\"jsfunction('"+url+"')\"
             +">Click</a> to view the pathway. </p>"

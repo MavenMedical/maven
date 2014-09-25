@@ -240,6 +240,8 @@ namespace MavenAsDemo
                     //if we got an "unauthorized", then simply re-login
                     if (e.Message.Contains("Unauthorized"))
                     {
+                        //this next line is to FORCE a new login and not to get a new session key with the saved oauth token. TODO: review periodically. 
+                        Authenticator.ClearLoginSettings();
                         checkAuth(); //ensure you haven't timed out
                     }
                     lastExceptionMessage = e.Message;
