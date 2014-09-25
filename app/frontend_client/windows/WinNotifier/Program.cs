@@ -117,6 +117,7 @@ namespace MavenAsDemo
                 frmAlert frm = new frmAlert(cursettings.fadeSlowness, cursettings.location, url);
                 frm.ShowInTaskbar = false;
                 frm.Visible = true;
+                frm.TopMost = true;
                 Application.Run(frm);
             }
             else if (cursettings.mode == Settings.AlertMode.deskHard)
@@ -124,6 +125,7 @@ namespace MavenAsDemo
                 frmHardAlert frm = new frmHardAlert(url, cursettings.location);
                 frm.ShowInTaskbar = false;
                 frm.Visible = true;
+                frm.TopMost = true;
                 Application.Run(frm);
             }
         }
