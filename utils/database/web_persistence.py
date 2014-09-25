@@ -121,7 +121,7 @@ def _prettify_lengthofstay(s):
     if days > 1:
         return str(days) + " days"
     else:
-        return (s[0].seconds // 3600) + " hours"
+        return str(s[0].seconds // 3600) + " hours"
 
 
 def _invalid_num(x):
