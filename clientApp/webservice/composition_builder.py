@@ -61,7 +61,9 @@ class CompositionBuilder(builder):
         obj.encounter = FHIR_API.Encounter(identifier=[FHIR_API.Identifier(label="Internal",
                                                                            system="clientEMR",
                                                                            value=doc_id)],
-                                           period=FHIR_API.Period(start=doc_datetime))
+                                           period=FHIR_API.Period(start=doc_datetime),
+                                           fhir_class=FHIR_API.Coding(system="http://hl7.org/fhir/encounter-class",
+                                                                      code="ambulatory"))
         COMP_BUILD_LOG.debug(json.dumps(FHIR_API.remove_none(json.loads(json.dumps(obj, default=FHIR_API.jdefault))), indent=4))
         COMP_BUILD_LOG.debug(("Finished building Composition ID=%s" % obj.id))
         return obj

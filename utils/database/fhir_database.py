@@ -74,12 +74,12 @@ def write_composition_encounter(composition, conn):
     try:
         encounter_id = composition.encounter.get_csn()
         pat_id = composition.subject.get_pat_id()
-        encounter_type = "Emergency"
-        encounter_date = "2014-03-24"
+        encounter_type = composition.encounter.fhir_class.code or None
+        encounter_date = composition.encounter.period.start.date().isoformat() or None
         provider_id = composition.get_author_id()
-        bill_prov_id = "32209837"
-        encounter_dep = 1235234
-        encounter_admit_time = "2014-03-24T08:45:23"
+        bill_prov_id = composition.get_author_id()
+        encounter_dep = None
+        encounter_admit_time = encounter_date
         encounter_disch_time = None
         customer_id = composition.customer_id
 
