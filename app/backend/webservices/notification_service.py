@@ -88,23 +88,30 @@ class NotificationService():
             return True
 
         # Try sending via Primary Notification Preference
-        if self.notify_via_preference(key, notify_primary, messages):
-            return True
-        else:
-            if notify_secondary == NOTIFICATION_STATE.OFF.value:
-                return True
-            return self.notify_via_preference(key, notify_secondary, messages)
+        asyncio.Task(self.notify_via_preference(key, [notify_primary, notify_secondary], messages))
+        return True
 
-    def notify_via_preference(self, key, notify_preference, messages):
-        if notify_preference == NOTIFICATION_STATE.DESKTOP.value:
+    @asyncio.coroutine
+    def notify_via_preference(self, key, notify_preferences, messages):
+        preference = notify_preferences[0]
+        if preference == NOTIFICATION_STATE.DESKTOP.value:
+            for _i in range(2):
+                if key in self.listeners:
+                    f = self.listeners.pop(key)
+                    f.set_result(messages)
+                    return True
+                else:
+                    yield from asyncio.sleep(5)
             if key in self.listeners:
                 f = self.listeners.pop(key)
                 f.set_result(messages)
                 return True
-            else:
-                return False
-        elif notify_preference == NOTIFICATION_STATE.EHR_INBOX.value:
-            asyncio.Task(self.save_task_fn(key[1], key[0], 'Notification from Maven',
+
+            ret = yield from self.notify_via_preference(key, notify_preferences[1:], messages)
+            return ret
+
+        elif preference == NOTIFICATION_STATE.EHR_INBOX.value:
+            asyncio.Task(self.save_task_fn(key[1], key[0], 'Notification from Maven (Yuki Local Machine Test)',
                                            messages))
             return True
 
