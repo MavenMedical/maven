@@ -433,6 +433,7 @@ class WebPersistence():
         Results.ehrstate: 'users.ehr_state',
         #        Results.failedlogins: 'array_agg(logins.logintime)',
         Results.recentkeys: 'NULL',
+        Results.settings: 'customer.clientapp_settings',
         Results.roles: 'users.roles',
     }
     _display_pre_login = _build_format({
@@ -440,24 +441,24 @@ class WebPersistence():
     })
 
     @asyncio.coroutine
-    def pre_login(self, desired, customer, username=None, provider=None, keycheck=None):
+    def pre_login(self, desired, customer, username, keycheck=None):
         columns = build_columns(desired.keys(), self._available_pre_login,
                                 self._default_pre_login)
-        if not username and not provider:
-            raise IndexError
         cmd = []
         cmdargs = []
         cmd.append("SELECT")
         cmd.append(columns)
-        cmd.append("FROM users WHERE customer_id = %s")
+        cmd.append("FROM users")
+        if Results.settings in desired:
+            cmd.append("LEFT JOIN customer on users.customer_id = customer.customer_id")
+        cmd.append("WHERE users.customer_id = %s")
         cmdargs.append(customer)
-        if username:
-            cmd.append(" AND users.user_name = UPPER(%s)")
-            cmdargs.append(username)
-        else:
-            cmd.append(" AND users.prov_id = %s AND users.customer_id = %s")
-            cmdargs.append(provider[0])
-            cmdargs.append(provider[1])
+        cmd.append("AND users.user_name = UPPER(%s)")
+        cmdargs.append(username)
+        # else:
+        #     cmd.append(" AND users.prov_id = %s AND users.customer_id = %s")
+        #     cmdargs.append(provider[0])
+        #     cmdargs.append(provider[1])
 
         results = yield from self.execute(cmd, cmdargs, self._display_pre_login, desired)
         return results[0]

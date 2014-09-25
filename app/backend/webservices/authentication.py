@@ -22,6 +22,7 @@ import utils.crypto.authorization_key as AK
 import utils.database.web_persistence as WP
 from utils.streaming.http_svcs_wrapper import http_service, CONTEXT, CONFIG_PERSISTENCE
 import utils.streaming.http_responder as HTTP
+from utils.enums import CONFIG_PARAMS
 import maven_config as MC
 import maven_logging as ML
 
@@ -70,6 +71,7 @@ class AuthenticationWebservices():
             WP.Results.recentkeys,
             WP.Results.roles,
             WP.Results.ehrstate,
+            WP.Results.settings,
         ]}
         attempted = None
         if info.get(CONTEXT.ROLES, None):
@@ -89,7 +91,7 @@ class AuthenticationWebservices():
                 attempted = ' '.join([username, customer])
                 try:
                     user_info = yield from self.persistence.pre_login(desired, customer,
-                                                                      username=username)
+                                                                      username)
                     # pdb.set_trace()
 
                 except IndexError:
@@ -113,7 +115,7 @@ class AuthenticationWebservices():
                     raise LoginError('badLogin')
                 user_info = yield from self.persistence.pre_login(desired,
                                                                   customer,
-                                                                  username=username,
+                                                                  username,
                                                                   keycheck='1m')
                 method = 'forward'
                 # was this auth key used recently
@@ -134,8 +136,14 @@ class AuthenticationWebservices():
             provider = user_info[WP.Results.provid]
             roles = [self.specific_role] if self.specific_role else user_info[WP.Results.roles]
             roles = list(filter(rolefilter, roles))
+            try:
+                clientapp_settings = json.loads(user_info[WP.Results.settings])
+                timeout = float(clientapp_settings[CONFIG_PARAMS.EHR_USER_TIMEOUT.value]) * 60
+            except (KeyError, ValueError):
+                timeout = self.timeout
+            print(timeout)
             user_auth = AK.authorization_key([[username], [provider], [customer], sorted(roles)],
-                                             AUTH_LENGTH, self.timeout)
+                                             AUTH_LENGTH, timeout)
 
             desired_layout = {
                 WP.Results.widget: 'widget',
