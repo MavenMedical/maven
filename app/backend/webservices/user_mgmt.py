@@ -156,25 +156,25 @@ class UserMgmtWebservices():
             return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
 
     @http_service(['GET'], '/audits(?:(\d+)-(\d+)?)?',
-                  [CONTEXT.PROVIDER, CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.ROLES],
-                  {CONTEXT.PROVIDER: str, CONTEXT.CUSTOMERID: int,
+                  [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.ROLES],
+                  {CONTEXT.CUSTOMERID: int,
                    CONTEXT.STARTDATE: date, CONTEXT.ENDDATE: date,
                    CONTEXT.USER: str, CONTEXT.ROLES: list,
-                   CONTEXT.TARGETPROVIDER: str, CONTEXT.TARGETCUSTOMER: int},
+                   CONTEXT.TARGETUSER: str, CONTEXT.TARGETCUSTOMER: int},
                   {USER_ROLES.provider, USER_ROLES.supervisor, USER_ROLES.mavensupport, USER_ROLES.administrator})
     def get_audits(self, _header, _body, context, matches, _key):
-        provider = None
+        target_user = None
         customer = None
 
         if (USER_ROLES.supervisor.name in context[CONTEXT.ROLES] or
                 USER_ROLES.administrator.name in context[CONTEXT.ROLES] or
                 USER_ROLES.mavensupport.name in context[CONTEXT.ROLES]):
-            provider = context.get(CONTEXT.TARGETPROVIDER, None)
+            target_user = context.get(CONTEXT.TARGETUSER, None)
         if USER_ROLES.mavensupport.name in context[CONTEXT.ROLES]:
             customer = context.get(CONTEXT.TARGETCUSTOMER, None)
 
-        if not provider:
-            provider = context[CONTEXT.PROVIDER]
+        if not target_user:
+            target_user = context[CONTEXT.USER]
         if not customer:
             customer = context[CONTEXT.CUSTOMERID]
 
@@ -192,7 +192,7 @@ class UserMgmtWebservices():
             WP.Results.device: 'device',
         }
 
-        results = yield from self.persistence.audit_info(desired, provider, customer,
+        results = yield from self.persistence.audit_info(desired, target_user, customer,
                                                          startdate=startdate,
                                                          enddate=enddate, limit=limit)
 

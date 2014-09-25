@@ -9,17 +9,16 @@ define([
 
     'globalmodels/contextModel'
 ], function ($, _, Backbone, auditCollection, AuditRow, contextModel) {
-
     var AuditList = Backbone.View.extend({
-    targetProvider:null,
+    targetUser:null,
     targetCustomer:null,
     lastHeight: 0,
 	initialize: function(arg) {
-        if (arg.targetProvider || arg.targetCustomer)
+        if (arg.targetUser || arg.targetCustomer)
         {
-            this.targetProvider = arg.targetProvider;
+            this.targetUser = arg.targetUser;
             this.targetCustomer = arg.targetCustomer;
-            auditCollection.data="target_provider="+arg.targetProvider+"&target_customer="+arg.targetCustomer;
+            auditCollection.data="target_user="+arg.targetUser+"&target_customer="+arg.targetCustomer;
         }
         else
         {
@@ -48,8 +47,8 @@ define([
     downloadAudits: function() {
         that = this;
         var extra_data = "";
-        if (that.targetProvider && that.targetCustomer) {
-            extra_data = "/target_provider/" + that.targetProvider + "/target_customer/" + that.targetCustomer;
+        if (that.targetUser && that.targetCustomer) {
+            extra_data = "/target_user/" + that.targetUser + "/target_customer/" + that.targetCustomer;
         }
 /*
         var path = "/download_audits/"+$.param(contextModel.toParams());
