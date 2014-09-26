@@ -45,15 +45,8 @@ define([
                         "subject": "Please review this patient - " + contextModel.get("official_name"),
                         "message": message,
                     }),
-                    success: function () {
-                        $("#save-admin-message").html("Settings saved!");
-                            alert("Success! Connection to EHR established.");
-                            userCollection.refresh();
-                            setTimeout(userCollection.refresh, 7);
-                    },
                     error: function (){
-                        alert("The server could NOT successfully connect using this configuration.");
-                        $("#save-admin-message").html("&nbsp;");
+                        alert("There was a problem sending the message.");
                     }
                 });
             })
