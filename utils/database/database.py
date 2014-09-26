@@ -109,7 +109,7 @@ class AsyncConnectionPool():
             raise RuntimeError("You do not have a valid connection to the database")
         try:
             cur = conn.cursor()
-            ML.DEBUG("got a cursor")
+            # ML.DEBUG("got a cursor")
             # Send the command to the database
             if extra:
                 cur.execute(cmd, extra)
@@ -119,7 +119,7 @@ class AsyncConnectionPool():
             # wait for a result from the database
             yield from self._wait(conn)
 
-            ML.DEBUG("Finish execution")
+            # ML.DEBUG("Finish execution")
             # the cursor is an iterator through the results, return it
             if future is not None:
                 ML.DEBUG("Setting future for one of multiple queries")
@@ -166,9 +166,9 @@ class AsyncConnectionPool():
                 tasks.append(asyncio.Task(self.execute_single(cmds[x], None, future)))
             futures.append(future)
 
-        ML.DEBUG("Sending multiple tasks to event loop and waiting until they all finish")
+        # ML.DEBUG("Sending multiple tasks to event loop and waiting until they all finish")
         yield from asyncio.wait(tasks)
-        ML.DEBUG("All tasks finished and futures set")
+        # ML.DEBUG("All tasks finished and futures set")
         for f in futures:
             if not f.done():
                 ML.ERROR("We are trying to get the result of a future that has not completed")
@@ -195,7 +195,7 @@ class AsyncConnectionPool():
         :param cmd: The sql command to send to the database
         :param extra: any extra arguments to the database
         """
-        ML.DEBUG("Executing query and closing cursor")
+        # ML.DEBUG("Executing query and closing cursor")
         cur = yield from self.execute_single(cmd, extra)
         if cur is None:
             ML.ERROR("The cursor returned from the query is null")
@@ -242,7 +242,7 @@ class AsyncConnectionPool():
         The semaphore MUST always make self.ready's size
         """
 
-        ML.DEBUG("In ConnectionPool._get_connection")
+        # ML.DEBUG("In ConnectionPool._get_connection")
         # consume one of the connections if available, block otherwise
         yield from self.connection_sem.acquire()
 
@@ -253,8 +253,8 @@ class AsyncConnectionPool():
         connection = self.ready.pop()
         self.in_use.add(connection)
 
-        ML.DEBUG("Reused a connection: (%d, %d, %d)" % (len(self.ready), len(self.in_use),
-                                                        self.pending))
+        # ML.DEBUG("Reused a connection: (%d, %d, %d)" % (len(self.ready), len(self.in_use),
+        # self.pending))
 
         # create a new_connection task if ready queue (+ pending) is empty and there is headroom
         active = self.pending + len(self.ready) + len(self.in_use)
@@ -269,7 +269,7 @@ class AsyncConnectionPool():
         """ Clean up when done with a connection, and wake up any waiting coroutines
         :param connection: a psycopg2, async connection
         """
-        ML.DEBUG("Releasing Connection")
+        # ML.DEBUG("Releasing Connection")
         self.in_use.remove(connection)
         self.ready.append(connection)
         self.connection_sem.release()
@@ -322,7 +322,7 @@ class AsyncConnectionPool():
         connection's file descriptor, letting other coroutines run until it's ready.
         :param connection: a psycopg2, async connection
         """
-        ML.DEBUG("In ConnectionPool.wait")
+        # ML.DEBUG("In ConnectionPool.wait")
         while True:
             state = connection.poll()
             if state == psycopg2.extensions.POLL_OK:
