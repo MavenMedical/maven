@@ -8,7 +8,7 @@
                         <div class="span3">Unity Server Address:</div>
                         <div style='float:left'>
                             <% URLEND = "/Unity/UnityService.svc"
-                               if (EHRURL !== "undefined")
+                               if (typeof EHRURL !== "undefined")
                                {
                                     DISP_URL = EHRURL.replace("http://","").replace("https://","").replace(URLEND,"");
                                }
