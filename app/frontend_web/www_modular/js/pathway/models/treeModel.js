@@ -119,7 +119,9 @@ define([
             this.set({name: response.name}, {silent: true})
             this.set({children: new NodeList(response.children)}, {silent: true})
             this.set({hideChildren: "true"}, {silent: true})
-            this.once('sync',  function(){recursiveCollapse(this)}, this)
+            this.once('sync',  function(){
+                recursiveCollapse(this)
+            }, this)
             this.set({triggers: new Backbone.Collection(response.triggers)}, {silent: true})
 
         }

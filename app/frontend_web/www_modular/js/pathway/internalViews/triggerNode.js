@@ -122,11 +122,6 @@ define([
                     curTree.elPairs.push({source: this, target: thisChild, bold: n})
                 }, this)
 
-                if (this.model.get('hideChildren')=="true"){
-                    $('.children2', this.$el).first()[0].hidden = true;
-                } else {
-                    $('.children2', this.$el).first()[0].hidden = false;
-                }
                 if (this.model == curTree.get('selectedNode')){
                     that.getMyElement().addClass('selected')
                 }
