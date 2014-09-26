@@ -58,7 +58,8 @@ define([
             var polling = $("#admin-polling-input").val();
             var timeout = $("#admin-timeout-input").val();
             var username = "MavenPathways";
-
+	    var unlocked = $(".lock-admin-button").is(':visible');
+	    
             var reg_num = new RegExp('^[0]*[1-9]+[0]*$');
             /*var reg_ip = new RegExp('^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$');
             else if (!reg_ip.test(ip))
@@ -73,26 +74,35 @@ define([
             {
                 $("#save-admin-message").html("Please enter a valid number for the timeout");
             }
-            else if (ip == "")
+            else if (unlocked && ip == "")
             {
                 $("#save-admin-message").html("Please enter an ip address");
             }
-            else if (pw == "")
+            else if (unlocked && pw == "")
             {
                 $("#save-admin-message").html("Please enter the password");
             }
             else {
 		var protocol = $("#httphttps").find(":selected").text();
+		var data;
+		if (unlocked) {
+		    console.log('loading from fields');
+		    data = {
+			    "EHRURL": $.trim(protocol) + $.trim(ip)+ "/Unity/UnityService.svc",
+			    "EHRAppName": name, "EHRPassword": pw, "EHRServiceUser": username,
+			    "EHRPolling": polling, "UserTimeout": timeout
+		    };
+		} else {
+		    console.log('loading from ', this.model.attributes.settings);
+		    data = _.clone(this.model.attributes.settings);
+		    _.extend(data, {"EHRPolling": polling, "UserTimeout": timeout, 'locked': 'locked'});
+		}
+
                 $.ajax({
 		    type: 'POST',
 		    dataType: 'json',
                     url: "/setup_customer?" + $.param(contextModel.toParams()),
-                    data: JSON.stringify({"EHRURL": protocol + ip + "/Unity/UnityService.svc",
-					  "EHRAppName": name,
-					  "EHRPassword": pw,
-					  "EHRPolling": polling,
-					  "UserTimeout": timeout,
-                      "EHRServiceUser": username}),
+		    data: JSON.stringify(data),
                     success: function () {
                         $("#save-admin-message").html("Settings saved!");
                         alert("Success! Connection to EHR established.");
