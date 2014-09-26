@@ -99,12 +99,14 @@ class NotificationService():
                 if key in self.listeners:
                     f = self.listeners.pop(key)
                     f.set_result(messages)
+                    asyncio.Task(self.server_endpoint.persistence.audit_log(key[0], 'Desktop Alert', key[1]))
                     return True
                 else:
                     yield from asyncio.sleep(5)
             if key in self.listeners:
                 f = self.listeners.pop(key)
                 f.set_result(messages)
+                asyncio.Task(self.server_endpoint.persistence.audit_log(key[0], 'Desktop Alert', key[1]))
                 return True
 
             ret = yield from self.notify_via_preference(key, notify_preferences[1:], messages)
@@ -113,6 +115,7 @@ class NotificationService():
         elif preference == NOTIFICATION_STATE.EHR_INBOX.value:
             asyncio.Task(self.save_task_fn(key[1], key[0], 'Notification from Maven',
                                            messages))
+            asyncio.Task(self.server_endpoint.persistence.audit_log(key[0], 'EHR Inbox Alert', key[1]))
             return True
 
     @http_service(['GET'], '/notifypref',
