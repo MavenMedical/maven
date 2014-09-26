@@ -121,3 +121,9 @@ class ServerEndpoint(SP.StreamProcessor):
     @asyncio.coroutine
     def evaluate_composition(self, composition):
         self.comp_eval_writer_fn(composition)
+
+    @asyncio.coroutine
+    def write_audit_log(self, user_name, action, customer_id, patient=None, device=None,
+                        details=None, rows=None, target_user=None):
+        asyncio.Task(self.persistence.audit_log(user_name, action, customer_id, patient=patient,
+                                                device=device, details=details, rows=rows, target_user=target_user))

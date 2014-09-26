@@ -47,6 +47,8 @@ define([
         },
         copyProtocole: function () {
 
+
+             console.log('copy text', this.model.get('protocol').noteToCopy)
              $('<div>'+this.model.get("protocol").noteToCopy+'</div>').attr('id', 'copiedText').appendTo('.container');
 
 
