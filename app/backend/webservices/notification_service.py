@@ -76,7 +76,7 @@ class NotificationService():
         return (HR.OK_RESPONSE, json.dumps(ret), None)
 
     @ML.trace(logger.info)
-    def send_messages(self, user_name, customer, messages):
+    def send_messages(self, user_name, customer, pat_id, messages):
         key = user_name, int(customer)
         ML.DEBUG(str(key) + ": " + str(messages))
 
@@ -88,31 +88,34 @@ class NotificationService():
             return True
 
         # Try sending via Primary Notification Preference
-        asyncio.Task(self.notify_via_preference(key, [notify_primary, notify_secondary], messages))
+        asyncio.Task(self.notify_via_preference(key, [notify_primary, notify_secondary], pat_id, messages))
         return True
 
     @asyncio.coroutine
-    def notify_via_preference(self, key, notify_preferences, messages):
+    def notify_via_preference(self, key, notify_preferences, pat_id, messages):
         preference = notify_preferences[0]
         if preference == NOTIFICATION_STATE.DESKTOP.value:
             for _i in range(2):
                 if key in self.listeners:
                     f = self.listeners.pop(key)
                     f.set_result(messages)
+                    asyncio.Task(self.server_endpoint.persistence.audit_log(key[0], 'Desktop Alert', key[1], patient=pat_id))
                     return True
                 else:
                     yield from asyncio.sleep(5)
             if key in self.listeners:
                 f = self.listeners.pop(key)
                 f.set_result(messages)
+                asyncio.Task(self.server_endpoint.persistence.audit_log(key[0], 'Desktop Alert', key[1], patient=pat_id))
                 return True
 
-            ret = yield from self.notify_via_preference(key, notify_preferences[1:], messages)
+            ret = yield from self.notify_via_preference(key, notify_preferences[1:], pat_id, messages)
             return ret
 
         elif preference == NOTIFICATION_STATE.EHR_INBOX.value:
             asyncio.Task(self.save_task_fn(key[1], key[0], 'Notification from Maven',
-                                           messages))
+                                           messages, patient=pat_id))
+            asyncio.Task(self.server_endpoint.persistence.audit_log(key[0], 'EHR Inbox Alert', key[1], patient=pat_id))
             return True
 
     @http_service(['GET'], '/notifypref',

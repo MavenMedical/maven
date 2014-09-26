@@ -57,16 +57,19 @@ class AdministrationWebservices():
 
     @http_service(['GET'], '/users(?:(\d+)-(\d+)?)?',
                   [CONTEXT.CUSTOMERID],
-                  {CONTEXT.CUSTOMERID: int, CONTEXT.ROLES: list},
+                  {CONTEXT.CUSTOMERID: int, CONTEXT.ROLES: list,
+                   CONTEXT.TARGETROLE: str, CONTEXT.TARGETUSER: str},
                   {USER_ROLES.administrator, USER_ROLES.provider,
                    USER_ROLES.mavensupport, USER_ROLES.supervisor})
     def get_users(self, _header, _body, context, matches, _key):
         customer = context[CONTEXT.CUSTOMERID]
         roles = context[CONTEXT.ROLES]
+        targetrole = context.get(CONTEXT.TARGETROLE, None)
+        targetuser = context.get(CONTEXT.TARGETUSER, None)
         limit = self.helper.limit_clause(matches)
 
         if {USER_ROLES.administrator.value, USER_ROLES.provider.value,
-           USER_ROLES.mavensupport.value}.intersection(roles):
+           USER_ROLES.mavensupport.value}.intersection(roles) and not targetrole:
             desired = {
                 WP.Results.userid: 'user_id',
                 WP.Results.customerid: 'customer_id',
@@ -80,8 +83,14 @@ class AdministrationWebservices():
                 WP.Results.profession: 'profession'
             }
         else:
-            desired = {WP.Results.username: 'user_name'}
-        results = yield from self.persistence.user_info(desired, customer,
+            desired = {
+                # WP.Results.officialname: 'official_name',
+                # WP.Results.username: 'user_name',
+                WP.Results.officialname: 'label',
+                WP.Results.username: 'value',
+            }
+        results = yield from self.persistence.user_info(desired, customer, role=targetrole,
+                                                        officialname=targetuser,
                                                         orderby=[WP.Results.ehrstate, WP.Results.profession,
                                                                  WP.Results.displayname],
                                                         limit=limit)

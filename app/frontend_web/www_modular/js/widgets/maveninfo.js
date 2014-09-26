@@ -20,7 +20,7 @@ define([
                 if (contextModel.get('page') != 'pathEditor') {
                     this.$el.show();
                 } else {
-                    this.$el.hide();
+                    this.$el .hide();
                 }
             },
             events: {
@@ -29,13 +29,19 @@ define([
             },
             render: function () {
                 var that = this;
-                this.$el.html(this.template({selectedNode: curTree.get('selectedNode').attributes}))
+                if(curTree.get('selectedNode').attributes != null){
+
+                this.$el.html(this.template(curTree.get('selectedNode').attributes));
+
+                if (contextModel.get('page') != 'pathEditor') {
                 this.$el.show(1000, function () {
                     /*setTimeout(function () {
                         that.$el.hide(3000);
                     }, 5000);
                     */
                 });
+                }
+                }
 
 
                 return this;

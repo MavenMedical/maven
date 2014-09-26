@@ -107,10 +107,9 @@
         border: 1px solid #94a0b4;
     }
 
-    #El
 
     #copiedText {
-        display: none;
+        display: none !important;
     }
 
     #toast {
@@ -803,3 +802,6 @@ border-right: 1px solid rgb(204, 204, 204);
 .time-input {
     width:60px;
 }
+
+/* Needed to make autocomplete work in modals */
+ul.ui-autocomplete.ui-menu {   z-index: 100000; }

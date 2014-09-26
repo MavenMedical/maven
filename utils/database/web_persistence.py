@@ -500,8 +500,8 @@ class WebPersistence():
     })
 
     @asyncio.coroutine
-    def user_info(self, desired, customer, orderby=Results.userid,
-                  ascending=True, startdate=None, enddate=None, limit=None):
+    def user_info(self, desired, customer, orderby=Results.userid, role=None,
+                  officialname=None, ascending=True, startdate=None, enddate=None, limit=None):
         columns = build_columns(desired.keys(), self._available_user_info,
                                 self._default_user_info)
 
@@ -523,6 +523,13 @@ class WebPersistence():
             enddate = None
         cmd.append("WHERE users.customer_id = %s")
         cmdargs.append(customer)
+        if role:
+            cmd.append("AND %s = ANY(users.roles)")
+            cmdargs.append(role)
+        if officialname:
+            substring = "%" + officialname + "%"
+            cmd.append("AND UPPER(users.official_name) LIKE UPPER(%s)")
+            cmdargs.append(substring)
 
         append_extras(cmd, cmdargs, Results.lastlogin, startdate, enddate, orderby, ascending,
                       None, limit, self._available_user_info)

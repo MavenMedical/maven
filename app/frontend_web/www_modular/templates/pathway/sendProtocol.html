@@ -1,0 +1,35 @@
+<div class="widget-column col-sm-12">
+    <div id="detail-modal" class="modal fade" role="dialog" aria-hidden="true" data-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body" style='margin-bottom: 20;'>
+                    <div class="row">
+                    <div class="col-sm-6">
+                        <div class="row">
+                            <div class="search-box" style='width:10%;'></div>
+                            <form class="search-box">
+                                <div class="input-group input-group-sm" style="max-width:360px;">
+                                      Send To:<input type="text" class="form-control" placeholder="Search Provider"
+                                         name="protocolRecipient" id="protocolRecipient" >
+                                    <input id="recipientUserName" type="hidden" val="">
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="row">
+                            Quick Note:<textarea size=10 id="sendProtocolNote" type="text" class="form-control" placeholder=""></textarea>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="sendProtocolButton">Send</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
