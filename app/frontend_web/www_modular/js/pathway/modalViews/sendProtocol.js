@@ -28,11 +28,15 @@ define([
                 //var title = CKEDITOR.instances.newProtocolTitle.getData()
                 //that.parent.set('protocol', new Backbone.Model({title: title}))
                 $('#detail-modal').modal('hide')
+                var protocolText = ""
+                if (typeof that.attributes.protocol.protocol !== "undefined")
+                {
+                    var protocolText = that.attributes.protocol.protocol.replace("<p>", "").replace("</p>", "\r\n").replace("&nbsp;", " ").replace("<br />", "\r\n");
+                }
                 var message = $("#sendProtocolNote").val() + "\r\n " + contextModel.get("official_name") +
                                 " would like you to review this patient. \r\n" +
                                 window.location.protocol + "//" + window.location.host + "#pathways/" + contextModel.get("pathid") +
-                                    "/patient/" + contextModel.get("patients") + "/" + new Date().toISOString().substr(0,10) + "\r\n" +
-                                that.attributes.protocol.protocol.replace("<p>", "").replace("</p>","\r\n").replace("&nbsp;", " ").replace("<br />","\r\n");
+                                    "/patient/" + contextModel.get("patients") + "/" + new Date().toISOString().substr(0,10) + "\r\n" + protocolText;
                 $.ajax({
                     type: 'POST',
                     dataType: 'json',
