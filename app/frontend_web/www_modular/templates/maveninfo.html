@@ -1,6 +1,10 @@
 <div class="widget-column col-sm-12">
     <div class="row heading">
-         <span class="headings title"> <%=decodeURIComponent(selectedNode.name)%> </span>
+         <span class="headings title">
+
+             <%=decodeURIComponent(name)%>
+
+         </span>
 
 
             <button type="button" class="close">
@@ -10,7 +14,8 @@
     </div>
     <div class="row nodeInfo">
         <span>
-        <%=decodeURIComponent(selectedNode.sidePanelText)%>
+            <%=decodeURIComponent(sidePanelText)%>
+
         </span>
     </div>
 </div>
