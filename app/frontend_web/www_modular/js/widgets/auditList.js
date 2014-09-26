@@ -29,7 +29,7 @@ define([
         auditCollection.initialize();
 	    this.template = _.template(arg.template); // this must already be loaded
             this.$el.html(this.template({height:$(window).height()-50+'px'}));
-	    //auditCollection.bind('add', this.addAudit, this);
+	    auditCollection.bind('add', this.addAudit, this);
 	    //auditCollection.bind('reset', this.reset, this);
 	    auditCollection.bind('sync', this.render, this);
 	    this.render('Loading ...');
