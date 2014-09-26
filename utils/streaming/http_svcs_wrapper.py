@@ -43,6 +43,7 @@ class CONTEXT():
     TARGETUSER = 'target_user'
     TARGETPROVIDER = 'target_provider'
     TARGETCUSTOMER = 'target_customer'
+    TARGETROLE = 'target_role'
     STATE = 'state'
     CONFIG = 'config'
     POLLING = 'polling'

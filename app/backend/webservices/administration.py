@@ -55,26 +55,36 @@ class AdministrationWebservices():
 
     @http_service(['GET'], '/users(?:(\d+)-(\d+)?)?',
                   [CONTEXT.CUSTOMERID],
-                  {CONTEXT.CUSTOMERID: int},
-                  {USER_ROLES.administrator})
+                  {CONTEXT.CUSTOMERID: int, CONTEXT.TARGETROLE: str,
+                   CONTEXT.TARGETUSER: str},
+                  {USER_ROLES.provider, USER_ROLES.administrator})
     def get_users(self, _header, _body, context, matches, _key):
         customer = context[CONTEXT.CUSTOMERID]
+        targetrole = context.get(CONTEXT.TARGETROLE, None)
+        targetuser = context.get(CONTEXT.TARGETUSER, None)
 
         limit = self.helper.limit_clause(matches)
 
-        desired = {
-            WP.Results.userid: 'user_id',
-            WP.Results.customerid: 'customer_id',
-            WP.Results.provid: 'prov_id',
-            WP.Results.username: 'user_name',
-            WP.Results.officialname: 'official_name',
-            WP.Results.displayname: 'display_name',
-            WP.Results.state: 'state',
-            WP.Results.ehrstate: 'ehr_state',
-            WP.Results.lastlogin: 'last_login',
-            WP.Results.profession: 'profession'
-        }
-        results = yield from self.persistence.user_info(desired, customer,
+        # autocomplete
+        if targetuser:
+            desired = {
+                WP.Results.officialname: 'label',
+                WP.Results.username: 'value',
+            }
+        else:
+            desired = {
+                WP.Results.userid: 'user_id',
+                WP.Results.customerid: 'customer_id',
+                WP.Results.provid: 'prov_id',
+                WP.Results.username: 'user_name',
+                WP.Results.officialname: 'official_name',
+                WP.Results.displayname: 'display_name',
+                WP.Results.state: 'state',
+                WP.Results.ehrstate: 'ehr_state',
+                WP.Results.lastlogin: 'last_login',
+                WP.Results.profession: 'profession'
+            }
+        results = yield from self.persistence.user_info(desired, customer, role=targetrole, officialname=targetuser,
                                                         orderby=[WP.Results.ehrstate, WP.Results.profession,
                                                                  WP.Results.displayname],
                                                         limit=limit)
