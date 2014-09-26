@@ -18,7 +18,6 @@ define([
         el: $("#modal-target"),
         initialize: function () {
             if (curTree.get('selectedNode').attributes.triggers) {
-                console.log('in triggers');
 
             } else if (curTree.get('selectedNode').attributes.protocol) {
                 this.template = _.template(protocolTemplate),

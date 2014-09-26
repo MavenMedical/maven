@@ -21,7 +21,6 @@ define([
         },
         initialize: function (params) {
             this.model = params.model
-            this.$el.css({'float': 'left'})
 
 
         },
@@ -37,17 +36,17 @@ define([
         },
         render: function () {
             if (this.model.get('protocol').attributes) {
+                console.log(this.model.get('protocol').attributes)
                 this.$el.html(this.template({protocolNode: this.model.get('protocol').attributes, page: currentContext.get('page')}));
             } else {
+                                console.log("PROTO", this.model.get('protocol'))
                 this.$el.html(this.template({protocolNode: this.model.get('protocol'), page: currentContext.get('page')}));
             }
 
             return this
         },
         copyProtocole: function () {
-            console.log('copy protocol', this.model.get('protocol'));
 
-             console.log('copy text', this.model.get('protocol').protocol)
              $('<div>'+this.model.get("protocol").noteToCopy+'</div>').attr('id', 'copiedText').appendTo('.container');
 
 
@@ -65,12 +64,10 @@ define([
         },
 
         send: function () {
-            console.log('send');
                 var newSendProtocol = new SendProtocol(this.model);
 
         },
         sendSetup: function () {
-            console.log('send setup');
 
 
         },

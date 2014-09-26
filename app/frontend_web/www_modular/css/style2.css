@@ -51,6 +51,12 @@
         -moz-transition: all 0.5s;
     }
 
+    .protocolNode li {
+        clear: both !important;
+        list-style-type: circle !important;
+
+
+    }
 
     /*Remove space from the top of single children*/
     .tree li:only-child {

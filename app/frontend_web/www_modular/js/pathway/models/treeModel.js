@@ -22,7 +22,6 @@ define([
         for (var i in me.get('children').models){
                 if (tar != - 1){
                      if (i != tar){
-                        console.log(me.get('children').models[i])
                         recursiveCollapse(me.get('children').models[i])
                      }
                 }
@@ -33,9 +32,7 @@ define([
     }
     var recursiveCollapse= function(node){
         node.set('hideChildren', "true")
-        console.log(node.attributes.children.models)
         _.each(node.attributes.children.models, function(cur){
-            console.log('cur', cur)
             recursiveCollapse(cur)
         })
 
@@ -49,7 +46,6 @@ define([
 
         initialize: function(){
 
-            console.log('init treeModel',contextModel.get('pathid') );
 
             this.set('triggers', new Backbone.Collection())
             this.set('tooltip', 'triggers tooltip')

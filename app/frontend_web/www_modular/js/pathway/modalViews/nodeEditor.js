@@ -15,7 +15,6 @@ define([
         el: $("#modal-target"),
 
         initialize: function (parent) {
-            console.log('parent', parent);
             var that = this
 
 

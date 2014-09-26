@@ -122,7 +122,7 @@ define([
                     curTree.elPairs.push({source: this, target: thisChild, bold: n})
                 }, this)
 
-            
+
                 if (this.model == curTree.get('selectedNode')){
                     that.getMyElement().addClass('selected')
                 }

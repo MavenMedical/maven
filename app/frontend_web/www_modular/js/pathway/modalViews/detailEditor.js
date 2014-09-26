@@ -37,7 +37,6 @@ define([
 
                     }
                     cur.set('exists', $('#existsField').val());
-                    console.log(panel.triggerNode)
                     panel.triggerNode.get('triggers').add(cur)
 
                 })
