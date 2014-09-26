@@ -146,6 +146,12 @@ namespace MavenAsDemo
                     h = hpixels - Size.Width - 10;
                     break;
             }
+            if (v < 0) { v = 0; } //don't let the top be off the screen
+            if (h < 0)
+            {
+                h = 0;
+                btnclose.Left = 3;//if screen too narrow, move x to left. reason: we want to ensure the x button renders.
+            } 
             return new Point(h, v);
         }
         /// <summary>
