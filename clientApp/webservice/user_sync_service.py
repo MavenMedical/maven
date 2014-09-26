@@ -140,6 +140,9 @@ class UserSyncService():
         self.maven_providers.append(new_provider)
 
         yield from self.server_interface.write_user_create_to_db(self.customer_id, new_provider)
+        yield from self.server_interface.write_audit_log(new_provider['user_name'],
+                                                         'New User Created',
+                                                         new_provider['customer_id'])
 
     @ML.coroutine_trace(logger.debug)
     def deactivate_user_state(self, updated_provider, customer_id):
@@ -150,6 +153,11 @@ class UserSyncService():
                         "ehr_state": USER_STATE.DISABLED.value}
             yield from self.server_interface.write_user_update_to_db(self.customer_id, provider)
 
+            for user in [user for user in self.maven_providers if user['prov_id'] == updated_provider[0]]:
+                yield from self.server_interface.write_audit_log(user['user_name'],
+                                                                 'EHR State Disabled for User',
+                                                                 user['customer_id'])
+
     @ML.coroutine_trace(logger.debug)
     def reactivate_user_state(self, updated_provider, customer_id):
 
@@ -157,6 +165,11 @@ class UserSyncService():
                     "prov_id": updated_provider[0],
                     "ehr_state": USER_STATE.ACTIVE.value}
         yield from self.server_interface.write_user_update_to_db(self.customer_id, provider)
+
+        for user in [user for user in self.maven_providers if user['prov_id'] == updated_provider[0]]:
+                yield from self.server_interface.write_audit_log(user['user_name'],
+                                                                 'EHR State Enabled for User',
+                                                                 user['customer_id'])
 
 
 def run():
