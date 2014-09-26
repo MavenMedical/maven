@@ -18,11 +18,40 @@ define([
             this.parent = parent;
 
             $("#detail-modal").modal({'show':'true'});
-            $("#sendProtocol", this.$el).on("click", function(){
+            $(document).ready(function(){
+                $("#sendProtocolNote", that.$el).val(that.attributes.protocol.defaultQuickNote);
+                $("#protocolRecipient", that.$el).val(that.attributes.protocol.defaultRecipient);
+                $("#recipientUserName", that.$el).val(that.attributes.protocol.defaultRecipientName);
+            });
+
+            $("#sendProtocolButton", this.$el).on("click", function(){
                 //var title = CKEDITOR.instances.newProtocolTitle.getData()
                 //that.parent.set('protocol', new Backbone.Model({title: title}))
                 $('#detail-modal').modal('hide')
-
+                var message = $("#sendProtocolNote").val() + "\r\n " + contextModel.get("official_name") +
+                                " would like you to review this patient. \r\n" +
+                                window.location.protocol + "//" + window.location.host + "#pathways/" + contextModel.get("pathid") +
+                                    "/patient/" + contextModel.get("patients") + "/" + new Date().toISOString().substr(0,10) + "\r\n" +
+                                that.attributes.protocol.protocol.replace("<p>", "").replace("</p>","\r\n").replace("&nbsp;", " ").replace("<br />","\r\n");
+                $.ajax({
+                    type: 'POST',
+                    dataType: 'json',
+                    url: "/send_message?" + $.param(contextModel.toParams()) + "&target_user="+$("#recipientUserName").val(),
+                    data: JSON.stringify({
+                        "subject": "Please review this patient - " + contextModel.get("official_name"),
+                        "message": message,
+                    }),
+                    success: function () {
+                        $("#save-admin-message").html("Settings saved!");
+                            alert("Success! Connection to EHR established.");
+                            userCollection.refresh();
+                            setTimeout(userCollection.refresh, 7);
+                    },
+                    error: function (){
+                        alert("The server could NOT successfully connect using this configuration.");
+                        $("#save-admin-message").html("&nbsp;");
+                    }
+                });
             })
 
             $('#protocolRecipient').autocomplete({
@@ -42,7 +71,7 @@ define([
                     event.preventDefault();
                     if(ui.item){
                         $(event.target).val(ui.item.label);
-                        $("#recipientUserName").val(ui.item.val);
+                        $("#recipientUserName").val(ui.item.value);
                     }
                 }
             });

@@ -200,16 +200,18 @@ class UserMgmtWebservices():
 
     @http_service(['POST'], '/send_message',
                   [CONTEXT.CUSTOMERID, CONTEXT.USER, CONTEXT.TARGETUSER],
-                  {CONTEXT.CUSTOMERID: int, CONTEXT.USER: str, CONTEXT.TARGETUSER: str},
+                  {CONTEXT.CUSTOMERID: int, CONTEXT.USER: str, CONTEXT.TARGETUSER: str,
+                   CONTEXT.PATIENTLIST: str},
                   {USER_ROLES.provider, USER_ROLES.supervisor, USER_ROLES.administrator})
     def send_message(self, _header, body, context, _matches, _key):
         user = context[CONTEXT.USER]
         customer = context[CONTEXT.CUSTOMERID]
         target = context[CONTEXT.TARGETUSER]
+        patient = context.get(CONTEXT.PATIENTLIST, None)
         body = json.loads(body.decode('utf-8'))
-        subject = body['subject']
+        subject = body['subject'] + " - " + user
         message = body['message']
-        patient = body.get('patient', None)
+        # patient = body.get('patient', None)
         yield from self.client_interface.notify_user(customer, user, subject, message,
                                                      patient=patient, target=target)
         return HTTP.OK_RESPONSE, b'', None

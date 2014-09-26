@@ -66,8 +66,7 @@ define([
 
         send: function () {
             console.log('send');
-                var newSendProtocol = new SendProtocol(this.model);
-
+            var newSendProtocol = new SendProtocol(this.model);
         },
         sendSetup: function () {
             console.log('send setup');
