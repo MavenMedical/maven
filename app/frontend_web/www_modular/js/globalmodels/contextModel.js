@@ -73,6 +73,7 @@ define([
         defaults: {
             page: null,
 	    user: null,
+	    customer: null,
             userAuth: '',
             patients: '',
             patientAuth: '',
@@ -101,6 +102,7 @@ define([
         setUser: function (user, pw, oauth, customer, newpw) {
 	    if (this.user != user || !this.userAuth) {
 		this.set('user', user);
+		this.set('customer', customer);		
 		var that=this;
 		
 		var data;

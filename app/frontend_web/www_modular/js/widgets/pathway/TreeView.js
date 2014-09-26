@@ -25,9 +25,9 @@ define([
                         lineWidth: 2,
                         strokeStyle: '#ccc'
                     },
-                    HoverPaintStyle: {
-                        lineWidth: 2,
-                        strokeStyle: '#61B7CF'
+                    HoverPaintStyle :  {
+                         lineWidth: 7,
+                         strokeStyle: '#61B7CF'
                     }
 
                 })
@@ -87,28 +87,29 @@ define([
                 else {
                     $('#pathwayName').html("")
                 }
-                _.each(curTree.elPairs, function (cur) {
+                 _.each(curTree.elPairs, function(cur){
 
-                    if ((cur.source.$el.is(":visible")) && (cur.target.$el.is(":visible"))) {
+                  if((cur.source.$el.is(":visible")) && (cur.target.$el.is(":visible"))){
 
-                        var a = cur.source.makeExit(that.plumb)
-                        var b = cur.target.makeEntrance(that.plumb)
-                        if (cur.bold) {
-                            that.plumb.connect({
-                                source: a,
-                                target: b,
-                                paintStyle: {
-                                    lineWidth: 4,
-                                    strokeStyle: '#46bdec'
+                       var a = cur.source.makeExit(that.plumb)
+                       var b = cur.target.makeEntrance(that.plumb)
+                      if (cur.bold){
+                          that.plumb.connect({
+                               source: a,
+                               target: b,
+                                paintStyle:  {
+                                         lineWidth: 6,
+                                         strokeStyle: '#ccc'
                                 }
-                            })
-                        } else {
-                            that.plumb.connect({
-                                source: a,
-                                target: b
-                            })
-                        }
-                    }
+                           })
+                      } else {
+                          that.plumb.connect({
+                               source: a,
+                               target: b
+                          })
+                      }
+                  }
+
                 })
 
                 contextModel.trigger('rendered')

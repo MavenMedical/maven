@@ -63,6 +63,9 @@ class AllscriptsCustomerInterface:
 
     @asyncio.coroutine
     def start(self):
+        # Load the Customer's Users' Notification Preferences
+        yield from self.server_interface.update_notify_prefs(self.customer_id)
+
         self.schedulertask = ML.TASK(self.allscripts_scheduler.run())
         self.usersynctask = ML.TASK(self.user_sync_service.run())
 

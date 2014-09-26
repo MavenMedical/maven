@@ -3,7 +3,7 @@ from clientApp.webservice.clientapp_rpc_endpoint import ClientAppEndpoint
 import utils.streaming.rpc_processor as RP
 import utils.streaming.stream_processor as SP
 import maven_config as MC
-from maven_logging import TASK
+from maven_logging import TASK, EXCEPTION
 
 if __name__ == '__main__':
     from app.backend.remote_procedures.server_rpc_endpoint import ServerEndpoint
@@ -38,7 +38,17 @@ if __name__ == '__main__':
     clientapp_endpoint = ClientAppEndpoint(server_interface, loop=loop)
     CLIENT_RPC_SVC.register(clientapp_endpoint)
 
-    TASK(server_interface.get_customer_configurations())
+    @asyncio.coroutine
+    def get_customer_configurations():
+        while True:
+            try:
+                yield from server_interface.get_customer_configurations()
+                return
+            except:
+                EXCEPTION('starting up clientapp')
+                yield from asyncio.sleep(5)
+                
+    TASK(get_customer_configurations())
 
     try:
         loop.run_forever()

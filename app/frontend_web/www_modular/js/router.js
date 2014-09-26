@@ -82,7 +82,7 @@ define([
             "patient/:id(/login/:user/:customer/:userAuth)": 'showPatient',
             "episode/:id/patient/:id/:date(/login/:user/:customer/:userAuth)": 'showEpisode',
             "evidence/:id/patient/:id/evi/:id(/login/:user/:customer/:userAuth)": 'showEvidence',
-            "pathway/:id/patient/:id/:date(/login/:user/:customer/:userAuth)": 'showPathway',
+            "pathway/:id(/patient/:id/:date)(/login/:user/:customer/:userAuth)": 'showPathway',
             "pathway/:id/pathid/:id(/login/:user/:customer/:userAuth)": 'EditPathway',
             "logout": 'logout',
             "settings": 'settings',

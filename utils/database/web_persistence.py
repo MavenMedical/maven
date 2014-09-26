@@ -83,6 +83,8 @@ Results = Enum('Results',
     lastlogin
     settings
     profession
+    notify1
+    notify2
 """)
 
 
@@ -119,7 +121,7 @@ def _prettify_lengthofstay(s):
     if days > 1:
         return str(days) + " days"
     else:
-        return (s[0].seconds // 3600) + " hours"
+        return str(s[0].seconds // 3600) + " hours"
 
 
 def _invalid_num(x):
@@ -127,7 +129,7 @@ def _invalid_num(x):
 
 
 def _invalid_string(x):
-    return "NOTVALIDYET"
+    return ""
 
 
 def _build_format(override=None):
@@ -244,6 +246,58 @@ class WebPersistence():
                                 [state, user, customer], {}, {})
 
     @asyncio.coroutine
+    def update_user_notify_preferences(self, user, customer_id, notify_primary, notify_secondary):
+        column_map = ["notify_primary",          # 0
+                      "notify_secondary"]
+        columns = DBMapUtils().select_rows_from_map(column_map)
+        cmd = []
+        cmd.append("UPDATE user_pref SET (" + columns + ") = (%s, %s)")
+        cmd.append("WHERE customer_id=%s and user_name=%s")
+        cmdargs = [notify_primary, notify_secondary, customer_id, user]
+
+        try:
+            yield from self.execute(cmd, cmdargs, {}, {})
+            return True
+        except Exception as e:
+            ML.EXCEPTION(e)
+            return False
+
+    _default_user_notify_prefs_info = set()
+    _available_user_notify_prefs_info = {
+        Results.customerid: "user_pref.customer_id",
+        Results.username: "user_pref.user_name",
+        Results.notify1: "user_pref.notify_primary",
+        Results.notify2: "user_pref.notify_secondary",
+    }
+    _display_user_notify_prefs_info = _build_format({
+        Results.customerid: lambda x: int(x),
+        Results.username: lambda x: str(x),
+        Results.notify1: lambda x: str(x),
+        Results.notify2: lambda x: str(x)
+    })
+
+    @asyncio.coroutine
+    def get_users_notify_preferences(self, customer_id):
+        desired = {
+            Results.customerid: 'customer_id',
+            Results.username: 'user_name',
+            Results.notify1: 'notify_primary',
+            Results.notify2: 'notify_secondary'
+        }
+        columns = build_columns(desired.keys(), self._available_user_notify_prefs_info,
+                                self._default_user_notify_prefs_info)
+        cmd = []
+        cmd.append("SELECT")
+        cmd.append(columns)
+        cmd.append("FROM user_pref WHERE customer_id=%s")
+
+        cmdargs = [customer_id]
+
+        results = yield from self.execute(cmd, cmdargs, self._display_user_notify_prefs_info, desired)
+
+        return results
+
+    @asyncio.coroutine
     def update_customer(self, customer, name, abbr, license_num, license_exp):
         cmd = []
         cmdargs = []
@@ -270,6 +324,9 @@ class WebPersistence():
     def setup_customer(self, customer, clientapp_settings):
         yield from self.execute(["UPDATE customer set clientapp_settings = %s where customer_id = %s"],
                                 [json.dumps(clientapp_settings), customer], {}, {})
+        if clientapp_settings.get('EHRServiceUser', None) == "MavenPathways":
+            yield from self.db.execute_single("SELECT upsert_alert_config(%s, %s, %s, %s, %s, %s)",
+                                              extra=[customer, -1, 'PATHWAY', None, 400, None])
 
     @asyncio.coroutine
     def update_alert_setting(self, user, customer, alertid, ruleid, category, actioncomment):
@@ -301,6 +358,7 @@ class WebPersistence():
     @asyncio.coroutine
     def EHRsync_create_user_provider(self, new_provider_dict):
 
+        # Insert into USERS table
         column_map = ["customer_id",          # 0
                       "prov_id",
                       "user_name",
@@ -327,9 +385,24 @@ class WebPersistence():
         cmd.append("VALUES (%s, %s, UPPER(%s), %s, %s, %s, %s, %s::user_role[], %s, %s)")
         yield from self.execute(cmd, cmdargs, {}, {})
 
+        # Insert default Notification Settings into USER_PREF table
+        column_map = ["customer_id",          # 0
+                      "user_name",
+                      "notify_primary",
+                      "notify_secondary"]
+        columns = DBMapUtils().select_rows_from_map(column_map)
+        cmd = []
+        cmd.append("INSERT INTO user_pref (" + columns + ")")
+        cmd.append("VALUES (%s, %s, %s, %s)")
+        cmdargs = [new_provider_dict['customer_id'],
+                   new_provider_dict['user_name'],
+                   'desktop',
+                   'off']
+        yield from self.execute(cmd, cmdargs, {}, {})
+
+        # If the User is a provider, add them to the provider table
         if not new_provider_dict.get('prov_id', None):
             return
-
         column_map = ["prov_id",          # 0
                       "customer_id",
                       "prov_name",
@@ -379,6 +452,7 @@ class WebPersistence():
         Results.ehrstate: 'users.ehr_state',
         #        Results.failedlogins: 'array_agg(logins.logintime)',
         Results.recentkeys: 'NULL',
+        Results.settings: 'customer.clientapp_settings',
         Results.roles: 'users.roles',
     }
     _display_pre_login = _build_format({
@@ -386,24 +460,24 @@ class WebPersistence():
     })
 
     @asyncio.coroutine
-    def pre_login(self, desired, customer, username=None, provider=None, keycheck=None):
+    def pre_login(self, desired, customer, username, keycheck=None):
         columns = build_columns(desired.keys(), self._available_pre_login,
                                 self._default_pre_login)
-        if not username and not provider:
-            raise IndexError
         cmd = []
         cmdargs = []
         cmd.append("SELECT")
         cmd.append(columns)
-        cmd.append("FROM users WHERE customer_id = %s")
+        cmd.append("FROM users")
+        if Results.settings in desired:
+            cmd.append("LEFT JOIN customer on users.customer_id = customer.customer_id")
+        cmd.append("WHERE users.customer_id = %s")
         cmdargs.append(customer)
-        if username:
-            cmd.append(" AND users.user_name = UPPER(%s)")
-            cmdargs.append(username)
-        else:
-            cmd.append(" AND users.prov_id = %s AND users.customer_id = %s")
-            cmdargs.append(provider[0])
-            cmdargs.append(provider[1])
+        cmd.append("AND users.user_name = UPPER(%s)")
+        cmdargs.append(username)
+        # else:
+        #     cmd.append(" AND users.prov_id = %s AND users.customer_id = %s")
+        #     cmdargs.append(provider[0])
+        #     cmdargs.append(provider[1])
 
         results = yield from self.execute(cmd, cmdargs, self._display_pre_login, desired)
         return results[0]
@@ -426,8 +500,8 @@ class WebPersistence():
     })
 
     @asyncio.coroutine
-    def user_info(self, desired, customer, orderby=Results.userid,
-                  ascending=True, startdate=None, enddate=None, limit=None):
+    def user_info(self, desired, customer, orderby=Results.userid, role=None,
+                  officialname=None, ascending=True, startdate=None, enddate=None, limit=None):
         columns = build_columns(desired.keys(), self._available_user_info,
                                 self._default_user_info)
 
@@ -449,6 +523,13 @@ class WebPersistence():
             enddate = None
         cmd.append("WHERE users.customer_id = %s")
         cmdargs.append(customer)
+        if role:
+            cmd.append("AND %s = ANY(users.roles)")
+            cmdargs.append(role)
+        if officialname:
+            substring = "%" + officialname + "%"
+            cmd.append("AND UPPER(users.official_name) LIKE UPPER(%s)")
+            cmdargs.append(substring)
 
         append_extras(cmd, cmdargs, Results.lastlogin, startdate, enddate, orderby, ascending,
                       None, limit, self._available_user_info)
@@ -939,15 +1020,11 @@ class WebPersistence():
 
     @asyncio.coroutine
     # @ML.coroutine_trace(print)
-    def audit_log(self, username, action, customer=None, patient=None, device=None,
-                  details=None, rows=None):
-        cmd = ['INSERT INTO audit (datetime, username, action']
-        cmdargs = [username, action]
-        extras = ['now(), %s, %s']
-        if customer:
-            cmd.append(', customer')
-            cmdargs.append(customer)
-            extras.append(', %s')
+    def audit_log(self, username, action, customer, patient=None, device=None,
+                  details=None, rows=None, target_user=None):
+        cmd = ['INSERT INTO audit (datetime, username, action, customer']
+        cmdargs = [username, action, customer]
+        extras = ['now(), %s, %s, %s']
         if patient:
             cmd.append(', patient')
             cmdargs.append(patient)
@@ -963,6 +1040,10 @@ class WebPersistence():
         if rows:
             cmd.append(', rows')
             cmdargs.append(rows)
+            extras.append(', %s')
+        if target_user:
+            cmd.append(', target_user')
+            cmdargs.append(target_user)
             extras.append(', %s')
         cmd.append(') values (' + ''.join(extras) + ');')
         yield from self.execute(cmd, cmdargs, {}, {})

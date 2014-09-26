@@ -22,6 +22,7 @@ import utils.crypto.authorization_key as AK
 import utils.database.web_persistence as WP
 from utils.streaming.http_svcs_wrapper import http_service, CONTEXT, CONFIG_PERSISTENCE
 import utils.streaming.http_responder as HTTP
+from utils.enums import CONFIG_PARAMS, USER_ROLES
 import maven_config as MC
 import maven_logging as ML
 
@@ -70,6 +71,7 @@ class AuthenticationWebservices():
             WP.Results.recentkeys,
             WP.Results.roles,
             WP.Results.ehrstate,
+            WP.Results.settings,
         ]}
         attempted = None
         if info.get(CONTEXT.ROLES, None):
@@ -79,21 +81,21 @@ class AuthenticationWebservices():
         auth = ''
         username = info[CONTEXT.USER].upper()
         customer = info[CONTEXT.CUSTOMERID]
+        method = 'failed'
+        user_info = {}
+        # import pdb
+        # pdb.set_trace()
         try:
-            method = 'failed'
-            user_info = {}
-            try:
-                user_info = yield from self.persistence.pre_login(desired, customer,
-                                                                  username=username)
-            except IndexError:
-                raise LoginError('badLogin')
-            if (user_info[WP.Results.userstate] != 'active'
-               or user_info[WP.Results.ehrstate] == 'disabled'):
-                raise LoginError('disabledLogin')
-
             # if header.get_headers().get('VERIFIED','SUCCESS') == 'SUCCESS':
             if user_and_pw:
                 attempted = ' '.join([username, customer])
+                try:
+                    user_info = yield from self.persistence.pre_login(desired, customer,
+                                                                      username)
+                    # pdb.set_trace()
+
+                except IndexError:
+                    raise LoginError('badLogin')
                 passhash = user_info[WP.Results.password].tobytes()
                 if (not passhash or
                         bcrypt.hashpw(bytes(info[CONTEXT.PASSWORD], 'utf-8'),
@@ -113,28 +115,34 @@ class AuthenticationWebservices():
                     raise LoginError('badLogin')
                 user_info = yield from self.persistence.pre_login(desired,
                                                                   customer,
-                                                                  username=username,
+                                                                  username,
                                                                   keycheck='1m')
                 method = 'forward'
                 # was this auth key used recently
                 if auth in user_info[WP.Results.recentkeys]:
                     raise LoginError('reusedLogin')
 
+            if (user_info[WP.Results.userstate] != 'active'
+               or (user_info[WP.Results.ehrstate] == 'disabled' and USER_ROLES.administrator.value not in user_info[WP.Results.roles])):
+                raise LoginError('disabledLogin')
+
+            customer = str(user_info[WP.Results.customerid])
             if user_info[WP.Results.passexpired] or 'newpassword' in info:
                 yield from self.hash_new_password(user_info[WP.Results.userid],
                                                   info.get('newpassword', ''))
-
-            # make sure this user exists and is active
-            if not user_info[WP.Results.userstate] == 'active':
-                raise LoginError('disabledUser')
+                asyncio.Task(self.persistence.audit_log(username, 'updated password', customer))
 
             # at the point, the user has succeeded to login
             provider = user_info[WP.Results.provid]
-            customer = str(user_info[WP.Results.customerid])
             roles = [self.specific_role] if self.specific_role else user_info[WP.Results.roles]
             roles = list(filter(rolefilter, roles))
+            try:
+                clientapp_settings = json.loads(user_info[WP.Results.settings])
+                timeout = float(clientapp_settings[CONFIG_PARAMS.EHR_USER_TIMEOUT.value]) * 60
+            except (KeyError, ValueError):
+                timeout = self.timeout
             user_auth = AK.authorization_key([[username], [provider], [customer], sorted(roles)],
-                                             AUTH_LENGTH, self.timeout)
+                                             AUTH_LENGTH, timeout)
 
             desired_layout = {
                 WP.Results.widget: 'widget',
@@ -156,13 +164,15 @@ class AuthenticationWebservices():
 
             if self.oauth and method != 'forward':
                 ak = AK.authorization_key([username, customer, roles], AUTH_LENGTH,
-                                          365 * 24 * 60 * 60)
+                                          180 * 24 * 60 * 60)  # half a year for oauth
                 ret[CONFIG_OAUTH] = ak
             return HTTP.OK_RESPONSE, json.dumps(ret), None
         except LoginError as err:
             return HTTP.UNAUTHORIZED_RESPONSE, json.dumps({'loginTemplate':
                                                            err.args[0] + ".html"}), None
         finally:
+            if method == 'failed' and user_info:
+                asyncio.Task(self.persistence.audit_log(username, 'failed login', customer))
             yield from self.persistence.record_login(username, customer,
                                                      method,
                                                      header.get_headers().get('X-Real-IP'),

@@ -42,7 +42,7 @@ namespace MavenAsDemo
             timer.Start(); //go
             //navigate to where the user should go
             browserDisplay.Navigate(url);
-
+            browserDisplay.IsWebBrowserContextMenuEnabled = false; //disable right click
             //disable the scrollbars
             browserDisplay.ScrollBarsEnabled = false;
             //make the form movable my grabbing the mover
@@ -188,6 +188,11 @@ namespace MavenAsDemo
             }
             downPoint = Point.Empty;
             moveForm = false;
+        }
+
+        private void browserDisplay_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
+        {
+
         }
        
     }

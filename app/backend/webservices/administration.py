@@ -41,7 +41,7 @@ class AdministrationWebservices():
                   {USER_ROLES.administrator})
     def setup_customer(self, _header, body, context, _matches, _key):
         body = json.loads(body.decode('utf-8'))
-
+        user = context[CONTEXT.USER]
         customer = context[CONTEXT.CUSTOMERID]
         clientapp_settings = body
         body.update({CONFIG_PARAMS.EHR_USER_SYNC_INTERVAL.value: 60 * 60})
@@ -49,32 +49,48 @@ class AdministrationWebservices():
         is_valid_config = yield from self.client_interface.test_customer_configuration(customer, clientapp_settings)
         if is_valid_config:
             yield from self.persistence.setup_customer(customer, clientapp_settings)
+            asyncio.Task(self.persistence.audit_log(user, 'change customer ehr settings', customer,
+                                                    details=json.dumps(clientapp_settings)))
             return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
         else:
             return HTTP.BAD_RESPONSE, json.dumps(['FALSE']), None
 
     @http_service(['GET'], '/users(?:(\d+)-(\d+)?)?',
                   [CONTEXT.CUSTOMERID],
-                  {CONTEXT.CUSTOMERID: int},
-                  {USER_ROLES.administrator})
+                  {CONTEXT.CUSTOMERID: int, CONTEXT.ROLES: list,
+                   CONTEXT.TARGETROLE: str, CONTEXT.TARGETUSER: str},
+                  {USER_ROLES.administrator, USER_ROLES.provider,
+                   USER_ROLES.mavensupport, USER_ROLES.supervisor})
     def get_users(self, _header, _body, context, matches, _key):
         customer = context[CONTEXT.CUSTOMERID]
-
+        roles = context[CONTEXT.ROLES]
+        targetrole = context.get(CONTEXT.TARGETROLE, None)
+        targetuser = context.get(CONTEXT.TARGETUSER, None)
         limit = self.helper.limit_clause(matches)
 
-        desired = {
-            WP.Results.userid: 'user_id',
-            WP.Results.customerid: 'customer_id',
-            WP.Results.provid: 'prov_id',
-            WP.Results.username: 'user_name',
-            WP.Results.officialname: 'official_name',
-            WP.Results.displayname: 'display_name',
-            WP.Results.state: 'state',
-            WP.Results.ehrstate: 'ehr_state',
-            WP.Results.lastlogin: 'last_login',
-            WP.Results.profession: 'profession'
-        }
-        results = yield from self.persistence.user_info(desired, customer,
+        if {USER_ROLES.administrator.value, USER_ROLES.provider.value,
+           USER_ROLES.mavensupport.value}.intersection(roles) and not targetrole:
+            desired = {
+                WP.Results.userid: 'user_id',
+                WP.Results.customerid: 'customer_id',
+                WP.Results.provid: 'prov_id',
+                WP.Results.username: 'user_name',
+                WP.Results.officialname: 'official_name',
+                WP.Results.displayname: 'display_name',
+                WP.Results.state: 'state',
+                WP.Results.ehrstate: 'ehr_state',
+                WP.Results.lastlogin: 'last_login',
+                WP.Results.profession: 'profession'
+            }
+        else:
+            desired = {
+                # WP.Results.officialname: 'official_name',
+                # WP.Results.username: 'user_name',
+                WP.Results.officialname: 'label',
+                WP.Results.username: 'value',
+            }
+        results = yield from self.persistence.user_info(desired, customer, role=targetrole,
+                                                        officialname=targetuser,
                                                         orderby=[WP.Results.ehrstate, WP.Results.profession,
                                                                  WP.Results.displayname],
                                                         limit=limit)
@@ -87,33 +103,36 @@ class AdministrationWebservices():
                    CONTEXT.STATE: str, CONTEXT.TARGETUSER: str},
                   {USER_ROLES.administrator})
     def update_user(self, _header, _body, context, _matches, _key):
-        user = context[CONTEXT.TARGETUSER]
+        user = context[CONTEXT.USER]
+        target_user = context[CONTEXT.TARGETUSER]
         customer = context[CONTEXT.CUSTOMERID]
         state = context[CONTEXT.STATE]
 
+        yield from self.persistence.update_user(target_user, customer, state)
         if state == 'active':
-            asyncio.Task(self.notify_user_reset_password(customer, user))
+            asyncio.Task(self.notify_user_reset_password(customer, target_user))
+        asyncio.Task(self.persistence.audit_log(user, 'change user state', customer,
+                                                target_user=target_user, details=state))
 
-        result = yield from self.persistence.update_user(user, customer, state)
-        if result:
-            return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
-        else:
-            return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
+        return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
 
     @http_service(['GET'], '/reset_password',
-                  [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.ROLES],
+                  [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.TARGETUSER],
                   {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int, CONTEXT.ROLES: list,
                    CONTEXT.TARGETCUSTOMER: int, CONTEXT.TARGETUSER: str},
                   {USER_ROLES.administrator, USER_ROLES.mavensupport})
     def reset_password(self, _header, _body, context, _matches, _key):
-        user = context[CONTEXT.TARGETUSER]
+        user = context[CONTEXT.USER]
+        target_user = context[CONTEXT.TARGETUSER]
 
         if USER_ROLES.mavensupport.name in context[CONTEXT.ROLES]:
             customer = context[CONTEXT.TARGETCUSTOMER]
         else:
             customer = context[CONTEXT.CUSTOMERID]
 
-        asyncio.Task(self.notify_user_reset_password(customer, user))
+        asyncio.Task(self.notify_user_reset_password(customer, target_user))
+        asyncio.Task(self.persistence.audit_log(user, 'reset user password', customer,
+                                                target_user=target_user))
 
         return HTTP.OK_RESPONSE, json.dumps(''), None
 

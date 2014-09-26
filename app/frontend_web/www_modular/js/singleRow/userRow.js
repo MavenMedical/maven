@@ -76,7 +76,7 @@ define([
                     if (curTitle) {
                         //mousepos=e;
                         $(auditElement).hide();
-                        auditList = new AuditList({el: $(auditElement), template: AuditTemplate, targetCustomer: that.model.get("customer_id"), targetProvider: that.model.get("prov_id")});
+                        auditList = new AuditList({el: $(auditElement), template: AuditTemplate, targetCustomer: that.model.get("customer_id"), targetUser: that.model.get("user_name")});
                         auditList.$el[0].style.left = (mousepos.pageX + 10) + 'px';
                         auditList.$el[0].style.top = (mousepos.pageY - 50) + 'px';
                     }
