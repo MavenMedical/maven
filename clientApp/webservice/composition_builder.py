@@ -56,35 +56,37 @@ class CompositionBuilder(builder):
 
     @builder.build(FHIR_API.Composition)
     @ML.trace(COMP_BUILD_LOG.debug, True)
-    def build_composition(self, obj, username, patient, doc_id):
+    def build_composition(self, obj, username, patient, doc_id, doc_datetime):
         obj.author = self.provs[username]
         obj.encounter = FHIR_API.Encounter(identifier=[FHIR_API.Identifier(label="Internal",
                                                                            system="clientEMR",
-                                                                           value=doc_id)])
+                                                                           value=doc_id)],
+                                           period=FHIR_API.Period(start=doc_datetime),
+                                           fhir_class=FHIR_API.Coding(system="http://hl7.org/fhir/encounter-class",
+                                                                      code="ambulatory"))
         COMP_BUILD_LOG.debug(json.dumps(FHIR_API.remove_none(json.loads(json.dumps(obj, default=FHIR_API.jdefault))), indent=4))
         COMP_BUILD_LOG.debug(("Finished building Composition ID=%s" % obj.id))
         return obj
 
     @builder.provide(Types.Patient)
     @ML.coroutine_trace(COMP_BUILD_LOG.debug, True)
-    def _patient(self, username, patient, doc_id):
+    def _patient(self, username, patient, doc_id, doc_datetime):
         ret = yield from self.allscripts_api.GetPatient(username, patient)
         return ret
 
     @builder.provide(Types.ClinicalSummary)
     @ML.coroutine_trace(COMP_BUILD_LOG.debug, True)
-    def _clin_summary(self, username, patient, doc_id):
+    def _clin_summary(self, username, patient, doc_id, doc_datetime):
         ret = yield from self.allscripts_api.GetClinicalSummary(username, patient, AHC.CLINICAL_SUMMARY.All)
         return ret
 
     @builder.provide(Types.CDASummary)
-    @ML.coroutine_trace(COMP_BUILD_LOG.debug, True)
-    def _CDA_summary(self, username, patient, doc_id):
+    def _CDA_summary(self, username, patient, doc_id, doc_datetime):
         ret = yield from self.allscripts_api.GetPatientCDA(username, patient)
         return ret
 
     @builder.require(Types.Patient, Types.ClinicalSummary, Types.CDASummary)
-    @ML.coroutine_trace(COMP_BUILD_LOG.debug, True)
+    # @ML.coroutine_trace(COMP_BUILD_LOG.debug, True)
     def _build_composition_components(self, composition, patient_result, clin_summary_result, CDA_summary_result):
 
         # Create the FHIR Composition Object with a Type=LOINC coded version of

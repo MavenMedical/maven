@@ -29,7 +29,7 @@ define([
         handel_pathway: function(){
             $('#pathwayName').html("")
             //TODO add the right id for the pathway
-            Backbone.history.navigate("pathway/" + contextModel.get('pathid') + "/patient/123/123", {trigger: true});
+            Backbone.history.navigate("pathway/" + contextModel.get('pathid'), {trigger: true});
         },
         handel_pathwayEditor: function(){
             Backbone.history.navigate("pathway/1/pathid/" + contextModel.get('pathid'), true);

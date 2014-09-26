@@ -5,7 +5,7 @@
     <%= profession %>
 </td>
 <td>
-    <%= last_login %>
+    <% if (last_login) { print(last_login + ' GMT'); } %>
 </td>
 <td class="user-val-column">
     <input type="checkbox" class="user-state"

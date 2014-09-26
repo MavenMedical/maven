@@ -725,7 +725,7 @@ class _SocketReplyWriter(_BaseWriter):
         pass
 
     def write_object(self, obj):
-        ML.DEBUG(('writing object %s: ' % self.writer_key) + str(obj))
+        # ML.DEBUG(('writing object %s: ' % self.writer_key) + str(obj))
         if not self.transport:
             if not self.last_writer:
                 raise StreamProcessorException("SocketReplyWriter needs a socket to reply on!")

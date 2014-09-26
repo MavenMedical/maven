@@ -240,6 +240,7 @@ class NotificationGenerator():
         # cost_alert = composition.get_alerts_by_type(type=ALERT_TYPES.PATHWAY)
         templateVars = {"http_address": MC.http_addr,
                         "encounter_id": urllib.parse.quote(composition.encounter.get_csn()),
+                        "encounter_date": composition.encounter.get_admit_date().date().isoformat(),
                         "patient_id": composition.subject.get_pat_id(),
                         "user": composition.author.get_provider_username(),
                         "user_auth": composition.userAuth,

@@ -91,9 +91,10 @@ class MEDICATION_ORDER_TYPES(Enum):
 
 
 class NOTIFICATION_STATE(Enum):
-    OFF = "User not Connected to Notification Service"
-    DESKTOP = "User Registered with Desktop Notification Service"
-    MOBILE = "User Registered with Mobile Notification Service"
+    OFF = "off"
+    DESKTOP = "desktop"
+    MOBILE = "mobile"
+    EHR_INBOX = "ehrinbox"
 
 
 class ORDER_SOURCE(Enum):

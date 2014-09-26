@@ -30,6 +30,14 @@ class ServerEndpoint(SP.StreamProcessor):
         self.client_interface = client_interface
         self.notification_fn = None
         self.comp_eval_writer_fn = comp_eval_writer_fn
+        self.update_notify_user_prefs_fn = None
+
+    def set_update_notify_prefs_fn(self, fn):
+        self.update_notify_user_prefs_fn = fn
+
+    @asyncio.coroutine
+    def update_notify_prefs(self, customer_id):
+        yield from self.update_notify_user_prefs_fn(customer_id)
 
     @asyncio.coroutine
     def get_users_from_db(self, customer_id):
@@ -69,7 +77,9 @@ class ServerEndpoint(SP.StreamProcessor):
     @asyncio.coroutine
     def notify_user(self, customer_id, user_name, msg):
         if self.notification_fn:
-            self.notification_fn(user_name, customer_id, messages=[msg])
+            if not isinstance(msg, list):
+                msg = [msg]
+            self.notification_fn(user_name, customer_id, messages=msg)
 
     @asyncio.coroutine
     def get_customer_configurations(self):

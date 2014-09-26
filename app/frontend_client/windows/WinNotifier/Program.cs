@@ -117,6 +117,7 @@ namespace MavenAsDemo
                 frmAlert frm = new frmAlert(cursettings.fadeSlowness, cursettings.location, url);
                 frm.ShowInTaskbar = false;
                 frm.Visible = true;
+                frm.TopMost = true;
                 Application.Run(frm);
             }
             else if (cursettings.mode == Settings.AlertMode.deskHard)
@@ -124,6 +125,7 @@ namespace MavenAsDemo
                 frmHardAlert frm = new frmHardAlert(url, cursettings.location);
                 frm.ShowInTaskbar = false;
                 frm.Visible = true;
+                frm.TopMost = true;
                 Application.Run(frm);
             }
         }
@@ -192,11 +194,16 @@ namespace MavenAsDemo
         {
             string lastExceptionMessage = "";
             ServicePointManager.ServerCertificateValidationCallback = new System.Net.Security.RemoteCertificateValidationCallback(AcceptAllCertifications);
+            int pollnum = 0; //get a polling counter to remind us to check the token every so often. 
             while (continueOn)
             {
                 try
                 {
-                    checkAuth();
+                    if (pollnum == 10)
+                    {
+                        pollnum = 0; //reset the polling counter every ten loops
+                    }
+                    pollnum++; //increment the polling counter
                     string rqstUrl = "https://" + cursettings.pollingServer + "/broadcaster/poll?userAuth=" + WindowsDPAPI.Decrypt(EncryptedKey)
                         + "&osUser=" + cursettings.osUser + "&machine=" + cursettings.machine + "&osVersion=" + cursettings.os
                         +"&user="+Authenticator.getMavenUserId()+"&customer_id="+cursettings.custId
@@ -229,6 +236,13 @@ namespace MavenAsDemo
                     if (!e.Message.Contains("Timeout"))
                     {
                         Thread.Sleep(10000); //we just got an error. wait a few seconds before going on unless it was a timeout (which could be normal if there is no alert). 
+                    }
+                    //if we got an "unauthorized", then simply re-login
+                    if (e.Message.Contains("Unauthorized"))
+                    {
+                        //this next line is to FORCE a new login and not to get a new session key with the saved oauth token. TODO: review periodically. 
+                        Authenticator.ClearLoginSettings();
+                        checkAuth(); //ensure you haven't timed out
                     }
                     lastExceptionMessage = e.Message;
                 }
@@ -272,7 +286,8 @@ namespace MavenAsDemo
             }
             if (cursettings.mode == Settings.AlertMode.inbox || cursettings.mode == Settings.AlertMode.combo)
             {
-                mail(patId);
+                //mail handled by the cloud. nothing to do
+                //mail(patId);
             }
         }
 
@@ -289,25 +304,56 @@ namespace MavenAsDemo
                 //send a message to the clinians inbox in the EMR.
                 case "Inbox":
                     cursettings.mode = Settings.AlertMode.inbox;
+                    SetAlertMode("ehrinbox", "off");
                     break;
                 //send a message to the clinician's mobile app
                 case "Mobile":
                     cursettings.mode = Settings.AlertMode.mobile;
+                    SetAlertMode("mobile", "off");
                     break;
                 //send a message to the clinician's desktop, but don't pop up the big browser thing. 
                 case "Desktop Soft Alert":
                     cursettings.mode = Settings.AlertMode.deskSoft;
+                    SetAlertMode("desktop", "off");
                     break;
                 //send  the message to the desktop and go right to the full alert in the browser. 
                 case "Desktop Hard Alert":
                     cursettings.mode = Settings.AlertMode.deskHard;
+                    SetAlertMode("desktop", "off");
                     break;
                 //blast the clinician with reckless abandon.
                 case "Combo":
                     cursettings.mode = Settings.AlertMode.combo;
+                    SetAlertMode("desktop", "off");
                     break;
             }
             cursettings.Save();
+        }
+        /// <summary>
+        /// Tells the cloud what alert mode to use
+        /// </summary>
+        /// <param name="primary">"off", "desktop", "mobile", "ehrinbox"</param>
+        /// <param name="secondary">Used if you stop polling. "off", "desktop", "mobile", "ehrinbox"</param>
+        private static void SetAlertMode(string primary, string secondary)
+        {
+            string rqstUrl = "https://" + cursettings.pollingServer + "/broadcaster/notifypref?userAuth=" + WindowsDPAPI.Decrypt(EncryptedKey)
+                        + "&notify1="+primary+"&notify2="+secondary
+                        + "&osUser=" + cursettings.osUser + "&machine=" + cursettings.machine + "&osVersion=" + cursettings.os
+                        + "&user=" + Authenticator.getMavenUserId() + "&customer_id=" + cursettings.custId
+                        + "&provider=" + Authenticator.getProviderId() + "&roles[]=notification";
+            try
+            {
+                WebRequest rqst = WebRequest.Create(rqstUrl);
+                rqst.Timeout = 60000;
+                rqst.GetResponse();
+                rqst.Abort();
+                rqst = null;
+            }
+
+            catch (Exception e)
+            {
+                LogMessage("Error switching alert mode to \""+primary+"\"\"\r\n"+e.Message);
+            }
         }
         /// <summary>
         /// If the softdesktop alert is set, how fast should it fade away? handle a change to the settings. 
@@ -376,74 +422,8 @@ namespace MavenAsDemo
         {
             alert("", "", url);
         }
-        /// <summary>
-        /// TODO: Replace me with a web service call to the cloud. 
-        /// </summary>
-        /// <param name="patId">The patient id for whom this message is relevant. </param>
-        static void mail(string patId)
-        {
-            string serviceUser = "MavenPathways";
-            string servicePwd = "MavenPathways123!!";
-            string appName = "MavenPathways.TestApp";
-            string appUserName = "cliffhux";
-            string namepro = getPatientNameAndPronoun(patId);
-            string name = namepro.Split('|')[0];
-            string pronoun = namepro.Split('|')[1];
-            Unity.UnityServiceClient mailsvc = new Unity.UnityServiceClient();
-            string mailtoken = mailsvc.GetSecurityToken(serviceUser, servicePwd);
-            DataSet ds = mailsvc.Magic("SaveTask",       // Action    
-                                     appUserName,            // UserID    
-                                     appName,                // Appname   
-                                     patId,                     // PatientID 
-                                     mailtoken,                  // Token     
-                                     "Send Chart",   // Parameter1 @SINCE
-                                     appUserName,                     // Parameter2
-                                     "",                     // Parameter3
-                                     "During your appointment with " + name + " today, Maven detected that " + pronoun + " matched a pathway from the AUA.\r\nPlease log into Maven to view the protocol.",                     // Parameter4
-                                     "AUA Pathway detected for your patient. Please review.",                     // Parameter5
-                                     "",                     // Parameter6
-                                     null);                  // data                // data 
-        }
-        /// <summary>
-        /// TODO: Remove me as soon as the mail() function is handled in the cloud. 
-        /// </summary>
-        /// <param name="patId"></param>
-        /// <returns></returns>
-        static string getPatientNameAndPronoun(string patId)
-        {
-            string serviceUser = "MavenPathways";
-            string servicePwd = "MavenPathways123!!";
-            string appName = "MavenPathways.TestApp";
-            string appUserName = "cliffhux";
-            Unity.UnityServiceClient unitySvc = new Unity.UnityServiceClient();
-            string token = unitySvc.GetSecurityToken(serviceUser, servicePwd);
-            DataSet ds = unitySvc.Magic("GetPatient",       // Action    
-                                     appUserName,            // UserID    
-                                     appName,                // Appname   
-                                     patId,                     // PatientID 
-                                     token,                  // Token     
-                                     "",   // Parameter1 @SINCE
-                                     "",                     // Parameter2
-                                     "",                     // Parameter3
-                                     "",
-                                     "",
-                                     "",                     // Parameter6
-                                     null);                  // data                // data 
-            DataTableReader reader = ds.CreateDataReader();
-            reader.Read();
-            string name = reader.GetString(2) + " " + reader.GetString(1);
-            string pronoun = "he";
-            try
-            {
-                if (reader.GetString(4) == "F")
-                {
-                    pronoun = "she";
-                }
-
-            }
-            catch { }
-            return name + "|" + pronoun;
-        }
+     
+       
         /// <summary>
         /// On a major error, or when the user request it, I will kill my own process and all child processes. 
         /// </summary>
