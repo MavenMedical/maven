@@ -48,8 +48,8 @@ define([
         copyProtocole: function () {
             console.log('copy protocol', this.model.get('protocol'));
 
-             console.log('copy text', this.model.get('protocol').protocol)
-             $('<div>'+this.model.get("protocol").noteToCopy+'</div>').attr('id', 'copiedText').appendTo('.container');
+             console.log('copy text', this.model.get('protocol').attributes.protocol)
+             $('<div>'+this.model.get("protocol").attributes.noteToCopy+'</div>').attr('id', 'copiedText').appendTo('.container');
 
 
 
@@ -75,7 +75,7 @@ define([
 
         },
         setSelectedNode: function(){
-                this.$el.off('click')
+               // this.$el.off('click')
                     curTree.set('selectedNode', this.model.get('protocol'), {silent: true})
                     curTree.trigger('propagate')
         },

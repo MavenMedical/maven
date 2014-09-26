@@ -23,10 +23,9 @@ define([
             curTree.on('propagate', this.render,this)
         },
         render: function(){
-            var nodeType;
-            if(curTree.get('selectedNode').attributes != null){
-                this.$el.html(this.template(curTree.get('selectedNode').attributes))
-            }
+
+            this.$el.html(this.template({selectedNode: curTree.get('selectedNode').attributes,
+                nodeType: curTree.get('selectedNode').getNodeType()}))
 
             return this;
         },

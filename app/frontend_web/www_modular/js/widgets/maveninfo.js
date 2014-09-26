@@ -29,8 +29,8 @@ define([
             },
             render: function () {
                 var that = this;
-                if(curTree.get('selectedNode').attributes != null){
 
+                if ( curTree.get('selectedNode').getNodeType() != "protocolNode"){
                 this.$el.html(this.template(curTree.get('selectedNode').attributes));
 
                 if (contextModel.get('page') != 'pathEditor') {
@@ -39,11 +39,9 @@ define([
                         that.$el.hide(3000);
                     }, 5000);
                     */
-                });
+               });
                 }
                 }
-
-
                 return this;
             },
             hidePopup: function(){

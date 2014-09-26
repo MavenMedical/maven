@@ -17,12 +17,14 @@ define([
 
         el: $("#modal-target"),
         initialize: function () {
+            console.log('editNode',curTree.get('selectedNode').getNodeType())
+
             if (curTree.get('selectedNode').attributes.triggers) {
                 console.log('in triggers');
 
             } else if (curTree.get('selectedNode').attributes.protocol) {
                 this.template = _.template(protocolTemplate),
-                    this.$el.html(this.template(curTree.get('selectedNode').attributes));
+                    this.$el.html(this.template(curTree.get('selectedNode')));
                 $('#addNodeButton')[0].onclick = function () {
                     //var protocolText = CKEDITOR.instances.ProtocolText.getData();
                     //var noteToCopyText = CKEDITOR.instances.NoteToCopyText.getData();

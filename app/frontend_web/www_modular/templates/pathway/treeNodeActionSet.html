@@ -1,5 +1,9 @@
 <p class = 'attn-text-small'>Currently Editing:
-    <%=name%>
+    <% if ( nodeType == "treeModel" || nodeType == "treeNode") { %>
+    <%=selectedNode.name%>
+    <%} else {%>
+    Protocol
+    <%}%>
 
 </p>
 
@@ -16,7 +20,11 @@
 <div style="clear: both; padding-bottom: 50px; text-align:center">
     <button style="padding-right: 10px;" id="deleteNodeButton">Delete Selected Node</button>
 </div>
-<%=sidePanelText%>
+    <% if ( nodeType == "treeModel" || nodeType == "treeNode") { %>
+    <%=selectedNode.sidePanelText%>
+    <%} else {%>
+    <%= selectedNode.protocol %>
+    <%}%>
 
 
 

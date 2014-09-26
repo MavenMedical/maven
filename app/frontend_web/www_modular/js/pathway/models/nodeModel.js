@@ -32,7 +32,6 @@ define([
     var NodeModel = Backbone.Model.extend({
         defaults: {hideChildren: "false"},
         getNodeType: function(){
-
           return "treeNode"
         },
 

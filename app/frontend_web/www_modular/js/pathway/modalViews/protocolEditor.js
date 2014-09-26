@@ -5,10 +5,12 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'pathway/models/nodeModel',
-    'text!templates/pathway/NewProtocolModal.html',
+    'pathway/models/protocolModel',
+    'pathway/models/treeModel',
+    'text!templates/pathway/NewProtocolModal.html'
 
 
-], function ($, _, Backbone, NodeModel, nodeTemplate) {
+], function ($, _, Backbone, NodeModel,protocolNode,curTree, nodeTemplate) {
 
     var protocolModal = Backbone.View.extend({
         template: _.template(nodeTemplate),
@@ -25,7 +27,9 @@ define([
                 $("#addNodeButton", this.$el).on("click", function(){
                     var protocolText = CKEDITOR.instances.ProtocolText.getData();
                     var noteToCopyText = CKEDITOR.instances.NoteToCopyText.getData();
-                    that.parent.set('protocol', new Backbone.Model({protocol: protocolText, noteToCopy:noteToCopyText}))
+                    var p = new protocolNode({protocol: protocolText, noteToCopy:noteToCopyText});
+                    that.parent.set('protocol', p )
+                    curTree.set('selectedNode', p)
                     $('#detail-modal').modal('hide')
 
             })

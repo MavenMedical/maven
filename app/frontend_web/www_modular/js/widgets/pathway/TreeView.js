@@ -116,6 +116,7 @@ define([
             },
             showExtraInfo: function(){
 
+
             },
             drawNodes: function () {
 
