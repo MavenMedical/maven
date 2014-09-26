@@ -7,7 +7,8 @@ define([
     'globalmodels/auditCollection',
     'singleRow/auditRow',
 
-    'globalmodels/contextModel'
+    'globalmodels/contextModel',
+    'libs/jquery/jquery-mousestop-event'
 ], function ($, _, Backbone, auditCollection, AuditRow, contextModel) {
     var AuditList = Backbone.View.extend({
     targetUser:null,
@@ -24,16 +25,15 @@ define([
         {
             auditCollection.data = "";
         }
+	auditCollection.reset();
         auditCollection.initialize();
 	    this.template = _.template(arg.template); // this must already be loaded
-        this.$el.html(this.template({height:$(window).height()-50+'px'}));
-	    auditCollection.bind('add', this.addAudit, this);
-	    auditCollection.bind('reset', this.reset, this);
-	    auditCollection.bind('sync', this.addAll, this);
-		//this.render();
-	    //}, this);
-	    this.render();
-        var auditlist = $('.auditlist', this.$el);
+            this.$el.html(this.template({height:$(window).height()-50+'px'}));
+	    //auditCollection.bind('add', this.addAudit, this);
+	    //auditCollection.bind('reset', this.reset, this);
+	    auditCollection.bind('sync', this.render, this);
+	    this.render('Loading ...');
+            var auditlist = $('.auditlist', this.$el);
 	    auditlist.scrollTop(0);
 	    auditlist.scroll(function() {
 		if(auditlist.scrollTop() + auditlist.innerHeight() + 100 >= auditlist[0].scrollHeight) {
@@ -69,11 +69,14 @@ define([
         });
     },
 
-	render: function() {
+	render: function(empty_text) {
 	    this.$el.html(this.template(this));
-	    this.addAll();
+	    this.addAll(empty_text);
 	},
-	addAll: function() {
+	addAll: function(empty_text) {
+	    if (!empty_text || typeof(empty_text) != 'string') {
+		empty_text = 'None available';
+	    }
 	    this.reset();
 	    var nonempty = false;
 	    if (auditCollection.length) {
@@ -83,7 +86,7 @@ define([
 		}
 	    }
 	    if(!nonempty) {
-            $('.audittable > tbody', this.$el).html("<tr><td colspan=\"5\">None available</td></tr>");
+            $('.audittable > tbody', this.$el).html("<tr><td colspan=\"5\">"+empty_text+"</td></tr>");
             $('.audittable > thead', this.$el).hide();
             $('.audit-control-row', this.$el).hide();
             this.$el.show();
