@@ -92,11 +92,12 @@ class AllscriptsCustomerInterface:
         # composition.customer_id
         user = composition.author.get_provider_username().upper()
         customer = str(composition.customer_id)
+        pat_id = composition.subject.get_pat_id()
         msg = yield from self.notification_generator.generate_alert_content(composition, 'web', None)
         CLIENT_SERVER_LOG.debug(("Generated Message content: %s" % msg))
         # mobile_msg = [{'TEXT': 'New Pathway', 'LINK': m} for m in msg]
 
-        yield from self.server_interface.notify_user(customer, user, msg)
+        yield from self.server_interface.notify_user(customer, user, pat_id, msg)
 
     @asyncio.coroutine
     def evaluate_composition(self, composition):
