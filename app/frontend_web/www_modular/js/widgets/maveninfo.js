@@ -20,7 +20,7 @@ define([
                 if (contextModel.get('page') != 'pathEditor') {
                     this.$el.show();
                 } else {
-                    this.$el.hide();
+                    this.$el .hide();
                 }
             },
             events: {
@@ -29,10 +29,9 @@ define([
             },
             render: function () {
                 var that = this;
-                console.log('selectedNode', curTree.get('selectedNode').attributes)
+                if(curTree.get('selectedNode').attributes != null){
 
-
-                this.$el.html(this.template(curTree.get('selectedNode')));
+                this.$el.html(this.template(curTree.get('selectedNode').attributes));
 
                 if (contextModel.get('page') != 'pathEditor') {
                 this.$el.show(1000, function () {
@@ -41,6 +40,7 @@ define([
                     }, 5000);
                     */
                 });
+                }
                 }
 
 

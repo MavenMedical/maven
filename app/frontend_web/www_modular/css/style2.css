@@ -107,10 +107,9 @@
         border: 1px solid #94a0b4;
     }
 
-    #El
 
     #copiedText {
-        display: none;
+        display: none !important;
     }
 
     #toast {

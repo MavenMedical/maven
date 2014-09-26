@@ -20,10 +20,14 @@ define([
     var treeNodeActionSet = Backbone.View.extend({
         template: _.template(treeNodeActionSetTemplate),
         initialize: function(){
-            curTree.on('change:name', this.render,this)
+            curTree.on('propagate', this.render,this)
         },
         render: function(){
-            this.$el.html(this.template(curTree.get('selectedNode').attributes))
+            var nodeType;
+            if(curTree.get('selectedNode').attributes != null){
+                this.$el.html(this.template(curTree.get('selectedNode').attributes))
+            }
+
             return this;
         },
 

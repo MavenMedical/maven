@@ -15,7 +15,8 @@ define([
         events: {
             'click button#copybutton': 'copyProtocole',
             'click button#sendSetup-button': 'sendSetup',
-            'click button#send-button':'send'
+            'click button#send-button': 'send',
+            'click div.protocolNode': 'setSelectedNode'
         },
         initialize: function (params) {
             this.model = params.model
@@ -39,28 +40,19 @@ define([
             } else {
                 this.$el.html(this.template({protocolNode: this.model.get('protocol'), page: currentContext.get('page')}));
             }
-            var that = this;
-                this.$el.off('click')
-                this.$el.on('click', function(){
-                    curTree.set('selectedNode', that.model.get('protocol'), {silent: true})
-                    curTree.trigger('propagate')
-                })
+
+
 
             return this
         },
         copyProtocole: function () {
             console.log('copy protocol', this.model.get('protocol'));
-/*
-            if (this.model.get('protocol').attributes) {
-                console.log('copy text att', this.model.get('protocol').attributes.title)
-                $('<div>'+this.model.get("protocol").title+'</div>').attr('id', 'copiedText').appendTo('.container');
 
-            } else {
-                console.log('copy text', this.model.get('protocol').protocol)
-                $('<div>'+this.model.get("protocol").title+'</div>').attr('id', 'copiedText').appendTo('.container');
+             console.log('copy text', this.model.get('protocol').protocol)
+             $('<div>'+this.model.get("protocol").noteToCopy+'</div>').attr('id', 'copiedText').appendTo('.container');
 
-            }
-*/
+
+
             $('#toast').css('visibility', 'visible');
 
             setTimeout(function () {
@@ -73,14 +65,19 @@ define([
 
         },
 
-        send: function(){
+        send: function () {
             console.log('send');
 
         },
-        sendSetup: function(){
-             console.log('send setup');
+        sendSetup: function () {
+            console.log('send setup');
 
 
+        },
+        setSelectedNode: function(){
+                this.$el.off('click')
+                    curTree.set('selectedNode', this.model.get('protocol'), {silent: true})
+                    curTree.trigger('propagate')
         },
         treeToJSON: function (node) {
 
