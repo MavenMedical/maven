@@ -27,7 +27,7 @@
         padding: 0;
     }
     .selected {
-        border-width: 4px !important;
+        border: 4px solid #2c2f74 !important ;
 
     }
     .tree ul {
@@ -59,7 +59,7 @@
 
     .tree li div.treeNode {
         max-width: 600px;
-        border: 0px solid #2c2f74 ;
+        border: 2px solid #ccc;
         background-color: whitesmoke;
         padding: 5px 10px;
         text-decoration: none;
@@ -106,6 +106,8 @@
         color: #000;
         border: 1px solid #94a0b4;
     }
+
+    #El
 
     #copiedText {
         display: none;
@@ -318,6 +320,40 @@ html, body {
     min-width: 100px;
 
 
+}
+/******************************************************************
+ * The following customize the fonts and colors of the side-popup *
+ ******************************************************************/
+#side-popup{
+     border-top: 7px solid #2c2f74;
+    background-color: whitesmoke;
+    box-shadow: 1px 3px 8px rgba(0, 0, 0, 0.2);
+    display:none;
+    position: fixed;
+    bottom: 5px;
+    right: 5px;
+    z-index: 100;
+}
+
+#side-popup .heading{
+   /* background-color: #2c2f74;
+    color: #ffffff;*/
+    padding-left: 2px;
+}
+
+#side-popup .nodeInfo{
+    width:250px;
+    min-height: 200px;
+    max-height: 200px;
+    overflow: auto;
+    padding: 10px;
+}
+
+#side-popup button.close{
+    color: #ffffff;
+    background-color: #2c2f74;
+    opacity: 1;
+    padding: 3px;
 }
 /***************************************************************
  * The following customize the fonts and colors of the widgets *
@@ -736,6 +772,10 @@ border-right: 1px solid rgb(204, 204, 204);
     padding-top: 15px;
     padding-bottom: 15px;
     clear:both;
+}
+
+.customer-row-edit{
+    display:none;
 }
 
 /***************************************************************

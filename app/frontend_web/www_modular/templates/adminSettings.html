@@ -3,30 +3,51 @@
     <div class="panel-body admin-settings">
         <div class="col-md-12">
             <div class="row">
-	      <div class="setting-option option-left">Unity Server Address:<br>
-		<div style='float:left'>
-		  <select id='httphttps'>
-		    <option value='https://'>https://</option>
-		    <option value='http://'>http://</option>
-		  </select>
-		</div>
-		<div style='float:left'>
-		  <input id="admin-ip-input" type="text" value="<%= (typeof ip !== 'undefined') ? ip : ''%>">
-		</div>
-		<div style='float:left'>/Unity/UnityService.svc</div> 
-	      </div>
-                  <div class="setting-option option-right">App Name:
-                    <input id="admin-name-input" type="text" <%= (typeof appname !== 'undefined') ? "value='"+appname+"' disabled" : "value='Maven Pathways'" %>></div>
-                <div class="setting-option option-left">App Password:
-                    <input id="admin-pw-input" type="password" <%= (typeof ip !== 'undefined') ? "value='password' disabled" : '' %>> </div>
+                <div class="col-sm-6">
+                    <div class="row">
+                        <div class="span3">Unity Server Address:</div>
+                        <div style='float:left'>
+                            <select id='httphttps' class='form-control' <%= (typeof ip !== 'undefined') ? 'disabled': '' %>>
+                                <option class='form-control'
+                                        value='https://' <%= (typeof ip !== 'undefined') ? (ip.indexOf("https://") > -1) ? 'selected' : '' : ''%>>https://</option>
+                                <option class='form-control'
+                                        value='http://' <%= (typeof ip !== 'undefined') ? (ip.indexOf("https://") == -1) ? 'selected' : '' : '' %>>http://</option>
+                          </select>
+                        </div>
+                        <div style='float:left; margin-bottom:10px;'>
+                            <input id="admin-ip-input" type="text" class='form-control'
+                            <%= (typeof ip !== 'undefined') ? "value='"+ip.replace("http://","").replace("https://","")+"' disabled" : "value='192.237.182.238'" %>>
+                            <div class='span3' style='float:left'>/Unity/UnityService.svc</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="row">
+                        <div class="span3">App Name:</div>
+                        <input id="admin-name-input" class='form-control' type="text"
+                            <%= (typeof appname !== 'undefined') ? "value='"+appname+"' disabled" : "value='MavenPathways.TestApp'" %>>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="row" style='margin-bottom:10px;'>
+                        <div class="span3">App Password:</div>
+                        <input id="admin-pw-input" class='form-control' type="password" <%= (typeof ip !== 'undefined') ? "value='password' disabled" : "value='MavenPathways123!!'" %>>
+                        </div>
+                    </div>
                 <br/>
-                    <span class="setting-option option-left" id="admin-setup-message">&nbsp;</span>
+            </div>
+            <div class="row">
+                <div class="col-sm-6">
+                    <div id="admin-setup-message" class="span3">&nbsp;</div>
+                </div>
+                <div class="col-sm-6">
                     <% if (typeof ip !== 'undefined'){ %>
-                    <div class="setting-option option-right">
+                    <div style='float:right'>
                         <button class="btn btn-default btn-xs unlock-admin-button">Edit EHR Settings</button>
                         <button class="btn btn-default btn-xs lock-admin-button" style="display: none;">Lock EHR Settings</button>
                     </div>
                     <% } %>
+                </div>
             </div>
         </div>
     </div>
@@ -34,18 +55,30 @@
     <div class="panel-body admin-settings">
         <div class="col-md-12">
             <div class="row">
-                <div class="setting-option option-left">Polling Interval (seconds):
-                    <input id="admin-polling-input" class='time-input' type="text" value="<%= (typeof polling !== 'undefined') ? polling : '30'%>"> </div>
-                <div class="setting-option option-right">Login Inactivity Timeout (minutes):
-                    <input id="admin-timeout-input" class='time-input' type="text" value="<%= (typeof timeout !== 'undefined') ? timeout : '20'%>"> </div>
+                <div class="col-sm-6">
+                    <div class="row">
+                        <div class="span3">Polling Interval (seconds):</div>
+                        <input id="admin-polling-input" class='time-input form-control' type="text"
+                               value="<%= (typeof polling !== 'undefined') ? polling : '30'%>">
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="row">
+                        <div class="span3">Login Inactivity Timeout (minutes):</div>
+                        <input id="admin-timeout-input" class='time-input form-control' type="text"
+                               value="<%= (typeof timeout !== 'undefined') ? timeout : '20'%>">
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-    <div class="panel-body admin-settings">
-        <div class="col-md-12">
             <div class="save-settings-row row">
-                <span class="setting-option option-left" id="save-admin-message">&nbsp;</span>
-                <div class="setting-option option-right"><button class="btn btn-default setup-admin-button">Save Changes</button></div>
+                <div class="col-sm-6">
+                    <div id="save-admin-message" class="span3" >&nbsp;</div>
+                </div>
+                <div class="col-sm-6">
+                    <div style='float:right'>
+                        <button class="btn btn-default setup-admin-button">Save Changes</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

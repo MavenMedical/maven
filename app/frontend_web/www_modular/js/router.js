@@ -36,7 +36,7 @@ define([
         "home": [0, 9, 3],
         "patient": [0, 9, 3],
         "episode": [0, 9, 3],
-        "pathway": [0, 9, 3],
+        "pathway": [0, 12, 0],
         "pathEditor": [3, 6, 3],
     };
     changePageLayout = function (page) {
@@ -86,7 +86,7 @@ define([
             "pathway/:id/pathid/:id(/login/:user/:customer/:userAuth)": 'EditPathway',
             "logout": 'logout',
             "settings": 'settings',
-	    "password/:type/:user/:customer/:oauth": 'password',
+	        "password/:type/:user/:customer/:oauth": 'password',
             //default
             '*action': 'defaultAction'
         },

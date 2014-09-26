@@ -29,28 +29,45 @@ define([
 		    customerCollection.more();
 		}
 	    });
+        $(document).click(function(e){
+            //hide customer edit fields if user clicks outside the widget
+            var customerList = $(this).find("tbody");
+            if (!customerList.is(e.target) && customerList.has(e.target).length === 0) {
+                $(".customer-row > td").each(function(){
+                    //update text fields to be the value of the input fields
+                    $(this).find(".customer-row-val").html($(this).find(".customer-row-edit").val());
+                    $(".customer-row-edit").hide();
+                    $(".customer-row-val").show();
+                });
+            }
+        });
 	},
     events: {
 	    'click #save-customer-changes': 'saveChanges',
+        'click document': 'hideEdits'
+    },
+    hideEdits: function(e) {
     },
     saveChanges: function() {
-      /*  that = this;
+        that = this;
         $(".customer-row").each(function () {
-            var customer_id  = $(this).find(".customer-val-id").html();
-            var state="disabled";
-            if($(this).find('.customer-state').is(':checked'))
-            {
-                    state = "active";
-            }
+            var customer_id = $(this).find(".customer-id-row").val();
+            var name = $(this).find(".customer-name-row").val();
+            var abbr = $(this).find(".customer-abbr-row").val();
+            var license_exp = $(this).find(".customer-license-exp-row").val();
+            var license_num = $(this).find(".customer-license-num-row").val();
+
             $.ajax({
                 url: "/update_customer",
                 data: $.param(contextModel.toParams()) + "&target_customer=" + customer_id +
-                                                         "&state=" + state,
+                                                         "&name=" + name + "&abbr=" + abbr +
+                                                         "&license=" + license_num + "&license_exp=" + license_exp,
                 success: function (data) {
-                    console.log(data);
+                    //console.log(data);
                 }
             });
-        });*/
+            $("#save-customer-message").html("Customer settings saved!");
+        });
     },
 	render: function() {
 	    this.$el.html(this.template(this));

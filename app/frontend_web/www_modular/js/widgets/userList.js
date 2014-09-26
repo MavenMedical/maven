@@ -34,7 +34,7 @@ define([
 	    'click #save-user-changes': 'saveChanges',
     },
     saveChanges: function() {
-        that = this;
+    /*    that = this;
         $(".user-row").each(function () {
             var user_id  = $(this).find(".user-val-id").html();
             var state="disabled";
@@ -53,11 +53,14 @@ define([
                      $("#save-user-message").html("Sorry, an error occurred. Please try again later");
                 }
             });
-        });
+        });*/
     },
 	render: function() {
 	    this.$el.html(this.template(this));
 	    this.addAll();
+        $(window).resize(function() {
+            $(".usertable-header").width($('.usertable', this.$el).width());
+        });
 	},
 	addAll: function() {
 	    this.reset();
@@ -76,7 +79,15 @@ define([
 	    }
 
         var userlist = $('.useraccordion', this.$el);
+        var usertable = $('.usertable', this.$el);
+        $(document).ready(function(){
+            setTimeout(function() {
+                $(".usertable-header").width(usertable.width());
+            },200);
+        });
+
         setTimeout(function() {
+            var newWidth = userlist.innerWidth();
             var userHeight = userlist.innerHeight();
             if (userHeight > 0 && userHeight < parseInt(userlist.css('max-height'))) {
                 userCollection.more();

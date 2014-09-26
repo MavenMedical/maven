@@ -2,18 +2,15 @@
 
 <div class="row userlist" style="margin: auto; width: 100%;">
     <span class="headings title">Users</span>
-    <div class="panel-group useraccordion" style="overflow-y:auto; max-height:500px; width:100%">
-        <table class="table table-condensed table-hover usertable" style="width:100%; padding: 0;">
+    <table class="table-condensed table-hover usertable-header" style="width:100%; padding: 0; table-layout: fixed;">
+        <col width="20%">
+        <col width="25%">
+        <col width="21%">
         <col width="8%">
-        <col width="22%">
-        <col width="15%">
-        <col width="22%">
-        <col width="9%">
-        <col width="12%">
-        <col width="12%">
+        <col width="*">
+        <col width="*">
         <thead>
             <tr>
-                <th align="left" id="usr_id">User ID</th>
                 <th align="left" id="usr_display">Display Name</th>
                 <th align="left" id="usr_job">Profession</th>
                 <th align="left" id="usr_job">Last Login</th>
@@ -22,12 +19,20 @@
                 <th align="left" id="usr_audit">&nbsp;</th>
             </tr>
         </thead>
-        <tbody>
-        </tbody>
+    </table>
+    <div class="panel-group useraccordion" style="overflow-y:auto; max-height:500px; width:100%">
+        <table class="table table-condensed table-hover usertable" style="width:100%; padding: 0; table-layout: fixed;">
+            <col width="20%">
+            <col width="25%">
+            <col width="21%">
+            <col width="8%">
+            <col width="*">
+            <col width="*">
+            <tbody>
+            </tbody>
         </table>
     </div>
     <span id="save-user-message"></span>
-    <button id="save-user-changes" class="btn btn-default">Save Changes</button>
 </div>
 
 </div>

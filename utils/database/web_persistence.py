@@ -3,9 +3,8 @@ from enum import Enum
 from collections import defaultdict
 from decimal import Decimal
 from datetime import date, datetime
-import utils.enums
 import json
-
+from utils.enums import ALERT_VALIDATION_STATUS
 from utils.database.database import AsyncConnectionPool
 from utils.database.database import MappingUtilites as DBMapUtils
 import maven_config as MC
@@ -83,6 +82,7 @@ Results = Enum('Results',
     config
     lastlogin
     settings
+    profession
 """)
 
 
@@ -235,13 +235,25 @@ class WebPersistence():
     @asyncio.coroutine
     def save_user_settings(self, user, customerid, officialname, displayname):
         yield from self.execute(["UPDATE users set (official_name, display_name) " +
-                                 "= (%s, %s) where user_name = %s and customer_id = %s"],
+                                 "= (%s, %s) where user_name = UPPER(%s) and customer_id = %s"],
                                 [officialname, displayname, user, customerid], {}, {})
 
     @asyncio.coroutine
     def update_user(self, user, customer, state):
-        yield from self.execute(["UPDATE users set (state) = (%s) where user_name = %s and customer_id = %s"],
+        yield from self.execute(["UPDATE users set (state) = (%s) where user_name = UPPER(%s) and customer_id = %s"],
                                 [state, user, customer], {}, {})
+
+    @asyncio.coroutine
+    def update_customer(self, customer, name, abbr, license_num, license_exp):
+        cmd = []
+        cmdargs = []
+        cmd.append("UPDATE customer set")
+        cmd.append("(name, abbr, license_type, license_exp) = (%s,%s,%s,%s)")
+        cmdargs.extend([name, abbr, license_num, license_exp])
+        cmd.append("where customer_id = %s")
+        cmdargs.append(customer)
+        ret = yield from self.execute(cmd, cmdargs, _build_format(), {0: 'customer_id'})
+        return [row['customer_id'] for row in ret]
 
     @asyncio.coroutine
     def add_customer(self, name, abbr, license, license_exp, config):
@@ -255,30 +267,9 @@ class WebPersistence():
         return [row['customer_id'] for row in ret]
 
     @asyncio.coroutine
-    def reset_password(self, user, customer):
-        # NOTE: THIS IS PLACEHOLDER CODE - WILL BE ENTIRELY REPLACED
-        expiration = datetime.now()
-        password = "\\x243261243034244c717a616b7864454b522e2f6b586366516454552f4f66"
-        password += "32545869694a674470574a5253733151724a624f4b6837616c3568386c36"
-
-        cmd = []
-        cmdargs = []
-
-        cmd.append("UPDATE users")
-        cmd.append("set pw=%s, pw_expiration=%s")
-        cmdargs.append(password)
-        cmdargs.append(expiration)
-        cmd.append("WHERE user_name=%s AND customer_id=%s")
-        cmdargs.append(user)
-        cmdargs.append(customer)
-
-        yield from self.execute(cmd, cmdargs, {}, {})
-
-    @asyncio.coroutine
     def setup_customer(self, customer, clientapp_settings):
-        results = yield from self.execute(["UPDATE customer set clientapp_settings = %s where customer_id = %s"],
-                                          [json.dumps(clientapp_settings), customer], {}, {})
-        return results
+        yield from self.execute(["UPDATE customer set clientapp_settings = %s where customer_id = %s"],
+                                [json.dumps(clientapp_settings), customer], {}, {})
 
     @asyncio.coroutine
     def update_alert_setting(self, user, customer, alertid, ruleid, category, actioncomment):
@@ -318,7 +309,8 @@ class WebPersistence():
                       "state",
                       "ehr_state",
                       "roles",
-                      "layouts"]
+                      "layouts",
+                      "profession"]
         columns = DBMapUtils().select_rows_from_map(column_map)
         cmdargs = [new_provider_dict["customer_id"],
                    new_provider_dict["prov_id"],
@@ -327,11 +319,12 @@ class WebPersistence():
                    new_provider_dict["display_name"],
                    new_provider_dict["state"],
                    new_provider_dict["ehr_state"],
-                   new_provider_dict.get('roles', []),
-                   new_provider_dict.get('layouts', [])]
+                   new_provider_dict.get('roles', ["provider"]),
+                   new_provider_dict.get('layouts', [2]),
+                   new_provider_dict.get('profession')]
         cmd = []
         cmd.append("INSERT INTO users (" + columns + ")")
-        cmd.append("VALUES (%s, %s, %s, %s, %s, %s, %s, %s::user_role[], %s)")
+        cmd.append("VALUES (%s, %s, UPPER(%s), %s, %s, %s, %s, %s::user_role[], %s, %s)")
         yield from self.execute(cmd, cmdargs, {}, {})
 
         if not new_provider_dict.get('prov_id', None):
@@ -367,10 +360,10 @@ class WebPersistence():
         yield from self.execute(cmd, cmdargs, {}, {})
 
     @asyncio.coroutine
-    def record_login(self, username, method, ip, authkey):
-        yield from self.execute(["INSERT INTO logins (user_name, method, logintime, ip, authkey)" +
-                                 "VALUES (%s, %s, now(), %s, %s)"],
-                                [username, method, ip, authkey], {}, {})
+    def record_login(self, username, customer_id, method, ip, authkey):
+        yield from self.execute(["INSERT INTO logins (user_name, customer_id, method, logintime, ip, authkey)" +
+                                 "VALUES (UPPER(%s), %s, %s, now(), %s, %s)"],
+                                [username, customer_id, method, ip, authkey], {}, {})
 
     _default_pre_login = set((Results.username,))
     _available_pre_login = {
@@ -383,6 +376,7 @@ class WebPersistence():
         Results.password: 'users.pw',
         Results.passexpired: 'users.pw_expiration < now()',
         Results.userstate: 'users.state',
+        Results.ehrstate: 'users.ehr_state',
         #        Results.failedlogins: 'array_agg(logins.logintime)',
         Results.recentkeys: 'NULL',
         Results.roles: 'users.roles',
@@ -404,7 +398,7 @@ class WebPersistence():
         cmd.append("FROM users WHERE customer_id = %s")
         cmdargs.append(customer)
         if username:
-            cmd.append(" AND users.user_name = %s")
+            cmd.append(" AND users.user_name = UPPER(%s)")
             cmdargs.append(username)
         else:
             cmd.append(" AND users.prov_id = %s AND users.customer_id = %s")
@@ -424,6 +418,7 @@ class WebPersistence():
         Results.displayname: "users.display_name",
         Results.state: "users.state",
         Results.ehrstate: "users.ehr_state",
+        Results.profession: "users.profession",
         Results.lastlogin: "logins2.last_login"
     }
     _display_user_info = _build_format({
@@ -431,7 +426,8 @@ class WebPersistence():
     })
 
     @asyncio.coroutine
-    def user_info(self, desired, customer, limit=""):
+    def user_info(self, desired, customer, orderby=Results.userid,
+                  ascending=True, startdate=None, enddate=None, limit=None):
         columns = build_columns(desired.keys(), self._available_user_info,
                                 self._default_user_info)
 
@@ -442,15 +438,20 @@ class WebPersistence():
         cmd.append("FROM users")
         if Results.lastlogin in desired:
             cmd.append("LEFT JOIN ( ")
-            cmd.append("SELECT user_name, max(logintime) as last_login")
+            cmd.append("SELECT user_name, customer_id, max(logintime) as last_login")
             cmd.append("FROM logins")
-            cmd.append("GROUP BY user_name ) logins2")
-            cmd.append("ON users.user_name = logins2.user_name")
+            cmd.append("GROUP BY user_name,customer_id ) logins2")
+            cmd.append("ON (users.user_name = logins2.user_name")
+            cmd.append("AND users.customer_id = logins2.customer_id)")
+        else:
+            # can't sort by date if login field is not being used
+            startdate = None
+            enddate = None
         cmd.append("WHERE users.customer_id = %s")
         cmdargs.append(customer)
-        cmd.append("ORDER BY user_id")
-        if limit:
-            cmd.append(limit)
+
+        append_extras(cmd, cmdargs, Results.lastlogin, startdate, enddate, orderby, ascending,
+                      None, limit, self._available_user_info)
 
         results = yield from self.execute(cmd, cmdargs, self._display_user_info, desired)
         return results
@@ -483,11 +484,11 @@ class WebPersistence():
         Results.license: "customer.license_type",
         Results.license_exp: "customer.license_exp",
         Results.config: "customer.clientapp_config",
-        Results.settings: "customer.clientapp_settings"
+        Results.settings: "customer.clientapp_settings",
     }
     _display_customer_info = _build_format({
         Results.license_exp: lambda x: x and _prettify_datetime(x),
-        Results.settings: lambda x: x and eval(x)
+        Results.settings: lambda x: x and json.loads(x)
     })
 
     @asyncio.coroutine
@@ -717,7 +718,7 @@ class WebPersistence():
         cmdargs.append(provider)
         cmdargs.append(customer)
         cmd.append("AND alert.validation_status > %s")
-        cmdargs.append(utils.enums.ALERT_VALIDATION_STATUS.DEBUG_ALERT.value)
+        cmdargs.append(ALERT_VALIDATION_STATUS.DEBUG_ALERT.value)
         if patients:
             cmd.append("AND alert.pat_id IN %s")
             cmdargs.append(makelist(patients))

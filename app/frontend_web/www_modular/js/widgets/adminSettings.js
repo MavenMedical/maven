@@ -7,7 +7,8 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'globalmodels/contextModel',
-], function ($, _, Backbone, contextModel) {
+    'globalmodels/userCollection',
+], function ($, _, Backbone, contextModel, userCollection) {
     var AdminModel = Backbone.Model.extend({url: '/customer_info'});
     var adminModel = new AdminModel;
 
@@ -34,6 +35,8 @@ define([
             $("#admin-ip-input").prop("disabled",false);
             $("#admin-name-input").prop("disabled",false);
             $("#admin-pw-input").prop("disabled",false);
+            $("#httphttps").prop("disabled",false);
+
             $("#admin-pw-input").val("");
             $(".lock-admin-button").show();
             $(".unlock-admin-button").hide();
@@ -42,6 +45,8 @@ define([
             $("#admin-ip-input").prop("disabled",true);
             $("#admin-name-input").prop("disabled",true);
             $("#admin-pw-input").prop("disabled",true);
+            $("#httphttps").prop("disabled",true);
+
             $("#admin-pw-input").val("password");
             $(".lock-admin-button").hide();
             $(".unlock-admin-button").show();
@@ -52,6 +57,7 @@ define([
             var pw = $("#admin-pw-input").val();
             var polling = $("#admin-polling-input").val();
             var timeout = $("#admin-timeout-input").val();
+            var username = "MavenPathways";
 
             var reg_num = new RegExp('^[0]*[1-9]+[0]*$');
             /*var reg_ip = new RegExp('^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$');
@@ -81,16 +87,21 @@ define([
 		    type: 'POST',
 		    dataType: 'json',
                     url: "/setup_customer?" + $.param(contextModel.toParams()),
-                    data: JSON.stringify({"ip": protocol + ip,
-					  "name": name,
-					  "password": pw,
-					  "polling": polling,
-					  "timeout": timeout}),
+                    data: JSON.stringify({"EHRURL": protocol + ip + "/Unity/UnityService.svc",
+					  "EHRAppName": name,
+					  "EHRPassword": pw,
+					  "EHRPolling": polling,
+					  "UserTimeout": timeout,
+                      "EHRServiceUser": username}),
                     success: function () {
                         $("#save-admin-message").html("Settings saved!");
+                        alert("Success! Connection to EHR established.");
+                        userCollection.refresh();
+                        setTimeout(userCollection.refresh, 7);
                     },
                     error: function (){
-                        alert("The server could not successfully connect using this configuration.");
+                        alert("The server could NOT successfully connect using this configuration.");
+                        $("#save-admin-message").html("&nbsp;");
                     }
                 });
             }

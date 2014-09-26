@@ -21,6 +21,7 @@ import asyncio
 import utils.database.web_persistence as WP
 from utils.streaming.http_svcs_wrapper import http_service, CONTEXT, CONFIG_PERSISTENCE
 import utils.streaming.http_responder as HTTP
+from clientApp.webservice.clientapp_rpc_endpoint import ClientAppEndpoint
 import maven_config as MC
 import csv
 date = str
@@ -28,7 +29,8 @@ date = str
 
 class UserMgmtWebservices():
 
-    def __init__(self, configname):
+    def __init__(self, configname, rpc):
+        self.client_interface = rpc.create_client(ClientAppEndpoint)
         config = MC.MavenConfig[configname]
         self.persistence = WP.WebPersistence(config[CONFIG_PERSISTENCE])
 
@@ -141,7 +143,7 @@ class UserMgmtWebservices():
                    CONTEXT.OFFICIALNAME: str, CONTEXT.DISPLAYNAME: str},
                   None)
     def save_user_settings(self, _header, _body, context, _matches, _key):
-        userid = context[CONTEXT.USER]
+        user = context[CONTEXT.USER]
         officialname = context[CONTEXT.OFFICIALNAME]
         displayname = context[CONTEXT.DISPLAYNAME]
 
@@ -194,6 +196,22 @@ class UserMgmtWebservices():
                                                          enddate=enddate, limit=limit)
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
+
+    @http_service(['POST'], '/send_message',
+                  [CONTEXT.CUSTOMERID, CONTEXT.USER, CONTEXT.TARGETUSER],
+                  {CONTEXT.CUSTOMERID: int, CONTEXT.USER: str, CONTEXT.TARGETUSER: str},
+                  {USER_ROLES.provider, USER_ROLES.supervisor, USER_ROLES.administrator})
+    def send_message(self, _header, body, context, _matches, _key):
+        user = context[CONTEXT.USER]
+        customer = context[CONTEXT.CUSTOMERID]
+        target = context[CONTEXT.TARGETUSER]
+        body = json.loads(body.decode('utf-8'))
+        subject = body['subject']
+        message = body['message']
+        patient = body.get('patient', None)
+        yield from self.client_interface.notify_user(customer, user, subject, message,
+                                                     patient=patient, target=target)
+        return HTTP.OK_RESPONSE, b'', None
 
     @http_service(['GET'], '/download_audits',
                   [CONTEXT.PROVIDER, CONTEXT.USER, CONTEXT.CUSTOMERID],

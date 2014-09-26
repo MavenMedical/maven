@@ -23,6 +23,7 @@ import utils.database.web_persistence as WP
 from utils.streaming.http_svcs_wrapper import http_service, CONTEXT, CONFIG_PERSISTENCE
 import utils.streaming.http_responder as HTTP
 import maven_config as MC
+import maven_logging as ML
 
 AUTH_LENGTH = 44  # 44 base 64 encoded bits gives the entire 256 bites of SHA2 hash
 LOGIN_TIMEOUT = 60 * 60  # 1 hour
@@ -37,7 +38,7 @@ class LoginError(Exception):
 
 class AuthenticationWebservices():
 
-    def __init__(self, configname, timeout=None):
+    def __init__(self, configname, _rpc, timeout=None):
         config = MC.MavenConfig[configname]
         self.persistence = WP.WebPersistence(config[CONFIG_PERSISTENCE])
         self.persistence.schedule()
@@ -67,7 +68,8 @@ class AuthenticationWebservices():
             WP.Results.userstate,
             # WP.Results.failedlogins,
             WP.Results.recentkeys,
-            WP.Results.roles
+            WP.Results.roles,
+            WP.Results.ehrstate,
         ]}
         attempted = None
         if info.get(CONTEXT.ROLES, None):
@@ -75,19 +77,23 @@ class AuthenticationWebservices():
         else:
             rolefilter = lambda r: True
         auth = ''
-        username = info[CONTEXT.USER]
+        username = info[CONTEXT.USER].upper()
         customer = info[CONTEXT.CUSTOMERID]
         try:
             method = 'failed'
             user_info = {}
+            try:
+                user_info = yield from self.persistence.pre_login(desired, customer,
+                                                                  username=username)
+            except IndexError:
+                raise LoginError('badLogin')
+            if (user_info[WP.Results.userstate] != 'active'
+               or user_info[WP.Results.ehrstate] == 'disabled'):
+                raise LoginError('disabledLogin')
+
             # if header.get_headers().get('VERIFIED','SUCCESS') == 'SUCCESS':
             if user_and_pw:
                 attempted = ' '.join([username, customer])
-                try:
-                    user_info = yield from self.persistence.pre_login(desired, customer,
-                                                                      username=username)
-                except IndexError:
-                    raise LoginError('badLogin')
                 passhash = user_info[WP.Results.password].tobytes()
                 if (not passhash or
                         bcrypt.hashpw(bytes(info[CONTEXT.PASSWORD], 'utf-8'),
@@ -102,7 +108,8 @@ class AuthenticationWebservices():
                 auth = info.get('userAuth', None) or info.get(CONFIG_OAUTH, None)
                 try:  # this means that the password was a pre-authenticated link
                     AK.check_authorization(attempted, auth, AUTH_LENGTH)
-                except AK.UnauthorizedException:
+                except AK.UnauthorizedException as e:
+                    ML.DEBUG('forward login failed for %s: %s' % (attempted, e))
                     raise LoginError('badLogin')
                 user_info = yield from self.persistence.pre_login(desired,
                                                                   customer,
@@ -156,7 +163,7 @@ class AuthenticationWebservices():
             return HTTP.UNAUTHORIZED_RESPONSE, json.dumps({'loginTemplate':
                                                            err.args[0] + ".html"}), None
         finally:
-            yield from self.persistence.record_login(str(attempted),
+            yield from self.persistence.record_login(username, customer,
                                                      method,
                                                      header.get_headers().get('X-Real-IP'),
                                                      auth if method == 'forward' else None)

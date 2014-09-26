@@ -16,7 +16,6 @@ __author__ = 'Yuki Uchino'
 # ************************
 # LAST MODIFIED FOR JIRA ISSUE: MAV-289
 # *************************************************************************
-import dateutil.parser
 from enum import Enum
 import json
 import asyncio
@@ -43,18 +42,17 @@ class Types(Enum):
 
 class CompositionBuilder(builder):
 
-    def __init__(self, configname):
+    def __init__(self, customer_id, allscripts_api):
         builder.__init__(self)
-        self.config = MC.MavenConfig[configname]
-        self.allscripts_api = AHC.allscripts_api(self.config.get(CONFIG_API))
+        self.allscripts_api = allscripts_api
         self.provs = {}
-        self.customer_id = MC.MavenConfig[CUSTOMERID]
+        self.customer_id = customer_id
 
     @asyncio.coroutine
     def build_providers(self):
-        ret = yield from self.allscripts_api.GetProviders(username=self.config.get(AHC.CONFIG_APPUSERNAME))
+        ret = yield from self.allscripts_api.GetProviders()
         for prov in ret:
-            self.provs[prov['UserName']] = self.build_partial_practitioner(prov)
+            self.provs[prov['UserName'].upper()] = self.build_partial_practitioner(prov)
 
     @builder.build(FHIR_API.Composition)
     @ML.trace(COMP_BUILD_LOG.debug, True)

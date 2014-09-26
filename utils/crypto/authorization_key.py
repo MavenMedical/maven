@@ -2,6 +2,7 @@ from Crypto.Hash import SHA256
 import base64
 import time
 import json
+import maven_logging as ML
 
 # When the user creates a list of something, every element in that list is checked to make
 # sure the user is authorized to see it.  If we later get details on that object,
@@ -43,6 +44,7 @@ def _authorization_key(sha, data, length=44, timeout=None, timecode=None):
         data = (data, timecode)
     # print(data)
     # print(pickle.dumps(data))
+    ML.DEBUG(data)
     sha.update(bytes(json.dumps(data), 'utf-8'))
     ret = bytestostring(sha.digest())
     if length:
@@ -54,12 +56,12 @@ def _authorization_key(sha, data, length=44, timeout=None, timecode=None):
 
 def check_authorization(data, auth, length=44):
     if len(auth) < length:
-        raise UnauthorizedException('User is not logged in.')  # this is an invalid auth key?
+        raise UnauthorizedException('Authkey length too short.')
 
     if len(auth) > length:
         # a timeout is added, should be 8 bytes
         if not len(auth) == 8 + length:
-            raise UnauthorizedException('User is not logged in.')  # this is an invalid auth key?
+            raise UnauthorizedException('Authkey length not the right length.')
 
         auth_time = auth[:8]
         auth_key = auth[8:]
@@ -72,4 +74,4 @@ def check_authorization(data, auth, length=44):
 
     # make sure the user's auth key is valid
     if not authorization_key(data, length) == auth_key:
-        raise UnauthorizedException('User is not logged in.')  # this is an invalid auth key?
+        raise UnauthorizedException('Authkey did not match data: ' + str(data))

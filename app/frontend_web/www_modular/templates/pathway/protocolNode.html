@@ -11,7 +11,7 @@
             PROTOCOL
         </strong>
         <span style="max-width: 350px;">
-            <%=protocolNode.title%>
+            <%=protocolNode.protocol%>
         </span>
 
     </span>
@@ -19,10 +19,23 @@
 
     <br>
      <% if (page == 'pathEditor') { %>
-<button class = "removeProtocolButton">Remove</button>
+    <div class="btn-group btn-group-xs">
+        <button id='sendSetup-button' type="button" class="btn btn-default btn-sm" style="float: right">
+        <span class="glyphicon glyphicon-envelope"></span>
+        </button>
+       <button id="removeProtocolButton" type="button" class="btn btn-default btn-sm removeProtocolButton" style="float: right">
+           Remove
+       </button>
+    </div>
+
     <%} else {%>
+     <div class="btn-group btn-group-xs">
+         <button id='send-button' type="button" class="btn btn-default btn-sm" style="float: right">
+        <span class="glyphicon glyphicon-envelope"></span>
+        </button>
     <button id='copybutton' type="button" class="btn btn-default btn-sm" style="float: right">
         <img src="../images/copy-icon.png" style="width: 20px; height: 20px;" title="Copy">
     </button>
+         </div>
     <% } %>
 </div>
