@@ -85,7 +85,7 @@ define([
             else {
 		var protocol = $("#httphttps").find(":selected").text();
 		var data;
-		if (unlocked) {
+		if (unlocked || !this.model.attributes.settings) {
 		    console.log('loading from fields');
 		    data = {
 			    "EHRURL": $.trim(protocol) + $.trim(ip)+ "/Unity/UnityService.svc",
