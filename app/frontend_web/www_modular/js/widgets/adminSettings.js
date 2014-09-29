@@ -107,7 +107,7 @@ define([
                         $("#save-admin-message").html("Settings saved!");
                         alert("Success! Connection to EHR established.");
                         userCollection.refresh();
-                        setTimeout(userCollection.refresh, 7);
+                        setTimeout(userCollection.refresh, 7000);
                     },
                     error: function (){
                         alert("The server could NOT successfully connect using this configuration.");
