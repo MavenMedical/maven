@@ -50,7 +50,7 @@ class AuthenticationWebservices():
     @http_service(['POST'], '/login', None, None, None)
     def post_login(self, header, body, _context, _matches, _key):
         info = json.loads(body.decode('utf-8'))
-
+        info[CONTEXT.CUSTOMERID] = str(info[CONTEXT.CUSTOMERID])
         user_and_pw = set((CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.PASSWORD)).issubset(info)
         prov_and_auth = (set((CONTEXT.USER, CONTEXT.CUSTOMERID)).issubset(info)
                          and (CONFIG_OAUTH in info or 'userAuth' in info))

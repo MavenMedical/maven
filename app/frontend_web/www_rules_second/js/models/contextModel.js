@@ -18,26 +18,37 @@ define([
         defaults: {
             stage: null,
             auth: null,
-	        user: null,
+            userAuth: null,
+	        user: "cliffhux",
+            customer_id: "2",
 	        id: null,
             showDetails: false
     },
 	toParams: function() {
-	    var ret = _.pick(this.attributes,['user', 'auth', 'id']);
+	    //console.log(this);
+        console.log("contextModel", this.userAuth)
+	    var ret = _.pick(this.attributes,['user','provider','startdate','enddate','encounter',
+		 			      'patients','department','userAuth', 'customer_id',
+					      'roles', 'pathid', 'userid']);
+        ret.id = ret.pathid
+	    //console.log(ret);
 	    for(var x in ret) {
-    		if(!ret[x]) {delete ret[x];}
+		if(ret[x] === null || (x != 'provider' && ret[x] === '')) {delete ret[x];}
 	    }
 	    return ret;
 	},
         //set the active user and get an auth key
-        setUser: function (user, pw, route) {
+    setUser: function (user, pw, route) {
 	    if (this.user != user || !this.userAuth) {
-		this.set('user', user);
-		//alert('setting user');
+        var that = this
+		alert('setting user');
 		this.fetch({
-		    data: JSON.stringify({user:user, password:pw}),
+
+		    data: JSON.stringify({user:"CLIFFHUX", customer_id: "2", password:"maven"}),
+
 		    type: 'POST',
 		    success: function() {
+
 			    Backbone.history.loadUrl(route);
 		    }
 		});

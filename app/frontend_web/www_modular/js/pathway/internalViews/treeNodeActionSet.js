@@ -24,8 +24,8 @@ define([
         },
         render: function(){
 
-            this.$el.html(this.template({selectedNode: curTree.get('selectedNode').attributes,
-                nodeType: curTree.get('selectedNode').getNodeType()}))
+       //     this.$el.html(this.template({selectedNode: curTree.get('selectedNode').attributes,
+      //          nodeType: curTree.get('selectedNode').getNodeType()}))
 
             return this;
         },

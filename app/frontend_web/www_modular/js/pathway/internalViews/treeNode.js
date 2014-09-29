@@ -85,13 +85,23 @@ define([
                     curTree.set('selectedNode', that.model, {silent: true})
                     if (currentContext.get('page')!='pathEditor'){
                        if (that.model.get('hideChildren') == "false"){
-                           curTree.collapse(that.model)
+
+                            curTree.collapse(that.model)
+
                        } else{
+
                             curTree.hideSiblings(that.model)
                             that.model.set('hideChildren', "false")
+
                        }
 
                     }
+                    console.log('stateCode', curTree.getStateCode())
+
+                    //TO DO encode the state in the context model
+
+                    //currentContext.set('pathState', curTree.getStateCode()
+
                     curTree.trigger('propagate')
 
                 })

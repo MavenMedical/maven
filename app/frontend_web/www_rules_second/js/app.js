@@ -19,21 +19,27 @@ define([
     var initialize = function () {
 
         $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
-            options.url = 'rule_services' + options.url;
+            options.url = 'services' + options.url;
         });
 
         contextModel.setUser('tom', 'pw', '#');
-        (new RuleList({el:$("#rule-list")})).render();
-         new RuleOverview({el:$("#rule-overview")});
-         new DetailOverview({el:$("#detail-list")});
+
+
          new TreeView({el:'#tree-view'});
         curRule.on('sync', function(){
             new SourceManager({el: $('#source-manager', this.$el)})
 
         }, this)
-         contextModel.on('change:auth', function(){
+         contextModel.on('sync', function(){
+
+            new RuleList({el:$("#rule-list")}).render();
+            new RuleOverview({el:$("#rule-overview")});
+             new TriggerEditor({el:$("#trigger-editor")});
+            new DetailOverview({el:$("#detail-list")})
             new EvidenceEditor({el:$("#evi-list")});
-            new TriggerEditor({el:$("#trigger-editor")});
+
+
+
          }, this);
 
     };

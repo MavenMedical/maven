@@ -18,7 +18,6 @@ define([
         initialize: function(parent){
             this.$el.html(this.template())
             CKEDITOR.replace('ProtocolText');
-            CKEDITOR.replace('NoteToCopyText');
 
 
             var that = this
@@ -26,7 +25,8 @@ define([
                 $("#detail-modal").modal({'show':'true'});
                 $("#addNodeButton", this.$el).on("click", function(){
                     var protocolText = CKEDITOR.instances.ProtocolText.getData();
-                    var noteToCopyText = CKEDITOR.instances.NoteToCopyText.getData();
+                    console.log("protocol text", protocolText)
+                    var noteToCopyText = $('#NoteToCopyText').val()
                     var p = new protocolNode({protocol: protocolText, noteToCopy:noteToCopyText});
                     that.parent.set('protocol', p )
                     curTree.set('selectedNode', p)

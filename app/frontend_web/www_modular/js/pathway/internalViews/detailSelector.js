@@ -14,7 +14,7 @@ define([
             this.el = param.el;
             var anon =  Backbone.Collection.extend( {url: '/details?'});
             this.searchedDetails = new anon();
-            contextModel.on('change:auth', this.other, this);
+            contextModel.on('change:auth', function(){this.search("")}, this);
 
         },
         other:function(){

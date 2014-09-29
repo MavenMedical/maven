@@ -84,7 +84,6 @@ class RuleService(HTTP.HTTPProcessor):
     @cache.cache_update(__name__, period_seconds=60*60*24, message_fn=lambda: ML.EXCEPTION("Failed to get med routes"))
     def update_med_routes(self):
         route_list = yield from self.search_interface.get_routes();
-        print("XXXXXXXXX")
         return {'routes': route_list}
 
     @asyncio.coroutine

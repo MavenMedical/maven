@@ -43,7 +43,6 @@ define([
         curRule.needsSave = true;
         curRule.trigger("needsSave")
     }
-    /* UNUSED OLD INPUT TYPE
     var editGenders = function(){
         var genders = prompt("Enter The New Genders (M, F, MF)");
         if (genders){
@@ -63,7 +62,6 @@ define([
         curRule.needsSave = true;
         curRule.trigger("needsSave")
         }
-        */
     //if the user switches the type of trigger from drugs to procedures or back
     var selectorType = function(){
         //set it into the data structure

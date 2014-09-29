@@ -11,10 +11,10 @@ define([
 ], function($, _, Backbone, contextModel, ruleModel){
     var RuleCollection = Backbone.Collection.extend(
 	{
-	    url: '/list',
+	    url: '/rulelist',
 
         newFetch: function() {
-
+        alert()
 		  	    this.fetch({
 
 
@@ -47,7 +47,7 @@ define([
              var toUpdate = ruleModel.get('id')
 		     ruleCollection.add(new Backbone.Model({name:ruleModel.get('name'),
 							    id:ruleModel.get('id')}));
-                    q
+
              _.each(ruleCollection.models, function(cur){
                  if (cur.get('id')==toUpdate){
                     cur.set({name: ruleModel.get('name')})

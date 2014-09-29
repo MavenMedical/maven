@@ -31,12 +31,15 @@ import utils.database.tree_persistance as TP
 import utils.streaming.webservices_core as WC
 from app.backend.webservices.transparent import TransparentWebservices
 from app.backend.webservices.pathways import PathwaysWebservices
+from app.backend.webservices.rule_editor import RuleEditorWebservices
+
 import app.backend.webservices.authentication as AU
 from app.backend.webservices.patient_mgmt import PatientMgmtWebservices
 from app.backend.webservices.user_mgmt import UserMgmtWebservices
 from app.backend.webservices.search import SearchWebservices
 from app.backend.webservices.administration import AdministrationWebservices
 from app.backend.webservices.support import SupportWebservices
+
 import app.backend.webservices.notification_service as NS
 
 ARGS = argparse.ArgumentParser(description='Maven Client Receiver Configs.')
@@ -212,7 +215,7 @@ def main(loop):
     for c in [AU.AuthenticationWebservices, PatientMgmtWebservices,
               UserMgmtWebservices, SearchWebservices,
               TransparentWebservices, PathwaysWebservices,
-              AdministrationWebservices, SupportWebservices]:
+              AdministrationWebservices, SupportWebservices, RuleEditorWebservices]:
         core_scvs.register_services(c('httpserver', rpc))
     core_scvs.schedule(loop)
 

@@ -40,6 +40,15 @@ define([
         })
 
     }
+    var getStateCode = function(node){
+
+        for (var c = 0; c<node.get('children').models.length; c++ ){
+            var cur = node.get('children').models[c]
+            if (cur.get('hideChildren')=='false')
+                return "c" + c + getStateCode(cur)
+        }
+        return ""
+    }
     var TreeModel = Backbone.Model.extend({
         elPairs: [],
         url: function() {
@@ -60,6 +69,10 @@ define([
             contextModel.on('change:pathid', function(){
                 that.fetch()
                 Backbone.history.navigate("pathway/1/pathid/"+contextModel.get('pathid'));
+            })
+            contextModel.on('change:pathState', function(){
+
+
             })
             this.fetch();
             this.elPairs = []
@@ -110,6 +123,9 @@ define([
                     pathwayCollection.fetch()
                 }
             })
+        },
+        getStateCode: function(){
+             return getStateCode(this)
         },
         parse: function(response){
             this.set({tooltip: response.tooltip}, {silent: true})
