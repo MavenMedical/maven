@@ -29,6 +29,16 @@ define([
 		    userCollection.more();
 		}
 	    });
+
+        that = this;
+        $(".refreshButton", this.$el).click(function(event){
+            $('.usertable > tbody', this.$el).empty();
+            userCollection.refresh();
+        });
+        $(".refreshButton", this.$el).hover(function(event) {
+            $(event.target).attr('title', "Last Refresh: " + userCollection.lastRefresh);
+        });
+
 	},
     events: {
 	    'click #save-user-changes': 'saveChanges',
@@ -77,6 +87,8 @@ define([
 	    } else {
 		this.$el.hide();
 	    }
+        var d = new Date();
+        userCollection.lastRefresh = d.getMonth() + '-' + d.getDate() + '-' + d.getFullYear() + ' ' + d.getHours() + ':' + d.getMinutes()  + ':' + d.getSeconds();
 
         var userlist = $('.useraccordion', this.$el);
         var usertable = $('.usertable', this.$el);
@@ -104,6 +116,9 @@ define([
 	    $('.usertable > tbody', this.$el).empty();
 	    this.$el.hide();
 	},
+    refresh: function() {
+        this.reset();
+    }
     });
 
     return UserList;

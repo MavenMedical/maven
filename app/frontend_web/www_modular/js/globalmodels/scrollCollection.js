@@ -17,6 +17,7 @@ define([
     offset: 0,
 	model: ScrollModel,
     data: "",
+    lastRefresh: "",
     context: function(){
 
         //context change listener - this will need to be defined by the subclass
@@ -38,6 +39,8 @@ define([
         this.fetch({
             data:data,
             remove:true});
+        var d = new Date();
+        this.lastRefresh = d.getMonth() + '-' + d.getDate() + '-' + d.getFullYear() + ' ' + d.getHours() + ':' + d.getMinutes()  + ':' + d.getSeconds();
         }
 
         //setup context change listener
