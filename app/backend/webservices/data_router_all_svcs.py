@@ -194,6 +194,22 @@ def main(loop):
     }
     MC.MavenConfig.update(MavenConfig)
 
+    persistence = WP.WebPersistence('persistence layer')
+    persistence.schedule()
+
+    @asyncio.coroutine
+    def get_key():
+        while True:
+            try:
+                yield from asyncio.sleep(1)
+                bytes = yield from persistence.shared_secret()
+                AK.set_secret(bytes)
+                return
+            except:
+                ML.EXCEPTION('Could not get secret from server')
+
+    asyncio.Task(get_key())
+
     rpc = RP.rpc(rpc_server_stream_processor)
     rpc.schedule(loop)
 
@@ -216,9 +232,11 @@ def main(loop):
         core_scvs.register_services(c('httpserver', rpc))
     core_scvs.schedule(loop)
 
-    notification_service, notification_fn, update_notify_prefs_fn = NS.notification_server(CONFIG_PARAMS.NOTIFY_SVC.value,
-                                                                                           server_endpoint,
-                                                                                           client_interface.notify_user)
+    (notification_service,
+     notification_fn,
+     update_notify_prefs_fn) = NS.notification_server(CONFIG_PARAMS.NOTIFY_SVC.value,
+                                                      server_endpoint,
+                                                      client_interface.notify_user)
     notification_service.schedule(loop)
 
     server_endpoint.set_notification_function(notification_fn)
