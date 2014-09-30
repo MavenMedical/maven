@@ -3,7 +3,7 @@ echo "local0.*		  /var/log/postgresql" | sudo tee -a /etc/rsyslog.conf
 #LUKS,install if nessecary 
 #yum install cryptsetup 
 
-sudo yum install postgresql93-server -y 
+sudo yum install postgresql93-server postgresql93-contrib -y 
 
 DATA_DRIVE=/dev/sdb
 PW="maven"
