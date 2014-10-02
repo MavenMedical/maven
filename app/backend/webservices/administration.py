@@ -46,17 +46,19 @@ class AdministrationWebservices():
         clientapp_settings = body
         body.update({CONFIG_PARAMS.EHR_USER_SYNC_INTERVAL.value: 60 * 60})
         if 'locked' in clientapp_settings:
-            is_valid_config = True  # HACK HACK
             clientapp_settings.pop('locked')
         else:
-            is_valid_config = yield from self.client_interface.test_customer_configuration(customer, clientapp_settings)
-        if is_valid_config:
-            yield from self.persistence.setup_customer(customer, clientapp_settings)
-            asyncio.Task(self.persistence.audit_log(user, 'change customer ehr settings', customer,
-                                                    details=json.dumps(clientapp_settings)))
-            return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
-        else:
-            return HTTP.BAD_RESPONSE, json.dumps(['FALSE']), None
+            try:
+                yield from self.client_interface.test_customer_configuration(customer,
+                                                                             clientapp_settings)
+            except Exception as e:
+                return HTTP.BAD_RESPONSE, json.dumps(str(e)), None
+
+        # at this point, the configuration has succeeded
+        yield from self.persistence.setup_customer(customer, clientapp_settings)
+        asyncio.Task(self.persistence.audit_log(user, 'change customer ehr settings', customer,
+                                                details=json.dumps(clientapp_settings)))
+        return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
 
     @http_service(['GET'], '/users(?:(\d+)-(\d+)?)?',
                   [CONTEXT.CUSTOMERID],

@@ -109,8 +109,8 @@ define([
                         userCollection.refresh();
                         setTimeout(userCollection.refresh, 7000);
                     },
-                    error: function (){
-                        alert("The server could NOT successfully connect using this configuration.");
+                    error: function (resp){
+                        alert("The server could NOT successfully connect using this configuration.  " + resp.responseJSON);
                         $("#save-admin-message").html("&nbsp;");
                     }
                 });
