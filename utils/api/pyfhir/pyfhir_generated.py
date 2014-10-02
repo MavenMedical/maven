@@ -799,6 +799,10 @@ class Composition(Resource):
             for alert in alerts_section.content:
                 if alert.category == type:
                     return alert
+        elif type == ALERT_TYPES.PATHWAY:
+            for alert in alerts_section.content:
+                if alert.category == type:
+                    return alert
         else:
             rtn_alerts = []
             for alert in alerts_section.content:
@@ -4801,7 +4805,7 @@ class Rule(Resource):
 
     def __init__(self, customer_id=None, CDS_rule_id=None, CDS_rule_status=None, code_trigger=None, code_trigger_type=None,
                  dep_id=None, name=None, short_title=None, long_title=None, short_description=None, long_description=None,
-                 rule_details=None, triggering_order=None):
+                 rule_details=None, protocol_details=None, triggering_order=None):
         Resource.__init__(self, customer_id=customer_id)
         self.CDS_rule_id = CDS_rule_id
         self.CDS_rule_status = CDS_rule_status
@@ -4814,6 +4818,7 @@ class Rule(Resource):
         self.short_description = short_description
         self.long_description = long_description
         self.rule_details = rule_details
+        self.protocol_details = protocol_details
         self.encounter_dx_rules = []
         self.historic_dx_rules = []
         self.encounter_proc_rules = []
@@ -4823,7 +4828,8 @@ class Rule(Resource):
         self.triggering_order = triggering_order
 
         # extract the rule_details JSON object into respective lists of each type
-        self._extract_rule_details(self.rule_details)
+        if self.rule_details:
+            self._extract_rule_details(self.rule_details)
 
     def _extract_rule_details(self, rule_details):
 
