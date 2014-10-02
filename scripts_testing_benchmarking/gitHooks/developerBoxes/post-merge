@@ -10,7 +10,7 @@ if [ ! -f $UPDATESLOG ]; then
    touch $UPDATESLOG
 fi
 
-for f in `git diff-tree -r --name-only HEAD ORIG_HEAD app/schema/updates/schema app/schema/updates/data | sort -n`; do
+for f in `git diff-tree -r --name-only HEAD ORIG_HEAD app/schema/updates/schema | sort -n` `git diff-tree -r --name-only HEAD ORIG_HEAD app/schema/updates/data | sort -n`; do
   echo $f
   if grep "SUCCEEDED: $f" $UPDATESLOG; then
     echo $f already succeeded in log, did someone update the file - which should not happen
