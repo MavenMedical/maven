@@ -408,8 +408,6 @@ class allscripts_api(http.http_api):
                                                             user=username, patient=patient))
         return self.postprocess(check_output(ret))
 
-    @hour_cache.cache_lookup('GetProviders', lookup_on_none=True,
-                             key_function=memory_cache.allargs)
     @_require_token
     def GetProviders(self):
         """
