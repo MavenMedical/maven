@@ -718,6 +718,39 @@ def get_matching_CDS_rules(composition, conn):
 
 
 @ML.coroutine_trace(timing=True, write=FHIR_DB_LOG.debug)
+def get_matching_pathways(composition, conn):
+    try:
+        # Pull a list of all the SNOMED CT codes from all of the conditions in the composition
+        # It's important the the list/array of problem list/encounter DXs is an empty list as opposed to being null
+        encounter_snomedIDs = composition.get_encounter_dx_snomeds()
+        problem_list_snomedIDs = composition.get_problem_list_dx_snomeds()
+        patient_age = composition.get_patient_age()
+
+        # TODO - Need to replace this placeholder list of meds with the real meds
+        patient_meds = []
+        args = [patient_age,
+                composition.subject.gender,
+                encounter_snomedIDs,
+                problem_list_snomedIDs,
+                composition.subject.get_pat_id(),
+                composition.customer_id,
+                patient_meds]
+        cur = yield from conn.execute_single("SELECT * FROM trees.evalnode(%s,%s,%s,%s,%s,%s,%s)", extra=args)
+
+        rtn_matched_rules = []
+        for result in cur:
+            FHIR_DB_LOG.debug("Result from DB query (get_matching_pathways): %s" % [(result[x]) for x in range(len(result))])
+            full_spec = result[3]
+            rtn_matched_rules.append(FHIR_API.Rule(protocol_details=full_spec,
+                                                   CDS_rule_id=result[0],
+                                                   name=result[1],
+                                                   short_description=result[2]))
+        return rtn_matched_rules
+    except:
+        raise Exception("Error matching pathways from database")
+
+
+@ML.coroutine_trace(timing=True, write=FHIR_DB_LOG.debug)
 def get_alternative_meds(order, composition, conn):
     return []
 
