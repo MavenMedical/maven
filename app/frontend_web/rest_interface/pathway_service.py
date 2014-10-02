@@ -10,7 +10,7 @@ __author__ = 'Tom DuBois'
 # ************************
 
 import json
-import utils.database.tree_persistance as TP
+import utils.database.tree_persistence as TP
 import utils.database.web_search as WS
 import utils.streaming.stream_processor as SP
 import asyncio
@@ -60,7 +60,7 @@ class pathway_service(HTTP.HTTPProcessor):
         self.add_handler(['POST'], '/login/0', self.post_login)
         self.add_handler(['DELETE'], '/tree', self.delete_pathway)
         self.helper = HH.HTTPHelper([CONTEXT_USER], CONTEXT_AUTH, AUTH_LENGTH)
-        self.save_interface = TP.tree_persistance('persistance')
+        self.save_interface = TP.tree_persistence('persistance')
         self.search_interface = WS.web_search('search')
 
     @asyncio.coroutine
