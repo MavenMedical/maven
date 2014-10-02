@@ -461,8 +461,12 @@ class allscripts_api(http.http_api):
                                        'SOAPAction': '"http://www.allscripts.com/Unity/IUnityService/Magic"'
                                    })
         try:
-            root = ETree.fromstring(ret)[0][0][0][1][0]  # Magic contains lots of fluff
-            return [{elem.tag: elem.text for elem in row} for row in root]
+            root = ETree.fromstring(ret)[0][0][0][1]
+            if len(root):
+                return [{elem.tag: elem.text for elem in row} for row in root[0]]
+            else:
+                return []
+
         except ETree.ParseError as e:
             raise AllscriptsError('Error parsing XML ' + e)
 
