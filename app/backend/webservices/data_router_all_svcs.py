@@ -27,7 +27,7 @@ import maven_config as MC
 import utils.crypto.authorization_key as AK
 import maven_logging as ML
 from utils.streaming.http_svcs_wrapper import CONFIG_PERSISTENCE
-import utils.database.tree_persistance as TP
+import utils.database.tree_persistence as TP
 import utils.streaming.webservices_core as WC
 from app.backend.webservices.transparent import TransparentWebservices
 from app.backend.webservices.pathways import PathwaysWebservices

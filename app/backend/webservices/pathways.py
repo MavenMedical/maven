@@ -15,7 +15,7 @@ __author__ = 'Yuki Uchino'
 # LAST MODIFIED FOR JIRA ISSUE: MAV-303
 # *************************************************************************
 import utils.database.web_search as WS
-import utils.database.tree_persistance as TP
+import utils.database.tree_persistence as TP
 import maven_config as MC
 from utils.streaming.http_svcs_wrapper import CONTEXT, http_service, EMPTY_RETURN
 from utils.enums import USER_ROLES
@@ -28,7 +28,7 @@ class PathwaysWebservices():
     def __init__(self, configname, _rpc):
         # config = MC.MavenConfig[configname]
         self.search_interface = WS.web_search('search')
-        self.save_interface = TP.tree_persistance('persistance')
+        self.save_interface = TP.tree_persistence('persistance')
 
     @http_service(['GET'], '/list',
                   [],
@@ -95,7 +95,7 @@ class PathwaysWebservices():
 def run():
     from utils.database.database import AsyncConnectionPool
     import utils.streaming.stream_processor as SP
-    import utils.database.tree_persistance as TP
+    import utils.database.tree_persistence as TP
     import utils.streaming.webservices_core as WC
     import asyncio
 
