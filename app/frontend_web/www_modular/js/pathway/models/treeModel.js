@@ -139,7 +139,13 @@ define([
             this.set({children: newChildren}, {silent: true})
             this.set({hideChildren: "true"}, {silent: true})
             this.once('sync',  function(){recursiveCollapse(this)}, this)
-            this.set({triggers: new Backbone.Model(response.triggers)}, {silent: true})
+            var triggers = new Backbone.Model()
+            _.each(response.triggers, function(value, key){
+                var curCollection = new Backbone.Collection(value)
+                triggers.set(key, curCollection)
+
+            })
+            this.set({triggers: triggers}, {silent: true})
 
         }
 
