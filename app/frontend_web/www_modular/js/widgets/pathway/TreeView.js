@@ -37,7 +37,7 @@ define([
                       var target = $(param1.explicitOriginalTarget)
                     console.log(target.closest('.click-tracked'))
                       if (target.closest('.click-tracked').length){
-                          var id = target.closest('.click-tracked').attr(clickid)
+                          var id = target.closest('.click-tracked').attr('clickid')
                           /*
                                 click tracking code goes here
                            */
