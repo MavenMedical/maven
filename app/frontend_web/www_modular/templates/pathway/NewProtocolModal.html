@@ -20,6 +20,29 @@
                         <textarea id="NoteToCopyText" class="form-control" placeholder="">
                         </textarea>
                     </div>
+
+                    <div class="form-group">
+                        <span class="headings">Send Defaults:</span><br/>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="row">
+                                    <div class="search-box" style='width:10%;'></div>
+                                    <form class="search-box">
+                                        <div class="input-group input-group-sm" style="max-width:360px;">
+                                              Recipient:<input type="text" class="form-control" placeholder="Search Provider"
+                                                 name="protocolRecipient" id="defaultRecipient" >
+                                            <input id="defaultRecipientName" name="defaultRecipientName" type="hidden" value="">
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="row">
+                                    Quick Note:<textarea size=10 id="defaultQuickNote" type="text" class="form-control" placeholder=""></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
 

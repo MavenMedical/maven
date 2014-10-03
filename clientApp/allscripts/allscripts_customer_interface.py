@@ -58,8 +58,7 @@ class AllscriptsCustomerInterface:
 
     @asyncio.coroutine
     def validate_config(self):
-        working = yield from self.ahc.test_login()
-        return working
+        yield from self.ahc.test_login()
 
     @asyncio.coroutine
     def start(self):

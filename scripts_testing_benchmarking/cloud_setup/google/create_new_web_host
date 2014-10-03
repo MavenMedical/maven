@@ -20,11 +20,11 @@ if ! (gcutil listinstances | grep $SYSNAME) then
     exit 1
 fi
 
-gcutil push $SYSNAME /media/readyshare/public_keys/deploy-key /media/readyshare/public_keys/github .
+gcutil push $SYSNAME /media/readyshare/public_keys/deploy-key /media/readyshare/public_keys/github_server_fingerprint .
 gcutil push $SYSNAME /media/readyshare/public_keys/dev-server.crt server.crt
 gcutil push $SYSNAME /media/readyshare/public_keys/dev-server.key server.key
 
-gcutil push $SYSNAME common web_host_only .
+gcutil push $SYSNAME common web_host_only ~/.bashrc .
 gcutil push $SYSNAME ~/maven/app/schema .
 echo "bash common" | gcutil ssh $SYSNAME 
 echo "bash web_host_only" | gcutil ssh $SYSNAME

@@ -66,8 +66,8 @@ define([
         },
 
         send: function () {
-                var newSendProtocol = new SendProtocol(this.model);
 
+            var newSendProtocol = new SendProtocol(this.model);
         },
         sendSetup: function () {
 

@@ -41,6 +41,14 @@ define([
                 });
             }
         });
+
+        $(".refreshButton", this.$el).click(function(event){
+            $('.customertable > tbody', this.$el).empty();
+            customerCollection.refresh();
+          });
+        $(".refreshButton", this.$el).hover(function(event) {
+            $(event.target).attr('title', "Last Refresh: " + customerCollection.lastRefresh);
+        });
 	},
     events: {
 	    'click #save-customer-changes': 'saveChanges',
@@ -88,6 +96,9 @@ define([
 	    } else {
 		this.$el.hide();
 	    }
+
+        var d = new Date();
+        customerCollection.lastRefresh = d.getMonth() + '-' + d.getDate() + '-' + d.getFullYear() + ' ' + d.getHours() + ':' + d.getMinutes()  + ':' + d.getSeconds();
 
         var customerlist = $('.customeraccordion', this.$el);
         setTimeout(function() {

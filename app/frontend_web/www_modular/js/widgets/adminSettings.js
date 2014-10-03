@@ -24,7 +24,7 @@ define([
             'click .setup-admin-button': 'adminSetup',
             'click .unlock-admin-button': 'unlockSettings',
             'click .lock-admin-button': 'lockSettings',
-	    'change #httphttps': 'httphttps'
+	        'change #httphttps': 'httphttps'
         },
 	httphttps: function() {
 	    if($("#httphttps").find(":selected").text() == 'http://') {
@@ -58,7 +58,7 @@ define([
             var polling = $("#admin-polling-input").val();
             var timeout = $("#admin-timeout-input").val();
             var username = "MavenPathways";
-	    var unlocked = $(".lock-admin-button").is(':visible');
+	        var unlocked = $(".lock-admin-button").is(':visible');
 	    
             var reg_num = new RegExp('^[0]*[1-9]+[0]*$');
             /*var reg_ip = new RegExp('^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$');
@@ -85,7 +85,7 @@ define([
             else {
 		var protocol = $("#httphttps").find(":selected").text();
 		var data;
-		if (unlocked) {
+		if (unlocked || !this.model.attributes.settings) {
 		    console.log('loading from fields');
 		    data = {
 			    "EHRURL": $.trim(protocol) + $.trim(ip)+ "/Unity/UnityService.svc",
@@ -107,10 +107,10 @@ define([
                         $("#save-admin-message").html("Settings saved!");
                         alert("Success! Connection to EHR established.");
                         userCollection.refresh();
-                        setTimeout(userCollection.refresh, 7);
+                        setTimeout(userCollection.refresh, 7000);
                     },
-                    error: function (){
-                        alert("The server could NOT successfully connect using this configuration.");
+                    error: function (resp){
+                        alert("The server could NOT successfully connect using this configuration.  " + resp.responseJSON);
                         $("#save-admin-message").html("&nbsp;");
                     }
                 });

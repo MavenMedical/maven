@@ -26,6 +26,15 @@ define([
     };
 
     customerCollection.initialize();
+    customerCollection.refresh = function() {
+        if(contextModel.get('userAuth')) {
+            this.tried = 0;
+            this.offset = 0;
+            customerCollection.fetch({
+                data:$.param(contextModel.toParams()),
+                remove:true});
+        }
+    };
 
     return customerCollection;
 });

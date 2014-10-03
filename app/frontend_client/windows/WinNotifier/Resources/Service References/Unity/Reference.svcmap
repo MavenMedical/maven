@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="a410f96a-5e45-4a67-bf4c-b50f4b6b8938" xmlns="urn:schemas-microsoft-com:xml-wcfservicemap">
+  <ClientOptions>
+    <GenerateAsynchronousMethods>false</GenerateAsynchronousMethods>
+    <GenerateTaskBasedAsynchronousMethod>true</GenerateTaskBasedAsynchronousMethod>
+    <EnableDataBinding>true</EnableDataBinding>
+    <ExcludedTypes />
+    <ImportXmlTypes>false</ImportXmlTypes>
+    <GenerateInternalTypes>false</GenerateInternalTypes>
+    <GenerateMessageContracts>false</GenerateMessageContracts>
+    <NamespaceMappings />
+    <CollectionMappings />
+    <GenerateSerializableTypes>true</GenerateSerializableTypes>
+    <Serializer>Auto</Serializer>
+    <UseSerializerForFaults>true</UseSerializerForFaults>
+    <ReferenceAllAssemblies>true</ReferenceAllAssemblies>
+    <ReferencedAssemblies />
+    <ReferencedDataContractTypes />
+    <ServiceContractMappings />
+  </ClientOptions>
+  <MetadataSources>
+    <MetadataSource Address="http://192.237.182.238/Unity/UnityService.svc" Protocol="http" SourceId="1" />
+  </MetadataSources>
+  <Metadata>
+    <MetadataFile FileName="UnityService.xsd" MetadataType="Schema" ID="1f4f097e-cc38-4281-80ac-f35f4eb2f2b6" SourceId="1" SourceUrl="http://pro14ga.unitysandbox.com/Unity/UnityService.svc?xsd=xsd4" />
+    <MetadataFile FileName="UnityService.disco" MetadataType="Disco" ID="fb2ac514-1fc8-4f62-914c-0c2139f93a31" SourceId="1" SourceUrl="http://pro14ga.unitysandbox.com/Unity/UnityService.svc?disco" />
+    <MetadataFile FileName="UnityService1.xsd" MetadataType="Schema" ID="010a9750-c674-408c-ab2d-ae4400f8218c" SourceId="1" SourceUrl="http://pro14ga.unitysandbox.com/Unity/UnityService.svc?xsd=xsd3" />
+    <MetadataFile FileName="UnityService.wsdl" MetadataType="Wsdl" ID="6282aa8f-1218-4428-aa98-9ab302f2674c" SourceId="1" SourceUrl="http://pro14ga.unitysandbox.com/Unity/UnityService.svc?wsdl=wsdl0" />
+    <MetadataFile FileName="UnityService1.wsdl" MetadataType="Wsdl" ID="831760da-cbe8-40bf-aa2b-b5a4324127d6" SourceId="1" SourceUrl="http://pro14ga.unitysandbox.com/Unity/UnityService.svc?wsdl" />
+    <MetadataFile FileName="UnityService2.xsd" MetadataType="Schema" ID="7540fabf-6c89-424e-bf44-54a222fe6658" SourceId="1" SourceUrl="http://pro14ga.unitysandbox.com/Unity/UnityService.svc?xsd=xsd0" />
+    <MetadataFile FileName="UnityService3.xsd" MetadataType="Schema" ID="49cd8cc8-2256-4626-bfff-4bfe13e74f8a" SourceId="1" SourceUrl="http://pro14ga.unitysandbox.com/Unity/UnityService.svc?xsd=xsd2" />
+    <MetadataFile FileName="UnityService4.xsd" MetadataType="Schema" ID="038f149a-06b7-4464-ad7e-400ecf6f7a44" SourceId="1" SourceUrl="http://pro14ga.unitysandbox.com/Unity/UnityService.svc?xsd=xsd1" />
+  </Metadata>
+  <Extensions>
+    <ExtensionFile FileName="configuration91.svcinfo" Name="configuration91.svcinfo" />
+    <ExtensionFile FileName="configuration.svcinfo" Name="configuration.svcinfo" />
+  </Extensions>
+</ReferenceGroup>

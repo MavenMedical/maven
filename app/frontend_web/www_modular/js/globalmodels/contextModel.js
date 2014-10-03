@@ -28,6 +28,7 @@ define([
     var contextModel;
 
     var loginCallback = function (res) {
+        console.log('login call back', contextModel);
 	contextModel.set({'loginTemplate':null});
 	//if(res.get('stylesheet')) {
 
@@ -113,7 +114,7 @@ define([
 		    }
 		if(newpw)
 		    data.newpassword=newpw;
-		this.fetch({success: loginCallback,
+		this.fetch({success:  loginCallback,
 			    error: function(request, response) { that.set(response.responseJSON);},
 			    data: JSON.stringify(data),
 			    type: 'POST'});

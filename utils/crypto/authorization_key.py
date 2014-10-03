@@ -13,12 +13,17 @@ import maven_logging as ML
 # When asking for details, if we can recreate the hash (and the user is authenticated), the user's
 # authorization is confirmed.
 # For now this is random, so it will not work between servers and is intentionally broken.
-_TEMPORARY_SECRET = SHA256.new()
-_TEMPORARY_SECRET.update(b'123')  # """bytes([random.randint(0,255) for _ in range(128)]))
+_SECRET = None
 
 
 class UnauthorizedException(Exception):
     pass
+
+
+def set_secret(b):
+    global _SECRET
+    _SECRET = SHA256.new()
+    _SECRET.update(b)
 
 
 def bytestostring(b):
@@ -30,8 +35,10 @@ def stringtobytes(s):
 
 
 def authorization_key(data, length=44, timeout=None, timecode=None):
-    global _TEMPORARY_SECRET
-    sha = _TEMPORARY_SECRET.copy()
+    global _SECRET
+    if not _SECRET:
+        raise Exception('Cannot generate any cryptographic information with a valid key')
+    sha = _SECRET.copy()
     return _authorization_key(sha, data, length, timeout, timecode)
 
 

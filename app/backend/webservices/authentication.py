@@ -96,7 +96,7 @@ class AuthenticationWebservices():
 
                 except IndexError:
                     raise LoginError('badLogin')
-                passhash = user_info[WP.Results.password].tobytes()
+                passhash = user_info[WP.Results.password]
                 if (not passhash or
                         bcrypt.hashpw(bytes(info[CONTEXT.PASSWORD], 'utf-8'),
                                       passhash[:29]) != passhash):

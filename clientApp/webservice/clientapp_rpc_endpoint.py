@@ -36,28 +36,16 @@ class ClientAppEndpoint():
         else:
             aci = ACI.AllscriptsCustomerInterface(customer_id, config,
                                                   self.server_interface)
-            config_isValid = yield from aci.validate_config()
-            if config_isValid:
-                yield from aci.start()
-                self.customer_interfaces[customer_id] = aci
-                return True
-            else:
-                return False
+            yield from aci.validate_config()  # raises on failure
+            yield from aci.start()
+            self.customer_interfaces[customer_id] = aci
 
     @asyncio.coroutine
     def test_customer_configuration(self, customer_id, config):
-        try:
-            aci = ACI.AllscriptsCustomerInterface(customer_id, config,
-                                                  self.server_interface)
-
-            is_valid_config = yield from aci.validate_config()
-            if is_valid_config:
-                yield from self.update_customer_configuration(customer_id, config)
-                return True
-            else:
-                return False
-        except:
-            return False
+        aci = ACI.AllscriptsCustomerInterface(customer_id, config,
+                                              self.server_interface)
+        yield from aci.validate_config()  # raises on failure
+        yield from self.update_customer_configuration(customer_id, config)
 
     @asyncio.coroutine
     def notify_user(self, customer_id, user_name, subject, msg, patient=None, target=None):

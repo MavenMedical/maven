@@ -7,13 +7,25 @@ define([
     'globalmodels/userCollection',
     'singleRow/userRow',
 
-    'globalmodels/contextModel'
-], function ($, _, Backbone, userCollection, UserRow, contextModel) {
+    'globalmodels/contextModel',
+    'text!templates/userScroll.html',
+
+], function ($, _, Backbone, userCollection, UserRow, contextModel, UserListTemplate, targetCustomer) {
 
     var UserList = Backbone.View.extend({
+    target_customer: '',
 	initialize: function(arg) {
-	    this.typeFilter = arg.typeFilter;
-	    this.template = _.template(arg.template); // this must already be loaded
+        if (typeof arg.template !== "undefined") {
+            this.template = _.template(arg.template); // this must already be loaded
+        }
+        else {
+            this.template = _.template(UserListTemplate);
+        }
+        if (typeof arg.target_customer !== "undefined") {
+            userCollection.target_customer = arg.target_customer;
+            userCollection.refresh();
+        }
+
         this.$el.html(this.template({height:$(window).height()-50+'px'}));
 	    userCollection.bind('add', this.addUser, this);
 	    userCollection.bind('reset', this.reset, this);
@@ -29,6 +41,15 @@ define([
 		    userCollection.more();
 		}
 	    });
+
+        $(".refreshButton", this.$el).click(function(event){
+            $( '.usertable > tbody', this.$el).empty();
+            userCollection.refresh();
+        });
+        $(".refreshButton", this.$el).hover(function(event) {
+            $(event.target).attr('title', "Last Refresh: " + userCollection.lastRefresh);
+        });
+
 	},
     events: {
 	    'click #save-user-changes': 'saveChanges',
@@ -64,7 +85,6 @@ define([
 	},
 	addAll: function() {
 	    this.reset();
-	    var typefilter = this.typeFilter; 
 	    var nonempty = false;
 	    if (userCollection.length) {
 		for(user in userCollection.models) {
@@ -77,6 +97,8 @@ define([
 	    } else {
 		this.$el.hide();
 	    }
+        var d = new Date();
+        userCollection.lastRefresh = d.getMonth() + '-' + d.getDate() + '-' + d.getFullYear() + ' ' + d.getHours() + ':' + d.getMinutes()  + ':' + d.getSeconds();
 
         var userlist = $('.useraccordion', this.$el);
         var usertable = $('.usertable', this.$el);
@@ -104,6 +126,9 @@ define([
 	    $('.usertable > tbody', this.$el).empty();
 	    this.$el.hide();
 	},
+    refresh: function() {
+        this.reset();
+    }
     });
 
     return UserList;
