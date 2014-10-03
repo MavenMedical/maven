@@ -24,7 +24,7 @@ define([
             'click .setup-admin-button': 'adminSetup',
             'click .unlock-admin-button': 'unlockSettings',
             'click .lock-admin-button': 'lockSettings',
-	    'change #httphttps': 'httphttps'
+	        'change #httphttps': 'httphttps'
         },
 	httphttps: function() {
 	    if($("#httphttps").find(":selected").text() == 'http://') {
@@ -58,7 +58,7 @@ define([
             var polling = $("#admin-polling-input").val();
             var timeout = $("#admin-timeout-input").val();
             var username = "MavenPathways";
-	    var unlocked = $(".lock-admin-button").is(':visible');
+	        var unlocked = $(".lock-admin-button").is(':visible');
 	    
             var reg_num = new RegExp('^[0]*[1-9]+[0]*$');
             /*var reg_ip = new RegExp('^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$');

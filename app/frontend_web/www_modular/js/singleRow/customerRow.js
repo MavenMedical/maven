@@ -9,8 +9,12 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'globalmodels/contextModel',
-    'text!templates/customerRow.html'
-], function ($, _, Backbone, contextModel, customerRowTemplate) {
+    'text!templates/customerRow.html',
+
+    'widgets/widgetModal',
+    'widgets/userList'
+
+], function ($, _, Backbone, contextModel, customerRowTemplate, WidgetModal, userList) {
     var customerRow = Backbone.View.extend({
         tagName: 'tr class=\'customer-row\'',
         template: _.template(customerRowTemplate),
@@ -30,14 +34,23 @@ define([
                     $(".customer-row-edit").hide();
                     $(".customer-row-val").show();
 
-                    //show customer edit fields for this row
-                    //$(that.el).find(".customer-row-edit").show();
-                    $(that.el).find(".customer-row-val").hide();
-                    $(that.el).find(".customer-row-edit").each(function(){
-                        $(this).width($(this).parent().width()-5);
-                      //  $(this).attr('width')
-                        $(this).show();
-                    });
+                    if (!$(".customer-info-click", this.$el).is(e.target) &&
+                        $(".customer-info-click", this.$el).has(e.target).length === 0) {
+
+                        //show customer edit fields for this row if target is not the info click button
+                        $(that.el).find(".customer-row-val").hide();
+                        $(that.el).find(".customer-row-edit").each(function () {
+                            $(this).width($(this).parent().width() - 5);
+                            //  $(this).attr('width')
+                            $(this).show();
+                        });
+                    }
+                    else
+                    {
+                        //show customer info modal if user clicked on 'view info' button
+                        var widgetModal = new WidgetModal({widgetList: [userList]});
+                        widgetModal.render({target_customer: that.model.attributes.customer_id});
+                    }
                 });
             });
         }

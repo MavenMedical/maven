@@ -802,3 +802,7 @@ border-right: 1px solid rgb(204, 204, 204);
 
 /* Needed to make autocomplete work in modals */
 ul.ui-autocomplete.ui-menu {   z-index: 100000; }
+
+.modal-dialog-lg {
+    width:800px;
+}

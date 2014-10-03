@@ -309,8 +309,8 @@ class WebPersistence():
         cmdargs.extend([name, abbr, license_num, license_exp])
         cmd.append("where customer_id = %s")
         cmdargs.append(customer)
-        ret = yield from self.execute(cmd, cmdargs, _build_format(), {0: 'customer_id'})
-        return [row['customer_id'] for row in ret]
+        self.execute(cmd, cmdargs, _build_format(), {0: 'customer_id'})
+        # return [row['customer_id'] for row in ret]
 
     @asyncio.coroutine
     def add_customer(self, name, abbr, license, license_exp, config):
