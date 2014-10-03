@@ -37,6 +37,18 @@
                     </div>
                 </div>
                 <div class="col-sm-6">
+                    <div class="row">
+                        <div class="span3">Service User:</div>
+                        <input id="admin-username-input" class='form-control' type="text"
+                            <%= (typeof EHRServiceUser !== 'undefined') ? "value='"+EHRServiceUser+"' disabled" : "value='MavenPathways'" %>>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="row">
+                        &nbsp;
+                    </div>
+                </div>
+                <div class="col-sm-6">
                     <div class="row" style='margin-bottom:10px;'>
                         <div class="span3">App Password:</div>
                         <input id="admin-pw-input" class='form-control' type="password"

@@ -63,7 +63,8 @@ class AdministrationWebservices():
     @http_service(['GET'], '/users(?:(\d+)-(\d+)?)?',
                   [CONTEXT.CUSTOMERID],
                   {CONTEXT.CUSTOMERID: int, CONTEXT.ROLES: list,
-                   CONTEXT.TARGETROLE: str, CONTEXT.TARGETUSER: str},
+                   CONTEXT.TARGETROLE: str, CONTEXT.TARGETUSER: str,
+                   CONTEXT.TARGETCUSTOMER: int},
                   {USER_ROLES.administrator, USER_ROLES.provider,
                    USER_ROLES.mavensupport, USER_ROLES.supervisor})
     def get_users(self, _header, _body, context, matches, _key):
@@ -71,6 +72,10 @@ class AdministrationWebservices():
         roles = context[CONTEXT.ROLES]
         targetrole = context.get(CONTEXT.TARGETROLE, None)
         targetuser = context.get(CONTEXT.TARGETUSER, None)
+        targetcustomer = context.get(CONTEXT.TARGETCUSTOMER, None)
+        if targetcustomer and USER_ROLES.mavensupport.value in roles:
+            customer = targetcustomer
+
         limit = self.helper.limit_clause(matches)
 
         if {USER_ROLES.administrator.value, USER_ROLES.provider.value,
