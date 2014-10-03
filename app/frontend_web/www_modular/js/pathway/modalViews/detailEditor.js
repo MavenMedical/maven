@@ -12,10 +12,12 @@ define([
 ], function ($, _, Backbone, Helpers, detailSearchBox, multiSelectSearch, editorTemplate) {
 
     var DetailEditor = Backbone.View.extend({
-         template: _.template(editorTemplate),
+        //replace this load with one which will take a parameter template
+        template: _.template(editorTemplate),
          el: '#modal-target',
         initialize: function(param){
             this.triggerNode = param.triggerNode
+            //replace this load with one which will take a parameter template
             this.$el.html(this.template())
             var multiSearchEl = $('.multi-select-search', this.$el)
             var panel = this
@@ -37,7 +39,16 @@ define([
 
                     }
                     cur.set('exists', $('#existsField').val());
-                    panel.triggerNode.get('triggers').add(cur)
+
+                    //replace this, hardcoded for enc_dx, to create a new collection named after the currently loaded
+                    //template, in the case that such a collection doesnt already exist in triggers
+                    if (!panel.triggerNode.get('triggers').get('enc_dx')){
+                        panel.triggerNode.get('triggers').set('enc_dx', new Backbone.Collection())
+                    }
+                    //replace this, hard coded for enc_dx to add the new detail to the correct collection, based on
+                    //which template we loaded
+                    panel.triggerNode.get('triggers').get('enc_dx').add()
+
 
                 })
                 $('#detail-modal').modal('hide')

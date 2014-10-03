@@ -2,17 +2,17 @@ define([
     'jquery',
     'underscore',
     'backbone',
-   'globalmodels/contextModel',
+    'globalmodels/contextModel',
 
 ], function($, _, Backbone, contextModel){
 
 
 
     var NodeList = Backbone.Collection.extend({
-        initialize: function(childSet){
+        populate: function(childSet, curTree){
             if (childSet){
                 _.each(childSet, function(cur){
-                    this.add(new NodeModel(cur), {silent: true})
+                    this.add(new NodeModel(cur, curTree), {silent: true})
                 }, this)
             }
         },
@@ -36,10 +36,16 @@ define([
           return "treeNode"
         },
 
-        initialize: function(params){
-
+        initialize: function(params, curTree){
+            if (!params.nodeID){
+                this.set('nodeID', curTree.getNextNodeID(), {silent: true})
+            } else {
+                this.set('nodeID', params.nodeID, {silent: true})
+            }
             if (!params.children){params.children = []}
-                 this.set({children: new NodeList(params.children)}, {silent:true})
+            var newChildren = new NodeList()
+            newChildren.populate(params.children, curTree)
+            this.set({children: newChildren}, {silent:true})
 
             _.each(this.get('children').models, function(cur){
                 cur.set({'hideChildren': "true"}, {silent: true})

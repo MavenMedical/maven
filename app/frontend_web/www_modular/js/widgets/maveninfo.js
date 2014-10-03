@@ -38,13 +38,13 @@ define([
                     /*setTimeout(function () {
                         that.$el.hide(3000);
                     }, 5000);
-                    */
-                });
-                }
+                   */
+               });
+               }
                 }
 
 
-                return this;
+       //         return this;
             },
             hidePopup: function(){
                 this.$el.hide(400);

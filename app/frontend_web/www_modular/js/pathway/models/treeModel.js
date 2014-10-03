@@ -32,6 +32,7 @@ define([
     }
     var recursiveCollapse= function(node){
         node.set('hideChildren', "true")
+
         _.each(node.attributes.children.models, function(cur){
             recursiveCollapse(cur)
         })
@@ -60,7 +61,10 @@ define([
             this.fetch();
             this.elPairs = []
 
-
+        },
+        getNextNodeID: function(){
+            this.set('nodeCount', this.get('nodeCount')+1, {silent: true})
+            return this.get('nodeCount')
         },
         hideSiblings: function(toHide){
             hideSiblingsRecur(this, toHide)
@@ -94,29 +98,48 @@ define([
             return retMap
         },
         loadNewPathway: function(params){
-            this.set('triggers', new Backbone.Collection(), {silent: true})
+
+            this.set('triggers', new Backbone.Model(), {silent: true})
             this.set('sidePanelText', "",  {silent: true})
             this.set('tooltip', params.tooltip, {silent: true})
             this.set('children', new NodeList(), {silent: true})
             this.set('name', params.name, {silent: true})
             this.set('protocol', null, {silent: true})
+            this.set('nodeCount', 0, {silent: true})
+            this.set('nodeID', this.getNextNodeID(), {silent: true})
+
             this.unset('id', {silent: true})
             var that = this
             this.save({}, {success: function(){
                     pathwayCollection.fetch()
                 }
             })
+
         },
         parse: function(response){
+            if (!response.nodeCount){
+                this.set({nodeCount: 0}, {silent: true})
+                console.log('didnt find a node count setting to 0')
+            } else {
+                this.set('nodeCount', response.nodeCount, {silent: true})
+                console.log('found a node count setting to ', response.nodeCount)
+            }
+            if (!response.nodeID){
+                this.set('nodeID', this.getNextNodeID(), {silent: true})
+            } else {
+                this.set('nodeID', response.nodeID, {silent: true})
+            }
             this.set({tooltip: response.tooltip}, {silent: true})
             this.set({sidePanelText: response.sidePanelText}, {silent: true})
             this.set({id: response.pathid}, {silent: true})
             this.set({protocol: response.protocol}, {silent: true})
             this.set({name: response.name}, {silent: true})
-            this.set({children: new NodeList(response.children)}, {silent: true})
+            var newChildren = new NodeList()
+            newChildren.populate(response.children, this)
+            this.set({children: newChildren}, {silent: true})
             this.set({hideChildren: "true"}, {silent: true})
             this.once('sync',  function(){recursiveCollapse(this)}, this)
-            this.set({triggers: new Backbone.Collection(response.triggers)}, {silent: true})
+            this.set({triggers: new Backbone.Model(response.triggers)}, {silent: true})
 
         }
 

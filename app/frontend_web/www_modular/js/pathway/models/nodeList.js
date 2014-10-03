@@ -8,10 +8,11 @@ define([
 ], function($, _, Backbone, contextModel, NodeModel){
 
     var NodeList = Backbone.Collection.extend({
-        initialize: function(childSet){
+        populate: function(childSet, curTree){
             if (childSet){
                 _.each(childSet, function(cur){
-                    this.add(new NodeModel(cur), {silent: true})
+                    var toAdd = new NodeModel(cur, curTree)
+                    this.add(toAdd, {silent: true})
                 }, this)
             }
         },

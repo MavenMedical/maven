@@ -11,6 +11,7 @@ define([
     'ckeditor'
 ], function ($, _, Backbone, Bootstrap, AppRouter, editor) {
     var initialize = function () {
+
         // Pass in our Router module and        call it's initialize function
         new AppRouter;
     };
