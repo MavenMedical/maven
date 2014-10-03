@@ -50,11 +50,8 @@ class UnauthorizedUser(Exception):
     pass
 
 
-class AllscriptsError(Exception):
-
-    def __init__(self, string):
-        WARN("Exception invalid response from allscripts: %s", str(string))
-        Exception(self, "Exception invalid response from allscripts: %s", str(string))
+class AllscriptsError(http.HttpClientException):
+    pass
 
 
 def check_output(jobj, empty_ok=False):
@@ -148,14 +145,14 @@ class allscripts_api(http.http_api):
                 req = yield from self.post('/json/GetToken',
                                            Username=self.appusername,
                                            Password=self.apppassword)
-                if req.startswith('error'):
+                if not req or req.startswith('error'):
                     raise AllscriptsError('Could not get token - ' + req)
                 INFO('Acquired token')
                 self.unitytoken = req
                 fut.set_result(req)
             except Exception as e:
-                EXCEPTION(e)
-                yield from asyncio.sleep(10)
+                WARN(e)
+            yield from asyncio.sleep(10)
 
     def _require_token(func: 'function') -> 'function':
         """ decorator for functions which require a security token before executing
@@ -176,21 +173,25 @@ class allscripts_api(http.http_api):
                     if e.args[0].find('you have been logged out') >= 0:
                         self.unitytoken = None
                         WARN(e.args[0])
-                        yield from asyncio.sleep(1)
+                    else:
+                        EXCEPTION('unknown allscripts exception')
+                    yield from asyncio.sleep(10)
 
         return asyncio.coroutine(wraps(func)(worker))
 
     @asyncio.coroutine
     def test_login(self):
-        try:
-            req = yield from self.post('/json/GetToken',
-                                       Username=self.appusername,
-                                       Password=self.apppassword)
-            if not req or req.startswith('error'):
-                raise AllscriptsError('Could not get token - ' + req)
-            return True
-        except OsConnectionError:
-            return False
+        """ Tests a login and captures the unitytoken, returns None on success, raises on failure
+        """
+        req = yield from self.post('/json/GetToken',
+                                   Username=self.appusername,
+                                   Password=self.apppassword)
+        if not req:
+            raise AllscriptsError('Could not log into Allscripts server')
+        elif req.startswith('error'):
+            raise AllscriptsError('Could not log into Allscripts server: %s' % (req,))
+        else:
+            self.unitytoken = req
 
     @hour_cache.cache_lookup('GetServerInfo', lookup_on_none=True,
                              key_function=memory_cache.allargs)
@@ -407,8 +408,6 @@ class allscripts_api(http.http_api):
                                                             user=username, patient=patient))
         return self.postprocess(check_output(ret))
 
-    @hour_cache.cache_lookup('GetProviders', lookup_on_none=True,
-                             key_function=memory_cache.allargs)
     @_require_token
     def GetProviders(self):
         """
@@ -461,8 +460,12 @@ class allscripts_api(http.http_api):
                                        'SOAPAction': '"http://www.allscripts.com/Unity/IUnityService/Magic"'
                                    })
         try:
-            root = ETree.fromstring(ret)[0][0][0][1][0]  # Magic contains lots of fluff
-            return [{elem.tag: elem.text for elem in row} for row in root]
+            root = ETree.fromstring(ret)[0][0][0][1]
+            if len(root):
+                return [{elem.tag: elem.text for elem in row} for row in root[0]]
+            else:
+                return []
+
         except ETree.ParseError as e:
             raise AllscriptsError('Error parsing XML ' + e)
 
@@ -663,7 +666,9 @@ if __name__ == '__main__':
 
     config = {
         # http.CONFIG_BASEURL: 'http://pro14ga.unitysandbox.com/Unity/UnityService.svc',
-        CONFIG_PARAMS.EHR_API_BASE_URL.value: 'http://192.237.182.238/Unity/UnityService.svc',
+        CONFIG_PARAMS.EHR_API_BASE_URL.value: 'http://192.237.180.54/Unity/UnityService.svc',
+        # CONFIG_PARAMS.EHR_API_BASE_URL.value: 'http://192.237.182.238/Unity/UnityService.svc',
+        # CONFIG_PARAMS.EHR_API_BASE_URL.value: 'http://127.0.0.1/Unity/UnityService.svc',
         # http.CONFIG_BASEURL: 'http://doesnotexist.somejunk.cs.umd.edu/Unity/UnityService.svc',
         http.CONFIG_OTHERHEADERS: {
             'Content-Type': 'application/json'
@@ -686,7 +691,7 @@ if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     Ehr_username = 'CliffHux'
     # break
-    wrapexn(api.GetProvider(Ehr_username, searchid='10041'))
+    # wrapexn(api.GetProvider(Ehr_username, searchid='10041'))
     patient = input('Enter a Patient ID to display (e.g., 22): ')
     if not patient:
         patient = '22'

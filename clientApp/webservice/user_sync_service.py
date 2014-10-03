@@ -78,6 +78,9 @@ class UserSyncService():
             # i.e. Notification Service, Allscripts_server, etc.
             self.update_provider_list_observers(self.active_providers)
 
+            # Update the notification preferences of users in the Notification Service
+            asyncio.Task(self.server_interface.update_notify_prefs(self.customer_id))
+
         except Exception as e:
                 logger.exception(e)
 

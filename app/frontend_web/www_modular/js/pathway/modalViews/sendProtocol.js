@@ -13,16 +13,10 @@ define([
         template: _.template(sendProtocolTemplate),
         el: $("#modal-target"),
         initialize: function(parent){
-            this.$el.html(this.template());
             var that = this;
             this.parent = parent;
-
+            this.$el.html(this.template(that.attributes.protocol));
             $("#detail-modal").modal({'show':'true'});
-            $(document).ready(function(){
-                $("#sendProtocolNote", that.$el).val(that.attributes.protocol.defaultQuickNote);
-                $("#protocolRecipient", that.$el).val(that.attributes.protocol.defaultRecipient);
-                $("#recipientUserName", that.$el).val(that.attributes.protocol.defaultRecipientName);
-            });
 
             $("#sendProtocolButton", this.$el).on("click", function(){
                 //var title = CKEDITOR.instances.newProtocolTitle.getData()

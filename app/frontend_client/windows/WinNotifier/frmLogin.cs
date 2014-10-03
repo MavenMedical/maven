@@ -72,13 +72,14 @@ namespace MavenAsDemo
             this.TopMost = true;
         }
         /// <summary>
-        /// On mouse enter of the form, reset the timer and become opaque
+        /// close the form. since you x out wtih no valid login, i also delete any oauth key that might be saved
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void pictureBox1_Click(object sender, EventArgs e)
         {
             Authenticator.quitLogin = true;
+            Authenticator.ClearLoginSettings();
             closeOut();
         }
         protected override bool ShowWithoutActivation
