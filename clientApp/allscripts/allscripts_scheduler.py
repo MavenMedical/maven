@@ -47,6 +47,7 @@ class scheduler():
 
     def update_active_providers(self, active_provider_list):
         self.active_providers = active_provider_list
+        asyncio.Task(self.comp_builder.build_providers())
 
     @asyncio.coroutine
     def run(self):

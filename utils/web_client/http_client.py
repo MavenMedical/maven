@@ -2,9 +2,28 @@ import aiohttp
 import asyncio
 import json
 from utils.enums import CONFIG_PARAMS
-
+from maven_logging import WARN
 CONFIG_BASEURL = 'base url'
 CONFIG_OTHERHEADERS = 'other headers'
+
+_http_responses = {
+    400: 'BAD REQUEST',
+    401: 'UNAUTHORIZED',
+    403: 'FORBIDDEN',
+    404: 'NOT FOUND',
+    405: 'NOT ALLOWED',
+    500: 'INTERNAL SERVER ERROR',
+    502: 'BAD GATEWAY',
+    503: 'SERVICE UNAVAILABLE',
+    504: 'GATEWAY TIMEOUT',
+}
+
+
+class HttpClientException(Exception):
+
+    def __init__(self, string):
+        WARN("Exception invalid response from server: %s", str(string))
+        Exception.__init__(self, str(string))
 
 
 class http_api():
@@ -66,11 +85,24 @@ class http_api():
         headers = dict(self.other_headers)
         if newheaders:
             headers.update(newheaders)
-        resp = yield from aiohttp.request(method, self.base_url + resource, params=params,
-                                          data=data, headers=headers)
-        ret = yield from resp.content.read()
-        if self.decode:
-            ret = ret.decode()
+        resp = None
+        try:
+            resp = yield from aiohttp.request(method, self.base_url + resource, params=params,
+                                              data=data, headers=headers)
+            if resp.status < 200 or resp.status >= 300:
+                WARN('query %s returned %s' % (self.base_url + resource, resp.status))
+                raise HttpClientException("HTTP %s: %s" % (resp.status, _http_responses.get(resp.status, '')))
+            ret = yield from resp.content.read()
+            if self.decode:
+                ret = ret.decode()
+        finally:
+            if resp:
+                try:
+                    resp.close()
+                except:
+                    WARN('Could not close response object')
+                    pass
+
         return ret
 
     @asyncio.coroutine
