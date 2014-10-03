@@ -22,6 +22,8 @@ namespace MavenAsDemo
         private Point downPoint=Point.Empty;
         //a boolean to specify if the form should be moving
         private bool moveForm = false;
+        //specify if the current state is min or max
+        //private bool ismax = true;
 
         /// <summary>
         /// Call to show the form
@@ -72,7 +74,7 @@ namespace MavenAsDemo
         private void timer_Tick(object sender, EventArgs e)
         {
             tix += 1;
-            this.TopMost = true;
+            //this.TopMost = true;
 
             //automatically close out after 5 minutes. 
             //this is the case where the user doesnt close out, but just puts it behind  his EMR screen. 
@@ -98,7 +100,7 @@ namespace MavenAsDemo
                 HtmlElement elm = browserDisplay.Document.GetElementById("copiedText");
                 if (elm != null) //check to see if the clipboard element is there
                 {
-                    string copytext = elm.InnerHtml; //if the clipboard element is there, then check the inner text
+                    string copytext = quickHtmlToText(elm.InnerHtml); //if the clipboard element is there, then check the inner text
                     if (copytext != null && copytext.Length > 0) //if it has inner text, then grab it and remove it so we don't re-copy on future runs 
                     {
                         Clipboard.SetText(copytext);
@@ -107,6 +109,22 @@ namespace MavenAsDemo
                 }
             }
             catch { }
+        }
+        /// <summary>
+        /// TODO: have the html give me a good string in the first place and then remove. MAV-445
+        /// </summary>
+        /// <param name="instr"></param>
+        /// <returns></returns>
+        private string quickHtmlToText(string instr)
+        {
+            instr = instr.Replace("</p>", "\r\n");
+            instr = instr.Replace("<p>", "");
+            instr = instr.Replace("&nbsp;", " ");
+            instr = instr.Replace("<br />", "\r\n");
+            instr = instr.Replace("<br>", "\r\n");
+            instr = instr.Replace("<span style=\"font-family: arial,sans-serif; font-size: 9.5pt;\">", " ");
+            instr = instr.Replace("</span>", "");
+            return instr;
         }
         /// <summary>
         /// Figure out where to put the form
@@ -199,6 +217,34 @@ namespace MavenAsDemo
         private void browserDisplay_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
         {
 
+        }
+
+        private void btnMinMax_Click(object sender, EventArgs e)
+        {
+            //if maximized, min
+            //if (ismax)
+            //{
+                /*
+                //get the height of the taskbar
+                int tbheight=Screen.PrimaryScreen.Bounds.Height - Screen.PrimaryScreen.WorkingArea.Height;
+                int y = Screen.GetWorkingArea(this).Height -(tbheight + 20);
+                this.Top = y;
+                this.TopMost = true;
+                 */
+
+                this.Icon =new Icon(System.IO.Path.GetDirectoryName(Application.ExecutablePath) + "\\Maven.ico");
+                this.ShowInTaskbar = true;
+                this.WindowState=FormWindowState.Minimized;
+            //}
+            //else (if currently minimized) then maximize
+            /*else
+            {
+                this.Top = getLocation(loc).Y;
+                this.TopMost = true;
+                this.WindowState = FormWindowState.Normal;
+            }*/
+            //flip the switch
+            //ismax = !ismax;
         }
        
     }

@@ -123,7 +123,7 @@ namespace MavenAsDemo
             //you have to count the ticks
             tix++;
             //ensure we're topmost   
-            this.TopMost = true;
+            //this.TopMost = true;
             //tick the opacity down if we've been counting past 10
             if (tix > 10)
             {

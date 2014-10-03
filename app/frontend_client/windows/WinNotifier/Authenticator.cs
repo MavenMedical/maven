@@ -108,8 +108,6 @@ namespace MavenAsDemo
         /// <param name="shortMessage">a SHORT message describing why the login prompt is presented</param>
         private static void PromptNewLogin(string shortMessage)
         {
-            //currently just saving the username to the registry. 
-            //TODO: Actually check the user/password with the cloud and save the returned key to the registry
             frmLogin f = new frmLogin(shortMessage);
             f.Visible = true;
             System.Windows.Forms.Application.Run(f);

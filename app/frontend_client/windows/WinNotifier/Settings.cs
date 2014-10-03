@@ -13,7 +13,7 @@ namespace MavenAsDemo
         public AlertMode mode = AlertMode.deskSoft;
         public double fadeSlowness = 3;
         public string location = "BR";
-        public string pollingServer = "162.222.177.174"; //TODO: Update this to be actual server default. Also install the default via the installer. 
+        public string pollingServer = "qa.mavenmedical.net"; //TODO: Update this to be actual server default. Also install the default via the installer. 
         public string osUser = System.Uri.EscapeDataString(System.Environment.UserName);
         public string machine = System.Uri.EscapeDataString(System.Environment.MachineName);
         public string os = System.Uri.EscapeDataString(System.Environment.OSVersion.VersionString);

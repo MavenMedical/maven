@@ -258,6 +258,11 @@ namespace MavenAsDemo
             //otherwise, prompt for a new login IN THE CURRENT THREAD. don't job off, or it will prompt for lots of login forms. 
             //all of this logic is currently handled in the authenticator.
             EncryptedKey = Authenticator.GetEncryptedAuthKey("Login Timeout");
+            if (EncryptedKey == null)
+            {
+                continueOn = false;
+                CloseOut(null,null);
+            }
         }
         /// <summary>
         /// I'm here simply to force the polling guy to not reject the Maven Cloud Cert. 

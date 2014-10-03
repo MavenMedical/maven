@@ -34,8 +34,10 @@
             this.shapeContainer1 = new Microsoft.VisualBasic.PowerPacks.ShapeContainer();
             this.mover = new Microsoft.VisualBasic.PowerPacks.RectangleShape();
             this.boxHeader = new Microsoft.VisualBasic.PowerPacks.RectangleShape();
-            this.pictureBox1 = new System.Windows.Forms.PictureBox();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            this.btnMinMax = new System.Windows.Forms.PictureBox();
+            this.btnclose = new System.Windows.Forms.PictureBox();
+            ((System.ComponentModel.ISupportInitialize)(this.btnMinMax)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.btnclose)).BeginInit();
             this.SuspendLayout();
             // 
             // browserDisplay
@@ -83,19 +85,33 @@
             this.boxHeader.Name = "boxHeader";
             this.boxHeader.Size = new System.Drawing.Size(1019, 18);
             // 
-            // pictureBox1
+            // btnMinMax
             // 
-            this.pictureBox1.BackColor = System.Drawing.Color.Transparent;
-            this.pictureBox1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
-            this.pictureBox1.ErrorImage = null;
-            this.pictureBox1.Image = global::MavenAsDemo.Properties.Resources.icon_close_small;
-            this.pictureBox1.InitialImage = null;
-            this.pictureBox1.Location = new System.Drawing.Point(1007, 3);
-            this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(15, 15);
-            this.pictureBox1.TabIndex = 1;
-            this.pictureBox1.TabStop = false;
-            this.pictureBox1.Click += new System.EventHandler(this.pictureBox1_Click);
+            this.btnMinMax.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.btnMinMax.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+            this.btnMinMax.ErrorImage = null;
+            this.btnMinMax.Image = global::MavenAsDemo.Properties.Resources.minmax;
+            this.btnMinMax.InitialImage = null;
+            this.btnMinMax.Location = new System.Drawing.Point(5, 3);
+            this.btnMinMax.Name = "btnMinMax";
+            this.btnMinMax.Size = new System.Drawing.Size(25, 15);
+            this.btnMinMax.TabIndex = 4;
+            this.btnMinMax.TabStop = false;
+            this.btnMinMax.Click += new System.EventHandler(this.btnMinMax_Click);
+            // 
+            // btnclose
+            // 
+            this.btnclose.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.btnclose.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+            this.btnclose.ErrorImage = null;
+            this.btnclose.Image = global::MavenAsDemo.Properties.Resources.icon_close_small;
+            this.btnclose.InitialImage = null;
+            this.btnclose.Location = new System.Drawing.Point(1007, 3);
+            this.btnclose.Name = "btnclose";
+            this.btnclose.Size = new System.Drawing.Size(15, 15);
+            this.btnclose.TabIndex = 1;
+            this.btnclose.TabStop = false;
+            this.btnclose.Click += new System.EventHandler(this.pictureBox1_Click);
             // 
             // frmHardAlert
             // 
@@ -103,25 +119,28 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.LightGray;
             this.ClientSize = new System.Drawing.Size(1024, 768);
-            this.Controls.Add(this.pictureBox1);
+            this.Controls.Add(this.btnMinMax);
+            this.Controls.Add(this.btnclose);
             this.Controls.Add(this.browserDisplay);
             this.Controls.Add(this.shapeContainer1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "frmHardAlert";
             this.Text = "Maven Pathways";
             this.Load += new System.EventHandler(this.frmHardAlert_Load);
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.btnMinMax)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.btnclose)).EndInit();
             this.ResumeLayout(false);
 
         }
 
         #endregion
 
-        private System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.PictureBox btnclose;
         private System.Windows.Forms.WebBrowser browserDisplay;
         private System.Windows.Forms.Timer timer;
         private Microsoft.VisualBasic.PowerPacks.ShapeContainer shapeContainer1;
         private Microsoft.VisualBasic.PowerPacks.RectangleShape boxHeader;
         private Microsoft.VisualBasic.PowerPacks.RectangleShape mover;
+        private System.Windows.Forms.PictureBox btnMinMax;
     }
 }
