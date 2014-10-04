@@ -57,3 +57,8 @@ class ClientAppEndpoint():
     def handle_evaluated_composition(self, customer_id, composition):
         customer_interface = self.customer_interfaces[customer_id]
         yield from customer_interface.handle_evaluated_composition(composition)
+
+    @asyncio.coroutine
+    def update_user_state(self, customer_id, user_name, state):
+        customer_interface = self.customer_interfaces[customer_id]
+        customer_interface.update_user(user_name, state)

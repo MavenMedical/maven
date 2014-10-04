@@ -104,7 +104,5 @@ class AllscriptsCustomerInterface:
     def evaluate_composition(self, composition):
         yield from self.server_interface.evaluate_composition(composition)
 
-        # self.notification_fn('mobile_' + user, customer, mobile_msg)
-
-    # def update_active_providers(self, active_provider_list):
-        # self.active_providers = active_provider_list
+    def update_user(self, user_name, state):
+        self.user_sync_service.update_active_provider_state(user_name, state)

@@ -123,6 +123,7 @@ class AdministrationWebservices():
             asyncio.Task(self.notify_user_reset_password(customer, target_user))
         asyncio.Task(self.persistence.audit_log(user, 'change user state', customer,
                                                 target_user=target_user, details=state))
+        asyncio.Task(self.client_interface.update_user_state(customer, target_user, state))
 
         return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
 
