@@ -98,7 +98,7 @@ define([
 		this.$el.hide();
 	    }
         var d = new Date();
-        userCollection.lastRefresh = d.getMonth() + '-' + d.getDate() + '-' + d.getFullYear() + ' ' + d.getHours() + ':' + d.getMinutes()  + ':' + d.getSeconds();
+        userCollection.lastRefresh = (d.getMonth()+1) + '-' + d.getDate() + '-' + d.getFullYear() + ' ' + d.getHours() + ':' + d.getMinutes()  + ':' + d.getSeconds();
 
         var userlist = $('.useraccordion', this.$el);
         var usertable = $('.usertable', this.$el);
