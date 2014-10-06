@@ -1093,6 +1093,14 @@ class WebPersistence():
         try:
             cur = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
             tree_id = cur.fetchone()[0]
+
+            # Insert a record into alert_config so that the Pathway actually fires (it's referenced in the evalnode()
+            # PL/pgsql function
+            cmd = ["INSERT INTO alert_config (customer_id, category, rule_id, validation_status)",
+                   "VALUES (%s, %s, %s, %s)"]
+            cmdArgs = [customer_id, "PATHWAY", tree_id, 400]
+            cur = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
+
             return tree_id
         except:
             ML.EXCEPTION("Error Inserting {} Protocol for Customer #{}".format(treeJSON['name'], customer_id))
