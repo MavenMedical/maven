@@ -166,14 +166,22 @@ define([
 
                 }
                //hide the detail modal
-                alert('about to hide')
-               $('#detail-modal').modal('hide');
-
+               require(['pathway/modalViews/ruleWizard'], function(wizard){
+                   $('#detail-modal').modal('hide');
+                   $('#detail-modal').on('hidden.bs.modal', function () {
+                         new wizard({triggerNode: panel.triggerNode, })
+                    })
+               })
             }
 
             //when the cancel button is pressed just hide the editor
             $('.cancel-edit-button', this.$el)[0].onclick = function(){
-                $('#detail-modal').modal('hide');
+                require(['pathway/modalViews/ruleWizard'], function(wizard){
+                   $('#detail-modal').modal('hide');
+                   $('#detail-modal').on('hidden.bs.modal', function () {
+                         new wizard({triggerNode: panel.triggerNode, })
+                    })
+               })
             }
               $("#detail-modal").modal({'show':'true'});
 
