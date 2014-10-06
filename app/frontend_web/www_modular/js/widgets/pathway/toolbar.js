@@ -7,6 +7,7 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
+    'globalmodels/contextModel',
     'pathway/models/pathwayCollection',
     'pathway/models/treeModel',
     'pathway/modalViews/newPathway',
@@ -15,7 +16,7 @@ define([
     'text!templates/pathway/pathwayListEntry.html',
     'text!templates/pathway/toolbar.html',
 
-], function ($, _, Backbone,  curCollection, curTree,  NewPathway,  PathRow, listEntry, toolbarTemplate) {
+], function ($, _, Backbone,  contextModel, curCollection, curTree,  NewPathway,  PathRow, listEntry, toolbarTemplate) {
 
     var toolbar = Backbone.View.extend({
         template: _.template(toolbarTemplate),
@@ -25,8 +26,16 @@ define([
         },
 
         initialize: function(){
-            console.log(this.$el)
+            contextModel.on('change:page', function(){
+                if (contextModel.get('page')!='pathEditors'){
+                    this.$el.hide()
+                } else {
+                    this.$el.show()
+                }
+            }, this)
             this.$el.html(this.template())
+            if (contextModel.get('page')!='pathEditor')
+                 this.$el.hide()
             curCollection.on('sync',this.renderPathList, this)
             this.renderPathList();
         },

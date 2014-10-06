@@ -132,7 +132,6 @@ define([
             }
         },
         EditPathway: function (path, code, user, customer, userAuth) {
-            console.log('codes', path, code)
             currentContext.set({page: 'pathEditor',  pathid: path});
             showPage(user, customer, userAuth);
         },
