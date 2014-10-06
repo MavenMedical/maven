@@ -142,14 +142,14 @@ class UserMgmtWebservices():
                   [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.OFFICIALNAME, CONTEXT.DISPLAYNAME],
                   {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int,
                    CONTEXT.OFFICIALNAME: str, CONTEXT.DISPLAYNAME: str},
-                  None)
+                  {USER_ROLES.provider, USER_ROLES.supervisor, USER_ROLES.mavensupport, USER_ROLES.administrator})
     def save_user_settings(self, _header, _body, context, _matches, _key):
         user = context[CONTEXT.USER]
+        customer = context[CONTEXT.CUSTOMERID]
         officialname = context[CONTEXT.OFFICIALNAME]
         displayname = context[CONTEXT.DISPLAYNAME]
 
-        result = yield from self.persistence.update_user_settings(user, officialname,
-                                                                  displayname)
+        result = yield from self.persistence.save_user_settings(user, customer, officialname, displayname)
         if result:
             return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
         else:
