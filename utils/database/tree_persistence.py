@@ -7,7 +7,7 @@ CONFIG_PERSISTENCE = 'search'
 EMPTY_RETURN = [{'id': 000000, 'term': "No Results Found", 'code': 000000, 'type': 'none'}]
 
 
-class tree_persistance():
+class tree_persistence():
 
     def __init__(self, configname):
         print(MC.MavenConfig)
@@ -23,6 +23,7 @@ class tree_persistance():
 
         result = row.fetchone()
         return result
+
     @asyncio.coroutine
     def fetch_pathways(self):
         cmd = []
@@ -30,6 +31,7 @@ class tree_persistance():
         cmd.append("SELECT pathid, \"pathName\" FROM protocols.unparsed")
         ret = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
         return ret
+
     @asyncio.coroutine
     def create_tree(self, treeJSON):
         cmd = []
@@ -41,7 +43,6 @@ class tree_persistance():
         id = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
         return (id.fetchone()[0])
 
-
     @asyncio.coroutine
     def get_tree(self, treeid):
         cmd = []
@@ -52,6 +53,7 @@ class tree_persistance():
         json = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
         result = json.fetchone()
         return result
+
     @asyncio.coroutine
     def delete_pathway(self, treeid):
         cmd = []

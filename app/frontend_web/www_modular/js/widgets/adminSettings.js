@@ -49,6 +49,7 @@ define([
         unlockSettings: function() {
             $("#admin-ip-input").prop("disabled",false);
             $("#admin-name-input").prop("disabled",false);
+            $("#admin-username-input").prop("disabled",false);
             $("#admin-pw-input").prop("disabled",false);
             $("#httphttps").prop("disabled",false);
 
@@ -59,6 +60,7 @@ define([
         lockSettings: function() {
             $("#admin-ip-input").prop("disabled",true);
             $("#admin-name-input").prop("disabled",true);
+            $("#admin-username-input").prop("disabled",true);
             $("#admin-pw-input").prop("disabled",true);
             $("#httphttps").prop("disabled",true);
 
@@ -72,8 +74,8 @@ define([
             var pw = $("#admin-pw-input").val();
             var polling = $("#admin-polling-input").val();
             var timeout = $("#admin-timeout-input").val();
-            var username = "MavenPathways";
-	        var unlocked = $(".lock-admin-button").is(':visible');
+            var username = $("#admin-username-input").val();
+	    var unlocked = $(".lock-admin-button").is(':visible');
 	    
             var reg_num = new RegExp('^[0]*[1-9]+[0]*$');
             /*var reg_ip = new RegExp('^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$');
@@ -98,36 +100,36 @@ define([
                 $("#save-admin-message").html("Please enter the password");
             }
             else {
-		var protocol = $("#httphttps").find(":selected").text();
-		var data;
-		if (unlocked || !this.model.attributes.settings) {
-		    console.log('loading from fields');
-		    data = {
-			    "EHRURL": $.trim(protocol) + $.trim(ip)+ "/Unity/UnityService.svc",
-			    "EHRAppName": name, "EHRPassword": pw, "EHRServiceUser": username,
-			    "EHRPolling": polling, "UserTimeout": timeout
-		    };
-		} else {
-		    console.log('loading from ', this.model.attributes.settings);
-		    data = _.clone(this.model.attributes.settings);
-		    _.extend(data, {"EHRPolling": polling, "UserTimeout": timeout, 'locked': 'locked'});
-		}
+                var protocol = $("#httphttps").find(":selected").text();
+                var data;
+                if (unlocked || !this.model.attributes.settings) {
+                    console.log('loading from fields');
+                    data = {
+                        "EHRURL": $.trim(protocol) + $.trim(ip)+ "/Unity/UnityService.svc",
+                        "EHRAppName": name, "EHRPassword": pw, "EHRServiceUser": username,
+                        "EHRPolling": polling, "UserTimeout": timeout
+                    };
+                } else {
+                    console.log('loading from ', this.model.attributes.settings);
+                    data = _.clone(this.model.attributes.settings);
+                    _.extend(data, {"EHRPolling": polling, "UserTimeout": timeout, 'locked': 'locked'});
+                }
 
                 $.ajax({
-		    type: 'POST',
-		    dataType: 'json',
-                    url: "/setup_customer?" + $.param(contextModel.toParams()),
-		    data: JSON.stringify(data),
-                    success: function () {
-                        $("#save-admin-message").html("Settings saved!");
-                        alert("Success! Connection to EHR established.");
-                        userCollection.refresh();
-                        setTimeout(userCollection.refresh, 7000);
-                    },
-                    error: function (resp){
-                        alert("The server could NOT successfully connect using this configuration.  " + resp.responseJSON);
-                        $("#save-admin-message").html("&nbsp;");
-                    }
+                    type: 'POST',
+                    dataType: 'json',
+                            url: "/setup_customer?" + $.param(contextModel.toParams()),
+                    data: JSON.stringify(data),
+                            success: function () {
+                                $("#save-admin-message").html("Settings saved!");
+                                alert("Success! Connection to EHR established.");
+                                userCollection.refresh();
+                                setTimeout(userCollection.refresh, 7000);
+                            },
+                            error: function (resp){
+                                alert("The server could NOT successfully connect using this configuration.  " + resp.responseJSON);
+                                $("#save-admin-message").html("&nbsp;");
+                            }
                 });
             }
         },
