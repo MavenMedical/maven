@@ -24,7 +24,8 @@ define([
                 $("#detail-modal").modal({'show':'true'});
                 $("#addNodeButton", this.$el).on("click", function(){
                     var protocolText = CKEDITOR.instances.ProtocolText.getData();
-                    var noteToCopyText = $('#NoteToCopyText').val();
+
+                    var noteToCopyText = $('#NoteToCopyText').val()
                     var defaultRecipient = $("#defaultRecipient").val();
                     var defaultRecipientName = $("#defaultRecipientName").val();
                     var defaultQuickNote = $("#defaultQuickNote").val();
