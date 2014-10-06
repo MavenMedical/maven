@@ -98,7 +98,7 @@ define([
 	    }
 
         var d = new Date();
-        customerCollection.lastRefresh = d.getMonth() + '-' + d.getDate() + '-' + d.getFullYear() + ' ' + d.getHours() + ':' + d.getMinutes()  + ':' + d.getSeconds();
+        customerCollection.lastRefresh = (d.getMonth()+1) + '-' + d.getDate() + '-' + d.getFullYear() + ' ' + d.getHours() + ':' + d.getMinutes()  + ':' + d.getSeconds();
 
         var customerlist = $('.customeraccordion', this.$el);
         setTimeout(function() {

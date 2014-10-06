@@ -75,7 +75,7 @@ define([
             var polling = $("#admin-polling-input").val();
             var timeout = $("#admin-timeout-input").val();
             var username = $("#admin-username-input").val();
-	    var unlocked = $(".lock-admin-button").is(':visible');
+	        var unlocked = $(".lock-admin-button").is(':visible');
 	    
             var reg_num = new RegExp('^[0]*[1-9]+[0]*$');
             /*var reg_ip = new RegExp('^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$');
@@ -114,15 +114,20 @@ define([
                     data = _.clone(this.model.attributes.settings);
                     _.extend(data, {"EHRPolling": polling, "UserTimeout": timeout, 'locked': 'locked'});
                 }
-
+                that = this;
                 $.ajax({
                     type: 'POST',
                     dataType: 'json',
-                            url: "/setup_customer?" + $.param(contextModel.toParams()),
+                    url: "/setup_customer?" + $.param(contextModel.toParams()),
                     data: JSON.stringify(data),
                             success: function () {
                                 $("#save-admin-message").html("Settings saved!");
-                                alert("Success! Connection to EHR established.");
+                                if (unlocked || !that.model.attributes.settings) {
+                                    alert("Success! Connection to EHR established.");
+                                }
+                                else {
+                                    alert("Connection settings saved!");
+                                }
                                 userCollection.refresh();
                                 setTimeout(userCollection.refresh, 7000);
                             },
