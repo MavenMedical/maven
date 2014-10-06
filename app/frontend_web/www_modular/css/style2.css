@@ -201,12 +201,16 @@ html, body {
 
 #fixed-topB {
     position:fixed;
-    top:0px;
-    left:0px;
-    right:0px;
+    text-align: center;
+    width: 90%;
+    height:40px;
+    top:55px;
+
+    left:5%;
+    right:5%;
     z-index:10;
     /*height: 130px; /*var-fixed-top-size*/
-    background: #ffffff;
+    background: lightblue;
 }
 
 #fixed-topA > .col-sm-12{
