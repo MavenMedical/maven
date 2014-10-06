@@ -12,11 +12,12 @@ define([
     'pathway/models/treeModel',
     'pathway/modalViews/newPathway',
     'pathway/singleRows/pathRow',
+    'pathway/internalViews/treeNodeActionSet',
 
     'text!templates/pathway/pathwayListEntry.html',
     'text!templates/pathway/toolbar.html',
 
-], function ($, _, Backbone,  contextModel, curCollection, curTree,  NewPathway,  PathRow, listEntry, toolbarTemplate) {
+], function ($, _, Backbone,  contextModel, curCollection, curTree,  NewPathway,  PathRow, treeNodeActionSet, listEntry, toolbarTemplate) {
 
     var toolbar = Backbone.View.extend({
         template: _.template(toolbarTemplate),
@@ -37,10 +38,23 @@ define([
             if (contextModel.get('page')!='pathEditor')
                  this.$el.hide()
             curCollection.on('sync',this.renderPathList, this)
+            curTree.on('propagate', this.renderActions,this)
+
             this.renderPathList();
+            this.renderActions();
+        },
+        renderActions: function(){
+
+            var el = $('#node-action-set')
+            if (curTree.get('selectedNode')){
+                    var myActions = new treeNodeActionSet({el: el})
+                    $('#action-set', el).append(myActions.render().$el)
+           }
+
+
         },
         renderPathList: function(){
-             $('#avail-paths').html("")
+            $('#avail-paths').html("")
             _.each(curCollection.models, function(cur){
              var thisModel = new Backbone.Model({id: cur.get('pathid'), name: cur.get('name')})
              var thisRow = new PathRow({model: thisModel})
@@ -48,6 +62,8 @@ define([
         }, this)
         },
          handle_newPath: function () {
+
+
             a = new NewPathway({el: '#modal-target'});
 
         },

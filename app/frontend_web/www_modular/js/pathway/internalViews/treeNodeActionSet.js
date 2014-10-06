@@ -19,28 +19,18 @@ define([
 
     var treeNodeActionSet = Backbone.View.extend({
         template: _.template(treeNodeActionSetTemplate),
-        initialize: function(){
-            curTree.on('propagate', this.render,this)
-        },
         render: function(){
             var nodeType;
             if(curTree.get('selectedNode').attributes != null){
                 this.$el.html(this.template(curTree.get('selectedNode').attributes))
             }
+            $('#deleteNodeButton', this.$el)[0].onclick = this.deleteNode
+            $('#setNodeTitleButton', this.$el)[0].onclick = this.editName
 
             return this;
         },
 
-        events: {
-            'click #editSidePanelButton': 'editSidePanel',
-            'click #setNodeTitleButton' : 'editName',
-            'click #setNodeDescriptionButton': 'editDescription',
-            'click #deleteNodeButton': 'deleteNode'
 
-        },
-        editSidePanel: function(){
-            new sidePanelEditor()
-        },
         editName: function(){
             new editNode();
            /* console.log('tree', curTree.get('selectedNode').attributes.triggers);
@@ -49,17 +39,9 @@ define([
                 curTree.get('selectedNode').set('name', newname)*/
         },
 
-        editDescription: function(){
-            var newdesc = prompt("Enter the new description")
-            if (newdesc)
-                curTree.get('selectedNode').set('tooltip', newdesc)
-        },
 
-        editHelpText: function (){
-            var newht = prompt("Enter the new description")
-            if (newht)
-                curTree.get('selectedNode').set('sidePanel', newht)
-        },
+
+
         deleteNode: function(){
             var x = true
                 if (curTree.get('selectedNode').get('children').length>0)
