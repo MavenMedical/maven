@@ -309,8 +309,8 @@ class WebPersistence():
         cmdargs.extend([name, abbr, license_num, license_exp])
         cmd.append("where customer_id = %s")
         cmdargs.append(customer)
-        ret = yield from self.execute(cmd, cmdargs, _build_format(), {0: 'customer_id'})
-        return [row['customer_id'] for row in ret]
+        self.execute(cmd, cmdargs, _build_format(), {0: 'customer_id'})
+        # return [row['customer_id'] for row in ret]
 
     @asyncio.coroutine
     def add_customer(self, name, abbr, license, license_exp, config):
@@ -1057,3 +1057,77 @@ class WebPersistence():
         ret = yield from self.execute(cmd, [], _build_format(), {0: 0})
         print(ret[0][0])
         return ret[0][0]
+
+    ##########################################################################################
+    ##########################################################################################
+    ##########################################################################################
+    #####
+    # PATHWAYS/PROTOCOLS DATABASE SERVICES
+    #####
+    ##########################################################################################
+    ##########################################################################################
+    ##########################################################################################
+    @asyncio.coroutine
+    def fetch_rule(self, ruleid):
+        cmd = []
+        cmd.append("SELECT fullspec, ruleid FROM rules.evirule WHERE ruleid =")
+        cmd.append(str(ruleid))
+        row = yield from self.db.execute_single(' '.join(cmd) + ';', [])
+        result = row.fetchone()
+        return result
+
+    @asyncio.coroutine
+    def get_protocols(self, customer_id):
+        cmd = []
+        cmdArgs = [customer_id]
+        cmd.append("SELECT protocol_id, name FROM trees.protocol")
+        cmd.append("WHERE customer_id=%s")
+        ret = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
+        return ret
+
+    @asyncio.coroutine
+    def create_protocol(self, treeJSON, customer_id):
+        cmd = ["INSERT INTO trees.protocol (full_spec, name, customer_id)",
+               "VALUES (%s, %s, %s) RETURNING protocol_id"]
+        cmdArgs = [json.dumps(treeJSON), treeJSON['name'], customer_id]
+        try:
+            cur = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
+            tree_id = cur.fetchone()[0]
+            return tree_id
+        except:
+            ML.EXCEPTION("Error Inserting {} Protocol for Customer #{}".format(treeJSON['name'], customer_id))
+        return None
+
+    @asyncio.coroutine
+    def get_protocol(self, protocol_id):
+        cmd = ["SELECT full_spec from trees.protocol",
+               "WHERE protocol_id=%s"]
+        cmdArgs = [protocol_id]
+        try:
+            cur = yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
+            result = cur.fetchone()[0]
+            return result
+        except:
+            ML.EXCEPTION("Error Selecting TreeID #{}".format(protocol_id))
+            return None
+
+    @asyncio.coroutine
+    def delete_protocol(self, protocol_id):
+        cmd = ["DELETE FROM trees.protocol",
+               "WHERE protocol_id=%s"]
+        cmdArgs = [int(protocol_id)]
+        try:
+            cur = yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
+        except:
+            ML.EXCEPTION("Error Deleting TreeID #{}".format(protocol_id))
+
+    @asyncio.coroutine
+    def update_protocol(self, protocol_json):
+        cmd = ["UPDATE trees.protocol",
+               "SET full_spec=%s",
+               "WHERE protocol_id=%s"]
+        cmdArgs = [json.dumps(protocol_json), protocol_json.get('id', None)]
+        try:
+            cur = yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
+        except:
+            ML.EXCEPTION("Error Updating TreeID #{}".format(protocol_json.get('id', None)))

@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:wsap="http://schemas.xmlsoap.org/ws/2004/08/addressing/policy" xmlns:wsa10="http://www.w3.org/2005/08/addressing" xmlns:tns="http://www.allscripts.com/Unity" xmlns:msc="http://schemas.microsoft.com/ws/2005/12/wsdl/contract" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:wsx="http://schemas.xmlsoap.org/ws/2004/09/mex" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.allscripts.com/Unity" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <xsd:schema targetNamespace="http://www.allscripts.com/Unity/Imports">
+      <xsd:import schemaLocation="http://pro14ga.unitysandbox.com/Unity/UnityService.svc?xsd=xsd0" namespace="http://www.allscripts.com/Unity" />
+      <xsd:import schemaLocation="http://pro14ga.unitysandbox.com/Unity/UnityService.svc?xsd=xsd3" namespace="http://schemas.datacontract.org/2004/07/Allscripts.UAI.Unity.UnityService" />
+      <xsd:import schemaLocation="http://pro14ga.unitysandbox.com/Unity/UnityService.svc?xsd=xsd1" namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
+      <xsd:import schemaLocation="http://pro14ga.unitysandbox.com/Unity/UnityService.svc?xsd=xsd2" />
+      <xsd:import schemaLocation="http://pro14ga.unitysandbox.com/Unity/UnityService.svc?xsd=xsd4" namespace="http://schemas.microsoft.com/Message" />
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="IUnityService_Magic_InputMessage">
+    <wsdl:part name="parameters" element="tns:Magic" />
+  </wsdl:message>
+  <wsdl:message name="IUnityService_Magic_OutputMessage">
+    <wsdl:part name="parameters" element="tns:MagicResponse" />
+  </wsdl:message>
+  <wsdl:message name="IUnityService_Magic_UnityFaultFault_FaultMessage">
+    <wsdl:part xmlns:q1="http://schemas.datacontract.org/2004/07/Allscripts.UAI.Unity.UnityService" name="detail" element="q1:UnityFault" />
+  </wsdl:message>
+  <wsdl:message name="IUnityService_ReturnMagicJSON_InputMessage">
+    <wsdl:part name="parameters" element="tns:ReturnMagicJSON" />
+  </wsdl:message>
+  <wsdl:message name="IUnityService_ReturnMagicJSON_OutputMessage">
+    <wsdl:part name="parameters" element="tns:ReturnMagicJSONResponse" />
+  </wsdl:message>
+  <wsdl:message name="IUnityService_ReturnMagicJSON_UnityFaultFault_FaultMessage">
+    <wsdl:part xmlns:q2="http://schemas.datacontract.org/2004/07/Allscripts.UAI.Unity.UnityService" name="detail" element="q2:UnityFault" />
+  </wsdl:message>
+  <wsdl:message name="IUnityService_GetSecurityToken_InputMessage">
+    <wsdl:part name="parameters" element="tns:GetSecurityToken" />
+  </wsdl:message>
+  <wsdl:message name="IUnityService_GetSecurityToken_OutputMessage">
+    <wsdl:part name="parameters" element="tns:GetSecurityTokenResponse" />
+  </wsdl:message>
+  <wsdl:message name="IUnityService_GetSecurityToken_UnityFaultFault_FaultMessage">
+    <wsdl:part xmlns:q3="http://schemas.datacontract.org/2004/07/Allscripts.UAI.Unity.UnityService" name="detail" element="q3:UnityFault" />
+  </wsdl:message>
+  <wsdl:message name="IUnityService_GetValidSecurityToken_InputMessage">
+    <wsdl:part name="parameters" element="tns:GetValidSecurityToken" />
+  </wsdl:message>
+  <wsdl:message name="IUnityService_GetValidSecurityToken_OutputMessage">
+    <wsdl:part name="parameters" element="tns:GetValidSecurityTokenResponse" />
+  </wsdl:message>
+  <wsdl:message name="IUnityService_GetValidSecurityToken_UnityFaultFault_FaultMessage">
+    <wsdl:part xmlns:q4="http://schemas.datacontract.org/2004/07/Allscripts.UAI.Unity.UnityService" name="detail" element="q4:UnityFault" />
+  </wsdl:message>
+  <wsdl:message name="IUnityService_GetValidSecurityTokenPost_InputMessage">
+    <wsdl:part name="parameters" element="tns:GetValidSecurityTokenPost" />
+  </wsdl:message>
+  <wsdl:message name="IUnityService_GetValidSecurityTokenPost_OutputMessage">
+    <wsdl:part name="parameters" element="tns:GetValidSecurityTokenPostResponse" />
+  </wsdl:message>
+  <wsdl:message name="IUnityService_GetTokenJsonPost_InputMessage">
+    <wsdl:part name="parameters" element="tns:GetTokenJsonPost" />
+  </wsdl:message>
+  <wsdl:message name="IUnityService_GetTokenJsonPost_OutputMessage">
+    <wsdl:part name="parameters" element="tns:GetTokenJsonPostResponse" />
+  </wsdl:message>
+  <wsdl:message name="IUnityService_RetireSecurityTokenPost_InputMessage">
+    <wsdl:part name="parameters" element="tns:RetireSecurityTokenPost" />
+  </wsdl:message>
+  <wsdl:message name="IUnityService_RetireSecurityTokenPost_OutputMessage">
+    <wsdl:part name="parameters" element="tns:RetireSecurityTokenPostResponse" />
+  </wsdl:message>
+  <wsdl:message name="IUnityService_RetireTokenJsonPost_InputMessage">
+    <wsdl:part name="parameters" element="tns:RetireTokenJsonPost" />
+  </wsdl:message>
+  <wsdl:message name="IUnityService_RetireTokenJsonPost_OutputMessage">
+    <wsdl:part name="parameters" element="tns:RetireTokenJsonPostResponse" />
+  </wsdl:message>
+  <wsdl:message name="IUnityService_RetireSecurityToken_InputMessage">
+    <wsdl:part name="parameters" element="tns:RetireSecurityToken" />
+  </wsdl:message>
+  <wsdl:message name="IUnityService_RetireSecurityToken_OutputMessage">
+    <wsdl:part name="parameters" element="tns:RetireSecurityTokenResponse" />
+  </wsdl:message>
+  <wsdl:portType name="IUnityService">
+    <wsdl:operation name="Magic">
+      <wsdl:input wsaw:Action="http://www.allscripts.com/Unity/IUnityService/Magic" message="tns:IUnityService_Magic_InputMessage" />
+      <wsdl:output wsaw:Action="http://www.allscripts.com/Unity/IUnityService/MagicResponse" message="tns:IUnityService_Magic_OutputMessage" />
+      <wsdl:fault wsaw:Action="http://www.allscripts.com/Unity/IUnityService/MagicUnityFaultFault" name="UnityFaultFault" message="tns:IUnityService_Magic_UnityFaultFault_FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="ReturnMagicJSON">
+      <wsdl:input wsaw:Action="http://www.allscripts.com/Unity/IUnityService/ReturnMagicJSON" message="tns:IUnityService_ReturnMagicJSON_InputMessage" />
+      <wsdl:output wsaw:Action="http://www.allscripts.com/Unity/IUnityService/ReturnMagicJSONResponse" message="tns:IUnityService_ReturnMagicJSON_OutputMessage" />
+      <wsdl:fault wsaw:Action="http://www.allscripts.com/Unity/IUnityService/ReturnMagicJSONUnityFaultFault" name="UnityFaultFault" message="tns:IUnityService_ReturnMagicJSON_UnityFaultFault_FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="GetSecurityToken">
+      <wsdl:input wsaw:Action="http://www.allscripts.com/Unity/IUnityService/GetSecurityToken" message="tns:IUnityService_GetSecurityToken_InputMessage" />
+      <wsdl:output wsaw:Action="http://www.allscripts.com/Unity/IUnityService/GetSecurityTokenResponse" message="tns:IUnityService_GetSecurityToken_OutputMessage" />
+      <wsdl:fault wsaw:Action="http://www.allscripts.com/Unity/IUnityService/GetSecurityTokenUnityFaultFault" name="UnityFaultFault" message="tns:IUnityService_GetSecurityToken_UnityFaultFault_FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="GetValidSecurityToken">
+      <wsdl:input wsaw:Action="http://www.allscripts.com/Unity/IUnityService/GetValidSecurityToken" message="tns:IUnityService_GetValidSecurityToken_InputMessage" />
+      <wsdl:output wsaw:Action="http://www.allscripts.com/Unity/IUnityService/GetValidSecurityTokenResponse" message="tns:IUnityService_GetValidSecurityToken_OutputMessage" />
+      <wsdl:fault wsaw:Action="http://www.allscripts.com/Unity/IUnityService/GetValidSecurityTokenUnityFaultFault" name="UnityFaultFault" message="tns:IUnityService_GetValidSecurityToken_UnityFaultFault_FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="GetValidSecurityTokenPost">
+      <wsdl:input wsaw:Action="http://www.allscripts.com/Unity/IUnityService/GetValidSecurityTokenPost" message="tns:IUnityService_GetValidSecurityTokenPost_InputMessage" />
+      <wsdl:output wsaw:Action="http://www.allscripts.com/Unity/IUnityService/GetValidSecurityTokenPostResponse" message="tns:IUnityService_GetValidSecurityTokenPost_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="GetTokenJsonPost">
+      <wsdl:input wsaw:Action="http://www.allscripts.com/Unity/IUnityService/GetTokenJsonPost" message="tns:IUnityService_GetTokenJsonPost_InputMessage" />
+      <wsdl:output wsaw:Action="http://www.allscripts.com/Unity/IUnityService/GetTokenJsonPostResponse" message="tns:IUnityService_GetTokenJsonPost_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="RetireSecurityTokenPost">
+      <wsdl:input wsaw:Action="http://www.allscripts.com/Unity/IUnityService/RetireSecurityTokenPost" message="tns:IUnityService_RetireSecurityTokenPost_InputMessage" />
+      <wsdl:output wsaw:Action="http://www.allscripts.com/Unity/IUnityService/RetireSecurityTokenPostResponse" message="tns:IUnityService_RetireSecurityTokenPost_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="RetireTokenJsonPost">
+      <wsdl:input wsaw:Action="http://www.allscripts.com/Unity/IUnityService/RetireTokenJsonPost" message="tns:IUnityService_RetireTokenJsonPost_InputMessage" />
+      <wsdl:output wsaw:Action="http://www.allscripts.com/Unity/IUnityService/RetireTokenJsonPostResponse" message="tns:IUnityService_RetireTokenJsonPost_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="RetireSecurityToken">
+      <wsdl:input wsaw:Action="http://www.allscripts.com/Unity/IUnityService/RetireSecurityToken" message="tns:IUnityService_RetireSecurityToken_InputMessage" />
+      <wsdl:output wsaw:Action="http://www.allscripts.com/Unity/IUnityService/RetireSecurityTokenResponse" message="tns:IUnityService_RetireSecurityToken_OutputMessage" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="basichttp" type="tns:IUnityService">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="Magic">
+      <soap:operation soapAction="http://www.allscripts.com/Unity/IUnityService/Magic" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="UnityFaultFault">
+        <soap:fault use="literal" name="UnityFaultFault" namespace="" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="ReturnMagicJSON">
+      <soap:operation soapAction="http://www.allscripts.com/Unity/IUnityService/ReturnMagicJSON" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="UnityFaultFault">
+        <soap:fault use="literal" name="UnityFaultFault" namespace="" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetSecurityToken">
+      <soap:operation soapAction="http://www.allscripts.com/Unity/IUnityService/GetSecurityToken" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="UnityFaultFault">
+        <soap:fault use="literal" name="UnityFaultFault" namespace="" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetValidSecurityToken">
+      <soap:operation soapAction="http://www.allscripts.com/Unity/IUnityService/GetValidSecurityToken" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="UnityFaultFault">
+        <soap:fault use="literal" name="UnityFaultFault" namespace="" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="GetValidSecurityTokenPost">
+      <soap:operation soapAction="http://www.allscripts.com/Unity/IUnityService/GetValidSecurityTokenPost" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetTokenJsonPost">
+      <soap:operation soapAction="http://www.allscripts.com/Unity/IUnityService/GetTokenJsonPost" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RetireSecurityTokenPost">
+      <soap:operation soapAction="http://www.allscripts.com/Unity/IUnityService/RetireSecurityTokenPost" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RetireTokenJsonPost">
+      <soap:operation soapAction="http://www.allscripts.com/Unity/IUnityService/RetireTokenJsonPost" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RetireSecurityToken">
+      <soap:operation soapAction="http://www.allscripts.com/Unity/IUnityService/RetireSecurityToken" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+</wsdl:definitions>

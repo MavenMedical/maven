@@ -58,8 +58,7 @@ class AllscriptsCustomerInterface:
 
     @asyncio.coroutine
     def validate_config(self):
-        working = yield from self.ahc.test_login()
-        return working
+        yield from self.ahc.test_login()
 
     @asyncio.coroutine
     def start(self):
@@ -93,17 +92,17 @@ class AllscriptsCustomerInterface:
         user = composition.author.get_provider_username().upper()
         customer = str(composition.customer_id)
         pat_id = composition.subject.get_pat_id()
-        msg = yield from self.notification_generator.generate_alert_content(composition, 'web', None)
-        CLIENT_SERVER_LOG.debug(("Generated Message content: %s" % msg))
-        # mobile_msg = [{'TEXT': 'New Pathway', 'LINK': m} for m in msg]
+        alerts_section = composition.get_section_by_coding(code_system="maven", code_value="alerts")
 
-        yield from self.server_interface.notify_user(customer, user, pat_id, msg)
+        if len(alerts_section.content) > 0:
+            msg = yield from self.notification_generator.generate_alert_content(composition, 'web', None)
+            CLIENT_SERVER_LOG.debug(("Generated Message content: %s" % msg))
+            # mobile_msg = [{'TEXT': 'New Pathway', 'LINK': m} for m in msg]
+            yield from self.server_interface.notify_user(customer, user, pat_id, msg)
 
     @asyncio.coroutine
     def evaluate_composition(self, composition):
         yield from self.server_interface.evaluate_composition(composition)
 
-        # self.notification_fn('mobile_' + user, customer, mobile_msg)
-
-    # def update_active_providers(self, active_provider_list):
-        # self.active_providers = active_provider_list
+    def update_user(self, user_name, state):
+        self.user_sync_service.update_active_provider_state(user_name, state)

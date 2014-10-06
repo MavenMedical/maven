@@ -460,22 +460,22 @@ class CompositionEvaluator(SP.StreamProcessor):
         if pathways_alert_validation_status == ALERT_VALIDATION_STATUS.SUPPRESS.value:
             return
 
-        alerts_section = composition.get_section_by_coding(code_system="maven", code_value="alerts")
-        for condition in composition.get_encounter_conditions():
-            if 399068003 in condition.get_snomed_ids():
-                ICD9_coding = condition.get_ICD9_id()
+        # The FHIR_database.py function here returns a list of FHIR.Rule objects that correspond to the Pathway
+        matched_pathways = yield from FHIR_DB.get_matching_pathways(composition, self.conn)
+
+        if matched_pathways and len(matched_pathways) > 0:
+            alerts_section = composition.get_section_by_coding(code_system="maven", code_value="alerts")
+            for pathway in matched_pathways:
                 FHIR_alert = FHIR_API.Alert(customer_id=composition.customer_id,
                                             category=ALERT_TYPES.PATHWAY,
                                             subject=composition.subject.get_pat_id(),
+                                            CDS_rule=pathway.CDS_rule_id,
                                             provider_id=composition.get_author_id(),
                                             encounter_id=composition.encounter.get_csn(),
-                                            code_trigger=ICD9_coding.code,
-                                            code_trigger_type="ICD-9",
                                             alert_datetime=datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
-                                            short_title=("Clinical Pathway Detected for: %s" % ICD9_coding.display),
-                                            short_description=("Clinical Pathway recommendations are available for %s" % ICD9_coding.display),
-                                            long_description=("Clinical Pathway recommendations are available for %s" % ICD9_coding.display))
-
+                                            short_title=("Clinical Pathway Detected"),
+                                            short_description=("Clinical Pathway recommendations are available"),
+                                            long_description=("Clinical Pathway recommendations are available"))
                 alerts_section.content.append(FHIR_alert)
 
 

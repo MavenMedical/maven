@@ -25,7 +25,7 @@ from utils.enums import USER_ROLES
 from functools import partial, wraps
 import re
 import utils.database.web_search as WS
-import utils.database.tree_persistance as TP
+import utils.database.tree_persistence as TP
 
 CONFIG_PERSISTENCE = 'persistence'
 
@@ -121,7 +121,7 @@ class FrontendWebService(HTTP.HTTPProcessor):
         self.helper = HH.HTTPHelper([CONTEXT.USER, CONTEXT.PROVIDER, CONTEXT.CUSTOMERID,
                                      CONTEXT.ROLES], CONTEXT.KEY, AUTH_LENGTH)
         self.persistence = WP.WebPersistence(persistence_name)
-        self.save_interface = TP.tree_persistance('persistance')
+        self.save_interface = TP.tree_persistence('persistance')
         self.search_interface = WS.web_search('search')
 
     def schedule(self, loop):

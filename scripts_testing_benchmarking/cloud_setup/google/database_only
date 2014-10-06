@@ -1,7 +1,7 @@
 echo "local0.*		  /var/log/postgresql" | sudo tee -a /etc/rsyslog.conf
 
 #LUKS,install if nessecary 
-#yum install cryptsetup 
+sudo yum install cryptsetup -y
 
 sudo yum install postgresql93-server postgresql93-contrib -y 
 
@@ -32,13 +32,16 @@ sed -i.bak\
     -e "s/#syslog_/syslog_/" \
 postgresql.conf
 
+sed -i -e 's/\(local.*\)password/\1trust/' pg_hba.conf
 echo "host   all    postgres          10.240.0.0/16   password
 host   maven  maven             10.240.0.0/16   password" >> pg_hba.conf
 
 exit # exit postgres
+sudo usermod -G `whoami` -a postgres
+
 service postgresql-9.3 start
 exit # exit root
-echo 'PATH=/usr/pgsql-9.3/bin:${PATH}' >> .bashrc
+echo 'PATH=/usr/pgsql-9.3/bin:${PATH}' >> ~/.bashrc
 
 #Note - on google, EBS storage of a truecrypt encrypted partition passed the closest I can get to a "disk pull plug" test.  A single pass doesn't prove much - only that the system isn't horribly broken.  It was also getting around 120 writes/second (compared to amazon's 80).  The writes/second matches what happened without truecrypt, so I don't think encryption costs us anything.
 
@@ -52,7 +55,7 @@ sudo chmod a+rx /etc/limited/restartpostgres /etc/limited/mount
 echo "
 /etc/limited/mount maven
 /etc/limited/restartpostgres
-"  | sudo tee -a /etc/rc.localq
+"  | sudo tee -a /etc/rc.local
 
 cd ~/schema
 sudo ./installAsRoot.sh

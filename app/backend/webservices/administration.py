@@ -46,22 +46,25 @@ class AdministrationWebservices():
         clientapp_settings = body
         body.update({CONFIG_PARAMS.EHR_USER_SYNC_INTERVAL.value: 60 * 60})
         if 'locked' in clientapp_settings:
-            is_valid_config = True  # HACK HACK
             clientapp_settings.pop('locked')
         else:
-            is_valid_config = yield from self.client_interface.test_customer_configuration(customer, clientapp_settings)
-        if is_valid_config:
-            yield from self.persistence.setup_customer(customer, clientapp_settings)
-            asyncio.Task(self.persistence.audit_log(user, 'change customer ehr settings', customer,
-                                                    details=json.dumps(clientapp_settings)))
-            return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
-        else:
-            return HTTP.BAD_RESPONSE, json.dumps(['FALSE']), None
+            try:
+                yield from self.client_interface.test_customer_configuration(customer,
+                                                                             clientapp_settings)
+            except Exception as e:
+                return HTTP.BAD_RESPONSE, json.dumps(str(e)), None
+
+        # at this point, the configuration has succeeded
+        yield from self.persistence.setup_customer(customer, clientapp_settings)
+        asyncio.Task(self.persistence.audit_log(user, 'change customer ehr settings', customer,
+                                                details=json.dumps(clientapp_settings)))
+        return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
 
     @http_service(['GET'], '/users(?:(\d+)-(\d+)?)?',
                   [CONTEXT.CUSTOMERID],
                   {CONTEXT.CUSTOMERID: int, CONTEXT.ROLES: list,
-                   CONTEXT.TARGETROLE: str, CONTEXT.TARGETUSER: str},
+                   CONTEXT.TARGETROLE: str, CONTEXT.TARGETUSER: str,
+                   CONTEXT.TARGETCUSTOMER: int},
                   {USER_ROLES.administrator, USER_ROLES.provider,
                    USER_ROLES.mavensupport, USER_ROLES.supervisor})
     def get_users(self, _header, _body, context, matches, _key):
@@ -69,6 +72,10 @@ class AdministrationWebservices():
         roles = context[CONTEXT.ROLES]
         targetrole = context.get(CONTEXT.TARGETROLE, None)
         targetuser = context.get(CONTEXT.TARGETUSER, None)
+        targetcustomer = context.get(CONTEXT.TARGETCUSTOMER, None)
+        if targetcustomer and USER_ROLES.mavensupport.value in roles:
+            customer = targetcustomer
+
         limit = self.helper.limit_clause(matches)
 
         if {USER_ROLES.administrator.value, USER_ROLES.provider.value,
@@ -116,6 +123,7 @@ class AdministrationWebservices():
             asyncio.Task(self.notify_user_reset_password(customer, target_user))
         asyncio.Task(self.persistence.audit_log(user, 'change user state', customer,
                                                 target_user=target_user, details=state))
+        asyncio.Task(self.client_interface.update_user_state(customer, target_user, state))
 
         return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
 

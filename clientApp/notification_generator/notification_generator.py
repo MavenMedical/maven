@@ -234,11 +234,13 @@ class NotificationGenerator():
     def _web_pathway_alert_generator(self, composition, templateEnv):
 
         TEMPLATE_FILE = "pathway_alert.html"
-        # TEMPLATE3_FILE = "notification.js"
         template = templateEnv.get_template(TEMPLATE_FILE)
-        # template3 = templateEnv.get_template(TEMPLATE3_FILE)
-        # cost_alert = composition.get_alerts_by_type(type=ALERT_TYPES.PATHWAY)
+
+        # TODO - This composition method is ONLY PULLING ONE Pathway alert even if multiple have fired
+        pathway_alert = composition.get_alerts_by_type(type=ALERT_TYPES.PATHWAY)
+
         templateVars = {"http_address": MC.http_addr,
+                        "pathway_id": pathway_alert.CDS_rule,
                         "encounter_id": urllib.parse.quote(composition.encounter.get_csn()),
                         "encounter_date": composition.encounter.get_admit_date().date().isoformat(),
                         "patient_id": composition.subject.get_pat_id(),

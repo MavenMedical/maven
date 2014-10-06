@@ -67,12 +67,12 @@ class UserSyncService():
 
             self.maven_providers = yield from self.server_interface.get_users_from_db(self.customer_id)
 
-            # Go through the two sets of users (Maven, EHR's) and diff/update appropriately
-            yield from self.diff_users(customer_id)
-
             # Add any new users to the in-memory list of active users
             for provider in self.maven_providers:
                 self.active_providers[(provider['prov_id'], str(customer_id))] = provider
+
+            # Go through the two sets of users (Maven, EHR's) and diff/update appropriately
+            yield from self.diff_users(customer_id)
 
             # Share the in-memory list of active providers with the subscribers to this functionality
             # i.e. Notification Service, Allscripts_server, etc.
@@ -85,7 +85,10 @@ class UserSyncService():
         for updateProviderList in self.provider_list_observers:
             updateProviderList(providers)
 
-    @ML.coroutine_trace(logger.debug)
+        # Update the notification preferences of users in the Notification Service
+        asyncio.Task(self.server_interface.update_notify_prefs(self.customer_id))
+
+    @ML.coroutine_trace(logger.debug, timing=True)
     def diff_users(self, customer_id):
         # create 2 lists containing provider_id to see if we need to CREATE new users
         ehr_prov_list = Counter([prov.get_provider_id() for prov in self.ehr_providers.values()])
@@ -154,6 +157,7 @@ class UserSyncService():
             yield from self.server_interface.write_user_update_to_db(self.customer_id, provider)
 
             for user in [user for user in self.maven_providers if user['prov_id'] == updated_provider[0]]:
+                self.active_providers[(user['prov_id'], str(self.customer_id))]['ehr_state'] = USER_STATE.DISABLED.value
                 yield from self.server_interface.write_audit_log(user['user_name'],
                                                                  'EHR State Disabled for User',
                                                                  user['customer_id'])
@@ -167,9 +171,19 @@ class UserSyncService():
         yield from self.server_interface.write_user_update_to_db(self.customer_id, provider)
 
         for user in [user for user in self.maven_providers if user['prov_id'] == updated_provider[0]]:
-                yield from self.server_interface.write_audit_log(user['user_name'],
-                                                                 'EHR State Enabled for User',
-                                                                 user['customer_id'])
+            self.active_providers[(user['prov_id'], str(self.customer_id))]['ehr_state'] = USER_STATE.ACTIVE.value
+            yield from self.server_interface.write_audit_log(user['user_name'],
+                                                             'EHR State Enabled for User',
+                                                             user['customer_id'])
+
+    def update_active_provider_state(self, user_name, state):
+
+        for user in self.maven_providers:
+            if user.get('user_name', None) == user_name:
+                prov_id = user.get('prov_id')
+                break
+        self.active_providers[(prov_id, str(self.customer_id))]['state'] = state
+        self.update_provider_list_observers(self.active_providers)
 
 
 def run():
