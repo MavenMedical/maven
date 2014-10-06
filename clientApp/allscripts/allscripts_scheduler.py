@@ -46,7 +46,7 @@ class scheduler():
             self.sleep_interval = float(45)
 
     def update_active_providers(self, active_provider_list):
-        self.active_providers = active_provider_list
+        self.active_providers = dict(filter(lambda x: x[0][1] == str(self.customer_id), active_provider_list.items()))
         asyncio.Task(self.comp_builder.build_providers())
 
     @asyncio.coroutine
@@ -60,19 +60,21 @@ class scheduler():
                 if today != self.lastday:
                     self.lastday = today
                     self.processed = set()
-                    sched = []
                 try:
-                    CLIENT_SERVER_LOG.debug('processing %s providers for %s' % (len(self.active_providers), self.customer_id))
-                    for provider in self.active_providers:
-                        sched = yield from self.allscripts_api.GetSchedule(self.active_providers.get(provider)['user_name'], today)
-                        tasks = set()
-                        for appointment in sched:
+                    sched = yield from self.allscripts_api.GetSchedule(None, today)
+                    polling_providers = {x[0] for x in filter(self.check_notification_policy, self.active_providers)}
+                    tasks = set()
+                    CLIENT_SERVER_LOG.debug('processing %s providers for %s' % (polling_providers, self.customer_id))
+
+                    for appointment in sched:
+                        provider = appointment['ProviderID']
+                        if provider in polling_providers:
                             patient = appointment['patientID']
-                            provider = appointment['ProviderID']
                             tasks.add((patient, provider, today, firsts[provider]))
+                    for provider in polling_providers:
                         firsts[provider] = False
-                        for task in tasks:
-                            ML.TASK(self.evaluate(*task))
+                    for task in tasks:
+                        ML.TASK(self.evaluate(*task))
                 except AllscriptsError as e:
                     CLIENT_SERVER_LOG.exception(e)
                 # print([(sch['patientID'], sch['ApptTime2'], sch['ProviderID']) for sch in sched])
@@ -130,10 +132,7 @@ class scheduler():
 
     def check_notification_policy(self, key):
         provider = self.active_providers.get(key)
-
-        if provider.get('state') == USER_STATE.ACTIVE.value and provider.get('ehr_state') == USER_STATE.ACTIVE.value and provider.get('notification_state', None) is not None:
-            return True
-        elif provider.get('state') == USER_STATE.ACTIVE.value and provider.get('ehr_state') == USER_STATE.ACTIVE.value and provider.get('notification_state', None) == NOTIFICATION_STATE.MOBILE:
+        if provider.get('state') == USER_STATE.ACTIVE.value and provider.get('ehr_state') == USER_STATE.ACTIVE.value:
             return True
         else:
             return False
