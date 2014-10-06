@@ -257,6 +257,7 @@ namespace MavenAsDemo
             //if the key is valid, return without doing anything
             //otherwise, prompt for a new login IN THE CURRENT THREAD. don't job off, or it will prompt for lots of login forms. 
             //all of this logic is currently handled in the authenticator.
+            url = ""; //clear people out from replaying the previous alert.
             EncryptedKey = Authenticator.GetEncryptedAuthKey("Login Timeout");
             if (EncryptedKey == null)
             {
