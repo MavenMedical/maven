@@ -36,6 +36,12 @@ define([
                     $.extend(args, data); //add additional arguments
                     var widget = new this.widgetList[i](args);
                 }
+                $(document).ready(function(){
+                    //stop widget buttons from closing the modal
+                    $("button", this.$el).click(function(event){
+                        event.stopPropagation();
+                    });
+                });
             },
     });
 

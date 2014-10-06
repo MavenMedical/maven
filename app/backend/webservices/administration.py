@@ -148,7 +148,8 @@ class AdministrationWebservices():
 
     @http_service(['GET'], '/customer_info',
                   [CONTEXT.CUSTOMERID],
-                  {CONTEXT.CUSTOMERID: int},
+                  {CONTEXT.CUSTOMERID: int, CONTEXT.TARGETCUSTOMER: int,
+                   CONTEXT.ROLES: list},
                   {USER_ROLES.administrator, USER_ROLES.mavensupport})
     def get_customer_info(self, _header, _body, context, matches, _key):
         """
@@ -156,6 +157,9 @@ class AdministrationWebservices():
         contained in the related column in the customer table
         """
         customerid = context[CONTEXT.CUSTOMERID]
+        targetcustomer = context.get(CONTEXT.TARGETCUSTOMER, None)
+        if targetcustomer and (USER_ROLES.mavensupport.name in context[CONTEXT.ROLES]):
+            customerid = targetcustomer
 
         desired = {
             WP.Results.settings: 'settings',

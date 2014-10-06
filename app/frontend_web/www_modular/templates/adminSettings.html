@@ -7,13 +7,19 @@
                     <div class="row">
                         <div class="span3">Unity Server Address:</div>
                         <div style='float:left'>
-                            <% URLEND = "/Unity/UnityService.svc"
+                            <% URLEND = "/Unity/UnityService.svc";
+                               var disabled = "";
                                if (typeof EHRURL !== "undefined")
                                {
+                                    disabled = "disabled";
                                     DISP_URL = EHRURL.replace("http://","").replace("https://","").replace(URLEND,"");
                                }
+                               else if (typeof target_customer !== "undefined")
+                               {
+                                    disabled = "disabled";
+                               }
                             %>
-                            <select id='httphttps' class='form-control' <%= (typeof EHRURL !== 'undefined') ? 'disabled': '' %>>
+                            <select id='httphttps' class='form-control' <%= disabled %>>
                                 <option class='form-control'
                                     value='https://' <%= (typeof EHRURL !== 'undefined') ? (EHRURL.indexOf("https://") > -1) ? 'selected' : '' : ''%>>https://
                                 </option>
@@ -23,8 +29,8 @@
                           </select>
                         </div>
                         <div style='float:left; margin-bottom:10px;'>
-                            <input id="admin-ip-input" type="text" class='form-control'
-                            <%= (typeof DISP_URL !== 'undefined') ? "value='"+DISP_URL+"' disabled" : "value='192.237.182.238'" %>>
+                            <input id="admin-ip-input" type="text" class='form-control' <%= disabled %>
+                            <%= (typeof DISP_URL !== 'undefined') ? "value='"+DISP_URL+"'" : "value='192.237.182.238'" %>>
                             <div class='span3' style='float:left'><%= URLEND %></div>
                         </div>
                     </div>
@@ -32,16 +38,18 @@
                 <div class="col-sm-6">
                     <div class="row">
                         <div class="span3">App Name:</div>
-                        <input id="admin-name-input" class='form-control' type="text"
-                            <%= (typeof EHRAppName !== 'undefined') ? "value='"+EHRAppName+"' disabled" : "value='MavenPathways.TestApp'" %>>
+                        <input id="admin-name-input" class='form-control' type="text" <%= disabled %>
+                            <%= (typeof EHRAppName !== 'undefined') ? "value='"+EHRAppName+"'" : "value='MavenPathways.TestApp'" %>>
                     </div>
                 </div>
                 <div class="col-sm-6">
                     <div class="row" style='margin-bottom:10px;'>
+                        <% if (typeof target_customer === "undefined"){ %>
                         <div class="span3">App Password:</div>
-                        <input id="admin-pw-input" class='form-control' type="password"
-			<%= (typeof EHRURL !== 'undefined') ? "value='' disabled" : "" %>>
-                        
+                        <input id="admin-pw-input" class='form-control' type="password" <%= disabled %>>
+                        <% } else {  %>
+                            <%= '&nbsp;' %>
+                        <% } %>
                     </div>
                 </div>
                 <br/>
@@ -51,7 +59,7 @@
                     <div id="admin-setup-message" class="span3">&nbsp;</div>
                 </div>
                 <div class="col-sm-6">
-                    <% if (typeof EHRURL !== 'undefined'){ %>
+                    <% if (typeof EHRURL !== 'undefined' && typeof target_customer === 'undefined'){ %>
                     <div style='float:right'>
                         <button class="btn btn-default btn-xs unlock-admin-button">Edit EHR Settings</button>
                         <button class="btn btn-default btn-xs lock-admin-button" style="display: none;">Lock EHR Settings</button>
@@ -69,6 +77,7 @@
                     <div class="row">
                         <div class="span3">Polling Interval (seconds):</div>
                         <input id="admin-polling-input" class='time-input form-control' type="text"
+                               <%= (typeof target_customer !== 'undefined') ? 'disabled' : '' %>
                                value="<%= (typeof EHRPolling !== 'undefined') ? EHRPolling : '30'%>">
                     </div>
                 </div>
@@ -76,6 +85,7 @@
                     <div class="row">
                         <div class="span3">Login Inactivity Timeout (minutes):</div>
                         <input id="admin-timeout-input" class='time-input form-control' type="text"
+                               <%= (typeof target_customer !== 'undefined') ? 'disabled' : '' %>
                                value="<%= (typeof UserTimeout !== 'undefined') ? UserTimeout : '120'%>">
                     </div>
                 </div>
@@ -86,7 +96,9 @@
                 </div>
                 <div class="col-sm-6">
                     <div style='float:right'>
+                        <% if (typeof EHRURL !== 'undefined' && typeof target_customer === 'undefined'){ %>
                         <button class="btn btn-default setup-admin-button">Save Changes</button>
+                        <% } %>
                     </div>
                 </div>
             </div>

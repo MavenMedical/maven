@@ -8,15 +8,30 @@ define([
     'backbone',    // lib/backbone/backbone
     'globalmodels/contextModel',
     'globalmodels/userCollection',
-], function ($, _, Backbone, contextModel, userCollection) {
+    'text!templates/adminSettings.html',
+
+], function ($, _, Backbone, contextModel, userCollection, AdminSettingsTemplate) {
     var AdminModel = Backbone.Model.extend({url: '/customer_info'});
     var adminModel = new AdminModel;
 
     var AdminSettings = Backbone.View.extend({
         model: adminModel,
+        target_customer: '',
         initialize: function (arg) {
-            this.model.fetch({data:$.param(contextModel.toParams())});
-            this.template = _.template(arg.template);
+            var extra_data = "";
+            if (typeof arg.template !== "undefined") {
+                this.template = _.template(arg.template); // this must already be loaded
+            }
+            else {
+                this.template = _.template(AdminSettingsTemplate);
+            }
+            if (typeof arg.target_customer !== "undefined") {
+                this.target_customer = arg.target_customer;
+                extra_data = "&target_customer=" + arg.target_customer;
+                //this.model.attributes.target_customer = arg.target_customer;
+            }
+            this.model.fetch({data:$.param(contextModel.toParams()) + extra_data});
+            //this.template = _.template(arg.template);
             this.model.on('change', this.render, this);
             //this.render();
         },
@@ -117,6 +132,9 @@ define([
             }
         },
         render: function(){
+            if (this.target_customer != '') {
+                this.model.attributes.settings.target_customer = this.target_customer;
+            }
             this.$el.html(this.template(this.model.attributes.settings));
             return this;
         },

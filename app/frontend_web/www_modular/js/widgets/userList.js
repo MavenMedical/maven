@@ -10,7 +10,7 @@ define([
     'globalmodels/contextModel',
     'text!templates/userScroll.html',
 
-], function ($, _, Backbone, userCollection, UserRow, contextModel, UserListTemplate, targetCustomer) {
+], function ($, _, Backbone, userCollection, UserRow, contextModel, UserListTemplate) {
 
     var UserList = Backbone.View.extend({
     target_customer: '',
