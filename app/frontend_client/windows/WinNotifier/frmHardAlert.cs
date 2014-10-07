@@ -33,7 +33,7 @@ namespace MavenAsDemo
         public frmHardAlert(string inUrl, string location)
         {
             loc = location;
-            url = inUrl; //.Replace("http://","https://");
+            url = inUrl.Replace("http://","https://");
             InitializeComponent();
         }
 

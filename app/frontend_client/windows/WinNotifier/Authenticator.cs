@@ -184,7 +184,7 @@ namespace MavenAsDemo
             Settings set = new Settings();
             bool rtn = false;
             //TODO: HTTPS
-            WebRequest rqst = WebRequest.Create("http://" + set.pollingServer + "/broadcaster/login");
+            WebRequest rqst = WebRequest.Create("https://" + set.pollingServer + "/broadcaster/login");
             rqst.Method = "POST";
             Settings currsettings = new Settings();
             byte[] bytes = Encoding.UTF8.GetBytes(dataToPost);

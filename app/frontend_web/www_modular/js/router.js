@@ -37,7 +37,7 @@ define([
         "patient": [0, 9, 3],
         "episode": [0, 9, 3],
         "pathway": [0, 12, 0],
-        "pathEditor": [3, 6, 3],
+        "pathEditor": [0, 12, 0],
     };
     changePageLayout = function (page) {
 
@@ -132,7 +132,6 @@ define([
             }
         },
         EditPathway: function (path, code, user, customer, userAuth) {
-            console.log('codes', path, code)
             currentContext.set({page: 'pathEditor',  pathid: path});
             showPage(user, customer, userAuth);
         },
