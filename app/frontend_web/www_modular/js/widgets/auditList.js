@@ -10,6 +10,9 @@ define([
     'globalmodels/contextModel',
     'libs/jquery/jquery-mousestop-event'
 ], function ($, _, Backbone, auditCollection, AuditRow, contextModel) {
+
+    var downloadaudit = ['date', 'patient', 'action', 'device', 'details'];
+
     var AuditList = Backbone.View.extend({
     targetUser:null,
     targetCustomer:null,
@@ -25,7 +28,7 @@ define([
         {
             auditCollection.data = "";
         }
-	auditCollection.reset();
+	    auditCollection.reset();
         auditCollection.initialize();
 	    this.template = _.template(arg.template); // this must already be loaded
             this.$el.html(this.template({height:$(window).height()-50+'px'}));
@@ -48,21 +51,20 @@ define([
         that = this;
         var extra_data = "";
         if (that.targetUser && that.targetCustomer) {
-            extra_data = "/target_user/" + that.targetUser + "/target_customer/" + that.targetCustomer;
+            extra_data = "&target_user=" + that.targetUser + "&target_customer=" + that.targetCustomer;
         }
-/*
-        var path = "/download_audits/"+$.param(contextModel.toParams());
-        path = path.replace(/&/g,"/");
-        path = path.replace(/=/g,"/");
-        path += extra_data;
-        location.replace(path);
 
-*/
         $.ajax({
-            url: "/download_audits",
+            url: "/audits",
             data: $.param(contextModel.toParams()) + extra_data,
             success: function (data) {
-                    //window.open(data);
+                var csvContent = ["data:text/csv;charset=utf-8," + downloadaudit.join(',')];
+                _.each(data, function (row) {
+                    csvContent.push('"' + _.map(downloadaudit, function (v) {
+                        return row[v].replace(/"/g, '');
+                    }).join('","') + '"');
+                });
+                window.open(encodeURI(csvContent.join('\n')));
             },
             error : function () {
             }
