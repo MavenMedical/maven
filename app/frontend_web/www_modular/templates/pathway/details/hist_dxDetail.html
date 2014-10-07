@@ -1,0 +1,14 @@
+
+<div class="detail-entry">
+    <a class="detail-item">
+    <% if (exists == "false") { %>
+            Rule will <b>not be used</b> if the subject had any of the diagnoses: <b><%=codeterm%></b>
+            <br>in the time frame <b><%=minDays%></b> to <b><%=maxDays%></b> days from the present
+    <%} else { %>
+            Rule will <b>be used only</b> if the subject had any of the diagnoses: <b><%=codeterm%></b>
+            <br>in the time frame <b><%=minDays%></b> to <b><%=maxDays%></b> days from the present
+    <%}%>
+    </a>
+    <a style = "float: right" class="remove-detail">&#10006</a>
+
+</div>

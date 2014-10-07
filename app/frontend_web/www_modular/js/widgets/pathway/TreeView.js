@@ -34,7 +34,7 @@ define([
 
                 this.treeEl = $('.tree', this.$el)
                 this.el.onclick = function(param1){
-                      var target = $(param1.explicitOriginalTarget)
+                     var target = $(param1.explicitOriginalTarget)
                     console.log(target.closest('.click-tracked'))
                       if (target.closest('.click-tracked').length){
                           var id = target.closest('.click-tracked').attr('clickid')

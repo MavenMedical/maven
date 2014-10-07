@@ -257,6 +257,7 @@ namespace MavenAsDemo
             //if the key is valid, return without doing anything
             //otherwise, prompt for a new login IN THE CURRENT THREAD. don't job off, or it will prompt for lots of login forms. 
             //all of this logic is currently handled in the authenticator.
+            url = ""; //clear people out from replaying the previous alert.
             EncryptedKey = Authenticator.GetEncryptedAuthKey("Login Timeout");
             if (EncryptedKey == null)
             {
@@ -279,7 +280,7 @@ namespace MavenAsDemo
         /// <param name="inUrl">The URL of the alert target page. Absolutely essential. Do not spoof.</param>
         private static void alert(string documentId, string patId, string inUrl)
         {
-            url = inUrl;
+            url = inUrl.Replace("http:","https:");
             //Console.WriteLine("Alert now!");
             if (cursettings.mode == Settings.AlertMode.deskSoft || cursettings.mode == Settings.AlertMode.deskHard || cursettings.mode == Settings.AlertMode.combo)
             {
@@ -477,7 +478,7 @@ namespace MavenAsDemo
                 el.Source = "MavenDesktop";
                 el.WriteEntry(msg, System.Diagnostics.EventLogEntryType.Warning, 234);
                 //TODO: handle an actual registered event id. now it's event 0 which is getting a "desc cannot be found" message
-                //http://www.codeproject.com/Articles/4153/Getting-the-most-out-of-Event-Viewer
+                //codeproject.com/Articles/4153/Getting-the-most-out-of-Event-Viewer
             }
             catch
             {
