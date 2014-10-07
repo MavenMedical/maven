@@ -93,6 +93,7 @@ define([
                 $('.tree', that.$el).append("<div style= 'width:auto; height: auto' class='nodeEl'></div>")
                 $('.tree', that.$el).append("<div style='height:100px'></div>")
 
+                console.log(curTree)
                 var topLevel = new TriggerNode({el: $('.nodeEl', this.$el).last(), model: curTree});
                 if (contextModel.get('page') == 'pathEditor')
                     $('#pathwayName').html("Now Editing Pathway: " + curTree.attributes.name);
