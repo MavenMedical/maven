@@ -222,7 +222,7 @@ class UserMgmtWebservices():
                    CONTEXT.ENCOUNTER: str, CONTEXT.STARTDATE: date, CONTEXT.ENDDATE: date,
                    CONTEXT.ORDERID: str, CONTEXT.CATEGORIES: list, CONTEXT.USER: str,
                    CONTEXT.TARGETPROVIDER: str, CONTEXT.TARGETCUSTOMER: int},
-                  {USER_ROLES.provider, USER_ROLES.supervisor})
+                  {USER_ROLES.provider, USER_ROLES.supervisor, USER_ROLES.administrator})
     def download_audits(self, _header, _body, context, matches, _key):
         provider = context.get(CONTEXT.TARGETPROVIDER, None)
         customer = context.get(CONTEXT.TARGETCUSTOMER, None)
@@ -248,10 +248,10 @@ class UserMgmtWebservices():
                                                          startdate=startdate,
                                                          enddate=enddate, limit=None)
 
-        with open('audits.csv', 'rb') as csvfile:
+        """ with open('audits.csv', 'rb') as csvfile:
             writer = csv.writer(csvfile)
             writer.writerows(results)
-        """write_string = ""
+        write_string = ""
         for audit in results:
             write_string += audit["date"] + "," + audit["patient"] + "," + audit["action"]
             write_string += audit["device"] + "," + audit["details"] + ",\n"
@@ -269,4 +269,4 @@ class UserMgmtWebservices():
                         headers={"Content-Disposition":
                         "attachment;filename=audits.txt"})"""
 
-        return HTTP.OK_RESPONSE, json.dumps(writer), None
+        return HTTP.OK_RESPONSE, json.dumps(results), None
