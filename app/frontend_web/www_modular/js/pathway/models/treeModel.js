@@ -57,9 +57,9 @@ define([
             contextModel.on('change:pathid', function(){
                 that.fetch()
                 if (contextModel.get('page') == 'pathEditor')
-                    Backbone.history.navigate("pathwayeditor/"+contextModel.get('pathid')+ "/pathcode/" + "NYI");
+                    Backbone.history.navigate("pathwayeditor/"+contextModel.get('pathid')+ "/node/" + "NYI");
                 else {
-                    Backbone.history.navigate("pathway/"+contextModel.get('pathid')+ "/pathcode/" + "NYI");
+                    Backbone.history.navigate("pathway/"+contextModel.get('pathid')+ "/node/" + "NYI");
                 }
             })
             this.fetch();
