@@ -98,7 +98,7 @@ class PathwaysWebservices():
 
     @http_service(['POST'], '/activity',
                   [CONTEXT.USERID, CONTEXT.CUSTOMERID],
-                  {CONTEXT.USER: int, CONTEXT.CUSTOMERID: int},
+                  {CONTEXT.USERID: int, CONTEXT.CUSTOMERID: int},
                   {USER_ROLES.provider, USER_ROLES.supervisor})
     def post_activity(self, _header, body, context, _matches, _key):
         customer_id = context.get(CONTEXT.CUSTOMERID, None)
