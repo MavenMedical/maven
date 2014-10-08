@@ -472,7 +472,7 @@ class WebPersistence():
         cmd.append(columns)
         cmd.append("FROM users")
         if Results.settings in desired:
-            cmd.append("LEFT JOIN customer on users.customer_id = customer.customer_id")
+            cmd.append("INNER JOIN customer on users.customer_id = customer.customer_id")
         cmd.append("WHERE users.customer_id = %s")
         cmdargs.append(customer)
         cmd.append("AND users.user_name = UPPER(%s)")
@@ -879,7 +879,7 @@ class WebPersistence():
         cmd.append("SELECT")
         cmd.append(columns)
         cmd.append("FROM layouts")
-        cmd.append("LEFT JOIN users ON layout_id = ANY(users.layouts) WHERE user_id=%s ORDER BY priority")
+        cmd.append("INNER JOIN users ON layout_id = ANY(users.layouts) WHERE user_id=%s ORDER BY priority")
         cmdargs.append(user)
 
         results = yield from self.execute(cmd, cmdargs, self._display_layout_info, desired)
@@ -1087,16 +1087,82 @@ class WebPersistence():
 
     @asyncio.coroutine
     def create_protocol(self, treeJSON, customer_id):
-        cmd = ["INSERT INTO trees.protocol (full_spec, name, customer_id)",
-               "VALUES (%s, %s, %s) RETURNING protocol_id"]
-        cmdArgs = [json.dumps(treeJSON), treeJSON['name'], customer_id]
+
+        cmd = ["SELECT trees.insertprotocol(%s, %s, %s, %s, %s, %s, %s)"]
+        cmdArgs = [json.dumps(treeJSON), customer_id, treeJSON['name'], None, 0.00, 200.00, '%']
         try:
             cur = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
             tree_id = cur.fetchone()[0]
+
+            # Insert a record into alert_config so that the Pathway actually fires (it's referenced in the evalnode()
+            # PL/pgsql function
+            cmd = ["INSERT INTO alert_config (customer_id, category, rule_id, validation_status)",
+                   "VALUES (%s, %s, %s, %s)"]
+            cmdArgs = [customer_id, "PATHWAY", tree_id, 400]
+            cur = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
+
+            # Update/Insert the trees.codelist records for the protocol
+            yield from self.upsert_codelists(treeJSON)
+
+            # Return Tree_ID to the front-end
             return tree_id
         except:
             ML.EXCEPTION("Error Inserting {} Protocol for Customer #{}".format(treeJSON['name'], customer_id))
         return None
+
+    @asyncio.coroutine
+    def upsert_codelists(self, treeDict):
+        protocol_id = treeDict.get('id', None)
+        root_node_id = treeDict.get('nodeID', None)
+        protocol_trigger_dict = treeDict.get('triggers', None)
+
+        # Insert the Protocol Triggering Codelist(s) for ENCOUNTER Diagnoses
+        enc_dx_triggers = protocol_trigger_dict.get('enc_dx', None)
+        if enc_dx_triggers:
+            yield from self.upsert_snomed_triggers(protocol_id, root_node_id, 'enc_dx', enc_dx_triggers)
+
+        # Insert the Protocol Triggering Codelist(s) for HISTORIC Diagnoses
+        hist_dx_triggers = protocol_trigger_dict.get('hist_dx', None)
+        if hist_dx_triggers:
+            yield from self.upsert_snomed_triggers(protocol_id, root_node_id, 'hist_dx', hist_dx_triggers)
+
+        # Recursively insert the codelists for all of the child nodes
+            # TODO
+
+    @asyncio.coroutine
+    def upsert_snomed_triggers(self, protocol_id, node_id, list_type, triggers):
+
+        for cl in triggers:
+            # Parse the "exists" JSON element FROM a string INTO a Python integer
+            exists = self.convert_string_to_boolean(cl.get('exists', None))
+
+            # Parse the "code" list of string SNOMEDS into Python integers
+            string_snomeds = cl.get('code', None)
+            int_snomeds = [int(ss) for ss in string_snomeds]
+
+            # Historic Diagnoses have the framemin/framemax that Encounter Diagnoses do not have, grab 'em
+            if list_type == 'hist_dx':
+                framemin = int(cl.get('minDays', None))
+                framemax = int(cl.get('maxDays', None))
+            # Give Encounter Diagnoses a framemin/framemax that will never fail
+            else:
+                framemin = -99999
+                framemax = 99999
+
+            cmd = ["SELECT trees.upsert_codelist(%s, %s, %s::varchar, %s, %s::integer[], %s::varchar[], %s, %s)"]
+            cmdArgs = [protocol_id, node_id, list_type, exists, int_snomeds, None, framemin, framemax]
+            cur = yield from self.db.execute_single(' '.join(cmd), extra=cmdArgs)
+
+    def convert_string_to_boolean(self, str):
+
+        if str is None:
+            raise Exception("The EXISTS true/false string sent from the Pathways Rule Editor did not supply a valid string")
+        elif str.lower() == 'true':
+            return True
+        elif str.lower() == 'false':
+            return False
+        else:
+            raise Exception("The EXISTS true/false string sent from the Pathways Rule Editor did not supply a valid string")
 
     @asyncio.coroutine
     def get_protocol(self, protocol_id):
@@ -1129,5 +1195,7 @@ class WebPersistence():
         cmdArgs = [json.dumps(protocol_json), protocol_json.get('id', None)]
         try:
             cur = yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
+            # Update/Insert the trees.codelist records for the protocol
+            yield from self.upsert_codelists(protocol_json)
         except:
             ML.EXCEPTION("Error Updating TreeID #{}".format(protocol_json.get('id', None)))

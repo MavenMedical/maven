@@ -37,7 +37,7 @@ define([
 		}
 	    this.fetch({data:data, remove:true});
             var d = new Date();
-            this.lastRefresh = d.getMonth() + '-' + d.getDate() + '-' + d.getFullYear() + ' ' + d.getHours() + ':' + d.getMinutes()  + ':' + d.getSeconds();
+            this.lastRefresh = (d.getMonth()+1) + '-' + d.getDate() + '-' + d.getFullYear() + ' ' + d.getHours() + ':' + d.getMinutes()  + ':' + d.getSeconds();
 	}
 
         //setup context change listener

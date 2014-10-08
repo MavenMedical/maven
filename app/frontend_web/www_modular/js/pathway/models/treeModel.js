@@ -56,7 +56,11 @@ define([
             var that = this
             contextModel.on('change:pathid', function(){
                 that.fetch()
-                Backbone.history.navigate("pathway/1/pathid/"+contextModel.get('pathid'));
+                if (contextModel.get('page') == 'pathEditor')
+                    Backbone.history.navigate("pathwayeditor/"+contextModel.get('pathid')+ "/node/" + "NYI");
+                else {
+                    Backbone.history.navigate("pathway/"+contextModel.get('pathid')+ "/node/" + "NYI");
+                }
             })
             this.fetch();
             this.elPairs = []

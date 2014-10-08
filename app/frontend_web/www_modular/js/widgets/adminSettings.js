@@ -8,15 +8,30 @@ define([
     'backbone',    // lib/backbone/backbone
     'globalmodels/contextModel',
     'globalmodels/userCollection',
-], function ($, _, Backbone, contextModel, userCollection) {
+    'text!templates/adminSettings.html',
+
+], function ($, _, Backbone, contextModel, userCollection, AdminSettingsTemplate) {
     var AdminModel = Backbone.Model.extend({url: '/customer_info'});
     var adminModel = new AdminModel;
 
     var AdminSettings = Backbone.View.extend({
         model: adminModel,
+        target_customer: '',
         initialize: function (arg) {
-            this.model.fetch({data:$.param(contextModel.toParams())});
-            this.template = _.template(arg.template);
+            var extra_data = "";
+            if (typeof arg.template !== "undefined") {
+                this.template = _.template(arg.template); // this must already be loaded
+            }
+            else {
+                this.template = _.template(AdminSettingsTemplate);
+            }
+            if (typeof arg.target_customer !== "undefined") {
+                this.target_customer = arg.target_customer;
+                extra_data = "&target_customer=" + arg.target_customer;
+                //this.model.attributes.target_customer = arg.target_customer;
+            }
+            this.model.fetch({data:$.param(contextModel.toParams()) + extra_data});
+            //this.template = _.template(arg.template);
             this.model.on('change', this.render, this);
             //this.render();
         },
@@ -60,7 +75,7 @@ define([
             var polling = $("#admin-polling-input").val();
             var timeout = $("#admin-timeout-input").val();
             var username = $("#admin-username-input").val();
-	    var unlocked = $(".lock-admin-button").is(':visible');
+	        var unlocked = $(".lock-admin-button").is(':visible');
 	    
             var reg_num = new RegExp('^[0]*[1-9]+[0]*$');
             /*var reg_ip = new RegExp('^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$');
@@ -99,15 +114,20 @@ define([
                     data = _.clone(this.model.attributes.settings);
                     _.extend(data, {"EHRPolling": polling, "UserTimeout": timeout, 'locked': 'locked'});
                 }
-
+                that = this;
                 $.ajax({
                     type: 'POST',
                     dataType: 'json',
-                            url: "/setup_customer?" + $.param(contextModel.toParams()),
+                    url: "/setup_customer?" + $.param(contextModel.toParams()),
                     data: JSON.stringify(data),
                             success: function () {
                                 $("#save-admin-message").html("Settings saved!");
-                                alert("Success! Connection to EHR established.");
+                                if (unlocked || !that.model.attributes.settings) {
+                                    alert("Success! Connection to EHR established.");
+                                }
+                                else {
+                                    alert("Connection settings saved!");
+                                }
                                 userCollection.refresh();
                                 setTimeout(userCollection.refresh, 7000);
                             },
@@ -119,6 +139,9 @@ define([
             }
         },
         render: function(){
+            if (this.target_customer != '') {
+                this.model.attributes.settings.target_customer = this.target_customer;
+            }
             this.$el.html(this.template(this.model.attributes.settings));
             return this;
         },

@@ -5,8 +5,9 @@ define([
     'backbone',    // lib/backbone/backbone
     'pathway/modalViews/nodeEditor',
     'pathway/modalViews/protocolEditor',
-    'pathway/modalViews/detailEditor',
-   'globalmodels/contextModel',
+    'pathway/modalViews/ruleWizard',
+
+    'globalmodels/contextModel',
     'pathway/models/nodeList',
     'pathway/models/nodeModel',
     'pathway/models/treeModel',
@@ -15,7 +16,7 @@ define([
     'text!templates/pathway/triggerNode.html',
     'text!templates/pathway/triggerRow.html'
 
-    ], function($, _, Backbone,  NodeEditor, ProtocolEditor, DetailEditor, currentContext,  nodeList, nodeModel, curTree, ProtocolNode, TreeNode, nodeTemplate, rowTemplate){
+    ], function($, _, Backbone,  NodeEditor, ProtocolEditor, ruleWizard, currentContext,  nodeList, nodeModel, curTree, ProtocolNode, TreeNode, nodeTemplate, rowTemplate){
 
         var TriggerNode = TreeNode.extend({
 
@@ -94,7 +95,7 @@ define([
                      var newEditor = new ProtocolEditor(that.model)
                 })
                 $("#addTriggerButton", this.$el).on('click', function(){
-                     var newEditor = new DetailEditor({triggerNode: that.model})
+                     var newEditor = new ruleWizard({triggerNode: that.model})
                      newEditor.render()
                 })
 

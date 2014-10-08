@@ -12,9 +12,10 @@ define([
     'text!templates/customerRow.html',
 
     'widgets/widgetModal',
-    'widgets/userList'
+    'widgets/userList',
+    'widgets/adminSettings'
 
-], function ($, _, Backbone, contextModel, customerRowTemplate, WidgetModal, userList) {
+], function ($, _, Backbone, contextModel, customerRowTemplate, WidgetModal, userList, adminSettings) {
     var customerRow = Backbone.View.extend({
         tagName: 'tr class=\'customer-row\'',
         template: _.template(customerRowTemplate),
@@ -48,7 +49,7 @@ define([
                     else
                     {
                         //show customer info modal if user clicked on 'view info' button
-                        var widgetModal = new WidgetModal({widgetList: [userList]});
+                        var widgetModal = new WidgetModal({widgetList: [adminSettings, userList]});
                         widgetModal.render({target_customer: that.model.attributes.customer_id});
                     }
                 });

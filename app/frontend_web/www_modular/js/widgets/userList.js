@@ -10,7 +10,7 @@ define([
     'globalmodels/contextModel',
     'text!templates/userScroll.html',
 
-], function ($, _, Backbone, userCollection, UserRow, contextModel, UserListTemplate, targetCustomer) {
+], function ($, _, Backbone, userCollection, UserRow, contextModel, UserListTemplate) {
 
     var UserList = Backbone.View.extend({
     target_customer: '',
@@ -98,7 +98,7 @@ define([
 		this.$el.hide();
 	    }
         var d = new Date();
-        userCollection.lastRefresh = d.getMonth() + '-' + d.getDate() + '-' + d.getFullYear() + ' ' + d.getHours() + ':' + d.getMinutes()  + ':' + d.getSeconds();
+        userCollection.lastRefresh = (d.getMonth()+1) + '-' + d.getDate() + '-' + d.getFullYear() + ' ' + d.getHours() + ':' + d.getMinutes()  + ':' + d.getSeconds();
 
         var userlist = $('.useraccordion', this.$el);
         var usertable = $('.usertable', this.$el);
