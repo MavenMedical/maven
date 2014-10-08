@@ -472,7 +472,7 @@ class WebPersistence():
         cmd.append(columns)
         cmd.append("FROM users")
         if Results.settings in desired:
-            cmd.append("LEFT JOIN customer on users.customer_id = customer.customer_id")
+            cmd.append("INNER JOIN customer on users.customer_id = customer.customer_id")
         cmd.append("WHERE users.customer_id = %s")
         cmdargs.append(customer)
         cmd.append("AND users.user_name = UPPER(%s)")
@@ -879,7 +879,7 @@ class WebPersistence():
         cmd.append("SELECT")
         cmd.append(columns)
         cmd.append("FROM layouts")
-        cmd.append("LEFT JOIN users ON layout_id = ANY(users.layouts) WHERE user_id=%s ORDER BY priority")
+        cmd.append("INNER JOIN users ON layout_id = ANY(users.layouts) WHERE user_id=%s ORDER BY priority")
         cmdargs.append(user)
 
         results = yield from self.execute(cmd, cmdargs, self._display_layout_info, desired)
