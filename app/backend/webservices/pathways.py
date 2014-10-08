@@ -96,6 +96,22 @@ class PathwaysWebservices():
         protocol_json[CONTEXT.PATHID] = protocol_json.get('id', None)
         return (HTTP.OK_RESPONSE, json.dumps(protocol_json), None)
 
+    @http_service(['POST'], '/activity',
+                  [CONTEXT.USERID, CONTEXT.CUSTOMERID],
+                  {CONTEXT.USER: int, CONTEXT.CUSTOMERID: int},
+                  {USER_ROLES.provider, USER_ROLES.supervisor})
+    def post_activity(self, _header, body, context, _matches, _key):
+        customer_id = context.get(CONTEXT.CUSTOMERID, None)
+        user_id = context.get(CONTEXT.USERID, None)
+        activity_msg = json.loads(body.decode('utf-8'))
+
+        result = yield from self.persistence.post_protocol_activity(customer_id, user_id, activity_msg)
+
+        if result:
+            return HTTP.OK_RESPONSE, "", None
+        else:
+            return HTTP.BAD_RESPONSE, "", None
+
 
 def run():
     from utils.database.database import AsyncConnectionPool
