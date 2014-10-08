@@ -241,6 +241,7 @@ class NotificationGenerator():
 
         templateVars = {"http_address": MC.http_addr,
                         "pathway_id": pathway_alert.CDS_rule,
+                        "node_id": 1,
                         "encounter_id": urllib.parse.quote(composition.encounter.get_csn()),
                         "encounter_date": composition.encounter.get_admit_date().date().isoformat(),
                         "patient_id": composition.subject.get_pat_id(),

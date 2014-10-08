@@ -59,7 +59,12 @@ define([
 	} else if (widgetlist[i].element =='floating-left') {
             $('#floating-left').append("<div class='row content-row'></div>")
 	    el = $('.row', $('#floating-left')).last()
-        } else {
+        }
+      else if (widgetlist[i].element =='fixed-topB') {
+            $('#fixed-topB').append("<div class='row content-row'></div>")
+	    el = $('.row', $('#fixed-topB')).last()
+        }
+        else {
             el = $("#"+ widgetlist[i].element)
 	}
             new arguments[i]({template: arguments[i+viewlist.length], el: el})

@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using Microsoft.Win32;
 using System.Net;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace MavenAsDemo
 {
@@ -252,9 +253,18 @@ namespace MavenAsDemo
         {
             int startclip = wholestring.IndexOf("userAuth"); //get the location of userauth and then go back to the last comma
             startclip = wholestring.Substring(0, startclip).LastIndexOf(",");
+            if (startclip < 0) { startclip = 1; } //if no comma before the userauth, then this is the first element. Start after {
             int endclip = wholestring.IndexOf(",", startclip + 1);//get the next comma after the userauth bit
-            if (endclip < 1) { endclip = wholestring.LastIndexOf("\"")+1; } //if there's no comma, then this is the last element. Get the last quote and clip there
-            return wholestring.Substring(0, startclip) + wholestring.Substring(endclip, wholestring.Length - endclip);
+            if (endclip < 1) 
+            { 
+                endclip = wholestring.LastIndexOf("\"")+1; //if there's no comma, then this is the last element. Get the last quote and clip there
+            }
+            string firstpart = wholestring.Substring(0, startclip);
+            string lastpart = wholestring.Substring(endclip, wholestring.Length - endclip);
+            string rtn = firstpart + lastpart;
+            rtn = "234234234,     ,    098098098,4,4,4,4,4";
+            rtn=Regex.Replace(rtn, ",\\s*,", "");
+            return"";
         }
     }
 }
