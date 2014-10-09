@@ -13,16 +13,10 @@ define([
         template: _.template(sendProtocolTemplate),
         el: $("#modal-target"),
         initialize: function(parent){
-            this.$el.html(this.template());
             var that = this;
             this.parent = parent;
-
+            this.$el.html(this.template(that.attributes.protocol));
             $("#detail-modal").modal({'show':'true'});
-            $(document).ready(function(){
-                $("#sendProtocolNote", that.$el).val(that.attributes.protocol.defaultQuickNote);
-                $("#protocolRecipient", that.$el).val(that.attributes.protocol.defaultRecipient);
-                $("#recipientUserName", that.$el).val(that.attributes.protocol.defaultRecipientName);
-            });
 
             $("#sendProtocolButton", this.$el).on("click", function(){
                 //var title = CKEDITOR.instances.newProtocolTitle.getData()
@@ -31,12 +25,13 @@ define([
                 var protocolText = ""
                 if (typeof that.attributes.protocol.protocol !== "undefined")
                 {
-                    var protocolText = that.attributes.protocol.protocol.replace("<p>", "").replace("</p>", "\r\n").replace("&nbsp;", " ").replace("<br />", "\r\n");
+                    var protocolText = that.attributes.protocol.protocol;
                 }
                 var message = $("#sendProtocolNote").val() + "\r\n " + contextModel.get("official_name") +
                                 " would like you to review this patient. \r\n" +
                                 window.location.protocol + "//" + window.location.host + "#pathways/" + contextModel.get("pathid") +
                                     "/patient/" + contextModel.get("patients") + "/" + new Date().toISOString().substr(0,10) + "\r\n" + protocolText;
+                message = message.replace(/<p>/g, '').replace(/<\/p>/g, '\r\n').replace(/&nbsp;/, " ").replace(/<br \/>/g, "\r\n").replace(/&bull;/g, "");
                 $.ajax({
                     type: 'POST',
                     dataType: 'json',

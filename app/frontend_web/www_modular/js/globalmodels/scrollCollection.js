@@ -11,34 +11,34 @@ define([
     ScrollModel = Backbone.Model;
 
     var ScrollCollection = Backbone.Collection.extend({
-    url: function() {return '//';},
+    url: null,
     limit: 10,
     tried: 0,
     offset: 0,
 	model: ScrollModel,
     data: "",
+    lastRefresh: "",
     context: function(){
 
         //context change listener - this will need to be defined by the subclass
     },
-	initialize: function(){
-
-        if(contextModel.get('userAuth')) {
-        //allow for additional data to be passed in, aside from the context model
-        if (this.data != "")
-        {
-            data = $.param(contextModel.toParams()) + "&" + this.data;
-        }
-        else
-        {
-            data = $.param(contextModel.toParams());
-        }
-        this.tried = 0;
-        this.offset = 0;
-        this.fetch({
-            data:data,
-            remove:true});
-        }
+    initialize: function(){
+	this.tried = 0;
+	this.offset = 0;
+        if(contextModel.get('userAuth') && this.url) {
+	    //allow for additional data to be passed in, aside from the context model
+	    if (this.data != "")
+		{
+		    data = $.param(contextModel.toParams()) + "&" + this.data;
+		}
+	    else
+		{
+		    data = $.param(contextModel.toParams());
+		}
+	    this.fetch({data:data, remove:true});
+            var d = new Date();
+            this.lastRefresh = d.getMonth() + '-' + d.getDate() + '-' + d.getFullYear() + ' ' + d.getHours() + ':' + d.getMinutes()  + ':' + d.getSeconds();
+	}
 
         //setup context change listener
         this.context();

@@ -4,6 +4,7 @@ from collections import defaultdict
 from decimal import Decimal
 from datetime import date, datetime
 import json
+from functools import lru_cache
 from utils.enums import ALERT_VALIDATION_STATUS
 from utils.database.database import AsyncConnectionPool
 from utils.database.database import MappingUtilites as DBMapUtils
@@ -137,6 +138,7 @@ def _build_format(override=None):
         Decimal: int,
         date: str,
         datetime: str,
+        memoryview: bytes,
         type(None): _invalid_string,
     }
 
@@ -205,6 +207,7 @@ def append_extras(cmd, cmdargs, datefield, startdate, enddate, orderby, ascendin
         cmd.append(limit)
 
 
+@lru_cache()
 class WebPersistence():
     def __init__(self, configname):
         self.db = AsyncConnectionPool(MC.MavenConfig[configname][CONFIG_DATABASE])
@@ -1047,3 +1050,10 @@ class WebPersistence():
             extras.append(', %s')
         cmd.append(') values (' + ''.join(extras) + ');')
         yield from self.execute(cmd, cmdargs, {}, {})
+
+    @asyncio.coroutine
+    def shared_secret(self):
+        cmd = ['SELECT shared FROM shared_bytes ORDER BY created_on DESC LIMIT 1']
+        ret = yield from self.execute(cmd, [], _build_format(), {0: 0})
+        print(ret[0][0])
+        return ret[0][0]

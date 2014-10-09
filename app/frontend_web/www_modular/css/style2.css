@@ -652,9 +652,6 @@ border-right: 1px solid rgb(204, 204, 204);
     display:none;
 }
 
-.userlist > .btn {
-    float:right;
-}
 
 .userlist {
     width: 99%;

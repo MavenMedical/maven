@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:tns="http://schemas.datacontract.org/2004/07/Allscripts.UAI.Unity.UnityService" elementFormDefault="qualified" targetNamespace="http://schemas.datacontract.org/2004/07/Allscripts.UAI.Unity.UnityService" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:complexType name="UnityFault">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="ErrorMessage" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="UnityFault" nillable="true" type="tns:UnityFault" />
+  <xs:complexType name="MagicInput">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Action" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Appname" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="AppUserID" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="PatientID" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Token" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Parameter1" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Parameter2" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Parameter3" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Parameter4" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Parameter5" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Parameter6" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Data" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="MagicInput" nillable="true" type="tns:MagicInput" />
+  <xs:complexType name="GetTokenInput">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="OriginalToken" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Password" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Username" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="GetTokenInput" nillable="true" type="tns:GetTokenInput" />
+  <xs:complexType name="GetTokenJsonInput">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="OriginalToken" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Password" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Username" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="GetTokenJsonInput" nillable="true" type="tns:GetTokenJsonInput" />
+  <xs:complexType name="RetireTokenInput">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Appname" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Token" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="RetireTokenInput" nillable="true" type="tns:RetireTokenInput" />
+  <xs:complexType name="RetireTokenJsonInput">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Appname" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Token" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="RetireTokenJsonInput" nillable="true" type="tns:RetireTokenJsonInput" />
+</xs:schema>
