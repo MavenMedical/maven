@@ -11,19 +11,22 @@ define([
     'pathway/models/pathwayCollection',
     'pathway/models/treeModel',
     'pathway/modalViews/newPathway',
+    'pathway/modalViews/ruleWizard',
+
     'pathway/singleRows/pathRow',
     'pathway/internalViews/treeNodeActionSet',
 
     'text!templates/pathway/pathwayListEntry.html',
     'text!templates/pathway/toolbar.html',
 
-], function ($, _, Backbone,  contextModel, curCollection, curTree,  NewPathway,  PathRow, treeNodeActionSet, listEntry, toolbarTemplate) {
+], function ($, _, Backbone,  contextModel, curCollection, curTree,  NewPathway,  ruleWizard, PathRow, treeNodeActionSet, listEntry, toolbarTemplate) {
 
     var toolbar = Backbone.View.extend({
         template: _.template(toolbarTemplate),
          events: {
             'click #newpath-button': 'handle_newPath',
-            'click #save-button': 'handle_save'
+            'click #save-button': 'handle_save',
+            'click #trigger-button': 'addTrigger'
         },
 
         initialize: function(){
@@ -43,6 +46,10 @@ define([
 
             this.renderPathList();
             this.renderActions();
+        },
+        addTrigger: function(){
+            var newEditor = new ruleWizard({triggerNode: curTree})
+                     newEditor.render()
         },
         renderActions: function(){
 
