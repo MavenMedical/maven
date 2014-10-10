@@ -37,7 +37,7 @@ define([
         "patient": [0, 9, 3],
         "episode": [0, 9, 3],
         "pathway": [0, 12, 0],
-        "pathEditor": [0, 12, 0],
+        "pathEditor": [0, 12, 0]
     };
     changePageLayout = function (page) {
 
