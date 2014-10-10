@@ -37,7 +37,7 @@ define([
         "patient": [0, 9, 3],
         "episode": [0, 9, 3],
         "pathway": [0, 12, 0],
-        "pathEditor": [0, 12, 0],
+        "pathEditor": [0, 12, 0]
     };
     changePageLayout = function (page) {
 
@@ -82,8 +82,8 @@ define([
             "patient/:id(/login/:user/:customer/:userAuth)": 'showPatient',
             "episode/:id/patient/:id/:date(/login/:user/:customer/:userAuth)": 'showEpisode',
             "evidence/:id/patient/:id/evi/:id(/login/:user/:customer/:userAuth)": 'showEvidence',
-            "pathway/:id/pathcode/:id(/login/:user/:customer/:userAuth)": 'showPathway',
-            "pathwayeditor/:id/pathcode/:id(/login/:user/:customer/:userAuth)": 'EditPathway',
+            "pathway/:id/node/:id(/patient/:id/:date)(/login/:user/:customer/:userAuth)": 'showPathway',
+            "pathwayeditor/:id/node/:id(/login/:user/:customer/:userAuth)": 'EditPathway',
             "logout": 'logout',
             "settings": 'settings',
 	        "password/:type/:user/:customer/:oauth": 'password',

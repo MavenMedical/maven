@@ -11,22 +11,26 @@ define([
     'pathway/models/pathwayCollection',
     'pathway/models/treeModel',
     'pathway/modalViews/newPathway',
+    'pathway/modalViews/ruleWizard',
+
     'pathway/singleRows/pathRow',
     'pathway/internalViews/treeNodeActionSet',
 
     'text!templates/pathway/pathwayListEntry.html',
     'text!templates/pathway/toolbar.html',
 
-], function ($, _, Backbone,  contextModel, curCollection, curTree,  NewPathway,  PathRow, treeNodeActionSet, listEntry, toolbarTemplate) {
+], function ($, _, Backbone,  contextModel, curCollection, curTree,  NewPathway,  ruleWizard, PathRow, treeNodeActionSet, listEntry, toolbarTemplate) {
 
     var toolbar = Backbone.View.extend({
         template: _.template(toolbarTemplate),
          events: {
             'click #newpath-button': 'handle_newPath',
-            'click #save-button': 'handle_save'
+            'click #save-button': 'handle_save',
+            'click #trigger-button': 'addTrigger'
         },
 
         initialize: function(){
+            console.log("this.$el", this.$el)
             contextModel.on('change:page', function(){
                 if (contextModel.get('page')!='pathEditor'){
                     this.$el.hide()
@@ -43,9 +47,14 @@ define([
             this.renderPathList();
             this.renderActions();
         },
+        addTrigger: function(){
+            var newEditor = new ruleWizard({triggerNode: curTree})
+                     newEditor.render()
+        },
         renderActions: function(){
 
             var el = $('#node-action-set')
+            console.log("find the action set", el)
             if (curTree.get('selectedNode')){
                     var myActions = new treeNodeActionSet({el: el})
                     $('#action-set', el).append(myActions.render().$el)

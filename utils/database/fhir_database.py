@@ -728,14 +728,15 @@ def get_matching_pathways(composition, conn):
 
         # TODO - Need to replace this placeholder list of meds with the real meds
         patient_meds = []
-        args = [patient_age,
+        args = [1,
+                patient_age,
                 composition.subject.gender,
                 encounter_snomedIDs,
                 problem_list_snomedIDs,
                 composition.subject.get_pat_id(),
                 composition.customer_id,
                 patient_meds]
-        cur = yield from conn.execute_single("SELECT * FROM trees.evalnode(%s,%s,%s,%s,%s,%s,%s)", extra=args)
+        cur = yield from conn.execute_single("SELECT * FROM trees.evalnode(%s, %s,%s,%s,%s,%s,%s,%s)", extra=args)
 
         rtn_matched_rules = []
         for result in cur:

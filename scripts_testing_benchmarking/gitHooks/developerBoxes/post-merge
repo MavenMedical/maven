@@ -19,7 +19,7 @@ for f in `git diff-tree -r --name-only HEAD ORIG_HEAD app/schema/updates/schema 
   echo "------------------$f------------------">>$UPDATESSQL
   echo "------------------`date`---------------">>$UPDATESLOG
   echo "------------------$f---------------">>$UPDATESLOG
-  psql maven -U postgres -v ON_ERROR_STOP=1 -w -f $f >> $UPDATESLOG 2>&1
+  psql maven -U postgres -v ON_ERROR_STOP=1 -1 -w -f $f >> $UPDATESLOG 2>&1
   if [ $? -eq 0 ]; then
     cat $f>>$UPDATESSQL
     echo ------------------SUCCEEDED: $f------->>$UPDATESLOG
