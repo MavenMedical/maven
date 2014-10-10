@@ -24,8 +24,8 @@ define([
             if(curTree.get('selectedNode').attributes != null){
                 this.$el.html(this.template(curTree.get('selectedNode').attributes))
             }
-            $('#deleteNodeButton', this.$el)[0].onclick = this.deleteNode
-            $('#setNodeTitleButton', this.$el)[0].onclick = this.editName
+            $('#deleteNodeButton')[0].onclick = this.deleteNode
+            $('#setNodeTitleButton')[0].onclick = this.editName
 
             return this;
         },
