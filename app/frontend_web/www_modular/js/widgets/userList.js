@@ -92,11 +92,6 @@ define([
 			nonempty = true;
 		}
 	    }
-	    if(nonempty) {
-		this.$el.show();
-	    } else {
-		this.$el.hide();
-	    }
         var d = new Date();
         userCollection.lastRefresh = (d.getMonth()+1) + '-' + d.getDate() + '-' + d.getFullYear() + ' ' + d.getHours() + ':' + d.getMinutes()  + ':' + d.getSeconds();
 
@@ -124,7 +119,6 @@ define([
 	},	
 	reset: function() {
 	    $('.usertable > tbody', this.$el).empty();
-	    this.$el.hide();
 	},
     refresh: function() {
         this.reset();

@@ -22,17 +22,16 @@ define([
     userCollection.initialize();
     userCollection.refresh = function() {
         if(contextModel.get('userAuth')) {
-            extraData = "";
+            userCollection.extraData = "";
             if (userCollection.target_customer != ""){
-                extraData = "&target_customer=" + userCollection.target_customer;
+                userCollection.extraData = "&target_customer=" + userCollection.target_customer;
             }
 
-            this.tried = 0;
-            this.offset = 0;
-            userCollection.fetch({
-            data:$.param(contextModel.toParams()) + extraData,
-        remove:true});
-    }
+            userCollection.tried = 0;
+            userCollection.offset = 0;
+	    userCollection.reset();
+            userCollection.more();
+	}
     };
     return userCollection;
 });
