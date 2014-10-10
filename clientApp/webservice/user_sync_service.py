@@ -31,7 +31,7 @@ ML.set_debug()
 
 
 class UserSyncService():
-    def __init__(self, customer_id, sync_interval, server_interface, ehr_api):
+    def __init__(self, customer_id, sync_interval, server_interface, ehr_api, disabled):
         self.customer_id = customer_id
         self.sync_delay = sync_interval
         self.server_interface = server_interface or Exception("No Remote Procedures Specified for ClientApp")
@@ -42,9 +42,11 @@ class UserSyncService():
         self.maven_providers = []
         self.active_providers = {}
         self.provider_list_observers = []
+        self.disabled = disabled
 
     def update_config(self, config):
         self.sync_delay = config.get(CONFIG_PARAMS.EHR_USER_SYNC_INTERVAL.value, 60 * 60)
+        self.disabled = config.get(CONFIG_PARAMS.EHR_DISABLE_INTEGRATION.value, False)
 
     def subscribe(self, observer):
         self.provider_list_observers.append(observer)
@@ -52,7 +54,8 @@ class UserSyncService():
     @ML.coroutine_trace(logger.debug)
     def run(self):
         while True:
-            yield from self.evaluate_users(self.customer_id)
+            if not self.disabled:
+                yield from self.evaluate_users(self.customer_id)
             i = 0
             step = 5
             while i < self.sync_delay:

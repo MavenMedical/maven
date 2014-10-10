@@ -51,7 +51,13 @@
                 </div>
                 <div class="col-sm-6">
                     <div class="row">
-                        &nbsp;
+		      <div class="col-sm-6">
+                        <div class="span3">Suspend EHR Integration:</div>
+		      </div>
+		      <div class="col-sm-6">
+			<input id="admin-ehr-disable" type="checkbox" <%= disabled %>
+                        <%= (typeof EHRDisabled !== 'undefined' && EHRDisabled) ? " checked" : "" %>>
+			</div>
                     </div>
                 </div>
                 <div class="col-sm-6">

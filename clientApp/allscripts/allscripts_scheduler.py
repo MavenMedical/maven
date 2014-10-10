@@ -30,7 +30,7 @@ CLIENT_SERVER_LOG = ML.get_logger('clientApp.webservice.allscripts_server')
 
 class scheduler():
 
-    def __init__(self, parent, customer_id, allscripts_api, sleep_interval, enabled):
+    def __init__(self, parent, customer_id, allscripts_api, sleep_interval, disabled):
         self.parent = parent
         self.customer_id = customer_id
         self.allscripts_api = allscripts_api
@@ -38,7 +38,7 @@ class scheduler():
         self.lastday = None
         self.comp_builder = CompositionBuilder(customer_id, allscripts_api)
         self.active_providers = {}
-        self.enabled = enabled
+        self.disabled = disabled
         try:
             self.sleep_interval = float(sleep_interval)
         except ValueError as e:
@@ -47,7 +47,7 @@ class scheduler():
 
     def update_config(self, config):
         self.sleep_interval = float(config.get(CONFIG_PARAMS.EHR_API_POLLING_INTERVAL.value))
-        self.enabled = config.get('enabled', True)
+        self.disabled = config.get(CONFIG_PARAMS.EHR_DISABLE_INTEGRATION.value, False)
 
     def update_active_providers(self, active_provider_list):
         self.active_providers = dict(filter(lambda x: x[0][1] == str(self.customer_id), active_provider_list.items()))
@@ -89,7 +89,7 @@ class scheduler():
                 CLIENT_SERVER_LOG.exception(e)
             i = 0
             step = 5
-            while i < self.sleep_interval or not self.enabled:
+            while i < self.sleep_interval or self.disabled:
                 i = i + step
                 yield from asyncio.sleep(step)
 

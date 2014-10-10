@@ -67,6 +67,7 @@ class CONFIG_PARAMS(Enum):
     EHR_API_POLLING_INTERVAL = "EHRPolling"
     EHR_USER_TIMEOUT = "UserTimeout"
     EHR_USER_SYNC_INTERVAL = "EHR User Sync Service Delay Interval"
+    EHR_DISABLE_INTEGRATION = "EHRDisabled"
     NOTIFY_SVC = "Notification Routing Service Config"
     PERSISTENCE_SVC = "Persistence Service Config"
     DATABASE_SVC = "Database Service Config"
