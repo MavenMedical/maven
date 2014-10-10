@@ -36,10 +36,8 @@ define([
         },
         render: function () {
             if (this.model.get('protocol').attributes) {
-                console.log(this.model.get('protocol').attributes)
                 this.$el.html(this.template({protocolNode: this.model.get('protocol').attributes, page: currentContext.get('page')}));
             } else {
-                                console.log("PROTO", this.model.get('protocol'))
                 this.$el.html(this.template({protocolNode: this.model.get('protocol'), page: currentContext.get('page')}));
             }
 
@@ -48,7 +46,6 @@ define([
         copyProtocole: function () {
 
 
-             console.log('copy text', this.model.get('protocol').noteToCopy)
              $('<div>'+this.model.get("protocol").noteToCopy+'</div>').attr('id', 'copiedText').appendTo('.container');
 
 

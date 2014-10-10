@@ -4,9 +4,9 @@
     <div style ="float: left" class="btn-group" role="toolbar">
                 <% if (page == 'pathEditor') { %>
                 <div class="btn-group btn-group-xs">
-                    <button type="button" class="toolbar-button btn btn-default" id="addChildButton"><img src="../images/temp/newChild.jpg" style="width: 25px; height: 25px"></button>
+                    <button type="button" class="toolbar-button btn btn-default" id="addChildButton"><img src="../images/temp/newChild.jpg" style="width: 25px; height: 25px">Add Child</button>
                     <% if (treeNode.children.length == 0){%>
-                    <button type="button" class="toolbar-button btn btn-default" id = "addProtocolButton"><img src="../images/temp/newProtocole.jpg" style="width: 25px; height: 25px"></button>
+                    <button type="button" class="toolbar-button btn btn-default" id = "addProtocolButton"><img src="../images/temp/newProtocole.jpg" style="width: 25px; height: 25px">Add Protocol</button>
                     <%}%>
                 </div>
                 <%}%>
@@ -15,9 +15,10 @@
                 <div class="btn-group btn-group-xs">
                     <button type="button" id = "collapseButton" class="toolbar-button btn btn-default ">
                             <% if (treeNode.hideChildren=="true"){%>
-                            <img src="../images/temp/expand.jpg" style="width: 25px; height: 25px">
+                            <img src="../images/temp/expand.jpg" style="width: 25px; height: 25px">Expand Node
                             <%}else{%>
-                            <img src="../images/temp/collapse.jpg" style="width: 25px; height: 25px">
+                            <img src="../images/temp/collapse.jpg" style="width: 25px; height: 25px">Collapse Node
+
                         <%}%>
                     </button>
                 </div>

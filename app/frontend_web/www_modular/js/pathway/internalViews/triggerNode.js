@@ -68,7 +68,7 @@ define([
             },
             render: function(){
                  if (!this.model.get('hideChildren')){
-                    this.model.set('hideChildren', false, {silent: true})
+                    this.model.set('hideChildren', 'false', {silent: true})
                 }
                 this.$el.html(this.template({name: this.model.get('title'), triggerNode: this.model.attributes, page: currentContext.get('page')}))
 

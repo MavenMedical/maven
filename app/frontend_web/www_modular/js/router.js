@@ -132,7 +132,7 @@ define([
             }
         },
         EditPathway: function (path, code, user, customer, userAuth) {
-            currentContext.set({page: 'pathEditor',  pathid: path});
+            currentContext.set({page: 'pathEditor',  pathid: path, code: code});
             showPage(user, customer, userAuth);
         },
         logout: function () {
