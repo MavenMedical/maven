@@ -102,11 +102,29 @@ class allscripts_api(http.http_api):
         it's optional parameter is CONFIG_OTHERHEADERS
         """
         http.http_api.__init__(self, config, other_headers={"Content-Type": "application/json"})
+        self.config = config
         self.postprocess = (lambda x: list(x[0].values())[0])
         self.appname = self.config.get(CONFIG_PARAMS.EHR_API_APPNAME.value, "")
         self.appusername = self.config.get(CONFIG_PARAMS.EHR_API_SVC_USER.value, "")
         self.apppassword = self.config.get(CONFIG_PARAMS.EHR_API_PASSWORD.value, "")
         self.unitytoken = None
+
+    def update_config(self, config):
+        appname = self.config.get(CONFIG_PARAMS.EHR_API_APPNAME.value, "")
+        appusername = self.config.get(CONFIG_PARAMS.EHR_API_SVC_USER.value, "")
+        apppassword = self.config.get(CONFIG_PARAMS.EHR_API_PASSWORD.value, "")
+        http_update = http.http_api.update_config(self, config)
+        if (appname == self.appname
+           and appusername == self.appusername
+           and apppassword == self.apppassword
+           and not http_update):
+            return False
+        else:
+            self.appname = appname
+            self.appusername = appusername
+            self.apppassword = apppassword
+            self.unitytoken = None
+            return True
 
     def _build_message(self, action: str, *args: [str], user: str=None,
                        patient: str=None, data='null') -> {str: str}:
@@ -148,7 +166,8 @@ class allscripts_api(http.http_api):
                 if not req or req.startswith('error'):
                     raise AllscriptsError('Could not get token - ' + req)
                 INFO('Acquired token')
-                self.unitytoken = req
+                if self.unity_token == fut:
+                    self.unitytoken = req
                 fut.set_result(req)
             except Exception as e:
                 WARN(e)
@@ -168,7 +187,8 @@ class allscripts_api(http.http_api):
                 if isinstance(self.unitytoken, asyncio.Future):
                     yield from self.unitytoken
                 try:
-                    return (yield from co_func(self, *args, **kwargs))
+                    if self.unitytoken:
+                        return (yield from co_func(self, *args, **kwargs))
                 except AllscriptsError as e:
                     if e.args[0].find('you have been logged out') >= 0:
                         self.unitytoken = None

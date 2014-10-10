@@ -16,8 +16,6 @@ __author__ = 'Yuki Uchino'
 # ************************
 # LAST MODIFIED FOR JIRA ISSUE: MAV-303
 # *************************************************************************
-import json
-import utils.web_client.http_client as http
 import asyncio
 from collections import Counter
 import maven_config as MC
@@ -45,6 +43,9 @@ class UserSyncService():
         self.active_providers = {}
         self.provider_list_observers = []
 
+    def update_config(self, config):
+        self.sync_delay = config.get(CONFIG_PARAMS.EHR_USER_SYNC_INTERVAL.value, 60 * 60)
+
     def subscribe(self, observer):
         self.provider_list_observers.append(observer)
 
@@ -52,7 +53,11 @@ class UserSyncService():
     def run(self):
         while True:
             yield from self.evaluate_users(self.customer_id)
-            yield from asyncio.sleep(self.sync_delay)
+            i = 0
+            step = 5
+            while i < self.sync_delay:
+                i = i + step
+                yield from asyncio.sleep(step)
 
     @ML.coroutine_trace(logger.debug)
     def evaluate_users(self, customer_id):
