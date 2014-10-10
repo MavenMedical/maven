@@ -17,28 +17,29 @@ define([
     offset: 0,
 	model: ScrollModel,
     data: "",
-    lastRefresh: "",
+    lastRefresh: new Date(),
+    getLastRefresh: function() {
+        //returns the formatted version of the last time this collection was refreshed/initialized
+        return this.lastRefresh.toISOString().replace("T", " ").substr(0,19);
+    },
     context: function(){
-
         //context change listener - this will need to be defined by the subclass
     },
     initialize: function(){
-	this.tried = 0;
-	this.offset = 0;
+        this.tried = 0;
+        this.offset = 0;
         if(contextModel.get('userAuth') && this.url) {
-	    //allow for additional data to be passed in, aside from the context model
-	    if (this.data != "")
-		{
-		    data = $.param(contextModel.toParams()) + "&" + this.data;
-		}
-	    else
-		{
-		    data = $.param(contextModel.toParams());
-		}
-	    this.fetch({data:data, remove:true});
-            var d = new Date();
-            this.lastRefresh = (d.getMonth()+1) + '-' + d.getDate() + '-' + d.getFullYear() + ' ' + d.getHours() + ':' + d.getMinutes()  + ':' + d.getSeconds();
-	}
+            //allow for additional data to be passed in, aside from the context model
+            if (this.data != "")
+            {
+                data = $.param(contextModel.toParams()) + "&" + this.data;
+            }
+            else
+            {
+                data = $.param(contextModel.toParams());
+            }
+            this.fetch({data:data, remove:true});
+	    }
 
         //setup context change listener
         this.context();
