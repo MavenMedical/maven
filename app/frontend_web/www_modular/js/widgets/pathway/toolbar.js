@@ -47,6 +47,7 @@ define([
         renderActions: function(){
 
             var el = $('#node-action-set')
+            console.log("find the action set", el)
             if (curTree.get('selectedNode')){
                     var myActions = new treeNodeActionSet({el: el})
                     $('#action-set', el).append(myActions.render().$el)

@@ -198,7 +198,10 @@ html, body {
     /*height: 130px; /*var-fixed-top-size*/
     background: #ffffff;
 }
+.toolbar-button {
+    height: 50px
 
+}
 #fixed-topB {
     position:fixed;
     text-align: center;
