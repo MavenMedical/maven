@@ -71,6 +71,8 @@ define([
                            } else{
                                that.model.set('hideChildren', "false")
                            }
+
+
                        }
                 })
                 $("#addChildButton", this.$el).off('click')

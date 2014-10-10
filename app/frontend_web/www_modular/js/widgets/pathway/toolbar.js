@@ -26,9 +26,12 @@ define([
          events: {
             'click #newpath-button': 'handle_newPath',
             'click #save-button': 'handle_save',
-            'click #trigger-button': 'addTrigger'
+            'click #trigger-button': 'addTrigger',
+            'click #testButton': 'handleTest'
         },
-
+        handleTest: function(){
+            console.log(curTree.getPathToID(4))
+        },
         initialize: function(){
             console.log("this.$el", this.$el)
             contextModel.on('change:page', function(){
