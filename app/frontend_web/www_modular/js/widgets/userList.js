@@ -47,7 +47,7 @@ define([
             userCollection.refresh();
         });
         $(".refreshButton", this.$el).hover(function(event) {
-            $(event.target).attr('title', "Last Refresh: " + userCollection.lastRefresh);
+            $(event.target).attr('title', "Last Refresh: " + userCollection.getLastRefresh());
         });
 
 	},
@@ -97,8 +97,7 @@ define([
 	    } else {
 		this.$el.hide();
 	    }
-        var d = new Date();
-        userCollection.lastRefresh = (d.getMonth()+1) + '-' + d.getDate() + '-' + d.getFullYear() + ' ' + d.getHours() + ':' + d.getMinutes()  + ':' + d.getSeconds();
+        userCollection.lastRefresh = new Date();
 
         var userlist = $('.useraccordion', this.$el);
         var usertable = $('.usertable', this.$el);
