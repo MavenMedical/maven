@@ -22,7 +22,7 @@ for f in `find app/schema/updates/schema -name "*.sql"| sort -n` `find app/schem
     echo "------------------$f------------------">>$UPDATESSQL
     echo "M-----------------`date`---------------">>$UPDATESLOG
     echo "M-----------------$f---------------">>$UPDATESLOG
-    psql -v ON_ERROR_STOP=1 "`cat ~/.postgresql/command-line-connect`" maven -f $f >> $UPDATESLOG 2>&1
+    psql -v ON_ERROR_STOP=1 "`cat ~/.postgresql/command-line-connect`" -1 maven -f $f >> $UPDATESLOG 2>&1
     if [ $? -eq 0 ]; then
       cat $f>>$UPDATESSQL
       echo M-----------------SUCCEEDED: $f------->>$UPDATESLOG

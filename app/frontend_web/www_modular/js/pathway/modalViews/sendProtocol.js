@@ -29,8 +29,9 @@ define([
                 }
                 var message = $("#sendProtocolNote").val() + "\r\n " + contextModel.get("official_name") +
                                 " would like you to review this patient. \r\n" +
-                                window.location.protocol + "//" + window.location.host + "#pathways/" + contextModel.get("pathid") +
-                                    "/patient/" + contextModel.get("patients") + "/" + new Date().toISOString().substr(0,10) + "\r\n" + protocolText;
+                                window.location.protocol + "//" + window.location.host +
+                                "#/pathway/" + contextModel.get("pathid") + "/node/1/" +
+                                "/patient/" + contextModel.get("patients") + "/" + new Date().toISOString().substr(0,10) + "\r\n" + protocolText;
                 message = message.replace(/<p>/g, '').replace(/<\/p>/g, '\r\n').replace(/&nbsp;/, " ").replace(/<br \/>/g, "\r\n").replace(/&bull;/g, "");
                 $.ajax({
                     type: 'POST',

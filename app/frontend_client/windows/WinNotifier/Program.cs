@@ -280,7 +280,7 @@ namespace MavenAsDemo
         /// <param name="inUrl">The URL of the alert target page. Absolutely essential. Do not spoof.</param>
         private static void alert(string documentId, string patId, string inUrl)
         {
-            url = inUrl;
+            url = inUrl.Replace("http:","https:");
             //Console.WriteLine("Alert now!");
             if (cursettings.mode == Settings.AlertMode.deskSoft || cursettings.mode == Settings.AlertMode.deskHard || cursettings.mode == Settings.AlertMode.combo)
             {
