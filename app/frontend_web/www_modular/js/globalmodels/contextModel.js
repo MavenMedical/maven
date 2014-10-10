@@ -61,7 +61,7 @@ define([
 	    el = $('.row', $('#floating-left')).last()
         }
       else if (widgetlist[i].element =='fixed-topB') {
-            $('#fixed-topB').append("<div class='row content-row'></div>")
+            $('#fixed-topB').append("<div class='row'></div>")
 	    el = $('.row', $('#fixed-topB')).last()
         }
         else {

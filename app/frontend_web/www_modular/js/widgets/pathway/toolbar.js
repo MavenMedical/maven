@@ -27,6 +27,7 @@ define([
         },
 
         initialize: function(){
+            console.log("this.$el", this.$el)
             contextModel.on('change:page', function(){
                 if (contextModel.get('page')!='pathEditor'){
                     this.$el.hide()
