@@ -26,7 +26,7 @@ ALTER FUNCTION trees.upsert_codelist(integer, integer, character varying, boolea
 
 
 
-DROP FUNCTION IF EXISTS trees.evalnode(numeric, character varying, bigint[], bigint[], character varying, integer, character varying[])
+DROP FUNCTION IF EXISTS trees.evalnode(numeric, character varying, bigint[], bigint[], character varying, integer, character varying[]);
 -- Function: trees.evalnode(integer, numeric, character varying, bigint[], bigint[], character varying, integer, character varying[])
 -- DROP FUNCTION trees.evalnode(integer, numeric, character varying, bigint[], bigint[], character varying, integer, character varying[]);
 CREATE OR REPLACE FUNCTION trees.evalnode(IN node_id integer, IN patage numeric, IN patsex character varying, IN encsnomeds bigint[], IN probsnomeds bigint[], IN patid character varying, IN customer integer, IN curmedlist character varying[])
