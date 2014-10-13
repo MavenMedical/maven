@@ -1,5 +1,0 @@
-delete from users;
-COPY users (user_id, customer_id, prov_id, user_name, official_name, display_name, pw, pw_expiration, old_passwords, state, layouts) FROM stdin;
-1	1	JHU1093124	maven	Maven	Tom	\\x243261243034244c717a616b7864454b522e2f6b586366516454552f4f6632545869694a674470574a5253733151724a624f4b6837616c3568386c36	2015-01-17 14:14:26.7449	\N	active	{1}
-6	2	10041	cliffhux	Heathcliff Huxtable	Dr. Huxtable	\\x243261243034244c717a616b7864454b522e2f6b586366516454552f4f6632545869694a674470574a5253733151724a624f4b6837616c3568386c36	2015-01-17 14:14:26.7449	\N	active	{2}
-\.
