@@ -53,7 +53,7 @@ def write_composition_to_db(composition, conn):
 @ML.coroutine_trace(timing=True, write=FHIR_DB_LOG.debug)
 def write_composition_patient(composition, conn):
     try:
-        pat_id = composition.subject.get_pat_id()
+        patient_id = composition.subject.get_pat_id()
         customer_id = composition.customer_id
         birth_month = composition.subject.get_birth_month()
         birth_date = str(composition.subject.birthDate)
@@ -63,7 +63,7 @@ def write_composition_patient(composition, conn):
         cur_pcp_prov_id = composition.subject.get_current_pcp()
 
         cur = yield from conn.execute_single("SELECT upsert_patient(%s, %s, %s, %s, %s, %s, %s, %s)",
-                                             extra=[pat_id, customer_id, birth_month, sex, mrn, patname, cur_pcp_prov_id, birth_date])
+                                             extra=[patient_id, customer_id, birth_month, sex, mrn, patname, cur_pcp_prov_id, birth_date])
         cur.close()
     except:
         raise Exception("Error inserting patient data into database")
@@ -73,7 +73,7 @@ def write_composition_patient(composition, conn):
 def write_composition_encounter(composition, conn):
     try:
         encounter_id = composition.encounter.get_csn()
-        pat_id = composition.subject.get_pat_id()
+        patient_id = composition.subject.get_pat_id()
         encounter_type = composition.encounter.fhir_class.code or None
         encounter_date = composition.encounter.period.start.date().isoformat() or None
         provider_id = composition.get_author_id()
@@ -84,7 +84,7 @@ def write_composition_encounter(composition, conn):
         customer_id = composition.customer_id
 
         cur = yield from conn.execute_single("SELECT upsert_encounter(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-                                             extra=[encounter_id, pat_id, encounter_type, encounter_date, provider_id, bill_prov_id, encounter_dep, encounter_admit_time, encounter_disch_time, customer_id])
+                                             extra=[encounter_id, patient_id, encounter_type, encounter_date, provider_id, bill_prov_id, encounter_dep, encounter_admit_time, encounter_disch_time, customer_id])
         cur.close()
 
     except:
@@ -94,11 +94,11 @@ def write_composition_encounter(composition, conn):
 @ML.coroutine_trace(timing=True, write=FHIR_DB_LOG.debug)
 def write_composition_json(composition, conn):
     try:
-        pat_id = composition.subject.get_pat_id()
+        patient_id = composition.subject.get_pat_id()
         customer_id = composition.customer_id
         encID = composition.encounter.get_csn()
         json_composition = json.dumps(composition, default=FHIR_API.jdefault)
-        cur = yield from conn.execute_single("INSERT INTO composition (patient_id, encounter_id, customer_id, comp_body) VALUES (%s, %s, %s, %s)", extra=[pat_id, encID, customer_id, json_composition])
+        cur = yield from conn.execute_single("INSERT INTO composition (patient_id, encounter_id, customer_id, comp_body) VALUES (%s, %s, %s, %s)", extra=[patient_id, encID, customer_id, json_composition])
         cur.close()
 
     except:
@@ -108,7 +108,7 @@ def write_composition_json(composition, conn):
 @ML.coroutine_trace(timing=True, write=FHIR_DB_LOG.debug)
 def write_composition_conditions(composition, conn):
     try:
-        pat_id = composition.subject.get_pat_id()
+        patient_id = composition.subject.get_pat_id()
         customer_id = composition.customer_id
         encounter_id = composition.encounter.get_csn()
         condition_list = composition.get_encounter_conditions()
@@ -124,7 +124,7 @@ def write_composition_conditions(composition, conn):
                 dx_code_id = None
                 dx_code_system = None
 
-            columns = [pat_id,
+            columns = [patient_id,
                        customer_id,
                        encounter_id,
                        condition.category,
@@ -205,7 +205,7 @@ def write_composition_alerts(composition, conn):
                 is_alert_with_triggering_order = False
 
             column_map = ["customer_id",
-                          "pat_id",
+                          "patient_id",
                           "provider_id",
                           "encounter_id",
                           "cds_rule",
@@ -277,7 +277,7 @@ def construct_encounter_orders_from_db(composition, conn):
     try:
         column_map = ["oo.customer_id",          # 0
                       "oo.order_id",
-                      "oo.pat_id",
+                      "oo.patient_id",
                       "oo.encounter_id",         # 3
                       "oo.ordering_provider_id",
                       "oo.auth_provider_id",
@@ -494,7 +494,7 @@ def get_order_detail_cost(order_detail, composition, conn):
 
         cmd = []
         cmd.append("SELECT " + columns)
-        cmd.append("FROM costmap")
+        cmd.append("FROM transparent.costmap")
         cmd.append("WHERE code=%s")
         cmd.append("AND code_type=%s")
         cmd.append("AND (customer_id=%s or customer_id=-1)")
@@ -528,7 +528,7 @@ def get_order_detail_cost(order_detail, composition, conn):
             order_detail.cost = FHIR_API.round_up_five(result[0])
             order_detail.cost_type = result[1]
     except:
-        raise Exception("Error querying the costmap table")
+        raise Exception("Error querying the transparent.costmap table")
 
 
 @ML.coroutine_trace(timing=True, write=FHIR_DB_LOG.debug)
@@ -602,7 +602,7 @@ def get_recently_resulted_orders(composition, conn):
         cmd.append("SELECT " + columns)
         cmd.append("FROM order_ord")
         cmd.append("JOIN orderable on order_ord.orderable_id = orderable.orderable_id")
-        cmd.append("WHERE order_ord.customer_id=%s AND order_ord.pat_id=%s AND order_ord.orderable_id IN %s AND order_ord.order_datetime > %s AND order_ord.order_datetime <= %s")
+        cmd.append("WHERE order_ord.customer_id=%s AND order_ord.patient_id=%s AND order_ord.orderable_id IN %s AND order_ord.order_datetime > %s AND order_ord.order_datetime <= %s")
 
         cur = yield from conn.execute_single(' '.join(cmd), cmdargs)
 
@@ -646,7 +646,7 @@ def get_observations_from_duplicate_orders(duplicate_orders, composition, conn):
             cmdargs = [customer_id,
                        patient_id,
                        order_id]
-            cur = yield from conn.execute_single("select " + columns + " from observation where customer_id=%s and pat_id=%s and order_id=%s", extra=cmdargs)
+            cur = yield from conn.execute_single("select " + columns + " from observation where customer_id=%s and patient_id=%s and order_id=%s", extra=cmdargs)
 
             for result in cur:
                 FHIR_DB_LOG.debug("Result from DB query (get_observations_from_duplicate_orders): %s" % [(result[x]) for x in range(len(result))])
@@ -696,7 +696,7 @@ def get_matching_CDS_rules(composition, conn):
                     composition.customer_id,
                     patient_meds]
 
-            cur = yield from conn.execute_single("SELECT * FROM rules.evalrules(%s,%s,%s,%s,%s,%s,%s,%s,%s)", extra=args)
+            cur = yield from conn.execute_single("SELECT * FROM choosewisely.evalrules(%s,%s,%s,%s,%s,%s,%s,%s,%s)", extra=args)
 
             for result in cur:
                 FHIR_DB_LOG.debug("Result from DB query (get_matching_CDS_rules): %s" % [(result[x]) for x in range(len(result))])

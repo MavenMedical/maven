@@ -385,7 +385,7 @@ class WebPersistence():
                    new_provider_dict.get('profession')]
         cmd = []
         cmd.append("INSERT INTO users (" + columns + ")")
-        cmd.append("VALUES (%s, %s, UPPER(%s), %s, %s, %s, %s, %s::user_role[], %s, %s)")
+        cmd.append("VALUES (%s, %s, UPPER(%s), %s, %s, %s, %s, %s, %s, %s)")
         yield from self.execute(cmd, cmdargs, {}, {})
 
         # Insert default Notification Settings into USER_PREF table
@@ -459,7 +459,7 @@ class WebPersistence():
         Results.roles: 'users.roles',
     }
     _display_pre_login = _build_format({
-        Results.roles: (lambda x: x[1:-1].split(',') if x else None)
+        # Results.roles: (lambda x: print(x, type(x)) or x[1:-1].split(',') if x else None)
     })
 
     @asyncio.coroutine
@@ -597,7 +597,7 @@ class WebPersistence():
     _default_patient_info = set((Results.encounter_date,))
     _available_patient_info = {
         Results.patientname: "max(patient.patname)",
-        Results.patientid: "encounter.pat_id",
+        Results.patientid: "encounter.patient_id",
         Results.birthdate: "max(patient.birthdate)",
         Results.sex: "max(patient.sex)",
         Results.encounter_date: "max(encounter.contact_date) AS contact_date",
@@ -626,7 +626,7 @@ class WebPersistence():
         cmd.append("SELECT")
         cmd.append(columns)
         cmd.append("FROM encounter JOIN patient")
-        cmd.append("ON patient.pat_id = encounter.pat_id")
+        cmd.append("ON patient.patient_id = encounter.patient_id")
         cmd.append("AND encounter.customer_id = patient.customer_id")
         cmd.append("WHERE encounter.customer_id = %s")
         cmdargs.append(customer)
@@ -637,7 +637,7 @@ class WebPersistence():
             cmd.append("AND UPPER(patient.patname) LIKE UPPER(%s)")
             cmdargs.append(substring)
         if patients:
-            cmd.append("AND encounter.pat_id IN %s")
+            cmd.append("AND encounter.patient_id IN %s")
             cmdargs.append(makelist(patients))
         if startdate:
             cmd.append("AND encounter.hosp_admsn_time >= %s")
@@ -645,7 +645,7 @@ class WebPersistence():
         if enddate:
             cmd.append("AND encounter.hosp_disch_time < %s")
             cmdargs.append(enddate)
-        append_extras(cmd, cmdargs, None, None, None, 'contact_date', True, 'encounter.pat_id',
+        append_extras(cmd, cmdargs, None, None, None, 'contact_date', True, 'encounter.patient_id',
                       limit, self._available_patient_info)
 
         results = yield from self.execute(cmd, cmdargs, self._display_patient_info, desired)
@@ -712,7 +712,7 @@ class WebPersistence():
             cmd.append("AND encounter.visit_prov_id = %s")
             cmdargs.append(provider)
         if patients:
-            cmd.append("AND encounter.pat_id IN %s")
+            cmd.append("AND encounter.patient_id IN %s")
             cmdargs.append(makelist(patients))
         if encounter:
             cmd.append("AND encounter.csn = %s")
@@ -753,7 +753,7 @@ class WebPersistence():
         cmd.append("AND order_ord.customer_id = %s")
         cmdargs.append(customer)
         if patients:
-            cmd.append("AND encounter.pat_id IN %s")
+            cmd.append("AND encounter.patient_id IN %s")
             cmdargs.append(makelist(patients))
         if encounter:
             cmd.append("AND encounter.csn = %s")
@@ -767,7 +767,7 @@ class WebPersistence():
     _default_alerts = set((Results.datetime,))
     _available_alerts = {
         Results.alertid: "max(alert.alert_id)",
-        Results.patientid: "array_agg(alert.pat_id)",
+        Results.patientid: "array_agg(alert.patient_id)",
         Results.datetime: "max(alert.alert_datetime)",
         Results.title: "max(alert.long_title)",
         Results.description: "max(alert.long_description)",
@@ -804,7 +804,7 @@ class WebPersistence():
         cmd.append("AND alert.validation_status > %s")
         cmdargs.append(ALERT_VALIDATION_STATUS.DEBUG_ALERT.value)
         if patients:
-            cmd.append("AND alert.pat_id IN %s")
+            cmd.append("AND alert.patient_id IN %s")
             cmdargs.append(makelist(patients))
         if categories:
             cmd.append("AND alert.category IN %s")
@@ -825,7 +825,7 @@ class WebPersistence():
 
     _default_audit_info = set((Results.auditid,))
     _available_audit_info = {
-        Results.auditid: "audit.id",
+        Results.auditid: "audit.audit_id",
         Results.datetime: "audit.datetime",
         Results.userid: "audit.username",
         Results.patientid: "audit.patient",
@@ -849,7 +849,7 @@ class WebPersistence():
         cmd.append("SELECT")
         cmd.append(columns)
         cmd.append("FROM audit")
-        cmd.append("WHERE audit.username = %s AND audit.customer = %s")
+        cmd.append("WHERE audit.username = %s AND audit.customer_id = %s")
         cmdargs.append(provider)
         cmdargs.append(customer)
         append_extras(cmd, cmdargs, Results.datetime, startdate, enddate, orderby, ascending,
@@ -959,7 +959,7 @@ class WebPersistence():
             cmd.append("AND order_ord.encounter_id = %s")
             cmdargs.append(encounter)
         else:
-            cmd.append("AND order_ord.pat_id in %s")
+            cmd.append("AND order_ord.patient_id in %s")
             cmdargs.append(tuple(patientid))
         if ordertypes:
             cmd.append("AND order_ord.order_type IN %s")
@@ -972,7 +972,7 @@ class WebPersistence():
 
     _default_per_encounter = set((Results.encounterid,))
     _available_per_encounter = {
-        Results.patientid: "encounter.pat_id",
+        Results.patientid: "encounter.patient_id",
         Results.patientname: "patient.patname",
         Results.encounterid: "encounter.csn",
         Results.startdate: 'min(hosp_admsn_time)',
@@ -997,13 +997,13 @@ class WebPersistence():
         cmd.append("FROM order_ord JOIN encounter")
         cmd.append("ON order_ord.encounter_id = encounter.csn")
         cmd.append("JOIN patient")
-        cmd.append("ON encounter.pat_id = patient.pat_id")
+        cmd.append("ON encounter.patient_id = patient.patient_id")
         cmd.append("WHERE encounter.visit_prov_id IN %s")
         cmdargs.append(makelist(provider))
         cmd.append("AND order_ord.customer_id = %s")
         cmdargs.append(customer)
         if patients:
-            cmd.append("AND encounter.pat_id IN %s")
+            cmd.append("AND encounter.patient_id IN %s")
             cmdargs.append(makelist(patients))
         if encounter:
             cmd.append("AND encounter.csn = %s")
@@ -1014,8 +1014,8 @@ class WebPersistence():
         if enddate:
             cmd.append("AND encounter.hosp_disch_time < %s")
             cmdargs.append(enddate)
-        cmd.append("GROUP BY encounter.csn, encounter.pat_id, patient.patname")
-        # TODO : encounter.pat_id is added to the Group by, need test to
+        cmd.append("GROUP BY encounter.csn, encounter.patient_id, patient.patname")
+        # TODO : encounter.patient_id is added to the Group by, need test to
         # make sure we are not losing data
 
         results = yield from self.execute(cmd, cmdargs, self._display_per_encounter, desired)
@@ -1025,7 +1025,7 @@ class WebPersistence():
     # @ML.coroutine_trace(print)
     def audit_log(self, username, action, customer, patient=None, device=None,
                   details=None, rows=None, target_user=None):
-        cmd = ['INSERT INTO audit (datetime, username, action, customer']
+        cmd = ['INSERT INTO audit (datetime, username, action, customer_id']
         cmdargs = [username, action, customer]
         extras = ['now(), %s, %s, %s']
         if patient:
