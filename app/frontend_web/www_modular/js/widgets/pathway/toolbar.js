@@ -17,7 +17,7 @@ define([
     'pathway/internalViews/treeNodeActionSet',
 
     'text!templates/pathway/pathwayListEntry.html',
-    'text!templates/pathway/toolbar.html',
+    'text!templates/pathway/toolbar.html'
 
 ], function ($, _, Backbone,  contextModel, curCollection, curTree,  NewPathway,  ruleWizard, PathRow, treeNodeActionSet, listEntry, toolbarTemplate) {
 
@@ -30,7 +30,7 @@ define([
             'click #testButton': 'handleTest'
         },
         handleTest: function(){
-            console.log(curTree.getPathToID(4))
+            curTree.changeNodePosition(curTree.get('selectedNode'), -1)
         },
         initialize: function(){
             console.log("this.$el", this.$el)

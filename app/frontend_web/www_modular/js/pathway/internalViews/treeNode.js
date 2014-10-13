@@ -63,7 +63,6 @@ define([
                 var that = this;
 
                 //Set on clicks
-                $('.collapseButton', this.$el).first().off('click')
                 $('.collapseButton', this.$el).first().on('click', function(){
                        if (currentContext.get('page')=='pathEditor'){
                            if (that.model.get('hideChildren') == "false"){
@@ -76,14 +75,18 @@ define([
 
                        }
                 })
-                $("#addChildButton", this.$el).off('click')
-                $("#addChildButton", this.$el).on('click', function(){
+                $("#addChildButton", this.$el).first().on('click', function(){
                      var newEditor = new NodeEditor(that.model)
                 })
-                $(".addProtocolButton", this.$el).on('click', function(){
+                $("#moveLeftButton", this.$el).on('click', function(){
+                     curTree.changeNodePosition(that.model, -1)
+                })
+                $("#moveRightButton", this.$el).first().on('click', function(){
+                     curTree.changeNodePosition(that.model, 1)
+                })
+                $(".addProtocolButton", this.$el).first().on('click', function(){
                      var newEditor = new ProtocolEditor(that.model)
                 })
-                this.getMyElement().off('click')
                 this.getMyElement().on('click', function(){
                     curTree.set('selectedNode', that.model, {silent: true})
                     if (currentContext.get('page')!='pathEditor'){
@@ -95,6 +98,8 @@ define([
                        }
                        curTree.getShareCode()
 
+                    } else {
+                        curTree.trigger('propagate')
                     }
 
                 })
