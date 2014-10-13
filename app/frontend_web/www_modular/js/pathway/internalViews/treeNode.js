@@ -91,8 +91,9 @@ define([
                            curTree.collapse(that.model)
                        } else{
                             curTree.hideSiblings(that.model)
-                            that.model.set('hideChildren', "false")
+                            that.model.set('hideChildren', "false", {silent: true})
                        }
+                       curTree.getShareCode()
 
                     }
                     curTree.trigger('propagate')

@@ -29,10 +29,10 @@ define([
         handel_pathway: function(){
             $('#pathwayName').html("")
             //TODO add the right id for the pathway
-            Backbone.history.navigate("pathway/" + contextModel.get('pathid') + "/node/NYI", {trigger: true});
+            Backbone.history.navigate("pathway/" + contextModel.get('pathid') + "/node/" + contextModel.get('code'), {trigger: true});
         },
         handel_pathwayEditor: function(){
-            Backbone.history.navigate("pathwayeditor/" + contextModel.get('pathid') +"/node/NYI" , true);
+            Backbone.history.navigate("pathwayeditor/" + contextModel.get('pathid') +"/node/" + contextModel.get('code') , true);
         },
         handle_profile: function () {
             // a modal to be shown after clicking 'my profile' from the dropdown menu
