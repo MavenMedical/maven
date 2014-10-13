@@ -51,8 +51,9 @@ define([
                            if (curTree.get('selectedNode').get('hideChildren') == "false"){
                                curTree.collapse(curTree.get('selectedNode'))
                            } else{
-                               curTree.get('selectedNode').set('hideChildren', "false")
+                               curTree.get('selectedNode').set('hideChildren', "false", {silent: true})
                            }
+            curTree.getShareCode()
             curTree.trigger('propagate')
         },
 
