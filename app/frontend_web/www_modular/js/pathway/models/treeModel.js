@@ -40,6 +40,58 @@ define([
 
 
     }
+    var nodePosition = function(cur, target, change, pointer){
+        var doWork = false
+        var siblingSet = []
+        for (var i in cur.get('children').models){
+            var cur2 = cur.get('children').models[i]
+            siblingSet[siblingSet.length] = cur2
+            if (doWork == false && cur2!=target){
+                nodePosition(cur2, target, change, pointer)
+            } else {
+                doWork = true
+            }
+        }
+        var last
+        if (doWork){
+
+            for (var key in siblingSet){
+                key = parseInt(key)
+                var val = siblingSet[key]
+                if (val == target){
+                    if (change == -1){
+                        siblingSet[key] = last
+                        siblingSet[key-1] = val
+
+                        siblingSet[key].set('hasRight', key < (siblingSet.length-1), {silent: true})
+                        siblingSet[key-1].set('hasLeft', (key-1) != 0, {silent: true})
+                        siblingSet[key-1].set('hasRight', true, {silent: true})
+                        siblingSet[key].set('hasLeft', true, {silent: true})
+                        break;
+
+                    } else if (change==1){
+                        siblingSet[key] =  siblingSet[key+1]
+                        siblingSet[key+1]= val
+
+                        siblingSet[key+1].set('hasRight', (key + 1) < (siblingSet.length-1), {silent: true})
+                        siblingSet[key].set('hasLeft', key != 0, {silent: true})
+                        siblingSet[key].set('hasRight', true, {silent: true})
+                        siblingSet[key+1].set('hasLeft', true, {silent: true})
+                        break;
+
+
+                    }
+                }
+
+                         last = val
+
+            }
+            pointer.parent = cur
+            pointer.child = siblingSet
+
+        }
+
+    }
     var findCurNode = function(me){
 
         if (me.get('children')){
@@ -96,6 +148,14 @@ define([
 
             return '/tree?' + decodeURIComponent($.param(contextModel.toParams()));
         },
+        changeNodePosition: function(target, change){
+            var pointer = {}
+            var r = nodePosition(this, target, change, pointer)
+            var parent = pointer.parent
+            var children = pointer.child
+            parent.set('children', new Backbone.Collection(children), {silent: true})
+            this.trigger('propagate')
+        },
         getShareCode: function(){
             var nodes = findCurNode(this)
             var nodestr = ""
@@ -127,6 +187,9 @@ define([
             this.set('sidePanelText', "")
             this.set('name', "Triggers")
             var that = this
+            contextModel.on('change:page', function(){
+                that.trigger('propagate')
+            })
             contextModel.on('change:pathid', function(){
                 that.fetch()
                 if (contextModel.get('page') == 'pathEditor')
