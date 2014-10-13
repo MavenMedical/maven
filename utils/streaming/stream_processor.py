@@ -787,7 +787,14 @@ class _RabbitWriter(_BaseWriter):
 
     def schedule(self, loop):
         try:
-            self.conn = amqp.Connection(self.host)
+            self.conn = None
+            while not self.conn: 
+                try:
+                    self.conn = amqp.Connection(self.host)
+                except OSError:
+                    ML.WARN('could not connect to rabbit server')
+                    time.sleep(5)
+
             self.chan = self.conn.channel()
 
             if self.exchange == 'fanout_evaluator':
