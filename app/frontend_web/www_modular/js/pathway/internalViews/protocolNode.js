@@ -20,6 +20,7 @@ define([
             'click div.protocolNode': 'setSelectedNode'
         },
         initialize: function (params) {
+
             this.model = params.model
 
 
