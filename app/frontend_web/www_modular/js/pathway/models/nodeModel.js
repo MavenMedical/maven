@@ -58,7 +58,9 @@ define([
             this.set('name', params.name, {silent: true})
             this.set('tooltip', params.tooltip, {silent: true})
             this.set('sidePanelText', params.sidePanelText, {silent: true})
-            this.set('protocol', params.protocol, {silent:true})
+            if (params.protocol){
+                this.set('protocol', new Backbone.Model(params.protocol), {silent:true})
+            }
         },
         toJSON: function(){
             var retMap = _.omit(this.attributes, ['children', 'hideChildren'])

@@ -123,7 +123,7 @@ define([
                 }
 
                 if (this.model.get('protocol')){
-                    var protoNode = new ProtocolNode({model: this.model})
+                    var protoNode = new ProtocolNode({model: this.model.get('protocol')})
                     $('.protocol', this.$el).first().append(protoNode.render().$el)
                     curTree.elPairs.push({source: this, target: protoNode, bold: true})
                     $('.removeProtocolButton', this.$el).on("click", function(){

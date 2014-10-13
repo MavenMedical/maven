@@ -29,7 +29,7 @@ define([
                     var defaultRecipient = $("#defaultRecipient").val();
                     var defaultRecipientName = $("#defaultRecipientName").val();
                     var defaultQuickNote = $("#defaultQuickNote").val();
-                    that.parent.set('protocol', new Backbone.Model({protocol: protocolText, noteToCopy:noteToCopyText,
+                    that.parent.set('protocol', new Backbone.Model({isProtocol: true, protocol: protocolText, noteToCopy:noteToCopyText,
                                                                     defaultRecipient: defaultRecipient,
                                                                     defaultRecipientName: defaultRecipientName,
                                                                     defaultQuickNote: defaultQuickNote}))
