@@ -69,7 +69,7 @@ define([
                            if (that.model.get('hideChildren') == "false"){
                                curTree.collapse(that.model)
                            } else{
-                               that.model.set('hideChildren', "false")
+                               that.model.set('hideChildren', "false", {silent: true})
                            }
                            curTree.getShareCode()
 
@@ -96,7 +96,6 @@ define([
                        curTree.getShareCode()
 
                     }
-                    curTree.trigger('propagate')
 
                 })
 

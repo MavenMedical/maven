@@ -120,7 +120,7 @@ define([
         },
         showPathway: function (path, code, pat, date, user, customer, userAuth) {
 
-            currentContext.set({page: 'pathway', pathid: path, patients: pat, enc_date: date,
+            currentContext.set({page: 'pathway', code: code, pathid: path, patients: pat, enc_date: date,
                 startdate: null, enddate: null});
             showPage(user, customer, userAuth);
         },
