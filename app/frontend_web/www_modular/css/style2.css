@@ -673,7 +673,7 @@ border-right: 1px solid rgb(204, 204, 204);
 }
 
 .audit-scroll {
-    overflow-y:auto;
+    overflow-y:scroll;
     max-height:200px;
     width:100%;
     border-top-left-radius: 3px;

@@ -47,7 +47,7 @@ define([
             customerCollection.refresh();
           });
         $(".refreshButton", this.$el).hover(function(event) {
-            $(event.target).attr('title', "Last Refresh: " + customerCollection.lastRefresh);
+            $(event.target).attr('title', "Last Refresh: " + customerCollection.getLastRefresh());
         });
 	},
     events: {
@@ -97,8 +97,7 @@ define([
 		this.$el.hide();
 	    }
 
-        var d = new Date();
-        customerCollection.lastRefresh = (d.getMonth()+1) + '-' + d.getDate() + '-' + d.getFullYear() + ' ' + d.getHours() + ':' + d.getMinutes()  + ':' + d.getSeconds();
+        customerCollection.lastRefresh = new Date();
 
         var customerlist = $('.customeraccordion', this.$el);
         setTimeout(function() {
