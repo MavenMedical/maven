@@ -81,7 +81,7 @@ define([
     }
 
     var recursiveCollapse= function(node){
-        node.set('hideChildren', "true")
+        node.set('hideChildren', "true", {silent: true})
 
         _.each(node.attributes.children.models, function(cur){
             recursiveCollapse(cur)
@@ -106,12 +106,16 @@ define([
             console.log("nodes", nodes)
             Backbone.history.navigate("pathwayeditor/"+contextModel.get('pathid')+ "/node/" + nodestr);
         },
-        getPathToID: function(id){
-            openPathToTarget(this, id, [this])
+        getPathToIDS: function(ids){
+            this.collapse(this)
+            for (var i in ids){
+                var cur = ids[i]
+                openPathToTarget(this, parseInt(cur), [this])
+            }
+            this.trigger('propagate')
         },
         initialize: function(){
 
-            this.on('propagate', this.getShareCode)
             this.set('triggers', new Backbone.Collection())
             this.set('tooltip', 'triggers tooltip')
             this.set('children', new NodeList())
@@ -119,27 +123,31 @@ define([
             this.set('name', "Triggers")
             var that = this
             contextModel.on('change:pathid', function(){
-                that.fetch({success: function(){
-
-                }})
-                alert()
+                that.fetch()
                 if (contextModel.get('page') == 'pathEditor')
-                    Backbone.history.navigate("pathwayeditor/"+contextModel.get('pathid')+ "/node/" + "-1");
+                    Backbone.history.navigate("pathwayeditor/"+contextModel.get('pathid')+ "/node/" + contextModel.get('code'));
                 else {
-                    Backbone.history.navigate("pathway/"+contextModel.get('pathid')+ "/node/" + "-1");
+                    Backbone.history.navigate("pathway/"+contextModel.get('pathid')+ "/node/" + contextModel.get('code'));
                 }
-            })
-            contextModel.on('change:code', function(){
+            }, {success: function(){
                 that.collapse(that)
                 var openNodes = contextModel.get('code').split('-')
-                for (var i = 1;  i <  openNodes.length; i++){
-                    var cur = openNodes[i]
-                    that.getPathToID(parseInt(cur))
-                }
-
-            }, {success:function(){
-                that.trigger('propagate')
+                that.getPathToIDS(openNodes)
             }})
+            contextModel.on('change:code', function(){
+                var openNodes = contextModel.get('code').split('-')
+                that.getPathToIDS(openNodes)
+
+            })
+            this.on('sync', function(){
+                setTimeout(function(){
+
+                    var openNodes = contextModel.get('code').split('-')
+                    that.getPathToIDS(openNodes)
+                }, 20);
+
+
+            })
             this.fetch();
             this.elPairs = []
 

@@ -71,6 +71,7 @@ define([
                            } else{
                                that.model.set('hideChildren', "false")
                            }
+                           curTree.getShareCode()
 
 
                        }
