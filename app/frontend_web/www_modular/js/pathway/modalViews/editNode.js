@@ -23,17 +23,17 @@ define([
                 this.template = _.template(protocolTemplate),
                     this.$el.html(this.template(curTree.get('selectedNode').attributes));
                 $('#addNodeButton')[0].onclick = function () {
-                    //var protocolText = CKEDITOR.instances.ProtocolText.getData();
-                    //var noteToCopyText = CKEDITOR.instances.NoteToCopyText.getData();
-                    curTree.get('selectedNode').set('protocol', $('#ProtocolText', this.$el).val());
+                    var protocolText = CKEDITOR.instances.ProtocolText.getData();
+                    curTree.get('selectedNode').set('protocol', protocolText);
                     curTree.get('selectedNode').set('noteToCopy', $('#NoteToCopyText', this.$el).val());
                     $('#detail-modal').modal('hide')
+                    curTree.trigger('propagate')
                 }
 
                 $("#detail-modal").modal({'show': 'true'});
                 CKEDITOR.replace('ProtocolText');
-                CKEDITOR.replace('NoteToCopyText');
-
+                CKEDITOR.instances.ProtocolText.setData(curTree.get('selectedNode').get('protocol'));
+                $('#NoteToCopyText', this.$el).val(curTree.get('selectedNode').get('noteToCopy'))
             }else{
                 this.template = _.template(nodeTemplate),
                     this.$el.html(this.template(curTree.get('selectedNode').attributes));
