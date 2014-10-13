@@ -19,7 +19,7 @@ define([
         initialize: function () {
             if (curTree.get('selectedNode').attributes.triggers) {
 
-            } else if (curTree.get('selectedNode').attributes.protocol) {
+            } else if (curTree.get('selectedNode').attributes.isProtocol) {
                 this.template = _.template(protocolTemplate),
                     this.$el.html(this.template(curTree.get('selectedNode').attributes));
                 $('#addNodeButton')[0].onclick = function () {

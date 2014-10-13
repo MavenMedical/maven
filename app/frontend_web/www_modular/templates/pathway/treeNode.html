@@ -5,8 +5,9 @@
             <span data-toggle="tooltip" title="<%=treeNode.tooltip%>"> <%=treeNode.name%></span>
 
             <br>
+            <% if (page == 'pathEditor') { %>
+
             <div style ="clear:both" class="btn-group btn-group-sm" role="toolbar">
-                <% if (page == 'pathEditor') { %>
                     <% if (treeNode.hasLeft ) { %>
                         <button class = "btn btn-default" id = "moveLeftButton">&lt;</button>
                     <%}%>
@@ -16,9 +17,8 @@
                     <button type="button" class="btn btn-default addProtocolButton"><img src="../images/temp/newProtocole.jpg" style="width: 25px; height: 25px"></button>
                     <%}%>
                 </div>
-                <%}%>
 
-                <% if (page == 'pathEditor' && (treeNode.children.length > 0||treeNode.protocol) ) {%>
+                <% if (treeNode.children.length > 0||treeNode.protocol)  {%>
                 <div class="btn-group btn-group-sm">
                     <button type="button" class="btn btn-default collapseButton">
                             <% if (treeNode.hideChildren=="true"){%>
@@ -30,13 +30,14 @@
                 </div>
                 <% } %>
 
-
-                <% if (page == 'pathEditor' && treeNode.hasRight) { %>
+                <%if (treeNode.hasRight) { %>
                 <button class = "btn btn-default" id = "moveRightButton">&gt;</button>
                  <%}%>
 
 
             </div>
+             <%}%>
+             <div style = "clear: both"></div>
         </div>
         <!--<div style="clear: both; height:100px; width:10px;"></div> <!-- spacing, Vertical-->
         <ul class='children2'>

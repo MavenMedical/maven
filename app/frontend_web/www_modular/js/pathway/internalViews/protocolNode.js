@@ -35,10 +35,13 @@ define([
             return entrance
         },
         render: function () {
-            if (this.model.get('protocol').attributes) {
-                this.$el.html(this.template({protocolNode: this.model.get('protocol').attributes, page: currentContext.get('page')}));
+            if (this.model.get('protocol') && this.model.get('protocol').attributes) {
+                this.$el.html(this.template({protocolNode: this.model.attributes, page: currentContext.get('page')}));
             } else {
-                this.$el.html(this.template({protocolNode: this.model.get('protocol'), page: currentContext.get('page')}));
+                this.$el.html(this.template({protocolNode: this.model.attributes, page: currentContext.get('page')}));
+            }
+            if (this.model == curTree.get('selectedNode')){
+                $('.protocolNode', this.$el).addClass("selected")
             }
 
             return this
@@ -72,7 +75,7 @@ define([
         },
         setSelectedNode: function(){
                 this.$el.off('click')
-                    curTree.set('selectedNode', this.model.get('protocol'), {silent: true})
+                    curTree.set('selectedNode', this.model, {silent: true})
                     curTree.trigger('propagate')
         },
         treeToJSON: function (node) {
