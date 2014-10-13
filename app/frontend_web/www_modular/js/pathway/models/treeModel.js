@@ -103,8 +103,13 @@ define([
                 var cur = nodes[i]
                 nodestr += "-" + cur
             }
-            console.log("nodes", nodes)
-            Backbone.history.navigate("pathwayeditor/"+contextModel.get('pathid')+ "/node/" + nodestr);
+            if (contextModel.get('page') == "pathEditor"){
+                Backbone.history.navigate("pathwayeditor/"+contextModel.get('pathid')+ "/node/" + nodestr);
+            } else {
+                 Backbone.history.navigate("pathway/"+contextModel.get('pathid')+ "/node/" + nodestr);
+            }
+            contextModel.set('code', nodestr)
+
         },
         getPathToIDS: function(ids){
             this.collapse(this)
