@@ -8,12 +8,16 @@ define([
 
 
 
-    var NodeList = Backbone.Collection.extend({
+   var NodeList = Backbone.Collection.extend({
         populate: function(childSet, curTree){
             if (childSet){
-                _.each(childSet, function(cur){
-                    this.add(new NodeModel(cur, curTree), {silent: true})
-                }, this)
+                for (var i in childSet){
+                    var cur = childSet[i]
+                    var toAdd = new NodeModel(cur, curTree)
+                    toAdd.set('hasLeft', i!=0)
+                    toAdd.set('hasRight', i<childSet.length-1)
+                    this.add(toAdd, {silent: true})
+                }
             }
         },
         toJSON: function(){
@@ -21,10 +25,10 @@ define([
             var jsonList = []
             _.each(this.models, function(cur){
                 jsonList.push(cur.toJSON())
+
             }, this)
             return jsonList
         }
-
 
 
     })
@@ -54,7 +58,9 @@ define([
             this.set('name', params.name, {silent: true})
             this.set('tooltip', params.tooltip, {silent: true})
             this.set('sidePanelText', params.sidePanelText, {silent: true})
-            this.set('protocol', params.protocol, {silent:true})
+            if (params.protocol){
+                this.set('protocol', new Backbone.Model(params.protocol), {silent:true})
+            }
         },
         toJSON: function(){
             var retMap = _.omit(this.attributes, ['children', 'hideChildren'])

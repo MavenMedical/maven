@@ -16,7 +16,108 @@ define([
                     deleteRecur(cur, toDelete)
                 }
         })
+     }
+
+    var openPathToTarget = function(cur, target, path){
+        if (cur.get('nodeID') == target){
+            for (var i in path){
+                var cur2 = path[i]
+                cur2.set('hideChildren', "false",  {silent: true})
+
+            }
+
+        } else {
+            var list = []
+            for (var i in cur.get('children').models){
+                var cur2 = cur.get('children').models[i]
+                var temp =  path.slice(0)
+                temp.push(cur2)
+                var n = openPathToTarget(cur2, target, temp)
+
+
+            }
+        }
+
+
     }
+    var nodePosition = function(cur, target, change, pointer){
+        var doWork = false
+        var siblingSet = []
+        for (var i in cur.get('children').models){
+            var cur2 = cur.get('children').models[i]
+            siblingSet[siblingSet.length] = cur2
+            if (doWork == false && cur2!=target){
+                nodePosition(cur2, target, change, pointer)
+            } else {
+                doWork = true
+            }
+        }
+        var last
+        if (doWork){
+
+            for (var key in siblingSet){
+                key = parseInt(key)
+                var val = siblingSet[key]
+                if (val == target){
+                    if (change == -1){
+                        siblingSet[key] = last
+                        siblingSet[key-1] = val
+
+                        siblingSet[key].set('hasRight', key < (siblingSet.length-1), {silent: true})
+                        siblingSet[key-1].set('hasLeft', (key-1) != 0, {silent: true})
+                        siblingSet[key-1].set('hasRight', true, {silent: true})
+                        siblingSet[key].set('hasLeft', true, {silent: true})
+                        break;
+
+                    } else if (change==1){
+                        siblingSet[key] =  siblingSet[key+1]
+                        siblingSet[key+1]= val
+
+                        siblingSet[key+1].set('hasRight', (key + 1) < (siblingSet.length-1), {silent: true})
+                        siblingSet[key].set('hasLeft', key != 0, {silent: true})
+                        siblingSet[key].set('hasRight', true, {silent: true})
+                        siblingSet[key+1].set('hasLeft', true, {silent: true})
+                        break;
+
+
+                    }
+                }
+
+                         last = val
+
+            }
+            pointer.parent = cur
+            pointer.child = siblingSet
+
+        }
+
+    }
+    var findCurNode = function(me){
+
+        if (me.get('children')){
+            var toCheck = []
+            for (var x in me.get('children').models){
+                var cur = me.get('children').models[x]
+                if (cur.get('hideChildren')=="false"){
+                    toCheck.push(cur)
+
+                }
+            }
+            var ret = []
+            if (toCheck.length == 0){
+                 ret.push(me.get('nodeID'))
+            }
+
+            for (x in toCheck){
+                var cur = toCheck[x]
+                ret = ret.concat(findCurNode(cur))
+            }
+            return ret
+
+
+        }
+    }
+
     var hideSiblingsRecur = function(me, toHide){
         var tar = me.get('children').models.indexOf(toHide)
         for (var i in me.get('children').models){
@@ -30,23 +131,55 @@ define([
                 }
         }
     }
+
     var recursiveCollapse= function(node){
-        node.set('hideChildren', "true")
+        node.set('hideChildren', "true", {silent: true})
 
         _.each(node.attributes.children.models, function(cur){
             recursiveCollapse(cur)
         })
 
     }
+
+
     var TreeModel = Backbone.Model.extend({
         elPairs: [],
         url: function() {
 
             return '/tree?' + decodeURIComponent($.param(contextModel.toParams()));
         },
+        changeNodePosition: function(target, change){
+            var pointer = {}
+            var r = nodePosition(this, target, change, pointer)
+            var parent = pointer.parent
+            var children = pointer.child
+            parent.set('children', new Backbone.Collection(children), {silent: true})
+            this.trigger('propagate')
+        },
+        getShareCode: function(){
+            var nodes = findCurNode(this)
+            var nodestr = ""
+            for (var i in nodes){
+                var cur = nodes[i]
+                nodestr += "-" + cur
+            }
+            if (contextModel.get('page') == "pathEditor"){
+                Backbone.history.navigate("pathwayeditor/"+contextModel.get('pathid')+ "/node/" + nodestr);
+            } else {
+                 Backbone.history.navigate("pathway/"+contextModel.get('pathid')+ "/node/" + nodestr);
+            }
+            contextModel.set('code', nodestr)
 
+        },
+        getPathToIDS: function(ids){
+            this.collapse(this)
+            for (var i in ids){
+                var cur = ids[i]
+                openPathToTarget(this, parseInt(cur), [this])
+            }
+            this.trigger('propagate')
+        },
         initialize: function(){
-
 
             this.set('triggers', new Backbone.Collection())
             this.set('tooltip', 'triggers tooltip')
@@ -54,13 +187,34 @@ define([
             this.set('sidePanelText', "")
             this.set('name', "Triggers")
             var that = this
+            contextModel.on('change:page', function(){
+                that.trigger('propagate')
+            })
             contextModel.on('change:pathid', function(){
                 that.fetch()
                 if (contextModel.get('page') == 'pathEditor')
-                    Backbone.history.navigate("pathwayeditor/"+contextModel.get('pathid')+ "/node/" + "NYI");
+                    Backbone.history.navigate("pathwayeditor/"+contextModel.get('pathid')+ "/node/" + contextModel.get('code'));
                 else {
-                    Backbone.history.navigate("pathway/"+contextModel.get('pathid')+ "/node/" + "NYI");
+                    Backbone.history.navigate("pathway/"+contextModel.get('pathid')+ "/node/" + contextModel.get('code'));
                 }
+            }, {success: function(){
+                that.collapse(that)
+                var openNodes = contextModel.get('code').split('-')
+                that.getPathToIDS(openNodes)
+            }})
+            contextModel.on('change:code', function(){
+                var openNodes = contextModel.get('code').split('-')
+                that.getPathToIDS(openNodes)
+
+            })
+            this.on('sync', function(){
+                setTimeout(function(){
+
+                    var openNodes = contextModel.get('code').split('-')
+                    that.getPathToIDS(openNodes)
+                }, 20);
+
+
             })
             this.fetch();
             this.elPairs = []
@@ -101,6 +255,8 @@ define([
             retMap.children = this.get('children').toJSON()
             return retMap
         },
+
+
         loadNewPathway: function(params){
 
             this.set('triggers', new Backbone.Model(), {silent: true})
@@ -123,10 +279,8 @@ define([
         parse: function(response){
             if (!response.nodeCount){
                 this.set({nodeCount: 0}, {silent: true})
-                console.log('didnt find a node count setting to 0')
             } else {
                 this.set('nodeCount', response.nodeCount, {silent: true})
-                console.log('found a node count setting to ', response.nodeCount)
             }
             if (!response.nodeID){
                 this.set('nodeID', this.getNextNodeID(), {silent: true})
@@ -141,7 +295,7 @@ define([
             var newChildren = new NodeList()
             newChildren.populate(response.children, this)
             this.set({children: newChildren}, {silent: true})
-            this.set({hideChildren: "true"}, {silent: true})
+            this.set({hideChildren: "false"}, {silent: true})
             this.once('sync',  function(){recursiveCollapse(this)}, this)
             var triggers = new Backbone.Model()
             _.each(response.triggers, function(value, key){

@@ -19,6 +19,7 @@ define([
                 'keyup #display-name-input':'doentersave',
                 'keyup #new-password':'doenterchange',
                 'click #change-password': 'dochangepassword',
+                'click #save-settings': 'dosavesettings',
             },
             render: function (){
                 this.$el.html(this.template(contextModel.attributes));

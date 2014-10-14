@@ -20,6 +20,7 @@ define([
             'click div.protocolNode': 'setSelectedNode'
         },
         initialize: function (params) {
+
             this.model = params.model
 
 
@@ -35,12 +36,13 @@ define([
             return entrance
         },
         render: function () {
-            if (this.model.get('protocol').attributes) {
-                console.log(this.model.get('protocol').attributes)
-                this.$el.html(this.template({protocolNode: this.model.get('protocol').attributes, page: currentContext.get('page')}));
+            if (this.model.get('protocol') && this.model.get('protocol').attributes) {
+                this.$el.html(this.template({protocolNode: this.model.attributes, page: currentContext.get('page')}));
             } else {
-                                console.log("PROTO", this.model.get('protocol'))
-                this.$el.html(this.template({protocolNode: this.model.get('protocol'), page: currentContext.get('page')}));
+                this.$el.html(this.template({protocolNode: this.model.attributes, page: currentContext.get('page')}));
+            }
+            if (this.model == curTree.get('selectedNode')){
+                $('.protocolNode', this.$el).addClass("selected")
             }
 
             return this
@@ -48,7 +50,6 @@ define([
         copyProtocole: function () {
 
 
-             console.log('copy text', this.model.get('protocol').noteToCopy)
              $('<div>'+this.model.get("protocol").noteToCopy+'</div>').attr('id', 'copiedText').appendTo('.container');
 
 
@@ -75,7 +76,7 @@ define([
         },
         setSelectedNode: function(){
                 this.$el.off('click')
-                    curTree.set('selectedNode', this.model.get('protocol'), {silent: true})
+                    curTree.set('selectedNode', this.model, {silent: true})
                     curTree.trigger('propagate')
         },
         treeToJSON: function (node) {
