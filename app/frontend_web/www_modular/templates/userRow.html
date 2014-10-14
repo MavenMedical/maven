@@ -1,24 +1,63 @@
 <td>
-    <%= (ehr_state == 'active') ? display_name : "<del>" + display_name + "</del>" %>
-</td>
-<td>
+    <%= (ehr_state == 'active') ? display_name : "<del>" + display_name + "</del>" %> <br/>
     <%= profession %>
 </td>
 <td>
-    <% if (last_login) { print(last_login + ' GMT'); } %>
-</td>
-<td class="user-val-column">
-    <input type="checkbox" class="user-state"
-        <%= (state == 'active' && ehr_state == 'active') ? "checked='checked'" : '' %>
-        <%= (ehr_state != 'active') ? "disabled" : '' %> >
-</td>
-<td>
-    <% if (ehr_state == 'active') { %>
-    <button class="btn btn-xs reset-user-password btn-default" value="">Reset Password</button>
-    <% } %>
-</td>
-<td>
+    <% if (last_login) { print(last_login + ' GMT'); } %> <br/>
     <a class="audit-hover hover-link">
         View Audits
     </a>
+</td>
+<td>
+    <div width="100%">
+        <button class="btn btn-xs btn-default btn-block btn-status" <%= (ehr_state != 'active') ? "disabled" : '' %>
+                value="<%= (state=='active') ? 'deactivate' : 'activate' %>">
+            <span class="btn-label"><%= (state == 'active' && ehr_state == 'active') ? 'Active' : 'Inactive' %></span>
+            <span class="btn-hover"><%= (state == 'active' && ehr_state == 'active') ? 'De Activate' : 'Activate' %></span>
+        </button>
+    </div>
+    <% if (ehr_state == 'active') { %>
+    <div width="100%">
+        <button class="btn btn-xs reset-user-password btn-default btn-block" value="">Reset Password</button>
+    </div>
+    <% } %>
+</td>
+<td>&nbsp;</td>
+<td>
+    Primary <br/>
+    Secondary
+</td>
+<td>
+    <% notifications = {'desktop': 'Desktop', 'mobile': 'Mobile', 'ehrinbox': 'EHR Inbox', 'off': 'Off', '': 'Off'} %>
+
+    <div class="btn-group" style="float:right; width:100%;">
+        <ul class="dropdown-menu dropdown-menu-right" role="menu" style='float:right;'>
+          <li><a class="btn-msg-primary" value="desktop">Desktop</a></li>
+	      <li><a class="btn-msg-primary" value="mobile">Mobile</a></li>
+          <li><a class="btn-msg-primary" value="ehrinbox">EHR Inbox</a></li>
+          <li><a class="btn-msg-primary" value="off">Off</a></li>
+	    </ul>
+
+        <button type="button" class="btn btn-xs btn-default btn-block" data-dismiss="modal" data-toggle="dropdown">
+            <span class="msg-primary-label"><%= notifications[notify_primary.toLowerCase()] %></span>
+	        <span class="sr-only">Toggle Dropdown</span>
+        </button>
+
+    </div>
+
+    <div class="btn-group" style="float:right; width:100%;">
+        <ul class="dropdown-menu dropdown-menu-right" role="menu" style='float:right;'>
+          <li><a class="btn-msg-secondary" value="desktop">Desktop</a></li>
+	      <li><a class="btn-msg-secondary" value="mobile">Mobile</a></li>
+          <li><a class="btn-msg-secondary" value="ehrinbox">EHR Inbox</a></li>
+          <li><a class="btn-msg-secondary" value="off">Off</a></li>
+	    </ul>
+
+        <button type="button" class="btn btn-xs btn-default btn-block msg-secondary-dropdown" data-dismiss="modal" data-toggle="dropdown">
+            <span class="msg-secondary-label"><%= notifications[notify_secondary.toLowerCase()] %></span>
+	        <span class="sr-only">Toggle Dropdown</span>
+        </button>
+
+    </div>
+
 </td>

@@ -496,7 +496,9 @@ class WebPersistence():
         Results.state: "users.state",
         Results.ehrstate: "users.ehr_state",
         Results.profession: "users.profession",
-        Results.lastlogin: "logins2.last_login"
+        Results.lastlogin: "logins2.last_login",
+        Results.notify1: "user_pref.notify_primary",
+        Results.notify2: "user_pref.notify_secondary"
     }
     _display_user_info = _build_format({
         Results.lastlogin: lambda x: x and _prettify_datetime(x),
@@ -524,6 +526,10 @@ class WebPersistence():
             # can't sort by date if login field is not being used
             startdate = None
             enddate = None
+        if (Results.notify1 in desired) or (Results.notify2 in desired):
+            cmd.append("INNER JOIN user_pref")
+            cmd.append("ON user_pref.user_name = users.user_name")
+            cmd.append("AND user_pref.customer_id = users.customer_id")
         cmd.append("WHERE users.customer_id = %s")
         cmdargs.append(customer)
         if role:

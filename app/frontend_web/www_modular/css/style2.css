@@ -819,3 +819,8 @@ ul.ui-autocomplete.ui-menu {   z-index: 100000; }
 .modal-dialog-lg {
     width:800px;
 }
+
+button .btn-hover { display: none; }
+button:hover .btn-label { display: none; }
+button:hover .btn-hover { display: inline; }
+
