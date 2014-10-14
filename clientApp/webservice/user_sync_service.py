@@ -144,7 +144,7 @@ class UserSyncService():
                                                          new_provider['customer_id'])
         # Add user to the global providers dictionary
         self.active_providers[(new_provider['prov_id'], str(customer_id))] = new_provider
-        self.maven_providers[(new_provider['prov_id'], str(customer_id))] = new_provider
+        self.maven_providers.append(new_provider)
 
     @ML.coroutine_trace(logger.debug)
     def deactivate_user_state(self, updated_provider, customer_id):
