@@ -73,9 +73,8 @@ class UserSyncService():
             except AHC.AllscriptsError as e:
                 logger.exception(e)
 
+            # Add Maven-known DB users to the in-memory list of active providers
             self.maven_providers = yield from self.server_interface.get_users_from_db(self.customer_id)
-
-            # Add any new users to the in-memory list of active users
             for provider in self.maven_providers:
                 self.active_providers[(provider['prov_id'], str(customer_id))] = provider
 
@@ -90,6 +89,7 @@ class UserSyncService():
                 logger.exception(e)
 
     def update_provider_list_observers(self, providers):
+        # Loop through all of the provider-update functions that are registered observers
         for updateProviderList in self.provider_list_observers:
             updateProviderList(providers)
 
@@ -146,14 +146,13 @@ class UserSyncService():
                         "specialty": missing_provider.specialty[0],
                         "profession": missing_provider.role[0]
                         }
-
-        # Add user to maven_providers list so that the user can be added to the global providers dictionary
-        self.maven_providers.append(new_provider)
-
         yield from self.server_interface.write_user_create_to_db(self.customer_id, new_provider)
         yield from self.server_interface.write_audit_log(new_provider['user_name'],
                                                          'New User Created',
                                                          new_provider['customer_id'])
+        # Add user to the global providers dictionary
+        self.active_providers[(new_provider['prov_id'], str(customer_id))] = new_provider
+        self.maven_providers.append(new_provider)
 
     @ML.coroutine_trace(logger.debug)
     def deactivate_user_state(self, updated_provider, customer_id):

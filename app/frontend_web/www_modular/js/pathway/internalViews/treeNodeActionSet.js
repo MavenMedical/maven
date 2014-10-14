@@ -12,9 +12,12 @@ define([
     'pathway/modalViews/nodeEditor',
     'pathway/modalViews/protocolEditor',
     'pathway/modalViews/sidePanelEditor',
+    'pathway/modalViews/nodeEditor',
+    'pathway/modalViews/protocolEditor',
+
     'text!templates/pathway/treeNodeActionSet.html'
 
-], function ($, _, Backbone, contextModel, curTree, editNode, NewPathway, DetailEditor, nodeModal,protocolModal, sidePanelEditor, treeNodeActionSetTemplate) {
+], function ($, _, Backbone, contextModel, curTree, editNode, NewPathway, DetailEditor, nodeModal,protocolModal, sidePanelEditor, NodeEditor, ProtocolEditor,  treeNodeActionSetTemplate) {
 
 
     var treeNodeActionSet = Backbone.View.extend({
@@ -22,25 +25,42 @@ define([
         render: function(){
             var nodeType;
             if(curTree.get('selectedNode').attributes != null){
-                this.$el.html(this.template(curTree.get('selectedNode').attributes))
+                this.$el.html(this.template({treeNode :curTree.get('selectedNode').attributes, page: contextModel.get('page')}))
             }
             $('#deleteNodeButton', this.$el)[0].onclick = this.deleteNode
-            $('#setNodeTitleButton', this.$el)[0].onclick = this.editName
-
+            $('#setNodeTitleButton', this.$el)[0].onclick = this.editNode
+            $('#addChildButton', this.$el)[0].onclick = this.addChild
+            var protocolButton = $('#addProtocolButton', this.$el)[0]
+            if(protocolButton){
+                protocolButton.onclick = this.addProtocol
+            }
+            var collapseButton = $('#collapseButton', this.$el)[0]
+            if (collapseButton){
+                collapseButton.onclick = this.expandCollapse
+            }
             return this;
         },
+        addChild : function(){
 
-
-        editName: function(){
-            new editNode();
-           /* console.log('tree', curTree.get('selectedNode').attributes.triggers);
-            var newname = prompt("Enter the new title")
-            if (newname)
-                curTree.get('selectedNode').set('name', newname)*/
+            var newEditor = new NodeEditor(curTree.get('selectedNode'))
+        },
+        addProtocol: function(){
+            var newEditor = new ProtocolEditor(curTree.get('selectedNode'))
+        },
+        expandCollapse: function(){
+                           if (curTree.get('selectedNode').get('hideChildren') == "false"){
+                               curTree.collapse(curTree.get('selectedNode'))
+                           } else{
+                               curTree.get('selectedNode').set('hideChildren', "false", {silent: true})
+                           }
+            curTree.getShareCode()
+            curTree.trigger('propagate')
         },
 
+        editNode: function(){
+            new editNode();
 
-
+        },
 
         deleteNode: function(){
             var x = true

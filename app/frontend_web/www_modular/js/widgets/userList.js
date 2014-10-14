@@ -47,7 +47,7 @@ define([
             userCollection.refresh();
         });
         $(".refreshButton", this.$el).hover(function(event) {
-            $(event.target).attr('title', "Last Refresh: " + userCollection.lastRefresh);
+            $(event.target).attr('title', "Last Refresh: " + userCollection.getLastRefresh());
         });
 
 	},
@@ -87,13 +87,12 @@ define([
 	    this.reset();
 	    var nonempty = false;
 	    if (userCollection.length) {
-		for(user in userCollection.models) {
-			this.addUser(userCollection.models[user]);
-			nonempty = true;
-		}
+            for(user in userCollection.models) {
+                this.addUser(userCollection.models[user]);
+                nonempty = true;
+            }
 	    }
-        var d = new Date();
-        userCollection.lastRefresh = (d.getMonth()+1) + '-' + d.getDate() + '-' + d.getFullYear() + ' ' + d.getHours() + ':' + d.getMinutes()  + ':' + d.getSeconds();
+        userCollection.lastRefresh = new Date();
 
         var userlist = $('.useraccordion', this.$el);
         var usertable = $('.usertable', this.$el);
