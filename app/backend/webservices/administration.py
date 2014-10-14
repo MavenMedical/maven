@@ -90,7 +90,9 @@ class AdministrationWebservices():
                 WP.Results.state: 'state',
                 WP.Results.ehrstate: 'ehr_state',
                 WP.Results.lastlogin: 'last_login',
-                WP.Results.profession: 'profession'
+                WP.Results.profession: 'profession',
+                WP.Results.notify1: 'notify_primary',
+                WP.Results.notify2: 'notify_secondary'
             }
         else:
             desired = {
@@ -125,6 +127,28 @@ class AdministrationWebservices():
                                                 target_user=target_user, details=state))
         asyncio.Task(self.client_interface.update_user_state(customer, target_user, state))
 
+        return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
+
+    @http_service(['GET'], '/update_user_pref',
+                  [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.ROLES],
+                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int, CONTEXT.TARGETUSER: str,
+                   CONTEXT.NOTIFY_PRIMARY: str, CONTEXT.NOTIFY_SECONDARY: str,
+                   CONTEXT.ROLES: list},
+                  {USER_ROLES.administrator})
+    def update_user_pref(self, _header, _body, context, _matches, _key):
+
+        customer_id = context.get(CONTEXT.CUSTOMERID, None)
+        prov_user_name = context.get(CONTEXT.USER, None)
+        target_user_name = context.get(CONTEXT.TARGETUSER, None)
+        notify_primary = context.get(CONTEXT.NOTIFY_PRIMARY, None)
+        notify_secondary = context.get(CONTEXT.NOTIFY_SECONDARY, None)
+
+        # allow customer administrator to override user preferences
+        if target_user_name and USER_ROLES.administrator.name in context[CONTEXT.ROLES]:
+            prov_user_name = target_user_name
+
+        results = yield from self.persistence.update_user_notify_preferences(prov_user_name, customer_id,
+                                                                             notify_primary, notify_secondary)
         return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
 
     @http_service(['GET'], '/reset_password',

@@ -29,11 +29,27 @@ define([
             $(this.el).html(this.template($.extend({viewid:this.cid},this.model.toJSON())));
             return this;
         },
+        updateNotificationPreferences: function(primary, secondary){
+            $.ajax({
+                url: "/update_user_pref",
+                data: $.param(contextModel.toParams()) + "&target_user=" + this.model.get("user_name") +
+                      "&notify1="+primary+"&notify2="+secondary,
+                success: function () {
+                    $("#save-user-message").html("User Updated!");
+                },
+                error: function () {
+                    $("#save-user-message").html("Sorry, an error occurred. Please try again later");
+                }
+            });
+        },
         events : function() {
             var that = this;
             var curTitle = null;
             var overlist = false;
             var auditElement = "#mouse-target";
+            var notifications = {'desktop': 'Desktop', 'mobile': 'Mobile', 'ehrinbox': 'EHR Inbox', 'off': 'Off'};
+            var currentPrimary = this.model.get("notify_primary").toLowerCase();
+            var currentSecondary = this.model.get("notify_secondary").toLowerCase();
 
             $(document).ready(function() {
 
@@ -49,10 +65,18 @@ define([
                     });
                 });
 
-                $(that.el).find(".user-state").click(function(event) {
-                    var state = "disabled";
-                    if ($(event.target).is(':checked')) {
-                        state = "active";
+                $(that.el).find(".btn-status").click(function(event){
+                    if ($(event.target).attr("value")=='deactivate'){
+                        var state = "disabled";
+                        $(event.target).attr("value", "activate");
+                        $(event.target).find(".btn-hover").html("Activate");
+                        $(event.target).find(".btn-label").html("Inactive");
+                    }
+                    else{
+                        var state = "active";
+                        $(event.target).attr("value", "deactivate");
+                        $(event.target).find(".btn-hover").html("DeActivate");
+                        $(event.target).find(".btn-label").html("Active");
                     }
                     $.ajax({
                         url: "/update_user",
@@ -65,6 +89,32 @@ define([
                             $("#save-user-message").html("Sorry, an error occurred. Please try again later");
                         }
                     });
+                });
+
+                $(".btn-msg-primary", that.$el).click(function(event){
+                    currentPrimary = $(event.target).attr("value"); //update to whatever was selected
+                    $(".msg-primary-label", that.$el).html(notifications[currentPrimary]); //update drop-down label
+                    if (currentPrimary == 'off') {
+                        //secondary notifications are disabled if primary notifications are off
+                        currentSecondary = 'off';
+                        $(".msg-secondary-label", that.$el).html("Off");
+                        $(".msg-secondary-dropdown").prop("disabled", true);
+                    }
+                    else {
+                        $(".msg-secondary-dropdown").prop("disabled", false);
+                        if (currentPrimary == currentSecondary){
+                            //secondary notifications cannot be the same as primary notifications
+                            currentSecondary = 'off';
+                            $(".msg-secondary-label", that.$el).html("Off");
+                        }
+                    }
+                    that.updateNotificationPreferences(currentPrimary, currentSecondary);
+                });
+
+                $(".btn-msg-secondary", that.$el).click(function(event){
+                    currentSecondary = $(event.target).attr("value"); //update to whatever was selected
+                    $(".msg-secondary-label", that.$el).html(notifications[currentSecondary]); //update drop-down label
+                    that.updateNotificationPreferences(currentPrimary, currentSecondary);
                 });
 
                 $(that.el).unbind('click');
