@@ -516,7 +516,7 @@ class WebPersistence():
         if Results.lastlogin in desired:
             cmd.append("LEFT JOIN ( ")
             cmd.append("SELECT user_name, customer_id, max(logintime) as last_login")
-            cmd.append("FROM logins")
+            cmd.append("FROM logins where method != 'failed'")
             cmd.append("GROUP BY user_name,customer_id ) logins2")
             cmd.append("ON (users.user_name = logins2.user_name")
             cmd.append("AND users.customer_id = logins2.customer_id)")
