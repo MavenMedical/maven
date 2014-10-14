@@ -78,7 +78,7 @@ define([
             }
             else if (unlocked && ip == "")
             {
-                $("#save-admin-message").html("Please enter an ip address");
+                $("#save-admin-message").html("Please enter a Unity URL");
             }
             else if (unlocked && pw == "")
             {
@@ -90,7 +90,7 @@ define([
                 if (unlocked || !this.model.attributes.settings) {
                     console.log('loading from fields');
                     data = {
-                        "EHRURL": $.trim(protocol) + $.trim(ip)+ "/Unity/UnityService.svc",
+                        "EHRURL": $.trim(protocol) + $.trim(ip),
                         "EHRAppName": name, "EHRPassword": pw, "EHRServiceUser": username,
                         "EHRPolling": polling, "UserTimeout": timeout
                     };

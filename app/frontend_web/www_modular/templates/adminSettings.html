@@ -7,10 +7,9 @@
                     <div class="row">
                         <div class="span3">Unity Server Address:</div>
                         <div style='float:left'>
-                            <% URLEND = "/Unity/UnityService.svc"
-                               if (typeof EHRURL !== "undefined")
+                            <% if (typeof EHRURL !== "undefined")
                                {
-                                    DISP_URL = EHRURL.replace("http://","").replace("https://","").replace(URLEND,"");
+                                    DISP_URL = EHRURL.replace("http://","").replace("https://","");
                                }
                             %>
                             <select id='httphttps' class='form-control' <%= (typeof EHRURL !== 'undefined') ? 'disabled': '' %>>
@@ -24,8 +23,8 @@
                         </div>
                         <div style='float:left; margin-bottom:10px;'>
                             <input id="admin-ip-input" type="text" class='form-control'
-                            <%= (typeof DISP_URL !== 'undefined') ? "value='"+DISP_URL+"' disabled" : "value='192.237.182.238'" %>>
-                            <div class='span3' style='float:left'><%= URLEND %></div>
+                            <%= (typeof DISP_URL !== 'undefined') ? "value='"+DISP_URL+"' disabled" : "value='192.237.182.238'" %>
+			    title='This url typically ends in /UnityService.svc'>
                         </div>
                     </div>
                 </div>
