@@ -14,7 +14,7 @@
     </div>
     <div class="row nodeInfo">
         <span>
-            <%=decodeURIComponent(sidePanelText)%>
+            <%= (typeof sidePanelText !== 'undefined') ? decodeURIComponent(sidePanelText) : '' %>
 
         </span>
     </div>
