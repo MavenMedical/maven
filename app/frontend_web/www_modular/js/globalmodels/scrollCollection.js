@@ -47,14 +47,14 @@ define([
     more: function() {
 	    if(this.tried <= this.models.length) {
             //allow for additional data to be passed in, aside from the context model
-            if (this.data != "")
-            {
-                data = $.param(contextModel.toParams()) + "&" + this.data;
-            }
-            else
-            {
                 data = $.param(contextModel.toParams());
-            }
+		if (this.data != "")
+		{
+                    data += "&" + this.data;
+		}
+		if (this.extraData) {
+		    data += this.extraData;
+		}
             this.offset = this.models.length;
             this.tried = this.models.length+this.limit;
             this.fetch({

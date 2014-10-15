@@ -47,12 +47,11 @@ class AdministrationWebservices():
         body.update({CONFIG_PARAMS.EHR_USER_SYNC_INTERVAL.value: 60 * 60})
         if 'locked' in clientapp_settings:
             clientapp_settings.pop('locked')
-        else:
-            try:
-                yield from self.client_interface.test_customer_configuration(customer,
-                                                                             clientapp_settings)
-            except Exception as e:
-                return HTTP.BAD_RESPONSE, json.dumps(str(e)), None
+        try:
+            yield from self.client_interface.test_customer_configuration(customer,
+                                                                         clientapp_settings)
+        except Exception as e:
+            return HTTP.BAD_RESPONSE, json.dumps(str(e)), None
 
         # at this point, the configuration has succeeded
         yield from self.persistence.setup_customer(customer, clientapp_settings)
@@ -149,6 +148,9 @@ class AdministrationWebservices():
 
         results = yield from self.persistence.update_user_notify_preferences(prov_user_name, customer_id,
                                                                              notify_primary, notify_secondary)
+        if results:
+            print("Updated User Notification Preferences for {}".format(prov_user_name))
+
         return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
 
     @http_service(['GET'], '/reset_password',

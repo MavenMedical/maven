@@ -85,6 +85,7 @@ class AuthenticationWebservices():
         user_info = {}
         # import pdb
         # pdb.set_trace()
+        badLogin = 'badNewPassword' if 'newpassword' in info else 'badLogin'
         try:
             # if header.get_headers().get('VERIFIED','SUCCESS') == 'SUCCESS':
             if user_and_pw:
@@ -95,12 +96,12 @@ class AuthenticationWebservices():
                     # pdb.set_trace()
 
                 except IndexError:
-                    raise LoginError('badLogin')
+                    raise LoginError(badLogin, 'Username and/or password are incorrect')
                 passhash = user_info[WP.Results.password]
                 if (not passhash or
                         bcrypt.hashpw(bytes(info[CONTEXT.PASSWORD], 'utf-8'),
                                       passhash[:29]) != passhash):
-                    raise LoginError('badLogin')
+                    raise LoginError(badLogin, 'Username and/or password are incorrect')
                 method = 'local'
             else:
                 if info.get(CONTEXT.ROLES, None):
@@ -112,7 +113,8 @@ class AuthenticationWebservices():
                     AK.check_authorization(attempted, auth, AUTH_LENGTH)
                 except AK.UnauthorizedException as e:
                     ML.DEBUG('forward login failed for %s: %s' % (attempted, e))
-                    raise LoginError('badLogin')
+                    raise LoginError('badLogin',
+                                     'Could not automatically log on, please use your password')
                 user_info = yield from self.persistence.pre_login(desired,
                                                                   customer,
                                                                   username,
@@ -120,11 +122,11 @@ class AuthenticationWebservices():
                 method = 'forward'
                 # was this auth key used recently
                 if auth in user_info[WP.Results.recentkeys]:
-                    raise LoginError('reusedLogin')
+                    raise LoginError('reusedLogin', 'An link can only be used once to login, please enter a password to login again')
 
             if (user_info[WP.Results.userstate] != 'active'
                or (user_info[WP.Results.ehrstate] == 'disabled' and USER_ROLES.administrator.value not in user_info[WP.Results.roles])):
-                raise LoginError('disabledLogin')
+                raise LoginError('disabledLogin', 'This user is disabled.  Please contact support to log in')
 
             customer = str(user_info[WP.Results.customerid])
             if user_info[WP.Results.passexpired] or 'newpassword' in info:
@@ -168,8 +170,10 @@ class AuthenticationWebservices():
                 ret[CONFIG_OAUTH] = ak
             return HTTP.OK_RESPONSE, json.dumps(ret), None
         except LoginError as err:
-            return HTTP.UNAUTHORIZED_RESPONSE, json.dumps({'loginTemplate':
-                                                           err.args[0] + ".html"}), None
+            resp = {'loginTemplate': err.args[0] + '.html'}
+            if len(err.args) > 1:
+                resp['login-message'] = err.args[1]
+            return HTTP.UNAUTHORIZED_RESPONSE, json.dumps(resp), None
         finally:
             if method == 'failed' and user_info:
                 asyncio.Task(self.persistence.audit_log(username, 'failed login', customer))
@@ -184,10 +188,10 @@ class AuthenticationWebservices():
                 or not re.search("[0-9]", newpassword)
                 or not re.search("[a-z]", newpassword)
                 or not re.search("[A-Z]", newpassword)):
-            raise LoginError('badNewPassword')
+            raise LoginError('badNewPassword', 'The new password is not complex enough')
         salt = bcrypt.gensalt(4)
         ret = bcrypt.hashpw(bytes(newpassword, 'utf-8'), salt)
         try:
             yield from self.persistence.update_password(user, ret)
         except:
-            raise LoginError('badNewPassword')
+            raise LoginError('badNewPassword', 'There was a problem trying to update the password')

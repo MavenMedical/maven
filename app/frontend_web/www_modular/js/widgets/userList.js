@@ -87,15 +87,10 @@ define([
 	    this.reset();
 	    var nonempty = false;
 	    if (userCollection.length) {
-		for(user in userCollection.models) {
-			this.addUser(userCollection.models[user]);
-			nonempty = true;
-		}
-	    }
-	    if(nonempty) {
-		this.$el.show();
-	    } else {
-		this.$el.hide();
+            for(user in userCollection.models) {
+                this.addUser(userCollection.models[user]);
+                nonempty = true;
+            }
 	    }
         userCollection.lastRefresh = new Date();
 
@@ -123,7 +118,6 @@ define([
 	},	
 	reset: function() {
 	    $('.usertable > tbody', this.$el).empty();
-	    this.$el.hide();
 	},
     refresh: function() {
         this.reset();

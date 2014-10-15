@@ -41,12 +41,14 @@ class AllscriptsCustomerInterface:
 
         # EHR API Polling Service
         EHR_polling_interval = config.get(CONFIG_PARAMS.EHR_API_POLLING_INTERVAL.value, 45)
-        self.allscripts_scheduler = AS.scheduler(self, self.customer_id, self.ahc, EHR_polling_interval)
+        EHR_disabled = config.get(CONFIG_PARAMS.EHR_DISABLE_INTEGRATION.value, False)
+        self.allscripts_scheduler = AS.scheduler(self, self.customer_id, self.ahc,
+                                                 EHR_polling_interval, EHR_disabled)
 
         # Users and User Sync Service
         user_sync_interval = config.get(CONFIG_PARAMS.EHR_USER_SYNC_INTERVAL.value, 60 * 60)
         self.user_sync_service = US.UserSyncService(self.customer_id, user_sync_interval,
-                                                    self.server_interface, self.ahc)
+                                                    self.server_interface, self.ahc, EHR_disabled)
 
         self.notification_generator = NG.NotificationGenerator(config)
 
@@ -69,14 +71,15 @@ class AllscriptsCustomerInterface:
         self.usersynctask = ML.TASK(self.user_sync_service.run())
 
     @asyncio.coroutine
-    def test_and_update_config(self, config):
-        # ahc = AHC.allscripts_api(config)
-        # working = yield from ahc.GetServerInfo()
-        # if working:
-        #     self.ahc = ahc
-        #     self.schedulertask.cancel()
-        #      self.usersynctask.cancel()
-        pass
+    def update_config(self, config):
+        if config == self.config:
+            return
+        self.config = config
+        self.ahc.update_config(self.config)
+        self.allscripts_scheduler.update_config(self.config)
+        self.user_sync_service.update_config(self.config)
+        if not self.config.get(CONFIG_PARAMS.EHR_DISABLE_INTEGRATION.value, False):
+            yield from self.server_interface.update_notify_prefs(self.customer_id)
 
     @asyncio.coroutine
     def notify_user(self, user_name, patient, subject, msg, target):

@@ -31,9 +31,11 @@ class ClientAppEndpoint():
     def update_customer_configuration(self, customer_id, config):
 
         if customer_id in self.customer_interfaces:
-            yield from self.customer_interfaces[customer_id].test_and_update_config(config)
+            yield from self.customer_interfaces[customer_id].update_config(config)
             return True
         else:
+            if not config:
+                return
             aci = ACI.AllscriptsCustomerInterface(customer_id, config,
                                                   self.server_interface)
             yield from aci.validate_config()  # raises on failure

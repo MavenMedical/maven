@@ -52,6 +52,7 @@ define([
             $("#admin-username-input").prop("disabled",false);
             $("#admin-pw-input").prop("disabled",false);
             $("#httphttps").prop("disabled",false);
+	    $("#admin-ehr-disable").prop("disabled",false);
 
             $("#admin-pw-input").val("");
             $(".lock-admin-button").show();
@@ -63,6 +64,7 @@ define([
             $("#admin-username-input").prop("disabled",true);
             $("#admin-pw-input").prop("disabled",true);
             $("#httphttps").prop("disabled",true);
+	    $("#admin-ehr-disable").prop("disabled",true);
 
             $("#admin-pw-input").val("password");
             $(".lock-admin-button").hide();
@@ -75,7 +77,8 @@ define([
             var polling = $("#admin-polling-input").val();
             var timeout = $("#admin-timeout-input").val();
             var username = $("#admin-username-input").val();
-	        var unlocked = $(".lock-admin-button").is(':visible');
+	    var disabled = $("#admin-ehr-disable").is(':checked');
+	    var unlocked = $(".lock-admin-button").is(':visible');
 	    
             var reg_num = new RegExp('^[0]*[1-9]+[0]*$');
             /*var reg_ip = new RegExp('^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$');
@@ -107,7 +110,7 @@ define([
                     data = {
                         "EHRURL": $.trim(protocol) + $.trim(ip),
                         "EHRAppName": name, "EHRPassword": pw, "EHRServiceUser": username,
-                        "EHRPolling": polling, "UserTimeout": timeout
+                        "EHRPolling": polling, "UserTimeout": timeout, 'EHRDisabled': disabled
                     };
                 } else {
                     console.log('loading from ', this.model.attributes.settings);

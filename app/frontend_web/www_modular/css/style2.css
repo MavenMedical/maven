@@ -202,7 +202,9 @@ html, body {
     height: 50px
 
 }
-#fixed-topB {
+
+/*#fixed-topB {
+>>>>>>> origin/DEV-python3.4
     position:fixed;
     text-align: center;
     width: 90%;
@@ -212,9 +214,9 @@ html, body {
     left:5%;
     right:5%;
     z-index:10;
-    /*height: 130px; /*var-fixed-top-size*/
+    /*height: 130px; /*var-fixed-top-size
     background: lightblue;
-}
+}*/
 
 #fixed-topA > .col-sm-12{
     padding: 0;

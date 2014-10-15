@@ -61,7 +61,7 @@ define([
     var showPage = function (user, customer, userAuth) {
         if (user && !currentContext.get('user')) {
             console.log('pre-authenticated login');
-            currentContext.autoSetUser(user, customer, userAuth);
+            currentContext.autoSetUser(user, customer, userAuth, Login);
         } else {
             if (CheckLogin()) {
                 console.log('showing page ' + currentContext.get('page'));

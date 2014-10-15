@@ -125,10 +125,14 @@ define([
 			    type: 'POST'});
 	    }
 	},
-        autoSetUser: function (user, customer, userAuth) {
+        autoSetUser: function (user, customer, userAuth, Login) {
 	    var that=this;
+	    this.set({user:user, customer:customer});
 	    this.fetch({success: loginCallback, 
-			error: function(request, response) { that.set(response.responseJSON);},
+			error: function(request, response) { 
+			    that.set(response.responseJSON);
+			    new Login({el: '#login-modal'})
+			},
 			data: JSON.stringify({user:user,
 					      customer_id: customer,
 					      userAuth: userAuth}),

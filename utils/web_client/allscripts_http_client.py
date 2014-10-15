@@ -102,11 +102,29 @@ class allscripts_api(http.http_api):
         it's optional parameter is CONFIG_OTHERHEADERS
         """
         http.http_api.__init__(self, config, other_headers={"Content-Type": "application/json"})
+        self.config = config
         self.postprocess = (lambda x: list(x[0].values())[0])
         self.appname = self.config.get(CONFIG_PARAMS.EHR_API_APPNAME.value, "")
         self.appusername = self.config.get(CONFIG_PARAMS.EHR_API_SVC_USER.value, "")
         self.apppassword = self.config.get(CONFIG_PARAMS.EHR_API_PASSWORD.value, "")
         self.unitytoken = None
+
+    def update_config(self, config):
+        appname = self.config.get(CONFIG_PARAMS.EHR_API_APPNAME.value, "")
+        appusername = self.config.get(CONFIG_PARAMS.EHR_API_SVC_USER.value, "")
+        apppassword = self.config.get(CONFIG_PARAMS.EHR_API_PASSWORD.value, "")
+        http_update = http.http_api.update_config(self, config)
+        if (appname == self.appname
+           and appusername == self.appusername
+           and apppassword == self.apppassword
+           and not http_update):
+            return False
+        else:
+            self.appname = appname
+            self.appusername = appusername
+            self.apppassword = apppassword
+            self.unitytoken = None
+            return True
 
     def _build_message(self, action: str, *args: [str], user: str=None,
                        patient: str=None, data='null') -> {str: str}:
@@ -148,11 +166,13 @@ class allscripts_api(http.http_api):
                 if not req or req.startswith('error'):
                     raise AllscriptsError('Could not get token - ' + req)
                 INFO('Acquired token')
-                self.unitytoken = req
+                if self.unitytoken == fut:
+                    self.unitytoken = req
                 fut.set_result(req)
             except Exception as e:
                 WARN(e)
-            yield from asyncio.sleep(10)
+            if not fut.done():
+                yield from asyncio.sleep(10)
 
     def _require_token(func: 'function') -> 'function':
         """ decorator for functions which require a security token before executing
@@ -168,7 +188,8 @@ class allscripts_api(http.http_api):
                 if isinstance(self.unitytoken, asyncio.Future):
                     yield from self.unitytoken
                 try:
-                    return (yield from co_func(self, *args, **kwargs))
+                    if self.unitytoken:
+                        return (yield from co_func(self, *args, **kwargs))
                 except AllscriptsError as e:
                     if e.args[0].find('you have been logged out') >= 0:
                         self.unitytoken = None
@@ -679,16 +700,16 @@ if __name__ == '__main__':
 
     config = {
         # http.CONFIG_BASEURL: 'http://pro14ga.unitysandbox.com/Unity/UnityService.svc',
-        CONFIG_PARAMS.EHR_API_BASE_URL.value: 'http://192.237.180.54/Unity/UnityService.svc',
+        CONFIG_PARAMS.EHR_API_BASE_URL.value: 'https://srt-unity-pro2.allscripts.com/unity_adppro13SSL/unityservice.svc',
         # CONFIG_PARAMS.EHR_API_BASE_URL.value: 'http://192.237.182.238/Unity/UnityService.svc',
         # CONFIG_PARAMS.EHR_API_BASE_URL.value: 'http://127.0.0.1/Unity/UnityService.svc',
         # http.CONFIG_BASEURL: 'http://doesnotexist.somejunk.cs.umd.edu/Unity/UnityService.svc',
         http.CONFIG_OTHERHEADERS: {
             'Content-Type': 'application/json'
         },
-        CONFIG_PARAMS.EHR_API_APPNAME.value: 'MavenPathways.TestApp',
-        CONFIG_PARAMS.EHR_API_SVC_USER.value: 'MavenPathways',
-        CONFIG_PARAMS.EHR_API_PASSWORD.value: 'MavenPathways123!!',
+        CONFIG_PARAMS.EHR_API_APPNAME.value: 'MavenMedical.MavenPathways.ProdApp',
+        CONFIG_PARAMS.EHR_API_SVC_USER.value: 'MAV3nPAthWaYsPR0d',
+        CONFIG_PARAMS.EHR_API_PASSWORD.value: 'm4VeNpAtHWaYz!3ji',
     }
 
     import traceback
@@ -702,7 +723,7 @@ if __name__ == '__main__':
 
     api = allscripts_api(config)
     loop = asyncio.get_event_loop()
-    Ehr_username = 'CliffHux'
+    Ehr_username = 'MAVEN'
     # break
     # wrapexn(api.GetProvider(Ehr_username, searchid='10041'))
     patient = input('Enter a Patient ID to display (e.g., 22): ')
@@ -751,5 +772,3 @@ if __name__ == '__main__':
         wrapexn(api.GetProvider(Ehr_username, searchname='terry'))
     if input('GetUserID (y/n)? ') == 'y':
         wrapexn(api.GetUserID(Ehr_username))
-    if input('GetDocuments (y/n)? '):
-        print(loop.run_until_complete(api.GetDocuments(Ehr_username, patient)))

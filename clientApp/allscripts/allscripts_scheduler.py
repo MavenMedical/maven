@@ -23,14 +23,14 @@ from utils.web_client.allscripts_http_client import AllscriptsError
 from clientApp.webservice.composition_builder import CompositionBuilder
 import maven_logging as ML
 from collections import defaultdict
-
+from utils.enums import CONFIG_PARAMS
 icd9_match = re.compile('\(V?[0-9]+(?:\.[0-9]+)?\)')
 CLIENT_SERVER_LOG = ML.get_logger('clientApp.webservice.allscripts_server')
 
 
 class scheduler():
 
-    def __init__(self, parent, customer_id, allscripts_api, sleep_interval):
+    def __init__(self, parent, customer_id, allscripts_api, sleep_interval, disabled):
         self.parent = parent
         self.customer_id = customer_id
         self.allscripts_api = allscripts_api
@@ -38,12 +38,16 @@ class scheduler():
         self.lastday = None
         self.comp_builder = CompositionBuilder(customer_id, allscripts_api)
         self.active_providers = {}
-
+        self.disabled = disabled
         try:
             self.sleep_interval = float(sleep_interval)
         except ValueError as e:
             CLIENT_SERVER_LOG.exception(e)
             self.sleep_interval = float(45)
+
+    def update_config(self, config):
+        self.sleep_interval = float(config.get(CONFIG_PARAMS.EHR_API_POLLING_INTERVAL.value))
+        self.disabled = config.get(CONFIG_PARAMS.EHR_DISABLE_INTEGRATION.value, False)
 
     def update_active_providers(self, active_provider_list):
         self.active_providers = dict(filter(lambda x: x[0][1] == str(self.customer_id), active_provider_list.items()))
@@ -83,7 +87,11 @@ class scheduler():
 
             except Exception as e:
                 CLIENT_SERVER_LOG.exception(e)
-            yield from asyncio.sleep(self.sleep_interval)
+            i = 0
+            step = 5
+            while i < self.sleep_interval or self.disabled:
+                i = i + step
+                yield from asyncio.sleep(step)
 
     @asyncio.coroutine
     def evaluate(self, patient, provider_id, today, first):

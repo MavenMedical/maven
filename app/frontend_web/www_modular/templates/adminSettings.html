@@ -7,12 +7,11 @@
                     <div class="row">
                         <div class="span3">Unity Server Address:</div>
                         <div style='float:left'>
-                            <% URLEND = "/Unity/UnityService.svc";
-                               var disabled = "";
-                               if (typeof EHRURL !== "undefined")
+                            <% var disabled = "";
+			       if (typeof EHRURL !== "undefined")
                                {
                                     disabled = "disabled";
-                                    DISP_URL = EHRURL.replace("http://","").replace("https://","").replace(URLEND,"");
+                                    DISP_URL = EHRURL.replace("http://","").replace("https://","");
                                }
                                else if (typeof target_customer !== "undefined")
                                {
@@ -29,10 +28,9 @@
                           </select>
                         </div>
                         <div style='float:left; margin-bottom:10px;'>
-                            <input id="admin-ip-input" type="text" class='form-control' <%= disabled %>
-                            <%= (typeof DISP_URL !== 'undefined') ? "value='"+DISP_URL+"'" : "value='192.237.182.238'" %>>
-                            <div class='span3' style='float:left'><%= URLEND %></div>
-
+                            <input id="admin-ip-input" type="text" class='form-control'  <%= disabled %>
+                            <%= (typeof DISP_URL !== 'undefined') ? "value='"+DISP_URL+"' disabled" : "value='192.237.182.238'" %>
+                            title='This url typically ends in /UnityService.svc'>
                         </div>
                     </div>
                 </div>
@@ -52,7 +50,13 @@
                 </div>
                 <div class="col-sm-6">
                     <div class="row">
-                        &nbsp;
+		      <div class="col-sm-6">
+                        <div class="span3">Suspend EHR Integration:</div>
+		      </div>
+		      <div class="col-sm-6">
+			<input id="admin-ehr-disable" type="checkbox" <%= disabled %>
+                        <%= (typeof EHRDisabled !== 'undefined' && EHRDisabled) ? " checked" : "" %>>
+			</div>
                     </div>
                 </div>
                 <div class="col-sm-6">

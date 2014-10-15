@@ -11,7 +11,7 @@ define([
 
     var Login = Backbone.View.extend({
         initialize: function (options) {
-	    contextModel.on('change:loginTemplate', this.render, this);
+	    contextModel.on('change:loginTemplate change:login-message', this.render, this);
 	    $("#login-modal").modal({'show':'true', 'backdrop':'static',keyboard:false});
 	    this.user = '';
 	    this.customer = '';
@@ -25,12 +25,14 @@ define([
 	    'keyup #login-new-password':'doenterchange',
 	},
         render: function () {
-	    //currentContext.setUser('notarealpassword', Backbone.history.fragment);  // hack for now
 	    if(contextModel.get('loginTemplate')) {
 		var that=this;
 		require(["text!../templates/"+contextModel.get('loginTemplate')], function(loginTemplate) {
 		    that.template = _.template(loginTemplate);
 		    that.$el.html(that.template(contextModel.attributes));
+		    var message = contextModel.get('login-message');
+		    if (message)
+			setTimeout(function() {$('#login-message').text(message);}, 500);
 		    that.newPasswordChange();
 		});
 	    } else {
@@ -59,6 +61,7 @@ define([
 	    var oauth = $("#login-oauth").val();
 	    if( user && (password || oauth)) {
 		var jqnewpassword = $("#login-new-password");
+		$('#login-message').text('Trying to log in');
 		if(!jqnewpassword.is(":visible")) {
 		    contextModel.setUser(user, password, oauth, customer, null);
 		} else {

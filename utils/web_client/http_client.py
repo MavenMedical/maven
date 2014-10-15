@@ -54,6 +54,18 @@ class http_api():
             self.other_headers.update(other_headers)
         self.decode = decode
 
+    def update_config(self, config):
+        if config == self.config:
+            return False
+        else:
+            self.config = config
+            base_url = self.config[CONFIG_PARAMS.EHR_API_BASE_URL.value]
+            if base_url == self.base_url:
+                return False
+            else:
+                self.base_url = base_url
+                return True
+
     @asyncio.coroutine
     def initiate(self, resource: str, method: ['GET', 'POST', 'PUT'],
                  rawdata=False, newheaders=None, **kwargs) -> {bytes, str}:
