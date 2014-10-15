@@ -75,7 +75,7 @@ CREATE TABLE transparent.nadacarchive (
     todate date NOT NULL
 );
 ALTER TABLE transparent.nadacarchive OWNER TO maven;
-ALTER TABLE ONLY nadacarchive
+ALTER TABLE ONLY transparent.nadacarchive
     ADD CONSTRAINT nadacarchive_pkey PRIMARY KEY (ndc, fromdate, todate);
 CREATE INDEX ixnadacarcndcdt ON transparent.nadacarchive USING btree (ndc, fromdate, todate);
 
@@ -100,10 +100,10 @@ CREATE TABLE transparent.ucl (
     code_type character varying(25)
 );
 ALTER TABLE transparent.ucl OWNER TO maven;
-CREATE INDEX ixbillcode ON ucl USING btree (billing_code, customer_id);
-CREATE INDEX ixmedication ON ucl USING btree (med_id, customer_id);
-CREATE INDEX ixprocedure ON ucl USING btree (proc_id, customer_id);
-CREATE INDEX ixuclpk ON ucl USING btree (ucl_id, customer_id);
+CREATE INDEX ixbillcode ON transparent.ucl USING btree (billing_code, customer_id);
+CREATE INDEX ixmedication ON transparent.ucl USING btree (med_id, customer_id);
+CREATE INDEX ixprocedure ON transparent.ucl USING btree (proc_id, customer_id);
+CREATE INDEX ixuclpk ON transparent.ucl USING btree (ucl_id, customer_id);
 
 /**
 **************

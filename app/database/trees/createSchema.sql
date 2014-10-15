@@ -41,7 +41,7 @@ CREATE TABLE trees.codelist (
     framemax integer
 );
 ALTER TABLE trees.codelist OWNER TO maven;
-CREATE INDEX ixprotocolid ON trees.codelists USING btree (protocol_id);
+CREATE INDEX ixprotocolid ON trees.codelist USING btree (protocol_id);
 
 -- Name: trees.labeval; Type: TABLE; Schema: trees; Owner: maven; Tablespace:
 CREATE TABLE trees.labeval (

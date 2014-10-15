@@ -1,16 +1,18 @@
+\connect maven
+
 --Add the default shared_bytes so that the Maven Support User has "maven" password
-INSERT INTO shared_bytes (shared, created_on) values ('\x16d914f3a336d88a3c8c1bffaebe186752a4c821c23480003582032aafc4f32a37421444cacb5b45f97fc3e7ca326c9698dd8105235b7853ecab75e346d123f3', '16:52:28.964353');
+INSERT INTO public.shared_bytes (shared, created_on) values ('\x16d914f3a336d88a3c8c1bffaebe186752a4c821c23480003582032aafc4f32a37421444cacb5b45f97fc3e7ca326c9698dd8105235b7853ecab75e346d123f3', '16:52:28.964353');
 
 --Add the default Maven Customer so that the support user can be activated
-INSERT INTO CUSTOMER (customer_id, name) VALUES (0, 'Maven');
+INSERT INTO public.customer (customer_id, name) VALUES (0, 'Maven');
 
 --Add the default Maven Support User
-INSERT INTO users(customer_id, prov_id, user_name, official_name, display_name,
+INSERT INTO public.users(customer_id, prov_id, user_name, official_name, display_name,
                   pw, pw_expiration, old_passwords, state, layouts, roles, ehr_state, profession)
     VALUES (0, NULL, 'SUPPORT', 'Maven Support', 'Maven Support',
             '\x243261243034244c717a616b7864454b522e2f6b586366516454552f4f6632545869694a674470574a5253733151724a624f4b6837616c3568386c36', '2015-01-17 14:14:26.7449', NULL, 'active', ARRAY[3], ARRAY['mavensupport'], 'active', 'Maven Support');
 
-COPY layouts (layout_id, widget, template, element, priority) FROM stdin;
+COPY public.layouts (layout_id, widget, template, element, priority) FROM stdin;
 3	customerList	customerList.html	contentRow	2
 2	/pathway/actionList	/pathway/treeTemplate.html	floating-right	1
 2	/pathway/pathwaysList	/pathway/treeTemplate.html	floating-left	1

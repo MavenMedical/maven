@@ -20,7 +20,7 @@ CREATE TABLE adt (
 );
 ALTER TABLE public.adt OWNER TO maven;
 CREATE INDEX ixadtevent ON adt USING btree (event_id, customer_id);
-CREATE INDEX ixadtpatient ON adt USING btree (pat_id, customer_id);
+CREATE INDEX ixadtpatient ON adt USING btree (patient_id, customer_id);
 
 -- Name: alert; Type: TABLE; Schema: public; Owner: maven; Tablespace:
 CREATE TABLE alert (
@@ -126,9 +126,9 @@ CREATE TABLE condition (
 );
 ALTER TABLE public.condition OWNER TO maven;
 CREATE INDEX ix_conditionenccust ON condition USING btree (encounter_id, customer_id);
-CREATE INDEX ixconditionpatdates ON condition USING btree (customer_id, pat_id, date_asserted, date_resolved);
-CREATE INDEX ixconditionpatdatsno ON condition USING btree (customer_id, pat_id, date_asserted, snomed_id);
-CREATE INDEX ixconditionpatstatus ON condition USING btree (customer_id, pat_id, status);
+CREATE INDEX ixconditionpatdates ON condition USING btree (customer_id, patient_id, date_asserted, date_resolved);
+CREATE INDEX ixconditionpatdatsno ON condition USING btree (customer_id, patient_id, date_asserted, snomed_id);
+CREATE INDEX ixconditionpatstatus ON condition USING btree (customer_id, patient_id, status);
 
 -- Name: customer; Type: TABLE; Schema: public; Owner: maven; Tablespace:
 CREATE TABLE customer (
@@ -172,7 +172,7 @@ CREATE TABLE encounter (
 ALTER TABLE public.encounter OWNER TO maven;
 CREATE INDEX ixencounterid ON encounter USING btree (csn, customer_id);
 CREATE INDEX ixencounterbillprovid ON encounter USING btree (bill_prov_id, customer_id);
-CREATE INDEX ixencounterpatid ON encounter USING btree (pat_id, customer_id);
+CREATE INDEX ixencounterpatid ON encounter USING btree (patient_id, customer_id);
 CREATE INDEX ixencounterprovid ON encounter USING btree (visit_prov_id, customer_id);
 
 -- Name: layouts; Type: TABLE; Schema: public; Owner: maven; Tablespace:
@@ -246,8 +246,8 @@ CREATE TABLE observation (
     common_name character varying(254)
 );
 ALTER TABLE public.observation OWNER TO maven;
-CREATE INDEX ixobspatloincdate ON observation USING btree (customer_id, pat_id, loinc_code, result_time, numeric_result);
-CREATE INDEX ixobspat ON observation USING btree (customer_id, pat_id);
+CREATE INDEX ixobspatloincdate ON observation USING btree (customer_id, patient_id, loinc_code, result_time, numeric_result);
+CREATE INDEX ixobspat ON observation USING btree (customer_id, patient_id);
 CREATE INDEX ixobsenc ON observation USING btree (customer_id, encounter_id);
 
 -- Name: order_event; Type: TABLE; Schema: public; Owner: maven; Tablespace:
@@ -327,7 +327,7 @@ CREATE TABLE patient (
     cur_pcp_prov_id character varying(18)
 );
 ALTER TABLE public.patient OWNER TO maven;
-CREATE INDEX ixpatpk ON patient USING btree (pat_id, customer_id);
+CREATE INDEX ixpatpk ON patient USING btree (patient_id, customer_id);
 
 -- Name: provider; Type: TABLE; Schema: public; Owner: maven; Tablespace:
 CREATE TABLE provider (

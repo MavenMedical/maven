@@ -1,7 +1,12 @@
 su postgres -c "psql -f dropDb.sql" 
 su postgres -c "psql -f createDb.sql"
 su postgres -c "psql -f categories/createSchema.sql"
-./public/installAsRoot.sh
+cd public/
+./installAsRoot.sh
+cd ..
 su postgres -c "psql -f trees/createSchema.sql"
-./choosewisely/installAsRoot.sh
-./transparent/installAsRoot.sh
+cd choosewisely/
+./installAsRoot.sh
+cd ..
+cd transparent/
+./installAsRoot.sh
