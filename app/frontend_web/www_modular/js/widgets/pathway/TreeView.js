@@ -42,17 +42,26 @@ define([
                      */
                     var re = /scale\((.*)\)/
                     var n = that.treeEl[0].style.transform
+		    var transform_property = 'transform';
+		    if (!n) {
+			n = that.treeEl[0].style.msTransform;
+			transform_property = 'msTransform'
+		    }
+		    if (n) {
                     var result = re.exec(n)
                     if (data.originalEvent.deltaY > 0) {
                         var newScale = result[1] - .05
                     } else {
                         var newScale = (result[1] - 0) + .05
-
                     }
                     var scaleString = 'scale(' + newScale + ')'
-                    that.treeEl.css({'transform': scaleString})
-
-                })
+		    if (transform_property == 'transform') {
+			that.treeEl.css({'transform': scaleString})
+		    } else {
+			that.treeEl.css({'msTransform': scaleString})
+		    }
+		    }}
+		    )
 
                 var resizetimer
                 var that = this

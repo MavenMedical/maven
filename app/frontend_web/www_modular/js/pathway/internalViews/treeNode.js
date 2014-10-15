@@ -104,9 +104,9 @@ define([
                     curTree.elPairs.push({source: this, target: thisChild, bold: n})
                 }, this)
                 if (this.model.get('hideChildren') == "true"){
-                    $('.children2', this.$el).first()[0].hidden = true;
+                    $('.children2', this.$el).first().css({'display':'none'});
                 } else {
-                    $('.children2', this.$el).first()[0].hidden = false;
+                    $('.children2', this.$el).first().css({'display':'block'});
 
                 }
 

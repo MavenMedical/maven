@@ -15,7 +15,7 @@ define([
         initialize: function(parent){
             var that = this;
             this.parent = parent;
-            this.$el.html(this.template(that.attributes.protocol));
+            this.$el.html(this.template(that.attributes.protocol.attributes));
             $("#detail-modal").modal({'show':'true'});
 
             $("#sendProtocolButton", this.$el).on("click", function(){
