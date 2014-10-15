@@ -29,7 +29,7 @@ define([
             },
             render: function () {
                 var that = this;
-                if(curTree.get('selectedNode').attributes != null){
+                if(curTree.get('selectedNode') && curTree.get('selectedNode').attributes != null){
 
                 this.$el.html(this.template(curTree.get('selectedNode').attributes));
 
