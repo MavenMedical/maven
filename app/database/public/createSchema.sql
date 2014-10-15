@@ -19,6 +19,8 @@ CREATE TABLE adt (
     room_id character varying(25)
 );
 ALTER TABLE public.adt OWNER TO maven;
+CREATE INDEX ixadtevent ON adt USING btree (event_id, customer_id);
+CREATE INDEX ixadtpatient ON adt USING btree (pat_id, customer_id);
 
 -- Name: alert; Type: TABLE; Schema: public; Owner: maven; Tablespace:
 CREATE TABLE alert (
@@ -45,6 +47,7 @@ CREATE TABLE alert (
     validation_status integer
 );
 ALTER TABLE public.alert OWNER TO maven;
+CREATE INDEX ixprovider ON alert USING btree (provider_id, customer_id);
 
 -- Name: alert_config; Type: TABLE; Schema: public; Owner: maven; Tablespace:
 CREATE TABLE alert_config (
@@ -56,6 +59,8 @@ CREATE TABLE alert_config (
     provide_optouts character varying(36)[]
 );
 ALTER TABLE public.alert_config OWNER TO maven;
+CREATE INDEX ix_alertconfigcustcatdep ON alert_config USING btree (customer_id, category, department);
+CREATE INDEX ixencounter ON alert USING btree (encounter_id, customer_id);
 
 -- Name: alert_setting_hist; Type: TABLE; Schema: public; Owner: maven; Tablespace:
 CREATE TABLE alert_setting_hist (
@@ -86,6 +91,9 @@ CREATE TABLE audit (
     target_user character varying
 );
 ALTER TABLE public.audit OWNER TO maven;
+ALTER TABLE ONLY audit
+    ADD CONSTRAINT audit_pkey PRIMARY KEY (audit_id);
+CREATE INDEX ix_auditcustuserdate ON audit USING btree (customer_id, username, datetime);
 
 -- Name: composition; Type: TABLE; Schema: public; Owner: maven; Tablespace:
 CREATE TABLE composition (
@@ -96,6 +104,8 @@ CREATE TABLE composition (
     encounter_id character varying(100)
 );
 ALTER TABLE public.composition OWNER TO maven;
+ALTER TABLE ONLY composition
+    ADD CONSTRAINT composition_pkey PRIMARY KEY (comp_id);
 
 -- Name: condition; Type: TABLE; Schema: public; Owner: maven; Tablespace:
 CREATE TABLE condition (
@@ -115,6 +125,10 @@ CREATE TABLE condition (
     is_poa boolean
 );
 ALTER TABLE public.condition OWNER TO maven;
+CREATE INDEX ix_conditionenccust ON condition USING btree (encounter_id, customer_id);
+CREATE INDEX ixconditionpatdates ON condition USING btree (customer_id, pat_id, date_asserted, date_resolved);
+CREATE INDEX ixconditionpatdatsno ON condition USING btree (customer_id, pat_id, date_asserted, snomed_id);
+CREATE INDEX ixconditionpatstatus ON condition USING btree (customer_id, pat_id, status);
 
 -- Name: customer; Type: TABLE; Schema: public; Owner: maven; Tablespace:
 CREATE TABLE customer (
@@ -127,10 +141,9 @@ CREATE TABLE customer (
     clientapp_settings character varying
 );
 ALTER TABLE public.customer OWNER TO maven;
-
---Add the default Maven Customer so that the support user can be activated
-
-INSERT INTO CUSTOMER (customer_id, name) VALUES (0, 'Maven');
+ALTER TABLE ONLY customer
+    ADD CONSTRAINT customer_pkey PRIMARY KEY (customer_id);
+CREATE INDEX ixcustomer ON customer USING btree (customer_id);
 
 -- Name: department; Type: TABLE; Schema: public; Owner: maven; Tablespace:
 CREATE TABLE department (
@@ -141,6 +154,7 @@ CREATE TABLE department (
     location character varying(100)
 );
 ALTER TABLE public.department OWNER TO maven;
+CREATE INDEX ixdeppk ON department USING btree (department_id, customer_id);
 
 -- Name: encounter; Type: TABLE; Schema: public; Owner: maven; Tablespace:
 CREATE TABLE encounter (
@@ -156,6 +170,10 @@ CREATE TABLE encounter (
     hosp_disch_time date
 );
 ALTER TABLE public.encounter OWNER TO maven;
+CREATE INDEX ixencounterid ON encounter USING btree (csn, customer_id);
+CREATE INDEX ixencounterbillprovid ON encounter USING btree (bill_prov_id, customer_id);
+CREATE INDEX ixencounterpatid ON encounter USING btree (pat_id, customer_id);
+CREATE INDEX ixencounterprovid ON encounter USING btree (visit_prov_id, customer_id);
 
 -- Name: layouts; Type: TABLE; Schema: public; Owner: maven; Tablespace:
 CREATE TABLE layouts (
@@ -167,6 +185,9 @@ CREATE TABLE layouts (
     priority integer
 );
 ALTER TABLE public.layouts OWNER TO maven;
+ALTER TABLE ONLY layouts
+    ADD CONSTRAINT layouts_pkey PRIMARY KEY (id);
+CREATE INDEX ixlayout ON layouts USING btree (layout_id);
 
 -- Name: logins; Type: TABLE; Schema: public; Owner: maven; Tablespace:
 CREATE TABLE logins (
@@ -179,6 +200,7 @@ CREATE TABLE logins (
     customer_id integer NOT NULL
 );
 ALTER TABLE public.logins OWNER TO maven;
+CREATE INDEX ixlogins ON logins USING btree (user_name, customer_id);
 
 -- Name: observable; Type: TABLE; Schema: public; Owner: maven; Tablespace:
 CREATE TABLE observable (
@@ -224,6 +246,9 @@ CREATE TABLE observation (
     common_name character varying(254)
 );
 ALTER TABLE public.observation OWNER TO maven;
+CREATE INDEX ixobspatloincdate ON observation USING btree (customer_id, pat_id, loinc_code, result_time, numeric_result);
+CREATE INDEX ixobspat ON observation USING btree (customer_id, pat_id);
+CREATE INDEX ixobsenc ON observation USING btree (customer_id, encounter_id);
 
 -- Name: order_event; Type: TABLE; Schema: public; Owner: maven; Tablespace:
 CREATE TABLE order_event (
@@ -237,6 +262,7 @@ CREATE TABLE order_event (
     active_orders character varying
 );
 ALTER TABLE public.order_event OWNER TO maven;
+CREATE INDEX ixordevent ON order_event USING btree (customer_id, order_id);
 
 -- Name: order_ord; Type: TABLE; Schema: public; Owner: maven; Tablespace:
 CREATE TABLE order_ord (
@@ -258,6 +284,8 @@ CREATE TABLE order_ord (
     order_datetime timestamp without time zone
 );
 ALTER TABLE public.order_ord OWNER TO maven;
+CREATE INDEX ixordenc ON order_ord USING btree (encounter_id, customer_id);
+CREATE INDEX ixordpat ON order_ord USING btree (patient_id, customer_id);
 
 -- Name: orderable; Type: TABLE; Schema: public; Owner: maven; Tablespace:
 CREATE TABLE orderable (
@@ -287,17 +315,6 @@ CREATE TABLE orderable (
 );
 ALTER TABLE public.orderable OWNER TO maven;
 
--- Name: override_indication; Type: TABLE; Schema: public; Owner: maven; Tablespace:
-CREATE TABLE override_indication (
-    override_id serial NOT NULL,
-    customer_id integer,
-    sleuth_rule integer,
-    category character varying(255),
-    name character varying(25),
-    description character varying(255)
-);
-ALTER TABLE public.override_indication OWNER TO maven;
-
 -- Name: patient; Type: TABLE; Schema: public; Owner: maven; Tablespace:
 CREATE TABLE patient (
     patient_id character varying(100) NOT NULL,
@@ -310,6 +327,7 @@ CREATE TABLE patient (
     cur_pcp_prov_id character varying(18)
 );
 ALTER TABLE public.patient OWNER TO maven;
+CREATE INDEX ixpatpk ON patient USING btree (pat_id, customer_id);
 
 -- Name: provider; Type: TABLE; Schema: public; Owner: maven; Tablespace:
 CREATE TABLE provider (
@@ -320,6 +338,7 @@ CREATE TABLE provider (
     specialty2 character varying(254)
 );
 ALTER TABLE public.provider OWNER TO maven;
+CREATE INDEX ixprovpk ON provider USING btree (prov_id, customer_id);
 
 -- Name: shared_bytes; Type: TABLE; Schema: public; Owner: maven; Tablespace:
 CREATE TABLE shared_bytes (
@@ -336,6 +355,7 @@ CREATE TABLE user_pref (
     notify_secondary character varying(32)
 );
 ALTER TABLE public.user_pref OWNER TO maven;
+CREATE INDEX ixusrpref ON user_pref USING btree (customer_id, user_name);
 
 -- Name: users; Type: TABLE; Schema: public; Owner: maven; Tablespace:
 CREATE TABLE users (
@@ -355,6 +375,10 @@ CREATE TABLE users (
     profession character varying(255)
 );
 ALTER TABLE public.users OWNER TO maven;
+ALTER TABLE ONLY users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (user_id);
+CREATE INDEX pk_users ON users USING btree (user_id);
+CREATE INDEX ixusercustuser ON users USING btree (user_name, customer_id);
 
 /**
 **************
@@ -600,3 +624,7 @@ CREATE OR REPLACE FUNCTION public.upsert_user(v_customer_id integer, v_prov_id c
   END;
   $$;
 ALTER FUNCTION public.upsert_user(v_customer_id integer, v_prov_id character varying, v_user_name character varying, v_official_name character varying, v_display_name character varying, v_state character varying(36), v_ehr_state character varying(36), v_layouts integer[], v_roles character varying(36)[]) OWNER TO maven;
+
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+REVOKE ALL ON SCHEMA public FROM maven;
+GRANT ALL ON SCHEMA public TO maven;

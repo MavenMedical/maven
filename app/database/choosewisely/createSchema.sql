@@ -24,6 +24,7 @@ CREATE TABLE choosewisely.codelists (
     term text
 );
 ALTER TABLE choosewisely.codelists OWNER TO maven;
+CREATE INDEX ixrulecodelistsid ON choosewisely.codelists USING btree (ruleid);
 
 -- Name: choosewisely.evirule; Type: TABLE; Schema: choosewisely; Owner: maven; Tablespace:
 CREATE TABLE choosewisely.evirule (
@@ -38,6 +39,10 @@ CREATE TABLE choosewisely.evirule (
     comments text
 );
 ALTER TABLE choosewisely.evirule OWNER TO maven;
+ALTER TABLE ONLY choosewisely.evirule
+    ADD CONSTRAINT evirule_pkey PRIMARY KEY (ruleid);
+CREATE INDEX ixrulepk ON choosewisely.evirule USING btree (ruleid);
+CREATE INDEX ixruletypeagesex ON choosewisely.evirule USING btree (codetype, minage, maxage, sex);
 
 -- Name: choosewisely.labeval; Type: TABLE; Schema: choosewisely; Owner: postgres; Tablespace:
 CREATE TABLE choosewisely.labeval (
@@ -51,6 +56,7 @@ CREATE TABLE choosewisely.labeval (
     onlychecklast boolean
 );
 ALTER TABLE choosewisely.labeval OWNER TO maven;
+CREATE INDEX ixlabevalrule ON choosewisely.labeval USING btree (ruleid, loinc_codes);
 
 -- Name: choosewisely.trigcodes; Type: TABLE; Schema: choosewisely; Owner: maven; Tablespace:
 CREATE TABLE trigcodes (
@@ -58,12 +64,16 @@ CREATE TABLE trigcodes (
     code character varying(50) NOT NULL
 );
 ALTER TABLE choosewisely.trigcodes OWNER TO maven;
+ALTER TABLE ONLY chooosewisely.trigcodes
+    ADD CONSTRAINT trigcodes_pkey PRIMARY KEY (ruleid, code);
+CREATE INDEX ixtrigcodecode ON choosewisely.trigcodes USING btree (code, ruleid);
+CREATE INDEX ixtrigcodepk ON choosewisely.trigcodes USING btree (ruleid, code);
 
--- Name: sleuth_evidence; Type: TABLE; Schema: public; Owner: maven; Tablespace: 
+-- Name: sleuth_evidence; Type: TABLE; Schema: choosewisely; Owner: maven; Tablespace:
 CREATE TABLE choosewisely.evidence (
     evidence_id serial NOT NULL,
     customer_id numeric(18,0),
-    sleuth_rule integer,
+    rule_id integer,
     short_name character varying(25),
     name character varying(100),
     description character varying,
@@ -71,6 +81,20 @@ CREATE TABLE choosewisely.evidence (
     source_url character varying(255)
 );
 ALTER TABLE choosewisely.evidence OWNER TO maven;
+CREATE INDEX ixevidence ON choosewisely.evidence USING btree (rule_id)
+
+-- Name: override_indication; Type: TABLE; Schema: choosewisely; Owner: maven; Tablespace:
+CREATE TABLE choosewisely.override_indication (
+    override_id serial NOT NULL,
+    customer_id integer,
+    sleuth_rule integer,
+    category character varying(255),
+    name character varying(25),
+    description character varying(255)
+);
+ALTER TABLE choosewisely.override_indication OWNER TO maven;
+ALTER TABLE ONLY chooosewisely.override_indication
+    ADD CONSTRAINT override_indication_pkey PRIMARY KEY (override_id);
 
 /**
 **************
@@ -199,3 +223,7 @@ begin
 end;
 $_$;
 ALTER FUNCTION choosewisely.evalrules(ordercode character varying, ordcodetype character varying, patage numeric, patsex character varying, encsnomeds bigint[], probsnomeds bigint[], patid character varying, customer integer, curmedlist character varying[]) OWNER TO maven;
+
+REVOKE ALL ON SCHEMA choosewisely FROM PUBLIC;
+REVOKE ALL ON SCHEMA choosewisely FROM maven;
+GRANT ALL ON SCHEMA choosewisely TO maven;

@@ -133,3 +133,7 @@ begin
         return rtn;
 end;
 $$;
+
+REVOKE ALL ON SCHEMA terminology FROM PUBLIC;
+REVOKE ALL ON SCHEMA terminology FROM maven;
+GRANT ALL ON SCHEMA terminology TO maven;

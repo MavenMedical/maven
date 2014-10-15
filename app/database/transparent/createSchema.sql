@@ -22,6 +22,7 @@ CREATE TABLE transparent.costmap (
     cost numeric(18,2)
 );
 ALTER TABLE transparent.costmap OWNER TO maven;
+CREATE INDEX ixcostmap ON transparent.costmap USING btree (code, customer_id, department, code_type, cost_type);
 
 -- Name: costmap_historic; Type: TABLE; Schema: public; Owner: maven; Tablespace:
 CREATE TABLE transparent.costmap_historic (
@@ -36,6 +37,7 @@ CREATE TABLE transparent.costmap_historic (
     exp_date timestamp without time zone
 );
 ALTER TABLE transparent.costmap_historic OWNER TO maven;
+CREATE INDEX ixcostmaphx ON transparent.costmap_historic USING btree (code, customer_id, department, code_type, cost_type);
 
 -- Name: transparent.nadac; Type: TABLE; Schema: public; Owner: maven; Tablespace:
 CREATE TABLE transparent.nadac (
@@ -52,6 +54,9 @@ CREATE TABLE transparent.nadac (
     genericeffectivedate character varying(200)
 );
 ALTER TABLE transparent.nadac OWNER TO maven;
+ALTER TABLE ONLY transparent.nadac
+    ADD CONSTRAINT nadac_pkey PRIMARY KEY (ndc);
+CREATE INDEX ixnadacndc ON transparent.nadac USING btree (ndc);
 
 -- Name: transparent.nadacarchive; Type: TABLE; Schema: public; Owner: maven; Tablespace:
 CREATE TABLE transparent.nadacarchive (
@@ -70,6 +75,9 @@ CREATE TABLE transparent.nadacarchive (
     todate date NOT NULL
 );
 ALTER TABLE transparent.nadacarchive OWNER TO maven;
+ALTER TABLE ONLY nadacarchive
+    ADD CONSTRAINT nadacarchive_pkey PRIMARY KEY (ndc, fromdate, todate);
+CREATE INDEX ixnadacarcndcdt ON transparent.nadacarchive USING btree (ndc, fromdate, todate);
 
 -- Name: transparent.ucl; Type: TABLE; Schema: public; Owner: maven; Tablespace:
 CREATE TABLE transparent.ucl (
@@ -92,6 +100,10 @@ CREATE TABLE transparent.ucl (
     code_type character varying(25)
 );
 ALTER TABLE transparent.ucl OWNER TO maven;
+CREATE INDEX ixbillcode ON ucl USING btree (billing_code, customer_id);
+CREATE INDEX ixmedication ON ucl USING btree (med_id, customer_id);
+CREATE INDEX ixprocedure ON ucl USING btree (proc_id, customer_id);
+CREATE INDEX ixuclpk ON ucl USING btree (ucl_id, customer_id);
 
 /**
 **************
@@ -261,3 +273,7 @@ begin
 end;
 $$;
 ALTER FUNCTION transparent.updatenadacarchive() OWNER TO maven;
+
+REVOKE ALL ON SCHEMA transparent FROM PUBLIC;
+REVOKE ALL ON SCHEMA transparent FROM maven;
+GRANT ALL ON SCHEMA transparent TO maven;

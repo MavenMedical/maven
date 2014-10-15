@@ -23,6 +23,11 @@ CREATE TABLE trees.activity (
     action character varying(32)
 );
 ALTER TABLE trees.activity OWNER TO maven;
+ALTER TABLE ONLY trees.activity
+    ADD CONSTRAINT activity_pkey PRIMARY KEY (activity_id);
+CREATE INDEX ixactivity ON trees.activity USING btree (protocol_id);
+CREATE INDEX ixuseractivity ON trees.activity USING btree (protocol_id, user_id);
+
 
 -- Name: trees.codelist; Type: TABLE; Schema: trees; Owner: maven; Tablespace:
 CREATE TABLE trees.codelist (
@@ -36,6 +41,7 @@ CREATE TABLE trees.codelist (
     framemax integer
 );
 ALTER TABLE trees.codelist OWNER TO maven;
+CREATE INDEX ixprotocolid ON trees.codelists USING btree (protocol_id);
 
 -- Name: trees.labeval; Type: TABLE; Schema: trees; Owner: maven; Tablespace:
 CREATE TABLE trees.labeval (
@@ -49,6 +55,7 @@ CREATE TABLE trees.labeval (
     onlychecklast boolean
 );
 ALTER TABLE trees.labeval OWNER TO maven;
+CREATE INDEX ixprotolabeval ON trees.labeval USING btree (protocol_id, loinc_codes);
 
 -- Name: trees.protocol; Type: TABLE; Schema: trees; Owner: maven; Tablespace:
 CREATE TABLE trees.protocol (
@@ -62,6 +69,9 @@ CREATE TABLE trees.protocol (
     full_spec json
 );
 ALTER TABLE trees.protocol OWNER TO maven;
+ALTER TABLE ONLY trees.protocol
+    ADD CONSTRAINT protocol_pkey PRIMARY KEY (protocol_id);
+CREATE INDEX ixprotocolpk ON trees.protocol USING btree (protocol_id);
 
 /**
 **************
@@ -225,3 +235,7 @@ return query execute
 end;
 $_$;
 ALTER FUNCTION trees.evalnode(node_id integer, patage numeric, patsex character varying, encsnomeds bigint[], probsnomeds bigint[], patid character varying, customer integer, curmedlist character varying[]) OWNER TO maven;
+
+REVOKE ALL ON SCHEMA trees FROM PUBLIC;
+REVOKE ALL ON SCHEMA trees FROM maven;
+GRANT ALL ON SCHEMA trees TO maven;
