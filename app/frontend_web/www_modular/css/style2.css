@@ -198,8 +198,12 @@ html, body {
     /*height: 130px; /*var-fixed-top-size*/
     background: #ffffff;
 }
+.toolbar-button {
+    height: 50px
 
-#fixed-topB {
+}
+
+/*#fixed-topB {
     position:fixed;
     text-align: center;
     width: 90%;
@@ -209,9 +213,9 @@ html, body {
     left:5%;
     right:5%;
     z-index:10;
-    /*height: 130px; /*var-fixed-top-size*/
+    /*height: 130px; /*var-fixed-top-size
     background: lightblue;
-}
+}*/
 
 #fixed-topA > .col-sm-12{
     padding: 0;
@@ -670,7 +674,7 @@ border-right: 1px solid rgb(204, 204, 204);
 }
 
 .audit-scroll {
-    overflow-y:auto;
+    overflow-y:scroll;
     max-height:200px;
     width:100%;
     border-top-left-radius: 3px;
@@ -816,3 +820,8 @@ ul.ui-autocomplete.ui-menu {   z-index: 100000; }
 .modal-dialog-lg {
     width:800px;
 }
+
+button .btn-hover { display: none; }
+button:hover .btn-label { display: none; }
+button:hover .btn-hover { display: inline; }
+

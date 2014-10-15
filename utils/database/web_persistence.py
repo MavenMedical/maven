@@ -327,9 +327,9 @@ class WebPersistence():
     def setup_customer(self, customer, clientapp_settings):
         yield from self.execute(["UPDATE customer set clientapp_settings = %s where customer_id = %s"],
                                 [json.dumps(clientapp_settings), customer], {}, {})
-        if clientapp_settings.get('EHRServiceUser', None) == "MavenPathways":
-            yield from self.db.execute_single("SELECT upsert_alert_config(%s, %s, %s, %s, %s, %s)",
-                                              extra=[customer, -1, 'PATHWAY', None, 400, None])
+
+        yield from self.db.execute_single("SELECT upsert_alert_config(%s, %s, %s, %s, %s, %s)",
+                                          extra=[customer, -1, 'PATHWAY', None, 400, None])
 
     @asyncio.coroutine
     def update_alert_setting(self, user, customer, alertid, ruleid, category, actioncomment):
@@ -496,7 +496,9 @@ class WebPersistence():
         Results.state: "users.state",
         Results.ehrstate: "users.ehr_state",
         Results.profession: "users.profession",
-        Results.lastlogin: "logins2.last_login"
+        Results.lastlogin: "logins2.last_login",
+        Results.notify1: "user_pref.notify_primary",
+        Results.notify2: "user_pref.notify_secondary"
     }
     _display_user_info = _build_format({
         Results.lastlogin: lambda x: x and _prettify_datetime(x),
@@ -516,7 +518,7 @@ class WebPersistence():
         if Results.lastlogin in desired:
             cmd.append("LEFT JOIN ( ")
             cmd.append("SELECT user_name, customer_id, max(logintime) as last_login")
-            cmd.append("FROM logins")
+            cmd.append("FROM logins where method != 'failed'")
             cmd.append("GROUP BY user_name,customer_id ) logins2")
             cmd.append("ON (users.user_name = logins2.user_name")
             cmd.append("AND users.customer_id = logins2.customer_id)")
@@ -524,6 +526,10 @@ class WebPersistence():
             # can't sort by date if login field is not being used
             startdate = None
             enddate = None
+        if (Results.notify1 in desired) or (Results.notify2 in desired):
+            cmd.append("INNER JOIN user_pref")
+            cmd.append("ON user_pref.user_name = users.user_name")
+            cmd.append("AND user_pref.customer_id = users.customer_id")
         cmd.append("WHERE users.customer_id = %s")
         cmdargs.append(customer)
         if role:

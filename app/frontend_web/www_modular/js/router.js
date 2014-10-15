@@ -37,7 +37,7 @@ define([
         "patient": [0, 9, 3],
         "episode": [0, 9, 3],
         "pathway": [0, 12, 0],
-        "pathEditor": [0, 12, 0],
+        "pathEditor": [0, 12, 0]
     };
     changePageLayout = function (page) {
 
@@ -120,7 +120,7 @@ define([
         },
         showPathway: function (path, code, pat, date, user, customer, userAuth) {
 
-            currentContext.set({page: 'pathway', pathid: path, patients: pat, enc_date: date,
+            currentContext.set({page: 'pathway', code: code, pathid: path, patients: pat, enc_date: date,
                 startdate: null, enddate: null});
             showPage(user, customer, userAuth);
         },
@@ -132,7 +132,7 @@ define([
             }
         },
         EditPathway: function (path, code, user, customer, userAuth) {
-            currentContext.set({page: 'pathEditor',  pathid: path});
+            currentContext.set({page: 'pathEditor',  pathid: path, code: code});
             showPage(user, customer, userAuth);
         },
         logout: function () {

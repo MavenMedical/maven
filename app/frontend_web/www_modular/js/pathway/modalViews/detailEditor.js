@@ -63,7 +63,6 @@ define([
                 //into the 'sel' collection
                 if (!that.newDetail){
                     for (a in that.model.get(cur.getAttribute('name'))){
-                        console.log(that.model)
                         var c = that.model.get(cur.getAttribute('name'))[a]
                         var t = that.model.get(cur.getAttribute('name')+'term')[a]
                         sel.add(new Backbone.Model({id: c, code: c, term: t, type: cur.getAttribute("type") }))

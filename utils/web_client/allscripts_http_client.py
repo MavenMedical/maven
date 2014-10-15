@@ -569,6 +569,7 @@ class allscripts_api(http.http_api):
         fhir_dx_section = FHIR_API.Section(title="Encounter Dx",
                                            code=FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(system="http://loinc.org",
                                                                                                  code="11450-4")]))
+        bad_dx_coding = False
         for problem in [detail for detail in clin_summary if detail['section'] == "problems"]:
 
             # Instantiate the FHIR Condition
@@ -587,8 +588,20 @@ class allscripts_api(http.http_api):
             # Get the date the condition was asserted
             fhir_condition.dateAsserted = dateutil.parser.parse(problem['displaydate']) or None
 
+            # Ignore Problems sent by Allscripts that are of "Unspecified Diagnosis" or do not contain an "entrycode" element
+            if problem.get('entrycode', 'FREETEXT') == 'FREETEXT':
+                continue
             # Create the FHIR CodeableConcept that contains the Display Name and terminology (ICD-9) coding
-            code, system = problem['entrycode'].split("|")
+            else:
+                code_sys = problem['entrycode'].split("|")
+                if code_sys != 2 and bad_dx_coding:
+                    continue
+                elif code_sys != 2:
+                    bad_dx_coding = True
+                    ML.WARN("Clin_Summary Contains unparseable Coding/System(s)")
+                    continue
+                else:
+                    code, system = code_sys
 
             if system in ["ICD-9", "ICD9"]:
                 fhir_condition.code = FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(system="ICD-9",
