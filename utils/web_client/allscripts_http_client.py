@@ -166,12 +166,13 @@ class allscripts_api(http.http_api):
                 if not req or req.startswith('error'):
                     raise AllscriptsError('Could not get token - ' + req)
                 INFO('Acquired token')
-                if self.unity_token == fut:
+                if self.unitytoken == fut:
                     self.unitytoken = req
                 fut.set_result(req)
             except Exception as e:
                 WARN(e)
-            yield from asyncio.sleep(10)
+            if not fut.done():
+                yield from asyncio.sleep(10)
 
     def _require_token(func: 'function') -> 'function':
         """ decorator for functions which require a security token before executing
@@ -686,16 +687,16 @@ if __name__ == '__main__':
 
     config = {
         # http.CONFIG_BASEURL: 'http://pro14ga.unitysandbox.com/Unity/UnityService.svc',
-        CONFIG_PARAMS.EHR_API_BASE_URL.value: 'http://192.237.180.54/Unity/UnityService.svc',
+        CONFIG_PARAMS.EHR_API_BASE_URL.value: 'https://srt-unity-pro2.allscripts.com/unity_adppro13SSL/unityservice.svc',
         # CONFIG_PARAMS.EHR_API_BASE_URL.value: 'http://192.237.182.238/Unity/UnityService.svc',
         # CONFIG_PARAMS.EHR_API_BASE_URL.value: 'http://127.0.0.1/Unity/UnityService.svc',
         # http.CONFIG_BASEURL: 'http://doesnotexist.somejunk.cs.umd.edu/Unity/UnityService.svc',
         http.CONFIG_OTHERHEADERS: {
             'Content-Type': 'application/json'
         },
-        CONFIG_PARAMS.EHR_API_APPNAME.value: 'MavenPathways.TestApp',
-        CONFIG_PARAMS.EHR_API_SVC_USER.value: 'MavenPathways',
-        CONFIG_PARAMS.EHR_API_PASSWORD.value: 'MavenPathways123!!',
+        CONFIG_PARAMS.EHR_API_APPNAME.value: 'MavenMedical.MavenPathways.ProdApp',
+        CONFIG_PARAMS.EHR_API_SVC_USER.value: 'MAV3nPAthWaYsPR0d',
+        CONFIG_PARAMS.EHR_API_PASSWORD.value: 'm4VeNpAtHWaYz!3ji',
     }
 
     import traceback
@@ -709,7 +710,7 @@ if __name__ == '__main__':
 
     api = allscripts_api(config)
     loop = asyncio.get_event_loop()
-    Ehr_username = 'CliffHux'
+    Ehr_username = 'MAVEN'
     # break
     # wrapexn(api.GetProvider(Ehr_username, searchid='10041'))
     patient = input('Enter a Patient ID to display (e.g., 22): ')
@@ -758,5 +759,3 @@ if __name__ == '__main__':
         wrapexn(api.GetProvider(Ehr_username, searchname='terry'))
     if input('GetUserID (y/n)? ') == 'y':
         wrapexn(api.GetUserID(Ehr_username))
-    if input('GetDocuments (y/n)? '):
-        print(loop.run_until_complete(api.GetDocuments(Ehr_username, patient)))
