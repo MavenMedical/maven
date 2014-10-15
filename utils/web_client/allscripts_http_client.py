@@ -573,9 +573,9 @@ class allscripts_api(http.http_api):
             # Create the FHIR CodeableConcept that contains the Display Name and terminology (ICD-9) coding
             else:
                 code_sys = problem['entrycode'].split("|")
-                if code_sys != 2 and bad_dx_coding:
+                if len(code_sys) != 2 and bad_dx_coding:
                     continue
-                elif code_sys != 2:
+                elif len(code_sys) != 2:
                     bad_dx_coding = True
                     ML.WARN("Clin_Summary Contains unparseable Coding/System(s)")
                     continue
