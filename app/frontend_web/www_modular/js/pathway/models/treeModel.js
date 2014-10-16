@@ -119,7 +119,8 @@ define([
     }
 
     var hideSiblingsRecur = function(me, toHide){
-        var tar = me.get('children').models.indexOf(toHide)
+        //var tar = _.indexOf(me.get('children').models, toHide)
+	var tar = _.indexOf(me.get('children').models, toHide)
         for (var i in me.get('children').models){
                 if (tar != - 1){
                      if (i != tar){
