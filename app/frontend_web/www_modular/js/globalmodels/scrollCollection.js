@@ -16,7 +16,6 @@ define([
     tried: 0,
     offset: 0,
 	model: ScrollModel,
-    data: "",
     extraData: {},
     lastRefresh: new Date(),
     getLastRefresh: function() {
@@ -33,10 +32,7 @@ define([
             //allow for additional data to be passed in, aside from the context model
             var data = {};
             $.extend(data,contextModel.toParams(),this.extraData);
-            if (this.data != "")
-            {
-                data += "&" + this.data;
-            }
+
             this.fetch({data: $.param(data), remove:true});
 	    }
 
@@ -48,10 +44,6 @@ define([
             //allow for additional data to be passed in, aside from the context model
             var data = {};
             $.extend(data,contextModel.toParams(),this.extraData);
-            if (this.data != "")
-            {
-                data += "&" + this.data;
-            }
 
             this.offset = this.models.length;
             this.tried = this.models.length+this.limit;

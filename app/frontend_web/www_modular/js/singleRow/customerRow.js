@@ -42,7 +42,6 @@ define([
                         $(that.el).find(".customer-row-val").hide();
                         $(that.el).find(".customer-row-edit").each(function () {
                             $(this).width($(this).parent().width() - 5);
-                            //  $(this).attr('width')
                             $(this).show();
                         });
                     }
@@ -50,7 +49,7 @@ define([
                     {
                         //show customer info modal if user clicked on 'view info' button
                         var widgetModal = new WidgetModal({widgetList: [adminSettings, userList]});
-                        widgetModal.render({target_customer: that.model.attributes.customer_id});
+                        widgetModal.render({extraData: {target_customer: that.model.attributes.customer_id}});
                     }
                 });
             });

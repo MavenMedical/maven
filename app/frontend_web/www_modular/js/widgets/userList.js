@@ -10,10 +10,12 @@ define([
     'globalmodels/contextModel',
     'text!templates/userScroll.html',
 
-], function ($, _, Backbone, userCollection, UserRow, contextModel, UserListTemplate) {
+], function ($, _, Backbone, UserCollection, UserRow, contextModel, UserListTemplate) {
+
+    var userCollection;
 
     var UserList = Backbone.View.extend({
-    target_customer: '',
+    extraData: {},
 	initialize: function(arg) {
         if (typeof arg.template !== "undefined") {
             this.template = _.template(arg.template); // this must already be loaded
@@ -21,19 +23,17 @@ define([
         else {
             this.template = _.template(UserListTemplate);
         }
-        if (typeof arg.target_customer !== "undefined") {
-            userCollection.target_customer = arg.target_customer;
-            userCollection.extraData = {'target_customer': arg.target_customer};
-            userCollection.refresh();
+        if (typeof arg.extraData !== "undefined") {
+            this.extraData = arg.extraData;
         }
+        //initialize user collection with all required data
+        userCollection = new (UserCollection.extend({extraData: this.extraData}));
 
         this.$el.html(this.template({height:$(window).height()-50+'px'}));
 	    userCollection.bind('add', this.addUser, this);
 	    userCollection.bind('reset', this.reset, this);
 	    userCollection.bind('sync', this.addAll, this);
-	    //spendingModel.on('change:typeFilter', function() {
-		//this.render();
-	    //}, this);
+
 	    this.render();
         var userlist = $('.useraccordion', this.$el);
 	    userlist.scrollTop(0);
@@ -132,5 +132,4 @@ define([
     });
 
     return UserList;
-
 });
