@@ -38,11 +38,22 @@ define([
                      var target = $(param1.explicitOriginalTarget)
                     console.log(target.closest('.click-tracked'))
                       if (target.closest('.click-tracked').length){
-                          var id = target.closest('.click-tracked').attr('clickid')
-                          /*
-                                click tracking code goes here
-                           */
+                            var id = (target.closest('.click-tracked').attr('clickid')).replace("TN--","");
 
+                            var data = { "patient_id": contextModel.get("patients"),
+                                         "protocol_id": contextModel.get("pathid"),
+                                         "node_id": id,
+                                         "datetime": (new Date().toISOString()).replace("T"," "),
+                                         "action": "click" }
+                            $.ajax({
+                                type: 'POST',
+                                dataType: 'json',
+                                url: "/activity?" + $.param(contextModel.toParams()),
+                                data: JSON.stringify(data),
+                                success: function () {
+                                    console.log("click tracked");
+                                }
+                            });
 
                       }
                 }

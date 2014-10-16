@@ -1205,3 +1205,32 @@ class WebPersistence():
             yield from self.upsert_codelists(protocol_json)
         except:
             ML.EXCEPTION("Error Updating TreeID #{}".format(protocol_json.get('id', None)))
+
+    @asyncio.coroutine
+    def post_protocol_activity(self, customer_id, user_id, activity_msg):
+        column_map = ["customer_id", "user_id", "patient_id", "protocol_id", "node_id", "datetime", "action"]
+        columns = DBMapUtils().select_rows_from_map(column_map)
+
+        cmd = ["INSERT INTO trees.activity(" + columns + ")",
+               "VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING activity_id"]
+        cmdArgs = [customer_id,
+                   user_id,
+                   activity_msg.get('patient_id', None),
+                   activity_msg.get('protocol_id', None),
+                   activity_msg.get('node_id', None),
+                   activity_msg.get('datetime', None),
+                   activity_msg.get('action', None)]
+
+        try:
+            cur = yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
+            result = cur.fetchone()[0]
+        except:
+            ML.EXCEPTION("Error Inserting Protocol Activity for User: {}, Protocol: {}, Node: {}".format(user_id,
+                                                                                                         activity_msg.get('protocol_id', None),
+                                                                                                         activity_msg.get('node_id', None)))
+            result = None
+
+        if result and isinstance(result, int):
+            return True
+        else:
+            return False

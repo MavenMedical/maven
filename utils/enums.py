@@ -143,6 +143,13 @@ class PROCEDURE_TERMINOLOGIES(Enum):
     hcpcs = "Healthcare Common Procedure Coding System"
 
 
+class PROTOCOL_ACTION(Enum):
+    click = "click"
+    hover = "hover"
+    copytext = "copytext"
+    sendmsg = "sendmsg"
+
+
 class PROVIDER_TYPE(Enum):
     ADMIN = "Administrator"
     ANCILLARY = "Ancillary Services"

@@ -23,7 +23,6 @@ define([
 
             this.model = params.model
 
-
         },
         makeExit: function (jsPlumb2) {
 
@@ -49,6 +48,7 @@ define([
         },
         copyProtocole: function () {
 
+             this.trackActivity("copytext");
 
              $('<div>'+this.model.get("protocol").noteToCopy+'</div>').attr('id', 'copiedText').appendTo('.container');
 
@@ -67,7 +67,6 @@ define([
         },
 
         send: function () {
-
             var newSendProtocol = new SendProtocol(this.model);
         },
         sendSetup: function () {
@@ -75,18 +74,32 @@ define([
 
         },
         setSelectedNode: function(){
-                this.$el.off('click')
-                    curTree.set('selectedNode', this.model, {silent: true})
-                    curTree.trigger('propagate')
+            this.$el.off('click');
+            curTree.set('selectedNode', this.model, {silent: true});
+            this.trackActivity("click");
+            curTree.trigger('propagate')
         },
         treeToJSON: function (node) {
 
+        },
+        trackActivity: function (action){
+            var id = 0; //no valid id now: wait until protocol nodes have their own id
+
+                            var data = { "patient_id": currentContext.get("patients"),
+                                         "protocol_id": currentContext.get("pathid"),
+                                         "node_id": id,
+                                         "datetime": (new Date().toISOString()).replace("T"," "),
+                                         "action": action }
+            $.ajax({
+                type: 'POST',
+                dataType: 'json',
+                url: "/activity?" + $.param(currentContext.toParams()),
+                data: JSON.stringify(data),
+                success: function () {
+                    console.log("click tracked");
+                }
+            });
         }
-
-
-
-
-
     })
     return treeNode;
 
