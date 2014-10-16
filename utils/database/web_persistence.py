@@ -1213,11 +1213,18 @@ class WebPersistence():
 
         cmd = ["INSERT INTO trees.activity(" + columns + ")",
                "VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING activity_id"]
+
+        node_state_raw = activity_msg.get('node_state', None)
+        node_state = node_state_raw.split("-")
+
+        # Splice the last element from the node state (which returns a single element list),
+        # and then take the only element from it and turn it into an integer
+        node_id = int(node_state[-1:][0])
         cmdArgs = [customer_id,
                    user_id,
                    activity_msg.get('patient_id', None),
                    activity_msg.get('protocol_id', None),
-                   activity_msg.get('node_id', None),
+                   node_id,
                    activity_msg.get('datetime', None),
                    activity_msg.get('action', None)]
 
@@ -1227,7 +1234,7 @@ class WebPersistence():
         except:
             ML.EXCEPTION("Error Inserting Protocol Activity for User: {}, Protocol: {}, Node: {}".format(user_id,
                                                                                                          activity_msg.get('protocol_id', None),
-                                                                                                         activity_msg.get('node_id', None)))
+                                                                                                         node_id))
             result = None
 
         if result and isinstance(result, int):

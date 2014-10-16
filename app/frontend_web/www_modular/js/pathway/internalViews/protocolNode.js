@@ -87,7 +87,7 @@ define([
 
                             var data = { "patient_id": currentContext.get("patients"),
                                          "protocol_id": currentContext.get("pathid"),
-                                         "node_id": id,
+                                         "node_state": id,
                                          "datetime": (new Date().toISOString()).replace("T"," "),
                                          "action": action }
             $.ajax({

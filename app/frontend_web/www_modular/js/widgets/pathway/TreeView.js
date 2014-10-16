@@ -35,14 +35,18 @@ define([
 
                 this.treeEl = $('.tree', this.$el)
                 this.el.onclick = function(param1){
+                    //Don't track clicks in edit mode (where page would be "pathwayEditor")
+                    if (contextModel.get('page') != 'pathway'){
+                        return;
+                    }
                      var target = $(param1.explicitOriginalTarget)
                     console.log(target.closest('.click-tracked'))
                       if (target.closest('.click-tracked').length){
-                            var id = (target.closest('.click-tracked').attr('clickid')).replace("TN--","");
+                            var node_state = (target.closest('.click-tracked').attr('clickid'));
 
                             var data = { "patient_id": contextModel.get("patients"),
                                          "protocol_id": contextModel.get("pathid"),
-                                         "node_id": id,
+                                         "node_state": node_state,
                                          "datetime": (new Date().toISOString()).replace("T"," "),
                                          "action": "click" }
                             $.ajax({
