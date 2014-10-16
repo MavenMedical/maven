@@ -36,13 +36,18 @@ class AdministrationWebservices():
         self.persistence = WP.WebPersistence(config[CONFIG_PERSISTENCE])
 
     @http_service(['POST'], '/setup_customer',
-                  [CONTEXT.USER, CONTEXT.CUSTOMERID],
-                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int},
-                  {USER_ROLES.administrator})
+                  [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.ROLES],
+                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int,
+                   CONTEXT.ROLES: list, CONTEXT.TARGETCUSTOMER: int},
+                  {USER_ROLES.administrator, USER_ROLES.mavensupport})
     def setup_customer(self, _header, body, context, _matches, _key):
         body = json.loads(body.decode('utf-8'))
         user = context[CONTEXT.USER]
         customer = context[CONTEXT.CUSTOMERID]
+        targetcustomer = context.get(CONTEXT.TARGETCUSTOMER, None)
+        if targetcustomer and (USER_ROLES.mavensupport.value in context[CONTEXT.ROLES]):
+            customer = targetcustomer
+
         clientapp_settings = body
         body.update({CONFIG_PARAMS.EHR_USER_SYNC_INTERVAL.value: 60 * 60})
         if 'locked' in clientapp_settings:
@@ -110,15 +115,19 @@ class AdministrationWebservices():
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
     @http_service(['GET'], '/update_user',
-                  [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.STATE, CONTEXT.TARGETUSER],
-                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int,
-                   CONTEXT.STATE: str, CONTEXT.TARGETUSER: str},
-                  {USER_ROLES.administrator})
+                  [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.STATE, CONTEXT.TARGETUSER,
+                   CONTEXT.ROLES],
+                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int, CONTEXT.ROLES: list,
+                   CONTEXT.STATE: str, CONTEXT.TARGETUSER: str, CONTEXT.TARGETCUSTOMER: int},
+                  {USER_ROLES.administrator, USER_ROLES.mavensupport})
     def update_user(self, _header, _body, context, _matches, _key):
         user = context[CONTEXT.USER]
         target_user = context[CONTEXT.TARGETUSER]
         customer = context[CONTEXT.CUSTOMERID]
         state = context[CONTEXT.STATE]
+        targetcustomer = context.get(CONTEXT.TARGETCUSTOMER, None)
+        if targetcustomer and USER_ROLES.mavensupport.value in context[CONTEXT.ROLES]:
+            customer = targetcustomer
 
         yield from self.persistence.update_user(target_user, customer, state)
         if state == 'active':
@@ -133,8 +142,8 @@ class AdministrationWebservices():
                   [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.ROLES],
                   {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int, CONTEXT.TARGETUSER: str,
                    CONTEXT.NOTIFY_PRIMARY: str, CONTEXT.NOTIFY_SECONDARY: str,
-                   CONTEXT.ROLES: list},
-                  {USER_ROLES.administrator})
+                   CONTEXT.ROLES: list, CONTEXT.TARGETCUSTOMER: int},
+                  {USER_ROLES.administrator, USER_ROLES.mavensupport})
     def update_user_pref(self, _header, _body, context, _matches, _key):
 
         customer_id = context.get(CONTEXT.CUSTOMERID, None)
@@ -142,17 +151,25 @@ class AdministrationWebservices():
         target_user_name = context.get(CONTEXT.TARGETUSER, None)
         notify_primary = context.get(CONTEXT.NOTIFY_PRIMARY, None)
         notify_secondary = context.get(CONTEXT.NOTIFY_SECONDARY, None)
+        targetcustomer = context.get(CONTEXT.TARGETCUSTOMER, None)
+        if targetcustomer and (USER_ROLES.mavensupport.value in context[CONTEXT.ROLES]):
+            customer_id = targetcustomer
 
         # allow customer administrator to override user preferences
-        if target_user_name and USER_ROLES.administrator.name in context[CONTEXT.ROLES]:
+        if target_user_name and ((USER_ROLES.administrator.value in context[CONTEXT.ROLES]) or
+           (USER_ROLES.mavensupport.value in context[CONTEXT.ROLES])):
             prov_user_name = target_user_name
 
-        results = yield from self.persistence.update_user_notify_preferences(prov_user_name, customer_id,
-                                                                             notify_primary, notify_secondary)
+        try:
+            yield from self.persistence.update_user_notify_preferences(prov_user_name, customer_id,
+                                                                       notify_primary, notify_secondary)
+        except Exception as e:
+            return HTTP.BAD_RESPONSE, json.dumps(str(e)), None
+
         return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
 
     @http_service(['GET'], '/reset_password',
-                  [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.TARGETUSER],
+                  [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.TARGETUSER, CONTEXT.ROLES],
                   {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int, CONTEXT.ROLES: list,
                    CONTEXT.TARGETCUSTOMER: int, CONTEXT.TARGETUSER: str},
                   {USER_ROLES.administrator, USER_ROLES.mavensupport})

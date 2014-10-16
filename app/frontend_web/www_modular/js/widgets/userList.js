@@ -23,6 +23,7 @@ define([
         }
         if (typeof arg.target_customer !== "undefined") {
             userCollection.target_customer = arg.target_customer;
+            userCollection.extraData = {'target_customer': arg.target_customer};
             userCollection.refresh();
         }
 

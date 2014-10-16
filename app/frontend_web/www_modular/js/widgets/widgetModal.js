@@ -39,7 +39,7 @@ define([
                 $(document).ready(function(){
                     //stop widget buttons from closing the modal
                     $("button", this.$el).click(function(event){
-                        event.stopPropagation();
+                        event.stopImmediatePropagation();
                     });
                 });
             },

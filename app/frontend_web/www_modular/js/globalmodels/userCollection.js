@@ -13,6 +13,7 @@ define([
     userCollection.model = UserModel;
     userCollection.limit = 10;
     userCollection.target_customer = "";
+    userCollection.extraData = {};
     userCollection.context = function(){
         contextModel.on('change:startdate change:enddate',
 		    // this will be needed once the context filters things
@@ -22,15 +23,22 @@ define([
     userCollection.initialize();
     userCollection.refresh = function() {
         if(contextModel.get('userAuth')) {
-            extraData = "";
+            /*extraData = "";
             if (userCollection.target_customer != ""){
-                extraData = "&target_customer=" + userCollection.target_customer;
-            }
-
+                extraData = "target_customer=" + userCollection.target_customer;
+                userCollection.data = extraData;
+                extraData ="&" + extraData;
+            }*/
+            var data = {};
+            $.extend(data,contextModel.toParams(),userCollection.extraData);
+            /*if (this.data != "")
+            {
+                data += "&" + this.data;
+            }*/
             this.tried = 0;
             this.offset = 0;
             userCollection.fetch({
-            data:$.param(contextModel.toParams()) + extraData,
+            data:$.param(data),
         remove:true});
     }
     };

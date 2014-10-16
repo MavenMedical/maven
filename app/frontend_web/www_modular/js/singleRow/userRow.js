@@ -33,12 +33,14 @@ define([
             $.ajax({
                 url: "/update_user_pref",
                 data: $.param(contextModel.toParams()) + "&target_user=" + this.model.get("user_name") +
+                      "&target_customer=" + this.model.get("customer_id") +
                       "&notify1="+primary+"&notify2="+secondary,
                 success: function () {
                     $("#save-user-message").html("User Updated!");
                 },
-                error: function () {
-                    $("#save-user-message").html("Sorry, an error occurred. Please try again later");
+                error: function (resp){
+                    alert("Could not save user information.  " + resp.responseJSON);
+                    $("#save-user-message").html("&nbsp;");
                 }
             });
         },
