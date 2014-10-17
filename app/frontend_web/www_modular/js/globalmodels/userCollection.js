@@ -58,7 +58,6 @@ define([
             userCollection.more();
 	}
     };
-
             //allow for additional data to be passed in, aside from the context model
             var data = {};
             $.extend(data,contextModel.toParams(),userCollection.extraData);
@@ -70,5 +69,4 @@ define([
         remove:true});
     }
     };*/
-
 });

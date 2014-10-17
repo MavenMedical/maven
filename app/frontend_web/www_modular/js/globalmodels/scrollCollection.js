@@ -42,7 +42,6 @@ define([
     more: function() {
 	    if(this.tried <= this.models.length) {
             //allow for additional data to be passed in, aside from the context model
-<<<<<<< HEAD
                 data = $.param(contextModel.toParams());
 		if (this.data != "")
 		{
@@ -51,11 +50,7 @@ define([
 		if (this.extraData) {
 		    data += this.extraData;
 		}
-=======
-            var data = {};
-            $.extend(data,contextModel.toParams(),this.extraData);
 
->>>>>>> origin/DEV
             this.offset = this.models.length;
             this.tried = this.models.length+this.limit;
             this.fetch({
@@ -63,7 +58,7 @@ define([
                 remove:false
             });
             }
-	    },
+	    }
     });
 
     return ScrollCollection;
