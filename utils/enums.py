@@ -25,6 +25,7 @@ class ALERT_TYPES(Enum):
     REC_RESULT = "Recent Results"
     ALT_MED = "Alternative Medications"
     PATHWAY = "Pathways"
+    FOLLOWUP = "FollowUp"
 
 
 class ALERT_PRIORITY(Enum):
@@ -82,6 +83,18 @@ class DIAGNOSTIC_TERMINOLOGIES(Enum):
     ICD10 = "International Statistical Classification of Diseases Version 10"
     snomed = "SNOMED CT"
     SNOMED = "SNOMED CT"
+
+
+class FOLLOWUPTASK_DELIVERY(Enum):
+    inbox = "inbox"
+    notification = "notification"
+
+
+class FOLLOWUPTASK_STATUS(Enum):
+    pending = "pending"
+    canceled = "canceled"
+    replaced = "replaced"
+    completed = "completed"
 
 
 class MEDICATION_ORDER_TYPES(Enum):
