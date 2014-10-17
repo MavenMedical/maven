@@ -28,9 +28,7 @@ define([
                 if (!this.model.get('children')){
                     return;
                 } else
-                if(!(this.model.get('children').models)){
-                    this.model.set('children', new nodeList(this.model.get('children')), {silent: true})
-                }
+
                 var that = this
                 this.model.get('children').off('add')
                 this.model.get('children').on('add', function(){
@@ -71,8 +69,6 @@ define([
                                that.model.set('hideChildren', "false", {silent: true})
                            }
                            curTree.getShareCode()
-
-
                        }
                 })
                 $("#addChildButton", this.$el).first().on('click', function(){
@@ -97,7 +93,6 @@ define([
                             that.model.set('hideChildren', "false", {silent: true})
                        }
                        curTree.getShareCode()
-
                     } else {
                         curTree.trigger('propagate')
                     }
@@ -105,9 +100,14 @@ define([
                 })
 
                 _.each(this.model.get('children').models, function(cur){
+
                     $('.children2', this.$el).first().append("<div class='childSpot'></div>")
                     var targ = $('.childSpot',$('.children2', this.$el).first()).last()
+                    cur.set('hasLeft',(this.model.get('children').indexOf(cur) != 0))
+                    cur.set('hasRight', (this.model.get('children').indexOf(cur) < this.model.get('children').length - 1))
+
                     var thisChild = new treeNode({model: cur, el:targ})
+
                     var n =  ((cur.get('hideChildren') == "false") || cur == curTree.get('selectedNode')  )
                     curTree.elPairs.push({source: this, target: thisChild, bold: n})
                 }, this)

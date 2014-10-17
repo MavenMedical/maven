@@ -14,10 +14,11 @@ define([
     'pathway/modalViews/sidePanelEditor',
     'pathway/modalViews/nodeEditor',
     'pathway/modalViews/protocolEditor',
+    'pathway/modalViews/DeleteDialog',
 
     'text!templates/pathway/treeNodeActionSet.html'
 
-], function ($, _, Backbone, contextModel, curTree, editNode, NewPathway, DetailEditor, nodeModal,protocolModal, sidePanelEditor, NodeEditor, ProtocolEditor,  treeNodeActionSetTemplate) {
+], function ($, _, Backbone, contextModel, curTree, editNode, NewPathway, DetailEditor, nodeModal,protocolModal, sidePanelEditor, NodeEditor, ProtocolEditor,  deleteDialog, treeNodeActionSetTemplate) {
 
 
     var treeNodeActionSet = Backbone.View.extend({
@@ -64,9 +65,8 @@ define([
 
         deleteNode: function(){
             var x = true
-                if (curTree.get('selectedNode').get('children').length>0)
-                    x = confirm("You are about to delete this node and ALL of its children\nDo you wish to continue?")
-            if (x) curTree.deleteNode(curTree.get('selectedNode'))
+            new deleteDialog()
+
 
         }
 
