@@ -33,24 +33,24 @@
   <dependency>
     <dependentOS>
       <osVersionInfo>
-        <os majorVersion="5" minorVersion="1" buildNumber="2600" servicePackMajor="0" />
+        <os majorVersion="4" minorVersion="10" buildNumber="0" servicePackMajor="0" />
       </osVersionInfo>
     </dependentOS>
   </dependency>
   <dependency>
     <dependentAssembly dependencyType="preRequisite" allowDelayedBinding="true">
-      <assemblyIdentity name="Microsoft.Windows.CommonLanguageRuntime" version="4.0.30319.0" />
+      <assemblyIdentity name="Microsoft.Windows.CommonLanguageRuntime" version="2.0.50727.0" />
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="MavenDesktop.exe" size="186368">
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="MavenDesktop.exe" size="175616">
       <assemblyIdentity name="MavenDesktop" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
-        <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>qTp4LGWr1poUVR2sD3CNgojLmqVmA3YZNSEwcZdEr40=</dsig:DigestValue>
+        <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
+        <dsig:DigestValue>xT9NAtfG9puq/sfbDY+aHdK1smg=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>
@@ -61,8 +61,8 @@
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
-        <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>jdtxd2sS/GAR6K8OHfT7S3JBSwXU0RywsX+ucaNWQF4=</dsig:DigestValue>
+        <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
+        <dsig:DigestValue>fGPnwWRQge7eDX6YlUg8yRubzSI=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>
@@ -71,8 +71,8 @@
       <dsig:Transforms>
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
-      <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>twNXOyduR6zG8X8WFvfpdQrlptTIp0mrzAP/+zUSHDA=</dsig:DigestValue>
+      <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
+      <dsig:DigestValue>IoPFrR5JfagYV2c0CM544ef6jhU=</dsig:DigestValue>
     </hash>
   </file>
   <file name="maven256.ico" size="21694">
@@ -80,8 +80,8 @@
       <dsig:Transforms>
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
-      <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>0oGXh4bp6Gbfk9Oe3U3/PV1W84Al7EF4NOry6Ux0sHs=</dsig:DigestValue>
+      <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
+      <dsig:DigestValue>9MUXQx3oYc3TnYZLrm4Zf8YlNAs=</dsig:DigestValue>
     </hash>
   </file>
   <file name="maven32.ico" size="4286">
@@ -89,17 +89,17 @@
       <dsig:Transforms>
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
-      <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>TQoAVeMdyaiPj+JJLU+Y1tvbtqHgV6QeeGtS/f3xay8=</dsig:DigestValue>
+      <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
+      <dsig:DigestValue>or2n3w+HlFMxsN1iDp4I/pQCkv8=</dsig:DigestValue>
     </hash>
   </file>
-  <file name="MavenDesktop.exe.config" size="677">
+  <file name="MavenDesktop.exe.config" size="235">
     <hash>
       <dsig:Transforms>
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
-      <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>ldAJBd1yes5xAFbXgoroAl3P8qfZLZmStQsAX7M+qe4=</dsig:DigestValue>
+      <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
+      <dsig:DigestValue>zvHCW3GXShroYV5pvG6KgESyNuI=</dsig:DigestValue>
     </hash>
   </file>
   <file name="OverrideSettings.xml" size="79" writeableType="applicationData">
@@ -107,8 +107,8 @@
       <dsig:Transforms>
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
-      <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>BmMmH4WP/JX5QA+1cXpRqw6O6kBS8a14tjGuAmZZX10=</dsig:DigestValue>
+      <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
+      <dsig:DigestValue>vyBHCc+3akKgGv2OXDOedxIELwU=</dsig:DigestValue>
     </hash>
   </file>
 </asmv1:assembly>

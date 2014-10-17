@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>MavenAsDemo</RootNamespace>
     <AssemblyName>MavenDesktop</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
@@ -27,6 +27,7 @@
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -103,11 +104,6 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Service References\Unity\Reference.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </Compile>
     <Compile Include="Settings.cs" />
     <Compile Include="WindowsDPAPI.cs" />
     <EmbeddedResource Include="frmLogin.resx">
@@ -143,47 +139,12 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <None Include="Service References\Unity\UnityService.wsdl" />
-    <None Include="Service References\Unity\UnityService.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Service References\Unity\UnityService1.wsdl" />
-    <None Include="Service References\Unity\UnityService1.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Service References\Unity\UnityService2.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Service References\Unity\UnityService3.xsd">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Service References\Unity\UnityService4.xsd">
-      <SubType>Designer</SubType>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadataStorage Include="Service References\Unity\" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Service References\Unity\UnityService.disco" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Service References\Unity\configuration91.svcinfo" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Service References\Unity\configuration.svcinfo" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Service References\Unity\Reference.svcmap">
-      <Generator>WCF Proxy Generator</Generator>
-      <LastGenOutput>Reference.cs</LastGenOutput>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\flow.png" />

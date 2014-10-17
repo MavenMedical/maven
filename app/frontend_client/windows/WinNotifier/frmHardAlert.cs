@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
-using System.Linq;
+//using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+//using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace MavenAsDemo
@@ -229,8 +229,8 @@ namespace MavenAsDemo
                 int tbheight=Screen.PrimaryScreen.Bounds.Height - Screen.PrimaryScreen.WorkingArea.Height;
                 int y = Screen.GetWorkingArea(this).Height -(tbheight + 20);
                 this.Top = y;
-                this.TopMost = true;
-                 */
+                this.TopMost = true;*/
+                 
 
                 this.Icon =new Icon(System.IO.Path.GetDirectoryName(Application.ExecutablePath) + "\\Maven.ico");
                 this.ShowInTaskbar = true;
