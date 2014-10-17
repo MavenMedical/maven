@@ -12,12 +12,13 @@ define([
 
 ], function ($, _, Backbone, contextModel, userCollection, AdminSettingsTemplate) {
     var AdminModel = Backbone.Model.extend({url: '/customer_info'});
-    var adminModel = new AdminModel;
 
     var AdminSettings = Backbone.View.extend({
-        model: adminModel,
+        model: null,
         target_customer: '',
         initialize: function (arg) {
+            this.model = new AdminModel; //initialize every time this is shown - might not render otherwise
+
             var extra_data = "";
             if (typeof arg.template !== "undefined") {
                 this.template = _.template(arg.template); // this must already be loaded
@@ -117,11 +118,17 @@ define([
                     data = _.clone(this.model.attributes.settings);
                     _.extend(data, {"EHRPolling": polling, "UserTimeout": timeout, 'locked': 'locked'});
                 }
+
+                var extra_data = "";
+                if (this.target_customer != '')
+                {
+                    extra_data = "&target_customer=" + this.target_customer;
+                }
                 that = this;
                 $.ajax({
                     type: 'POST',
                     dataType: 'json',
-                    url: "/setup_customer?" + $.param(contextModel.toParams()),
+                    url: "/setup_customer?" + $.param(contextModel.toParams())+extra_data,
                     data: JSON.stringify(data),
                             success: function () {
                                 $("#save-admin-message").html("Settings saved!");

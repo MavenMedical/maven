@@ -17,6 +17,7 @@ define([
             el: $("#modal-target"),
             template: _.template(widgetModalTemplate),
             widgetList: [],
+            extraData: {},
             initialize: function(arg){
                 this.widgetList = arg.widgetList;
                 //this.render();

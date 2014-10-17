@@ -14,17 +14,29 @@ define([
         template: _.template(nodeTemplate),
         el: $("#modal-target"),
 
-        initialize: function (parent) {
+        initialize: function (parent, child) {
             var that = this
-
 
             this.$el.html(this.template())
             $('#addNodeButton')[0].onclick = function () {
                 parent.unset('protocol', {silent: true})
                 var data = CKEDITOR.instances.newNodeSideText.getData()
                 var n = new NodeModel({tooltip: $('#newNodeTooltip', that.$el).val(), name: $('#newNodeText', this.$el).val(), sidePanelText: data}, curTree)
-                that.parent.get('children').add(n)
-                curTree.set('selectedNode', n)
+                var location = parent.get('children').length
+                if (child){
+                    location = parent.get('children').indexOf(child)
+                    parent.get('children').remove(child, {silent: true})
+                    n.get('children').add(child, {silent: true})
+
+                    n.set('hideChildren', 'false', {silent: true})
+                    curTree.trigger('propagate')
+                }
+
+                that.parent.get('children').add(n, {at: location})
+
+                  curTree.set('selectedNode', n, {silent: true})
+
+
                 $('#detail-modal').modal('hide')
             }
             var that = this

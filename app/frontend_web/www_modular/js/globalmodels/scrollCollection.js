@@ -16,7 +16,7 @@ define([
     tried: 0,
     offset: 0,
 	model: ScrollModel,
-    data: "",
+    extraData: {},
     lastRefresh: new Date(),
     getLastRefresh: function() {
         //returns the formatted version of the last time this collection was refreshed/initialized
@@ -30,15 +30,10 @@ define([
         this.offset = 0;
         if(contextModel.get('userAuth') && this.url) {
             //allow for additional data to be passed in, aside from the context model
-            if (this.data != "")
-            {
-                data = $.param(contextModel.toParams()) + "&" + this.data;
-            }
-            else
-            {
-                data = $.param(contextModel.toParams());
-            }
-            this.fetch({data:data, remove:true});
+            var data = {};
+            $.extend(data,contextModel.toParams(),this.extraData);
+
+            this.fetch({data: $.param(data), remove:true});
 	    }
 
         //setup context change listener
@@ -47,6 +42,7 @@ define([
     more: function() {
 	    if(this.tried <= this.models.length) {
             //allow for additional data to be passed in, aside from the context model
+<<<<<<< HEAD
                 data = $.param(contextModel.toParams());
 		if (this.data != "")
 		{
@@ -55,10 +51,15 @@ define([
 		if (this.extraData) {
 		    data += this.extraData;
 		}
+=======
+            var data = {};
+            $.extend(data,contextModel.toParams(),this.extraData);
+
+>>>>>>> origin/DEV
             this.offset = this.models.length;
             this.tried = this.models.length+this.limit;
             this.fetch({
-                data:data,
+                data: $.param(data),
                 remove:false
             });
             }

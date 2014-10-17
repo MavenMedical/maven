@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+//using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+//using System.Threading.Tasks;
 using Microsoft.Win32;
 using System.Xml;
+using System.Windows.Forms;
 
 namespace MavenAsDemo
 {
@@ -24,11 +25,39 @@ namespace MavenAsDemo
         /// </summary>
         public enum AlertMode
         {
-            inbox, mobile, deskSoft, deskHard, combo
+            inbox, mobile, deskSoft, deskHard, combo, browser
         };
+        private void PrepBrowserSettings()
+        {
+            WebBrowser versTest = new WebBrowser();
+            int ievers=versTest.Version.Major;
+            int writeval = 0;
+            if (ievers == 7) { writeval = 7000; }
+            else if (ievers == 8) { writeval = 8888; }
+            else if (ievers == 9) { writeval = 9999; }
+            else if (ievers == 10) { writeval = 10001; }
+            else if (ievers == 11) { writeval = 11001; }
+            if (writeval > 0)
+            {
+                try
+                {
+                    RegistryKey iekey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Internet Explorer\\Main\\FeatureControl\\FEATURE_BROWSER_EMULATION", true);
+                    if (iekey == null)
+                    {
+                        iekey = Registry.CurrentUser.CreateSubKey("SOFTWARE\\Microsoft\\Internet Explorer\\Main\\FeatureControl\\FEATURE_BROWSER_EMULATION", RegistryKeyPermissionCheck.ReadWriteSubTree);
+                    }
+                    iekey.SetValue("MavenDesktop.exe", writeval);
+                }
+                catch
+                {
+                    Program.LogMessage("Unable to set default emulation mode for ie version "+ievers);
+                }
+            }
 
+        }
         public Settings()
         {
+            PrepBrowserSettings();
             getMode();
             getFadeSlowness();
             getLocation();

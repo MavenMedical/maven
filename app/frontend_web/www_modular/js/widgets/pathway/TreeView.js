@@ -5,12 +5,14 @@ define([
     'globalmodels/contextModel',
     'pathway/models/treeModel',
     'pathway/internalViews/triggerNode',
+    'pathway/modalViews/nodeEditor',
     'pathway/Helpers',
     'pathway/models/pathwayCollection',
-    'text!templates/pathway/treeTemplate.html'
+    'text!templates/pathway/treeTemplate.html',
+    'text!templates/pathway/insertDiv.html'
 ],
 
-    function ($, _, Backbone, contextModel, curTree, TriggerNode, Helpers, pathwayCollection, treeTemplate) {
+    function ($, _, Backbone, contextModel, curTree, TriggerNode, NodeEditor, Helpers, pathwayCollection, treeTemplate, insertDiv) {
 
         var TreeView = Backbone.View.extend({
 
@@ -108,7 +110,7 @@ define([
             },
             render: function () {
                 curTree.elPairs = []
-                this.plumb.detachEveryConnection();
+                this.plumb.deleteEveryEndpoint();
                 this.treeEl.html('')
                 $('#drawPaths', this.$el).on('click', function () {
                     this.render();
@@ -124,16 +126,56 @@ define([
                 else {
 		    $('#pathwayName').html("")
                 }
-                _.each(curTree.elPairs, function (cur) {
 
+                 var insertDiv = Backbone.View.extend({
+                     initialize: function(params){
+
+                        this.$el.html("<div style='float: left; background-color: white; height: 15px'>+</div>")
+                        this.parentNode = params.source
+                        this.childNode = params.target
+                        var that = this
+                        this.$el.on('click', function(){
+
+                             var newEditor = new NodeEditor(that.parentNode, that.childNode)
+
+
+                        })
+
+
+                     }
+
+
+
+                 })
+                for (var i in curTree.elPairs) {
+                    var cur = curTree.elPairs[i]
                     if ((cur.source.$el.is(":visible")) && (cur.target.$el.is(":visible"))) {
 
                         var a = cur.source.makeExit(that.plumb)
                         var b = cur.target.makeEntrance(that.plumb)
+
                         if (cur.bold) {
                             that.plumb.connect({
                                 source: a,
                                 target: b,
+                                 overlays:[
+                                    ["Custom", {
+                                      create:function(component) {
+
+                                          console.log("the source", cur.source)
+                                         var myInsert = new insertDiv({source: cur.source.model, target: cur.target.model})
+
+                                         if (contextModel.get('page')=='pathEditor'){
+                                             return myInsert.$el
+                                         } else {
+                                               return $("<div></div>")
+                                         }
+                                      },
+                                        location: -10 ,
+
+                                      id:"customOverlay"
+                                    }]
+                                  ],
                                 paintStyle: {
                                     lineWidth: 4,
                                     strokeStyle: '#46bdec'
@@ -141,12 +183,30 @@ define([
                             })
                         } else {
                             that.plumb.connect({
+
+                                overlays:[
+                                    ["Custom", {
+                                      create:function(component) {
+
+                                         console.log("the source", cur.source)
+                                         var myInsert = new insertDiv({source: cur.source.model, target: cur.target.model})
+                                         if (contextModel.get('page')=='pathEditor'){
+                                             return myInsert.$el
+                                         } else {
+                                               return $("<div></div>")
+                                           }
+                                      },
+                                        location: -10 ,
+
+                                      id:"customOverlay"
+                                    }]
+                                  ],
                                 source: a,
                                 target: b
                             })
                         }
                     }
-                })
+                }
 
                 contextModel.trigger('rendered')
             },

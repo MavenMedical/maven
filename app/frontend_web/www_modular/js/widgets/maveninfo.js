@@ -17,11 +17,7 @@ define([
                 curTree.on('propagate', this.render, this);
             },
             showhide: function () {
-                if (contextModel.get('page') != 'pathEditor') {
                     this.$el.show();
-                } else {
-                    this.$el .hide();
-                }
             },
             events: {
                 'click button.close':'hidePopup'
@@ -33,14 +29,12 @@ define([
 
                 this.$el.html(this.template(curTree.get('selectedNode').attributes));
 
-                if (contextModel.get('page') != 'pathEditor') {
                 this.$el.show(1000, function () {
                     /*setTimeout(function () {
                         that.$el.hide(3000);
                     }, 5000);
                    */
                });
-               }
                 }
 
 

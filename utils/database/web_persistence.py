@@ -244,9 +244,23 @@ class WebPersistence():
                                 [officialname, displayname, user, customerid], {}, {})
 
     @asyncio.coroutine
-    def update_user(self, user, customer, state):
-        yield from self.execute(["UPDATE users set (state) = (%s) where user_name = UPPER(%s) and customer_id = %s"],
-                                [state, user, customer], {}, {})
+    def update_user(self, user, customer, state, desired=None):
+        cmd = []
+        cmdargs = []
+        cmd.append("UPDATE users")
+        cmd.append("set (state) = (%s)")
+        cmdargs.append(state)
+        cmd.append("where user_name = UPPER(%s) and customer_id = %s")
+        cmdargs.append(user)
+        cmdargs.append(customer)
+        if desired:
+            columns = build_columns(desired.keys(), self._available_user_info, self._default_user_info)
+            cmd.append("returning")
+            cmd.append(columns)
+            results = yield from self.execute(cmd, cmdargs, self._display_user_info, desired)
+            return results
+        else:
+            yield from self.execute(cmd, cmdargs, {}, {})
 
     @asyncio.coroutine
     def update_user_notify_preferences(self, user, customer_id, notify_primary, notify_secondary):
@@ -502,6 +516,7 @@ class WebPersistence():
     }
     _display_user_info = _build_format({
         Results.lastlogin: lambda x: x and _prettify_datetime(x),
+        Results.roles: (lambda x: x[1:-1].split(',') if x else None)
     })
 
     @asyncio.coroutine

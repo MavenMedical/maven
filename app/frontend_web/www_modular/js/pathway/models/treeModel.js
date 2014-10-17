@@ -8,14 +8,26 @@ define([
 ], function($, _, Backbone, contextModel, NodeList, pathwayCollection){
     var treeModel;
 
-    var deleteRecur = function(me , toDelete){
-            _.each(me.get('children').models, function(cur){
+    var deleteRecur = function(me , toDelete, saveChildren){
+            for (var i in me.get('children').models){
+                var cur = me.get('children').models[i]
                 if (cur == toDelete){
-                    me.get('children').remove(toDelete)
+                    var startLoc = me.get('children').indexOf(cur)
+                    if (saveChildren){
+                       var savedChildren =  cur.get('children').models
+                       for (var i in savedChildren){
+                           var cur2 = savedChildren[i]
+                           me.get('children').add(cur2, {at: startLoc, silent: true})
+                           startLoc = startLoc+1
+                       }
+                    }
+
+
+                    me.get('children').remove(toDelete, {silent: true})
                 } else {
-                    deleteRecur(cur, toDelete)
+                    deleteRecur(cur, toDelete, saveChildren)
                 }
-        })
+        }
      }
 
     var openPathToTarget = function(cur, target, path){
@@ -40,6 +52,7 @@ define([
 
 
     }
+
     var nodePosition = function(cur, target, change, pointer){
         var doWork = false
         var siblingSet = []
@@ -237,15 +250,10 @@ define([
         },
 
 
-        deleteNode: function(toDelete){
-            var that = this
-                _.each(this.get('children').models, function(cur){
-                    if (cur == toDelete){
-                      that.get('children').remove(toDelete)
-                    } else {
-                       deleteRecur(cur, toDelete)
-                    }
-                })
+        deleteNode: function(toDelete, saveChildren){
+
+                       deleteRecur(this, toDelete, saveChildren)
+
             this.trigger('propagate')
         },
         getNodeType: function(){

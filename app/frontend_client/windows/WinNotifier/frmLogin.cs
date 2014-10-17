@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Text;
-using System.Threading.Tasks;
+//using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Win32;
 using System.Net;
@@ -262,9 +262,11 @@ namespace MavenAsDemo
             string firstpart = wholestring.Substring(0, startclip);
             string lastpart = wholestring.Substring(endclip, wholestring.Length - endclip);
             string rtn = firstpart + lastpart;
-            rtn = "234234234,     ,    098098098,4,4,4,4,4";
-            rtn=Regex.Replace(rtn, ",\\s*,", "");
-            return"";
+            rtn = Regex.Replace(rtn, ",\\s*,", "");
+            rtn = Regex.Replace(rtn, "{\\s*,", "{");
+            rtn = Regex.Replace(rtn, ",\\s*}", "}");
+            //MessageBox.Show(rtn);
+            return rtn;
         }
     }
 }

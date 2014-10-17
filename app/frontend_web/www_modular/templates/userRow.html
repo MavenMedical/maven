@@ -10,11 +10,15 @@
 </td>
 <td>
     <div width="100%">
+        <input type="checkbox" class="toggle-status" data-on-text="Active" data-off-text="InActive" data-size="small" style="width:100% !important;"
+            <%= (ehr_state != 'active') ? "disabled" : '' %>
+            <%= (state == 'active' && ehr_state == 'active') ? 'checked' : '' %>>
+<!--
         <button class="btn btn-xs btn-default btn-block btn-status" <%= (ehr_state != 'active') ? "disabled" : '' %>
                 value="<%= (state=='active') ? 'deactivate' : 'activate' %>">
             <span class="btn-label"><%= (state == 'active' && ehr_state == 'active') ? 'Active' : 'Inactive' %></span>
             <span class="btn-hover"><%= (state == 'active' && ehr_state == 'active') ? 'De Activate' : 'Activate' %></span>
-        </button>
+        </button>-->
     </div>
     <% if (ehr_state == 'active') { %>
     <div width="100%">
@@ -38,7 +42,7 @@
           <li><a class="btn-msg-primary" value="off">Off</a></li>
 	    </ul>
 
-        <button type="button" class="btn btn-xs btn-default btn-block" data-dismiss="modal" data-toggle="dropdown">
+        <button type="button" class="btn btn-xs btn-default btn-block" data-toggle="dropdown">
             <span class="msg-primary-label"><%= notifications[notify_primary.toLowerCase()] %></span>
 	        <span class="sr-only">Toggle Dropdown</span>
         </button>
@@ -53,7 +57,7 @@
           <li><a class="btn-msg-secondary" value="off">Off</a></li>
 	    </ul>
 
-        <button type="button" class="btn btn-xs btn-default btn-block msg-secondary-dropdown" data-dismiss="modal" data-toggle="dropdown">
+        <button type="button" class="btn btn-xs btn-default btn-block msg-secondary-dropdown" data-toggle="dropdown">
             <span class="msg-secondary-label"><%= notifications[notify_secondary.toLowerCase()] %></span>
 	        <span class="sr-only">Toggle Dropdown</span>
         </button>

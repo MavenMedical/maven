@@ -33,8 +33,8 @@ namespace MavenAsDemo
             }
             try
             {
-                cursettings = new Settings();
                 Application.SetCompatibleTextRenderingDefault(false);
+                cursettings = new Settings();
                 Authenticator.HandleLoginStickiness(); //clear the login settings if we shouldn't be using them
                 EncryptedKey = Authenticator.GetEncryptedAuthKey(); //get a new key or login with the existing one
                 if (EncryptedKey == null) { return; } //if you came back with no key, then you haven't successfully logged in. quit. 
@@ -146,6 +146,7 @@ namespace MavenAsDemo
             modeitm.MenuItems.Add("Desktop Soft Alert", AlertModeClick);
             modeitm.MenuItems.Add("Desktop Hard Alert", AlertModeClick);
             modeitm.MenuItems.Add("Inbox", AlertModeClick);
+            //modeitm.MenuItems.Add("Default Browser", AlertModeClick);
             //modeitm.MenuItems.Add("Combo", AlertModeClick);
             ctx.MenuItems.Add(modeitm);
 
@@ -330,6 +331,11 @@ namespace MavenAsDemo
                 //blast the clinician with reckless abandon.
                 case "Combo":
                     cursettings.mode = Settings.AlertMode.combo;
+                    SetAlertMode("desktop", "off");
+                    break;
+                //if issue with displaying in the hard alert window, then drop to the browser. 
+                case "Default Browser":
+                    cursettings.mode = Settings.AlertMode.browser;
                     SetAlertMode("desktop", "off");
                     break;
             }

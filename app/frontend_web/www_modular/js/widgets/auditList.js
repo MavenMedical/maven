@@ -20,14 +20,14 @@ define([
     lastHeight: 0,
     first: true,
     initialize: function(arg) {
-        var extra_data = "";
+        var extra_data = {};
         if (arg.targetUser || arg.targetCustomer)
         {
             this.targetUser = arg.targetUser;
             this.targetCustomer = arg.targetCustomer;
-            extra_data="target_user="+arg.targetUser+"&target_customer="+arg.targetCustomer;
+            extra_data = {"target_user": arg.targetUser, "target_customer": arg.targetCustomer}; //"target_user="+arg.targetUser+"&target_customer="+arg.targetCustomer;
         }
-        auditCollection = new (AuditCollection.extend({data: extra_data}));
+        auditCollection = new (AuditCollection.extend({extraData: extra_data}));
 
 	    this.template = _.template(arg.template); // this must already be loaded
         this.$el.html(this.template({height:$(window).height()-50+'px'}));

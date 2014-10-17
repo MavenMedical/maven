@@ -114,7 +114,8 @@ define([
 
                 })
                 _.each(this.model.get('children').models, function(cur){
-
+                    cur.set('hasLeft',(this.model.get('children').indexOf(cur) != 0))
+                    cur.set('hasRight', (this.model.get('children').indexOf(cur) < this.model.get('children').length - 1))
                     $('.children2', this.$el).first().append("<div class='childSpot'></div>")
                     var targ = $('.childSpot',$('.children2', this.$el).first()).last()
                     var thisChild = new TreeNode({model: cur, el:targ})
