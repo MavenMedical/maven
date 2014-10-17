@@ -14,7 +14,6 @@ define([
 
         var TreeView = Backbone.View.extend({
 
-
             template: _.template(treeTemplate),
             initialize: function () {
                 this.$el.html(this.template())
@@ -120,14 +119,10 @@ define([
 
                 var topLevel = new TriggerNode({el: $('.nodeEl', this.$el).last(), model: curTree});
 
-                if(curTree.attributes.name == "Triggers" && contextModel.get('page') == 'pathway'){
-                     $("#welcome-modal").modal({'show': 'true'});
-                }
-
                 if (contextModel.get('page') == 'pathEditor')
-                    $('#pathwayName').html("Now Editing Pathway: " + curTree.attributes.name);
+		    $('#pathwayName').html("Now Editing Pathway: " + curTree.attributes.name);
                 else {
-                    $('#pathwayName').html("")
+		    $('#pathwayName').html("")
                 }
                 _.each(curTree.elPairs, function (cur) {
 
@@ -154,7 +149,6 @@ define([
                 })
 
                 contextModel.trigger('rendered')
-
             },
             showExtraInfo: function(){
 

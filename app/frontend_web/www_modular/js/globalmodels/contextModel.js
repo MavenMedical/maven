@@ -59,16 +59,18 @@ define([
 	} else if (widgetlist[i].element =='floating-left') {
             $('#floating-left').append("<div class='row content-row'></div>")
 	    el = $('.row', $('#floating-left')).last()
-        }
-      else if (widgetlist[i].element =='fixed-topB') {
+        } else if (widgetlist[i].element =='fixed-topB') {
             $('#fixed-topB').append("<div class='col-xs-12'></div>")
 	    el = $('.col-xs-12', $('#fixed-topB')).last()
-        }
-        else {
+        } else {
             el = $("#"+ widgetlist[i].element)
 	}
+	try {
             new arguments[i]({template: arguments[i+viewlist.length], el: el})
+	    } catch(err) {
+		console.log('failed to start widget ', arguments[i], err)
 	    }
+	}
 	    $("#content").show();
 	    Backbone.history.loadUrl(Backbone.history.fragment);
 	})

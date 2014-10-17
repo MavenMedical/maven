@@ -12,12 +12,17 @@ define([
 
     var Welcome = Backbone.View.extend({
             initialize: function(arg){
-                console.log('welcome',contextModel.attributes );
                 this.template = _.template(arg.template);
                 this.render();
+		contextModel.on('change:pathid', this.render, this);
             },
             render: function (){
-                this.$el.html(this.template(contextModel.attributes));
+		if (contextModel.get('pathid') && contextModel.get('pathid') > 0) {
+		    this.$el.hide();
+		} else {
+                    this.$el.html(this.template(contextModel.attributes));
+		    this.$el.show();
+		}
             }
 
     });
