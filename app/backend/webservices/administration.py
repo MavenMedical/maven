@@ -129,14 +129,22 @@ class AdministrationWebservices():
         if targetcustomer and USER_ROLES.mavensupport.value in context[CONTEXT.ROLES]:
             customer = targetcustomer
 
-        yield from self.persistence.update_user(target_user, customer, state)
+        results = yield from self.persistence.update_user(target_user, customer, state, {WP.Results.ehrstate: 'ehr_state'})
+        user_info = results[0]
+
+        message = 'TRUE'
         if state == 'active':
-            asyncio.Task(self.notify_user_reset_password(customer, target_user))
+            if user_info['ehr_state'] != "active":
+                ak = AK.authorization_key([user, str(customer)], 44, 365 * 24 * 60 * 60)
+                message = '%s#password/newPassword/%s/%s/%s' % (MC.http_addr, user, customer, ak)
+            else:
+                asyncio.Task(self.notify_user_reset_password(customer, target_user))
+
         asyncio.Task(self.persistence.audit_log(user, 'change user state', customer,
                                                 target_user=target_user, details=state))
         asyncio.Task(self.client_interface.update_user_state(customer, target_user, state))
 
-        return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
+        return HTTP.OK_RESPONSE, json.dumps(message), None
 
     @http_service(['GET'], '/update_user_pref',
                   [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.ROLES],
