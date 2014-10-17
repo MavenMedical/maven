@@ -54,8 +54,8 @@ define([
                         $("#customer-abbr-input").val("");
                         $("#customer-license-input").val("");
                         $("#customer-ituser-input").val("");
-			$("#add-customer-message").html("Customer added.  "+data);
-			alert(data);
+                        $("#add-customer-message").html("Customer added.  "+data);
+                        alert(data);
                     },
                     error: function(){
                         $("#add-customer-message").html("Sorry, an error occurred");

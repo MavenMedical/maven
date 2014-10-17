@@ -19,6 +19,7 @@ define([
     'widgets/auditList',
     'text!templates/auditScroll.html',
     'libs/jquery/jquery-mousestop-event',
+    'libs/bootstrap-switch/bootstrap-switch',
 
 ], function ($, _, Backbone, userRowTemplate, contextModel, AuditList, AuditTemplate) {
 
@@ -54,7 +55,7 @@ define([
             var currentSecondary = this.model.get("notify_secondary").toLowerCase();
 
             $(document).ready(function() {
-
+                $(".toggle-status", that.$el).bootstrapSwitch();
                 $(that.el).find(".reset-user-password").click(function(){
                     $("#save-user-message").html("&nbsp;");
                     $.ajax({
@@ -67,6 +68,27 @@ define([
                     });
                 });
 
+                $('.toggle-status', that.$el).on('switchChange.bootstrapSwitch', function(event, state) {
+                    var status = "disabled";
+                    if (state) status = "active";
+                    $.ajax({
+                        url: "/update_user",
+                        data: $.param(contextModel.toParams()) + "&target_user=" + that.model.get("user_name") +
+                            "&target_customer=" + that.model.get("customer_id")+ "&state=" + status,
+                        success: function (data) {
+                            if (data!='TRUE'){
+                                alert(data);
+                            }
+                            $("#save-user-message").html("User Updated!");
+                        },
+                        error: function () {
+                            alert("Sorry, an error occurred. Please try again later");
+                            $(event.target).bootstrapSwitch('toggleState', true); //reset switch to its prior state
+                            $("#save-user-message").html("Sorry, an error occurred. Please try again later");
+                        }
+                    });
+                });
+/*
                 $(that.el).find(".btn-status").click(function(event){
                     if ($(event.target).attr("value")=='deactivate'){
                         var state = "disabled";
@@ -92,7 +114,7 @@ define([
                         }
                     });
                 });
-
+*/
                 $(".btn-msg-primary", that.$el).click(function(event){
                     currentPrimary = $(event.target).attr("value"); //update to whatever was selected
                     $(".msg-primary-label", that.$el).html(notifications[currentPrimary]); //update drop-down label
