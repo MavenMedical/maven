@@ -130,7 +130,8 @@ define([
         autoSetUser: function (user, customer, userAuth, Login) {
 	    var that=this;
 	    this.set({user:user, customer:customer});
-	    this.fetch({success: loginCallback, 
+	    if (userAuth) {
+		this.fetch({success: loginCallback, 
 			error: function(request, response) { 
 			    that.set(response.responseJSON);
 			    new Login({el: '#login-modal'})
@@ -139,6 +140,9 @@ define([
 					      customer_id: customer,
 					      userAuth: userAuth}),
 			type: 'POST'});
+	    } else {
+		new Login({el: '#login-modal'})
+	    }
 	}
     });
 

@@ -60,7 +60,6 @@ define([
 
     var showPage = function (user, customer, userAuth) {
         if (user && !currentContext.get('user')) {
-            console.log('pre-authenticated login');
             currentContext.autoSetUser(user, customer, userAuth, Login);
         } else {
             if (CheckLogin()) {
@@ -78,12 +77,12 @@ define([
 
     var AppRouter = Backbone.Router.extend({
         routes: {
-            "(login/:user/:customer/:userAuth)": 'showHome',
-            "patient/:id(/login/:user/:customer/:userAuth)": 'showPatient',
-            "episode/:id/patient/:id/:date(/login/:user/:customer/:userAuth)": 'showEpisode',
-            "evidence/:id/patient/:id/evi/:id(/login/:user/:customer/:userAuth)": 'showEvidence',
-            "pathway/:id/node/:id(/patient/:id/:date)(/login/:user/:customer/:userAuth)": 'showPathway',
-            "pathwayeditor/:id/node/:id(/login/:user/:customer/:userAuth)": 'EditPathway',
+            "(login/:user/:customer/)(:userAuth)": 'showHome',
+            "patient/:id(/login/:user/:customer/)(:userAuth)": 'showPatient',
+            "episode/:id/patient/:id/:date(/login/:user/:customer/)(:userAuth)": 'showEpisode',
+            "evidence/:id/patient/:id/evi/:id(/login/:user/:customer/)(:userAuth)": 'showEvidence',
+            "pathway/:id/node/:id(/patient/:id/:date)(/login/:user/:customer/)(:userAuth)": 'showPathway',
+            "pathwayeditor/:id/node/:id(/login/:user/:customer/)(:userAuth)": 'EditPathway',
             "logout": 'logout',
             "settings": 'settings',
 	        "password/:type/:user/:customer/:oauth": 'password',
