@@ -44,24 +44,25 @@ class AdministrationWebservices():
         body = json.loads(body.decode('utf-8'))
         user = context[CONTEXT.USER]
         customer = context[CONTEXT.CUSTOMERID]
-        targetcustomer = context.get(CONTEXT.TARGETCUSTOMER, None)
-        if targetcustomer and (USER_ROLES.mavensupport.value in context[CONTEXT.ROLES]):
-            customer = targetcustomer
+        target_customer = context.get(CONTEXT.TARGETCUSTOMER, None)
+        if not target_customer or (USER_ROLES.mavensupport.value not in context[CONTEXT.ROLES]):
+            taretcustomer = customer
 
         clientapp_settings = body
         body.update({CONFIG_PARAMS.EHR_USER_SYNC_INTERVAL.value: 60 * 60})
         if 'locked' in clientapp_settings:
             clientapp_settings.pop('locked')
         try:
-            yield from self.client_interface.test_customer_configuration(customer,
+            yield from self.client_interface.test_customer_configuration(target_customer,
                                                                          clientapp_settings)
         except Exception as e:
             return HTTP.BAD_RESPONSE, json.dumps(str(e)), None
 
         # at this point, the configuration has succeeded
-        yield from self.persistence.setup_customer(customer, clientapp_settings)
+        yield from self.persistence.setup_customer(target_customer, clientapp_settings)
         asyncio.Task(self.persistence.audit_log(user, 'change customer ehr settings', customer,
-                                                details=json.dumps(clientapp_settings)))
+                                                details=json.dumps(clientapp_settings),
+                                                target_user_and_customer=(None,target_customer)))
         return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
 
     @http_service(['GET'], '/users(?:(\d+)-(\d+)?)?',
@@ -76,9 +77,9 @@ class AdministrationWebservices():
         roles = context[CONTEXT.ROLES]
         targetrole = context.get(CONTEXT.TARGETROLE, None)
         targetuser = context.get(CONTEXT.TARGETUSER, None)
-        targetcustomer = context.get(CONTEXT.TARGETCUSTOMER, None)
-        if targetcustomer and USER_ROLES.mavensupport.value in roles:
-            customer = targetcustomer
+        target_customer = context.get(CONTEXT.TARGETCUSTOMER, None)
+        if not target_customer or USER_ROLES.mavensupport.value not in roles:
+            target_customer = customer
 
         limit = self.helper.limit_clause(matches)
 
@@ -105,7 +106,7 @@ class AdministrationWebservices():
                 WP.Results.officialname: 'label',
                 WP.Results.username: 'value',
             }
-        results = yield from self.persistence.user_info(desired, customer, role=targetrole,
+        results = yield from self.persistence.user_info(desired, target_customer, role=targetrole,
                                                         officialname=targetuser,
                                                         orderby=[WP.Results.ehrstate, WP.Results.profession,
                                                                  WP.Results.displayname],
@@ -124,25 +125,25 @@ class AdministrationWebservices():
         target_user = context[CONTEXT.TARGETUSER]
         customer = context[CONTEXT.CUSTOMERID]
         state = context[CONTEXT.STATE]
-        targetcustomer = context.get(CONTEXT.TARGETCUSTOMER, None)
-        if targetcustomer and USER_ROLES.mavensupport.value in context[CONTEXT.ROLES]:
-            customer = targetcustomer
+        target_customer = context.get(CONTEXT.TARGETCUSTOMER, None)
+        if not target_customer or USER_ROLES.mavensupport.value not in context[CONTEXT.ROLES]:
+            target_customer = customer
 
-        results = yield from self.persistence.update_user(target_user, customer, state, {WP.Results.ehrstate: 'ehr_state'})
+        results = yield from self.persistence.update_user(target_user, target_customer, state, {WP.Results.ehrstate: 'ehr_state'})
         user_info = results[0]
 
         message = 'TRUE'
         if state == 'active':
             if user_info['ehr_state'] != "active":
-                ak = AK.authorization_key([user, str(customer)], 44, 365 * 24 * 60 * 60)
-                message = '%s#password/newPassword/%s/%s/%s' % (MC.http_addr, user, customer, ak)
+                ak = AK.authorization_key([user, str(target_customer)], 44, 365 * 24 * 60 * 60)
+                message = '%s#password/newPassword/%s/%s/%s' % (MC.http_addr, user, target_customer, ak)
             else:
-                asyncio.Task(self.notify_user_reset_password(customer, target_user))
+                asyncio.Task(self.notify_user_reset_password(target_customer, target_user))
 
         asyncio.Task(self.persistence.audit_log(user, 'change user state', customer,
-                                                target_user_and_customer=(target_user, customer),
+                                                target_user_and_customer=(target_user, target_customer),
                                                 details=state))
-        asyncio.Task(self.client_interface.update_user_state(customer, target_user, state))
+        asyncio.Task(self.client_interface.update_user_state(target_customer, target_user, state))
 
         return HTTP.OK_RESPONSE, json.dumps(message), None
 
@@ -154,14 +155,14 @@ class AdministrationWebservices():
                   {USER_ROLES.administrator, USER_ROLES.mavensupport})
     def update_user_pref(self, _header, _body, context, _matches, _key):
 
-        customer_id = context.get(CONTEXT.CUSTOMERID, None)
+        customer = context.get(CONTEXT.CUSTOMERID, None)
         prov_user_name = context.get(CONTEXT.USER, None)
         target_user_name = context.get(CONTEXT.TARGETUSER, None)
         notify_primary = context.get(CONTEXT.NOTIFY_PRIMARY, None)
         notify_secondary = context.get(CONTEXT.NOTIFY_SECONDARY, None)
-        targetcustomer = context.get(CONTEXT.TARGETCUSTOMER, None)
-        if targetcustomer and (USER_ROLES.mavensupport.value in context[CONTEXT.ROLES]):
-            customer_id = targetcustomer
+        target_customer = context.get(CONTEXT.TARGETCUSTOMER, None)
+        if not target_customer or (USER_ROLES.mavensupport.value not in context[CONTEXT.ROLES]):
+            target_customer = customer
 
         # allow customer administrator to override user preferences
         if target_user_name and ((USER_ROLES.administrator.value in context[CONTEXT.ROLES]) or
@@ -169,7 +170,7 @@ class AdministrationWebservices():
             prov_user_name = target_user_name
 
         try:
-            yield from self.persistence.update_user_notify_preferences(prov_user_name, customer_id,
+            yield from self.persistence.update_user_notify_preferences(prov_user_name, target_customer,
                                                                        notify_primary, notify_secondary)
         except Exception as e:
             return HTTP.BAD_RESPONSE, json.dumps(str(e)), None
@@ -186,12 +187,11 @@ class AdministrationWebservices():
         target_user = context[CONTEXT.TARGETUSER]
 
         customer = context[CONTEXT.CUSTOMERID]
-        if USER_ROLES.mavensupport.name in context[CONTEXT.ROLES]:
-            target_customer = context[CONTEXT.TARGETCUSTOMER]
-        else:
-            target_customer = context[CONTEXT.CUSTOMERID]
+        target_customer = context[CONTEXT.TARGETCUSTOMER]
+        if not target_customer or USER_ROLES.mavensupport.name not in context[CONTEXT.ROLES]:
+            target_customer = customer
 
-        asyncio.Task(self.notify_user_reset_password(customer, target_user))
+        asyncio.Task(self.notify_user_reset_password(target_customer, target_user))
         asyncio.Task(self.persistence.audit_log(user, 'reset user password', customer,
                                                 target_user_and_customer=(target_user, target_customer)))
 
@@ -207,15 +207,15 @@ class AdministrationWebservices():
         This method returns ClientApp Details by formatting the dictionary
         contained in the related column in the customer table
         """
-        customerid = context[CONTEXT.CUSTOMERID]
-        targetcustomer = context.get(CONTEXT.TARGETCUSTOMER, None)
-        if targetcustomer and (USER_ROLES.mavensupport.name in context[CONTEXT.ROLES]):
-            customerid = targetcustomer
+        customer = context[CONTEXT.CUSTOMERID]
+        target_customer = context.get(CONTEXT.TARGETCUSTOMER, None)
+        if not target_customer or (USER_ROLES.mavensupport.name not in context[CONTEXT.ROLES]):
+            target_customer = customer
 
         desired = {
             WP.Results.settings: 'settings',
         }
-        results = yield from self.persistence.customer_info(desired, customerid)
+        results = yield from self.persistence.customer_info(desired, target_customer)
 
         return HTTP.OK_RESPONSE, json.dumps(results[0]), None
 
