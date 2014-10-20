@@ -85,11 +85,6 @@ class DIAGNOSTIC_TERMINOLOGIES(Enum):
     SNOMED = "SNOMED CT"
 
 
-class FOLLOWUPTASK_DELIVERY(Enum):
-    inbox = "inbox"
-    notification = "notification"
-
-
 class FOLLOWUPTASK_STATUS(Enum):
     pending = "pending"
     canceled = "canceled"

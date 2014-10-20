@@ -5,7 +5,7 @@ from decimal import Decimal
 from datetime import date, datetime
 import json
 from functools import lru_cache
-from utils.enums import ALERT_VALIDATION_STATUS
+from utils.enums import ALERT_VALIDATION_STATUS, FOLLOWUPTASK_STATUS
 from utils.database.database import AsyncConnectionPool
 from utils.database.database import MappingUtilites as DBMapUtils
 import maven_config as MC
@@ -1264,5 +1264,47 @@ class WebPersistence():
 
         if result and isinstance(result, int):
             return True
+        else:
+            return False
+
+    ##########################################################################################
+    ##########################################################################################
+    ##########################################################################################
+    #####
+    # TIMED FOLLOW-UP/TASKS DATABASE SERVICES
+    #####
+    ##########################################################################################
+    ##########################################################################################
+    ##########################################################################################
+    @asyncio.coroutine
+    def insert_followup_task(self, customer_id, author_id, target_username, patient_id, delivery_method,
+                             due, expire, msg_subject, msg_body):
+        column_map = ["customer_id", "author_id", "patient_id", "delivery",
+                      "status", "due", "expire", "msg_subject", "msg_body", "user_id"]
+        columns = DBMapUtils().select_rows_from_map(column_map)
+        cmd = ["INSERT INTO public.followuptask(" + columns + ")",
+               "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+               "RETURNING task_id"]
+        cmdArgs = [customer_id, author_id, patient_id, delivery_method, FOLLOWUPTASK_STATUS.pending.value,
+                   due, expire, msg_subject, msg_body]
+
+        # If a target username is supplied, we need to add the SQL logic that will allow look-up of the target user_id
+        if target_username:
+            user_id = "(SELECT user_id from users where user_name='{}' and customer_id={})".format(target_username,
+                                                                                                   customer_id)
+        # If no target_username is supplied, make the user_id the same as the author_id
+        else:
+            user_id = author_id
+        cmdArgs.append(user_id)
+
+        task_id = None
+        try:
+            cur = yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
+            task_id = cur.fetchone()[0]
+        except:
+            ML.EXCEPTION("Error inserting Task - AuthorID={}, Subject={}".format(author_id, msg_subject))
+
+        if task_id and isinstance(task_id, int):
+            return task_id
         else:
             return False
