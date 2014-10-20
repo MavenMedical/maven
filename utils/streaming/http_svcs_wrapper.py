@@ -46,6 +46,7 @@ class CONTEXT():
     TARGETCUSTOMER = 'target_customer'
     TARGETROLE = 'target_role'
     STATE = 'state'
+    EHR_STATE = 'ehr_state'
     CONFIG = 'config'
     POLLING = 'polling'
     TIMEOUT = 'timeout'

@@ -510,6 +510,7 @@ class WebPersistence():
         Results.displayname: "users.display_name",
         Results.state: "users.state",
         Results.ehrstate: "users.ehr_state",
+        Results.roles: "users.roles",
         Results.profession: "users.profession",
         Results.lastlogin: "logins2.last_login",
         Results.notify1: "user_pref.notify_primary",
@@ -517,7 +518,7 @@ class WebPersistence():
     }
     _display_user_info = _build_format({
         Results.lastlogin: lambda x: x and _prettify_datetime(x),
-        Results.roles: (lambda x: x[1:-1].split(',') if x else None)
+        Results.settings: lambda x: x and repr(x)
     })
 
     @asyncio.coroutine

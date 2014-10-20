@@ -46,7 +46,7 @@ class AdministrationWebservices():
         customer = context[CONTEXT.CUSTOMERID]
         target_customer = context.get(CONTEXT.TARGETCUSTOMER, None)
         if not target_customer or (USER_ROLES.mavensupport.value not in context[CONTEXT.ROLES]):
-            taretcustomer = customer
+            target_customer = customer
 
         clientapp_settings = body
         body.update({CONFIG_PARAMS.EHR_USER_SYNC_INTERVAL.value: 60 * 60})
@@ -62,7 +62,7 @@ class AdministrationWebservices():
         yield from self.persistence.setup_customer(target_customer, clientapp_settings)
         asyncio.Task(self.persistence.audit_log(user, 'change customer ehr settings', customer,
                                                 details=json.dumps(clientapp_settings),
-                                                target_user_and_customer=(None,target_customer)))
+                                                target_user_and_customer=(None, target_customer)))
         return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
 
     @http_service(['GET'], '/users(?:(\d+)-(\d+)?)?',
@@ -96,6 +96,7 @@ class AdministrationWebservices():
                 WP.Results.ehrstate: 'ehr_state',
                 WP.Results.lastlogin: 'last_login',
                 WP.Results.profession: 'profession',
+                WP.Results.roles: 'roles',
                 WP.Results.notify1: 'notify_primary',
                 WP.Results.notify2: 'notify_secondary'
             }
@@ -180,22 +181,29 @@ class AdministrationWebservices():
     @http_service(['GET'], '/reset_password',
                   [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.TARGETUSER, CONTEXT.ROLES],
                   {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int, CONTEXT.ROLES: list,
-                   CONTEXT.TARGETCUSTOMER: int, CONTEXT.TARGETUSER: str},
+                   CONTEXT.TARGETCUSTOMER: int, CONTEXT.TARGETUSER: str, CONTEXT.EHR_STATE: str},
                   {USER_ROLES.administrator, USER_ROLES.mavensupport})
     def reset_password(self, _header, _body, context, _matches, _key):
         user = context[CONTEXT.USER]
         target_user = context[CONTEXT.TARGETUSER]
+        ehr_state = context[CONTEXT.EHR_STATE]
 
         customer = context[CONTEXT.CUSTOMERID]
         target_customer = context[CONTEXT.TARGETCUSTOMER]
         if not target_customer or USER_ROLES.mavensupport.name not in context[CONTEXT.ROLES]:
             target_customer = customer
 
-        asyncio.Task(self.notify_user_reset_password(target_customer, target_user))
+        message = ''
+        if ehr_state != "active":
+            ak = AK.authorization_key([user, str(target_customer)], 44, 365 * 24 * 60 * 60)
+            message = '%s#password/newPassword/%s/%s/%s' % (MC.http_addr, user, target_customer, ak)
+        else:
+            asyncio.Task(self.notify_user_reset_password(target_customer, target_user))
+
         asyncio.Task(self.persistence.audit_log(user, 'reset user password', customer,
                                                 target_user_and_customer=(target_user, target_customer)))
 
-        return HTTP.OK_RESPONSE, json.dumps(''), None
+        return HTTP.OK_RESPONSE, json.dumps(message), None
 
     @http_service(['GET'], '/customer_info',
                   [CONTEXT.CUSTOMERID],

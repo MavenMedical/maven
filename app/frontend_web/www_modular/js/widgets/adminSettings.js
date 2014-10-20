@@ -9,6 +9,7 @@ define([
     'globalmodels/contextModel',
     'globalmodels/userCollection',
     'text!templates/adminSettings.html',
+    'libs/bootstrap-switch/bootstrap-switch',
 
 ], function ($, _, Backbone, contextModel, userCollection, AdminSettingsTemplate) {
     var AdminModel = Backbone.Model.extend({url: '/customer_info'});
@@ -40,20 +41,24 @@ define([
             'click .setup-admin-button': 'adminSetup',
             'click .unlock-admin-button': 'unlockSettings',
             'click .lock-admin-button': 'lockSettings',
+            'blur #admin-pw-input' : 'activateEHR',
 	        'change #httphttps': 'httphttps'
         },
-	httphttps: function() {
-	    if($("#httphttps").find(":selected").text() == 'http://') {
-		alert('Http connections are inherently insecure and must not be used with operational systems.  This option is only for test, or demo systems without any ePHI only.');
-	    }
-	},
+        httphttps: function() {
+            if($("#httphttps").find(":selected").text() == 'http://') {
+            alert('Http connections are inherently insecure and must not be used with operational systems.  This option is only for test, or demo systems without any ePHI only.');
+            }
+        },
+        activateEHR: function() {
+            $("#admin-ehr-disable").bootstrapSwitch('state', true, true); //reset switch to its prior state
+        },
         unlockSettings: function() {
             $("#admin-ip-input").prop("disabled",false);
             $("#admin-name-input").prop("disabled",false);
             $("#admin-username-input").prop("disabled",false);
             $("#admin-pw-input").prop("disabled",false);
             $("#httphttps").prop("disabled",false);
-	    $("#admin-ehr-disable").prop("disabled",false);
+            $("#admin-ehr-disable").bootstrapSwitch('toggleDisabled');
 
             $("#admin-pw-input").val("");
             $(".lock-admin-button").show();
@@ -65,7 +70,7 @@ define([
             $("#admin-username-input").prop("disabled",true);
             $("#admin-pw-input").prop("disabled",true);
             $("#httphttps").prop("disabled",true);
-	    $("#admin-ehr-disable").prop("disabled",true);
+            $("#admin-ehr-disable").bootstrapSwitch('toggleDisabled');
 
             $("#admin-pw-input").val("password");
             $(".lock-admin-button").hide();
@@ -78,8 +83,8 @@ define([
             var polling = $("#admin-polling-input").val();
             var timeout = $("#admin-timeout-input").val();
             var username = $("#admin-username-input").val();
-	    var disabled = $("#admin-ehr-disable").is(':checked');
-	    var unlocked = $(".lock-admin-button").is(':visible');
+	        var disabled = !($("#admin-ehr-disable").is(':checked'));
+	        var unlocked = $(".lock-admin-button").is(':visible');
 	    
             var reg_num = new RegExp('^[0]*[1-9]+[0]*$');
             /*var reg_ip = new RegExp('^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$');
@@ -153,6 +158,9 @@ define([
                 this.model.attributes.settings.target_customer = this.target_customer;
             }
             this.$el.html(this.template(this.model.attributes.settings));
+            $(document).ready(function(){
+                $("#admin-ehr-disable", this.$el).bootstrapSwitch();
+            });
             return this;
         },
     });

@@ -61,8 +61,11 @@ define([
                     $.ajax({
                         url: "/reset_password",
                         data: $.param(contextModel.toParams()) + "&target_user=" + that.model.get("user_name") +
-                            "&target_customer=" + that.model.get("customer_id"),
-                        success: function () {
+                            "&target_customer=" + that.model.get("customer_id") + "&ehr_state=" + that.model.get("ehr_state"),
+                        success: function (data) {
+                            if (data!=''){
+                                alert(data);
+                            }
                             $("#save-user-message").html("Password Reset!");
                         }
                     });
@@ -150,7 +153,7 @@ define([
                     if (curTitle) {
                         //mousepos=e;
                         $(auditElement).hide();
-                        var extraData = {targetCustomer: that.model.get("customer_id"), targetUser: that.model.get("user_name")};
+                        var extraData = {target_customer: that.model.get("customer_id"), target_user: that.model.get("user_name")};
                         auditList = new AuditList({el: $(auditElement), template: AuditTemplate, extraData: extraData});
                         auditList.$el[0].style.left = (mousepos.pageX + 10) + 'px';
                         auditList.$el[0].style.top = (mousepos.pageY - 50) + 'px';
