@@ -1074,10 +1074,11 @@ class WebPersistence():
             extras.append(', %s, %s')
         cmd.append(') values (' + ''.join(extras) + ');')
         if target_user_and_customer:
-            cmd.append('INSERT INTO audit (datetime, username, action, customer_id, target_user, target_customer)')
-            cmd.append(' VALUES (now(), %s, %s, %s, %s, %s);')
-            cmdargs += [target_user_and_customer[0], 'affected by: ' + action, target_user_and_customer[1]]
-            cmdargs += [username, customer]
+            cmd.append('INSERT INTO audit (datetime, username, action, customer_id, ')
+            cmd.append('details, target_user, target_customer)')
+            cmd.append(' VALUES (now(), %s, %s, %s, %s, %s, %s);')
+            cmdargs += [target_user_and_customer[0], 'affected by: ' + action,
+                        target_user_and_customer[1], details, username, customer]
 
         yield from self.execute(cmd, cmdargs, {}, {})
 
