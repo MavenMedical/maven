@@ -95,7 +95,7 @@ class SupportWebservices():
             new_provider_dict = {
                 "customer_id": customer,
                 "prov_id": '',
-                "user_name": ituser,
+                "user_name": ituser.upper(),
                 "official_name": '',
                 "display_name": ituser,
                 "state": "active",

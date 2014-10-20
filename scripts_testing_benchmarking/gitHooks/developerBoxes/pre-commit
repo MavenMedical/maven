@@ -18,8 +18,8 @@ fi
 python unit_tests.py
 if [ $? -eq 0 ]; then
    echo Tests passed, commit proceeding
-   if find $MAVEN_ROOT/app/database/updates -name "*.sql" | grep -v "app/database/updates/\(\(schema\)\|\(data\)\)/[0-9]\{8\}/[0-9]\+\(-[a-z]\+\)\?.sql"; then
-      echo you have misplaced sql update files, commit aborting
+   if find $MAVEN_ROOT/app/database/updates -name "*.sql" | grep -v "app/database/updates/\(\(schema\)\|\(data\)\)/[0-9]\{8\}/[0-9]\+-[a-z]\+.sql"; then
+      echo 'you have misplaced sql update files (should be app/database/updates/(schema|data)/<date>/<name>-<number>.sql), commit aborting'
       RET=1
    else
       echo All unit tests passed

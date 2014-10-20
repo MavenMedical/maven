@@ -23,7 +23,6 @@ from utils.streaming.http_svcs_wrapper import http_service, CONTEXT, CONFIG_PERS
 import utils.streaming.http_responder as HTTP
 from clientApp.webservice.clientapp_rpc_endpoint import ClientAppEndpoint
 import maven_config as MC
-import csv
 date = str
 
 
@@ -190,6 +189,7 @@ class UserMgmtWebservices():
             WP.Results.action: 'action',
             WP.Results.details: 'details',
             WP.Results.device: 'device',
+            WP.Results.target_user: 'target',
         }
 
         results = yield from self.persistence.audit_info(desired, target_user, customer,

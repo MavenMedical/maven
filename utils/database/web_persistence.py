@@ -86,6 +86,7 @@ Results = Enum('Results',
     profession
     notify1
     notify2
+    target_user
 """)
 
 
@@ -399,8 +400,8 @@ class WebPersistence():
                    new_provider_dict.get('profession')]
         cmd = []
         cmd.append("INSERT INTO users (" + columns + ")")
-        cmd.append("VALUES (%s, %s, UPPER(%s), %s, %s, %s, %s, %s, %s, %s)")
-        yield from self.execute(cmd, cmdargs, {}, {})
+        cmd.append("VALUES (%s, %s, UPPER(%s), %s, %s, %s, %s, %s, %s, %s) RETURNING user_id")
+        yield from self.execute(cmd, cmdargs, _build_format(), {0: 'user_id'})
 
         # Insert default Notification Settings into USER_PREF table
         column_map = ["customer_id",          # 0
@@ -853,6 +854,7 @@ class WebPersistence():
         Results.action: "audit.action",
         Results.details: "audit.details",
         Results.device: "audit.device",
+        Results.target_user: "audit.target_user || ', ' || audit.target_customer",
     }
     _display_audit_info = _build_format({
         Results.auditid: lambda x: x,
@@ -860,8 +862,8 @@ class WebPersistence():
     })
 
     @asyncio.coroutine
-    def audit_info(self, desired, provider, customer, startdate=None, enddate=None, orderby=Results.datetime,
-                   ascending=False, limit=""):
+    def audit_info(self, desired, username, customer, startdate=None, enddate=None,
+                   orderby=Results.datetime, ascending=False, limit=""):
         columns = build_columns(desired.keys(), self._available_audit_info,
                                 self._default_audit_info)
 
@@ -871,7 +873,7 @@ class WebPersistence():
         cmd.append(columns)
         cmd.append("FROM audit")
         cmd.append("WHERE audit.username = %s AND audit.customer_id = %s")
-        cmdargs.append(provider)
+        cmdargs.append(username)
         cmdargs.append(customer)
         append_extras(cmd, cmdargs, Results.datetime, startdate, enddate, orderby, ascending,
                       None, limit, self._available_audit_info)
@@ -1017,6 +1019,7 @@ class WebPersistence():
         cmd.append(columns)
         cmd.append("FROM order_ord JOIN encounter")
         cmd.append("ON order_ord.encounter_id = encounter.csn")
+        cmd.append("AND order_ord.customer_id = encounter.customer_id")
         cmd.append("JOIN patient")
         cmd.append("ON encounter.patient_id = patient.patient_id")
         cmd.append("WHERE encounter.visit_prov_id IN %s")
@@ -1045,7 +1048,7 @@ class WebPersistence():
     @asyncio.coroutine
     # @ML.coroutine_trace(print)
     def audit_log(self, username, action, customer, patient=None, device=None,
-                  details=None, rows=None, target_user=None):
+                  details=None, rows=None, target_user_and_customer=None):
         cmd = ['INSERT INTO audit (datetime, username, action, customer_id']
         cmdargs = [username, action, customer]
         extras = ['now(), %s, %s, %s']
@@ -1065,10 +1068,11 @@ class WebPersistence():
             cmd.append(', rows')
             cmdargs.append(rows)
             extras.append(', %s')
-        if target_user:
-            cmd.append(', target_user')
-            cmdargs.append(target_user)
-            extras.append(', %s')
+        if target_user_and_customer:
+            cmd.append(', target_user, target_customer')
+            cmdargs.append(target_user_and_customer[0])
+            cmdargs.append(target_user_and_customer[1])
+            extras.append(', %s, %s')
         cmd.append(') values (' + ''.join(extras) + ');')
         yield from self.execute(cmd, cmdargs, {}, {})
 
@@ -1172,7 +1176,7 @@ class WebPersistence():
 
             cmd = ["SELECT trees.upsert_codelist(%s, %s, %s::varchar, %s, %s::integer[], %s::varchar[], %s, %s)"]
             cmdArgs = [protocol_id, node_id, list_type, exists, int_snomeds, None, framemin, framemax]
-            cur = yield from self.db.execute_single(' '.join(cmd), extra=cmdArgs)
+            yield from self.db.execute_single(' '.join(cmd), extra=cmdArgs)
 
     def convert_string_to_boolean(self, str):
 
@@ -1204,7 +1208,7 @@ class WebPersistence():
                "WHERE protocol_id=%s"]
         cmdArgs = [int(protocol_id)]
         try:
-            cur = yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
+            yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
         except:
             ML.EXCEPTION("Error Deleting TreeID #{}".format(protocol_id))
 
@@ -1215,7 +1219,7 @@ class WebPersistence():
                "WHERE protocol_id=%s"]
         cmdArgs = [json.dumps(protocol_json), protocol_json.get('id', None)]
         try:
-            cur = yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
+            yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
             # Update/Insert the trees.codelist records for the protocol
             yield from self.upsert_codelists(protocol_json)
         except:

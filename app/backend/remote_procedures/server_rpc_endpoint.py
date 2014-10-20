@@ -65,7 +65,8 @@ class ServerEndpoint(SP.StreamProcessor):
 
     @asyncio.coroutine
     def write_user_create_to_db(self, customer_id, provider_info):
-        yield from self.persistence.EHRsync_create_user_provider(provider_info)
+        ret = yield from self.persistence.EHRsync_create_user_provider(provider_info)
+        return ret
 
     @asyncio.coroutine
     def write_user_update_to_db(self, customer_id, provider_info):
@@ -126,4 +127,5 @@ class ServerEndpoint(SP.StreamProcessor):
     def write_audit_log(self, user_name, action, customer_id, patient=None, device=None,
                         details=None, rows=None, target_user=None):
         asyncio.Task(self.persistence.audit_log(user_name, action, customer_id, patient=patient,
-                                                device=device, details=details, rows=rows, target_user=target_user))
+                                                device=device, details=details, rows=rows,
+                                                target_user_and_customer=(target_user, customer_id)))

@@ -146,7 +146,8 @@ class UserSyncService():
                         "specialty": missing_provider.specialty[0],
                         "profession": missing_provider.role[0]
                         }
-        yield from self.server_interface.write_user_create_to_db(self.customer_id, new_provider)
+        user_id = yield from self.server_interface.write_user_create_to_db(self.customer_id, new_provider)
+        new_provider['user_id'] = user_id
         yield from self.server_interface.write_audit_log(new_provider['user_name'],
                                                          'New User Created',
                                                          new_provider['customer_id'])

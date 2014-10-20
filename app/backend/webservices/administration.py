@@ -140,7 +140,8 @@ class AdministrationWebservices():
                 asyncio.Task(self.notify_user_reset_password(customer, target_user))
 
         asyncio.Task(self.persistence.audit_log(user, 'change user state', customer,
-                                                target_user=target_user, details=state))
+                                                target_user_and_customer=(target_user, customer),
+                                                details=state))
         asyncio.Task(self.client_interface.update_user_state(customer, target_user, state))
 
         return HTTP.OK_RESPONSE, json.dumps(message), None
@@ -184,14 +185,15 @@ class AdministrationWebservices():
         user = context[CONTEXT.USER]
         target_user = context[CONTEXT.TARGETUSER]
 
+        customer = context[CONTEXT.CUSTOMERID]
         if USER_ROLES.mavensupport.name in context[CONTEXT.ROLES]:
-            customer = context[CONTEXT.TARGETCUSTOMER]
+            target_customer = context[CONTEXT.TARGETCUSTOMER]
         else:
-            customer = context[CONTEXT.CUSTOMERID]
+            target_customer = context[CONTEXT.CUSTOMERID]
 
         asyncio.Task(self.notify_user_reset_password(customer, target_user))
         asyncio.Task(self.persistence.audit_log(user, 'reset user password', customer,
-                                                target_user=target_user))
+                                                target_user_and_customer=(target_user, target_customer)))
 
         return HTTP.OK_RESPONSE, json.dumps(''), None
 
