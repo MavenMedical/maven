@@ -109,8 +109,7 @@ define([
 	},
         setUser: function (user, pw, oauth, customer, newpw) {
 	    if (this.user != user || !this.userAuth) {
-		this.set('user', user);
-		this.set('customer', customer);		
+		this.set({'user': user, 'customer': customer, 'login-message': null});
 		var that=this;
 		
 		var data;
