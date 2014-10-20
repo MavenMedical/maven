@@ -103,6 +103,7 @@ class TimedFollowUpWebservices():
 
     @http_service(['GET'], '/customer_tasks',
                   [CONTEXT.USERID, CONTEXT.CUSTOMERID],
+                  {CONTEXT.CUSTOMERID: int},
                   {USER_ROLES.provider, USER_ROLES.supervisor, USER_ROLES.administrator})
     def get_customer_tasks(self, _header, body, context, _matches, _key):
         # customer_id = context.get(CONTEXT.CUSTOMERID)
