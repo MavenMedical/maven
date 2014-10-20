@@ -1070,10 +1070,15 @@ class WebPersistence():
             extras.append(', %s')
         if target_user_and_customer:
             cmd.append(', target_user, target_customer')
-            cmdargs.append(target_user_and_customer[0])
-            cmdargs.append(target_user_and_customer[1])
+            cmdargs += target_user_and_customer
             extras.append(', %s, %s')
         cmd.append(') values (' + ''.join(extras) + ');')
+        if target_user_and_customer:
+            cmd.append('INSERT INTO audit (datetime, username, action, customer_id, target_user, target_customer)')
+            cmd.append(' VALUES (now(), %s, %s, %s, %s, %s);')
+            cmdargs += [target_user_and_customer[0], 'affected by: ' + action, target_user_and_customer[1]]
+            cmdargs += [username, customer]
+
         yield from self.execute(cmd, cmdargs, {}, {})
 
     @asyncio.coroutine
