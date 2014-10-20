@@ -5,11 +5,14 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'pathway/models/nodeModel',
+    'pathway/models/treeModel',
+
     'globalmodels/contextModel',
     'text!templates/pathway/NewProtocolModal.html',
 
 
-], function ($, _, Backbone, NodeModel, contextModel, nodeTemplate) {
+
+], function ($, _, Backbone, NodeModel, curTree, contextModel, nodeTemplate) {
 
     var protocolModal = Backbone.View.extend({
         template: _.template(nodeTemplate),
@@ -29,11 +32,14 @@ define([
                     var defaultRecipient = $("#defaultRecipient").val();
                     var defaultRecipientName = $("#defaultRecipientName").val();
                     var defaultQuickNote = $("#defaultQuickNote").val();
-                    that.parent.set('protocol', new Backbone.Model({isProtocol: true, protocol: protocolText, noteToCopy:noteToCopyText,
+                    var myId = curTree.getNextNodeID()
+                    that.parent.set('children', new Backbone.Collection([new Backbone.Model({isProtocol: true, protocol: protocolText, noteToCopy:noteToCopyText,
                                                                     defaultRecipient: defaultRecipient,
                                                                     defaultRecipientName: defaultRecipientName,
-                                                                    defaultQuickNote: defaultQuickNote}))
+                                                                    defaultQuickNote: defaultQuickNote,
+                                                                    nodeID : curTree.get('id')+':'+ myId})]))
                     $('#detail-modal').modal('hide')
+                    curTree.trigger('propagate')
 
             })
 

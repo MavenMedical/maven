@@ -12,10 +12,14 @@ define([
             if (childSet){
                 for (var i in childSet){
                     var cur = childSet[i]
-                    var toAdd = new NodeModel(cur, curTree)
-                    toAdd.set('hasLeft', i!=0)
-                    toAdd.set('hasRight', i<childSet.length-1)
-
+                                         var toAdd
+                    if (cur.children){
+                        toAdd = new NodeModel(cur, curTree)
+                        toAdd.set('hasLeft', i!=0)
+                        toAdd.set('hasRight', i<childSet.length-1)
+                    } else  {
+                        toAdd = new Backbone.Model(cur)
+                    }
                     this.add(toAdd, {silent: true})
                 }
             }

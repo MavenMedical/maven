@@ -1,23 +1,9 @@
 <ul>
     <li>
-        <div clickID = "TN-<%=triggerNode.id%>-<%=triggerNode.nodeID%>" style="text-align: center; border-style:solid;  width:auto;" class="treeNode expanded-path click-tracked">
-            <span data-toggle="tooltip" title="<%=triggerNode.tooltip%>"><%=triggerNode.name%></span>
-            <% if (page == 'pathEditor') { %>
-            <div class="triggerView">triggers will go here</div>
-            <%}%>
-            <div class="btn-toolbar" role="toolbar">
-            <% if (page == 'pathEditor') { %>
-                <div class="btn-group btn-group-xs">
-                    <button type="button" class="btn btn-default" id="addTriggerButton"><img src="../images/temp/trigger.jpg" title="Add Trigger" style="width: 25px; height: 25px"></button>
-                    <button type="button" class="btn btn-default" id="addChildButton"><img src="../images/temp/newChild.jpg" style="width: 25px; height: 25px"></button>
-                    <% if (triggerNode.children.length == 0){%>
-                    <button class="btn btn-default  addProtocolButton"><img src="../images/temp/newProtocole.jpg" style="width: 25px; height: 25px"></button>
-                    <%}%>
-                </div>
-            <%}%>
-
-
-            </div>
+        <div clickID = "TN-<%=node.id%>-<%=node.nodeID%>" style="text-align: center; border-style:solid;  width:auto;" class="treeNode expanded-path click-tracked">
+            <span data-toggle="tooltip" title="<%=node.tooltip%>"><%=node.name%></span>
+            <br>
+            <button type="button" class="btn btn-default" id="addChildButton"><img src="../images/temp/newChild.jpg" style="width: 25px; height: 25px"></button>
 
 
         </div>
