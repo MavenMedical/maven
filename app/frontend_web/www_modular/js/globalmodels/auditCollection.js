@@ -9,24 +9,24 @@ define([
 
     var AuditCollection = ScrollCollection.extend({
         url: function() {return '/audits'+this.offset+'-'+(this.offset+this.limit);},
-        extraData: {},
         model: AuditModel,
         limit: 5,
         context: function(){
             $(".auditlist").on('show',
-		        // this will be needed once the context filters things
-                function(cm) {
-                if(true && cm.get('userAuth')) {
-                    var data = {};
-                    $.extend(data, contextModel.toParams(), this.extraData);
+		    // make sure the correct audit list is being loaded (user's own list versus target user)
+		    this.refresh);
+        },
+        refresh: function() {
+            if (contextModel.get('userAuth')) {
+                var data = {};
+                $.extend(data, contextModel.toParams(), this.extraData);
 
-                    this.tried = 0;
-                    this.offset = 0;
-                    auditCollection.fetch({
-                        data:$.param(data),
-                        remove:true});
-                }
-            }, AuditCollection);
+                this.tried = 0;
+                this.offset = 0;
+                this.fetch({
+                    data: $.param(data),
+                    remove: true});
+            }
         },
     });
 

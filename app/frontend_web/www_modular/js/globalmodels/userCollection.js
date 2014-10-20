@@ -23,7 +23,7 @@ define([
 
                 this.tried = 0;
                 this.offset = 0;
-                userCollection.fetch({
+                this.fetch({
                     data: $.param(data),
                     remove: true});
             }

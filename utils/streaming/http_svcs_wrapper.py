@@ -20,6 +20,7 @@ class CONTEXT():
     ORDERID = 'order_id'
     ALERTID = 'alert_id'
     RULEID = 'rule_id'
+    TASKID = 'task_id'
     KEY = 'userAuth'
     ENCOUNTER = 'encounter'
     CUSTOMERID = 'customer_id'

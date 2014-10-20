@@ -39,9 +39,9 @@ define([
                 success: function () {
                     $("#save-user-message").html("User Updated!");
                 },
-                error: function (resp){
-                    alert("Could not save user information.  " + resp.responseJSON);
-                    $("#save-user-message").html("&nbsp;");
+                error: function (){
+                    alert("Could not save user information.");
+                    $("#save-user-message").html("Could not save user information.");
                 }
             });
         },
@@ -150,7 +150,8 @@ define([
                     if (curTitle) {
                         //mousepos=e;
                         $(auditElement).hide();
-                        auditList = new AuditList({el: $(auditElement), template: AuditTemplate, targetCustomer: that.model.get("customer_id"), targetUser: that.model.get("user_name")});
+                        var extraData = {targetCustomer: that.model.get("customer_id"), targetUser: that.model.get("user_name")};
+                        auditList = new AuditList({el: $(auditElement), template: AuditTemplate, extraData: extraData});
                         auditList.$el[0].style.left = (mousepos.pageX + 10) + 'px';
                         auditList.$el[0].style.top = (mousepos.pageY - 50) + 'px';
                     }

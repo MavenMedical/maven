@@ -15,19 +15,14 @@ define([
     var auditCollection;
 
     var AuditList = Backbone.View.extend({
-    targetUser:null,
-    targetCustomer:null,
+    extraData: {},
     lastHeight: 0,
     first: true,
     initialize: function(arg) {
-        var extra_data = {};
-        if (arg.targetUser || arg.targetCustomer)
-        {
-            this.targetUser = arg.targetUser;
-            this.targetCustomer = arg.targetCustomer;
-            extra_data = {"target_user": arg.targetUser, "target_customer": arg.targetCustomer}; //"target_user="+arg.targetUser+"&target_customer="+arg.targetCustomer;
+        if (typeof arg.extraData !== "undefined") {
+            this.extraData = arg.extraData;
         }
-        auditCollection = new (AuditCollection.extend({extraData: extra_data}));
+        auditCollection = new (AuditCollection.extend({extraData: this.extraData}));
 
 	    this.template = _.template(arg.template); // this must already be loaded
         this.$el.html(this.template({height:$(window).height()-50+'px'}));
@@ -50,14 +45,12 @@ define([
     },
     downloadAudits: function() {
         that = this;
-        var extra_data = "";
-        if (that.targetUser && that.targetCustomer) {
-            extra_data = "&target_user=" + that.targetUser + "&target_customer=" + that.targetCustomer;
-        }
+        var argData = {};
+        $.extend(argData, contextModel.toParams(), this.extraData);
 
         $.ajax({
             url: "/audits",
-            data: $.param(contextModel.toParams()) + extra_data,
+            data: $.param(argData),
             success: function (data) {
                 var csvContent = ["data:text/csv;charset=utf-8," + downloadaudit.join(',')];
                 _.each(data, function (row) {

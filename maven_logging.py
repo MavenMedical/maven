@@ -61,6 +61,7 @@ def set_debug(filename=None):
 
 
 def trace(write=print, initial=False, timing=False):
+
     """
     Decorator to log the inputs and results of a function.  After the function completes, it
     will output the function, its arguments, and its return value
