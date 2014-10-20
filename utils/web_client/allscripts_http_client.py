@@ -700,16 +700,19 @@ if __name__ == '__main__':
 
     config = {
         # http.CONFIG_BASEURL: 'http://pro14ga.unitysandbox.com/Unity/UnityService.svc',
-        CONFIG_PARAMS.EHR_API_BASE_URL.value: 'https://srt-unity-pro2.allscripts.com/unity_adppro13SSL/unityservice.svc',
-        # CONFIG_PARAMS.EHR_API_BASE_URL.value: 'http://192.237.182.238/Unity/UnityService.svc',
+        # CONFIG_PARAMS.EHR_API_BASE_URL.value: 'https://srt-unity-pro2.allscripts.com/unity_adppro13SSL/unityservice.svc',
+        CONFIG_PARAMS.EHR_API_BASE_URL.value: 'http://192.237.182.238/Unity/UnityService.svc',
         # CONFIG_PARAMS.EHR_API_BASE_URL.value: 'http://127.0.0.1/Unity/UnityService.svc',
         # http.CONFIG_BASEURL: 'http://doesnotexist.somejunk.cs.umd.edu/Unity/UnityService.svc',
         http.CONFIG_OTHERHEADERS: {
             'Content-Type': 'application/json'
         },
-        CONFIG_PARAMS.EHR_API_APPNAME.value: 'MavenMedical.MavenPathways.ProdApp',
-        CONFIG_PARAMS.EHR_API_SVC_USER.value: 'MAV3nPAthWaYsPR0d',
-        CONFIG_PARAMS.EHR_API_PASSWORD.value: 'm4VeNpAtHWaYz!3ji',
+        # CONFIG_PARAMS.EHR_API_APPNAME.value: 'MavenMedical.MavenPathways.ProdApp',
+        # CONFIG_PARAMS.EHR_API_SVC_USER.value: 'MAV3nPAthWaYsPR0d',
+        # CONFIG_PARAMS.EHR_API_PASSWORD.value: 'm4VeNpAtHWaYz!3ji',
+        CONFIG_PARAMS.EHR_API_APPNAME.value: 'MavenPathways.TestApp',
+        CONFIG_PARAMS.EHR_API_SVC_USER.value: 'MavenPathways',
+        CONFIG_PARAMS.EHR_API_PASSWORD.value: 'MavenPathways123!!',
     }
 
     import traceback
@@ -723,7 +726,8 @@ if __name__ == '__main__':
 
     api = allscripts_api(config)
     loop = asyncio.get_event_loop()
-    Ehr_username = 'MAVEN'
+    # Ehr_username = 'MAVEN'
+    Ehr_username = 'CliffHux'
     # break
     # wrapexn(api.GetProvider(Ehr_username, searchid='10041'))
     patient = input('Enter a Patient ID to display (e.g., 22): ')
