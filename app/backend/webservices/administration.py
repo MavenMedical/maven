@@ -136,8 +136,8 @@ class AdministrationWebservices():
         message = 'TRUE'
         if state == 'active':
             if user_info['ehr_state'] != "active":
-                ak = AK.authorization_key([user, str(target_customer)], 44, 365 * 24 * 60 * 60)
-                message = '%s#password/newPassword/%s/%s/%s' % (MC.http_addr, user, target_customer, ak)
+                ak = AK.authorization_key([target_user, str(target_customer)], 44, 365 * 24 * 60 * 60)
+                message = '%s#password/newPassword/%s/%s/%s' % (MC.http_addr, target_user, target_customer, ak)
             else:
                 asyncio.Task(self.notify_user_reset_password(target_customer, target_user))
 
@@ -195,8 +195,8 @@ class AdministrationWebservices():
 
         message = ''
         if ehr_state != "active":
-            ak = AK.authorization_key([user, str(target_customer)], 44, 365 * 24 * 60 * 60)
-            message = '%s#password/newPassword/%s/%s/%s' % (MC.http_addr, user, target_customer, ak)
+            ak = AK.authorization_key([target_user, str(target_customer)], 44, 365 * 24 * 60 * 60)
+            message = '%s#password/newPassword/%s/%s/%s' % (MC.http_addr, target_user, target_customer, ak)
         else:
             asyncio.Task(self.notify_user_reset_password(target_customer, target_user))
 

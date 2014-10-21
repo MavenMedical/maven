@@ -16,26 +16,23 @@ define([
 
     var AdminSettings = Backbone.View.extend({
         model: null,
-        target_customer: '',
+        extraData: {},
         initialize: function (arg) {
             this.model = new AdminModel; //initialize every time this is shown - might not render otherwise
 
-            var extra_data = "";
             if (typeof arg.template !== "undefined") {
                 this.template = _.template(arg.template); // this must already be loaded
             }
             else {
                 this.template = _.template(AdminSettingsTemplate);
             }
-            if (typeof arg.target_customer !== "undefined") {
-                this.target_customer = arg.target_customer;
-                extra_data = "&target_customer=" + arg.target_customer;
-                //this.model.attributes.target_customer = arg.target_customer;
+            if (typeof arg.extraData !== "undefined") {
+                this.extraData = arg.extraData;
             }
-            this.model.fetch({data:$.param(contextModel.toParams()) + extra_data});
-            //this.template = _.template(arg.template);
+            var data = {};
+            $.extend(data, contextModel.toParams(), this.extraData);
+            this.model.fetch({data:$.param(data)});
             this.model.on('change', this.render, this);
-            //this.render();
         },
         events: {
             'click .setup-admin-button': 'adminSetup',
@@ -135,27 +132,27 @@ define([
                     dataType: 'json',
                     url: "/setup_customer?" + $.param(contextModel.toParams())+extra_data,
                     data: JSON.stringify(data),
-                            success: function () {
-                                $("#save-admin-message").html("Settings saved!");
-                                if (unlocked || !that.model.attributes.settings) {
-                                    alert("Success! Connection to EHR established.");
-                                }
-                                else {
-                                    alert("Connection settings saved!");
-                                }
-                                userCollection.refresh();
-                                setTimeout(userCollection.refresh, 7000);
-                            },
-                            error: function (resp){
-                                alert("The server could NOT successfully connect using this configuration.  " + resp.responseJSON);
-                                $("#save-admin-message").html("&nbsp;");
-                            }
+                    success: function () {
+                        $("#save-admin-message").html("Settings saved!");
+                        if (unlocked || !that.model.attributes.settings) {
+                            alert("Success! Connection to EHR established.");
+                        }
+                        else {
+                            alert("Connection settings saved!");
+                        }
+                        userCollection.refresh();
+                            setTimeout(userCollection.refresh, 7000);
+                        },
+                        error: function (resp){
+                            alert("The server could NOT successfully connect using this configuration.  " + resp.responseJSON);
+                            $("#save-admin-message").html("&nbsp;");
+                        }
                 });
             }
         },
         render: function(){
-            if (this.target_customer != '') {
-                this.model.attributes.settings.target_customer = this.target_customer;
+            if (this.extraData['target_customer'] !== "undefined") {
+                this.model.attributes.settings.target_customer = this.extraData['target_customer'];
             }
             this.$el.html(this.template(this.model.attributes.settings));
             $(document).ready(function(){
