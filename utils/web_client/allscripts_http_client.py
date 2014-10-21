@@ -564,8 +564,10 @@ class allscripts_api(http.http_api):
                                                                   zip=zip)])
         return fhir_patient
 
-    def build_conditions(self, clin_summary):
+    def build_conditions(self, clin_summary_result):
 
+        clin_summary = clin_summary_result[0]
+        encounter_dx = clin_summary_result[1]
         fhir_dx_section = FHIR_API.Section(title="Encounter Dx",
                                            code=FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(system="http://loinc.org",
                                                                                                  code="11450-4")]))
@@ -574,16 +576,6 @@ class allscripts_api(http.http_api):
 
             # Instantiate the FHIR Condition
             fhir_condition = FHIR_API.Condition()
-
-            # Figure out whether it's a Problem List/Encounter Dx, or Past Medical History
-            # Parsing this string 'Promoted: Yes'
-            if len(problem['detail']) > 0:
-                if problem['detail'].replace(" ", "").split(":")[1] == "Yes":
-                    fhir_condition.category = "Encounter"
-                else:
-                    fhir_condition.category = "History"
-            else:
-                fhir_condition.category = "History"
 
             # Get the date the condition was asserted
             fhir_condition.dateAsserted = dateutil.parser.parse(problem['displaydate']) or None
@@ -602,6 +594,18 @@ class allscripts_api(http.http_api):
                     continue
                 else:
                     code, system = code_sys
+
+            # Figure out whether it's a Problem List/Encounter Dx, or Past Medical History
+            # Parsing this string 'Promoted: Yes'
+            if code in encounter_dx:
+                    fhir_condition.category = "Encounter"
+            elif len(problem['detail']) > 0:
+                if problem['detail'].replace(" ", "").split(":")[1] == "Yes":
+                    fhir_condition.category = "Problem List"
+                else:
+                    fhir_condition.category = "History"
+            else:
+                fhir_condition.category = "History"
 
             if system in ["ICD-9", "ICD9"]:
                 fhir_condition.code = FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(system="ICD-9",

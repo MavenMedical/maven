@@ -24,7 +24,8 @@ from clientApp.webservice.composition_builder import CompositionBuilder
 import maven_logging as ML
 from collections import defaultdict
 from utils.enums import CONFIG_PARAMS
-icd9_match = re.compile('\(V?[0-9]+(?:\.[0-9]+)?\)')
+icd9_keyword_match = re.compile('\(V?[0-9]+(?:\.[0-9]+)?\)')
+icd9_capture = re.compile('(?:\((V?[0-9]+(?:\.[0-9]+)?)\))')
 CLIENT_SERVER_LOG = ML.get_logger('clientApp.webservice.allscripts_server')
 
 
@@ -114,7 +115,7 @@ class scheduler():
                 # print('\n'.join([str((doc['DocumentID'], doc['SortDate'], doc['keywords'])) for doc in documents]))
                 for doc in documents:
                     keywords = doc.get('keywords', '')
-                    match = icd9_match.search(keywords)
+                    match = icd9_keyword_match.search(keywords)
                     mydoc = doc.get('mydocument', 'N') == 'Y'
                     docid = doc.get('DocumentID')
                     doctime = doc.get('SortDate', None)
@@ -127,8 +128,9 @@ class scheduler():
                         self.processed.add((patient, provider_id, today, docid))
                         if not first:
                             # start, stop = match.span()
+                            encounter_dx = icd9_capture.findall(keywords)
                             CLIENT_SERVER_LOG.debug("About to send to Composition Builder...")
-                            composition = yield from self.comp_builder.build_composition(provider_username, patient, docid, enc_datetime)
+                            composition = yield from self.comp_builder.build_composition(provider_username, patient, docid, enc_datetime, encounter_dx)
                             CLIENT_SERVER_LOG.debug(("Built composition, about to send to Backend Data Router. Composition ID = %s" % composition.id))
                             ML.TASK(self.parent.evaluate_composition(composition))
                             break
