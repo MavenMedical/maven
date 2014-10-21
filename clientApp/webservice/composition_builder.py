@@ -56,7 +56,7 @@ class CompositionBuilder(builder):
 
     @builder.build(FHIR_API.Composition)
     @ML.trace(COMP_BUILD_LOG.debug, True)
-    def build_composition(self, obj, username, patient, doc_id, doc_datetime):
+    def build_composition(self, obj, username, patient, doc_id, doc_datetime, encounter_dx):
         obj.author = self.provs[username]
         obj.encounter = FHIR_API.Encounter(identifier=[FHIR_API.Identifier(label="Internal",
                                                                            system="clientEMR",
@@ -70,18 +70,18 @@ class CompositionBuilder(builder):
 
     @builder.provide(Types.Patient)
     @ML.coroutine_trace(COMP_BUILD_LOG.debug, True)
-    def _patient(self, username, patient, doc_id, doc_datetime):
+    def _patient(self, username, patient, doc_id, doc_datetime, encounter_dx):
         ret = yield from self.allscripts_api.GetPatient(username, patient)
         return ret
 
     @builder.provide(Types.ClinicalSummary)
     @ML.coroutine_trace(COMP_BUILD_LOG.debug, True)
-    def _clin_summary(self, username, patient, doc_id, doc_datetime):
+    def _clin_summary(self, username, patient, doc_id, doc_datetime, encounter_dx):
         ret = yield from self.allscripts_api.GetClinicalSummary(username, patient, AHC.CLINICAL_SUMMARY.All)
-        return ret
+        return ret, encounter_dx
 
     @builder.provide(Types.CDASummary)
-    def _CDA_summary(self, username, patient, doc_id, doc_datetime):
+    def _CDA_summary(self, username, patient, doc_id, doc_datetime, encounter_dx):
         ret = yield from self.allscripts_api.GetPatientCDA(username, patient)
         return ret
 
