@@ -142,7 +142,11 @@ def coroutine_trace(write, initial=None, timing=False):
 
 root = logging.root
 if 'MAVEN_TESTING' not in os.environ:
-    if os.path.isfile('/etc/mavenmedical/logging.config'):
+
+    exename = os.path.splitext(os.path.basename(sys.argv[0]))[0]
+    if os.path.isfile('/etc/mavenmedical/logging-%s.config' % (exename,)):
+        logging.config.fileConfig('/etc/mavenmedical/logging-%s.config' % (exename,))
+    elif os.path.isfile('/etc/mavenmedical/logging.config'):
         logging.config.fileConfig('/etc/mavenmedical/logging.config')
     else:
         root.setLevel(logging.INFO)
@@ -150,6 +154,7 @@ if 'MAVEN_TESTING' not in os.environ:
         handler.setFormatter(logging.Formatter(
             '%(asctime)s     %(levelname)s\t%(process)d\t%(filename)s:%(lineno)d\t%(message)s'))
         root.addHandler(handler)
+    root.debug('maven_logging started up')
 else:
     root.setLevel(logging.INFO)
     handler = logging.StreamHandler(_results)
