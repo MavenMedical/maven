@@ -37,6 +37,7 @@ from app.backend.webservices.user_mgmt import UserMgmtWebservices
 from app.backend.webservices.search import SearchWebservices
 from app.backend.webservices.administration import AdministrationWebservices
 from app.backend.webservices.support import SupportWebservices
+from app.backend.webservices.timed_followup import TimedFollowUpWebservices
 import app.backend.webservices.notification_service as NS
 
 ARGS = argparse.ArgumentParser(description='Maven Client Receiver Configs.')
@@ -228,7 +229,8 @@ def main(loop):
     for c in [AU.AuthenticationWebservices, PatientMgmtWebservices,
               UserMgmtWebservices, SearchWebservices,
               TransparentWebservices, PathwaysWebservices,
-              AdministrationWebservices, SupportWebservices]:
+              AdministrationWebservices, SupportWebservices,
+              TimedFollowUpWebservices]:
         core_scvs.register_services(c('httpserver', rpc))
     core_scvs.schedule(loop)
 
