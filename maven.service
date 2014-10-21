@@ -1,14 +1,13 @@
 [Unit]
 Description=Maven Web Services
-After=rabbitmq-server.target
-Requires=rabbitmq-server.target
+After=rabbitmq-server
+Requires=rabbitmq-server
 
 [Service]
 Type=oneshot
-ExecStart=/home/devel/maven/run_maven.sh
+ExecStart=/etc/limited/startup
 ExecStop=/usr/bin/kill `/usr/bin/ps -aef | /usr/bin/grep /home/devel/maven | /usr/bin/grep env/bin/python | /usr/bin/awk '{print $2}'`
 RemainAfterExit=yes
-User=devel
 
 [Install]
 WantedBy=multi-user.target

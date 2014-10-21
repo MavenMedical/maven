@@ -27,6 +27,7 @@ define([
                 {
                     var protocolText = that.attributes.protocol.protocol;
                 }
+		var recipientUserName = $("#recipientUserName").val();
                 var message = $("#sendProtocolNote").val() + "\r\n " + contextModel.get("official_name") +
                                 " would like you to review this patient. \r\n" +
                                 window.location.protocol + "//" + window.location.host +
@@ -38,7 +39,7 @@ define([
                 $.ajax({
                     type: 'POST',
                     dataType: 'json',
-                    url: "/send_message?" + $.param(contextModel.toParams()) + "&target_user="+$("#recipientUserName").val(),
+                    url: "/send_message?" + $.param(contextModel.toParams()) + "&target_user="+recipientUserName,
                     data: JSON.stringify({
                         "subject": "Please review this patient - " + contextModel.get("official_name"),
                         "message": message,
