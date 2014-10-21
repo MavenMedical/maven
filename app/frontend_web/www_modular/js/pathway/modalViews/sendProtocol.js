@@ -15,7 +15,7 @@ define([
         initialize: function(parent){
             var that = this;
             this.parent = parent;
-            this.$el.html(this.template(that.attributes.protocol.attributes));
+            this.$el.html(this.template(that.attributes));
             $("#detail-modal").modal({'show':'true'});
 
             $("#sendProtocolButton", this.$el).on("click", function(){
@@ -23,11 +23,14 @@ define([
                 //that.parent.set('protocol', new Backbone.Model({title: title}))
                 $('#detail-modal').modal('hide')
                 var protocolText = ""
-                if (typeof that.attributes.protocol.protocol !== "undefined")
+                if (typeof that.attributes.protocol !== "undefined")
                 {
-                    var protocolText = that.attributes.protocol.protocol;
+                    //make sure formatting is removed
+                    var tag = document.createElement('div');
+                    tag.innerHTML = that.attributes.protocol.replace(/<p>/g, '').replace(/<\/p>/g, '\r\n').replace(/&nbsp;/, " ").replace(/<br \/>/g, "\r\n");
+                    protocolText = $(tag).text();
                 }
-		var recipientUserName = $("#recipientUserName").val();
+		        var recipientUserName = $("#recipientUserName").val();
                 var message = $("#sendProtocolNote").val() + "\r\n " + contextModel.get("official_name") +
                                 " would like you to review this patient. \r\n" +
                                 window.location.protocol + "//" + window.location.host +
@@ -35,7 +38,9 @@ define([
                                 "/patient/" + contextModel.get("patients") + "/" + new Date().toISOString().substr(0,10) +
 		                "/login/" + recipientUserName + "/" + contextModel.get('customer') + "/" +
  		                "\r\n" + protocolText;
-                message = message.replace(/<p>/g, '').replace(/<\/p>/g, '\r\n').replace(/&nbsp;/, " ").replace(/<br \/>/g, "\r\n").replace(/&bull;/g, "");
+
+                //message = message.replace(/<p>/g, '').replace(/<\/p>/g, '\r\n').replace(/&nbsp;/, " ").replace(/<br \/>/g, "\r\n").replace(/&bull;/g, "");
+
                 $.ajax({
                     type: 'POST',
                     dataType: 'json',

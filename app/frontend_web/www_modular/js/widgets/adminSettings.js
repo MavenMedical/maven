@@ -149,7 +149,15 @@ define([
             }
         },
         render: function(){
+            if (!this.model.attributes.settings){
+                this.model.attributes.settings = {};
+            }
             if (this.extraData['target_customer'] !== "undefined") {
+                if (this.extraData['target_customer'] == 0){
+                    //if looking at support customer, don't show this widget
+                    this.$el.hide();
+                    return;
+                }
                 this.model.attributes.settings.target_customer = this.extraData['target_customer'];
             }
             this.$el.html(this.template(this.model.attributes.settings));

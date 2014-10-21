@@ -544,7 +544,8 @@ class WebPersistence():
             startdate = None
             enddate = None
         if (Results.notify1 in desired) or (Results.notify2 in desired):
-            cmd.append("INNER JOIN user_pref")
+            # Left Join in case preferences haven't been set yet (or if support user)
+            cmd.append("LEFT JOIN user_pref")
             cmd.append("ON user_pref.user_name = users.user_name")
             cmd.append("AND user_pref.customer_id = users.customer_id")
         cmd.append("WHERE users.customer_id = %s")
