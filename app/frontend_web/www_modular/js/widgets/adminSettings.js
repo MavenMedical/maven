@@ -121,16 +121,14 @@ define([
                     _.extend(data, {"EHRPolling": polling, "UserTimeout": timeout, 'locked': 'locked'});
                 }
 
-                var extra_data = "";
-                if (this.target_customer != '')
-                {
-                    extra_data = "&target_customer=" + this.target_customer;
-                }
+                var argData = {};
+                $.extend(argData, contextModel.toParams(), this.extraData);
+
                 that = this;
                 $.ajax({
                     type: 'POST',
                     dataType: 'json',
-                    url: "/setup_customer?" + $.param(contextModel.toParams())+extra_data,
+                    url: "/setup_customer?" + $.param(argData),
                     data: JSON.stringify(data),
                     success: function () {
                         $("#save-admin-message").html("Settings saved!");
