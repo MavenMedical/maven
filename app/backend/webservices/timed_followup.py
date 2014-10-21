@@ -33,8 +33,9 @@ class TimedFollowUpWebservices():
         self.persistence = WP.WebPersistence(config[CONFIG_PERSISTENCE])
 
     @http_service(['POST'], '/add_task',
-                  [CONTEXT.USERID, CONTEXT.CUSTOMERID],
-                  {CONTEXT.USERID: int, CONTEXT.CUSTOMERID: int, CONTEXT.TARGETUSER: str, CONTEXT.PATIENTLIST: str},
+                  [CONTEXT.USERID, CONTEXT.CUSTOMERID, CONTEXT.USER],
+                  {CONTEXT.USERID: int, CONTEXT.CUSTOMERID: int,
+                   CONTEXT.TARGETUSER: str, CONTEXT.PATIENTLIST: str, CONTEXT.USER: str},
                   {USER_ROLES.provider, USER_ROLES.supervisor, USER_ROLES.administrator})
     def post_task(self, _header, body, context, _matches, _key):
         customer_id = context.get(CONTEXT.CUSTOMERID)
@@ -42,16 +43,17 @@ class TimedFollowUpWebservices():
         target_username = context.get(CONTEXT.TARGETUSER, None)
         patient_id = context.get(CONTEXT.PATIENTLIST, None)
 
-        delivery_method = body.get('delivery', None)
-        msg_subject = body.get('msg_subject', None)
-        msg_body = body.get('msg_body', None)
+        task_body = json.loads(body.decode('utf-8'))
+        delivery_method = task_body.get('delivery', None)
+        msg_subject = task_body.get('msg_subject', None)
+        msg_body = task_body.get('msg_body', None)
 
         # Parse out the DUE datetime
-        due_datetime_str = body.get('due', None)
+        due_datetime_str = task_body.get('due', None)
         due_datetime = due_datetime_str and dateutil.parser.parse(due_datetime_str)
 
         # Parse out the EXPIRE datetime if it exists, and if it doesn't exist make the default DUE + 1year
-        expire_datetime_str = body.get('expire', None)
+        expire_datetime_str = task_body.get('expire', None)
         if expire_datetime_str:
             expire_datetime = dateutil.parser.parse(expire_datetime_str)
         else:
