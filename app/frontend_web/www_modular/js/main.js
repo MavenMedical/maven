@@ -9,16 +9,16 @@
 // Require.js allows us to configure shortcut alias
 require.config({
     paths: {
-        jquery: 'libs/jquery/jquery-min',
-        jquery_ui: 'libs/jquery/jquery-ui.min',
+        jquery: ['//code.jquery.com/jquery-1.11.0.min', 'libs/jquery/jquery-min'],
+        jquery_ui: ['//code.jquery.com/ui/1.10.1/jquery-ui.min', 'libs/jquery/jquery-ui.min'],
         jquery_autocomplete: 'libs/jquery/jquery.ui.autocomplete.html',
         underscore: 'libs/underscore/underscore',
         backbone: 'libs/backbone/backbone',
-        jsplumb: 'libs/jsplumb2/js/jsplumb',
-        bootstrap: '../css/bootstrap/js/bootstrap.min',
+        jsplumb: ['//cdnjs.cloudflare.com/ajax/libs/jsPlumb/1.4.1/jquery.jsPlumb-1.4.1-all-min', 'libs/jsplumb2/js/jsplumb'],
+        bootstrap: ['//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min', '../css/bootstrap/js/bootstrap.min'],
         fullcalendar: 'libs/fullCalendar/fullcalendar.min',
         moment: 'libs/fullCalendar/moment.min',
-        ckeditor: 'libs/ckeditor/ckeditor',
+        ckeditor: ['//cdn.ckeditor.com/4.4.5/standard/ckeditor', 'libs/ckeditor/ckeditor'],
 	templates: '../templates',
 	amchartspie: 'libs/amcharts/pie',
 	amchartslight: 'libs/amcharts/themes/light',
@@ -55,8 +55,6 @@ require([
     'globalmodels/contextModel',
     'globalmodels/patientModel',
     'text',
-    'jsplumb',
-    'ckeditor'
 
 ], function (App) {
     // The "app" dependency is passed in as "App"

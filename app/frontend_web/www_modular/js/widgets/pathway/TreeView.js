@@ -9,7 +9,9 @@ define([
     'pathway/Helpers',
     'pathway/models/pathwayCollection',
     'text!templates/pathway/treeTemplate.html',
-    'text!templates/pathway/insertDiv.html'
+    'text!templates/pathway/insertDiv.html',
+    'jsplumb',
+    'ckeditor'
 ],
 
     function ($, _, Backbone, contextModel, curTree, TriggerNode, NodeEditor, Helpers, pathwayCollection, treeTemplate, insertDiv) {
