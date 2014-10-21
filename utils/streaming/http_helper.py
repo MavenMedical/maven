@@ -49,10 +49,10 @@ class HTTPHelper:
                             context[k] = available[k](v[0])
                         except ValueError:
                             raise HTTP.IncompleteRequest('Request has parameter %s which '
-                                                         + 'is of the wrong type.' % k)
+                                                         + 'is of the wrong type %s.' % (k, v[0]))
                     else:
                         raise HTTP.IncompleteRequest('Request requires exactly one instance '
-                                                     + 'of parameter %s.' % k)
+                                                     + 'of parameter %s.' % (k,))
         return context
 
     def copy_and_append(self, m, kv):

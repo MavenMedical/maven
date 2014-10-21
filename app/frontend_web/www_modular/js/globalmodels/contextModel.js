@@ -97,9 +97,8 @@ define([
         },
 	toParams: function() {
 	    //console.log(this);
-	    var ret = _.pick(this.attributes,['user','provider','startdate','enddate','encounter',
-		 			      'patients','department','userAuth', 'customer_id',
-					      'roles', 'pathid', 'userid']);
+	    var ret = _.pick(this.attributes,['startdate','enddate','encounter',
+		 			      'patients','department', 'pathid']);
         ret.id = ret.pathid
 	    //console.log(ret);
 	    for(var x in ret) {
@@ -128,7 +127,8 @@ define([
 	},
         autoSetUser: function (user, customer, userAuth, Login) {
 	    var that=this;
-	    this.set({user:user, customer:customer});
+	    
+	    this.set({user:user, customer:customer, userAuth: null});
 	    if (userAuth) {
 		this.fetch({success: loginCallback, 
 			error: function(request, response) { 
@@ -139,6 +139,13 @@ define([
 					      customer_id: customer,
 					      userAuth: userAuth}),
 			type: 'POST'});
+	    } else if(document.cookie && (!user || readCookie('user')==user)) {
+		    this.fetch({
+			url: '/refresh_login',
+			success: loginCallback, 
+			error: function()
+			new Login({el: '#login-modal'})
+		    });
 	    } else {
 		new Login({el: '#login-modal'})
 	    }

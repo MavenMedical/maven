@@ -270,6 +270,11 @@ class HTTPProcessor(SP.StreamProcessor):
                 # print(r, fn)
                 m = r.match(req_line)
                 if m:  # if the regex matches, call the handler and return a response
+                    cookies = headers.get_headers().get('Cookie', '')
+                    cookies = [s.split('=', 1) for s in [s.strip() for s in cookies.split(';')] if s]
+                    cookies = {k: [v] for k, v in cookies}
+                    cookies.update(query_string)
+                    query_string = cookies
                     (resp, body, extras) = yield from fn(headers, body, query_string,
                                                          m.groups(), key)
                     if headers.get_method() == 'HEAD':  # don't send a body with HEAD

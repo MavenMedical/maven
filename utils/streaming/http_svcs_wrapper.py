@@ -1,6 +1,7 @@
 import asyncio
 from functools import wraps
 import utils.streaming.http_responder as HTTP
+import json
 
 CONFIG_PERSISTENCE = 'persistence'
 EMPTY_RETURN = [{'id': 000000, 'term': "No Results Found", 'code': 000000, 'type': 'none'}]
@@ -75,6 +76,8 @@ def http_service(methods, url, required, available, roles):
         def worker(self, header, body, qs, matches, key):
             cofunc = asyncio.coroutine(func)
             # the UI sends a list 'roles' as 'roles[]', so we adjust that here
+            if CONTEXT.ROLES in qs and not (CONTEXT.ROLES + '[]') in qs:
+                qs[CONTEXT.ROLES + '[]'] = json.loads(qs[CONTEXT.ROLES][0])
             if roles and not roles.intersection(qs.get(CONTEXT.ROLES + '[]', set())):
                 return HTTP.UNAUTHORIZED_RESPONSE, b'', None
             context = qs
