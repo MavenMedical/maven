@@ -26,6 +26,7 @@ from utils.enums import CONFIG_PARAMS, USER_ROLES
 import maven_config as MC
 import maven_logging as ML
 from datetime import datetime, timezone, timedelta
+import time
 
 AUTH_LENGTH = 44  # 44 base 64 encoded bits gives the entire 256 bites of SHA2 hash
 LOGIN_TIMEOUT = 60 * 60  # 1 hour
@@ -59,7 +60,8 @@ def make_auth_and_cookie(timeout, username, userid, provider, customer, roles, h
         CONTEXT.ROLES: json.dumps(roles),
         CONTEXT.CUSTOMERID: customer,
         CONTEXT.USERID: userid,
-    }.items()] + [make_cookie('lifetime', timeout, expires)]
+        'valid-through': int(time.time() + timeout) * 1000,
+    }.items()]
     return user_auth, cookies
 
 

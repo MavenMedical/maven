@@ -27,16 +27,22 @@ define([
 
     var contextModel;
 
+    function scheduleLogout() {
+	var expiration = readCookie('valid-through');
+	if(expiration) {
+	    var remaining = expiration - (new Date());
+	    if (remaining > 0) {
+		setTimeout(scheduleLogout, remaining);
+	    } else {
+		eraseCookie('valid-through');
+		location.href = '#logout';
+	    }
+	}
+    }
+
     var loginCallback = function (res) {
         console.log('login call back', contextModel);
-	var auth_cookie = readCookie('userAuth');
-	setTimeout(function() 
-		   {
-		       if(readCookie('userAuth') == auth_cookie) {
-			   location.href= '#logout';
-		       }
-		   },
-		   1000*readCookie('lifetime'));
+	scheduleLogout();
 	contextModel.set({'loginTemplate':null});
 	//if(res.get('stylesheet')) {
 
