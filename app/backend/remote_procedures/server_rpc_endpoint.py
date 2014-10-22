@@ -76,11 +76,11 @@ class ServerEndpoint(SP.StreamProcessor):
         self.notification_fn = fn
 
     @asyncio.coroutine
-    def notify_user(self, customer_id, user_name, pat_id, msg):
+    def notify_user(self, customer_id, user_name, pat_id, msg, delivery_method=None):
         if self.notification_fn:
             if not isinstance(msg, list):
                 msg = [msg]
-            self.notification_fn(user_name, customer_id, pat_id, messages=msg)
+            self.notification_fn(user_name, customer_id, pat_id, messages=msg, delivery_method=delivery_method)
 
     @asyncio.coroutine
     def get_customer_configurations(self):

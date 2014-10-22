@@ -74,6 +74,8 @@ class CONFIG_PARAMS(Enum):
     DATABASE_SVC = "Database Service Config"
     RPC_CLIENT = "RPC Client Config"
     RPC_SERVER = "RPC Server Config"
+    FOLLOWUP_SVC = "FollowUp Task Service Config"
+    FOLLOWUP_SLEEP_INTERVAL = "FollowUp Task Sleep Interval"
 
 
 class DIAGNOSTIC_TERMINOLOGIES(Enum):
@@ -90,6 +92,7 @@ class FOLLOWUPTASK_STATUS(Enum):
     canceled = "canceled"
     replaced = "replaced"
     completed = "completed"
+    failed = "failed"
 
 
 class MEDICATION_ORDER_TYPES(Enum):

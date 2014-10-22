@@ -14,23 +14,55 @@ __author__ = 'Yuki Uchino'
 # ************************
 # LAST MODIFIED FOR JIRA ISSUE: MAV-503
 # *************************************************************************
-from utils.enums import USER_ROLES
+from utils.enums import USER_ROLES, CONFIG_PARAMS
 import json
+import asyncio
+import datetime
 import utils.database.web_persistence as WP
 from utils.streaming.http_svcs_wrapper import http_service, CONTEXT, CONFIG_PERSISTENCE
-from clientApp.webservice.clientapp_rpc_endpoint import ClientAppEndpoint
 import dateutil.relativedelta
 import dateutil.parser
 import utils.streaming.http_responder as HTTP
 import maven_config as MC
+import maven_logging as ML
 
 
-class TimedFollowUpWebservices():
+ML.get_logger()
 
-    def __init__(self, configname, rpc):
-        self.client_interface = rpc.create_client(ClientAppEndpoint)
+
+class TimedFollowUpService():
+
+    def __init__(self, configname, server_endpoint, loop=None):
+        # self.client_interface = rpc.create_client(ClientAppEndpoint)
         config = MC.MavenConfig[configname]
+        self.sleep_interval = config.get(CONFIG_PARAMS.FOLLOWUP_SLEEP_INTERVAL.value, 60 * 60)
+        self.server_endpoint = server_endpoint
         self.persistence = WP.WebPersistence(config[CONFIG_PERSISTENCE])
+        self.loop = loop or asyncio.get_event_loop()
+
+    @asyncio.coroutine
+    def run(self):
+        while True:
+            try:
+                yield from asyncio.sleep(10)
+                # Retrieve Tasks for the hour
+                current_datetime = datetime.datetime.now()
+                followup_tasks = yield from self.persistence.get_followup_tasks(datetime=current_datetime)
+
+                # Use the Notification Service to Send Due Tasks
+                if followup_tasks:
+                    for task in followup_tasks:
+                        user_name = task.get('user_name')
+                        customer_id = task.get('customer_id')
+                        patient_id = task.get('patient_id')
+                        msg = "SUBJECT: " + task.get('msg_subject', "") + "\n" + "MESSAGE: " + task.get('msg_body', "")
+                        delivery_method = task.get('delivery_method')
+
+                        asyncio.Task(self.server_endpoint.notify_user(customer_id, user_name, patient_id,
+                                                                      msg, delivery_method=delivery_method))
+            except:
+                ML.EXCEPTION("ERROR, Will Robinson")
+            yield from asyncio.sleep(self.sleep_interval)
 
     @http_service(['POST'], '/add_task',
                   [CONTEXT.USERID, CONTEXT.CUSTOMERID, CONTEXT.USER],
@@ -110,3 +142,16 @@ class TimedFollowUpWebservices():
     def get_customer_tasks(self, _header, body, context, _matches, _key):
         # customer_id = context.get(CONTEXT.CUSTOMERID)
         raise NotImplementedError
+
+"""
+import app.backend.webservices.authentication as AU
+
+
+def timed_followup_server(configname, server_endpoint):
+    import utils.streaming.webservices_core as WC
+    core_svcs = WC.WebserviceCore(configname)
+    fs = TimedFollowUpService(configname, server_endpoint)
+    core_svcs.register_services(fs)
+    core_svcs.register_services(AU.AuthenticationWebservices(configname, None,
+                                                             timeout=60 * 60 * 12))
+"""
