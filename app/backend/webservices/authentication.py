@@ -38,14 +38,17 @@ class LoginError(Exception):
     pass
 
 
-def make_auth_and_cookie(timeout, username, userid, provider, customer, roles):
+def make_auth_and_cookie(timeout, username, userid, provider, customer, roles, header):
     expires = (datetime.now(timezone.utc) + timedelta(seconds=timeout))
     expires = expires.strftime('%a, %d %b %Y %H:%M:%S GMT')
 
-    def make_cookie(k, v):
-        return bytes('Set-Cookie: %s=%s; Expires=%s; Path=/;' % (k, v, expires), 'utf-8')
+    ip = header.get_headers()['X-Real-IP']
 
-    user_auth = AK.authorization_key([[username], [provider], [customer], sorted(roles)],
+    def make_cookie(k, v):
+        # return bytes('Set-Cookie: %s=%s; Expires=%s; Path=/;' % (k, v, expires), 'utf-8')
+        return bytes('Set-Cookie: %s=%s; Path=/;' % (k, v), 'utf-8')
+
+    user_auth = AK.authorization_key([[username], [provider], [customer], sorted(roles), [ip]],
                                      AUTH_LENGTH, timeout)
     cookies = [make_cookie(k, v) for k, v in {
         CONTEXT.KEY: user_auth,
@@ -73,7 +76,7 @@ class AuthenticationWebservices():
                   {CONTEXT.USER: str, CONTEXT.CUSTOMERID: str,
                    CONTEXT.ROLES: list},
                   None)
-    def get_refresh_login(self, _header, _body, context, _matches, _key):
+    def get_refresh_login(self, header, _body, context, _matches, _key):
         username = context[CONTEXT.USER]
         customer = context[CONTEXT.CUSTOMERID]
         roles = context[CONTEXT.ROLES]
@@ -114,7 +117,7 @@ class AuthenticationWebservices():
         provider = user_info[WP.Results.provid]
         userid = user_info[WP.Results.userid]
         user_auth, cookie = make_auth_and_cookie(timeout, username, userid,
-                                                 provider, customer, roles)
+                                                 provider, customer, roles, header)
 
         ret = {CONTEXT.USERID: user_info[WP.Results.userid],
                'display': user_info[WP.Results.displayname],
@@ -226,7 +229,7 @@ class AuthenticationWebservices():
                 timeout = self.timeout
             userid = user_info[WP.Results.userid]
             user_auth, cookies = make_auth_and_cookie(timeout, username, userid,
-                                                      provider, customer, roles)
+                                                      provider, customer, roles, header)
 
             desired_layout = {
                 WP.Results.widget: 'widget',
