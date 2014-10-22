@@ -38,7 +38,6 @@ define([
             'click .setup-admin-button': 'adminSetup',
             'click .unlock-admin-button': 'unlockSettings',
             'click .lock-admin-button': 'lockSettings',
-            'blur #admin-pw-input' : 'activateEHR',
 	        'change #httphttps': 'httphttps'
         },
         httphttps: function() {
