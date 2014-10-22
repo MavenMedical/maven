@@ -40,6 +40,7 @@ class scheduler():
         self.comp_builder = CompositionBuilder(customer_id, allscripts_api)
         self.active_providers = {}
         self.disabled = disabled
+        self.firsts = defaultdict(lambda: True)
         try:
             self.sleep_interval = float(sleep_interval)
         except ValueError as e:
@@ -49,6 +50,8 @@ class scheduler():
     def update_config(self, config):
         self.sleep_interval = float(config.get(CONFIG_PARAMS.EHR_API_POLLING_INTERVAL.value))
         self.disabled = config.get(CONFIG_PARAMS.EHR_DISABLE_INTEGRATION.value, False)
+        if self.disabled:
+            self.firsts = defaultdict(lambda: True)
 
     def update_active_providers(self, active_provider_list):
         self.active_providers = dict(filter(lambda x: x[0][1] == str(self.customer_id), active_provider_list.items()))
@@ -58,7 +61,6 @@ class scheduler():
     def run(self):
 
         yield from self.comp_builder.build_providers()
-        firsts = defaultdict(lambda: True)
         while True:
             try:
                 today = date.today()
@@ -75,9 +77,9 @@ class scheduler():
                         provider = appointment['ProviderID']
                         if provider in polling_providers:
                             patient = appointment['patientID']
-                            tasks.add((patient, provider, today, firsts[provider]))
+                            tasks.add((patient, provider, today, self.firsts[provider]))
                     for provider in polling_providers:
-                        firsts[provider] = False
+                        self.firsts[provider] = False
                     for task in tasks:
                         ML.TASK(self.evaluate(*task))
                 except AllscriptsError as e:
