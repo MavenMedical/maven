@@ -29,6 +29,14 @@ define([
 
     var loginCallback = function (res) {
         console.log('login call back', contextModel);
+	var auth_cookie = readCookie('userAuth');
+	setTimeout(function() 
+		   {
+		       if(readCookie('userAuth') == auth_cookie) {
+			   location.href= '#logout';
+		       }
+		   },
+		   1000*readCookie('lifetime'));
 	contextModel.set({'loginTemplate':null});
 	//if(res.get('stylesheet')) {
 

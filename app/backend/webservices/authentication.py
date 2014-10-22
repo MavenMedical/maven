@@ -44,9 +44,11 @@ def make_auth_and_cookie(timeout, username, userid, provider, customer, roles, h
 
     ip = header.get_headers()['X-Real-IP']
 
-    def make_cookie(k, v):
-        # return bytes('Set-Cookie: %s=%s; Expires=%s; Path=/;' % (k, v, expires), 'utf-8')
-        return bytes('Set-Cookie: %s=%s; Path=/;' % (k, v), 'utf-8')
+    def make_cookie(k, v, expires=None):
+        if expires:
+            return bytes('Set-Cookie: %s=%s; Expires=%s; Path=/;' % (k, v, expires), 'utf-8')
+        else:
+            return bytes('Set-Cookie: %s=%s; Path=/;' % (k, v), 'utf-8')
 
     user_auth = AK.authorization_key([[username], [provider], [customer], sorted(roles), [ip]],
                                      AUTH_LENGTH, timeout)
@@ -57,7 +59,7 @@ def make_auth_and_cookie(timeout, username, userid, provider, customer, roles, h
         CONTEXT.ROLES: json.dumps(roles),
         CONTEXT.CUSTOMERID: customer,
         CONTEXT.USERID: userid,
-    }.items()]
+    }.items()] + [make_cookie('lifetime', timeout, expires)]
     return user_auth, cookies
 
 
