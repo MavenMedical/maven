@@ -141,10 +141,11 @@ define([
 			type: 'POST'});
 	    } else if(document.cookie && (!user || readCookie('user')==user)) {
 		    this.fetch({
-			url: '/refresh_login',
-			success: loginCallback, 
-			error: function()
-			new Login({el: '#login-modal'})
+                url: '/refresh_login',
+                success: loginCallback,
+                error: function(){
+                    new Login({el: '#login-modal'})
+                }
 		    });
 	    } else {
 		new Login({el: '#login-modal'})
