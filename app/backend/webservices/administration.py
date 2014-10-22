@@ -61,8 +61,12 @@ class AdministrationWebservices():
 
         # at this point, the configuration has succeeded
         yield from self.persistence.setup_customer(target_customer, clientapp_settings)
+        logged_settings = {k: clientapp_settings.get(k, None) for k in {
+            CONFIG_PARAMS.EHR_DISABLE_INTEGRATION.value,
+            CONFIG_PARAMS.EHR_API_BASE_URL.value
+        }}
         TASK(self.persistence.audit_log(user, 'change customer ehr settings', customer,
-                                        details=json.dumps(clientapp_settings),
+                                        details=json.dumps(logged_settings),
                                         target_user_and_customer=('', target_customer)))
         return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
 
