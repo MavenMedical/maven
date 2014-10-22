@@ -1384,3 +1384,10 @@ class WebPersistence():
             ML.EXCEPTION("Error Querying for Tasks")
 
         return tasks
+
+    @asyncio.coroutine
+    def update_followup_task_status(self, task_id, status):
+        cmd = ["UPDATE public.followuptask",
+               "SET status=%s WHERE task_id=%s"]
+        cmdArgs = [status, task_id]
+        yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)

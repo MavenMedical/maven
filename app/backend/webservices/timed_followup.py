@@ -55,11 +55,12 @@ class TimedFollowUpService():
                         user_name = task.get('user_name')
                         customer_id = task.get('customer_id')
                         patient_id = task.get('patient_id')
-                        msg = "SUBJECT: " + task.get('msg_subject', "") + "\n" + "MESSAGE: " + task.get('msg_body', "")
+                        msg = task
                         delivery_method = task.get('delivery_method')
 
                         asyncio.Task(self.server_endpoint.notify_user(customer_id, user_name, patient_id,
-                                                                      msg, delivery_method=delivery_method))
+                                                                      msg, msg_type="followup_task",
+                                                                      delivery_method=delivery_method))
             except:
                 ML.EXCEPTION("ERROR, Will Robinson")
             yield from asyncio.sleep(self.sleep_interval)
@@ -142,16 +143,3 @@ class TimedFollowUpService():
     def get_customer_tasks(self, _header, body, context, _matches, _key):
         # customer_id = context.get(CONTEXT.CUSTOMERID)
         raise NotImplementedError
-
-"""
-import app.backend.webservices.authentication as AU
-
-
-def timed_followup_server(configname, server_endpoint):
-    import utils.streaming.webservices_core as WC
-    core_svcs = WC.WebserviceCore(configname)
-    fs = TimedFollowUpService(configname, server_endpoint)
-    core_svcs.register_services(fs)
-    core_svcs.register_services(AU.AuthenticationWebservices(configname, None,
-                                                             timeout=60 * 60 * 12))
-"""

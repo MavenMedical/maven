@@ -76,19 +76,24 @@ class NotificationService():
         return (HR.OK_RESPONSE, json.dumps(ret), None)
 
     @ML.trace(logger.info)
-    def send_messages(self, user_name, customer, pat_id, messages, delivery_method=None):
+    def send_messages(self, user_name, customer, pat_id, messages, msg_type=None, delivery_method=None):
         key = user_name, int(customer)
         ML.DEBUG(str(key) + ": " + str(messages))
 
-        if delivery_method == NOTIFICATION_STATE.EHR_INBOX.value:
-            asyncio.Task(self.save_task_fn(key[1], key[0], 'Reminder from Maven',
-                                           messages, patient=pat_id))
+        if delivery_method == NOTIFICATION_STATE.EHR_INBOX.value and msg_type == "followup_task":
+            msg_subject = messages.get('msg_subject', 'Reminder from Maven')
+            msg_body = messages.get('msg_body', '')
+            asyncio.Task(self.save_task_fn(key[1], key[0], msg_subject,
+                                           msg_body, patient=pat_id))
+            asyncio.Task(self.server_endpoint.update_followup_task_status(messages.get('task_id'), "completed"))
             return True
 
-        elif delivery_method == NOTIFICATION_STATE.DESKTOP.value:
+        elif delivery_method == NOTIFICATION_STATE.DESKTOP.value and msg_type == "followup_task":
             notify_primary = NOTIFICATION_STATE.DESKTOP.value
             notify_secondary = NOTIFICATION_STATE.OFF.value
-            asyncio.Task(self.notify_via_preference(key, [notify_primary, notify_secondary], pat_id, messages))
+            msg = "SUBJECT: " + messages['msg_subject'] + "\n" + "MESSAGE: " + messages['msg_body']
+            asyncio.Task(self.notify_via_preference(key, [notify_primary, notify_secondary], pat_id, msg))
+            asyncio.Task(self.server_endpoint.update_followup_task_status(messages.get('task_id'), "completed"))
 
         else:
             # Get the user's notification preferences
