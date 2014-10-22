@@ -25,6 +25,7 @@ from clientApp.webservice.clientapp_rpc_endpoint import ClientAppEndpoint
 import utils.streaming.http_responder as HTTP
 import utils.crypto.authorization_key as AK
 import maven_config as MC
+from maven_logging import TASK
 date = str
 
 
@@ -60,9 +61,9 @@ class AdministrationWebservices():
 
         # at this point, the configuration has succeeded
         yield from self.persistence.setup_customer(target_customer, clientapp_settings)
-        asyncio.Task(self.persistence.audit_log(user, 'change customer ehr settings', customer,
-                                                details=json.dumps(clientapp_settings),
-                                                target_user_and_customer=(None, target_customer)))
+        TASK(self.persistence.audit_log(user, 'change customer ehr settings', customer,
+                                        details=json.dumps(clientapp_settings),
+                                        target_user_and_customer=('', target_customer)))
         return HTTP.OK_RESPONSE, json.dumps(['TRUE']), None
 
     @http_service(['GET'], '/users(?:(\d+)-(\d+)?)?',
@@ -139,12 +140,12 @@ class AdministrationWebservices():
                 ak = AK.authorization_key([target_user, str(target_customer)], 44, 365 * 24 * 60 * 60)
                 message = '%s#password/newPassword/%s/%s/%s' % (MC.http_addr, target_user, target_customer, ak)
             else:
-                asyncio.Task(self.notify_user_reset_password(target_customer, target_user))
+                TASK(self.notify_user_reset_password(target_customer, target_user))
 
-        asyncio.Task(self.persistence.audit_log(user, 'change user state', customer,
-                                                target_user_and_customer=(target_user, target_customer),
-                                                details=state))
-        asyncio.Task(self.client_interface.update_user_state(target_customer, target_user, state))
+        TASK(self.persistence.audit_log(user, 'change user state', customer,
+                                        target_user_and_customer=(target_user, target_customer),
+                                        details=state))
+        TASK(self.client_interface.update_user_state(target_customer, target_user, state))
 
         return HTTP.OK_RESPONSE, json.dumps(message), None
 
@@ -198,10 +199,10 @@ class AdministrationWebservices():
             ak = AK.authorization_key([target_user, str(target_customer)], 44, 365 * 24 * 60 * 60)
             message = '%s#password/newPassword/%s/%s/%s' % (MC.http_addr, target_user, target_customer, ak)
         else:
-            asyncio.Task(self.notify_user_reset_password(target_customer, target_user))
+            TASK(self.notify_user_reset_password(target_customer, target_user))
 
-        asyncio.Task(self.persistence.audit_log(user, 'reset user password', customer,
-                                                target_user_and_customer=(target_user, target_customer)))
+        TASK(self.persistence.audit_log(user, 'reset user password', customer,
+                                        target_user_and_customer=(target_user, target_customer)))
 
         return HTTP.OK_RESPONSE, json.dumps(message), None
 
