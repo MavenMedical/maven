@@ -14,7 +14,7 @@ require.config({
         jquery_autocomplete: 'libs/jquery/jquery.ui.autocomplete.html',
         underscore: 'libs/underscore/underscore',
         backbone: 'libs/backbone/backbone',
-        jsplumb: ['//cdnjs.cloudflare.com/ajax/libs/jsPlumb/1.4.1/jquery.jsPlumb-1.4.1-all-min', 'libs/jsplumb2/js/jsplumb'],
+        jsplumb: ['libs/jsplumb2/js/jquery.jsPlumb-1.6.2-min', 'libs/jsplumb2/js/jsplumb'],
         bootstrap: ['//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min', '../css/bootstrap/js/bootstrap.min'],
         fullcalendar: 'libs/fullCalendar/fullcalendar.min',
         moment: 'libs/fullCalendar/moment.min',
