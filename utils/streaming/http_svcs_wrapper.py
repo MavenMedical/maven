@@ -82,7 +82,7 @@ def http_service(methods, url, required, available, roles):
                 return HTTP.UNAUTHORIZED_RESPONSE, b'', None
             context = qs
             cookie = None
-            if required or available:
+            if required or available or roles:
                 context, cookie = self.helper.restrict_context(qs, required, available,
                                                                header.get_headers()['X-Real-IP'])
             resp, data, extra = yield from cofunc(self, header, body, context, matches, key)
