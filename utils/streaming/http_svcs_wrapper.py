@@ -81,11 +81,17 @@ def http_service(methods, url, required, available, roles):
             if roles and not roles.intersection(qs.get(CONTEXT.ROLES + '[]', set())):
                 return HTTP.UNAUTHORIZED_RESPONSE, b'', None
             context = qs
+            cookie = None
             if required or available:
-                context = self.helper.restrict_context(qs, required, available,
-                                                       header.get_headers()['X-Real-IP'])
-            res = yield from cofunc(self, header, body, context, matches, key)
-            return res
+                context, cookie = self.helper.restrict_context(qs, required, available,
+                                                               header.get_headers()['X-Real-IP'])
+            resp, data, extra = yield from cofunc(self, header, body, context, matches, key)
+            if cookie:
+                if not extra:
+                    extra = cookie
+                else:
+                    extra = cookie + extra
+            return (resp, data, extra)
 
         # Adding the function attribute gives us the ability to filter on hasattr()
         # when recursively adding base classes' functions to the webservice handler

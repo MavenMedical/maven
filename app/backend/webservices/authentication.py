@@ -25,8 +25,6 @@ import utils.streaming.http_responder as HTTP
 from utils.enums import CONFIG_PARAMS, USER_ROLES
 import maven_config as MC
 import maven_logging as ML
-from datetime import datetime, timezone, timedelta
-import time
 
 AUTH_LENGTH = 44  # 44 base 64 encoded bits gives the entire 256 bites of SHA2 hash
 LOGIN_TIMEOUT = 60 * 60  # 1 hour
@@ -37,32 +35,6 @@ CONFIG_OAUTH = 'oauth'
 
 class LoginError(Exception):
     pass
-
-
-def make_auth_and_cookie(timeout, username, userid, provider, customer, roles, header):
-    expires = (datetime.now(timezone.utc) + timedelta(seconds=timeout))
-    expires = expires.strftime('%a, %d %b %Y %H:%M:%S GMT')
-
-    ip = header.get_headers()['X-Real-IP']
-
-    def make_cookie(k, v, expires=None):
-        if expires:
-            return bytes('Set-Cookie: %s=%s; Expires=%s; Path=/;' % (k, v, expires), 'utf-8')
-        else:
-            return bytes('Set-Cookie: %s=%s; Path=/;' % (k, v), 'utf-8')
-
-    user_auth = AK.authorization_key([[username], [provider], [customer], sorted(roles), [ip]],
-                                     AUTH_LENGTH, timeout)
-    cookies = [make_cookie(k, v) for k, v in {
-        CONTEXT.KEY: user_auth,
-        CONTEXT.PROVIDER: provider,
-        CONTEXT.USER: username,
-        CONTEXT.ROLES: json.dumps(roles),
-        CONTEXT.CUSTOMERID: customer,
-        CONTEXT.USERID: userid,
-        'valid-through': int(time.time() + timeout) * 1000,
-    }.items()]
-    return user_auth, cookies
 
 
 class AuthenticationWebservices():
@@ -92,14 +64,12 @@ class AuthenticationWebservices():
             WP.Results.officialname,
             WP.Results.userstate,
             WP.Results.roles,
-            WP.Results.ehrstate,
             WP.Results.settings,
         ]}
         user_info = yield from self.persistence.pre_login(desired, customer,
                                                           username)
 
-        if (user_info[WP.Results.userstate] == 'disabled'
-           or user_info[WP.Results.ehrstate] == 'disabled'):
+        if (user_info[WP.Results.userstate] == 'disabled'):
             return HTTP.UNAUTHORIZED_RESPONSE, b'', None
 
         try:
@@ -119,9 +89,12 @@ class AuthenticationWebservices():
 
         roles = sorted(list(set(user_info[WP.Results.roles]).intersection(roles)))
         provider = user_info[WP.Results.provid]
-        userid = user_info[WP.Results.userid]
-        user_auth, cookie = make_auth_and_cookie(timeout, username, userid,
-                                                 provider, customer, roles, header)
+        user_auth, cookie = self.helper.make_auth_and_cookie({
+            CONTEXT.USER: [username],
+            CONTEXT.PROVIDER: [provider],
+            CONTEXT.CUSTOMERID: [customer],
+            CONTEXT.ROLES: roles,
+        }, timeout, header.get_headers()['X-Real-IP'])
 
         ret = {CONTEXT.USERID: user_info[WP.Results.userid],
                'display': user_info[WP.Results.displayname],
@@ -232,8 +205,12 @@ class AuthenticationWebservices():
             except (KeyError, ValueError):
                 timeout = self.timeout
             userid = user_info[WP.Results.userid]
-            user_auth, cookies = make_auth_and_cookie(timeout, username, userid,
-                                                      provider, customer, roles, header)
+            user_auth, cookies = self.helper.make_auth_and_cookie({
+                CONTEXT.USER: [username],
+                CONTEXT.PROVIDER: [provider],
+                CONTEXT.CUSTOMERID: [customer],
+                CONTEXT.ROLES: roles,
+            }, timeout, header.get_headers()['X-Real-IP'])
 
             desired_layout = {
                 WP.Results.widget: 'widget',
