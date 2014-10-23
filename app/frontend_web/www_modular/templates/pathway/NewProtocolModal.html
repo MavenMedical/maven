@@ -42,8 +42,47 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                    <div class="form-group" >
+                        <span id="show-advanced-settings" class="glyphicon glyphicon-chevron-right"></span>
+                        <span class="headings">Advanced</span><br/>
+                    </div>
 
+                    <div class="form-group advanced-settings">
+                        <div class="row followup-header">
+                            <div class="col-sm-6">
+                                    <span class="headings">Timed Followup Plan</span>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="input-group input-group-sm" style="max-width:360px;">
+                                    Recipient:<input type="text" class="form-control" placeholder="Search Provider"
+                                                     name="followupRecipient" id="followupRecipient" >
+                                                <input id="followupRecipientName" name="followupRecipientName" type="hidden" value="">
+                                    </div>
+                            </div>
+                        </div>
+                        <div class="row followup-header-columns">
+                            <div class="col-sm-6">
+                                    <span class="headings">What</span>
+                            </div>
+                            <div class="col-sm-3">
+                                    <span class="headings">When</span>
+                            </div>
+                            <div class="col-sm-2">
+                                &nbsp;
+                                <!-- <span class="headings">Repeat</span> -->
+                            </div>
+                        </div>
+                        <div id="followups">
+
+                        </div>
+                        <div class="row followup-footer">
+                            <div class="col-sm-12">
+                                <span id='add-new-followup' class="glyphicon glyphicon-plus"></span>New Reminder
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>

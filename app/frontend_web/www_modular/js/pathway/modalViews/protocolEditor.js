@@ -7,9 +7,9 @@ define([
     'pathway/models/nodeModel',
     'globalmodels/contextModel',
     'text!templates/pathway/NewProtocolModal.html',
+    'singleRow/reminderRow',
 
-
-], function ($, _, Backbone, NodeModel, contextModel, nodeTemplate) {
+], function ($, _, Backbone, NodeModel, contextModel, nodeTemplate, ReminderRow) {
 
     var protocolModal = Backbone.View.extend({
         template: _.template(nodeTemplate),
@@ -25,19 +25,74 @@ define([
                 $("#addNodeButton", this.$el).on("click", function(){
                     var protocolText = CKEDITOR.instances.ProtocolText.getData();
 
-                    var noteToCopyText = $('#NoteToCopyText').val()
+                    var noteToCopyText = $('#NoteToCopyText').val();
                     var defaultRecipient = $("#defaultRecipient").val();
                     var defaultRecipientName = $("#defaultRecipientName").val();
                     var defaultQuickNote = $("#defaultQuickNote").val();
+                    var followups = [];
+                    var followupRecipient = "";
+                    var followupRecipientName = "";
+                    $(".followup").each(function(){
+                        //iterate through each followup: store in protocol node and add task
+                        var subject = $(".reminderSubject", that.$el).val();
+                        var message = $(".reminderText", that.$el).val();
+                        var date = $(".reminderTime", that.$el).val() + "T00:00:00.000Z";
+
+                        if (subject == ""){
+                            //default subject
+                            subject = "Followup from " + new Date().toISOString().substr(0,10);
+                        }
+                        followups.push({msg_subject: subject, msg_body: message, due: date});
+
+                        $.ajax({
+                            type: 'POST',
+                            dataType: 'json',
+                            url: "/add_task?" + $.param(contextModel.toParams()) + "&target_user=" + $("#followupRecipientName").val(),
+                            data: JSON.stringify({
+                                "msg_subject": subject,
+                                "msg_body": message,
+                                "delivery": "ehrinbox",
+                                "due": date,
+                            }),
+                            error: function (){
+                                alert("There was a problem setting up followups.");
+                            }
+                        });
+
+                    });
+                    if (followups.length > 0) {
+                        followupRecipient = $("#followupRecipient").val();
+                        followupRecipientName = $("#followupRecipientName").val();
+                    }
                     that.parent.set('protocol', new Backbone.Model({isProtocol: true, protocol: protocolText, noteToCopy:noteToCopyText,
                                                                     defaultRecipient: defaultRecipient,
                                                                     defaultRecipientName: defaultRecipientName,
-                                                                    defaultQuickNote: defaultQuickNote}))
+                                                                    defaultQuickNote: defaultQuickNote,
+                                                                    followups: followups,
+                                                                    followupRecipient: followupRecipient,
+                                                                    followupRecipientName: followupRecipientName}))
                     $('#detail-modal').modal('hide')
 
             })
 
-            $('#defaultRecipient').autocomplete({
+            $("#show-advanced-settings", this.$el).on("click", function(event){
+                if($(".advanced-settings", that.$el).is(":visible")){
+                    $(event.target).attr("class", "glyphicon glyphicon-chevron-right");
+                    $(".advanced-settings", that.$el).slideUp();
+                }
+                else {
+                    $(event.target).attr("class", "glyphicon glyphicon-chevron-down");
+                    $(".advanced-settings", that.$el).slideDown();
+                }
+            });
+
+            $("#add-new-followup", this.$el).on("click", function(event) {
+                var followup = new ReminderRow({model:new Backbone.Model});
+                $('#followups').append(followup.render().el);
+                followup.events();
+            });
+
+            $('#defaultRecipient, #followupRecipient').autocomplete({
                 source: function (request, response) {
                     $.ajax({
                         url: "/users",
@@ -53,8 +108,10 @@ define([
                 select: function (event, ui) {
                     event.preventDefault();
                     if(ui.item){
+                        //fill in the autocomplete box with the display name and corresponding hidden input with the actual username
                         $(event.target).val(ui.item.label);
-                        $("#defaultRecipientName").val(ui.item.value);
+                        var nameInput = "#" + event.target.id + "Name";
+                        $(nameInput).val(ui.item.value);
                     }
                 }
             });

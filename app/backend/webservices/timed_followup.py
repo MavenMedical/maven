@@ -42,6 +42,7 @@ class TimedFollowUpWebservices():
         target_username = context.get(CONTEXT.TARGETUSER, None)
         patient_id = context.get(CONTEXT.PATIENTLIST, None)
 
+        body = json.loads(body.decode('utf-8'))
         delivery_method = body.get('delivery', None)
         msg_subject = body.get('msg_subject', None)
         msg_body = body.get('msg_body', None)
