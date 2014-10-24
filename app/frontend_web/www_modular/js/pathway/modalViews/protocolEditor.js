@@ -30,24 +30,29 @@ define([
                     var defaultRecipientName = $("#defaultRecipientName").val();
                     var defaultQuickNote = $("#defaultQuickNote").val();
                     var followups = [];
-                    var followupRecipient = "";
-                    var followupRecipientName = "";
+                    var followupRecipient = $("#followupRecipient").val();
+                    var followupRecipientName = $("#followupRecipientName").val();
+
                     $(".followup").each(function(){
                         //iterate through each followup: store in protocol node and add task
-                        var subject = $(".reminderSubject", that.$el).val();
-                        var message = $(".reminderText", that.$el).val();
-                        var date = $(".reminderTime", that.$el).val() + "T00:00:00.000Z";
+                        var subject = $(this).find(".reminderSubject").val();
+                        var message = $(this).find(".reminderText").val();
+                        var date = $(this).find(".reminderTime").val() + "T00:00:00.000Z";
 
                         if (subject == ""){
                             //default subject
                             subject = "Followup from " + new Date().toISOString().substr(0,10);
                         }
                         followups.push({msg_subject: subject, msg_body: message, due: date});
-
+                        var extraArg = "&userid="+contextModel.get("userid");
+                        if (followupRecipient!="" && followupRecipientName!= "")
+                        {
+                            extraArg += "&target_user=" + $("#followupRecipientName").val();
+                        }
                         $.ajax({
                             type: 'POST',
                             dataType: 'json',
-                            url: "/add_task?" + $.param(contextModel.toParams()) + "&target_user=" + $("#followupRecipientName").val(),
+                            url: "/add_task?" + $.param(contextModel.toParams()) + extraArg,
                             data: JSON.stringify({
                                 "msg_subject": subject,
                                 "msg_body": message,
@@ -60,9 +65,9 @@ define([
                         });
 
                     });
-                    if (followups.length > 0) {
-                        followupRecipient = $("#followupRecipient").val();
-                        followupRecipientName = $("#followupRecipientName").val();
+                    if (followups.length <= 0) {
+                        followupRecipient = "";
+                        followupRecipientName = "";
                     }
                     that.parent.set('protocol', new Backbone.Model({isProtocol: true, protocol: protocolText, noteToCopy:noteToCopyText,
                                                                     defaultRecipient: defaultRecipient,

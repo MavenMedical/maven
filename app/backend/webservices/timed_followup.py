@@ -14,27 +14,61 @@ __author__ = 'Yuki Uchino'
 # ************************
 # LAST MODIFIED FOR JIRA ISSUE: MAV-503
 # *************************************************************************
-from utils.enums import USER_ROLES
+from utils.enums import USER_ROLES, CONFIG_PARAMS
 import json
+import asyncio
+import datetime
 import utils.database.web_persistence as WP
 from utils.streaming.http_svcs_wrapper import http_service, CONTEXT, CONFIG_PERSISTENCE
-from clientApp.webservice.clientapp_rpc_endpoint import ClientAppEndpoint
 import dateutil.relativedelta
 import dateutil.parser
 import utils.streaming.http_responder as HTTP
 import maven_config as MC
+import maven_logging as ML
 
 
-class TimedFollowUpWebservices():
+ML.get_logger()
 
-    def __init__(self, configname, rpc):
-        self.client_interface = rpc.create_client(ClientAppEndpoint)
+
+class TimedFollowUpService():
+
+    def __init__(self, configname, server_endpoint, loop=None):
+        # self.client_interface = rpc.create_client(ClientAppEndpoint)
         config = MC.MavenConfig[configname]
+        self.sleep_interval = config.get(CONFIG_PARAMS.FOLLOWUP_SLEEP_INTERVAL.value, 60 * 60)
+        self.server_endpoint = server_endpoint
         self.persistence = WP.WebPersistence(config[CONFIG_PERSISTENCE])
+        self.loop = loop or asyncio.get_event_loop()
+
+    @asyncio.coroutine
+    def run(self):
+        while True:
+            try:
+                yield from asyncio.sleep(10)
+                # Retrieve Tasks for the hour
+                current_datetime = datetime.datetime.now()
+                followup_tasks = yield from self.persistence.get_followup_tasks(datetime=current_datetime)
+
+                # Use the Notification Service to Send Due Tasks
+                if followup_tasks:
+                    for task in followup_tasks:
+                        user_name = task.get('user_name')
+                        customer_id = task.get('customer_id')
+                        patient_id = task.get('patient_id')
+                        msg = task
+                        delivery_method = task.get('delivery_method')
+
+                        asyncio.Task(self.server_endpoint.notify_user(customer_id, user_name, patient_id,
+                                                                      msg, msg_type="followup_task",
+                                                                      delivery_method=delivery_method))
+            except:
+                ML.EXCEPTION("ERROR, Will Robinson")
+            yield from asyncio.sleep(self.sleep_interval)
 
     @http_service(['POST'], '/add_task',
-                  [CONTEXT.USERID, CONTEXT.CUSTOMERID],
-                  {CONTEXT.USERID: int, CONTEXT.CUSTOMERID: int, CONTEXT.TARGETUSER: str, CONTEXT.PATIENTLIST: str},
+                  [CONTEXT.USERID, CONTEXT.CUSTOMERID, CONTEXT.USER],
+                  {CONTEXT.USERID: int, CONTEXT.CUSTOMERID: int,
+                   CONTEXT.TARGETUSER: str, CONTEXT.PATIENTLIST: str, CONTEXT.USER: str},
                   {USER_ROLES.provider, USER_ROLES.supervisor, USER_ROLES.administrator})
     def post_task(self, _header, body, context, _matches, _key):
         customer_id = context.get(CONTEXT.CUSTOMERID)
@@ -42,17 +76,17 @@ class TimedFollowUpWebservices():
         target_username = context.get(CONTEXT.TARGETUSER, None)
         patient_id = context.get(CONTEXT.PATIENTLIST, None)
 
-        body = json.loads(body.decode('utf-8'))
-        delivery_method = body.get('delivery', None)
-        msg_subject = body.get('msg_subject', None)
-        msg_body = body.get('msg_body', None)
+        task_body = json.loads(body.decode('utf-8'))
+        delivery_method = task_body.get('delivery', None)
+        msg_subject = task_body.get('msg_subject', None)
+        msg_body = task_body.get('msg_body', None)
 
         # Parse out the DUE datetime
-        due_datetime_str = body.get('due', None)
+        due_datetime_str = task_body.get('due', None)
         due_datetime = due_datetime_str and dateutil.parser.parse(due_datetime_str)
 
         # Parse out the EXPIRE datetime if it exists, and if it doesn't exist make the default DUE + 1year
-        expire_datetime_str = body.get('expire', None)
+        expire_datetime_str = task_body.get('expire', None)
         if expire_datetime_str:
             expire_datetime = dateutil.parser.parse(expire_datetime_str)
         else:

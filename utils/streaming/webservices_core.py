@@ -25,6 +25,7 @@ import utils.streaming.http_responder as HTTP
 import utils.streaming.http_helper as HH
 from utils.streaming.http_svcs_wrapper import CONTEXT
 from functools import partial
+import json
 
 
 def expand_base_class_methods(s, o):
@@ -40,7 +41,8 @@ class WebserviceCore(HTTP.HTTPProcessor):
         HTTP.HTTPProcessor.__init__(self, configname)
         self.client_interface = client_interface
         self.helper = HH.HTTPHelper([CONTEXT.USER, CONTEXT.PROVIDER, CONTEXT.CUSTOMERID,
-                                     CONTEXT.ROLES], CONTEXT.KEY)
+                                     CONTEXT.ROLES], CONTEXT.KEY,
+                                    {CONTEXT.ROLES: lambda x: json.dumps(x)})
 
         # self.register_services([AuthenticationWebservices,
         #                        PatientMgmtWebservices,

@@ -26,6 +26,7 @@ import asyncio
 import maven_config as MC
 import utils.crypto.authorization_key as AK
 import maven_logging as ML
+from maven_logging import TASK
 from utils.streaming.http_svcs_wrapper import CONFIG_PERSISTENCE
 import utils.database.tree_persistence as TP
 import utils.streaming.webservices_core as WC
@@ -37,7 +38,7 @@ from app.backend.webservices.user_mgmt import UserMgmtWebservices
 from app.backend.webservices.search import SearchWebservices
 from app.backend.webservices.administration import AdministrationWebservices
 from app.backend.webservices.support import SupportWebservices
-from app.backend.webservices.timed_followup import TimedFollowUpWebservices
+from app.backend.webservices.timed_followup import TimedFollowUpService
 import app.backend.webservices.notification_service as NS
 
 ARGS = argparse.ArgumentParser(description='Maven Client Receiver Configs.')
@@ -191,6 +192,13 @@ def main(loop):
             "persistence": CONFIG_PARAMS.PERSISTENCE_SVC.value,
             AU.CONFIG_SPECIFICROLE: USER_ROLES.notification.value,
             AU.CONFIG_OAUTH: True,
+        },
+        CONFIG_PARAMS.FOLLOWUP_SVC.value:
+        {
+            SP.CONFIG_HOST: 'localhost',
+            SP.CONFIG_PORT: 8093,
+            CONFIG_PARAMS.FOLLOWUP_SLEEP_INTERVAL.value: 60,
+            "persistence": CONFIG_PARAMS.PERSISTENCE_SVC.value,
         }
     }
     MC.MavenConfig.update(MavenConfig)
@@ -230,7 +238,7 @@ def main(loop):
               UserMgmtWebservices, SearchWebservices,
               TransparentWebservices, PathwaysWebservices,
               AdministrationWebservices, SupportWebservices,
-              TimedFollowUpWebservices]:
+              TimedFollowUpService]:
         core_scvs.register_services(c('httpserver', rpc))
     core_scvs.schedule(loop)
 
@@ -239,12 +247,15 @@ def main(loop):
      update_notify_prefs_fn) = NS.notification_server(CONFIG_PARAMS.NOTIFY_SVC.value,
                                                       server_endpoint,
                                                       client_interface.notify_user)
+    followup_task_service = TimedFollowUpService(CONFIG_PARAMS.FOLLOWUP_SVC.value, server_endpoint)
+
     notification_service.schedule(loop)
 
     server_endpoint.set_notification_function(notification_fn)
     server_endpoint.set_update_notify_prefs_fn(update_notify_prefs_fn)
 
     try:
+        TASK(followup_task_service.run())
         loop.run_forever()
     except KeyboardInterrupt:
         sp_consumer.close()

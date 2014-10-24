@@ -3,6 +3,8 @@ from enum import Enum
 from collections import defaultdict
 from decimal import Decimal
 from datetime import date, datetime
+import dateutil.relativedelta
+import dateutil.parser
 import json
 from functools import lru_cache
 from utils.enums import ALERT_VALIDATION_STATUS, FOLLOWUPTASK_STATUS
@@ -87,6 +89,14 @@ Results = Enum('Results',
     notify1
     notify2
     target_user
+    authorid
+    taskid
+    delivery_method
+    task_status
+    due_datetime
+    expire_datetime
+    msg_subject
+    msg_body
 """)
 
 
@@ -1284,20 +1294,22 @@ class WebPersistence():
         column_map = ["customer_id", "author_id", "patient_id", "delivery",
                       "status", "due", "expire", "msg_subject", "msg_body", "user_id"]
         columns = DBMapUtils().select_rows_from_map(column_map)
-        cmd = ["INSERT INTO public.followuptask(" + columns + ")",
-               "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-               "RETURNING task_id"]
+        cmd = ["INSERT INTO public.followuptask(" + columns + ")"]
         cmdArgs = [customer_id, author_id, patient_id, delivery_method, FOLLOWUPTASK_STATUS.pending.value,
                    due, expire, msg_subject, msg_body]
 
         # If a target username is supplied, we need to add the SQL logic that will allow look-up of the target user_id
         if target_username:
-            user_id = "(SELECT user_id from users where user_name='{}' and customer_id={})".format(target_username,
-                                                                                                   customer_id)
+            # cmd.append("VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, users.user_id)")
+            cmd.append("SELECT %s, %s, %s, %s, %s, %s, %s, %s, %s, users.user_id")
+            cmd.append("from users where user_name=%s and customer_id=%s")
+            cmdArgs.append(target_username)
+            cmdArgs.append(customer_id)
         # If no target_username is supplied, make the user_id the same as the author_id
         else:
-            user_id = author_id
-        cmdArgs.append(user_id)
+            cmd.append("VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
+            cmdArgs.append(author_id)
+        cmd.append("RETURNING task_id")
 
         task_id = None
         try:
@@ -1310,3 +1322,74 @@ class WebPersistence():
             return task_id
         else:
             return False
+
+    _default_task_info = set((Results.taskid,))
+    _available_task_info = {
+        Results.username: "users.user_name",
+        Results.taskid: "followuptask.task_id",
+        Results.customerid: "followuptask.customer_id",
+        Results.authorid: "followuptask.author_id",
+        Results.userid: "followuptask.user_id",
+        Results.patientid: "followuptask.patient_id",
+        Results.delivery_method: "followuptask.delivery",
+        Results.task_status: "followuptask.status",
+        Results.due_datetime: "followuptask.due",
+        Results.expire_datetime: "followuptask.expire",
+        Results.msg_subject: "followuptask.msg_subject",
+        Results.msg_body: "followuptask.msg_body"
+    }
+    _display_task_info = _build_format({})
+
+    @asyncio.coroutine
+    def get_followup_tasks(self, customer_id=None, user_id=None, author_id=None, patient_id=None, datetime=None):
+        desired = {
+            Results.username: "user_name",
+            Results.taskid: "task_id",
+            Results.customerid: "customer_id",
+            Results.authorid: "author_id",
+            Results.userid: "user_id",
+            Results.patientid: "patient_id",
+            Results.delivery_method: "delivery_method",
+            Results.task_status: "status",
+            Results.due_datetime: "due",
+            Results.expire_datetime: "expire",
+            Results.msg_subject: "msg_subject",
+            Results.msg_body: "msg_body",
+        }
+        columns = build_columns(desired.keys(), self._available_task_info,
+                                self._default_task_info)
+        cmd = ["SELECT",
+               columns,
+               "FROM public.followuptask",
+               "INNER JOIN public.users ON followuptask.user_id = users.user_id"]
+        cmdArgs = []
+        if customer_id and datetime:
+            pass
+        elif user_id and patient_id:
+            pass
+        elif author_id and patient_id:
+            pass
+        elif datetime:
+            timeframe_min = datetime
+            timeframe_max = datetime + dateutil.relativedelta.relativedelta(minutes=60)
+            cmd.append("WHERE followuptask.due>=%s and followuptask.due <=%s and followuptask.status=%s")
+            cmdArgs.extend([timeframe_min, timeframe_max, FOLLOWUPTASK_STATUS.pending.value])
+        elif user_id:
+            pass
+        elif author_id:
+            pass
+
+        tasks = None
+        try:
+            tasks = yield from self.execute(cmd, cmdArgs, self._display_task_info, desired)
+        except:
+            ML.EXCEPTION("Error Querying for Tasks")
+
+        return tasks
+
+    @asyncio.coroutine
+    def update_followup_task_status(self, task_id, status):
+        cmd = ["UPDATE public.followuptask",
+               "SET status=%s WHERE task_id=%s"]
+        cmdArgs = [status, task_id]
+        yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)

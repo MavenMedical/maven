@@ -27,8 +27,22 @@ define([
 
     var contextModel;
 
+    function scheduleLogout() {
+	var expiration = readCookie('valid-through');
+	if(expiration) {
+	    var remaining = expiration - (new Date());
+	    if (remaining > 0) {
+		setTimeout(scheduleLogout, remaining);
+	    } else {
+		eraseCookie('valid-through');
+		location.href = '#logout';
+	    }
+	}
+    }
+
     var loginCallback = function (res) {
         console.log('login call back', contextModel);
+	scheduleLogout();
 	contextModel.set({'loginTemplate':null});
 	//if(res.get('stylesheet')) {
 

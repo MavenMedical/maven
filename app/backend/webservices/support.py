@@ -35,9 +35,7 @@ class SupportWebservices():
         config = MC.MavenConfig[configname]
         self.persistence = WP.WebPersistence(config[CONFIG_PERSISTENCE])
 
-    @http_service(['GET'], '/customers(?:(\d+)-(\d+)?)?',
-                  [CONTEXT.USERID],
-                  {CONTEXT.USERID: int},
+    @http_service(['GET'], '/customers(?:(\d+)-(\d+)?)?', [], {},
                   {USER_ROLES.mavensupport})
     def get_customers(self, _header, _body, context, matches, _key):
 

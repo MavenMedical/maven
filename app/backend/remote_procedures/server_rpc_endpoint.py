@@ -76,11 +76,18 @@ class ServerEndpoint(SP.StreamProcessor):
         self.notification_fn = fn
 
     @asyncio.coroutine
-    def notify_user(self, customer_id, user_name, pat_id, msg):
+    def notify_user(self, customer_id, user_name, pat_id, msg, msg_type=None, delivery_method=None):
         if self.notification_fn:
-            if not isinstance(msg, list):
-                msg = [msg]
-            self.notification_fn(user_name, customer_id, pat_id, messages=msg)
+            if msg_type == "followup_task":
+                self.notification_fn(user_name, customer_id, pat_id, messages=msg, msg_type=msg_type, delivery_method=delivery_method)
+            elif msg_type is None:
+                if not isinstance(msg, list):
+                    msg = [msg]
+                self.notification_fn(user_name, customer_id, pat_id, messages=msg, msg_type=msg_type, delivery_method=delivery_method)
+
+    @asyncio.coroutine
+    def update_followup_task_status(self, task_id, status):
+        yield from self.persistence.update_followup_task_status(task_id, status)
 
     @asyncio.coroutine
     def get_customer_configurations(self):

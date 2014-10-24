@@ -25,7 +25,6 @@ import utils.streaming.http_responder as HTTP
 from utils.enums import CONFIG_PARAMS, USER_ROLES
 import maven_config as MC
 import maven_logging as ML
-from datetime import datetime, timezone, timedelta
 
 AUTH_LENGTH = 44  # 44 base 64 encoded bits gives the entire 256 bites of SHA2 hash
 LOGIN_TIMEOUT = 60 * 60  # 1 hour
@@ -36,26 +35,6 @@ CONFIG_OAUTH = 'oauth'
 
 class LoginError(Exception):
     pass
-
-
-def make_auth_and_cookie(timeout, username, userid, provider, customer, roles):
-    expires = (datetime.now(timezone.utc) + timedelta(seconds=timeout))
-    expires = expires.strftime('%a, %d %b %Y %H:%M:%S GMT')
-
-    def make_cookie(k, v):
-        return bytes('Set-Cookie: %s=%s; Expires=%s; Path=/;' % (k, v, expires), 'utf-8')
-
-    user_auth = AK.authorization_key([[username], [provider], [customer], sorted(roles)],
-                                     AUTH_LENGTH, timeout)
-    cookies = [make_cookie(k, v) for k, v in {
-        CONTEXT.KEY: user_auth,
-        CONTEXT.PROVIDER: provider,
-        CONTEXT.USER: username,
-        CONTEXT.ROLES: json.dumps(roles),
-        CONTEXT.CUSTOMERID: customer,
-        CONTEXT.USERID: userid,
-    }.items()]
-    return user_auth, cookies
 
 
 class AuthenticationWebservices():
@@ -73,60 +52,68 @@ class AuthenticationWebservices():
                   {CONTEXT.USER: str, CONTEXT.CUSTOMERID: str,
                    CONTEXT.ROLES: list},
                   None)
-    def get_refresh_login(self, _header, _body, context, _matches, _key):
-        username = context[CONTEXT.USER]
-        customer = context[CONTEXT.CUSTOMERID]
-        roles = context[CONTEXT.ROLES]
-
-        desired = {k: k for k in [
-            WP.Results.userid,
-            WP.Results.provid,
-            WP.Results.displayname,
-            WP.Results.officialname,
-            WP.Results.userstate,
-            WP.Results.roles,
-            WP.Results.ehrstate,
-            WP.Results.settings,
-        ]}
-        user_info = yield from self.persistence.pre_login(desired, customer,
-                                                          username)
-
-        if (user_info[WP.Results.userstate] == 'disabled'
-           or user_info[WP.Results.ehrstate] == 'disabled'):
-            return HTTP.UNAUTHORIZED_RESPONSE, b'', None
-
+    def get_refresh_login(self, header, _body, context, _matches, _key):
+        method = 'failed refresh'
         try:
-            clientapp_settings = json.loads(user_info[WP.Results.settings])
-            timeout = float(clientapp_settings[CONFIG_PARAMS.EHR_USER_TIMEOUT.value]) * 60
-        except (KeyError, ValueError):
-            timeout = self.timeout
+            username = context[CONTEXT.USER]
+            customer = context[CONTEXT.CUSTOMERID]
+            roles = context[CONTEXT.ROLES]
 
-        desired_layout = {
-            WP.Results.widget: 'widget',
-            WP.Results.template: 'template',
-            WP.Results.element: 'element',
-            WP.Results.priority: 'priority'
-        }
-        widgets = yield from self.persistence.layout_info(desired_layout,
-                                                          user_info[WP.Results.userid])
+            desired = {k: k for k in [
+                WP.Results.userid,
+                WP.Results.provid,
+                WP.Results.displayname,
+                WP.Results.officialname,
+                WP.Results.userstate,
+                WP.Results.roles,
+                WP.Results.settings,
+            ]}
+            user_info = yield from self.persistence.pre_login(desired, customer,
+                                                              username)
 
-        roles = sorted(list(set(user_info[WP.Results.roles]).intersection(roles)))
-        provider = user_info[WP.Results.provid]
-        userid = user_info[WP.Results.userid]
-        user_auth, cookie = make_auth_and_cookie(timeout, username, userid,
-                                                 provider, customer, roles)
+            if (user_info[WP.Results.userstate] == 'disabled'):
+                raise AK.UnauthorizedException
 
-        ret = {CONTEXT.USERID: user_info[WP.Results.userid],
-               'display': user_info[WP.Results.displayname],
-               CONTEXT.CUSTOMERID: customer,
-               'official_name': user_info[WP.Results.officialname],
-               CONTEXT.PROVIDER: user_info[WP.Results.provid],
-               CONTEXT.USER: username,
-               CONTEXT.ROLES: roles,
-               'widgets': widgets,
-               CONTEXT.KEY: user_auth}
+            try:
+                clientapp_settings = json.loads(user_info[WP.Results.settings])
+                timeout = float(clientapp_settings[CONFIG_PARAMS.EHR_USER_TIMEOUT.value]) * 60
+            except (KeyError, ValueError):
+                timeout = self.timeout
 
-        return HTTP.OK_RESPONSE, json.dumps(ret), cookie
+            desired_layout = {
+                WP.Results.widget: 'widget',
+                WP.Results.template: 'template',
+                WP.Results.element: 'element',
+                WP.Results.priority: 'priority'
+            }
+            widgets = yield from self.persistence.layout_info(desired_layout,
+                                                              user_info[WP.Results.userid])
+
+            roles = sorted(list(set(user_info[WP.Results.roles]).intersection(roles)))
+            provider = user_info[WP.Results.provid]
+            user_auth, cookie = self.helper.make_auth_and_cookie({
+                CONTEXT.USER: [username],
+                CONTEXT.PROVIDER: [provider],
+                CONTEXT.CUSTOMERID: [customer],
+                CONTEXT.ROLES: roles,
+            }, timeout, header.get_headers()['X-Real-IP'])
+
+            ret = {CONTEXT.USERID: user_info[WP.Results.userid],
+                   'display': user_info[WP.Results.displayname],
+                   CONTEXT.CUSTOMERID: customer,
+                   'official_name': user_info[WP.Results.officialname],
+                   CONTEXT.PROVIDER: user_info[WP.Results.provid],
+                   CONTEXT.USER: username,
+                   CONTEXT.ROLES: roles,
+                   'widgets': widgets,
+                   CONTEXT.KEY: user_auth}
+            method = 'refresh'
+            return HTTP.OK_RESPONSE, json.dumps(ret), cookie
+        finally:
+            yield from self.persistence.record_login(username, customer,
+                                                     method,
+                                                     header.get_headers().get('X-Real-IP'),
+                                                     None)
 
     @http_service(['POST'], '/login', None, None, None)
     def post_login(self, header, body, _context, _matches, _key):
@@ -225,8 +212,12 @@ class AuthenticationWebservices():
             except (KeyError, ValueError):
                 timeout = self.timeout
             userid = user_info[WP.Results.userid]
-            user_auth, cookies = make_auth_and_cookie(timeout, username, userid,
-                                                      provider, customer, roles)
+            user_auth, cookies = self.helper.make_auth_and_cookie({
+                CONTEXT.USER: [username],
+                CONTEXT.PROVIDER: [provider],
+                CONTEXT.CUSTOMERID: [customer],
+                CONTEXT.ROLES: roles,
+            }, timeout, header.get_headers()['X-Real-IP'])
 
             desired_layout = {
                 WP.Results.widget: 'widget',

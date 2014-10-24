@@ -1,7 +1,7 @@
 \connect maven
 
---Add the default shared_bytes so that the Maven Support User has "maven" password
-INSERT INTO public.shared_bytes (shared, created_on) values ('\x16d914f3a336d88a3c8c1bffaebe186752a4c821c23480003582032aafc4f32a37421444cacb5b45f97fc3e7ca326c9698dd8105235b7853ecab75e346d123f3', '16:52:28.964353');
+--Add the default shared_bytes
+INSERT INTO public.shared_bytes (shared, created_on) values (gen_random_bytes(256), now());
 
 --Add the default Maven Customer so that the support user can be activated
 INSERT INTO public.customer (customer_id, name) VALUES (0, 'Maven');

@@ -76,20 +76,36 @@ class NotificationService():
         return (HR.OK_RESPONSE, json.dumps(ret), None)
 
     @ML.trace(logger.info)
-    def send_messages(self, user_name, customer, pat_id, messages):
+    def send_messages(self, user_name, customer, pat_id, messages, msg_type=None, delivery_method=None):
         key = user_name, int(customer)
         ML.DEBUG(str(key) + ": " + str(messages))
 
-        # Get the user's notification preferences
-        notify_primary = self.user_notify_settings.get(key).get("notify_primary")
-        notify_secondary = self.user_notify_settings.get(key).get("notify_secondary")
-
-        if notify_primary == NOTIFICATION_STATE.OFF.value:
+        if delivery_method == NOTIFICATION_STATE.EHR_INBOX.value and msg_type == "followup_task":
+            msg_subject = messages.get('msg_subject', 'Reminder from Maven')
+            msg_body = messages.get('msg_body', '')
+            asyncio.Task(self.save_task_fn(key[1], key[0], msg_subject,
+                                           msg_body, patient=pat_id))
+            asyncio.Task(self.server_endpoint.update_followup_task_status(messages.get('task_id'), "completed"))
             return True
 
-        # Try sending via Primary Notification Preference
-        asyncio.Task(self.notify_via_preference(key, [notify_primary, notify_secondary], pat_id, messages))
-        return True
+        elif delivery_method == NOTIFICATION_STATE.DESKTOP.value and msg_type == "followup_task":
+            notify_primary = NOTIFICATION_STATE.DESKTOP.value
+            notify_secondary = NOTIFICATION_STATE.OFF.value
+            msg = "SUBJECT: " + messages['msg_subject'] + "\n" + "MESSAGE: " + messages['msg_body']
+            asyncio.Task(self.notify_via_preference(key, [notify_primary, notify_secondary], pat_id, msg))
+            asyncio.Task(self.server_endpoint.update_followup_task_status(messages.get('task_id'), "completed"))
+
+        else:
+            # Get the user's notification preferences
+            notify_primary = self.user_notify_settings.get(key).get("notify_primary")
+            notify_secondary = self.user_notify_settings.get(key).get("notify_secondary")
+
+            if notify_primary == NOTIFICATION_STATE.OFF.value:
+                return True
+
+            # Try sending via Primary Notification Preference
+            asyncio.Task(self.notify_via_preference(key, [notify_primary, notify_secondary], pat_id, messages))
+            return True
 
     @asyncio.coroutine
     def notify_via_preference(self, key, notify_preferences, pat_id, messages):
