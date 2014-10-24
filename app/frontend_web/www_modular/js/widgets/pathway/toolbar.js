@@ -33,8 +33,7 @@ define([
 
 
                 if (window.MSBlobBuilder) { // IE10
-                    var bb = new MSBlobBuilder();
-                    bb.append(strData);
+                    var bb = new Blob([strData]);
                     return navigator.msSaveBlob(bb, strFileName);
                 }
                 /* end if(window.MSBlobBuilder) */
