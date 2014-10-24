@@ -116,6 +116,11 @@ define([
                 }, this)
                 curTree.on('sync', this.render, this)
                 contextModel.on('change', this.render, this)
+		contextModel.on('change:pathid', function() {
+		    console.log('changed pathid');
+		    that.treeEl.css({left: '', top:'', msTransform: '', transform: ''});
+
+		})
                 this.render()
             },
             render: function () {
