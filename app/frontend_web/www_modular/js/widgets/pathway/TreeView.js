@@ -126,6 +126,8 @@ define([
                 this.render()
             },
             render: function () {
+		var pathid = contextModel.get('pathid');
+		if (pathid && pathid != '0') {this.$el.show()} else {this.$el.hide()}
                 curTree.elPairs = []
                 this.plumb.deleteEveryEndpoint();
                 this.treeEl.html('')
