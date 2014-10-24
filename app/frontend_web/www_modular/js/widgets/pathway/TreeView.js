@@ -68,6 +68,10 @@ define([
                 var that = this
                 this.plumb.setContainer(this.treeEl[0])
                 this.$el.on('wheel', function (data) {
+		    var mouseX = data.originalEvent.pageX;
+		    var mouseY = data.originalEvent.pageY;
+		    var left = that.treeEl.offset().left
+		    var top = that.treeEl.offset().top
                     data.preventDefault()
                     /*
                      */
@@ -79,18 +83,22 @@ define([
 			transform_property = 'msTransform'
 		    }
 		    if (n) {
-                    var result = re.exec(n)
+                    var oldScale = re.exec(n)[1]
                     if (data.originalEvent.deltaY > 0) {
-                        var newScale = result[1] - .05
+                        var newScale = oldScale - .05
                     } else {
-                        var newScale = (result[1] - 0) + .05
+                        var newScale = (oldScale - 0) + .05
                     }
+			var newTop = mouseY - (mouseY - top ) * newScale / oldScale;
+			var newLeft = mouseX - (mouseX - left ) * newScale / oldScale;
                     var scaleString = 'scale(' + newScale + ')'
 		    if (transform_property == 'transform') {
 			that.treeEl.css({'transform': scaleString})
 		    } else {
 			that.treeEl.css({'msTransform': scaleString})
 		    }
+			that.treeEl.offset({left: newLeft,
+					    top: newTop});
 		    }}
 		    )
 
