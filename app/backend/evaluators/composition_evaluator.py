@@ -30,9 +30,6 @@ __author__ = 'Yuki Uchino'
 import pickle
 import asyncio
 import datetime
-import json
-import math
-from collections import defaultdict
 import maven_config as MC
 import maven_logging as ML
 from utils.database.database import AsyncConnectionPool, MappingUtilites
@@ -317,6 +314,8 @@ class CompositionEvaluator(SP.StreamProcessor):
         for order in composition.get_encounter_orders():
             if isinstance(order.detail[0], FHIR_API.Medication):
                 alt_meds = yield from FHIR_DB.get_alternative_meds(order, composition, self.conn)
+                if alt_meds:
+                    pass
 
     ##########################################################################################
     ##########################################################################################
@@ -449,7 +448,7 @@ class CompositionEvaluator(SP.StreamProcessor):
     ##########################################################################################
     ##########################################################################################
     #####
-    # EVALUATE CHOOSING WISELY RULES
+    # EVALUATE MAVEN PATHWAYS
     #####
     ##########################################################################################
     ##########################################################################################
@@ -477,6 +476,30 @@ class CompositionEvaluator(SP.StreamProcessor):
                                             short_description=("Clinical Pathway recommendations are available"),
                                             long_description=("Clinical Pathway recommendations are available"))
                 alerts_section.content.append(FHIR_alert)
+
+    ##########################################################################################
+    ##########################################################################################
+    ##########################################################################################
+    #####
+    # EVALUATE MAVEN TASKS FOR PROVIDER/PATIENT
+    #####
+    ##########################################################################################
+    ##########################################################################################
+    ##########################################################################################
+    """
+    @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
+    def evaluate_tasks(self, composition):
+        column_map = ["delivery_method",
+                      "status",
+                      "due",
+                      "expire",
+                      "msg_subject",
+                      "msg_body"]
+        columns = self.DBMapper.select_rows_from_map(column_map)
+        cmd = ["SELECT (" + columns + ")",
+               "FROM followuptask",
+               "WHERE customer_id=%s AND user_name=%s AND "]
+    """
 
 
 def run_composition_evaluator():
