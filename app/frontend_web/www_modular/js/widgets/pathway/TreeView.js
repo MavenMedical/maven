@@ -83,7 +83,7 @@ define([
 			transform_property = 'msTransform'
 		    }
 		    if (n) {
-                    var oldScale = re.exec(n)[1]
+                    var oldScale = re.exec(n)[1];
                     if (data.originalEvent.deltaY > 0) {
                         var newScale = oldScale - .05
                     } else {
@@ -117,9 +117,11 @@ define([
                 curTree.on('sync', this.render, this)
                 contextModel.on('change', this.render, this)
 		contextModel.on('change:pathid', function() {
-		    console.log('changed pathid');
-		    that.treeEl.css({left: '', top:'', msTransform: '', transform: ''});
-
+		    if (that.treeEl[0].style.transform) {
+			that.treeEl.css({left: '', top:'', transform: 'scale(1)'});
+		    } else {
+			that.treeEl.css({left: '', top:'', msTransform: 'scale(1)'});
+		    }
 		})
                 this.render()
             },
