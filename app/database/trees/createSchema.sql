@@ -93,8 +93,8 @@ begin
 	if listType='hist_proc' then
 		select array_agg(code_id) into rtn
 			from public.order_ord a
-			where a.pat_id=patid and a.customer_id=customer and code_system='HCPCS' and current_date+mn<=order_datetime and current_date+mx>=order_datetime
-			group by a.pat_id ;
+			where a.patient_id=patid and a.customer_id=customer and code_system='HCPCS' and current_date+mn<=order_datetime and current_date+mx>=order_datetime
+			group by a.patient_id ;
 		return rtn;
 	elsif listType='drug_list' then
 		return druglist;
@@ -124,8 +124,8 @@ begin
         elsif listtype='hist_dx' then
                 select encsnomeds||probsnomeds||array_agg(snomed_id) into rtn
                         from public.condition a
-                        where a.pat_id=patid and a.customer_id=customer and  current_date+mn<=date_asserted and current_date+mx>=date_asserted
-                        group by a.pat_id ;
+                        where a.patient_id=patid and a.customer_id=customer and  current_date+mn<=date_asserted and current_date+mx>=date_asserted
+                        group by a.patient_id ;
                 return rtn;
         else
                 return null;
@@ -183,19 +183,19 @@ CREATE OR REPLACE FUNCTION trees.evallabs(cust integer, pat character varying, f
         if relation='<' then
                 select max(case when numeric_result<comparison then 1 else 0 end) into rtn
                 from (select numeric_result from public.observation a
-                where a.customer_id=cust and a.pat_id=pat and a.loinc_code=any(loincs)
+                where a.customer_id=cust and a.patient_id=pat and a.loinc_code=any(loincs)
                   and current_date+framemin<=result_time and current_date+framemax>=result_time
                 order by result_time desc limit case when onlylast then 1 else 9999999 end ) a;
         elsif relation='>' then
                 select max(case when numeric_result>comparison then 1 else 0 end) into rtn
                 from (select numeric_result from public.observation a
-                where a.customer_id=cust and a.pat_id=pat and a.loinc_code=any(loincs)
+                where a.customer_id=cust and a.patient_id=pat and a.loinc_code=any(loincs)
                   and current_date+framemin<=result_time and current_date+framemax>=result_time
                 order by result_time desc limit case when onlylast then 1 else 9999999 end ) a;
         elsif relation='=' then
                 select max(case when numeric_result=comparison then 1 else 0 end) into rtn
                 from (select numeric_result from public.observation a
-                where a.customer_id=cust and a.pat_id=pat and a.loinc_code=any(loincs)
+                where a.customer_id=cust and a.patient_id=pat and a.loinc_code=any(loincs)
                   and current_date+framemin<=result_time and current_date+framemax>=result_time
                 order by result_time desc limit case when onlylast then 1 else 9999999 end ) a;
         else return defval;
