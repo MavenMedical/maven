@@ -58,7 +58,7 @@ class AuthenticationWebservices():
             username = context[CONTEXT.USER]
             customer = context[CONTEXT.CUSTOMERID]
             roles = context[CONTEXT.ROLES]
-            
+
             desired = {k: k for k in [
                 WP.Results.userid,
                 WP.Results.provid,

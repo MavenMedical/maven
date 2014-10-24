@@ -847,3 +847,22 @@ button .btn-hover { display: none; }
 button:hover .btn-label { display: none; }
 button:hover .btn-hover { display: inline; }
 
+.advanced-settings {
+    display: none;
+}
+
+#show-advanced-settings, #add-new-followup {
+    cursor: pointer;
+}
+
+.followup-header, .followup {
+    margin-bottom: 10px;
+}
+
+.followup-footer {
+    margin-top: 10px;
+}
+
+.followup-header-columns{
+    margin-bottom: 5px;
+}
