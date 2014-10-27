@@ -15,6 +15,7 @@ define([
             initialize: function (arg) {
                 this.template = _.template(arg.template);
                 curTree.on('propagate', this.render, this);
+
             },
             showhide: function () {
                 this.$el.show();
@@ -24,21 +25,21 @@ define([
 
             },
             render: function () {
-                this.$el.hide(); // hide previous side-popup
+                console.log(curTree.get('selectedNode').attributes)
                 var that = this;
-                if (curTree.get('selectedNode') && curTree.get('selectedNode').attributes != null) {
-                    // Don't show if there is no text
-                    if (!(curTree.get('selectedNode').attributes.sidePanelText == "")) {
-                        this.$el.html(this.template(curTree.get('selectedNode').attributes));
-
-                        this.$el.show(1000, function () {
-                            /* This code for auto hide
-                            setTimeout(function () {
-                             that.$el.hide(3000);
-                             }, 5000);
-                             */
-                        });
-                    }
+                // Don't show if there is no text or if selected node is Protocol
+                if (!(curTree.get('selectedNode').attributes.sidePanelText == "" || curTree.get('selectedNode').attributes.isProtocol )
+                    && !(this.selectedNode == curTree.get('selectedNode'))) {
+                    this.$el.hide(); // hide previous side-popup
+                    this.selectedNode = curTree.get('selectedNode');
+                    this.$el.html(this.template(curTree.get('selectedNode').attributes));
+                    this.$el.show(1000, function () {
+                        /* This code for auto hide
+                         setTimeout(function () {
+                         that.$el.hide(3000);
+                         }, 5000);
+                         */
+                    });
                 }
 
 
