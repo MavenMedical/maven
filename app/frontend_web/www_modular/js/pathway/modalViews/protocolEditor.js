@@ -5,11 +5,12 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'pathway/models/nodeModel',
+    'pathway/models/treeModel',
     'globalmodels/contextModel',
     'text!templates/pathway/NewProtocolModal.html',
     'singleRow/reminderRow',
 
-], function ($, _, Backbone, NodeModel, contextModel, nodeTemplate, ReminderRow) {
+], function ($, _, Backbone, NodeModel, curTree, contextModel, nodeTemplate, ReminderRow) {
 
     var protocolModal = Backbone.View.extend({
         template: _.template(nodeTemplate),
@@ -69,14 +70,18 @@ define([
                         followupRecipient = "";
                         followupRecipientName = "";
                     }
-                    that.parent.set('protocol', new Backbone.Model({isProtocol: true, protocol: protocolText, noteToCopy:noteToCopyText,
+                    var myId = curTree.getNextNodeID()
+                    that.parent.set('children', new Backbone.Collection([
+                                                                new Backbone.Model({isProtocol: true, protocol: protocolText, noteToCopy:noteToCopyText,
                                                                     defaultRecipient: defaultRecipient,
                                                                     defaultRecipientName: defaultRecipientName,
                                                                     defaultQuickNote: defaultQuickNote,
                                                                     followups: followups,
                                                                     followupRecipient: followupRecipient,
-                                                                    followupRecipientName: followupRecipientName}))
+                                                                    followupRecipientName: followupRecipientName,
+                                                                    nodeID : curTree.get('id')+':'+ myId})]))
                     $('#detail-modal').modal('hide')
+                    curTree.trigger('propagate')
 
             })
 

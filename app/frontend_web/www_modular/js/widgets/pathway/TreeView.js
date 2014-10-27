@@ -114,7 +114,7 @@ define([
                 curTree.on('propagate', function () {
                     that.render();
                 }, this)
-                curTree.on('sync', this.render, this)
+                curTree.on('drawJSPlumb', this.renderJSPlumb, this)
                 contextModel.on('change', this.render, this)
 		contextModel.on('change:pathid', function() {
 		    if (that.treeEl[0].style.transform) {
@@ -131,9 +131,7 @@ define([
                 curTree.elPairs = []
                 this.plumb.deleteEveryEndpoint();
                 this.treeEl.html('')
-                $('#drawPaths', this.$el).on('click', function () {
-                    this.render();
-                })
+
                 var that = this
                 $('.tree', that.$el).append("<div style= 'width:auto; height: auto' class='nodeEl'></div>")
                 $('.tree', that.$el).append("<div style='height:100px'></div>")
@@ -145,7 +143,10 @@ define([
                 else {
 		    $('#pathwayName').html("")
                 }
-
+                this.renderJSPlumb()
+            },
+             renderJSPlumb: function(){
+                 var that = this
                  var insertDiv = Backbone.View.extend({
                      initialize: function(params){
 
@@ -162,10 +163,8 @@ define([
 
 
                      }
-
-
-
                  })
+
                 for (var i in curTree.elPairs) {
                     var cur = curTree.elPairs[i]
                     if ((cur.source.$el.is(":visible")) && (cur.target.$el.is(":visible"))) {
@@ -181,7 +180,6 @@ define([
                                     ["Custom", {
                                       create:function(component) {
 
-                                          console.log("the source", cur.source)
                                          var myInsert = new insertDiv({source: cur.source.model, target: cur.target.model})
 
                                          if (contextModel.get('page')=='pathEditor'){

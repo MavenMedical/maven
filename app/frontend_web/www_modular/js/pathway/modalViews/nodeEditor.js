@@ -31,12 +31,19 @@ define([
                     n.set('hideChildren', 'false', {silent: true})
                     curTree.trigger('propagate')
                 }
+                if (that.parent.get('children').models[0]){
+                    if (!that.parent.get('children').models[0].get('children')){
+                       that.parent.get('children').reset()
+
+                    }
+
+                }
 
                 that.parent.get('children').add(n, {at: location})
 
-                  curTree.set('selectedNode', n, {silent: true})
+                curTree.set('selectedNode', n, {silent: true})
 
-
+                curTree.trigger('propagate')
                 $('#detail-modal').modal('hide')
             }
             var that = this
