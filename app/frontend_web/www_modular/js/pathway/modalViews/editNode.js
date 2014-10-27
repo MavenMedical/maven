@@ -17,9 +17,7 @@ define([
 
         el: $("#modal-target"),
         initialize: function () {
-            if (curTree.get('selectedNode').attributes.triggers) {
-
-            } else if (curTree.get('selectedNode').attributes.isProtocol) {
+            if (curTree.get('selectedNode').attributes.isProtocol) {
                 this.template = _.template(protocolTemplate),
                     this.$el.html(this.template(curTree.get('selectedNode').attributes));
                 $('#addNodeButton')[0].onclick = function () {
@@ -44,6 +42,7 @@ define([
                     curTree.get('selectedNode').set('sidePanelText', data)
 
                     $('#detail-modal').modal('hide')
+                      curTree.trigger('propagate')
                 }
                 $("#detail-modal").modal({'show': 'true'});
                 CKEDITOR.replace('newNodeSideText');
