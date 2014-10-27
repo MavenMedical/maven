@@ -1,12 +1,14 @@
 #!/bin/bash
 SYSNAME=$1
+
+# Check to see if SYSNAME Instance already exists
 if gcloud compute instances list | grep "^..${SYSNAME} "; then
     echo instance $SYSNAME already exists
     exit 1
 fi
 
+# Create the Instance
 gcloud compute instances create $SYSNAME --zone us-central1-f --machine-type g1-small --image centos-7  --tags dev ssh
-
 if [ $? -eq 0 ]; then
     sleep 60
 else
@@ -14,16 +16,17 @@ else
     exit 1
 fi
 
+# Make sure that the Instance was created before trying to send the Setup Scripts
 if ! (gcloud compute instances list | grep $SYSNAME) then
     echo gcloud compute instances list does not show instance $SYSNAME
     exit 1
 fi
 
-gcloud compute copy-files /media/readyshare/public_keys/deploy-key /media/readyshare/public_keys/github_server_fingerprint $SYSNAME:~/ --zone us-central1-f
-gcloud compute copy-files /media/readyshare/public_keys/dev-server.crt $SYSNAME:~/server.crt --zone us-central1-f
-gcloud compute copy-files /media/readyshare/public_keys/dev-server.key $SYSNAME:~/server.key --zone us-central1-f
+gcloud compute copy-files /media/readyshare/public_keys/deploy-key /media/readyshare/public_keys/github_server_fingerprint rel-1:~/ --zone us-central1-f
+gcloud compute copy-files /media/readyshare/public_keys/dev-server.crt rel-1:~/server.crt --zone us-central1-f
+gcloud compute copy-files /media/readyshare/public_keys/dev-server.key rel-1:~/server.key --zone us-central1-f
 
-gcloud compute copy-files setup_scripts/common.sh setup_scripts/web_host_only.sh ~/.bashrc $SYSNAME:~/ --zone us-central1-f
-gcloud compute copy-files ~/maven/app/database $SYSNAME:~/database --zone us-central1-f
-echo "bash common.sh" | gcloud compute ssh $SYSNAME --zone us-central1-f
-echo "bash web_host_only.sh" | gcloud compute ssh $SYSNAME --zone us-central1-f
+gcloud compute copy-files setup_scripts/common.sh setup_scripts/web_host_only.sh ~/.bashrc rel-1:~/ --zone us-central1-f
+
+gcloud compute ssh $SYSNAME --zone us-central1-f --ssh-flag="-t" --command "bash common.sh"
+gcloud compute ssh $SYSNAME --zone us-central1-f --ssh-flag="-t" --command "bash web_host_only.sh"

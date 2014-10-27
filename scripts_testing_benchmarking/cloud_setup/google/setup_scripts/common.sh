@@ -11,7 +11,6 @@ sudo chmod -R g+r /var/log
 
 wget http://yum.postgresql.org/9.4/redhat/rhel-7-x86_64/pgdg-centos94-9.4-1.noarch.rpm
 sudo yum install pgdg-centos94-9.4-1.noarch.rpm -y
-sudo yum install postgresql94 -y
 
 #curl http://google-authenticator.googlecode.com/files/libpam-google-authenticator-1.0-source.tar.bz2 | bzip2 -d | tar -xv
 #cd libpam-google-authenticator-1.0

@@ -4,7 +4,8 @@ echo "local0.*		  /var/log/postgresql" | sudo tee -a /etc/rsyslog.conf
 #LUKS,install if nessecary 
 sudo yum install cryptsetup -y
 
-sudo yum install postgresql94-server postgresql94-contrib -y
+#Install PostgreSQL (the repos were added by common.sh)
+sudo yum install postgresql94 postgresql94-server postgresql94-contrib -y
 
 DATA_DRIVE=/dev/sdb
 PW="maven"
@@ -15,34 +16,19 @@ sudo mkfs.ext4 /dev/mapper/maven_LUKS
 
 # mount encrypted partition and initialize the database
 #switch to root user
-sudo su
-mount -t ext4 /dev/mapper/maven_LUKS ~postgres
-cd ~postgres
-chown postgres ~postgres
-chgrp postgres ~postgres
-setenforce 0
-echo 'PATH=/usr/pgsql-9.4/bin:${PATH}' >> .bashrc
-su postgres
-echo maven > pw
-initdb -D `pwd`/9.4/data -A password --pwfile=pw
-cd 9.4/data
-sed -i.bak\
-    -e "s/#listen_addresses = 'localhost'/listen_addresses = '\*'/" \
-    -e 's/max_connections = 100/max_connections = 200/' \
-    -e "s/log_destination = 'stderr'/log_destination = 'syslog'/" \
-    -e "s/#syslog_/syslog_/" \
-postgresql.conf
+#sudo su --> this causes the script to hang, not sure what changed in the gcutil-to-gcloud transition
+sudo mount -t ext4 /dev/mapper/maven_LUKS ~postgres
+sudo cd ~postgres
+sudo chown postgres ~postgres
+sudo chgrp postgres ~postgres
+sudo setenforce 0
 
-sed -i -e 's/\(local.*\)password/\1trust/' pg_hba.conf
-echo "host   all    postgres          10.240.0.0/16   password
-host   maven  maven             10.240.0.0/16   password" >> pg_hba.conf
+# Run database set-up commands as the Root user
+sudo su -c "bash postgres_helper.sh"
 
-exit # exit postgres
 sudo usermod -G `whoami` -a postgres
-
 sudo systemctl start postgresql-9.4
-exit # exit root
-echo 'PATH=/usr/pgsql-9.4/bin:${PATH}' >> ~/.bashrc
+sudo echo 'PATH=/usr/pgsql-9.4/bin:${PATH}' >> ~/.bashrc
 
 #Note - on google, EBS storage of a truecrypt encrypted partition passed the closest I can get to a "disk pull plug" test.  A single pass doesn't prove much - only that the system isn't horribly broken.  It was also getting around 120 writes/second (compared to amazon's 80).  The writes/second matches what happened without truecrypt, so I don't think encryption costs us anything.
 
@@ -58,5 +44,6 @@ echo "
 /etc/limited/restartpostgres
 "  | sudo tee -a /etc/rc.local
 
+chmod g+rx /home/devel
 cd ~/database
 sudo ./installAsRoot.sh
