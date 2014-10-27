@@ -1,30 +1,29 @@
 #!/bin/bash
 SYSNAME=$1
 DISKNAME=$2
-if gcutil listinstances | grep "^..${SYSNAME} "; then
+if gcloud compute instances list | grep "^..${SYSNAME} "; then
     echo instance $SYSNAME already exists
     exit 1
 fi
 
-gcutil addinstance $SYSNAME --zone="us-central1-f" --machine_type="g1-small" --network="default" --external_ip_address=ephemeral --image="centos-7" --persistent_boot_disk="true" --auto_delete_boot_disk="false" --tag="dev,ssh"
-#gcutil addinstance $SYSNAME --zone="us-central1-f" --machine_type="f1-micro" --network="default" --external_ip_address=ephemeral -disk="qa-database-2,deviceName=qa-database-2,mode=READ_WRITE,boot" --disk="qa-data-1,deviceName=qa-data-1,mode=READ_WRITE" --auto_delete_boot_disk="false" --tag="dev,ssh"
+gcloud compute instances create $SYSNAME --zone us-central1-f --machine-type g1-small --image centos-7  --tags dev ssh --boot-disk-device-name $DISKNAME --boot-disk-size 100 --boot-disk-type pd-standard
 
 if [ $? -eq 0 ]; then
     sleep 60
 else
-    echo addinstance $SYSNAME failed
+    echo gcloud compute instances create $SYSNAME failed
     exit 1
 fi
 
-if ! (gcutil listinstances | grep $SYSNAME) then
-    echo listinstances does not show instance $SYSNAME
+if ! (gcloud compute instances list | grep $SYSNAME) then
+    echo gcloud compute instances list does not show instance $SYSNAME
     exit 1
 fi
 
-gcutil adddisk $DISKNAME --size_gb="100" --zone="us-central1-f" --disk_type="pd-standard"
-gcutil attachdisk --zone="us-central1-f" --disk=$DISKNAME $SYSNAME
+#gcloud compute disks create $DISKNAME --size 100 --type pd-standard
+#gcloud compute instances attach-disk $SYSNAME --zone="us-central1-f" --disk=$DISKNAME
 
-gcutil push $SYSNAME common database_only .
+gcloud compute copy-files setup_scripts/common.sh setup_scripts/database_only.sh $SYSNAME:~/ --zone us-central1-f
 
 #echo "bash common" | gcutil ssh $SYSNAME 
 #echo "bash database_only" | gcutil ssh $SYSNAME

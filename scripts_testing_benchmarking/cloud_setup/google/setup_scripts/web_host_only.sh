@@ -61,8 +61,8 @@ sudo echo '#!/bin/bash
 systemctl restart nginx' | sudo tee  /etc/limited/restartnginx
 sudo chmod a+rx /etc/limited/*
 
-cd ~/maven/scripts_testing_benchmarking/cloud_setup/google/
-for x in `ls etc/`
+cd ~/maven/scripts_testing_benchmarking/cloud_setup/google/etc/
+for x in `ls etc_*`
 do
 	sudo cp $x /etc/mavenmedical/${x#*_mavenmedical_}
 done
