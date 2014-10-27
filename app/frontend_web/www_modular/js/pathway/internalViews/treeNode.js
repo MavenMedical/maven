@@ -80,8 +80,10 @@ define([
                 $(".addProtocolButton", this.$el).first().on('click', function(){
                      var newEditor = new ProtocolEditor(that.model)
                 })
-                this.getMyElement().on('click', function(){
-                    curTree.set('selectedNode', that.model, {silent: true})
+                this.getMyElement().on('click', function(evt){
+		    var selected = $('#'+evt.currentTarget.id)
+		    curTree.set({'selectedNodeOffset': selected.offset(),
+				 'selectedNode': that.model}, {silent: true})
                     if (currentContext.get('page')!='pathEditor'){
                        if (that.model.get('hideChildren') == "false"){
                            curTree.collapse(that.model)

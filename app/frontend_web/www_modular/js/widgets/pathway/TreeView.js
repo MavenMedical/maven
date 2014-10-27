@@ -91,6 +91,7 @@ define([
                     }
 			var newTop = mouseY - (mouseY - top ) * newScale / oldScale;
 			var newLeft = mouseX - (mouseX - left ) * newScale / oldScale;
+			if (newScale > 5 || newScale<=.25) {return}
                     var scaleString = 'scale(' + newScale + ')'
 		    if (transform_property == 'transform') {
 			that.treeEl.css({'transform': scaleString})
@@ -205,7 +206,7 @@ define([
                                     ["Custom", {
                                       create:function(component) {
 
-                                         console.log("the source", cur.source)
+                                        // console.log("the source", cur.source)
                                          var myInsert = new insertDiv({source: cur.source.model, target: cur.target.model})
                                          if (contextModel.get('page')=='pathEditor'){
                                              return myInsert.$el
@@ -224,6 +225,15 @@ define([
                         }
                     }
                 }
+
+		var selected = $('.selected.treeNode')
+		var old = curTree.get('selectedNodeOffset')
+		if (selected.length && old) {
+		    var tree = this.treeEl.offset();
+		    var cur = selected.offset();
+		    this.treeEl.offset({left: tree.left - cur.left + old.left,
+					top: tree.top - cur.top + old.top});
+		}
 
                 contextModel.trigger('rendered')
             },
