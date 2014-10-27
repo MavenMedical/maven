@@ -22,6 +22,9 @@ define([
                     that.render()
                 })
 	    contextModel.on('change:page', this.showhide, this);
+
+            if (contextModel.get('page') != 'pathEditor')
+               return;
             this.render();
         },
 	showhide: function() {

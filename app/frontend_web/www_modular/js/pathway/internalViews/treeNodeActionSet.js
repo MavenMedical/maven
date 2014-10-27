@@ -24,6 +24,7 @@ define([
     var treeNodeActionSet = Backbone.View.extend({
         template: _.template(treeNodeActionSetTemplate),
         render: function(){
+
             var nodeType;
             if(curTree.get('selectedNode').attributes != null){
                 this.$el.html(this.template({treeNode :curTree.get('selectedNode').attributes, page: contextModel.get('page')}))
