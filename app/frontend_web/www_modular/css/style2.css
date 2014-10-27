@@ -16,6 +16,15 @@
     var-floating-left-size
     var-floating-right-size
  */
+
+
+.mouseover{
+    color: black
+}
+
+.mouseover:hover{
+    color: blue
+}
     .expanded-path{
         border-color: #ffff00 ;
     }
