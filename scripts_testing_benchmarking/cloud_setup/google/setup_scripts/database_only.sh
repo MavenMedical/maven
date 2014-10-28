@@ -28,6 +28,7 @@ sudo su -c "bash postgres_helper.sh"
 
 sudo usermod -G `whoami` -a postgres
 sudo systemctl start postgresql-9.4
+sudo systemctl enable postgresql-9.4
 sudo echo 'PATH=/usr/pgsql-9.4/bin:${PATH}' >> ~/.bashrc
 
 #Note - on google, EBS storage of a truecrypt encrypted partition passed the closest I can get to a "disk pull plug" test.  A single pass doesn't prove much - only that the system isn't horribly broken.  It was also getting around 120 writes/second (compared to amazon's 80).  The writes/second matches what happened without truecrypt, so I don't think encryption costs us anything.
@@ -47,3 +48,5 @@ echo "
 chmod g+rx /home/devel
 cd ~/database
 sudo ./installAsRoot.sh
+cd ~/maven/scripts_testing_benchmarking/gitHooks/cloudBoxes
+./explicit-db-update

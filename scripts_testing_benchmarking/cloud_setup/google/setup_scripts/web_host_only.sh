@@ -1,5 +1,5 @@
 #!/bin/bash
-sudo yum install pcre-devel zlib-devel openssl-devel gcc libpqxx-devel libpqxx libffi-devel -y
+sudo yum install pcre-devel zlib-devel openssl-devel gcc libpqxx-devel libpqxx libffi-devel policycoreutils-python-2.2.5-11.el7_0.1.x86_64 -y
 
 echo "export MAVEN_ROOT=~/maven
 export PYTHONPATH=$MAVEN_ROOT" >> .bashrc
@@ -74,3 +74,10 @@ sudo chcon -R -t httpd_user_content_t .
 sudo setenforce 1
 sudo chmod +x /etc/rc.d/rc.local
 mkdir ~/.postgresql
+cd .postgresql/
+echo user=postgres dbname=maven >> command-line-connect
+
+sudo setsebool -P httpd_read_user_content 1
+sudo semanage port -a -t http_port_t -p tcp 8087
+sudo semanage port -a -t http_port_t -p tcp 8092
+sudo semanage port -a -t http_port_t -p tcp 8083
