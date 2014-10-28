@@ -69,6 +69,8 @@ done
 sudo chmod 644 /etc/mavenmedical/*
 
 echo MUST SETUP /etc/mavenmedical/maven.config
-sudo setenforce 0
+cd ~
+sudo chcon -R -t httpd_user_content_t .
+sudo setenforce 1
 sudo chmod +x /etc/rc.d/rc.local
 mkdir ~/.postgresql
