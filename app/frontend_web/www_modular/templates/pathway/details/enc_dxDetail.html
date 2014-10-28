@@ -1,9 +1,15 @@
 <div class="detail-entry">
     <a class="detail-item">
     <% if (exists == "false") { %>
-            Rule will <b>not be used</b> if any of: <b><%=codeterm%></b> are in the encounter diagnoses
+            Alert will <b>not be shown</b> if any of: <b class = "mouseover" title = "<% for (var i in codeterm){
+                    var cur = codeterm[i]
+                    print(cur+'&#013;')
+                }%>">these</b> are in the encounter diagnoses
     <%} else { %>
-            Rule will <b>be used only</b> if any of: <b><%=codeterm%></b> are in the the encounter diagnoses
+            Alert will <b>be shown only</b> if any of: <b class = "mouseover" title = "<% for (var i in codeterm){
+                    var cur = codeterm[i]
+                    print(cur+'&#013;')
+                }%>">these</b> are in the the encounter diagnoses
     <%}%>
     </a>
     <a style = "float: right" class="remove-detail">&#10006</a>

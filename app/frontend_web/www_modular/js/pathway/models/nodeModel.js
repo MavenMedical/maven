@@ -11,11 +11,20 @@ define([
    var NodeList = Backbone.Collection.extend({
         populate: function(childSet, curTree){
             if (childSet){
-                for (var i in childSet){
+                  for (var i in childSet){
                     var cur = childSet[i]
-                    var toAdd = new NodeModel(cur, curTree)
-                    toAdd.set('hasLeft', i!=0)
-                    toAdd.set('hasRight', i<childSet.length-1)
+                    var toAdd
+                    if (cur.children){
+                        toAdd = new NodeModel(cur, curTree)
+                        toAdd.set('hasLeft', i!=0)
+                        toAdd.set('hasRight', i<childSet.length-1)
+                    } else  {
+
+                        toAdd = new Backbone.Model(cur)
+                        if (!toAdd.nodeID){
+                            toAdd.nodeID = curTree.get('id') + ":" + curTree.getNextNodeID()
+                        }
+                    }
                     this.add(toAdd, {silent: true})
                 }
             }
@@ -41,8 +50,9 @@ define([
         },
 
         initialize: function(params, curTree){
+
             if (!params.nodeID){
-                this.set('nodeID', curTree.getNextNodeID(), {silent: true})
+                this.set('nodeID', curTree.get('id') + ":" + curTree.getNextNodeID(), {silent: true})
             } else {
                 this.set('nodeID', params.nodeID, {silent: true})
             }
@@ -52,14 +62,14 @@ define([
             this.set({children: newChildren}, {silent:true})
 
             _.each(this.get('children').models, function(cur){
-                cur.set({'hideChildren': "true"}, {silent: true})
+                cur.set({'hideChildren': "false"}, {silent: true})
             })
             this.set('hideChildren', "true", {silent: true})
             this.set('name', params.name, {silent: true})
             this.set('tooltip', params.tooltip, {silent: true})
             this.set('sidePanelText', params.sidePanelText, {silent: true})
             if (params.protocol){
-                this.set('protocol', new Backbone.Model(params.protocol), {silent:true})
+                this.get('children').add(new Backbone.Model(params.protocol) )
             }
         },
         toJSON: function(){

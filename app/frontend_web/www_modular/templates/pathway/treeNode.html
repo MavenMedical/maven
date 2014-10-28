@@ -1,27 +1,26 @@
 <div class="widget-column col-sm-12">
     <!--<div style="width:40px; float:left;"></div> <!-- spacing horizontal -->
     <li style="float:left; width: auto">
-        <div  clickID = "TN-<%=pathid%>-<%=treeNode.nodeID%>" <%if (treeNode.hideChildren=="true"){%> style = "background-color: lightyellow" <%}%> class="treeNode click-tracked">
-            <span data-toggle="tooltip" title="<%=treeNode.tooltip%>"> <%=treeNode.name%></span>
+        <div  clickID = "TN-<%=pathid%>-<%=node.nodeID%>" <%if (node.hideChildren=="true"){%> style = "background-color: lightyellow" <%}%> class="treeNode click-tracked">
+            <span data-toggle="tooltip" title="<%=node.tooltip%>"> <%=node.name%></span>
 
             <br>
-            <% if (page == 'pathEditor') { %>
+            <% if (page == 'pathEditor'){ %>
 
             <div style ="clear:both" class="btn-group btn-group-sm" role="toolbar">
-                    <% if (treeNode.hasLeft ) { %>
+                    <% if (node.hasLeft ) { %>
                         <button class = "btn btn-default" id = "moveLeftButton">&lt;</button>
                     <%}%>
                 <div class="btn-group btn-group-sm">
                     <button type="button" class="btn btn-default" id="addChildButton"><img src="../images/temp/newChild.jpg" style="width: 25px; height: 25px"></button>
-                    <% if (treeNode.children.length == 0){%>
+                    <% if (node.children.length == 0){%>
                     <button type="button" class="btn btn-default addProtocolButton"><img src="../images/temp/newProtocole.jpg" style="width: 25px; height: 25px"></button>
                     <%}%>
                 </div>
-
-                <% if (treeNode.children.length > 0||treeNode.protocol)  {%>
+                <% if ("nodeType == standard" && (node.children.length > 0||node.protocol ))  {%>
                 <div class="btn-group btn-group-sm">
                     <button type="button" class="btn btn-default collapseButton">
-                            <% if (treeNode.hideChildren=="true"){%>
+                            <% if (node.hideChildren=="true"){%>
                             <img src="../images/temp/expand.jpg" style="width: 25px; height: 25px">
                             <%}else{%>
                             <img src="../images/temp/collapse.jpg" style="width: 25px; height: 25px">
@@ -30,7 +29,7 @@
                 </div>
                 <% } %>
 
-                <%if (treeNode.hasRight) { %>
+                <%if (node.hasRight) { %>
                 <button class = "btn btn-default" id = "moveRightButton">&gt;</button>
                  <%}%>
 

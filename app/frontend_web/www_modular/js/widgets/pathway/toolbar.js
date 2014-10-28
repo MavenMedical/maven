@@ -33,8 +33,7 @@ define([
 
 
                 if (window.MSBlobBuilder) { // IE10
-                    var bb = new MSBlobBuilder();
-                    bb.append(strData);
+                    var bb = new Blob([strData]);
                     return navigator.msSaveBlob(bb, strFileName);
                 }
                 /* end if(window.MSBlobBuilder) */
@@ -101,12 +100,15 @@ define([
             newEditor.render()
         },
         renderActions: function () {
-
-            var el = $('#node-action-set')
-            console.log("find the action set", el)
-            if (curTree.get('selectedNode')) {
-                var myActions = new treeNodeActionSet({el: el})
-                $('#action-set', el).append(myActions.render().$el)
+            if (contextModel.get('page') != 'pathEditor')
+                this.$el.hide()
+            else {
+                var el = $('#node-action-set')
+                console.log("find the action set", el)
+                if (curTree.get('selectedNode')) {
+                    var myActions = new treeNodeActionSet({el: el})
+                    $('#action-set', el).append(myActions.render().$el)
+                }
             }
 
 

@@ -43,7 +43,6 @@ html, body {
     height: 50px;
     display: table;
 }
-
 #fixed-bottom {
     display: none;
     position: fixed;
