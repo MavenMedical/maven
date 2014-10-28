@@ -58,7 +58,12 @@ define([
                 var that = this;
 
                 //Set on clicks
-                $('.collapseButton', this.$el).first().on('click', function(){
+                $('.collapseButton', this.$el).first().on('click', function(evt){
+		    var selected = $(evt.currentTarget).closest('.treeNode')
+		    var offset = selected.offset();
+		    offset.clickid = selected.attr('clickid');
+		    curTree.set({'selectedNodeOffset': offset,
+				 'selectedNode': that.model}, {silent: true})
                        if (currentContext.get('page')=='pathEditor'){
                            if (that.model.get('hideChildren') == "false"){
                                curTree.collapse(that.model)
@@ -72,17 +77,21 @@ define([
                      var newEditor = new NodeEditor(that.model)
                 })
                 $("#moveLeftButton", this.$el).on('click', function(){
+		    curTree.unset('selectedNodeOffset');
                      curTree.changeNodePosition(that.model, -1)
                 })
                 $("#moveRightButton", this.$el).first().on('click', function(){
+		    curTree.unset('selectedNodeOffset');
                      curTree.changeNodePosition(that.model, 1)
                 })
                 $(".addProtocolButton", this.$el).first().on('click', function(){
                      var newEditor = new ProtocolEditor(that.model)
                 })
                 this.getMyElement().on('click', function(evt){
-		    var selected = $('#'+evt.currentTarget.id)
-		    curTree.set({'selectedNodeOffset': selected.offset(),
+		    var selected = $(evt.currentTarget)
+		    var offset = selected.offset();
+		    offset.clickid = selected.attr('clickid');
+		    curTree.set({'selectedNodeOffset': offset,
 				 'selectedNode': that.model}, {silent: true})
                     if (currentContext.get('page')!='pathEditor'){
                        if (that.model.get('hideChildren') == "false"){
