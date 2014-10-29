@@ -80,4 +80,4 @@ echo user=postgres dbname=maven >> command-line-connect
 sudo setsebool -P httpd_read_user_content 1
 sudo semanage port -a -t http_port_t -p tcp 8087
 sudo semanage port -a -t http_port_t -p tcp 8092
-sudo semanage port -a -t http_port_t -p tcp 8083
+sudo semanage port -a -t http_port_t -p tcp 8088
