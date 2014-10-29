@@ -55,9 +55,9 @@ class SupportWebservices():
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
     @http_service(['GET'], '/update_customer',
-                  [CONTEXT.USERID, CONTEXT.TARGETCUSTOMER, CONTEXT.NAME,
+                  [CONTEXT.TARGETCUSTOMER, CONTEXT.NAME,
                    CONTEXT.ABBREVIATION, CONTEXT.LICENSE, CONTEXT.LICENSEEXP],
-                  {CONTEXT.USERID: int, CONTEXT.TARGETCUSTOMER: int, CONTEXT.NAME: str,
+                  {CONTEXT.TARGETCUSTOMER: int, CONTEXT.NAME: str,
                    CONTEXT.ABBREVIATION: str, CONTEXT.LICENSE: int, CONTEXT.LICENSEEXP: str},
                   {USER_ROLES.mavensupport})
     def update_customer(self, _header, _body, context, _matches, _key):
@@ -74,9 +74,9 @@ class SupportWebservices():
             return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
 
     @http_service(['GET'], '/add_customer',
-                  [CONTEXT.USERID, CONTEXT.NAME, CONTEXT.ITUSER,
+                  [CONTEXT.NAME, CONTEXT.ITUSER,
                    CONTEXT.ABBREVIATION, CONTEXT.LICENSE, CONTEXT.CONFIG],
-                  {CONTEXT.USERID: int, CONTEXT.LICENSE: int, CONTEXT.ITUSER: str,
+                  {CONTEXT.LICENSE: int, CONTEXT.ITUSER: str,
                    CONTEXT.NAME: str, CONTEXT.ABBREVIATION: str, CONTEXT.CONFIG: str},
                   {USER_ROLES.mavensupport})
     def add_customer(self, _header, _body, context, _matches, _key):

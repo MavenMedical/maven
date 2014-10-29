@@ -228,7 +228,7 @@ define([
 
 		var selected = $('.selected.treeNode')
 		var old = curTree.get('selectedNodeOffset')
-		if (selected.length && old) {
+		if (old && selected.length && selected.is(':visible') && old.clickid == selected.attr('clickid')) {
 		    var tree = this.treeEl.offset();
 		    var cur = selected.offset();
 		    this.treeEl.offset({left: tree.left - cur.left + old.left,
