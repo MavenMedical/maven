@@ -82,7 +82,7 @@ define([
                 })
                 this.getMyElement().on('click', function(evt){
 		    var selected = $('#'+evt.currentTarget.id)
-		    curTree.set({'selectedNodeWidth': selected.outerWidth ,'selectedNodeOffset': selected.offset(),
+		    curTree.set({'selectedNodeWidth': selected.outerWidth() ,'selectedNodeOffset': selected.offset(),
 				 'selectedNode': that.model}, {silent: true})
                     if (currentContext.get('page')!='pathEditor'){
                        if (that.model.get('hideChildren') == "false"){
