@@ -29,7 +29,8 @@ namespace MavenAsDemo
             //first of all, don't do nuthin if there's already a mavendesktop running
             if (isAlreadyRunning())
             {
-                return;
+                //ignore for citrix
+                //return;
             }
             try
             {
