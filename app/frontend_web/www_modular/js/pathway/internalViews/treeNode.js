@@ -6,13 +6,12 @@ define([
     'globalmodels/contextModel',
     'pathway/modalViews/nodeEditor',
     'pathway/modalViews/protocolEditor',
-    'pathway/models/nodeList',
     'pathway/models/nodeModel',
     'pathway/models/treeModel',
 
     'text!templates/pathway/treeNode.html'
 
-    ], function($, _, Backbone, currentContext,  NodeEditor, ProtocolEditor, nodeList, nodeModel, curTree, nodeTemplate){
+    ], function($, _, Backbone, currentContext,  NodeEditor, ProtocolEditor, nodeModel, curTree, nodeTemplate){
 
         var treeNode = Backbone.View.extend({
             nodeType: "standard",
