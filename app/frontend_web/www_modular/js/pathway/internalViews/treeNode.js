@@ -6,13 +6,12 @@ define([
     'globalmodels/contextModel',
     'pathway/modalViews/nodeEditor',
     'pathway/modalViews/protocolEditor',
-    'pathway/models/nodeList',
     'pathway/models/nodeModel',
     'pathway/models/treeModel',
 
     'text!templates/pathway/treeNode.html'
 
-    ], function($, _, Backbone, currentContext,  NodeEditor, ProtocolEditor, nodeList, nodeModel, curTree, nodeTemplate){
+    ], function($, _, Backbone, currentContext,  NodeEditor, ProtocolEditor, nodeModel, curTree, nodeTemplate){
 
         var treeNode = Backbone.View.extend({
             nodeType: "standard",
@@ -75,14 +74,17 @@ define([
                      curTree.changeNodePosition(that.model, -1)
                 })
                 $("#moveRightButton", this.$el).first().on('click', function(){
+		    curTree.unset('selectedNodeOffset');
                      curTree.changeNodePosition(that.model, 1)
                 })
                 $(".addProtocolButton", this.$el).first().on('click', function(){
                      var newEditor = new ProtocolEditor(that.model)
                 })
                 this.getMyElement().on('click', function(evt){
-		    var selected = $('#'+evt.currentTarget.id)
-		    curTree.set({'selectedNodeWidth': selected.outerWidth() ,'selectedNodeOffset': selected.offset(),
+		    var selected = $(evt.currentTarget)
+		    var offset = selected.offset();
+		    offset.clickid = selected.attr('clickid');
+		    curTree.set({'selectedNodeWidth': selected.outerWidth() , 'selectedNodeOffset': offset,
 				 'selectedNode': that.model}, {silent: true})
                     if (currentContext.get('page')!='pathEditor'){
                        if (that.model.get('hideChildren') == "false"){

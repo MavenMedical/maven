@@ -1,5 +1,6 @@
+#!/bin/bash
 sudo yum update -y
-sudo yum install epel-release
+sudo yum install epel-release -y
 sudo yum install elinks screen git emacs kernel-headers fuse-libs fuse-devel fuse lvm2 wireshark nc iptraf iftop psacct pam-devel collectl -y
 
 sudo useradd logaccess -G adm
@@ -8,9 +9,8 @@ sudo sed -i -e 's/^create$/create 640 root adm/' /etc/logrotate.conf
 sudo chgrp -R adm /var/log
 sudo chmod -R g+r /var/log
 
-wget http://yum.postgresql.org/9.3/redhat/rhel-6-x86_64/pgdg-centos93-9.3-1.noarch.rpm
-sudo yum install pgdg-centos93-9.3-1.noarch.rpm -y
-sudo yum install postgresql93 -y
+wget http://yum.postgresql.org/9.4/redhat/rhel-7-x86_64/pgdg-centos94-9.4-1.noarch.rpm
+sudo yum install pgdg-centos94-9.4-1.noarch.rpm -y
 
 #curl http://google-authenticator.googlecode.com/files/libpam-google-authenticator-1.0-source.tar.bz2 | bzip2 -d | tar -xv
 #cd libpam-google-authenticator-1.0
