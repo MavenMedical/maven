@@ -16,6 +16,15 @@
     var-floating-left-size
     var-floating-right-size
  */
+
+
+.mouseover{
+    color: black
+}
+
+.mouseover:hover{
+    color: blue
+}
     .expanded-path{
         border-color: #ffff00 ;
     }
@@ -365,8 +374,8 @@ html, body {
     box-shadow: 1px 3px 8px rgba(0, 0, 0, 0.2);
     display:none;
     position: fixed;
-    bottom: 5px;
-    right: 5px;
+  /*  bottom: 5px;
+    right: 5px;  */
     z-index: 100;
 }
 

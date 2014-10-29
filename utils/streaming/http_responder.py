@@ -290,8 +290,8 @@ class HTTPProcessor(SP.StreamProcessor):
         except ValueError:
             ML.EXCEPTION("value error")
             ret = wrap_response(BAD_RESPONSE, b'')
-        except IncompleteRequest:
-            ML.WARN("incomplete request: " + str(headers))
+        except IncompleteRequest as e:
+            ML.WARN("incomplete request: " + str(e))
             ret = wrap_response(BAD_RESPONSE, b'')
         except UnauthorizedRequest:
             ret = wrap_response(UNAUTHORIZED_RESPONSE, b'')

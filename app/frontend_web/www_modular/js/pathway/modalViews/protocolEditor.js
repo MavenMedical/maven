@@ -5,11 +5,12 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'pathway/models/nodeModel',
+    'pathway/models/treeModel',
     'globalmodels/contextModel',
     'text!templates/pathway/NewProtocolModal.html',
     'singleRow/reminderRow',
 
-], function ($, _, Backbone, NodeModel, contextModel, nodeTemplate, ReminderRow) {
+], function ($, _, Backbone, NodeModel, curTree, contextModel, nodeTemplate, ReminderRow) {
     var followups;
     var protocolModal = Backbone.View.extend({
         template: _.template(nodeTemplate),
@@ -37,53 +38,19 @@ define([
                         this.sendFollowup();
                         followupInfo.push(this.getCurrentParams());
                     });
-                    /*
-
-                    $(".followup").each(function(){
-                        //iterate through each followup: store in protocol node and add task
-                        //TODO - make this be called by the reminder row object
-                        var subject = $(this).find(".reminderSubject").val();
-                        var message = $(this).find(".reminderText").val();
-                        var date = $(this).find(".reminderTime").val() + "T00:00:00.000Z";
-
-                        if (subject == ""){
-                            //default subject
-                            subject = "Followup from " + new Date().toISOString().substr(0,10);
-                        }
-                        followups.push({msg_subject: subject, msg_body: message, due: date});
-                        var extraArg = "&userid="+contextModel.get("userid");
-                        if (followupRecipient!="" && followupRecipientName!= "")
-                        {
-                            extraArg += "&target_user=" + $("#followupRecipientName").val();
-                        }
-                        $.ajax({
-                            type: 'POST',
-                            dataType: 'json',
-                            url: "/add_task?" + $.param(contextModel.toParams()) + extraArg,
-                            data: JSON.stringify({
-                                "msg_subject": subject,
-                                "msg_body": message,
-                                "delivery": "ehrinbox",
-                                "due": date,
-                            }),
-                            error: function (){
-                                alert("There was a problem setting up followups.");
-                            }
-                        });
-
-                    });
-                    if (followups.length <= 0) {
-                        followupRecipient = "";
-                        followupRecipientName = "";
-                    }*/
-                    that.parent.set('protocol', new Backbone.Model({isProtocol: true, protocol: protocolText, noteToCopy:noteToCopyText,
+                   
+                    var myId = curTree.getNextNodeID()
+                    that.parent.set('children', new Backbone.Collection([
+                                                                new Backbone.Model({isProtocol: true, protocol: protocolText, noteToCopy:noteToCopyText,
                                                                     defaultRecipient: defaultRecipient,
                                                                     defaultRecipientName: defaultRecipientName,
                                                                     defaultQuickNote: defaultQuickNote,
                                                                     followups: followupInfo,
                                                                     defaultFollowupRecipient: followupRecipient,
-                                                                    defaultFollowupRecipientName: followupRecipientName}))
+                                                                    defaultFollowupRecipientName: followupRecipientName,
+                                                                    nodeID : curTree.get('id')+':'+ myId})]))
                     $('#detail-modal').modal('hide')
+                    curTree.trigger('propagate')
 
             })
 

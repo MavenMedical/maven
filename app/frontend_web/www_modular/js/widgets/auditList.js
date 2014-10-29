@@ -10,8 +10,7 @@ define([
     'globalmodels/contextModel',
     'libs/jquery/jquery-mousestop-event'
 ], function ($, _, Backbone, AuditCollection, AuditRow, contextModel) {
-
-    var downloadaudit = ['date', 'patient', 'action', 'device', 'details'];
+    var downloadaudit = ['date', 'patient', 'action', 'target', 'device', 'details'];
     var auditCollection;
 
     var AuditList = Backbone.View.extend({
@@ -41,24 +40,27 @@ define([
 	},
     events: {
         'scroll .audit-scroll': 'handleScroll',
-	    'click .download-user-audits': 'downloadAudits',
+	'click .download-user-audits': 'downloadAudits',
     },
     downloadAudits: function() {
         that = this;
         var argData = {};
         $.extend(argData, contextModel.toParams(), this.extraData);
-
         $.ajax({
             url: "/audits",
             data: $.param(argData),
             success: function (data) {
-                var csvContent = ["data:text/csv;charset=utf-8," + downloadaudit.join(',')];
-                _.each(data, function (row) {
-                    csvContent.push('"' + _.map(downloadaudit, function (v) {
-                        return row[v].replace(/"/g, '');
-                    }).join('","') + '"');
-                });
-                window.open(encodeURI(csvContent.join('\n')));
+		require(['libs/jquery/Blob', 'libs/jquery/FileSaver.min'], function(blob, saveAs) {
+		    
+                    var csvContent = [downloadaudit.join(',')];
+                    _.each(data, function (row) {
+			csvContent.push('"' + _.map(downloadaudit, function (v) {
+                            return row[v].replace(/"/g, '');
+			}).join('","') + '"');
+                    });
+		    var b = new Blob([csvContent.join('\n')], {type: 'data:text/csv;charset=utf-8'});
+		    saveAs(b, 'audits.csv');
+		});
             },
             error : function () {
             }

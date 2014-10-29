@@ -24,13 +24,15 @@ define([
     var treeNodeActionSet = Backbone.View.extend({
         template: _.template(treeNodeActionSetTemplate),
         render: function(){
+
             var nodeType;
             if(curTree.get('selectedNode').attributes != null){
                 this.$el.html(this.template({treeNode :curTree.get('selectedNode').attributes, page: contextModel.get('page')}))
             }
             $('#deleteNodeButton', this.$el)[0].onclick = this.deleteNode
             $('#setNodeTitleButton', this.$el)[0].onclick = this.editNode
-            $('#addChildButton', this.$el)[0].onclick = this.addChild
+            var addChildButton = $('#addChildButton', this.$el)
+	    if (addChildButton.length) {addChildButton[0].onclick = this.addChild}
             var protocolButton = $('#addProtocolButton', this.$el)[0]
             if(protocolButton){
                 protocolButton.onclick = this.addProtocol

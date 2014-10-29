@@ -4,15 +4,16 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'globalmodels/contextModel',
+    'pathway/internalViews/treeNode',
     'pathway/models/treeModel',
     'pathway/modalViews/sendProtocol',
     'pathway/modalViews/sendFollowups',
     'text!templates/pathway/protocolNode.html',
 
-], function ($, _, Backbone, currentContext, curTree, SendProtocol, SendFollowups, nodeTemplate) {
+], function ($, _, Backbone, currentContext, treeNode, curTree, SendProtocol, SendFollowups, nodeTemplate) {
 
-    var treeNode = Backbone.View.extend({
-
+    var protocolNode = treeNode.extend({
+        nodeType: "protocol",
         template: _.template(nodeTemplate),
         events: {
             'click button#copybutton': 'copyProtocole',
@@ -26,26 +27,16 @@ define([
             this.model = params.model
 
         },
-        makeExit: function (jsPlumb2) {
 
-            var exit = jsPlumb2.addEndpoint(this.$el, {anchor: 'Bottom'})
-            return exit
-        },
-        makeEntrance: function (jsPlumb2) {
-
-            var entrance = jsPlumb2.addEndpoint(this.$el, {anchor: 'Top'})
-            return entrance
-        },
         render: function () {
             if (this.model.get('protocol') && this.model.get('protocol').attributes) {
-                this.$el.html(this.template({protocolNode: this.model.attributes, page: currentContext.get('page')}));
+                this.$el.html(this.template({pathID: curTree.get('id'), protocolNode: this.model.attributes, page: currentContext.get('page')}));
             } else {
-                this.$el.html(this.template({protocolNode: this.model.attributes, page: currentContext.get('page')}));
+                this.$el.html(this.template({pathID: curTree.get('id'), protocolNode: this.model.attributes, page: currentContext.get('page')}));
             }
             if (this.model == curTree.get('selectedNode')){
                 $('.protocolNode', this.$el).addClass("selected")
             }
-
             return this
         },
         copyProtocole: function () {
@@ -53,8 +44,6 @@ define([
              this.trackActivity("copytext");
 
              $('<div>'+this.model.get("protocol").noteToCopy+'</div>').attr('id', 'copiedText').appendTo('.container');
-
-
 
             $('#toast').css('visibility', 'visible');
 
@@ -77,35 +66,13 @@ define([
 
 
         },
-        setSelectedNode: function(){
-            this.$el.off('click');
-            curTree.set('selectedNode', this.model, {silent: true});
-            this.trackActivity("click");
-            curTree.trigger('propagate')
-        },
-        treeToJSON: function (node) {
+        getMyElement: function(){
+                return $('.protocolNode', this.$el).first()
 
-        },
-        trackActivity: function (action){
-            var id = 0; //no valid id now: wait until protocol nodes have their own id
-
-                            var data = { "patient_id": currentContext.get("patients"),
-                                         "protocol_id": currentContext.get("pathid"),
-                                         "node_state": id,
-                                         "datetime": (new Date().toISOString()).replace("T"," "),
-                                         "action": action }
-            $.ajax({
-                type: 'POST',
-                dataType: 'json',
-                url: "/activity?" + $.param(currentContext.toParams()),
-                data: JSON.stringify(data),
-                success: function () {
-                    console.log("click tracked");
-                }
-            });
         }
+
     })
-    return treeNode;
+    return protocolNode;
 
 })
 

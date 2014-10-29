@@ -31,7 +31,9 @@ class HTTPHelper:
             # if expires:
             # return bytes('Set-Cookie: %s=%s; Expires=%s; Path=/;' % (k, v, expires), 'utf-8')
             # else:
-            return bytes('Set-Cookie: %s=%s; Path=/;' % (k, v), 'utf-8')
+            if type(v) != tuple:
+                v = (v, '')
+            return bytes('Set-Cookie: %s=%s; Path=/; %s' % (k, v[0], v[1]), 'utf-8')
 
         auth_list = [sorted(qs[k]) for k in self.contexts_user]
         user_auth = AK.authorization_key(auth_list + [[timeout], [ip]],
@@ -41,7 +43,7 @@ class HTTPHelper:
         user_auth = AK.bytestostring(int(timeout).to_bytes(4, 'big')) + user_auth
 
         cookie_base = {
-            self.context_key: user_auth,
+            self.context_key: (user_auth, 'HttpOnly;'),
             'valid-through': int(time.time() + timeout) * 1000,
         }
         if all_cookies:

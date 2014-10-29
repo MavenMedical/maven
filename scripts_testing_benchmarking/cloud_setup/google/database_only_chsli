@@ -1,8 +1,0 @@
-echo "host   all    postgres          10.240.0.0/16   cert clientcert=1 map=chsli
-host   maven  maven             10.240.0.0/16   cert clientcert=1 map=chsli" >> pg_hba.conf
-echo "chsli           chsli.mavenmedical.net   postgres
-chsli           chsli.mavenmedical.net   maven" >> pg_ident.conf
-
-# need to put unencrypted server key (chmod 600) into data/server.key, also need server.crt and cacert.pem
-# an encrypted key can be unencrypted by openssl rsa -in keyfile -out server.key
-
