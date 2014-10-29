@@ -1,15 +1,38 @@
-<div class="followup">
     <div class="row">
         <div class="col-sm-1">
             <span class="headings">Subject</span>
         </div>
         <div class="col-sm-5">
-            <input type="text" class="form-control reminderSubject" name="reminderSubject">
+            <input type="text" class="form-control reminderSubject" name="reminderSubject" value="<%= (typeof msg_subject !== 'undefined') ? msg_subject : '' %>">
         </div>
-        <div class="col-sm-3">
-            <div class="input-group input-group-sm" style="max-width:360px;">
-                <input type="text" class="form-control reminderTime" name="reminderTime">
+        <div class="col-sm-2">
+            <div class="input-group input-group-sm" style="width:100%;">
+                <input type="text" class="form-control reminderTime" name="reminderTime" value="<%= (typeof due !== 'undefined') ? due : '' %>">
             </div>
+        </div>
+        <div class="col-sm-2">
+            <div class="input-group input-group-sm control-group" style="width:100%;">
+                <input type="text" class="form-control followupRecipient" placeholder="Search Provider"
+                       name="followupRecipient" value="<%= (typeof followupRecipient !== 'undefined') ? followupRecipient : '' %>">
+                <input class="followupRecipientName" name="followupRecipientName" type="hidden"
+                       value="<%= (typeof followupRecipientName !== 'undefined') ? followupRecipientName : '' %>">
+            </div>
+        </div>
+        <div class="col-sm-1">
+            <% if (typeof edit !== 'undefined') { %>
+            <button type="button" class="btn btn-default btn-block deleteFollowup">
+                <span class="glyphicon glyphicon-remove"></span>
+            </button>
+            <% } %>
+        </div>
+    </div>
+
+    <div class="row ">
+        <div class="col-sm-1">
+            <span class="headings">Message</span>
+        </div>
+        <div class="col-sm-5">
+            <input type="text" class="form-control reminderText" name="reminderText" value="<%= (typeof msg_body !== 'undefined') ? msg_body : '' %>">
         </div>
         <div class="col-sm-2">
             &nbsp;
@@ -19,14 +42,12 @@
                 </select>
             </div> -->
         </div>
-    </div>
-
-    <div class="row ">
+        <div class="col-sm-2">
+            &nbsp;
+        </div>
         <div class="col-sm-1">
-            <span class="headings">Message</span>
-        </div>
-        <div class="col-sm-5">
-            <input type="text" class="form-control reminderText" name="reminderText">
+            <% if (typeof sendMode !== 'undefined') { %>
+            <button type="button" class="btn btn-primary sendCurrentFollowup">Send</button>
+            <% } %>
         </div>
     </div>
-</div>

@@ -1,0 +1,51 @@
+<div class="widget-column col-sm-12">
+    <div id="detail-modal" class="modal fade" role="dialog" aria-hidden="true" data-backdrop="static">
+        <div class="modal-dialog modal-dialog-lg">
+            <div class="modal-content">
+                <div class="modal-body" style='margin-bottom: 20;'>
+                        <div class="row followup-header">
+                            <div class="col-sm-6">
+                                    <span class="headings">Send Followups</span>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="input-group input-group-sm" style="max-width:360px;">
+                                    Default Recipient:<input type="text" class="form-control" placeholder="Search Provider" disabled
+                                                     name="defaultFollowupRecipient" id="defaultFollowupRecipient">
+                                                <input id="defaultFollowupRecipientName" name="defaultFollowupRecipientName" type="hidden" value="">
+                                    </div>
+                            </div>
+                        </div>
+                        <div class="row followup-header-columns">
+                            <div class="col-sm-6">
+                                    <span class="headings">What</span>
+                            </div>
+                            <div class="col-sm-2">
+                                    <span class="headings">When</span>
+                            </div>
+                            <div class="col-sm-1">
+                                    <span class="headings">Who</span>
+                            </div>
+                            <div class="col-sm-1">
+                                &nbsp;
+                                <!-- <span class="headings">Repeat</span> -->
+                            </div>
+                        </div>
+                        <div id="followups">
+
+                        </div>
+                        <div class="row followup-footer">
+                            <div class="col-sm-12">
+                                <span id='add-new-followup' class="glyphicon glyphicon-plus"></span>New Reminder
+                            </div>
+                        </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="sendFollowupsButton">Send All</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

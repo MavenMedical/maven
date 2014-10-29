@@ -6,9 +6,10 @@ define([
     'globalmodels/contextModel',
     'pathway/models/treeModel',
     'pathway/modalViews/sendProtocol',
+    'pathway/modalViews/sendFollowups',
     'text!templates/pathway/protocolNode.html',
 
-], function ($, _, Backbone, currentContext, curTree, SendProtocol, nodeTemplate) {
+], function ($, _, Backbone, currentContext, curTree, SendProtocol, SendFollowups, nodeTemplate) {
 
     var treeNode = Backbone.View.extend({
 
@@ -17,6 +18,7 @@ define([
             'click button#copybutton': 'copyProtocole',
             'click button#sendSetup-button': 'sendSetup',
             'click button#send-button': 'send',
+            'click button#followup-button': 'followup',
             'click div.protocolNode': 'setSelectedNode'
         },
         initialize: function (params) {
@@ -65,9 +67,11 @@ define([
             }, 2000);
 
         },
-
         send: function () {
             var newSendProtocol = new SendProtocol(this.model);
+        },
+        followup: function () {
+            var sendFollowups = new SendFollowups(this.model);
         },
         sendSetup: function () {
 

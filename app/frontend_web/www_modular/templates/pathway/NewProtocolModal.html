@@ -27,7 +27,7 @@
                                 <div class="row">
                                     <div class="search-box" style='width:10%;'></div>
                                     <form class="search-box">
-                                        <div class="input-group input-group-sm" style="max-width:360px;">
+                                        <div class="input-group input-group-sm control-group" style="max-width:360px;">
                                               Recipient:<input type="text" class="form-control" placeholder="Search Provider"
                                                  name="protocolRecipient" id="defaultRecipient" >
                                             <input id="defaultRecipientName" name="defaultRecipientName" type="hidden" value="">
@@ -54,20 +54,23 @@
                             </div>
                             <div class="col-sm-6">
                                 <div class="input-group input-group-sm" style="max-width:360px;">
-                                    Recipient:<input type="text" class="form-control" placeholder="Search Provider"
-                                                     name="followupRecipient" id="followupRecipient" >
-                                                <input id="followupRecipientName" name="followupRecipientName" type="hidden" value="">
+                                    Default Recipient:<input type="text" class="form-control" placeholder="Search Provider"
+                                                     name="defaultFollowupRecipient" id="defaultFollowupRecipient">
+                                                <input id="defaultFollowupRecipientName" name="defaultFollowupRecipientName" type="hidden" value="">
                                     </div>
                             </div>
                         </div>
-                        <div class="row followup-header-columns">
+                        <div class="row followup-header-columns" style="display:none;">
                             <div class="col-sm-6">
                                     <span class="headings">What</span>
                             </div>
-                            <div class="col-sm-3">
+                            <div class="col-sm-2">
                                     <span class="headings">When</span>
                             </div>
-                            <div class="col-sm-2">
+                            <div class="col-sm-1">
+                                    <span class="headings">Who</span>
+                            </div>
+                            <div class="col-sm-1">
                                 &nbsp;
                                 <!-- <span class="headings">Repeat</span> -->
                             </div>
@@ -77,7 +80,9 @@
                         </div>
                         <div class="row followup-footer">
                             <div class="col-sm-12">
-                                <span id='add-new-followup' class="glyphicon glyphicon-plus"></span>New Reminder
+                                <button type="button" id='add-new-followup'  class="btn btn-default btn-xs">
+                                    <span class="glyphicon glyphicon-plus"></span>
+                                </button> New Followup
                             </div>
                         </div>
                     </div>
