@@ -14,7 +14,8 @@ define([
 
             initialize: function (arg) {
                 this.template = _.template(arg.template);
-                curTree.on('propagate', this.render, this);
+
+                    curTree.on('propagate', this.render, this);
 
             },
             showhide: function () {
@@ -25,23 +26,28 @@ define([
 
             },
             render: function () {
-                console.log(curTree.get('selectedNode').attributes)
-                var that = this;
-                // Don't show if there is no text or if selected node is Protocol
-                if (!(curTree.get('selectedNode').attributes.sidePanelText == "" || curTree.get('selectedNode').attributes.isProtocol )
-                    && !(this.selectedNode == curTree.get('selectedNode'))) {
-                    this.$el.hide(); // hide previous side-popup
-                    this.selectedNode = curTree.get('selectedNode');
-                    this.$el.html(this.template(curTree.get('selectedNode').attributes));
-                    this.$el.show(1000, function () {
-                        /* This code for auto hide
-                         setTimeout(function () {
-                         that.$el.hide(3000);
-                         }, 5000);
-                         */
-                    });
-                }
 
+                // for accounts with no pathways
+                if(typeof curTree.get('selectedNode') !== 'undefined') {
+
+                    var that = this;
+                    // Don't show if there is no text or if selected node is Protocol
+                    if (!(curTree.get('selectedNode').attributes.sidePanelText == "" || curTree.get('selectedNode').attributes.isProtocol )
+                        && !(this.selectedNode == curTree.get('selectedNode'))) {
+                        this.$el.hide(); // hide previous side-popup
+                        this.selectedNode = curTree.get('selectedNode');
+                        this.$el.html(this.template(curTree.get('selectedNode').attributes));
+                        $('#side-popup').css('top', curTree.get('selectedNodeOffset').top );
+                        $('#side-popup').css('left',  curTree.get('selectedNodeOffset').left + curTree.get('selectedNodeWidth') + 10);
+                        this.$el.show(1000, function () {
+                            /* This code for auto hide
+                             setTimeout(function () {
+                             that.$el.hide(3000);
+                             }, 5000);
+                             */
+                        });
+                    }
+                }
 
                 //         return this;
             },
