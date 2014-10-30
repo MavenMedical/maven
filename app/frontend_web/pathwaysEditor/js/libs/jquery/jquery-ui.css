@@ -76,6 +76,7 @@ input.ui-button { padding: .4em 1em; }
 button.ui-button::-moz-focus-inner { border: 0; padding: 0; } /* reset extra padding in Firefox */
 
 .ui-datepicker { width: 17em; padding: .2em .2em 0; z-index: 9999 !important; } /* needed to make date picker show up in modals */
+.datePickerTextBox{ cursor:pointer !important; background-color: #FFFFFF !important;} /* keeps the text box for the datepicker appear normal when readonly option is set*/
 
 .ui-datepicker { width: 17em; padding: .2em .2em 0; display: none; }
 .ui-datepicker .ui-datepicker-header { position:relative; padding:.2em 0; }

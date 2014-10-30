@@ -143,7 +143,12 @@ define([
                      "due": date,
                 }),
                 error: function (){
-                    alert("There was a problem setting up followups.");
+                    alert("There was a problem sending this followup: " + subject);
+                },
+                success: function (){
+                    $("#send-followups-message").show();
+                    $("#send-followups-message").html('Followup Sent!')
+                    $("#send-followups-message").fadeOut(1500);
                 }
             });
         }

@@ -47,36 +47,9 @@ define([
             $("#sendFollowupsButton", this.$el).on("click", function(){
                 $(followups).each(function(){
                     this.sendFollowup();
-/*
-                    //iterate through each followup: store in protocol node and add task
-                    var subject = $(this).find(".reminderSubject").val();
-                    var message = $(this).find(".reminderText").val();
-                    var date = $(this).find(".reminderTime").val() + "T00:00:00.000Z";
-
-                    if (subject == ""){
-                        //default subject
-                        subject = "Followup from " + new Date().toISOString().substr(0,10);
-                    }
-                    var extraArg = "&userid="+contextModel.get("userid");
-                    if (followupRecipient!="" && followupRecipientName!= "")
-                    {
-                        extraArg += "&target_user=" + $("#followupRecipientName").val();
-                    }
-                    $.ajax({
-                        type: 'POST',
-                        dataType: 'json',
-                        url: "/add_task?" + $.param(contextModel.toParams()) + extraArg,
-                        data: JSON.stringify({
-                                "msg_subject": subject,
-                                "msg_body": message,
-                                "delivery": "ehrinbox",
-                                "due": date,
-                            }),
-                            error: function (){
-                                alert("There was a problem setting up followups.");
-                            }
-                        });*/
                 });
+                alert("Followups Sent");
+               $('#detail-modal').modal('hide')
             })
         },
         removeFollowup: function(event) {

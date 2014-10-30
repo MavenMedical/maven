@@ -890,3 +890,7 @@ button:hover .btn-hover { display: inline; }
   font-size: 18px;
   cursor: pointer;
 }
+
+#send-followups-message{
+    float:left;
+}
