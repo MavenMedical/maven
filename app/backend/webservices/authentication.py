@@ -93,6 +93,7 @@ class AuthenticationWebservices():
             provider = user_info[WP.Results.provid]
             user_auth, cookie = self.helper.make_auth_and_cookie({
                 CONTEXT.USER: [username],
+                CONTEXT.USERID: [str(user_info[WP.Results.userid])],
                 CONTEXT.PROVIDER: [provider],
                 CONTEXT.CUSTOMERID: [customer],
                 CONTEXT.ROLES: roles,
@@ -214,6 +215,7 @@ class AuthenticationWebservices():
             userid = user_info[WP.Results.userid]
             user_auth, cookies = self.helper.make_auth_and_cookie({
                 CONTEXT.USER: [username],
+                CONTEXT.USERID: [str(userid)],
                 CONTEXT.PROVIDER: [provider],
                 CONTEXT.CUSTOMERID: [customer],
                 CONTEXT.ROLES: roles,
