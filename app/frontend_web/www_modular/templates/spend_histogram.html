@@ -4,7 +4,9 @@
     Per-encounter costs for <% if(patientName) print(patientName); else print("my patients"); %>
   </span>
   <div class="pull-right">
-    Download as <a id='histogram-download'>csv</a> 
+    <!--[if gte IE 10]><!-->
+        Download as <a id='histogram-download'>csv</a>
+    <!--<![endif]-->
   </div>
   <div class="maven-padding"></div>
   <div id="spend-histogram" class="chart-div" style="margin-top: 0px"></div>
