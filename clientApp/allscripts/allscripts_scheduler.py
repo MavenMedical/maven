@@ -35,12 +35,13 @@ class scheduler():
         self.parent = parent
         self.customer_id = customer_id
         self.allscripts_api = allscripts_api
-        self.processed = set()
         self.lastday = None
         self.comp_builder = CompositionBuilder(customer_id, allscripts_api)
         self.active_providers = {}
         self.disabled = disabled
         self.firsts = defaultdict(lambda: True)
+        self.evaluations = {}
+
         try:
             self.sleep_interval = float(sleep_interval)
         except ValueError as e:
@@ -66,7 +67,7 @@ class scheduler():
                 today = date.today()
                 if today != self.lastday:
                     self.lastday = today
-                    self.processed = set()
+                    self.evaluations.clear()
                 try:
                     sched = yield from self.allscripts_api.GetSchedule(None, today)
                     polling_providers = {x[0] for x in filter(self.check_notification_policy, self.active_providers)}
@@ -84,9 +85,6 @@ class scheduler():
                         ML.TASK(self.evaluate(*task))
                 except AllscriptsError as e:
                     CLIENT_SERVER_LOG.exception(e)
-                # print([(sch['patientID'], sch['ApptTime2'], sch['ProviderID']) for sch in sched])
-
-                # CLIENT_SERVER_LOG.debug(sched)
 
             except Exception as e:
                 CLIENT_SERVER_LOG.exception(e)
@@ -101,46 +99,63 @@ class scheduler():
         CLIENT_SERVER_LOG.debug('evaluating %s/%s' % (patient, provider_id))
         provider = self.active_providers.get((provider_id, str(self.customer_id)))
         provider_username = provider.get('user_name')
-        try:
-            # print('evaluating %\s for %s' % (patient, provider))
-            now = datetime.now()
-            prior = now - timedelta(seconds=12000)
-        except:
-            import traceback
-            traceback.print_exc()
+
+        now = datetime.now()
+        prior = now - timedelta(seconds=12000)
+
         try:
             documents = yield from self.allscripts_api.GetDocuments(provider_username, patient,
                                                                     prior, now)
-            # print('got %d documents' % len(documents))
-            # ML.DEBUG('documents: %d' % len(documents))
             if documents:
-                # print('\n'.join([str((doc['DocumentID'], doc['SortDate'], doc['keywords'])) for doc in documents]))
                 for doc in documents:
-                    keywords = doc.get('keywords', '')
-                    match = icd9_keyword_match.search(keywords)
-                    mydoc = doc.get('mydocument', 'N') == 'Y'
-                    docid = doc.get('DocumentID')
+                    # Ignore the "first" documents b/c we're starting the client_app server up
+                    if first:
+                        continue
+
+                    # Ignore documents/encounters that were created by other providers
+                    if not (doc.get('mydocument', 'N') == 'Y'):
+                        continue
+
+                    # Ignore old encounters
                     doctime = doc.get('SortDate', None)
                     enc_datetime = doctime and parse(doctime)
-                    todaydoc = enc_datetime and enc_datetime.date() == today
-                    newdoc = True
-                    if (mydoc and match and newdoc and todaydoc and
-                       (patient, provider_id, today, docid) not in self.processed):
-                        ML.DEBUG('got doc, (match, newdoc, docid, first) = %s' % str((match, newdoc, docid, first)))
-                        self.processed.add((patient, provider_id, today, docid))
-                        if not first:
-                            # start, stop = match.span()
-                            encounter_dx = icd9_capture.findall(keywords)
-                            CLIENT_SERVER_LOG.debug("About to send to Composition Builder...")
-                            composition = yield from self.comp_builder.build_composition(provider_username, patient, docid, enc_datetime, encounter_dx)
-                            CLIENT_SERVER_LOG.debug(("Built composition, about to send to Backend Data Router. Composition ID = %s" % composition.id))
-                            ML.TASK(self.parent.evaluate_composition(composition))
-                            break
-                # processed.update({doc['DocumentID'] for doc in documents})
+                    if not (enc_datetime.date() == today):
+                        continue
+
+                    # Add the provider/patient/encounter key to dictionary of evaluations if we haven't already
+                    encounter_id = doc.get('DocumentID')
+                    if (provider_id, patient, encounter_id) not in self.evaluations.keys():
+                        self.evaluations[(provider_id, patient, encounter_id)] = {"encounter_create": True,
+                                                                                  "assessment_and_plan": True}
+                    # Check the keywords, and if there are ICD9 keywords we know that the clinician is already
+                    # at the Assessment & Plan, so perform the "assessment_and_plan" evaluation (if haven't already)
+                    document_keywords = doc.get('keywords', '')
+                    has_ICD9_keywords = icd9_keyword_match.search(document_keywords)
+                    encounter_dx = icd9_capture.findall(document_keywords)
+
+                    if has_ICD9_keywords and self.evaluations[(provider_id, patient, encounter_id)].get('assessment_and_plan'):
+                        yield from self.build_composition_and_evaluate(provider_username, patient, encounter_id, enc_datetime, encounter_dx, 'assessment_and_plan')
+                        # Set the flag in the evaluations dictionary so we don't do this evaluation again
+                        self.evaluations[(provider_id, patient, encounter_id)]['assessment_and_plan'] = False
+                        break
+
+                    # If there are no ICD9 keywords, perform the "encounter_create" evaluation (if we haven't already)
+                    elif self.evaluations[(provider_id, patient, encounter_id)].get('encounter_create'):
+                        yield from self.build_composition_and_evaluate(provider_username, patient, encounter_id, enc_datetime, encounter_dx, 'encounter_create')
+                        self.evaluations[(provider_id, patient, encounter_id)]['encounter_create'] = False
+                        break
+
         except AllscriptsError as e:
             CLIENT_SERVER_LOG.exception(e)
         except Exception as e:
             CLIENT_SERVER_LOG.exception(e)
+
+    @asyncio.coroutine
+    def build_composition_and_evaluate(self, provider_username, patient, encounter_id, enc_datetime, encounter_dx, eval_type):
+        CLIENT_SERVER_LOG.debug("About to send to Composition Builder...")
+        composition = yield from self.comp_builder.build_composition(provider_username, patient, encounter_id, enc_datetime, encounter_dx)
+        CLIENT_SERVER_LOG.debug(("Sending to backend for %s evaluation. Composition ID = %s" % (composition.id, eval_type)))
+        ML.TASK(self.parent.evaluate_composition(composition))
 
     def check_notification_policy(self, key):
         provider = self.active_providers.get(key)

@@ -8,13 +8,13 @@ define([
 
     var NodeModel;
     var NodeList = Backbone.Collection.extend({
-        populate: function(childSet, curTree){
+        populate: function(childSet, curTree, options){
             if (childSet){
                 for (var i in childSet){
                     var cur = childSet[i]
                     var toAdd
                     if (cur.children){
-                        toAdd = new NodeModel(cur, curTree)
+                        toAdd = new NodeModel(cur, curTree, options)
                         toAdd.set('hasLeft', i!=0)
                         toAdd.set('hasRight', i<childSet.length-1)
                     } else  {
@@ -27,11 +27,11 @@ define([
                 }
             }
         },
-        toJSON: function(){
+        toJSON: function(options){
 
             var jsonList = []
             _.each(this.models, function(cur){
-                jsonList.push(cur.toJSON())
+                jsonList.push(cur.toJSON(options))
 
             }, this)
             return jsonList
@@ -45,7 +45,7 @@ define([
           return "treeNode"
         },
 
-        initialize: function(params, curTree){
+        initialize: function(params, curTree, options){
 
             if (!params.nodeID){
                 this.set('nodeID', curTree.get('id') + ":" + curTree.getNextNodeID(), {silent: true})
@@ -54,7 +54,7 @@ define([
             }
             if (!params.children){params.children = []}
             var newChildren = new NodeList()
-            newChildren.populate(params.children, curTree)
+            newChildren.populate(params.children, curTree, options)
             this.set({
 		children: newChildren,
 		'hideChildren': "true",
@@ -69,15 +69,16 @@ define([
                 this.get('children').add(new Backbone.Model(params.protocol) )
             }
         },
-        toJSON: function(){
-            var retMap = _.omit(this.attributes, ['children', 'hideChildren'])
-            retMap.children = this.get('children').toJSON()
+        toJSON: function(options){
+            var retMap = _.omit(this.attributes, ['children', 'hideChildren', 'hasLeft', 'hasRight'])
+	    if (options.toExport) {retMap = _.omit(retMap, ['nodeID'])}
+            retMap.children = this.get('children').toJSON(options)
             return retMap
         },
-	populateChildren: function(children) {
+	populateChildren: function(children, options) {
             var newChildren = new NodeList()
 	    if (children) {
-		newChildren.populate(children, this)
+		newChildren.populate(children, this, options)
 	    }
 	    this.set({children: newChildren}, {silent: true})
 	}

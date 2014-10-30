@@ -32,7 +32,7 @@ define([
             'click #newpath-button': 'handle_newPath',
             'click #save-button': 'handle_save',
             'click #trigger-button': 'addTrigger',
-            'click #importpath-button': 'importPath',
+	    'change .btn-file :file': 'importPath',
             'click #exportpath-button': 'exportPath',
             'click #testButton': 'handleTest'
         },
@@ -93,33 +93,31 @@ define([
             curTree.save()
         },
         importPath: function () {
-            console.log('import pathway');
-            $('.btn-file :file').on('change', function () {
-                var input = $(this),
-                    file = input.get(0).files[0];
-
-                if (file) {
-                    var reader = new FileReader();
-                    reader.readAsText(file, "UTF-8");
-                    reader.onload = function (evt) {
-                        try{
-                            var importedPath = JSON.parse(evt.target.result);
-                            console.log("filecontent", JSON.parse(evt.target.result));
-                            curTree.parse(importedPath);
-                        }
-                        catch(e){
-                            alert("The format of the file doesn't match Pathway format. Please try another file");
-                        }
-
+	    var input = $('.btn-file :file')
+            file = input.get(0).files[0];
+            if (file) {
+                var reader = new FileReader();
+                reader.readAsText(file, "UTF-8");
+                reader.onload = function (evt) {
+                    try{
+                        var importedPath = JSON.parse(evt.target.result);
+                        console.log("filecontent", JSON.parse(evt.target.result));
+			curTree.loadNewPathway(importedPath, {toImport: true})
                     }
-                    reader.onerror = function (evt) {
-                        alert('error reading file')
+                    catch(e){
+                        alert("The format of the file doesn't match Pathway format. Please try another file");
                     }
+		    
                 }
-            });
-        },
+                reader.onerror = function (evt) {
+                    alert('error reading file')
+                }
+		input.wrap('<form>').closest('form').get(0).reset();
+		input.unwrap();
+            }
+	},
         exportPath: function () {
-           exportPathway(JSON.stringify(curTree.toJSON()) , curTree.get('name')+'.pathway', 'text/plain');
+           exportPathway(JSON.stringify(curTree.toJSON({'toExport':true})) , curTree.get('name')+'.pathway', 'text/plain');
         }
 
     });
