@@ -270,14 +270,12 @@ define([
         getNodeType: function(){
           return "treeModel"
         },
-        toJSON: function(omitID){
+        toJSON: function(options){
 	    var children = [];
-	    if (this.get('children')) {
-		children = _.map(this.get('children').models, function(child) {return child.toJSON(omitID);});
-	    }
+	    children = this.get('children').toJSON(options)
             var retMap = _.omit(this.attributes, ['children', 'hideChildren', 'selectedNode', 'selectedNodeOffset',
 						 'hasLeft', 'hasRight'])
-	    if (omitID) {retMap = _.omit(retMap, ['nodeID'])}
+	    if (options.toExport) {retMap = _.omit(retMap, ['nodeID', 'nodeCount', 'id'])}
             retMap.children = children
             console.log('the json will look like', retMap)
 
@@ -285,7 +283,7 @@ define([
         },
 
 
-        loadNewPathway: function(params){
+        loadNewPathway: function(params, options){
 
             this.set({
 		'triggers': new Backbone.Model(),
@@ -294,19 +292,33 @@ define([
 		'name': params.name,
 		'protocol': null,
 		'nodeCount': 0,
-		'nodeID': this.getNextNodeID()
+		'nodeID': 0
 	    }, {silent: true})
 	    this.populateChildren()
 
             this.unset('id', {silent: true})
-            var that = this
+	    var that = this
             this.save({}, {success: function(){
                     pathwayCollection.fetch()
-                }
-            })
+		    params.pathid = that.get('id')
+		    if (options.toImport) {
+			that.parse(params, options)
+			that.save({}, 
+				  {success: function(data){
+				      contextModel.set({'pathid': that.get('id')})
+				      Backbone.history.navigate("pathwayeditor/"+that.get('id')+ "/node/undefined");		    
+				      pathwayCollection.fetch()
+				  }})			  
+
+		    }
+            }
+			  })
 
         },
-        parse: function(response){
+        parse: function(response, options){
+	    if (options.toImport) {
+		response = _.omit(response, ['nodeID', 'nodeCount'])
+	    }
             if (!response.nodeCount){
                 this.set({nodeCount: 0}, {silent: true})
             } else {
@@ -325,7 +337,7 @@ define([
 		name: response.name,
 		hideChildren: "false"
 	    }, {silent: true})
-	    this.populateChildren(response.children)
+	    this.populateChildren(response.children, options)
             this.once('sync',  function(){recursiveCollapse(this)}, this)
             var triggers = new Backbone.Model()
             _.each(response.triggers, function(value, key){
@@ -334,7 +346,6 @@ define([
 
             })
             this.set({triggers: triggers}, {silent: true})
-
         }
 
     })
