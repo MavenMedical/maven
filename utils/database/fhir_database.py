@@ -19,7 +19,6 @@ __author__ = 'Yuki Uchino'
 import json
 import datetime
 import asyncio
-from collections import defaultdict
 from dateutil.relativedelta import relativedelta
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
 from utils.enums import ORDER_SOURCE, PROCEDURE_ORDER_TYPES, MEDICATION_ORDER_TYPES, ALERT_TYPES, ALERT_VALIDATION_STATUS
@@ -725,6 +724,8 @@ def get_matching_pathways(composition, conn):
         encounter_snomedIDs = composition.get_encounter_dx_snomeds()
         problem_list_snomedIDs = composition.get_problem_list_dx_snomeds()
         patient_age = composition.get_patient_age()
+        provider_id = composition.author.get_provider_id()
+        encounter_id = composition.encounter.get_csn()
 
         # TODO - Need to replace this placeholder list of meds with the real meds
         patient_meds = []
@@ -735,8 +736,10 @@ def get_matching_pathways(composition, conn):
                 problem_list_snomedIDs,
                 composition.subject.get_pat_id(),
                 composition.customer_id,
-                patient_meds]
-        cur = yield from conn.execute_single("SELECT * FROM trees.evalnode(%s, %s,%s,%s,%s,%s,%s,%s)", extra=args)
+                patient_meds,
+                provider_id,
+                encounter_id]
+        cur = yield from conn.execute_single("SELECT * FROM trees.evalnode(%s, %s,%s,%s,%s,%s,%s,%s,%s,%s)", extra=args)
 
         rtn_matched_rules = []
         for result in cur:
