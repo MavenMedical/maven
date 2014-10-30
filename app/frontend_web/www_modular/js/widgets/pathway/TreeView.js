@@ -42,7 +42,7 @@ define([
                     if (contextModel.get('page') != 'pathway'){
                         return;
                     }
-                     var target = $(param1.explicitOriginalTarget)
+                     var target = $(param1.target)
                     console.log(target.closest('.click-tracked'))
                       if (target.closest('.click-tracked').length){
                             var node_state = (target.closest('.click-tracked').attr('clickid'));
@@ -118,6 +118,7 @@ define([
                 curTree.on('drawJSPlumb', this.renderJSPlumb, this)
                 contextModel.on('change', this.render, this)
 		contextModel.on('change:pathid', function() {
+		    curTree.set({'selectedNodeOffset': null, 'selectedNode': null}, {silent:true})
 		    if (that.treeEl[0].style.transform) {
 			that.treeEl.css({left: '', top:'', transform: 'scale(1)'});
 		    } else {
