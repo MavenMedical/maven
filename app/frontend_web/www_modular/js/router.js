@@ -139,6 +139,7 @@ define([
 		eraseCookie(document.cookie.split('=')[0]);
 	    }
             currentContext.clear({silent: true});
+	    $.ajax({type: 'POST',dataType: 'json',url: "/logout"})
             location.href = "/index.html";
         },
         defaultAction: function (action) {

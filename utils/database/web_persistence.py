@@ -594,6 +594,12 @@ class WebPersistence():
         results = yield from self.execute(cmd, cmdargs, self._display_user_info, desired)
         return results
 
+    @asyncio.coroutine
+    def get_customer_id(self, shortname):
+        results = yield from self.execute(['SELECT customer_id FROM customer where abbr = %s;'],
+                                          (shortname,), _build_format(), {1: 1})
+        return results[0][1]
+
     _default_customer_info = set((Results.abbr,))
     _available_customer_info = {
         Results.customerid: "customer.customer_id",

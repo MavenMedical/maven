@@ -47,6 +47,16 @@ class AuthenticationWebservices():
         self.oauth = config.get(CONFIG_OAUTH, None)
         self.timeout = timeout or LOGIN_TIMEOUT
 
+    @http_service(['GET', 'POST'], '/logout', None, None, None)
+    def logout(self, *args):
+        return HTTP.OK_RESPONSE, b'', [bytes('Set-Cookie: userAuth=; Path=/; Max-Age=0', 'utf-8')]
+
+    @http_service(['GET'], '/customer_id', None, None, None)
+    def get_customer_id(self, _header, _body, context, _matches, _key):
+        customer_abbr = context[CONTEXT.ABBREVIATION][0]
+        results = yield from self.persistence.get_customer_id(customer_abbr)
+        return HTTP.OK_RESPONSE, json.dumps(results), None
+
     @http_service(['GET'], '/refresh_login',
                   {CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.ROLES},
                   {CONTEXT.USER: str, CONTEXT.CUSTOMERID: str,
