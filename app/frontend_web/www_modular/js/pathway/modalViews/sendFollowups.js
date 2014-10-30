@@ -18,7 +18,7 @@ define([
         initialize: function(parent){
             var that = this;
             this.parent = parent;
-            this.$el.html(this.template(that.attributes));
+            this.$el.html(this.template(this.attributes));
             $("#detail-modal").modal({'show':'true'});
 
             followups = new Array();

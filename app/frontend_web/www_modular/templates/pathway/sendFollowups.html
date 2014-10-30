@@ -10,8 +10,10 @@
                             <div class="col-sm-6">
                                 <div class="input-group input-group-sm" style="max-width:360px;">
                                     Default Recipient:<input type="text" class="form-control" placeholder="Search Provider" disabled
-                                                     name="defaultFollowupRecipient" id="defaultFollowupRecipient">
-                                                <input id="defaultFollowupRecipientName" name="defaultFollowupRecipientName" type="hidden" value="">
+                                                     name="defaultFollowupRecipient" id="defaultFollowupRecipient"
+                                                     value="<%= (typeof defaultFollowupRecipient !== 'undefined') ? defaultFollowupRecipient : '' %>">
+                                                <input id="defaultFollowupRecipientName" name="defaultFollowupRecipientName" type="hidden"
+                                                       value="<%= (typeof defaultFollowupRecipientName !== 'undefined') ? defaultFollowupRecipientName : '' %>">
                                     </div>
                             </div>
                         </div>

@@ -30,8 +30,8 @@ define([
                     var defaultRecipient = $("#defaultRecipient").val();
                     var defaultRecipientName = $("#defaultRecipientName").val();
                     var defaultQuickNote = $("#defaultQuickNote").val();
-                    var followupRecipient = $(".defaultFollowupRecipient", this.$el).val();
-                    var followupRecipientName = $(".defaultFollowupRecipientName", this.$el).val();
+                    var followupRecipient = $("#defaultFollowupRecipient").val();
+                    var followupRecipientName = $("#defaultFollowupRecipientName").val();
                     var followupInfo = [];
 
                     $(followups).each(function() {
