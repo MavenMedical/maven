@@ -20,7 +20,7 @@ define([
                     } else  {
                         toAdd = new Backbone.Model(cur)
 			if (!toAdd.nodeID){ 
-			    toAdd.nodeID = curTree.get('id') + ":" + curTree.getNextNodeID()
+			    toAdd.set('nodeID', curTree.get('id') + ":" + curTree.getNextNodeID())
 			}
                     }
                     this.add(toAdd, {silent: true})
@@ -66,6 +66,9 @@ define([
                 cur.set({'hideChildren': "false"}, {silent: true})
             })
             if (params.protocol){
+		if (!params.protocol.nodeID) {
+		    params.protocol.nodeID = curTree.getNextNodeID()
+		}
                 this.get('children').add(new Backbone.Model(params.protocol) )
             }
         },
