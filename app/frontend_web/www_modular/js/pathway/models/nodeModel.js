@@ -19,10 +19,12 @@ define([
                         toAdd.set('hasRight', i<childSet.length-1)
                     } else  {
                         toAdd = new Backbone.Model(cur)
-			if (!toAdd.nodeID){ 
-			    toAdd.set('nodeID', curTree.get('id') + ":" + curTree.getNextNodeID())
-			}
-                    }
+                        toAdd.set('isProtocol', true) //if this is an old protocol without a isProtocol add it
+                     }
+
+                        if (!toAdd.nodeID){
+                            toAdd.set('nodeID', curTree.get('id') + ":" + curTree.getNextNodeID())
+                        }
                     this.add(toAdd, {silent: true})
                 }
             }

@@ -155,6 +155,8 @@ define([
     }
 
     var recursiveCollapse= function(node){
+
+
         if (node.get('isProtocol')) return
         node.set('hideChildren', "true", {silent: true})
         _.each(node.attributes.children.models, function(cur){
