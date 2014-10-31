@@ -4,6 +4,8 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'globalmodels/contextModel',
+
+    'pathway/internalViews/protocolNode',
     'pathway/modalViews/nodeEditor',
     'pathway/modalViews/protocolEditor',
     'pathway/models/nodeModel',
@@ -11,7 +13,7 @@ define([
 
     'text!templates/pathway/treeNode.html'
 
-    ], function($, _, Backbone, currentContext,  NodeEditor, ProtocolEditor, nodeModel, curTree, nodeTemplate){
+    ], function($, _, Backbone, currentContext,  ProtocolNode, NodeEditor, ProtocolEditor, nodeModel, curTree, nodeTemplate){
 
         var treeNode = Backbone.View.extend({
             nodeType: "standard",
@@ -138,7 +140,6 @@ define([
             },
             addProtocol: function(protoModel){
                  var that = this
-                    require(['pathway/internalViews/protocolNode',], function(ProtocolNode){
                         console.log('the protocol node', ProtocolNode)
                         var protoNode = new ProtocolNode({model: protoModel})
                         $('.protocol', that.$el).first().append(protoNode.render().$el)
@@ -146,9 +147,7 @@ define([
                         $('.removeProtocolButton', that.$el).on("click", function(){
                             curTree.deleteNode(protoModel, false)
                         })
-                        curTree.trigger('drawJSPlumb')
 
-                    })
             }
 
 

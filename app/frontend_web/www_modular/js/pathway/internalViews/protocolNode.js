@@ -12,7 +12,9 @@ define([
 
 ], function ($, _, Backbone, currentContext, treeNode, curTree, SendProtocol, SendFollowups, nodeTemplate) {
 
-    var protocolNode = treeNode.extend({
+    var protocolNode = Backbone.View.extend({
+
+
         nodeType: "protocol",
         template: _.template(nodeTemplate),
         events: {
@@ -27,6 +29,23 @@ define([
             this.model = params.model
 
         },
+        makeExit: function(jsPlumb2){
+                var exit = jsPlumb2.addEndpoint(this.getMyElement(), {anchor: 'Bottom'})
+                return exit
+            },
+            makeEntrance: function(jsPlumb2){
+                var entrance = jsPlumb2.addEndpoint(this.getMyElement(), {anchor: 'Top'})
+                return entrance
+            },
+
+
+
+            setSelectedNode: function(){
+                this.getMyElement().off('click');
+                curTree.set('selectedNode', this.model, {silent: true});
+                curTree.trigger('propagate')
+            },
+
 
         render: function () {
             if (this.model.get('protocol') && this.model.get('protocol').attributes) {
