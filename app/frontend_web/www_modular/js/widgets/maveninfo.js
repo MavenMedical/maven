@@ -14,19 +14,25 @@ define([
 
             initialize: function (arg) {
                 this.template = _.template(arg.template);
-
                     curTree.on('propagate', this.render, this);
+                    contextModel.on('change:page change:pathid', this.hidePopup , this);
+                this.dynamicLayout = true;
 
+            },
+            test: function(){
+              console.log("hi there test");
             },
             showhide: function () {
                 this.$el.show();
             },
             events: {
-                'click button.close': 'hidePopup'
+                'click button.close': 'hidePopup',
+                'click #toggleLayout': 'toggleLayout'
 
             },
             render: function () {
 
+                console.log('selectedNode', curTree.get('selectedNode'));
                 // for accounts with no pathways
                 if(typeof curTree.get('selectedNode') !== 'undefined') {
 
@@ -34,25 +40,46 @@ define([
                     // Don't show if there is no text or if selected node is Protocol
                     if (!(curTree.get('selectedNode').attributes.sidePanelText == "" || curTree.get('selectedNode').attributes.isProtocol )
                         && !(this.selectedNode == curTree.get('selectedNode'))) {
-                        this.$el.hide(); // hide previous side-popup
+                       this.hidePopup();
+                       // this.$el.hide(); // hide previous side-popup
                         this.selectedNode = curTree.get('selectedNode');
                         this.$el.html(this.template(curTree.get('selectedNode').attributes));
-                        $('#side-popup').css('top', curTree.get('selectedNodeOffset').top );
-                        $('#side-popup').css('left',  curTree.get('selectedNodeOffset').left + curTree.get('selectedNodeWidth') + 10);
-                        this.$el.show(1000, function () {
-                            /* This code for auto hide
-                             setTimeout(function () {
-                             that.$el.hide(3000);
-                             }, 5000);
-                             */
-                        });
+                        this.showPopup();
+
                     }
                 }
 
                 //         return this;
             },
             hidePopup: function () {
-                this.$el.hide(400);
+                this.$el.hide();
+                this.selectedNode = null;
+
+            },
+            showPopup: function(){
+                 if (this.dynamicLayout) {
+                            $('#side-popup').css('top', curTree.get('selectedNodeOffset').top);
+                            $('#side-popup').css('left', curTree.get('selectedNodeOffset').left + curTree.get('selectedNodeWidth') + 10);
+                      $('#side-popup').css('bottom', 'none');
+                            $('#side-popup').css('right', 'none');
+                        }else{
+                            $('#side-popup').css('top', 'none');
+                            $('#side-popup').css('left', 'none');
+                            $('#side-popup').css('bottom', 5);
+                            $('#side-popup').css('right', 5);
+                        }
+
+                        this.$el.show(1000);
+
+            },
+            toggleLayout: function(){
+                console.log('toggle', 'test toggle');
+                if (this.dynamicLayout){
+                    this.dynamicLayout = false;
+                }else{
+                    this.dynamicLayout = true;
+                }
+                this.showPopup();
             }
         })
         ;
