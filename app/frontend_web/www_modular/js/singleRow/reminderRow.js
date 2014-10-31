@@ -94,6 +94,11 @@ define([
             var followupRecipient = $(".followupRecipient", this.$el).val();
             var followupRecipientName = $(".followupRecipientName", this.$el).val();
 
+            if (subject == "" && message == "" && date == "" && followupRecipient == "" && followupRecipient == "")
+            {
+                return {};
+            }
+
             return {msg_subject: subject, msg_body: message, due: date,
                     followupRecipient: followupRecipient, followupRecipientName: followupRecipientName};
         },

@@ -36,7 +36,10 @@ define([
 
                     $(followups).each(function() {
                         //store all followups
-                        followupInfo.push(this.getCurrentParams());
+                        curFollowup = this.getCurrentParams();
+                        if (!_.isEmpty(curFollowup)){
+                            followupInfo.push(curFollowup);
+                        }
                     });
                    
                     var myId = curTree.getNextNodeID()
