@@ -53,9 +53,12 @@ class AuthenticationWebservices():
 
     @http_service(['GET'], '/customer_id', None, None, None)
     def get_customer_id(self, _header, _body, context, _matches, _key):
-        customer_abbr = context[CONTEXT.ABBREVIATION][0]
-        results = yield from self.persistence.get_customer_id(customer_abbr)
-        return HTTP.OK_RESPONSE, json.dumps(results), None
+        try:
+            customer_abbr = context[CONTEXT.ABBREVIATION][0]
+            results = yield from self.persistence.get_customer_id(customer_abbr)
+            return HTTP.OK_RESPONSE, json.dumps(results), None
+        except:
+            return HTTP.NOTFOUND_RESPONSE, b'', None
 
     @http_service(['GET'], '/refresh_login',
                   {CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.ROLES, CONTEXT.KEY},
@@ -165,6 +168,13 @@ class AuthenticationWebservices():
         user_info = {}
         # import pdb
         # pdb.set_trace()
+        try:
+            int(customer)
+        except ValueError:
+            resp = {'loginTemplate': 'badLogin.html'}
+            resp['login-message'] = 'Invalid Customer ID'
+            return HTTP.UNAUTHORIZED_RESPONSE, json.dumps(resp), None
+
         badLogin = 'badNewPassword' if 'newpassword' in info else 'badLogin'
         try:
             # if header.get_headers().get('VERIFIED','SUCCESS') == 'SUCCESS':
@@ -202,7 +212,7 @@ class AuthenticationWebservices():
                 method = 'forward'
                 # was this auth key used recently
                 if auth in user_info[WP.Results.recentkeys]:
-                    raise LoginError('reusedLogin', 'An link can only be used once to login, please enter a password to login again')
+                    raise LoginError('reusedLogin', 'A link can only be used once to login, please enter a password to login again')
 
             if (user_info[WP.Results.userstate] != 'active'
                or (user_info[WP.Results.ehrstate] == 'disabled' and USER_ROLES.administrator.value not in user_info[WP.Results.roles])):

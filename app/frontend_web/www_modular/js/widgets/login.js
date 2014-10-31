@@ -21,7 +21,7 @@ define([
 	    if (domains.length == 3) {
 		$.ajax({type: 'GET',dataType: 'json',url: "/customer_id?abbr=" + domains[0],
 		       success: function(data) {
-			   that.customer = data
+			   that.fixed_customer = data
 			   var cust = $("#login-customer")
 			   cust.val(data)
 			   cust.hide()
@@ -41,9 +41,9 @@ define([
 		require(["text!../templates/"+contextModel.get('loginTemplate')], function(loginTemplate) {
 		    that.template = _.template(loginTemplate);
 		    that.$el.html(that.template(contextModel.attributes));
-		    if (that.customer) {
+		    if (that.fixed_customer) {
 			var cust = $("#login-customer")
-			cust.val(that.customer)
+			cust.val(that.fixed_customer)
 			cust.hide()
 		    }
 		    var message = contextModel.get('login-message');
