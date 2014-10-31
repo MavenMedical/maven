@@ -68,7 +68,8 @@ define([
                this.render()
             },
             render: function(){
-               curTree.elPairs=[]
+
+                curTree.elPairs=[]
                 jsPlumb.detachEveryConnection();
                 this.treeEl.html('')
                $('#drawPaths', this.$el).on('click', function(){
@@ -78,6 +79,7 @@ define([
 
                 $('.tree', that.$el).append("<div style= 'width:auto' class='nodeEl'></div>")
                 $('.tree', that.$el).append("<div style='height:60px'></div>")
+
                 var topLevel = new TriggerNode({el:$('.nodeEl').last(), model: curTree});
                  _.each(curTree.elPairs, function(cur){
 
