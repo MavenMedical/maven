@@ -115,7 +115,10 @@ define([
                     }, 100)
                 }
                 curTree.on('propagate', function () {
-                    that.render();
+                    this.render();
+                }, this)
+                curTree.on('sync', function () {
+                    this.render();
                 }, this)
                 curTree.on('drawJSPlumb', this.renderJSPlumb, this)
                 contextModel.on('change', this.render, this)

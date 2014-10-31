@@ -242,11 +242,12 @@ define([
 
             })
             this.on('sync', function(){
+                that.trigger('propagate')
                 setTimeout(function(){
 
                     var openNodes = contextModel.get('code').split('-')
                     that.getPathToIDS(openNodes)
-                }, 10);
+                }, 30);
 
 
             })

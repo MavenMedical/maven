@@ -26,7 +26,9 @@ define([
 
             },
             render: function () {
-
+                if (!curTree.get('selectedNode')){
+                    return
+                }
                 // for accounts with no pathways
                 if(typeof curTree.get('selectedNode') !== 'undefined') {
 
