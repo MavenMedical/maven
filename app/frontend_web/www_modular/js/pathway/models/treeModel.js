@@ -36,7 +36,6 @@ define([
      }
 
     var openPathToTarget = function(cur, target, path){
-        alert('3')
 
         if (cur.get('nodeID') == target){
             for (var i in path){
@@ -238,9 +237,7 @@ define([
                 that.getPathToIDS(openNodes)
             }})
             contextModel.on('change:code', function(){
-                alert("2")
                 var openNodes = contextModel.get('code').split('-')
-                alert("1")
                 that.getPathToIDS(openNodes)
 
             })
