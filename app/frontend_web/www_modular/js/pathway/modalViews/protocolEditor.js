@@ -35,7 +35,7 @@ define([
                     var followupInfo = [];
 
                     $(followups).each(function() {
-                        this.sendFollowup();
+                        //store all followups
                         followupInfo.push(this.getCurrentParams());
                     });
                    

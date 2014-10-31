@@ -31,11 +31,6 @@ define([
                 $(".reminderTime", that.$el).datepicker();
                 $('#ui-datepicker-div').css('z-index', '10000 !important');
 
-                //$(that.el).find(".deleteFollowup").click(function() {
-                /*$(".sendCurrentFollowup", that.$el).click(function() {
-                    that.sendFollowup("");
-                });*/
-
                 $('.followupRecipient', that.$el).autocomplete({
                     source: function (request, response) {
                         $.ajax({
@@ -50,14 +45,6 @@ define([
                     },
                     minLength: 3,
                     select: function (event, ui) {
-                      /*  event.preventDefault();
-                        if(ui.item){
-                            //fill in the autocomplete box with the display name and corresponding hidden input with the actual username
-                            $(event.target).val(ui.item.label);
-                            //var nameInput = "#" + event.target.id + "Name";
-                            $(".followupRecipientName", that.$el).val(ui.item.value);
-                        }*/
-
                         event.preventDefault();
                         $(event.target).parent().removeClass("has-error");
                         $(".sendCurrentFollowup", this.$el).removeAttr('disabled');
@@ -99,7 +86,6 @@ define([
         removeFollowup: function(that) {
             $(this.el).remove();
             console.log("removing followup");
-            //this.trigger("removeFollowup");
         },
         getCurrentParams: function() {
             var subject = $(".reminderSubject", this.el).val();
@@ -124,12 +110,13 @@ define([
 
             if (followupRecipientName == ''){
                 //if no recipient was designated, use the default
-                followupRecipientName = $("#defaultFollowupRecipientName").val(); // "";//defaultRecipient;
+                followupRecipientName = $("#defaultFollowupRecipientName").val();
             }
 
             var extraArg = "&userid="+contextModel.get("userid");
             if (followupRecipientName!= "")
             {
+                //specify recipient (otherwise send to self)
                 extraArg += "&target_user=" + followupRecipientName;
             }
             $.ajax({

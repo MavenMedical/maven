@@ -23,28 +23,35 @@ define([
 
             followups = new Array();
             $(this.attributes.followups).each(function(){
+                //show all default followups
                 this.sendMode = true;
-                //var followup = new ReminderRow({model:new Backbone.Model(this)});
-                $('#followups', that.$el).append("<div class='followup'></div>"); //append(followup.render().el);
+                $('#followups', that.$el).append("<div class='followup'></div>");
                 el = $('.followup', $('#followups', that.$el)).last();
                 var followup = new ReminderRow({model:new Backbone.Model(this), el:el});
-                //$('#followups', that.$el).append(followup.render().el);
-                //followup.events();
+
                 followups.push(followup);
                 followup.$el.bind('remove', {followup:followup}, that.removeFollowup);
             })
+            if (!this.attributes.followups.length) {
+                //if no stored followups, initialize with one blank one
+                $('#followups').append("<div class='followup'></div>");
+                el = $('.followup', $('#followups')).last();
+                var followup = new ReminderRow({model:new Backbone.Model({edit:true}), el:el});
+                followups.push(followup);
+                followup.$el.bind('remove', {followup:followup}, that.removeFollowup);
+            }
 
             $("#add-new-followup", this.$el).on("click", function() {
-                $('#followups').append("<div class='followup'></div>"); //append(followup.render().el);
+                //create new followup object
+                $('#followups').append("<div class='followup'></div>");
                 el = $('.followup', $('#followups')).last();
                 var followup = new ReminderRow({model:new Backbone.Model({edit:true, sendMode: true}), el:el});
-                //followup.render();
-                //followup.events();
                 followups.push(followup);
                 followup.$el.bind('remove', {followup:followup}, that.removeFollowup);
             });
 
             $("#sendFollowupsButton", this.$el).on("click", function(){
+                //send all followups
                 $(followups).each(function(){
                     this.sendFollowup();
                 });
@@ -54,7 +61,6 @@ define([
         },
         removeFollowup: function(event) {
             //remove reference to followup
-            //followups.splice(event.data.followup,1);
             followups = _.without(followups, event.data.followup);
             console.log("Removing from send followups");
         }
