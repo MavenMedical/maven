@@ -461,10 +461,10 @@ class WebPersistence():
         yield from self.execute(cmd, cmdargs, {}, {})
 
     @asyncio.coroutine
-    def record_login(self, username, customer_id, method, ip, authkey):
-        yield from self.execute(["INSERT INTO logins (user_name, customer_id, method, logintime, ip, authkey)" +
-                                 "VALUES (UPPER(%s), %s, %s, now(), %s, %s)"],
-                                [username, customer_id, method, ip, authkey], {}, {})
+    def record_login(self, username, customer_id, method, ip, authkey, environment=None):
+        yield from self.execute(["INSERT INTO logins (user_name, customer_id, method, logintime, ip, authkey, environment)" +
+                                 "VALUES (UPPER(%s), %s, %s, now(), %s, %s, %s)"],
+                                [username, customer_id, method, ip, authkey, environment], {}, {})
 
     _default_pre_login = set((Results.username,))
     _available_pre_login = {
