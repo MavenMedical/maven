@@ -135,10 +135,16 @@ define([
             showPage(user, customer, userAuth);
         },
         logout: function () {
-	    while(document.cookie) {
+	    eraseCookie('valid-through')
+	    eraseCookie('roles')
+	    eraseCookie('username')
+	    var max=10;
+	    while(document.cookie && max>0) {
+		max = max-1
 		eraseCookie(document.cookie.split('=')[0]);
 	    }
             currentContext.clear({silent: true});
+	    $.ajax({type: 'POST',dataType: 'json',url: "/logout"})
             location.href = "/index.html";
         },
         defaultAction: function (action) {

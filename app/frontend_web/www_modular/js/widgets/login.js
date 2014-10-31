@@ -16,6 +16,17 @@ define([
 	    this.user = '';
 	    this.customer = '';
 	    this.render();
+	    var that = this
+	    var domains = location.hostname.split('.')
+	    if (domains.length == 3) {
+		$.ajax({type: 'GET',dataType: 'json',url: "/customer_id?abbr=" + domains[0],
+		       success: function(data) {
+			   that.customer = data
+			   var cust = $("#login-customer")
+			   cust.val(data)
+			   cust.hide()
+		       }})
+	    }
         },
 	events: {
 	    'click #login-button': 'dologin',
@@ -30,6 +41,11 @@ define([
 		require(["text!../templates/"+contextModel.get('loginTemplate')], function(loginTemplate) {
 		    that.template = _.template(loginTemplate);
 		    that.$el.html(that.template(contextModel.attributes));
+		    if (that.customer) {
+			var cust = $("#login-customer")
+			cust.val(that.customer)
+			cust.hide()
+		    }
 		    var message = contextModel.get('login-message');
 		    if (message)
 			setTimeout(function() {$('#login-message').text(message);}, 500);
