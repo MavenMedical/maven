@@ -32,8 +32,10 @@ define([
             },
             render: function () {
                 if (!curTree.get('selectedNode')){
+		    this.hidePopup()
                     return
                 }
+		if(curTree.get('selectedNode') == this.selectedNode) {return}
 
                 console.log('selectedNode', curTree.get('selectedNode'));
                 // for accounts with no pathways
@@ -41,23 +43,20 @@ define([
 
                     var that = this;
                     // Don't show if there is no text or if selected node is Protocol
-                    if (!(curTree.get('selectedNode').attributes.sidePanelText == "" || curTree.get('selectedNode').attributes.isProtocol )
-                        && !(this.selectedNode == curTree.get('selectedNode'))) {
+                    if (curTree.get('selectedNode').attributes.sidePanelText && !curTree.get('selectedNode').attributes.isProtocol ) {
                        this.hidePopup();
                        // this.$el.hide(); // hide previous side-popup
                         this.selectedNode = curTree.get('selectedNode');
                         this.$el.html(this.template(curTree.get('selectedNode').attributes));
                         this.showPopup();
 
-                    }
-                }
-
+                    } else {this.hidePopup();}
+                } else {this.hidePopup()}
                 //         return this;
             },
             hidePopup: function () {
                 this.$el.hide();
-                this.selectedNode = null;
-
+                this.selectedNode = curTree.get('selectedNode');
             },
             showPopup: function(){
                  if (this.dynamicLayout) {

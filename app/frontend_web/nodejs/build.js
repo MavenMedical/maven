@@ -88,6 +88,8 @@
 	'widgets/settings',
 	'widgets/topBanner',
 	'widgets/orderList',
+	'widgets/pathway/toolbar.js',
+	'widgets/pathway/TreeView.js',
 	'Helpers',
 	'singleRow/customerRow',
 	'singleRow/userRow',
