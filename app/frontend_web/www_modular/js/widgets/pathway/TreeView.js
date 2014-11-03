@@ -43,11 +43,20 @@ define([
                     }
 
                 })
-
+		var that=this
                 this.treeEl = $('.tree', this.$el)
-                this.el.onclick = function (param1) {
+                this.treeEl.draggable({
+		    start: function(event, ui) {
+			curTree.suppressClick=true
+		    },
+		    stop: function(event, ui) {
+			setTimeout(function() {curTree.suppressClick=false}, 100)
+			$( event.toElement ).one('click', function(e){e.stopImmediatePropagation(); } );
+		    }
+		})
+                this.treeEl.click(function(param1){
                     //Don't track clicks in edit mode (where page would be "pathwayEditor")
-                    if (contextModel.get('page') != 'pathway') {
+                    if (contextModel.get('page') != 'pathway' || curTree.suppressClick) {
                         return;
                     }
                     var target = $(param1.target)
@@ -70,9 +79,8 @@ define([
                             }
                         });
 
-                    }
-                }
-                this.treeEl.draggable()
+                      }
+                })
                 var that = this
                 this.plumb.setContainer(this.treeEl[0])
                 this.$el.on('wheel', function (data) {
@@ -125,13 +133,11 @@ define([
                 curTree.on('propagate', function () {
                     this.render();
                 }, this)
-                curTree.on('sync', function () {
-                    this.render();
-                }, this)
                 curTree.on('drawJSPlumb', this.renderJSPlumb, this)
-                contextModel.on('change', this.render, this)
+                //contextModel.on('change', this.render, this)
                 contextModel.on('change:pathid', function () {
                     curTree.set({'selectedNodeOffset': null, 'selectedNode': null}, {silent: true})
+		    that.treeEl.css({'opacity': 0})
                     if (that.treeEl[0].style.transform) {
                         that.treeEl.css({left: '', top: '', transform: 'scale(1)'});
                     } else {
@@ -150,6 +156,7 @@ define([
                     }    else {
                        return
                     }
+
                 that.treeEl.css({'cursor':'wait'})
                 var pathid = contextModel.get('pathid');
                 if (pathid && pathid != '0') {
@@ -172,6 +179,21 @@ define([
                     $('#pathwayName').html("")
                 }
                 this.renderJSPlumb()
+		var boundingWidth = $('.nodeEl', this.$el).width()
+		var widthDiff = (this.$el.width() - boundingWidth) / 2
+		if (widthDiff > 0) {
+		    var offset = this.treeEl.offset()
+		    offset.left = this.$el.offset().left + widthDiff ;
+		    this.treeEl.offset(offset)
+		}
+		this.treeEl.css({'opacity': 1})
+		var boundingW = $('.nodeEl', this.$el).width()
+		var boundingH = $('.nodeEl', this.$el).height()
+		var l = this.$el.offset().left, t = this.$el.offset().top
+		var w = this.$el.width(), h = this.$el.height()
+		var box = [l - boundingW + 50, t - boundingH + 100, l + w - 50, t + h - 100]
+		this.treeEl.draggable('option', 'containment', box)
+
             },
             renderJSPlumb: function () {
                 var that = this

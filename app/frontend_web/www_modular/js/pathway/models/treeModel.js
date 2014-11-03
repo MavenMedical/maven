@@ -231,20 +231,15 @@ define([
                 else {
                     Backbone.history.navigate("pathway/"+contextModel.get('pathid')+ "/node/" + contextModel.get('code'));
                 }
-            }, {success: function(){
-                that.collapse(that)
-                var openNodes = contextModel.get('code').split('-')
-                that.getPathToIDS(openNodes)
-            }})
+            })
             contextModel.on('change:code', function(){
                 var openNodes = contextModel.get('code').split('-')
                 that.getPathToIDS(openNodes)
 
             })
             this.on('sync', function(){
-                that.trigger('propagate')
                 setTimeout(function(){
-
+		    that.collapse(that)
                     var openNodes = contextModel.get('code').split('-')
                     that.getPathToIDS(openNodes)
                 }, 30);
@@ -285,7 +280,7 @@ define([
 	    children = this.get('children').toJSON(options)
             var retMap = _.omit(this.attributes, ['children', 'hideChildren', 'selectedNode', 'selectedNodeOffset',
 						 'hasLeft', 'hasRight'])
-	    if (options.toExport) {retMap = _.omit(retMap, ['nodeID', 'nodeCount', 'id'])}
+	    if (options && options.toExport) {retMap = _.omit(retMap, ['nodeID', 'nodeCount', 'id'])}
             retMap.children = children
             console.log('the json will look like', retMap)
 
@@ -311,7 +306,7 @@ define([
             this.save({}, {success: function(){
                     pathwayCollection.fetch()
 		    params.pathid = that.get('id')
-		    if (options.toImport) {
+		    if (options && options.toImport) {
 			that.parse(params, options)
 			that.save({}, 
 				  {success: function(data){
@@ -326,7 +321,7 @@ define([
 
         },
         parse: function(response, options){
-	    if (options.toImport) {
+	    if (options && options.toImport) {
 		response = _.omit(response, ['nodeID', 'nodeCount'])
 	    }
             if (!response.nodeCount){

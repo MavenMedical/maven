@@ -109,7 +109,7 @@ class AuthenticationWebservices():
                 CONTEXT.ROLES: roles,
             }, timeout, header.get_headers()['X-Real-IP'])
 
-            ret = {CONTEXT.USERID: user_info[WP.Results.userid],
+            ret = {CONTEXT.USERID: str(user_info[WP.Results.userid]),
                    'display': user_info[WP.Results.displayname],
                    CONTEXT.CUSTOMERID: customer,
                    'official_name': user_info[WP.Results.officialname],
@@ -241,7 +241,7 @@ class AuthenticationWebservices():
             widgets = yield from self.persistence.layout_info(desired_layout,
                                                               user_info[WP.Results.userid])
 
-            ret = {CONTEXT.USERID: userid,
+            ret = {CONTEXT.USERID: str(userid),
                    'display': user_info[WP.Results.displayname],
                    CONTEXT.CUSTOMERID: customer,
                    'official_name': user_info[WP.Results.officialname],

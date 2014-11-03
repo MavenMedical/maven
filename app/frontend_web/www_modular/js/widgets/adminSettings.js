@@ -9,7 +9,7 @@ define([
     'globalmodels/contextModel',
     'globalmodels/userCollection',
     'text!templates/adminSettings.html',
-    'libs/bootstrap-switch/bootstrap-switch',
+    'bootstrapswitch',
 
 ], function ($, _, Backbone, contextModel, userCollection, AdminSettingsTemplate) {
     var AdminModel = Backbone.Model.extend({url: '/customer_info'});
