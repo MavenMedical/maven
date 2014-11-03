@@ -37,7 +37,11 @@ define([
                 })
 
                 this.treeEl = $('.tree', this.$el)
-                this.el.onclick = function(param1){
+                this.treeEl.draggable({
+		    stop: function(event, ui) {
+			$( event.toElement ).one('click', function(e){ e.stopImmediatePropagation(); } );
+		    }})
+                this.treeEl.click(function(param1){
                     //Don't track clicks in edit mode (where page would be "pathwayEditor")
                     if (contextModel.get('page') != 'pathway'){
                         return;
@@ -63,8 +67,7 @@ define([
                             });
 
                       }
-                }
-                this.treeEl.draggable()
+                })
                 var that = this
                 this.plumb.setContainer(this.treeEl[0])
                 this.$el.on('wheel', function (data) {
