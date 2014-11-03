@@ -31,6 +31,9 @@ define([
 
             },
             render: function () {
+                if (!curTree.get('selectedNode')){
+                    return
+                }
 
                 console.log('selectedNode', curTree.get('selectedNode'));
                 // for accounts with no pathways
