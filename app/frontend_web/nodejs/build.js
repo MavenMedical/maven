@@ -17,7 +17,25 @@
 	'underscore':'empty:',
 	'backbone':'empty:',
 	'ckeditor':'empty:',
-	'amcharts':'empty:'
+	'amcharts':'empty:',
+	'bootstrapswitch':'empty:'
+    },
+    shim: {
+        bootstrap :{
+            deps: ['jquery']
+        },
+        jsplumb :{
+          deps: ['jquery','jquery_ui']
+        },
+        fullCalendar :{
+            deps: ['jquery','moment', 'jquery_ui']
+        },
+	jquery_ui: {
+	    deps: ['jquery'],
+	},
+	amchartspie: { deps: ['amcharts'], exports: 'AmCharts', init: function() {AmCharts.isReady = true;}},
+	amchartsserial: { deps: ['amcharts'], exports: 'AmCharts', init: function() {AmCharts.isReady = true;}},
+	amchartslight: { deps: ['amcharts'], exports: 'AmCharts', init: function() {AmCharts.isReady = true;}},
     },
     inlineText: true,
     exclude: [

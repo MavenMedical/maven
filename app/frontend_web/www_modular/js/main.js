@@ -16,6 +16,7 @@ require.config({
         backbone: ['libs/backbone/backbone','//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.2/backbone-min.js'],
         jsplumb: ['libs/jsplumb2/js/jquery.jsPlumb-1.6.2-min', 'libs/jsplumb2/js/jsplumb'],
         bootstrap: ['//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min', '../css/bootstrap/js/bootstrap.min'],
+	bootstrapswitch: 'libs/bootstrap-switch/bootstrap-switch', 
         fullcalendar: 'libs/fullCalendar/fullcalendar.min',
         moment: 'libs/fullCalendar/moment.min',
         ckeditor: ['//cdn.ckeditor.com/4.4.5/standard/ckeditor', 'libs/ckeditor/ckeditor'],
@@ -28,6 +29,9 @@ require.config({
     shim: {
         bootstrap :{
             deps: ['jquery']
+        },
+        bootstrapswitch :{
+            deps: ['jquery', 'jquery_ui']
         },
         jsplumb :{
           deps: ['jquery','jquery_ui']

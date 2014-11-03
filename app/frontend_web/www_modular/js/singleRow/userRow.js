@@ -19,7 +19,7 @@ define([
     'widgets/auditList',
     'text!templates/auditScroll.html',
     'libs/jquery/jquery-mousestop-event',
-    'libs/bootstrap-switch/bootstrap-switch',
+    'bootstrapswitch',
 
 ], function ($, _, Backbone, userRowTemplate, contextModel, AuditList, AuditTemplate) {
 
