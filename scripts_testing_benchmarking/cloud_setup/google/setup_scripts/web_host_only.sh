@@ -1,5 +1,5 @@
 #!/bin/bash
-sudo yum install pcre-devel zlib-devel openssl-devel gcc libpqxx-devel libpqxx libffi-devel policycoreutils-python-2.2.5-11.el7_0.1.x86_64 -y
+sudo yum install pcre-devel zlib-devel openssl-devel gcc libpqxx-devel libpqxx libffi-devel policycoreutils-python-2.2.5-11.el7_0.1.x86_64 nodejs -y
 
 echo "export MAVEN_ROOT=~/maven
 export PYTHONPATH=$MAVEN_ROOT" >> .bashrc
