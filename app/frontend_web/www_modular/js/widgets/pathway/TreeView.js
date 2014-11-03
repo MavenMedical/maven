@@ -36,7 +36,9 @@ define([
 
                 })
 		var that=this
+		setTimeout(function() {that.reset=true; that.render()}, 200)
                 this.treeEl = $('.tree', this.$el)
+		that.treeEl.css({'opacity': 0})
                 this.treeEl.draggable({
 		    start: function(event, ui) {
 			curTree.suppressClick=true
@@ -110,6 +112,7 @@ define([
                             }
                             that.treeEl.offset({left: newLeft,
                                 top: newTop});
+			    that.setDraggableBox(newScale)
                         }
                     }
                 )
@@ -130,6 +133,7 @@ define([
                 contextModel.on('change:pathid', function () {
                     curTree.set({'selectedNodeOffset': null, 'selectedNode': null}, {silent: true})
 		    that.treeEl.css({'opacity': 0})
+		    that.reset = true
                     if (that.treeEl[0].style.transform) {
                         that.treeEl.css({left: '', top: '', transform: 'scale(1)'});
                     } else {
@@ -162,6 +166,13 @@ define([
                     $('#pathwayName').html("")
                 }
                 this.renderJSPlumb()
+		this.adjustWidth()
+		this.setDraggableBox()
+            },
+	    adjustWidth: function() {
+		
+		if(this.reset) {
+		    this.reset=false
 		var boundingWidth = $('.nodeEl', this.$el).width()
 		var widthDiff = (this.$el.width() - boundingWidth) / 2
 		if (widthDiff > 0) {
@@ -170,14 +181,22 @@ define([
 		    this.treeEl.offset(offset)
 		}
 		this.treeEl.css({'opacity': 1})
-		var boundingW = $('.nodeEl', this.$el).width()
-		var boundingH = $('.nodeEl', this.$el).height()
+		}
+	    },
+	    setDraggableBox: function(scale) {
+		if (!scale) {scale=1}
+		var boxnode = $('.nodeEl', this.$el)
+		var boundingW = boxnode.width()
+		var boundingH = boxnode.height()
+		console.log(boundingW, boundingH, scale)
+		
 		var l = this.$el.offset().left, t = this.$el.offset().top
 		var w = this.$el.width(), h = this.$el.height()
-		var box = [l - boundingW + 50, t - boundingH + 100, l + w - 50, t + h - 100]
+		var box = [l + (100 - boundingW)*scale, t + (50 - boundingH) *scale, l + w - 100*scale, t + h - 100*scale]
+		console.log(l, t)
+		console.log(box)
 		this.treeEl.draggable('option', 'containment', box)
-
-            },
+	    },
             renderJSPlumb: function () {
                 var that = this
                 var insertDiv = Backbone.View.extend({
