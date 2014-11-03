@@ -13,10 +13,11 @@ define([
     'backbone',    // lib/backbone/backbone,
 
     'globalmodels/contextModel',
+    'globalmodels/layoutModel',
     'widgets/evidence',
     'widgets/login',
     'widgets/settings'
-], function ($, _, Backbone, currentContext, Evidence, Login, Settings) {
+], function ($, _, Backbone, currentContext, layoutModel, Evidence, Login, Settings) {
 
     var CheckLogin = function () {
         if (!currentContext.get('user') || !currentContext.get('userAuth')) {
@@ -33,7 +34,7 @@ define([
     // array length should match the number of layouts
     // the sum of each array should be 12 (Following bootstrap grid)
     var pageLayout = {
-        "home": [0, 9, 3],
+        "home": [0, 12, 0],
         "patient": [0, 9, 3],
         "episode": [0, 9, 3],
         "pathway": [0, 12, 0],
@@ -119,8 +120,10 @@ define([
         },
         showPathway: function (path, code, pat, date, user, customer, userAuth) {
 
+            layoutModel.set({'fluidContent': false})
             currentContext.set({page: 'pathway', code: code, pathid: path, patients: pat, enc_date: date,
                 startdate: null, enddate: null});
+
             showPage(user, customer, userAuth);
         },
         showEvidence: function (enc, pat, evi, user, customer, userAuth) {
@@ -131,6 +134,7 @@ define([
             }
         },
         EditPathway: function (path, code, user, customer, userAuth) {
+            layoutModel.set('fluidContent', true)
             currentContext.set({page: 'pathEditor',  pathid: path, code: code});
             showPage(user, customer, userAuth);
         },

@@ -3,11 +3,12 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
+    'pathway/models/treeModel',
     'pathway/internalViews/detailSearchBox',
-    'pathway/internalViews/multiSelectSearch',
+    'pathway/internalViews/multiSelectSearch'
 
 
-], function ($, _, Backbone,  detailSearchBox, multiSelectSearch, routeListBox) {
+], function ($, _, Backbone,  curTree, detailSearchBox, multiSelectSearch, routeListBox) {
 
     var DetailEditor = Backbone.View.extend({
 
@@ -21,7 +22,6 @@ define([
             this.$el = param.el;
             this.template = param.template
             this.type = param.type;
-            this.triggerNode = param.triggerNode;
 
             this.$el.html(this.template());
             //an array representing all of the search boxes, so that on exit we can check if they have all been filled
@@ -150,7 +150,7 @@ define([
                 }, this)
 
                 if (panel.newDetail){
-                    var triggerList = panel.triggerNode.get('triggers')
+                    var triggerList = curTree.get('triggers')
                     if (triggerList.get(panel.type)){
                         triggerList.get(panel.type).add(panel.model);
                     } else {
@@ -165,22 +165,12 @@ define([
 
                 }
                //hide the detail modal
-               require(['pathway/modalViews/ruleWizard'], function(wizard){
                    $('#detail-modal').modal('hide');
-                   $('#detail-modal').on('hidden.bs.modal', function () {
-                         new wizard({triggerNode: panel.triggerNode, })
-                    })
-               })
             }
 
             //when the cancel button is pressed just hide the editor
             $('.cancel-edit-button', this.$el)[0].onclick = function(){
-                require(['pathway/modalViews/ruleWizard'], function(wizard){
                    $('#detail-modal').modal('hide');
-                   $('#detail-modal').on('hidden.bs.modal', function () {
-                         new wizard({triggerNode: panel.triggerNode, })
-                    })
-               })
             }
               $("#detail-modal").modal({'show':'true'});
 
@@ -195,9 +185,6 @@ define([
 
                 }
         }
-
-
-
 
 
 
