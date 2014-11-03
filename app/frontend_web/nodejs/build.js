@@ -2,9 +2,12 @@
     mainConfigFile : "../www_modular/js/main.js",
     baseUrl : "../www_modular/js",
     name: "main",
-    out: "main.js",
+    out: "../www_modular/js/min.js",
     removeCombined: true,
     findNestedDependencies: true,
+    generateSourceMaps: true,
+    preserveLicenseComments: false,
+    optimize: 'uglify2',
     paths: 
     {
         'jsplumb':'empty:',
