@@ -32,4 +32,4 @@ for f in `find app/database/updates/schema -name "*.sql"| sort -n` `find app/dat
     fi
   fi
 done
-cd ~/maven/app/frontend_web/node && node r.js -o build.js
+cd ~/maven/app/frontend_web/nodejs && node r.js -o build.js
