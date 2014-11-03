@@ -42,6 +42,7 @@ define([
 
 
             setSelectedNode: function(){
+		if (curTree.suppressClick) {return}
                 this.getMyElement().off('click');
                 curTree.set('selectedNode', this.model, {silent: true});
                 curTree.trigger('propagate')
@@ -60,6 +61,7 @@ define([
 
                 //Set on clicks
                 $('.collapseButton', this.$el).first().on('click', function(){
+		    if (curTree.suppressClick) {return}
                        if (currentContext.get('page')=='pathEditor'){
                            if (that.model.get('hideChildren') == "false"){
                                curTree.collapse(that.model)
@@ -83,6 +85,7 @@ define([
                      var newEditor = new ProtocolEditor(that.model)
                 })
                 this.getMyElement().on('click', function(evt){
+		    if (curTree.suppressClick) {return}
 		    var selected = $(evt.currentTarget)
 		    var offset = selected.offset();
 		    offset.clickid = selected.attr('clickid');

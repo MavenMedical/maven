@@ -38,12 +38,14 @@ define([
 
                 this.treeEl = $('.tree', this.$el)
                 this.treeEl.draggable({
+		    start: function(event, ui) {curTree.suppressClick=true},
 		    stop: function(event, ui) {
-			$( event.toElement ).one('click', function(e){ e.stopImmediatePropagation(); } );
+			setTimeout(function() {curTree.suppressClick=false}, 100)
+			$( event.toElement ).one('click', function(e){e.stopImmediatePropagation(); } );
 		    }})
                 this.treeEl.click(function(param1){
                     //Don't track clicks in edit mode (where page would be "pathwayEditor")
-                    if (contextModel.get('page') != 'pathway') {
+                    if (contextModel.get('page') != 'pathway' || curTree.suppressClick) {
                         return;
                     }
                     var target = $(param1.target)
