@@ -250,21 +250,13 @@ Contact Maven Support or your System Admin with any questions."""
                                                      "Welcome to Maven, set/reset password",
                                                      loginstr)
 
-    @http_service(['GET'], '/reset_password.html', None, None, None)
+    @http_service(['GET'], '/recaptcha', None, None, None)
     def get_recaptcha(self, *args):
         public = MC.recaptcha_public
         if public:
-            page = """<html>
-<body>
-<form id='resetForm' action='/services/send_reset_password'>
-EHR User: <input type='text' name='user'><br>
-Maven Customer ID <input type='text' name='customer_id'><br>
-%s
-<input type='submit' value='Send reset password message'>
-</form>
-</body>
-</html>""" % captcha.displayhtml(public, use_ssl=True)
-            return HTTP.OK_RESPONSE, bytes(page, 'utf-8'), [b'Content-Type: text/html']
+            return HTTP.OK_RESPONSE, bytes(public, 'utf-8'), [b'Content-Type: text/html']
+            # recaptcha = captcha.displayhtml(public, use_ssl=True)
+            # return HTTP.OK_RESPONSE, bytes(recaptcha, 'utf-8'), [b'Content-Type: text/html']
         else:
             return HTTP.BAD_RESPONSE, b'', None
 

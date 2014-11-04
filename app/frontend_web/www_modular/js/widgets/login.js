@@ -34,6 +34,36 @@ define([
 	    'keyup #login-user':'doenterlogin',
 	    'keyup #login-password':'doenterlogin',
 	    'keyup #login-new-password':'doenterchange',
+	    'click #reset-password': 'resetpassword',
+	},
+	resetpassword: function() {
+	    var that=this
+	    require(['text!../templates/resetPassword.html', 'text!../services/recaptcha', '//www.google.com/recaptcha/api/js/recaptcha_ajax.js'], 
+		    function(resetTemplate, recaptcha_key) {
+			var compiled = _.template(resetTemplate)
+			that.$el.html(compiled())
+			Recaptcha.create(recaptcha_key, 'recaptcha-div', {callback: Recaptcha.focus_response_field})
+			$('#send-reset-password').click(function() {
+			    var user = $('#ehr-user').val()
+			    var customer = $('#reset-customer').val()
+			    var response = $('#recaptcha_response_field').val()
+			    var challenge = $('#recaptcha_challenge_field').val()
+			    $.ajax({
+				url: '/send_reset_password',
+				data: {
+				    'user': user,
+				    'customer_id': customer,
+				    'recaptcha_challenge_field': challenge,
+				    'recaptcha_response_field': response
+				},
+				success: function() {alert('A reset password message has been sent to this account.')},
+				error: function() {
+				    alert('We could not verify your recaptcha response.  Try again, or contact IT about directly resetting your password.')
+				    Recaptcha.reload()
+				}
+			    })
+			})
+		    })
 	},
         render: function () {
 	    if(contextModel.get('loginTemplate')) {
