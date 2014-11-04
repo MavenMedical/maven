@@ -18,7 +18,8 @@
 	'backbone':'empty:',
 	'ckeditor':'empty:',
 	'amcharts':'empty:',
-	'bootstrapswitch':'empty:'
+	'bootstrapswitch':'empty:',
+	'services/recaptcha':'empty:'
     },
     shim: {
         bootstrap :{
