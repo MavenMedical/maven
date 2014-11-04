@@ -38,7 +38,8 @@ define([
 	},
 	resetpassword: function() {
 	    var that=this
-	    require(['text!../templates/resetPassword.html', 'text!../services/recaptcha', '//www.google.com/recaptcha/api/js/recaptcha_ajax.js'], 
+	    var text = 'text!/services/recaptcha'
+	    require(['text!../templates/resetPassword.html', text, '//www.google.com/recaptcha/api/js/recaptcha_ajax.js'], 
 		    function(resetTemplate, recaptcha_key) {
 			var compiled = _.template(resetTemplate)
 			that.$el.html(compiled())

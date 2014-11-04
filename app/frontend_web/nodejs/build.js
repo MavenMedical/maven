@@ -19,7 +19,7 @@
 	'ckeditor':'empty:',
 	'amcharts':'empty:',
 	'bootstrapswitch':'empty:',
-	'services/recaptcha':'empty:'
+	'/services/recaptcha': 'empty:'
     },
     shim: {
         bootstrap :{
