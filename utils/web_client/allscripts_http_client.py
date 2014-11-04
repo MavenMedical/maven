@@ -54,6 +54,10 @@ class AllscriptsError(http.HttpClientException):
     pass
 
 
+def is_power_two(num: int):
+    return num != 0 and ((num & (num - 1)) == 0)
+
+
 def check_output(jobj, empty_ok=False):
     exc = None
     if not jobj:
@@ -180,6 +184,8 @@ class allscripts_api(http.http_api):
         co_func = asyncio.coroutine(func)
 
         def worker(self, *args, **kwargs):
+            lasterror = None
+            lasterrorcount = 0
             while True:
                 if not self.unitytoken:
                     fut = asyncio.Future()
@@ -191,12 +197,19 @@ class allscripts_api(http.http_api):
                     if self.unitytoken:
                         return (yield from co_func(self, *args, **kwargs))
                 except AllscriptsError as e:
-                    if e.args[0].find('you have been logged out') >= 0:
-                        self.unitytoken = None
-                        WARN(e.args[0])
+                    if lasterror != e.args[0]:
+                        lasterrorcount = 0
+                        lasterror = e.args[0]
+                        EXCEPTION('allscripts exception')
                     else:
-                        EXCEPTION('unknown allscripts exception')
-                    yield from asyncio.sleep(10)
+                        lasterrorcount += 1
+                        if is_power_two(lasterrorcount):
+                            WARN("%s times: %s" % (lasterrorcount, e.args[0]))
+                    if e.args[0].find('you have been logged out') >= 0 or e.args[0].find('Action is not valid for this license') >= 0:
+                        self.unitytoken = None
+                        if not lasterrorcount:
+                            WARN("resetting unitytoken: " + e.args[0])
+                    yield from asyncio.sleep(30)
 
         return asyncio.coroutine(wraps(func)(worker))
 
