@@ -61,7 +61,10 @@ class PathwaysWebservices():
                   {USER_ROLES.provider, USER_ROLES.supervisor})
     def get_protocol(self, _header, body, context, _matches, _key):
         protocol_id = context[CONTEXT.PATHID]
-        ret = yield from self.persistence.get_protocol(protocol_id)
+        customer = context[CONTEXT.CUSTOMERID]
+        if not protocol_id:
+            return HTTP.NOTFOUND_RESPONSE, b'', None
+        ret = yield from self.persistence.get_protocol(protocol_id, customer)
         ret[CONTEXT.PATHID] = protocol_id
 
         return (HTTP.OK_RESPONSE, json.dumps(ret), None)
@@ -87,12 +90,15 @@ class PathwaysWebservices():
         return (HTTP.OK_RESPONSE, "", None)
 
     @http_service(['PUT'], '/tree',
-                  [CONTEXT.USER, CONTEXT.CUSTOMERID],
-                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int},
+                  [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.PATHID],
+                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int,
+                   CONTEXT.PATHID: int},
                   {USER_ROLES.provider, USER_ROLES.supervisor})
     def update_protocol(self, _header, body, context, _matches, _key):
         protocol_json = json.loads(body.decode('utf-8'))
-        yield from self.persistence.update_protocol(protocol_json)
+        protocol_id = context[CONTEXT.PATHID]
+        customer = context[CONTEXT.CUSTOMER]
+        yield from self.persistence.update_protocol(protocol_id, customer, protocol_json)
         protocol_json[CONTEXT.PATHID] = protocol_json.get('id', None)
         return (HTTP.OK_RESPONSE, json.dumps(protocol_json), None)
 
