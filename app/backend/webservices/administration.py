@@ -268,15 +268,16 @@ Contact Maven Support or your System Admin with any questions."""
         return resp.is_valid
 
     @http_service(['GET'], '/send_reset_password', None, None, None)
-    def post_recaptcha(self, headers, body, context, matches, key):
+    def emr_reset_password(self, headers, body, context, matches, key):
         challenge = context['recaptcha_challenge_field'][0]
         response = context['recaptcha_response_field'][0]
-        username = context[CONTEXT.USER][0]
-        customer = context[CONTEXT.CUSTOMERID][0]
+        username = context[CONTEXT.USER][0].upper()
+        customer = int(context[CONTEXT.CUSTOMERID][0])
         ip = headers.get_headers()['X-Real-IP']
         valid = yield from self.verify_recaptcha(challenge, response, ip)
         if not valid:
             return HTTP.BAD_RESPONSE, b'', None
         else:
             TASK(self.notify_user_reset_password(customer, username))
+            TASK(self.persistence.audit_log(username, 'self-service reset password', customer))
             return HTTP.OK_RESPONSE, b'', None

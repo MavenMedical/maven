@@ -14,9 +14,9 @@ INSERT INTO public.users(customer_id, prov_id, user_name, official_name, display
 
 COPY public.layouts (layout_id, widget, template, element, priority) FROM stdin;
 3	customerList	customerList.html	contentRow	2
-2	/pathway/actionList	/pathway/treeTemplate.html	floating-right	1
-2	/pathway/pathwaysList	/pathway/treeTemplate.html	floating-left	1
-2	/pathway/TreeView	/pathway/treeTemplate.html	contentRow	1
+2	pathway/actionList	pathway/treeTemplate.html	floating-right	1
+2	pathway/pathwaysList	pathway/treeTemplate.html	floating-left	1
+2	pathway/TreeView	pathway/treeTemplate.html	contentRow	1
 1000	pathway	pathway.html	contentRow	1
 3	customerCreation	customerCreation.html	contentRow	1
 4	userList	userScroll.html	contentRow	3
@@ -29,7 +29,7 @@ COPY public.layouts (layout_id, widget, template, element, priority) FROM stdin;
 3	auditList	auditScroll.html	pane5-content	2
 4	auditList	auditScroll.html	pane5-content	2
 1	auditList	auditScroll.html	pane5-content	2
-2	/pathway/toolbar	/pathway/toolbar.html	fixed-topB	1
+2	pathway/toolbar	pathway/toolbar.html	fixed-topB	1
 2	welcome	welcome.html	welcome-modal	1
 1	datepicker-calendar	datepicker-calendar.html	datepicker-modal	1
 1	settings	settings.html	settings-modal	1
