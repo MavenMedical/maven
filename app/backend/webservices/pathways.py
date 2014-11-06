@@ -90,16 +90,18 @@ class PathwaysWebservices():
         return (HTTP.OK_RESPONSE, "", None)
 
     @http_service(['PUT'], '/tree',
-                  [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.PATHID],
+                  [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.PATHID, CONTEXT.USERID],
                   {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int,
-                   CONTEXT.PATHID: int},
+                   CONTEXT.PATHID: int, CONTEXT.USERID: int},
                   {USER_ROLES.provider, USER_ROLES.supervisor})
     def update_protocol(self, _header, body, context, _matches, _key):
         protocol_json = json.loads(body.decode('utf-8'))
         protocol_id = context[CONTEXT.PATHID]
-        customer = context[CONTEXT.CUSTOMER]
-        yield from self.persistence.update_protocol(protocol_id, customer, protocol_json)
-        protocol_json[CONTEXT.PATHID] = protocol_json.get('id', None)
+        customer = context[CONTEXT.CUSTOMERID]
+        userid = context[CONTEXT.USERID]
+        id = yield from self.persistence.update_protocol(protocol_id, customer, userid, protocol_json)
+        protocol_json[CONTEXT.PATHID] = id
+        protocol_json['id'] = id
         return (HTTP.OK_RESPONSE, json.dumps(protocol_json), None)
 
     @http_service(['POST'], '/activity',
