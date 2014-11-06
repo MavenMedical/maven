@@ -48,8 +48,9 @@ define([
                        // this.$el.hide(); // hide previous side-popup
                         this.selectedNode = curTree.get('selectedNode');
                         this.$el.html(this.template(curTree.get('selectedNode').attributes));
-                        this.showPopup();
 
+                        this.showPopup();
+console.log($("#mavenInfo-header").width(), $("#mavenInfo-title").outerWidth())
                     } else {this.hidePopup();}
                 } else {this.hidePopup()}
                 //         return this;

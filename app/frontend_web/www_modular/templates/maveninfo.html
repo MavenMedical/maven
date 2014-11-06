@@ -1,21 +1,18 @@
 <div class="widget-column col-sm-12">
-    <div class="row heading">
-         <span class="headings title">
+    <div id="mavenInfo-header" class="row heading">
 
-             <%=decodeURIComponent(name)%>
-
-         </span>
-
-
-            <button type="button" class="close">
+        <button type="button" class="close">
             <span class="glyphicon glyphicon-remove" style="font-size: 13px; color: #ffffff;"></span>
         </button>
+
+         <span id="mavenInfo-title" class="headings title">
+             <%=decodeURIComponent(name)%>
+         </span>
 
     </div>
     <div class="row nodeInfo">
         <span>
             <%= (typeof sidePanelText !== 'undefined') ? decodeURIComponent(sidePanelText) : '' %>
-
         </span>
     </div>
     <div class="row">

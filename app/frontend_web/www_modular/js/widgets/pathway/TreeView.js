@@ -1,18 +1,18 @@
 define([
-    'jquery',     // lib/jquery/jquery
-    'underscore', // lib/underscore/underscore
-    'backbone',    // lib/backbone/backbone
-    'globalmodels/contextModel',
-    'pathway/models/treeModel',
-    'pathway/internalViews/triggerNode',
-    'pathway/modalViews/nodeEditor',
-    'pathway/Helpers',
-    'pathway/models/pathwayCollection',
-    'text!templates/pathway/treeTemplate.html',
-    'text!templates/pathway/insertDiv.html',
-    'jsplumb',
-    'ckeditor'
-],
+        'jquery',     // lib/jquery/jquery
+        'underscore', // lib/underscore/underscore
+        'backbone',    // lib/backbone/backbone
+        'globalmodels/contextModel',
+        'pathway/models/treeModel',
+        'pathway/internalViews/triggerNode',
+        'pathway/modalViews/nodeEditor',
+        'pathway/Helpers',
+        'pathway/models/pathwayCollection',
+        'text!templates/pathway/treeTemplate.html',
+        'text!templates/pathway/insertDiv.html',
+        'jsplumb',
+        'ckeditor'
+    ],
 
     function ($, _, Backbone, contextModel, curTree, TriggerNode, NodeEditor, Helpers, pathwayCollection, treeTemplate, insertDiv) {
 
@@ -35,20 +35,27 @@ define([
                     }
 
                 })
-		var that=this
-		setTimeout(function() {that.reset=true; that.render()}, 200)
+                var that = this
+                setTimeout(function () {
+                    that.reset = true;
+                    that.render()
+                }, 200)
                 this.treeEl = $('.tree', this.$el)
-		that.treeEl.css({'opacity': 0})
+                that.treeEl.css({'opacity': 0})
                 this.treeEl.draggable({
-		    start: function(event, ui) {
-			curTree.suppressClick=true
-		    },
-		    stop: function(event, ui) {
-			setTimeout(function() {curTree.suppressClick=false}, 100)
-			$( event.toElement ).one('click', function(e){e.stopImmediatePropagation(); } );
-		    }
-		})
-                this.treeEl.click(function(param1){
+                    start: function (event, ui) {
+                        curTree.suppressClick = true
+                    },
+                    stop: function (event, ui) {
+                        setTimeout(function () {
+                            curTree.suppressClick = false
+                        }, 100)
+                        $(event.toElement).one('click', function (e) {
+                            e.stopImmediatePropagation();
+                        });
+                    }
+                })
+                this.treeEl.click(function (param1) {
                     //Don't track clicks in edit mode (where page would be "pathwayEditor")
                     if (contextModel.get('page') != 'pathway' || curTree.suppressClick) {
                         return;
@@ -73,7 +80,7 @@ define([
                             }
                         });
 
-                      }
+                    }
                 })
                 var that = this
                 this.plumb.setContainer(this.treeEl[0])
@@ -112,7 +119,7 @@ define([
                             }
                             that.treeEl.offset({left: newLeft,
                                 top: newTop});
-			    that.setDraggableBox(newScale)
+                            that.setDraggableBox(newScale)
                         }
                     }
                 )
@@ -130,21 +137,24 @@ define([
                 }, this)
                 curTree.on('drawJSPlumb', this.renderJSPlumb, this)
                 //contextModel.on('change', this.render, this)
+                contextModel.on('change:page', this.promptSave(), this);
                 contextModel.on('change:pathid', function () {
                     curTree.set({'selectedNodeOffset': null, 'selectedNode': null}, {silent: true})
-		    that.treeEl.css({'opacity': 0})
-		    that.reset = true
+                    that.treeEl.css({'opacity': 0})
+                    that.reset = true
                     if (that.treeEl[0].style.transform) {
                         that.treeEl.css({left: '', top: '', transform: 'scale(1)'});
                     } else {
                         that.treeEl.css({left: '', top: '', msTransform: 'scale(1)'});
                     }
+
+                    that.promptSave();
                 })
                 this.render()
             },
             render: function () {
                 var that = this
-                that.treeEl.css({'cursor':'wait'})
+                that.treeEl.css({'cursor': 'wait'})
                 var pathid = contextModel.get('pathid');
                 if (pathid && pathid != '0') {
                     this.$el.show()
@@ -166,37 +176,39 @@ define([
                     $('#pathwayName').html("")
                 }
                 this.renderJSPlumb()
-		this.adjustWidth()
-		this.setDraggableBox()
+                this.adjustWidth()
+                this.setDraggableBox()
             },
-	    adjustWidth: function() {
-		
-		if(this.reset) {
-		    this.reset=false
-		var boundingWidth = $('.nodeEl', this.$el).width()
-		var widthDiff = (this.$el.width() - boundingWidth) / 2
-		if (widthDiff > 0) {
-		    var offset = this.treeEl.offset()
-		    offset.left = this.$el.offset().left + widthDiff ;
-		    this.treeEl.offset(offset)
-		}
-		this.treeEl.css({'opacity': 1})
-		}
-	    },
-	    setDraggableBox: function(scale) {
-		if (!scale) {scale=1}
-		var boxnode = $('.nodeEl', this.$el)
-		var boundingW = boxnode.width()
-		var boundingH = boxnode.height()
-		console.log(boundingW, boundingH, scale)
-		
-		var l = this.$el.offset().left, t = this.$el.offset().top
-		var w = this.$el.width(), h = this.$el.height()
-		var box = [l + (100 - boundingW)*scale, t + (50 - boundingH) *scale, l + w - 100*scale, t + h - 100*scale]
-		console.log(l, t)
-		console.log(box)
-		this.treeEl.draggable('option', 'containment', box)
-	    },
+            adjustWidth: function () {
+
+                if (this.reset) {
+                    this.reset = false
+                    var boundingWidth = $('.nodeEl', this.$el).width()
+                    var widthDiff = (this.$el.width() - boundingWidth) / 2
+                    if (widthDiff > 0) {
+                        var offset = this.treeEl.offset()
+                        offset.left = this.$el.offset().left + widthDiff;
+                        this.treeEl.offset(offset)
+                    }
+                    this.treeEl.css({'opacity': 1})
+                }
+            },
+            setDraggableBox: function (scale) {
+                if (!scale) {
+                    scale = 1
+                }
+                var boxnode = $('.nodeEl', this.$el)
+                var boundingW = boxnode.width()
+                var boundingH = boxnode.height()
+                console.log(boundingW, boundingH, scale)
+
+                var l = this.$el.offset().left, t = this.$el.offset().top
+                var w = this.$el.width(), h = this.$el.height()
+                var box = [l + (100 - boundingW) * scale, t + (50 - boundingH) * scale, l + w - 100 * scale, t + h - 100 * scale]
+                console.log(l, t)
+                console.log(box)
+                this.treeEl.draggable('option', 'containment', box)
+            },
             renderJSPlumb: function () {
                 var that = this
                 var insertDiv = Backbone.View.extend({
@@ -287,9 +299,7 @@ define([
                 }
 
                 contextModel.trigger('rendered')
-                that.treeEl.css({'cursor':'default'})
-
-
+                that.treeEl.css({'cursor': 'default'})
 
 
             },
@@ -299,6 +309,10 @@ define([
             drawNodes: function () {
 
 
+            },
+            promptSave: function () {
+                alert("do you want to save");
+                console.log('changed tree', curTree.changed());
             },
             saveTreeFunction: function () {
                 curTree.save()

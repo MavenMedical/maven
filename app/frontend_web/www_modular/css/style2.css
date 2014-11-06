@@ -74,7 +74,7 @@
     }
 
     .tree li div.treeNode {
-        max-width: 600px;
+        max-width: 400px;
         border: 2px solid #ccc;
         background-color: whitesmoke;
         padding: 5px 10px;
@@ -379,6 +379,7 @@ html, body {
   /*  bottom: 5px;
     right: 5px;  */
     z-index: 100;
+    max-width: 300px;
 }
 
 #side-popup .heading{
@@ -388,7 +389,7 @@ html, body {
 }
 
 #side-popup .nodeInfo{
-    width:250px;
+    width:300px;
     min-height: 200px;
     max-height: 200px;
     overflow: auto;
@@ -400,6 +401,7 @@ html, body {
     background-color: #2c2f74;
     opacity: 1;
     padding: 3px;
+
 }
 /***************************************************************
  * The following customize the fonts and colors of the widgets *
