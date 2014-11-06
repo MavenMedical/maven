@@ -137,7 +137,6 @@ define([
                 }, this)
                 curTree.on('drawJSPlumb', this.renderJSPlumb, this)
                 //contextModel.on('change', this.render, this)
-                contextModel.on('change:page', this.promptSave(), this);
                 contextModel.on('change:pathid', function () {
                     curTree.set({'selectedNodeOffset': null, 'selectedNode': null}, {silent: true})
                     that.treeEl.css({'opacity': 0})
@@ -147,8 +146,6 @@ define([
                     } else {
                         that.treeEl.css({left: '', top: '', msTransform: 'scale(1)'});
                     }
-
-                    that.promptSave();
                 })
                 this.render()
             },
@@ -309,10 +306,6 @@ define([
             drawNodes: function () {
 
 
-            },
-            promptSave: function () {
-                alert("do you want to save");
-                console.log('changed tree', curTree.changed());
             },
             saveTreeFunction: function () {
                 curTree.save()
