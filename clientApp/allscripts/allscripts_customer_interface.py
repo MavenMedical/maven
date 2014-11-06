@@ -83,8 +83,13 @@ class AllscriptsCustomerInterface:
 
     @asyncio.coroutine
     def notify_user(self, user_name, patient, subject, msg, target):
-        yield from self.ahc.SaveTask(user_name, patient, msg_subject=subject,
-                                     message_data=msg, targetuser=target)
+        try:
+            yield from self.ahc.SaveTask(user_name, patient, msg_subject=subject,
+                                         message_data=msg, targetuser=target)
+            ML.INFO('sending message from %s to %s' % (user_name, target)) 
+        except:
+            ML.WARN('failed to send message from %s to %s' % (user_name, target)) 
+            raise
 
     @asyncio.coroutine
     def handle_evaluated_composition(self, composition):
