@@ -172,10 +172,8 @@ define([
 
     var TreeModel = nodeModel.extend({
         elPairs: [],
-        url: function() {
-
-            return '/tree?' + decodeURIComponent($.param(contextModel.toParams()));
-        },
+	idAttribute: 'pathid',
+        urlRoot: '/tree',
         changeNodePosition: function(target, change){
             var pointer = {}
             var r = nodePosition(this, target, change, pointer)
@@ -224,12 +222,16 @@ define([
                 that.trigger('propagate')
             })
             contextModel.on('change:pathid', function(){
-                if (contextModel.get('pathid')
-		   && contextModel.get('pathid') != '0') {that.fetch()}
+		var newpathid = contextModel.get('pathid')
+                if (newpathid && newpathid != '0') {
+		    var oldpathid = that.get('pathid')
+		    that.set({pathid:newpathid},{silent:true})
+		    if (newpathid != oldpathid) {that.fetch()}
+		}
                 if (contextModel.get('page') == 'pathEditor')
-                    Backbone.history.navigate("pathwayeditor/"+contextModel.get('pathid')+ "/node/" + contextModel.get('code'));
+                    Backbone.history.navigate("pathwayeditor/"+newpathid+ "/node/" + contextModel.get('code'));
                 else {
-                    Backbone.history.navigate("pathway/"+contextModel.get('pathid')+ "/node/" + contextModel.get('code'));
+                    Backbone.history.navigate("pathway/"+newpathid+ "/node/" + contextModel.get('code'));
                 }
             })
             contextModel.on('change:code', function(){
@@ -237,16 +239,19 @@ define([
                 that.getPathToIDS(openNodes)
 
             })
-            this.on('sync', function(){
+            this.on('sync', function(obj, data){
+		contextModel.set({'pathid': String(data.pathid)})
+		pathwayCollection.fetch()
                 setTimeout(function(){
 		    that.collapse(that)
                     var openNodes = contextModel.get('code').split('-')
                     that.getPathToIDS(openNodes)
                 }, 30);
-
-
-            })
-	    if (contextModel.get('pathid')) {this.fetch()}
+            }, this)
+	    if (contextModel.get('pathid')) {
+		that.set({pathid:contextModel.get('pathid')},{silent:true})
+		this.fetch()
+	    }
             this.elPairs = []
 
         },
@@ -280,7 +285,7 @@ define([
 	    children = this.get('children').toJSON(options)
             var retMap = _.omit(this.attributes, ['children', 'hideChildren', 'selectedNode', 'selectedNodeOffset',
 						 'hasLeft', 'hasRight'])
-	    if (options && options.toExport) {retMap = _.omit(retMap, ['nodeID', 'nodeCount', 'id'])}
+	    if (options && options.toExport) {retMap = _.omit(retMap, ['nodeID', 'nodeCount', 'id', 'pathid'])}
             retMap.children = children
             console.log('the json will look like', retMap)
 
@@ -301,20 +306,24 @@ define([
 	    }, {silent: true})
 	    this.populateChildren()
 
-            this.unset('id', {silent: true})
+            this.unset('pathid', {silent: true})
 	    var that = this
-            this.save({}, {success: function(){
+            this.save({}, {success: function(ogj, data){
                     pathwayCollection.fetch()
-		    params.pathid = that.get('id')
+		    params.pathid = data.pathid
 		    if (options && options.toImport) {
 			that.parse(params, options)
-			that.save({}, 
-				  {success: function(data){
-				      contextModel.set({'pathid': that.get('id')})
-				      Backbone.history.navigate("pathwayeditor/"+that.get('id')+ "/node/undefined");		    
+			that.save ({}, 
+				  {success: function(){
+				      contextModel.set({'pathid': that.get('pathid')})
+				      Backbone.history.navigate("pathwayeditor/"+that.get('pathid')+ "/node/undefined");		    
 				      pathwayCollection.fetch()
 				  }})			  
 
+		    } else {
+			contextModel.set({'pathid': data.pathid})
+			Backbone.history.navigate("pathwayeditor/"+that.get('pathid')+ "/node/undefined");		    
+			pathwayCollection.fetch()
 		    }
             }
 			  })

@@ -56,7 +56,7 @@ define([
                 if (!this.model.get('hideChildren')){
                     this.model.set('hideChildren', false, {silent: true})
                 }
-                this.$el.html(this.template({node: this.model.attributes, page: currentContext.get('page'), pathid: curTree.get('id')}));
+                this.$el.html(this.template({node: this.model.attributes, page: currentContext.get('page'), pathid: curTree.get('pathid')}));
                 var that = this;
 
                 //Set on clicks

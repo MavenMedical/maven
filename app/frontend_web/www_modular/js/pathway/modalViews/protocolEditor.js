@@ -51,7 +51,7 @@ define([
                                                                     followups: followupInfo,
                                                                     defaultFollowupRecipient: followupRecipient,
                                                                     defaultFollowupRecipientName: followupRecipientName,
-                                                                    nodeID : curTree.get('id')+':'+ myId})]))
+                                                                    nodeID : curTree.get('pathid')+':'+ myId})]))
                     $('#detail-modal').modal('hide')
                     curTree.trigger('propagate')
 

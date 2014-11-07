@@ -307,9 +307,6 @@ define([
 
 
             },
-            saveTreeFunction: function () {
-                curTree.save()
-            }
         })
 
         return TreeView
