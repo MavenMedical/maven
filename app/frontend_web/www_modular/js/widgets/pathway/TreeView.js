@@ -188,13 +188,10 @@ define([
 		var boxnode = $('.nodeEl', this.$el)
 		var boundingW = boxnode.width()
 		var boundingH = boxnode.height()
-		console.log(boundingW, boundingH, scale)
 		
 		var l = this.$el.offset().left, t = this.$el.offset().top
 		var w = this.$el.width(), h = this.$el.height()
 		var box = [l + (100 - boundingW)*scale, t + (50 - boundingH) *scale, l + w - 100*scale, t + h - 100*scale]
-		console.log(l, t)
-		console.log(box)
 		this.treeEl.draggable('option', 'containment', box)
 	    },
             renderJSPlumb: function () {
@@ -300,9 +297,6 @@ define([
 
 
             },
-            saveTreeFunction: function () {
-                curTree.save()
-            }
         })
 
         return TreeView

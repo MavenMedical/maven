@@ -78,8 +78,7 @@ define([
         renderPathList: function () {
             $('#avail-paths').html("")
             _.each(curCollection.models, function (cur) {
-                var thisModel = new Backbone.Model({id: cur.get('pathid'), name: cur.get('name')})
-                var thisRow = new PathRow({model: thisModel})
+                var thisRow = new PathRow({model: cur})
                 $('#avail-paths').append(thisRow.render().$el)
             }, this)
         },

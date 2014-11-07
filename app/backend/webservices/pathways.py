@@ -41,7 +41,11 @@ class PathwaysWebservices():
         customer_id = context[CONTEXT.CUSTOMERID]
         protocols = yield from self.persistence.get_protocols(customer_id)
 
-        return (HTTP.OK_RESPONSE, json.dumps([{CONTEXT.PATHID: k[0], 'name': k[1]} for k in protocols]), None)
+        return (HTTP.OK_RESPONSE,
+                json.dumps([{CONTEXT.PATHID: k[0],
+                             CONTEXT.CANONICALID: k[2],
+                             'name': k[1]} for k in protocols]),
+                None)
 
     @http_service(['GET'], '/search',
                   [CONTEXT.SEARCH_PARAM],
@@ -55,53 +59,52 @@ class PathwaysWebservices():
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
-    @http_service(['GET'], '/tree',
-                  [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.PATHID],
-                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int, CONTEXT.PATHID: int},
+    @http_service(['GET'], '/tree/(\d+)',
+                  [CONTEXT.USER, CONTEXT.CUSTOMERID],
+                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int},
                   {USER_ROLES.provider, USER_ROLES.supervisor})
-    def get_protocol(self, _header, body, context, _matches, _key):
-        protocol_id = context[CONTEXT.PATHID]
+    def get_protocol(self, _header, body, context, matches, _key):
+        protocol_id = int(matches[0])
         customer = context[CONTEXT.CUSTOMERID]
         if not protocol_id:
             return HTTP.NOTFOUND_RESPONSE, b'', None
-        ret = yield from self.persistence.get_protocol(protocol_id, customer)
-        ret[CONTEXT.PATHID] = protocol_id
-
+        ret = yield from self.persistence.get_protocol(customer, protocol_id)
         return (HTTP.OK_RESPONSE, json.dumps(ret), None)
 
     @http_service(['POST'], '/tree',
-                  [CONTEXT.USER, CONTEXT.CUSTOMERID],
-                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int},
+                  [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.USERID],
+                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int, CONTEXT.USERID: int},
                   {USER_ROLES.provider, USER_ROLES.supervisor})
     def create_protocol(self, _header, body, context, _matches, _key):
         full_spec = json.loads(body.decode('utf-8'))
         customer_id = context[CONTEXT.CUSTOMERID]
-        new_id = yield from self.persistence.create_protocol(full_spec, customer_id)
-        full_spec[CONTEXT.PATHID] = new_id
+        user_id = context[CONTEXT.USERID]
+        id = yield from self.persistence.create_protocol(full_spec, customer_id, user_id)
+        full_spec[CONTEXT.PATHID] = id
         return (HTTP.OK_RESPONSE, json.dumps(full_spec), None)
 
-    @http_service(['DELETE'], '/tree',
-                  [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.PATHID],
-                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int, CONTEXT.PATHID: int},
+    @http_service(['DELETE'], '/list/(\d+)',
+                  [CONTEXT.USER, CONTEXT.CUSTOMERID],
+                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int},
                   {USER_ROLES.provider, USER_ROLES.supervisor})
-    def delete_protocol(self, _header, body, context, _matches, _key):
-        protocol_id = context[CONTEXT.PATHID]
-        yield from self.persistence.delete_protocol(protocol_id)
+    def delete_protocol(self, _header, body, context, matches, _key):
+        canonical_id = int(matches[0])
+        customer_id = context[CONTEXT.CUSTOMERID]
+        yield from self.persistence.delete_protocol(customer_id, canonical_id=canonical_id)
         return (HTTP.OK_RESPONSE, "", None)
 
-    @http_service(['PUT'], '/tree',
-                  [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.PATHID, CONTEXT.USERID],
+    @http_service(['PUT'], '/tree/(\d+)',
+                  [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.USERID],
                   {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int,
-                   CONTEXT.PATHID: int, CONTEXT.USERID: int},
+                   CONTEXT.USERID: int},
                   {USER_ROLES.provider, USER_ROLES.supervisor})
-    def update_protocol(self, _header, body, context, _matches, _key):
+    def update_protocol(self, _header, body, context, matches, _key):
         protocol_json = json.loads(body.decode('utf-8'))
-        protocol_id = context[CONTEXT.PATHID]
+        protocol_id = int(matches[0])
         customer = context[CONTEXT.CUSTOMERID]
         userid = context[CONTEXT.USERID]
         id = yield from self.persistence.update_protocol(protocol_id, customer, userid, protocol_json)
         protocol_json[CONTEXT.PATHID] = id
-        protocol_json['id'] = id
         return (HTTP.OK_RESPONSE, json.dumps(protocol_json), None)
 
     @http_service(['POST'], '/activity',

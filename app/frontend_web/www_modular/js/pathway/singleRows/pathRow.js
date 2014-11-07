@@ -13,22 +13,16 @@ define([
     'backbone',    // lib/backbone/backbone
     'router',
     'globalmodels/contextModel',
-    'pathway/models/treeModel',
     'pathway/models/pathwayCollection',
     'text!templates/pathway/pathwayListEntry.html'
 
-], function ($, _, Backbone, router, contextModel, curTree, pathwayCollection, pathRowTemplate) {
+], function ($, _, Backbone, router, contextModel, pathwayCollection, pathRowTemplate) {
 
     var ruleRow = Backbone.View.extend({
         template: _.template(pathRowTemplate),
         events:{
 	      'click .select-button': 'handleSelect',
 	      'click .delete-button': 'handleRemove'
-        },
-        getRemoveUrl: function() {
-            var n = contextModel.toParams()
-            n.pathid = this.model.get('id')
-            return '/tree?' + decodeURIComponent($.param(n));
         },
         render: function(){
             $(this.el).html(this.template(this.model.toJSON()));
@@ -38,13 +32,10 @@ define([
             this.model = params.model
         },
         handleSelect: function() {
-                contextModel.set('pathid', String(this.model.get('id')))
+                contextModel.set('pathid', String(this.model.get('pathid')))
 
         },
     	handleRemove: function() {
-            var n = contextModel.toParams()
-            n.pathid = this.model.get('id')
-            this.model.url = '/tree?' + decodeURIComponent($.param(n));
             this.model.destroy({success: function(){
                 pathwayCollection.fetch()
             }})

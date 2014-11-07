@@ -1126,11 +1126,13 @@ class WebPersistence():
         return result
 
     @asyncio.coroutine
-    def get_protocols(self, customer_id, includedeleted=False):
+    def get_protocols(self, customer_id, canonical_id=None, includedeleted=False):
+        if canonical_id:
+            raise Exception('Not implemented yet')
         cmd = []
         cmdArgs = []
-        cmd.append("SELECT current_id, name FROM trees.canonical_protocol")
-        cmd.append("WHERE customer_id=%s OR customer_id IS NULL")
+        cmd.append("SELECT current_id, name, canonical_id FROM trees.canonical_protocol")
+        cmd.append("WHERE (customer_id=%s OR customer_id IS NULL)")
         cmdArgs.append(customer_id)
         if not includedeleted:
             cmd.append('AND NOT deleted')
@@ -1138,14 +1140,14 @@ class WebPersistence():
         return ret
 
     @asyncio.coroutine
-    def create_protocol(self, treeJSON, customer_id):
+    def create_protocol(self, treeJSON, customer_id, user_id):
 
-        cmd = ["SELECT trees.insertprotocol(%s, %s, %s, %s, %s, %s, %s)"]
-        cmdArgs = [json.dumps(treeJSON), customer_id, treeJSON['name'], None, 0.00, 200.00, '%']
+        cmd = ["SELECT trees.insertprotocol(%s, %s, %s, %s, %s, %s, %s, %s)"]
+        cmdArgs = [json.dumps(treeJSON), customer_id, user_id, treeJSON['name'],
+                   None, 0.00, 200.00, '%']
         try:
             cur = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
             tree_id = cur.fetchone()[0]
-
             # Insert a record into alert_config so that the Pathway actually fires (it's referenced in the evalnode()
             # PL/pgsql function
             cmd = ["INSERT INTO alert_config (customer_id, department, category, rule_id, validation_status)",
@@ -1217,40 +1219,48 @@ class WebPersistence():
             raise Exception("The EXISTS true/false string sent from the Pathways Rule Editor did not supply a valid string")
 
     @asyncio.coroutine
-    def get_protocol(self, protocol_id, customer_id):
+    def get_protocol(self, customer_id, protocol_id=None):
         cmd = ["SELECT full_spec from trees.protocol",
                "WHERE protocol_id=%s AND (customer_id IS NULL OR customer_id=%s)"]
         cmdArgs = [protocol_id, customer_id]
         try:
             cur = yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
             result = cur.fetchone()[0]
+            result['pathid'] = protocol_id
             return result
         except:
             ML.EXCEPTION("Error Selecting TreeID #{}".format(protocol_id))
             return None
 
     @asyncio.coroutine
-    def delete_protocol(self, protocol_id, customer_id):
-        cmd = ["UPDATE FROM trees.protocol SET deleted=TRUE",
-               "WHERE protocol_id=%s AND customer_id=%s"]
-        cmdArgs = [protocol_id, customer_id]
+    def delete_protocol(self, customer_id, protocol_id=None, canonical_id=None):
+        if canonical_id:
+            cmd = ["UPDATE trees.canonical_protocol SET deleted=TRUE ",
+                   "WHERE (canonical_id=%s and customer_id=%s)"]
+            cmdArgs = [canonical_id, customer_id]
+        elif protocol_id:
+            cmd = ["UPDATE FROM trees.protocol SET deleted=TRUE",
+                   "WHERE (protocol_id=%s AND customer_id=%s)"]
+            cmdArgs = [protocol_id, customer_id]
+        else:
+            ML.EXCEPTION('Calling delete_protocol without a protocol or canonical id')
         try:
             yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
         except:
             ML.EXCEPTION("Error Deleting TreeID #{}".format(protocol_id))
 
     @asyncio.coroutine
-    def update_protocol(self, protocol_id, customer_id, protocol_json):
-        cmd = ["UPDATE trees.protocol",
-               "SET full_spec=%s",
-               "WHERE protocol_id=%s AND customer_id=%s"]
-        cmdArgs = [json.dumps(protocol_json), protocol_id, customer_id]
+    def update_protocol(self, protocol_id, customer_id, user_id, protocol_json):
+        cmd = ['SELECT trees.updateprotocol(%s, %s, %s, %s)']
+        cmdArgs = [protocol_id, json.dumps(protocol_json), customer_id, user_id]
         try:
-            yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
+            cur = yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
+            newid = cur.fetchone()[0]
             # Update/Insert the trees.codelist records for the protocol
             yield from self.upsert_codelists(protocol_json)
+            return newid
         except:
-            ML.EXCEPTION("Error Updating TreeID #{}".format(protocol_json.get('id', None)))
+            ML.EXCEPTION("Error Updating TreeID #{}".format(protocol_json.get('pathid', None)))
 
     @asyncio.coroutine
     def post_protocol_activity(self, customer_id, user_id, activity_msg):

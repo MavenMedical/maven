@@ -9,9 +9,10 @@ define([
     var pathCollection = Backbone.Collection.extend({
         elPairs: [],
 
+	model: Backbone.Model.extend({idAttribute: 'canonical'}),
         url: function() {
 
-            return '/list?' + decodeURIComponent($.param(contextModel.toParams()));
+            return '/list'
         },
         initialize: function(){
             this.fetch()
