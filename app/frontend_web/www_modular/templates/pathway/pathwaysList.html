@@ -4,16 +4,19 @@
          Pathways
         </h2>
     <div class="col-md-12">
-    <div style=" padding:0; max-height:600px; overflow-y:auto;">
-         <div class="table-body">
+    <div style=" padding:0; max-height:600px; overflow-y:auto;" class="sortable-folder" id="pathway-directory">
+        <div style="font-size: 150%;" class="pathway-folder-title">
+            <a id="paths-list-add-folder">
+                <span class="glyphicon glyphicon-folder-close"></span> New Folder
+            </a>
+        </div>
+        <div class="table-body connectedSortableMain sortable-folder" id="avail-paths-list">
 
         </div>
     </div>
     </div>
 </div>
 <div class="maven-padding"></div>
-
-
          <div style="padding-top: 30px; padding-bottom: 30px;" class="col-md-12">
             <div id="action-buttons">
                 <button type="button" class="btn btn-default btn-sm path" id="newpath-button">
@@ -26,7 +29,4 @@
                 </button>
             </div>
             </div>
-
-
-
 </div>

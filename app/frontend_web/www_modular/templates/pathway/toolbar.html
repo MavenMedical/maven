@@ -7,10 +7,21 @@
                 Pathways
                 <span class="caret"></span>
             </button>
-            <ul id="avail-paths" class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1"
+            <div id="avail-paths" class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1"
                 style="max-width: 500px">
                 <!--the dropdown rules will render here -->
-            </ul>
+                <div style="font-size: 150%;">
+                    <a id="paths-list-add-directory">
+                        <span class="glyphicon glyphicon-plus"></span>New Folder
+                    </a>
+                </div>
+                <div id="add-directory-form" class="input-group input-group-sm control-group" style="display:none;">
+                    <input type="text" class="form-control" id="new-directory-text">
+                </div>
+                <div id="avail-paths-dropdown">
+
+                </div>
+            </div>
         </div>
 
         <button type="button" class="toolbar-button btn btn-default  path " id="newpath-button">

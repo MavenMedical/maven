@@ -19,6 +19,7 @@ define([
 ], function ($, _, Backbone, router, contextModel, pathwayCollection, pathRowTemplate) {
 
     var ruleRow = Backbone.View.extend({
+        tagName: "div class='ui-state-default'",
         template: _.template(pathRowTemplate),
         events:{
 	      'click .select-button': 'handleSelect',

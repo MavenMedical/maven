@@ -898,3 +898,107 @@ button:hover .btn-hover { display: inline; }
 #send-followups-message{
     float:left;
 }
+
+.ui-state-default {
+    clear: both;
+    cursor: pointer;
+    float: left;
+    width:100%;
+    display: inline-block;
+    background-color: white;
+}
+
+.ui-folder-placeholder {
+    border-color: white !important;
+}
+
+.ui-sortable-placeholder {
+    clear: both;
+    width: 100%;
+    display: inline-block;
+    height:35px;
+}
+
+#avail-paths-list {
+    clear: both;
+    width:100%;
+}
+
+.pathway-sub-folder {
+    clear:both;
+    width:100%;
+    display: inline-block;
+    float:left;
+}
+
+.sortable-folder {
+    float:left;
+    width:100%;
+    clear:both;
+    display: inline-block;
+}
+
+.sortable-placeholder {
+	height: 35px;
+	background: #e3dcd7;
+	margin-bottom: 5px;
+	margin-top: 5px;
+    width:100%;
+    display: inline-block;
+    float:left;
+}
+
+.ui-sortable-helper {
+	box-shadow: rgba(0,0,0,0.15) 0 3px 5px 0;
+	width: 300px!important;
+	height: 33px!important;
+}
+
+.block {
+	margin: 5px 0;
+	border: 1px solid #f1e8e2;
+	background: #fff;
+}
+.block-title {
+    font-family: Arial;
+	font-size: 12px;
+	padding: 0 10px;
+	height: 33px;
+	line-height: 33px;
+	position: relative;
+}
+
+.pathway-folder-title {
+    font-size: 150%;
+    clear:both;
+    float: left;
+    width:100%;
+    display: inline-block;
+}
+
+.folder-control {
+    float:right;
+    display: inline-block;
+    vertical-align: bottom;
+}
+
+.folder-control > a {
+    color: #428BCA;
+}
+.folder-control > span {
+    max-width:20px;
+}
+
+.pathway-sub-folder > .ui-state-default {
+    display:none;
+    width:95%;
+    margin-left:5%;
+}
+
+#paths-list-add-folder{
+    cursor:pointer;
+}
+
+.paths-list-add-sub-folder, .paths-list-add-sub-pathway {
+    float:right;
+}

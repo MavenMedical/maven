@@ -94,7 +94,7 @@ define([
             var followupRecipient = $(".followupRecipient", this.$el).val();
             var followupRecipientName = $(".followupRecipientName", this.$el).val();
 
-            if (subject == "" && message == "" && date == "" && followupRecipient == "" && followupRecipient == "")
+            if (subject == "" && message == "" && date == "" && followupRecipient == "" && followupRecipientName == "")
             {
                 return {};
             }
@@ -105,7 +105,11 @@ define([
         sendFollowup: function() {
             var subject = $(".reminderSubject", this.$el).val();
             var message = $(".reminderText", this.$el).val();
-            var date = $(".reminderTime", this.$el).val() + "T00:00:00.000Z";
+            var date = $(".reminderTime", this.$el).val();
+            if (date != "") {
+                date += "T00:00:00.000Z";
+            }
+
             var followupRecipientName = $(".followupRecipientName", this.$el).val();
 
             if (subject == ""){
@@ -138,9 +142,9 @@ define([
                     alert("There was a problem sending this followup: " + subject);
                 },
                 success: function (){
-                    $("#send-followups-message").show();
+                    /*$("#send-followups-message").show();
                     $("#send-followups-message").html('Followup Sent!')
-                    $("#send-followups-message").fadeOut(1500);
+                    $("#send-followups-message").fadeOut(1500);*/
                 }
             });
         }
