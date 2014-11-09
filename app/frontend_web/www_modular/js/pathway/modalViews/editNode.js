@@ -7,42 +7,42 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'globalmodels/contextModel',
-    'pathway/models/treeModel',
+    'pathway/models/treeContext',
     'text!templates/pathway/NewNodeModal.html',
     'text!templates/pathway/NewProtocolModal.html'
 
-], function ($, _, Backbone, contextModel, curTree, nodeTemplate, protocolTemplate) {
+], function ($, _, Backbone, contextModel, treeContext, nodeTemplate, protocolTemplate) {
 
     var editNode = Backbone.View.extend({
 
         el: $("#modal-target"),
         initialize: function () {
-            if (curTree.get('selectedNode').attributes.isProtocol) {
+            if (treeContext.get('selectedNode').attributes.isProtocol) {
                 this.template = _.template(protocolTemplate),
-                    this.$el.html(this.template(curTree.get('selectedNode').attributes));
+                    this.$el.html(this.template(treeContext.get('selectedNode').attributes));
                 $('#addNodeButton')[0].onclick = function () {
                     var protocolText = CKEDITOR.instances.ProtocolText.getData();
-                    curTree.get('selectedNode').set('protocol', protocolText);
-                    curTree.get('selectedNode').set('noteToCopy', $('#NoteToCopyText', this.$el).val());
+                    treeContext.get('selectedNode').set('protocol', protocolText);
+                    treeContext.get('selectedNode').set('noteToCopy', $('#NoteToCopyText', this.$el).val());
                     $('#detail-modal').modal('hide')
-                    curTree.trigger('propagate')
+                    treeContext.trigger('propagate')
                 }
 
                 $("#detail-modal").modal({'show': 'true'});
                 CKEDITOR.replace('ProtocolText');
-                CKEDITOR.instances.ProtocolText.setData(curTree.get('selectedNode').get('protocol'));
-                $('#NoteToCopyText', this.$el).val(curTree.get('selectedNode').get('noteToCopy'))
+                CKEDITOR.instances.ProtocolText.setData(treeContext.get('selectedNode').get('protocol'));
+                $('#NoteToCopyText', this.$el).val(treeContext.get('selectedNode').get('noteToCopy'))
             }else{
                 this.template = _.template(nodeTemplate),
-                    this.$el.html(this.template(curTree.get('selectedNode').attributes));
+                    this.$el.html(this.template(treeContext.get('selectedNode').attributes));
                 $('#addNodeButton')[0].onclick = function () {
-                    curTree.get('selectedNode').set('name', $('#newNodeText', this.$el).val());
-                    curTree.get('selectedNode').set('tooltip', $('#newNodeTooltip', this.$el).val())
+                    treeContext.get('selectedNode').set('name', $('#newNodeText', this.$el).val());
+                    treeContext.get('selectedNode').set('tooltip', $('#newNodeTooltip', this.$el).val())
                     var data = CKEDITOR.instances.newNodeSideText.getData()
-                    curTree.get('selectedNode').set('sidePanelText', data)
+                    treeContext.get('selectedNode').set('sidePanelText', data)
 
                     $('#detail-modal').modal('hide')
-                      curTree.trigger('propagate')
+                      treeContext.trigger('propagate')
                 }
                 $("#detail-modal").modal({'show': 'true'});
                 CKEDITOR.replace('newNodeSideText');

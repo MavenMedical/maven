@@ -5,10 +5,11 @@ define([
     'backbone',    // lib/backbone/backbone
     'pathway/models/nodeModel',
     'pathway/models/treeModel',
+    'pathway/models/treeContext',
     'globalmodels/contextModel',
     'text!templates/pathway/NewNodeModal.html',
 
-], function ($, _, Backbone, NodeModel, curTree, contextModel, nodeTemplate) {
+], function ($, _, Backbone, NodeModel, curTree, treeContext, contextModel, nodeTemplate) {
 
     var nodeModal = Backbone.View.extend({
         template: _.template(nodeTemplate),
@@ -41,9 +42,9 @@ define([
 
                 that.parent.get('children').add(n, {at: location})
 
-                curTree.set('selectedNode', n, {silent: true})
+                treeModel.set('selectedNode', n, {silent: true})
 
-                curTree.trigger('propagate')
+                treeModel.trigger('propagate')
                 $('#detail-modal').modal('hide')
             }
             var that = this

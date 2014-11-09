@@ -10,10 +10,10 @@ define([
     'pathway/modalViews/protocolEditor',
     'pathway/models/nodeModel',
     'pathway/models/treeModel',
-
+    'pathway/models/treeContext',
     'text!templates/pathway/treeNode.html'
 
-    ], function($, _, Backbone, currentContext,  ProtocolNode, NodeEditor, ProtocolEditor, nodeModel, curTree, nodeTemplate){
+    ], function($, _, Backbone, currentContext,  ProtocolNode, NodeEditor, ProtocolEditor, nodeModel, curTree, treeContext, nodeTemplate){
 
         var treeNode = Backbone.View.extend({
             nodeType: "standard",
@@ -42,10 +42,10 @@ define([
 
 
             setSelectedNode: function(){
-		if (curTree.suppressClick) {return}
+		if (treeContext.suppressClick) {return}
                 this.getMyElement().off('click');
-                curTree.set('selectedNode', this.model, {silent: true});
-                curTree.trigger('propagate')
+                treeContext.set('selectedNode', this.model, {silent: true});
+                treeContext.trigger('propagate')
             },
 
             getMyElement: function(){
@@ -61,7 +61,7 @@ define([
 
                 //Set on clicks
                 $('.collapseButton', this.$el).first().on('click', function(){
-		    if (curTree.suppressClick) {return}
+		    if (treeContext.suppressClick) {return}
                        if (currentContext.get('page')=='pathEditor'){
                            if (that.model.get('hideChildren') == "false"){
                                curTree.collapse(that.model)
@@ -78,18 +78,18 @@ define([
                      curTree.changeNodePosition(that.model, -1)
                 })
                 $("#moveRightButton", this.$el).first().on('click', function(){
-		    curTree.unset('selectedNodeOffset');
+		    treeContext.unset('selectedNodeOffset');
                      curTree.changeNodePosition(that.model, 1)
                 })
                 $(".addProtocolButton", this.$el).first().on('click', function(){
                      var newEditor = new ProtocolEditor(that.model)
                 })
                 this.getMyElement().on('click', function(evt){
-		    if (curTree.suppressClick) {return}
+		    if (treeContext.suppressClick) {return}
 		    var selected = $(evt.currentTarget)
 		    var offset = selected.offset();
 		    offset.clickid = selected.attr('clickid');
-		    curTree.set({'selectedNodeWidth': selected.outerWidth() , 'selectedNodeOffset': offset,
+		    treeContext.set({'selectedNodeWidth': selected.outerWidth() , 'selectedNodeOffset': offset,
 				 'selectedNode': that.model}, {silent: true})
                     if (currentContext.get('page')!='pathEditor'){
                        if (that.model.get('hideChildren') == "false"){
@@ -100,7 +100,7 @@ define([
                        }
                        curTree.getShareCode()
                     } else {
-                        curTree.trigger('propagate')
+                        treeContext.trigger('propagate')
                     }
 
                 })
@@ -114,7 +114,7 @@ define([
 
                         var thisChild = new treeNode({model: cur, el:targ})
 
-                        var n =  ((cur.get('hideChildren') == "false") || cur == curTree.get('selectedNode')  )
+                        var n =  ((cur.get('hideChildren') == "false") || cur == treeContext.get('selectedNode')  )
                         curTree.elPairs.push({source: this, target: thisChild, bold: n})
                     } else {
                        that.addProtocol(cur)
@@ -130,7 +130,7 @@ define([
 
                 }
 
-                if (this.model == curTree.get('selectedNode')){
+                if (this.model == treeContext.get('selectedNode')){
                     that.getMyElement().addClass('selected')
                 }
 

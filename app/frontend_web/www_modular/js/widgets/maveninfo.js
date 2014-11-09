@@ -8,13 +8,15 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'globalmodels/contextModel',
-    'pathway/models/treeModel'
-], function ($, _, Backbone, contextModel, curTree) {
+    'pathway/models/treeModel',
+    'pathway/models/treeContext'
+], function ($, _, Backbone, contextModel, curTree, treeContext) {
     var MavenInfo = Backbone.View.extend({
 
             initialize: function (arg) {
                 this.template = _.template(arg.template);
-                    curTree.on('propagate', this.render, this);
+                    treeContext.on('propagate', this.render, this);
+		
                     contextModel.on('change:page change:pathid', this.hidePopup , this);
                 this.dynamicLayout = true;
 
@@ -31,23 +33,23 @@ define([
 
             },
             render: function () {
-                if (!curTree.get('selectedNode')){
+                if (!treeContext.get('selectedNode')){
 		    this.hidePopup()
                     return
                 }
-		if(curTree.get('selectedNode') == this.selectedNode) {return}
+		if(treeContext.get('selectedNode') == this.selectedNode) {return}
 
-                console.log('selectedNode', curTree.get('selectedNode'));
+                //console.log('selectedNode', treeContext.get('selectedNode'));
                 // for accounts with no pathways
-                if(typeof curTree.get('selectedNode') !== 'undefined') {
+                if(typeof treeContext.get('selectedNode') !== 'undefined') {
 
                     var that = this;
                     // Don't show if there is no text or if selected node is Protocol
-                    if (curTree.get('selectedNode').attributes.sidePanelText && !curTree.get('selectedNode').attributes.isProtocol ) {
+                    if (treeContext.get('selectedNode').attributes.sidePanelText && !treeContext.get('selectedNode').attributes.isProtocol ) {
                        this.hidePopup();
                        // this.$el.hide(); // hide previous side-popup
-                        this.selectedNode = curTree.get('selectedNode');
-                        this.$el.html(this.template(curTree.get('selectedNode').attributes));
+                        this.selectedNode = treeContext.get('selectedNode');
+                        this.$el.html(this.template(treeContext.get('selectedNode').attributes));
 
                         this.showPopup();
 console.log($("#mavenInfo-header").width(), $("#mavenInfo-title").outerWidth())
@@ -57,12 +59,12 @@ console.log($("#mavenInfo-header").width(), $("#mavenInfo-title").outerWidth())
             },
             hidePopup: function () {
                 this.$el.hide();
-                this.selectedNode = curTree.get('selectedNode');
+                this.selectedNode = treeContext.get('selectedNode');
             },
             showPopup: function(){
                  if (this.dynamicLayout) {
-                            $('#side-popup').css('top', curTree.get('selectedNodeOffset').top);
-                            $('#side-popup').css('left', curTree.get('selectedNodeOffset').left + curTree.get('selectedNodeWidth') + 10);
+                            $('#side-popup').css('top', treeContext.get('selectedNodeOffset').top);
+                            $('#side-popup').css('left', treeContext.get('selectedNodeOffset').left + treeContext.get('selectedNodeWidth') + 10);
                       $('#side-popup').css('bottom', 'none');
                             $('#side-popup').css('right', 'none');
                         }else{
