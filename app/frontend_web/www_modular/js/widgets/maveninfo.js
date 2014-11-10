@@ -10,6 +10,7 @@ define([
     'globalmodels/contextModel',
     'pathway/models/treeModel'
 ], function ($, _, Backbone, contextModel, curTree) {
+
     var MavenInfo = Backbone.View.extend({
 
             initialize: function (arg) {

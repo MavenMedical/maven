@@ -10,23 +10,26 @@ define([
     'pathway/internalViews/detailGroup',
     'pathway/models/treeModel',
     'Helpers',
-    'text!templates/pathway/detailSection.html'
+    'text!templates/pathway/detailSection.html',
+    'text!templates/pathway/disjoinedGroups.html'
 
-], function ($, _, Backbone, contextModel, layoutModel, detailEditor, DetailGroup, curTree, helpers, detailSection) {
+], function ($, _, Backbone, contextModel, layoutModel, detailEditor, DetailGroup, curTree, helpers, detailSection, disjoinedGroupTemplate) {
 
     var ruleWizard = Backbone.View.extend({
+
          el: '#modal-target',
 
         initialize: function(params){
+            console.log('test2', detailEditor)
             this.template = _.template(params.template)
                             var that = this
-            curTree.get('triggers').on('add', this.render, this)
+            curTree.get('triggers').on('triggerChange', this.render, this)
 
             contextModel.on('change:page', function(){
                     if (contextModel.get('page')== 'triggerEditor'){
                         this.$el.show()
+                        this.render()
                         layoutModel.set('fluidContent', false)
-
                     }    else {
                         this.$el.hide()
                     }
@@ -55,23 +58,30 @@ define([
                     })
 
             })
-                for (var key in curTree.get("triggers").attributes){
+                       var disjGroup  = _.template(disjoinedGroupTemplate)
+
+                    for (var i in curTree.get("triggers").models){
+                        var curGroup = curTree.get('triggers').models[i]
+
+                        $('#disjoinedGroups').append(disjGroup(curGroup.attributes))
                         var context = this;
                         //load this detail type's template
-                        require (['text!/templates/pathway/details/' + key + 'Detail.html'], function(key) {return  function(curTemplate){
-                            //load the list of details of this type
-                            var toList = curTree.get('triggers').get(key);
-                            var toTemplate = _.template(curTemplate);
-                            var sectionTemplate = _.template(detailSection);
+                         for (var key in curGroup.get('details').models){
+                            require (['text!/templates/pathway/details/' + key + 'Detail.html'], function(key) {return  function(curTemplate){
+                                //load the list of details of this type
+                                var toList = curTree.get('triggers').get(key);
+                                var toTemplate = _.template(curTemplate);
+                                var sectionTemplate = _.template(detailSection);
 
-                                        $('.detail-sections', context.$el).append(sectionTemplate({heading:helpers.detailHeadings[key]}));
+                                            $('.detail-sections', context.$el).last().append(sectionTemplate({heading:helpers.detailHeadings[key]}));
 
-                                        //create a new detail group for this detail type, and send it the collection of details of this type
-                                        var cur  = new DetailGroup({el: $('.items', context.$el).last(), lineTemplate:toTemplate, list: toList, type: key})
-                                        cur.render();
+                                            //create a new detail group for this detail type, and send it the collection of details of this type
+                                            var cur  = new DetailGroup({el: $('.items', context.$el).last(), lineTemplate:toTemplate, list: toList, type: key})
+                                            cur.render();
 
 
-                        };}(key));
+                            };}(key));
+                         }
                    }
         }
 

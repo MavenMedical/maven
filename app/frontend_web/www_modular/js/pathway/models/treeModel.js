@@ -345,15 +345,29 @@ define([
 	    this.populateChildren(response.children, options)
             this.once('sync',  function(){recursiveCollapse(this)}, this)
             var triggers = new Backbone.Model()
-            _.each(response.triggers, function(value, key){
-                var curCollection = new Backbone.Collection(value)
-                triggers.set(key, curCollection)
+            var result = new Backbone.Collection()
+        var triggerJSON = response.triggers
 
-            })
-            this.set({triggers: triggers}, {silent: true})
+        console.log('testing', typeof(triggerJSON))
+        if (typeof (triggerJSON) =='object'){
+            var theGroup = new Backbone.Model()
+            theGroup.set({details: triggerJSON, relationship: 'and'})
+            result =  new Backbone.Collection([theGroup])
+        } else {
+            for (var i in triggerJSON){
+                var cur = triggerJSON[i]
+                var curGroup = new Backbone.Model()
+                curGroup.set('relationship', cur.relationship)
+                curGroup.set('details', cur.details)
+                result.add(curGroup)
+            }
+         }
+            this.set('triggers', result, {silent: true})
         }
 
     })
+
+
     treeModel = new TreeModel()
     return treeModel
 

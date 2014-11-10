@@ -8,7 +8,8 @@ define([
     'pathway/internalViews/multiSelectSearch'
 
 
-], function ($, _, Backbone,  curTree, detailSearchBox, multiSelectSearch, routeListBox) {
+
+], function ($, _, Backbone,  curTree, detailSearchBox, multiSelectSearch) {
 
     var DetailEditor = Backbone.View.extend({
 
@@ -189,7 +190,6 @@ define([
 
 
     });
-
 
     return DetailEditor;
 
