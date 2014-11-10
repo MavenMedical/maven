@@ -386,6 +386,7 @@ html, body {
    /* background-color: #2c2f74;
     color: #ffffff;*/
     padding-left: 2px;
+    word-wrap: break-word;
 }
 
 #side-popup .nodeInfo{
