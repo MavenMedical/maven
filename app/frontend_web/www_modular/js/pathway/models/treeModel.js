@@ -287,6 +287,19 @@ define([
 						 'hasLeft', 'hasRight'])
 	    if (options && options.toExport) {retMap = _.omit(retMap, ['nodeID', 'nodeCount', 'id', 'pathid'])}
             retMap.children = children
+            retMap.triggers = retMap.triggers.toJSON()
+            for (var i in retMap.triggers){
+
+                var curGroup = retMap.triggers[i]
+                curGroup['details'] = curGroup['details'].toJSON()
+                var curDetailsModel = curGroup['details']
+
+                for (var i2 in curDetailsModel){
+                    curDetailsModel[i2] = curDetailsModel[i2].toJSON()
+
+                }
+            }
+
             console.log('the json will look like', retMap)
 
             return retMap
@@ -358,16 +371,29 @@ define([
         var triggerJSON = response.triggers
 
         console.log('testing', typeof(triggerJSON))
-        if (typeof (triggerJSON) =='object'){
+        if (!Object.prototype.toString.call( triggerJSON ) === '[object Array]' ){
             var theGroup = new Backbone.Model()
-            theGroup.set({details: triggerJSON, relationship: 'and'})
+            for (var n in triggerJSON){
+                triggerJSON[n] = new Backbone.Collection(triggerJSON[n])
+            }
+            theGroup.set({details: new Backbone.Model(triggerJSON), relationship: 'and'})
+
             result =  new Backbone.Collection([theGroup])
         } else {
             for (var i in triggerJSON){
                 var cur = triggerJSON[i]
                 var curGroup = new Backbone.Model()
                 curGroup.set('relationship', cur.relationship)
-                curGroup.set('details', cur.details)
+
+                var detailsModel = new Backbone.Model()
+                    for (var i2 in cur.details){
+                       detailsModel.set(i2, cur.details[i2])
+                        for (var i3 in detailsModel.attributes){
+                             detailsModel.set(i3, new Backbone.Collection(detailsModel.get(i3)))
+                         }
+                    }
+                curGroup.set('details', detailsModel)
+
                 result.add(curGroup)
             }
          }

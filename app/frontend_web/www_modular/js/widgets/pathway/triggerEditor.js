@@ -53,7 +53,7 @@ define([
                 var detailType = button.currentTarget.id
 
                     require(['text!templates/pathway/details/' + detailType +"_editor.html"], function(template){
-                        var curEditor = new detailEditor({template: _.template(template), model: new Backbone.Model(), newDetail: true, el:$('#modal-target'), triggerNode: that.triggerNode, type: detailType})
+                        var curEditor = new detailEditor({group: curTree.get('triggers').models[0].get('details'), template: _.template(template), model: new Backbone.Model(), newDetail: true, el:$('#modal-target'), triggerNode: that.triggerNode, type: detailType})
                         curEditor.render()
                     })
 
@@ -66,10 +66,10 @@ define([
                         $('#disjoinedGroups').append(disjGroup(curGroup.attributes))
                         var context = this;
                         //load this detail type's template
-                         for (var key in curGroup.get('details').models){
+                         for (var key in curGroup.get('details').attributes){
                             require (['text!/templates/pathway/details/' + key + 'Detail.html'], function(key) {return  function(curTemplate){
                                 //load the list of details of this type
-                                var toList = curTree.get('triggers').get(key);
+                                var toList = curGroup.get('details').get(key);
                                 var toTemplate = _.template(curTemplate);
                                 var sectionTemplate = _.template(detailSection);
 

@@ -79,7 +79,11 @@ define([
         } else {
             el = $("#"+ widgetlist[i].element)
 	}
+	try {
             new arguments[i]({template: arguments[i+viewlist.length], el: el})
+	    } catch(err) {
+		console.log('failed to start widget ', arguments[i], err)
+	    }
 	}
 	    $("#content").show();
 	    Backbone.history.loadUrl(Backbone.history.fragment);
