@@ -34,7 +34,7 @@ define([
                 var message = $("#sendProtocolNote").val() + "\r\n " + contextModel.get("official_name") +
                                 " would like you to review this patient. \r\n" +
                                 window.location.protocol + "//" + window.location.host +
-                                "#/pathway/" + contextModel.get("pathid") + "/node/1" +
+                                "#/pathway/" + contextModel.get("pathid") + "/node/" + that.parent.get("nodeID") +
                                 "/patient/" + contextModel.get("patients") + "/" + new Date().toISOString().substr(0,10) +
 		                "/login/" + recipientUserName + "/" + contextModel.get('customer') + "/" +
  		                "\r\n" + protocolText;
