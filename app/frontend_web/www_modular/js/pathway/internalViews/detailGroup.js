@@ -35,6 +35,7 @@ define([
           this.lineTemplate = params.lineTemplate;
           this.list= params.list;
           this.type = params.type;
+         this.group = params.group;
           this.el = params.el;
           //Events:  Render when the list is changed, or a new rule is loaded from persistance`
           this.list.on('add', this.render, this)
@@ -56,7 +57,7 @@ define([
                 initialize: function(params){
                     this.el = params.el
                     this.$el.html(params.text)
-
+                    this.group = params.group
 
                     this.detail = params.detail
 
@@ -64,22 +65,19 @@ define([
                     var that = this
                     // if the user clicks the  el '.detail-item' link in this line, load the editor template for this detail and display the modal for editing
                     $('.detail-item', this.$el)[0].onclick = function(){
-                         $('#detail-modal').modal('hide')
-                         $('#detail-modal').on('hidden.bs.modal', function () {
 
                              require(['text!/templates/pathway/details/' + type + '_editor.html'],
                                      function(curTemplate) {
 
-                                        var curView = new DetailEditor({model: that.detail, el:$('#modal-target'), template:_.template(curTemplate), type: type});
+                                        var curView = new DetailEditor({group: that.group, model: that.detail, el:$('#modal-target'), template:_.template(curTemplate), type: type});
                                         curView.render()
 
                                      }
                                   );
-                          })
                     }
                     //if the user clicks the '.remove-detail' X in the line remove the detail
                     $('.remove-detail', this.$el)[0].onclick = function(){
-                        curTree.get('triggers').get(type).remove(that.detail);
+                       that.group.get('details').get(type).remove(that.detail);
 
                     }
 
@@ -93,7 +91,7 @@ define([
                 //create a div in which to render the new detail line
                 this.$el.append("<div class = 'item-holder'></div>")
                 //create the detail line to be rendered in the div, set the text to use the line template
-                new detailLine({el: $('.item-holder', this.$el).last(), text: this.lineTemplate(cur.attributes), detail: cur})
+                new detailLine({group: this.group, el: $('.item-holder', this.$el).last(), text: this.lineTemplate(cur.attributes), detail: cur})
 
 
 

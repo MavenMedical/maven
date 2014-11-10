@@ -14,7 +14,23 @@ define([
     'text!templates/pathway/disjoinedGroups.html'
 
 ], function ($, _, Backbone, contextModel, layoutModel, detailEditor, DetailGroup, curTree, helpers, detailSection, disjoinedGroupTemplate) {
+    var printGroup = function(key, curGroup, location){
+        require (['text!/templates/pathway/details/' + key + 'Detail.html'], function(key) {return  function(curTemplate){
+                                //load the list of details of this type
+                                var toList = curGroup.get('details').get(key);
+                                var toTemplate = _.template(curTemplate);
+                                var sectionTemplate = _.template(detailSection);
 
+                                            location.append(sectionTemplate({heading:helpers.detailHeadings[key]}));
+
+                                            //create a new detail group for this detail type, and send it the collection of details of this type
+                                            var cur  = new DetailGroup({group: curGroup, el: $('.items').last(), lineTemplate:toTemplate, list: toList, type: key})
+                                            cur.render();
+
+
+                            };}(key));
+
+    }
     var ruleWizard = Backbone.View.extend({
 
          el: '#modal-target',
@@ -58,6 +74,17 @@ define([
                     })
 
             })
+            $('#add-group-button').on('click', function(){
+                var newGroup = new Backbone.Model();
+
+                newGroup.set('details', new Backbone.Model())
+                newGroup.set('relationship', "or")
+
+                curTree.get('triggers').add(newGroup)
+                that.render()
+
+
+            })
                        var disjGroup  = _.template(disjoinedGroupTemplate)
 
                     for (var i in curTree.get("triggers").models){
@@ -67,20 +94,8 @@ define([
                         var context = this;
                         //load this detail type's template
                          for (var key in curGroup.get('details').attributes){
-                            require (['text!/templates/pathway/details/' + key + 'Detail.html'], function(key) {return  function(curTemplate){
-                                //load the list of details of this type
-                                var toList = curGroup.get('details').get(key);
-                                var toTemplate = _.template(curTemplate);
-                                var sectionTemplate = _.template(detailSection);
-
-                                            $('.detail-sections', context.$el).last().append(sectionTemplate({heading:helpers.detailHeadings[key]}));
-
-                                            //create a new detail group for this detail type, and send it the collection of details of this type
-                                            var cur  = new DetailGroup({el: $('.items', context.$el).last(), lineTemplate:toTemplate, list: toList, type: key})
-                                            cur.render();
-
-
-                            };}(key));
+                            var copy = $('.detail-sections').last()
+                            printGroup(key, curGroup, copy)
                          }
                    }
         }
