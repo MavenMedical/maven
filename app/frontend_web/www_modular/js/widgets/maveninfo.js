@@ -15,7 +15,7 @@ define([
 
             initialize: function (arg) {
                 this.template = _.template(arg.template);
-                curTree.on('propagate', this.render, this);
+                treeContext.on('propagate', this.render, this);
                 contextModel.on('change:page change:pathid', this.hidePopup, this);
                 this.dynamicLayout = false;
 
@@ -32,6 +32,7 @@ define([
 
             },
             render: function () {
+                console.log('propagate', treeContext.get('selectedNode'))
                 if (!treeContext.get('selectedNode')) {
                     this.hidePopup()
                     return
