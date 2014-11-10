@@ -10,17 +10,16 @@ define([
     'globalmodels/contextModel',
     'pathway/models/pathwayCollection',
     'pathway/models/treeModel',
+    'pathway/models/treeContext',
     'pathway/modalViews/newPathway',
     'pathway/modalViews/ruleWizard',
-    'pathway/modalViews/saveDialog',
-
     'pathway/singleRows/pathRow',
     'pathway/internalViews/treeNodeActionSet',
 
     'text!templates/pathway/pathwayListEntry.html',
     'text!templates/pathway/toolbar.html'
 
-], function ($, _, Backbone, contextModel, curCollection, curTree, NewPathway, ruleWizard, SaveDialog, PathRow, treeNodeActionSet, listEntry, toolbarTemplate) {
+], function ($, _, Backbone, contextModel, curCollection, curTree, treeContext, NewPathway, ruleWizard, PathRow, treeNodeActionSet, listEntry, toolbarTemplate) {
     var exportPathway = function (strData, strFileName, strMimeType) {
 	require(['libs/jquery/Blob', 'libs/jquery/FileSaver.min'], function(blob, saveAs) {
 	    var b = new Blob([strData], {type: strMimeType});
@@ -31,17 +30,15 @@ define([
         template: _.template(toolbarTemplate),
         events: {
             'click #newpath-button': 'handle_newPath',
-            'click #save-button': 'handle_save',
             'click #trigger-button': 'addTrigger',
 	        'change .btn-file :file': 'importPath',
             'click #exportpath-button': 'exportPath',
             'click #testButton': 'handleTest'
         },
         handleTest: function () {
-            curTree.changeNodePosition(curTree.get('selectedNode'), -1)
+            curTree.changeNodePosition(treeContext.get('selectedNode'), -1)
         },
         initialize: function () {
-            console.log("this.$el", this.$el)
             contextModel.on('change:page', function () {
                 if (contextModel.get('page') != 'pathEditor') {
                     this.$el.hide()
@@ -53,8 +50,7 @@ define([
             if (contextModel.get('page') != 'pathEditor')
                 this.$el.hide()
             curCollection.on('sync', this.renderPathList, this)
-            curTree.on('propagate', this.renderActions, this)
-            contextModel.on('change:pathid change:page', this.showSaveDialog, this)
+            treeContext.on('propagate', this.renderActions, this)
 
             this.renderPathList();
             this.renderActions();
@@ -68,8 +64,8 @@ define([
                 this.$el.hide()
             else {
                 var el = $('#node-action-set')
-                console.log("find the action set", el)
-                if (curTree.get('selectedNode')) {
+                //console.log("find the action set", el)
+                if (treeContext.get('selectedNode')) {
                     var myActions = new treeNodeActionSet({el: el})
                     $('#action-set', el).append(myActions.render().$el)
                 }
@@ -90,15 +86,6 @@ define([
             a = new NewPathway({el: '#modal-target'});
 
         },
-        handle_save: function () {
-            curTree.save()
-        },
-        showSaveDialog: function(){
-            if(curTree.changedAttributes()){
-             //   if(!curTree.changedAttributes().hideChildren)
-                      //  new SaveDialog();
-            }
-        },
         importPath: function () {
 	    var input = $('.btn-file :file')
             file = input.get(0).files[0];
@@ -108,8 +95,7 @@ define([
                 reader.onload = function (evt) {
                     try{
                         var importedPath = JSON.parse(evt.target.result);
-                        console.log("filecontent", JSON.parse(evt.target.result));
-			curTree.loadNewPathway(importedPath, {toImport: true})
+                        curTree.loadNewPathway(importedPath, {toImport: true})
                     }
                     catch(e){
                         alert("The format of the file doesn't match Pathway format. Please try another file");

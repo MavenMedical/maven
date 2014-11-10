@@ -5,10 +5,11 @@ define([
     'backbone',    // lib/backbone/backbone
     'pathway/models/nodeModel',
     'pathway/models/treeModel',
+    'pathway/models/treeContext',
     'globalmodels/contextModel',
     'text!templates/pathway/NewNodeModal.html',
 
-], function ($, _, Backbone, NodeModel, curTree, contextModel, nodeTemplate) {
+], function ($, _, Backbone, NodeModel, curTree, treeContext, contextModel, nodeTemplate) {
 
     var nodeModal = Backbone.View.extend({
         template: _.template(nodeTemplate),
@@ -28,7 +29,7 @@ define([
                     parent.get('children').remove(child, {silent: true})
                     n.get('children').add(child, {silent: true})
 
-                    n.set('hideChildren', 'false', {silent: true})
+		    n.showChildren()
                     curTree.trigger('propagate')
                 }
                 if (that.parent.get('children').models[0]){
@@ -36,13 +37,11 @@ define([
                        that.parent.get('children').reset()
 
                     }
-
                 }
 
                 that.parent.get('children').add(n, {at: location})
 
-                curTree.set('selectedNode', n, {silent: true})
-
+                treeContext.set('selectedNode', n, {silent: true})
                 curTree.trigger('propagate')
                 $('#detail-modal').modal('hide')
             }

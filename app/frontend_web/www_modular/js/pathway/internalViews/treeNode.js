@@ -10,10 +10,10 @@ define([
     'pathway/modalViews/protocolEditor',
     'pathway/models/nodeModel',
     'pathway/models/treeModel',
-
+    'pathway/models/treeContext',
     'text!templates/pathway/treeNode.html'
 
-    ], function($, _, Backbone, currentContext,  ProtocolNode, NodeEditor, ProtocolEditor, nodeModel, curTree, nodeTemplate){
+    ], function($, _, Backbone, currentContext,  ProtocolNode, NodeEditor, ProtocolEditor, nodeModel, curTree, treeContext, nodeTemplate){
 
         var treeNode = Backbone.View.extend({
             nodeType: "standard",
@@ -42,10 +42,10 @@ define([
 
 
             setSelectedNode: function(){
-		if (curTree.suppressClick) {return}
+		if (treeContext.suppressClick) {return}
                 this.getMyElement().off('click');
-                curTree.set('selectedNode', this.model, {silent: true});
-                curTree.trigger('propagate')
+                treeContext.set('selectedNode', this.model, {silent: true});
+                treeContext.trigger('propagate')
             },
 
             getMyElement: function(){
@@ -53,20 +53,17 @@ define([
 
             },
             render: function(){
-                if (!this.model.get('hideChildren')){
-                    this.model.set('hideChildren', false, {silent: true})
-                }
-                this.$el.html(this.template({node: this.model.attributes, page: currentContext.get('page'), pathid: curTree.get('pathid')}));
+                this.$el.html(this.template({node: this.model.attributes, childrenHidden: this.model.childrenHidden(), page: currentContext.get('page'), pathid: curTree.get('pathid')}));
                 var that = this;
 
                 //Set on clicks
                 $('.collapseButton', this.$el).first().on('click', function(){
-		    if (curTree.suppressClick) {return}
+		    if (treeContext.suppressClick) {return}
                        if (currentContext.get('page')=='pathEditor'){
-                           if (that.model.get('hideChildren') == "false"){
+                           if (!that.model.childrenHidden()) {
                                curTree.collapse(that.model)
                            } else{
-                               that.model.set('hideChildren', "false", {silent: true})
+                               that.model.showChildren()
                            }
                            curTree.getShareCode()
                        }
@@ -78,29 +75,29 @@ define([
                      curTree.changeNodePosition(that.model, -1)
                 })
                 $("#moveRightButton", this.$el).first().on('click', function(){
-		    curTree.unset('selectedNodeOffset');
+		    treeContext.unset('selectedNodeOffset');
                      curTree.changeNodePosition(that.model, 1)
                 })
                 $(".addProtocolButton", this.$el).first().on('click', function(){
                      var newEditor = new ProtocolEditor(that.model)
                 })
                 this.getMyElement().on('click', function(evt){
-		    if (curTree.suppressClick) {return}
+		    if (treeContext.suppressClick) {return}
 		    var selected = $(evt.currentTarget)
 		    var offset = selected.offset();
 		    offset.clickid = selected.attr('clickid');
-		    curTree.set({'selectedNodeWidth': selected.outerWidth() , 'selectedNodeOffset': offset,
+		    treeContext.set({'selectedNodeWidth': selected.outerWidth() , 'selectedNodeOffset': offset,
 				 'selectedNode': that.model}, {silent: true})
                     if (currentContext.get('page')!='pathEditor'){
-                       if (that.model.get('hideChildren') == "false"){
+                       if (!that.model.childrenHidden()){
                            curTree.collapse(that.model)
                        } else{
                             curTree.hideSiblings(that.model)
-                            that.model.set('hideChildren', "false", {silent: true})
+                           that.model.showChildren()
                        }
                        curTree.getShareCode()
                     } else {
-                        curTree.trigger('propagate')
+                        treeContext.trigger('propagate')
                     }
 
                 })
@@ -114,7 +111,7 @@ define([
 
                         var thisChild = new treeNode({model: cur, el:targ})
 
-                        var n =  ((cur.get('hideChildren') == "false") || cur == curTree.get('selectedNode')  )
+                        var n =  (!cur.childrenHidden() || cur == treeContext.get('selectedNode')  )
                         curTree.elPairs.push({source: this, target: thisChild, bold: n})
                     } else {
                        that.addProtocol(cur)
@@ -123,14 +120,14 @@ define([
                 }, this)
 
 
-                if (this.model.get('hideChildren') == "true" && this.nodeType=="standard"){
+                if (this.model.childrenHidden() && this.nodeType=="standard"){
                     $('.children2', this.$el).first().css({'display':'none'});
                 } else {
                     $('.children2', this.$el).first().css({'display':'block'});
 
                 }
 
-                if (this.model == curTree.get('selectedNode')){
+                if (this.model == treeContext.get('selectedNode')){
                     that.getMyElement().addClass('selected')
                 }
 
