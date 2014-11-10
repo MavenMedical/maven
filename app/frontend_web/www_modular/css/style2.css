@@ -371,7 +371,7 @@ html, body {
 #side-popup{
      border-top: 7px solid #2c2f74;
     background-color: whitesmoke;
-    opacity: 0.8;
+    /*opacity: 0.8;
     filter: alpha(opacity=80); /* For IE8 and earlier */
     box-shadow: 1px 3px 8px rgba(0, 0, 0, 0.2);
     display:none;
@@ -391,7 +391,7 @@ html, body {
 #side-popup .nodeInfo{
     width:300px;
     min-height: 200px;
-    max-height: 200px;
+    max-height: 400px;
     overflow: auto;
     padding: 10px;
 }

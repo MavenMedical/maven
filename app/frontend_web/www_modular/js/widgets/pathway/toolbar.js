@@ -95,8 +95,8 @@ define([
         },
         showSaveDialog: function(){
             if(curTree.changedAttributes()){
-                if(!curTree.changedAttributes().hideChildren)
-                        new SaveDialog();
+             //   if(!curTree.changedAttributes().hideChildren)
+                      //  new SaveDialog();
             }
         },
         importPath: function () {
