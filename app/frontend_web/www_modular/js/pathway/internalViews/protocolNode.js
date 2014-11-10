@@ -89,7 +89,10 @@ define([
         getMyElement: function(){
                 return $('.protocolNode', this.$el).first()
 
-        }
+        },
+	childrenHidden: function() {return false;},
+	hideChildren: function() {},
+	showChildren: function() {}
 
     })
     return protocolNode;

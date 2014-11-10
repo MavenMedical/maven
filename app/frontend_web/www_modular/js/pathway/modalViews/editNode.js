@@ -8,10 +8,11 @@ define([
     'backbone',    // lib/backbone/backbone
     'globalmodels/contextModel',
     'pathway/models/treeContext',
+    'pathway/models/treeModel',
     'text!templates/pathway/NewNodeModal.html',
     'text!templates/pathway/NewProtocolModal.html'
 
-], function ($, _, Backbone, contextModel, treeContext, nodeTemplate, protocolTemplate) {
+], function ($, _, Backbone, contextModel, treeContext, curTree, nodeTemplate, protocolTemplate) {
 
     var editNode = Backbone.View.extend({
 
@@ -25,7 +26,7 @@ define([
                     treeContext.get('selectedNode').set('protocol', protocolText);
                     treeContext.get('selectedNode').set('noteToCopy', $('#NoteToCopyText', this.$el).val());
                     $('#detail-modal').modal('hide')
-                    treeContext.trigger('propagate')
+                    curTree.trigger('propagate')
                 }
 
                 $("#detail-modal").modal({'show': 'true'});
@@ -42,7 +43,7 @@ define([
                     treeContext.get('selectedNode').set('sidePanelText', data)
 
                     $('#detail-modal').modal('hide')
-                      treeContext.trigger('propagate')
+                      curTree.trigger('propagate')
                 }
                 $("#detail-modal").modal({'show': 'true'});
                 CKEDITOR.replace('newNodeSideText');

@@ -28,7 +28,8 @@ define([
 
             var nodeType;
             if(treeContext.get('selectedNode').attributes != null){
-                this.$el.html(this.template({treeNode :treeContext.get('selectedNode').attributes, page: contextModel.get('page')}))
+		var selected = treeContext.get('selectedNode')
+                this.$el.html(this.template({treeNode: selected.attributes, childrenHidden: selected.childrenHidden && selected.childrenHidden(), page: contextModel.get('page')}))
             }
             $('#deleteNodeButton', this.$el)[0].onclick = this.deleteNode
             $('#setNodeTitleButton', this.$el)[0].onclick = this.editNode
@@ -52,10 +53,10 @@ define([
             var newEditor = new ProtocolEditor(treeContext.get('selectedNode'))
         },
         expandCollapse: function(){
-                           if (treeContext.get('selectedNode').get('hideChildren') == "false"){
+                           if (!treeContext.get('selectedNode').childrenHidden()){
                                curTree.collapse(treeContext.get('selectedNode'))
                            } else{
-                               treeContext.get('selectedNode').set('hideChildren', "false", {silent: true})
+                               treeContext.get('selectedNode').showChildren()
                            }
             curTree.getShareCode()
             treeContext.trigger('propagate')

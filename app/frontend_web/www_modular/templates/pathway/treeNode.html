@@ -1,7 +1,7 @@
 <div class="widget-column col-sm-12">
     <!--<div style="width:40px; float:left;"></div> <!-- spacing horizontal -->
     <li style="float:left; width: auto">
-        <div  title="<%=node.tooltip%>" clickID = "TN-<%=pathid%>-<%=node.nodeID%>" <%if (node.hideChildren=="true"){%> style = "background-color: lightyellow" <%}%> class="treeNode click-tracked">
+        <div  title="<%=node.tooltip%>" clickID = "TN-<%=pathid%>-<%=node.nodeID%>" <%if (childrenHidden){%> style = "background-color: lightyellow" <%}%> class="treeNode click-tracked">
             <span data-toggle="tooltip" > <%=node.name%></span>
 
             <br>
@@ -20,7 +20,7 @@
                 <% if ("nodeType == standard" && (node.children.length > 0||node.protocol ))  {%>
                 <div class="btn-group btn-group-sm">
                     <button type="button" class="btn btn-default collapseButton">
-                            <% if (node.hideChildren=="true"){%>
+                            <% if (childrenHidden){%>
                             <img src="../images/temp/expand.jpg" style="width: 25px; height: 25px">
                             <%}else{%>
                             <img src="../images/temp/collapse.jpg" style="width: 25px; height: 25px">

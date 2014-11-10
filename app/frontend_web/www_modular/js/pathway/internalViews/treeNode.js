@@ -53,20 +53,17 @@ define([
 
             },
             render: function(){
-                if (!this.model.get('hideChildren')){
-                    this.model.set('hideChildren', false, {silent: true})
-                }
-                this.$el.html(this.template({node: this.model.attributes, page: currentContext.get('page'), pathid: curTree.get('pathid')}));
+                this.$el.html(this.template({node: this.model.attributes, childrenHidden: this.model.childrenHidden(), page: currentContext.get('page'), pathid: curTree.get('pathid')}));
                 var that = this;
 
                 //Set on clicks
                 $('.collapseButton', this.$el).first().on('click', function(){
 		    if (treeContext.suppressClick) {return}
                        if (currentContext.get('page')=='pathEditor'){
-                           if (that.model.get('hideChildren') == "false"){
+                           if (!that.model.childrenHidden()) {
                                curTree.collapse(that.model)
                            } else{
-                               that.model.set('hideChildren', "false", {silent: true})
+                               that.model.showChildren()
                            }
                            curTree.getShareCode()
                        }
@@ -92,11 +89,11 @@ define([
 		    treeContext.set({'selectedNodeWidth': selected.outerWidth() , 'selectedNodeOffset': offset,
 				 'selectedNode': that.model}, {silent: true})
                     if (currentContext.get('page')!='pathEditor'){
-                       if (that.model.get('hideChildren') == "false"){
+                       if (!that.model.childrenHidden()){
                            curTree.collapse(that.model)
                        } else{
                             curTree.hideSiblings(that.model)
-                            that.model.set('hideChildren', "false", {silent: true})
+                           that.model.showChildren()
                        }
                        curTree.getShareCode()
                     } else {
@@ -114,7 +111,7 @@ define([
 
                         var thisChild = new treeNode({model: cur, el:targ})
 
-                        var n =  ((cur.get('hideChildren') == "false") || cur == treeContext.get('selectedNode')  )
+                        var n =  (!cur.childrenHidden() || cur == treeContext.get('selectedNode')  )
                         curTree.elPairs.push({source: this, target: thisChild, bold: n})
                     } else {
                        that.addProtocol(cur)
@@ -123,7 +120,7 @@ define([
                 }, this)
 
 
-                if (this.model.get('hideChildren') == "true" && this.nodeType=="standard"){
+                if (this.model.childrenHidden() && this.nodeType=="standard"){
                     $('.children2', this.$el).first().css({'display':'none'});
                 } else {
                     $('.children2', this.$el).first().css({'display':'block'});

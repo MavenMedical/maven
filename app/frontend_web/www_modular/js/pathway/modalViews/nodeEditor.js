@@ -29,7 +29,7 @@ define([
                     parent.get('children').remove(child, {silent: true})
                     n.get('children').add(child, {silent: true})
 
-                    n.set('hideChildren', 'false', {silent: true})
+		    n.showChildren()
                     curTree.trigger('propagate')
                 }
                 if (that.parent.get('children').models[0]){
@@ -37,14 +37,12 @@ define([
                        that.parent.get('children').reset()
 
                     }
-
                 }
 
                 that.parent.get('children').add(n, {at: location})
 
-                treeModel.set('selectedNode', n, {silent: true})
-
-                treeModel.trigger('propagate')
+                treeContext.set('selectedNode', n, {silent: true})
+                curTree.trigger('propagate')
                 $('#detail-modal').modal('hide')
             }
             var that = this

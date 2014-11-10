@@ -3,8 +3,8 @@ define([
     'underscore',
     'backbone',
     'globalmodels/contextModel',
-
-], function($, _, Backbone, contextModel){
+    'pathway/models/treeContext'
+], function($, _, Backbone, contextModel, treeContext){
 
     var NodeModel;
     var NodeList = Backbone.Collection.extend({
@@ -22,9 +22,6 @@ define([
                         toAdd.set('isProtocol', true) //if this is an old protocol without a isProtocol add it
                      }
 
-                        if (!toAdd.nodeID){
-                            toAdd.set('nodeID', curTree.get('id') + ":" + curTree.getNextNodeID())
-                        }
                     this.add(toAdd, {silent: true})
                 }
             }
@@ -41,7 +38,6 @@ define([
     })
 
     NodeModel = Backbone.Model.extend({
-        defaults: {hideChildren: "false"},
         getNodeType: function(){
 
           return "treeNode"
@@ -50,7 +46,7 @@ define([
         initialize: function(params, curTree, options){
 
             if (!params.nodeID){
-                this.set('nodeID', curTree.get('id') + ":" + curTree.getNextNodeID(), {silent: true})
+                this.set('nodeID', curTree.get('pathid') + ":" + curTree.getNextNodeID(), {silent: true})
             } else {
                 this.set('nodeID', params.nodeID, {silent: true})
             }
@@ -59,13 +55,13 @@ define([
             newChildren.populate(params.children, curTree, options)
             this.set({
 		children: newChildren,
-		'hideChildren': "true",
 		'name': params.name,
 		'tooltip': params.tooltip,
 		'sidePanelText': params.sidePanelText
 	    }, {silent: true})
+	    this.hideChildren()
             _.each(this.get('children').models, function(cur){
-                cur.set({'hideChildren': "false"}, {silent: true})
+		if(cur.showChildren) {cur.showChildren()}
             })
             if (params.protocol){
 		if (!params.protocol.nodeID) {
@@ -75,7 +71,7 @@ define([
             }
         },
         toJSON: function(options){
-            var retMap = _.omit(this.attributes, ['children', 'hideChildren', 'hasLeft', 'hasRight'])
+            var retMap = _.omit(this.attributes, ['children', 'hasLeft', 'hasRight'])
 	    if (options.toExport) {retMap = _.omit(retMap, ['nodeID'])}
             retMap.children = this.get('children').toJSON(options)
             return retMap
@@ -86,7 +82,11 @@ define([
 		newChildren.populate(children, this, options)
 	    }
 	    this.set({children: newChildren}, {silent: true})
-	}
+	},
+	showChildren: function() {treeContext.unset(this.get('nodeID'))},
+	hideChildren: function() {treeContext.set(this.get('nodeID'), 'hideChildren')},
+	childrenHidden: function() {return treeContext.get(this.get('nodeID'))}
+
 
 
     })
