@@ -49,9 +49,9 @@ define([
 
         render: function () {
             if (this.model.get('protocol') && this.model.get('protocol').attributes) {
-                this.$el.html(this.template({pathID: curTree.get('id'), protocolNode: this.model.attributes, page: currentContext.get('page')}));
+                this.$el.html(this.template({pathID: curTree.get('pathid'), protocolNode: this.model.attributes, page: currentContext.get('page')}));
             } else {
-                this.$el.html(this.template({pathID: curTree.get('id'), protocolNode: this.model.attributes, page: currentContext.get('page')}));
+                this.$el.html(this.template({pathID: curTree.get('pathid'), protocolNode: this.model.attributes, page: currentContext.get('page')}));
             }
             if (this.model == curTree.get('selectedNode')){
                 $('.protocolNode', this.$el).addClass("selected")

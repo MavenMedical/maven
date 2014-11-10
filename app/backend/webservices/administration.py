@@ -26,6 +26,7 @@ import utils.streaming.http_responder as HTTP
 import utils.crypto.authorization_key as AK
 import maven_config as MC
 from maven_logging import TASK
+from recaptcha.client import captcha
 date = str
 
 
@@ -248,3 +249,35 @@ Contact Maven Support or your System Admin with any questions."""
         yield from self.client_interface.notify_user(customer, username,
                                                      "Welcome to Maven, set/reset password",
                                                      loginstr)
+
+    @http_service(['GET'], '/recaptcha', None, None, None)
+    def get_recaptcha(self, *args):
+        public = MC.recaptcha_public
+        if public:
+            return HTTP.OK_RESPONSE, bytes(public, 'utf-8'), [b'Content-Type: text/html']
+            # recaptcha = captcha.displayhtml(public, use_ssl=True)
+            # return HTTP.OK_RESPONSE, bytes(recaptcha, 'utf-8'), [b'Content-Type: text/html']
+        else:
+            return HTTP.BAD_RESPONSE, b'', None
+
+    @asyncio.coroutine
+    def verify_recaptcha(self, challenge, response, ip):
+        if not MC.recaptcha_private:
+            return HTTP.BAD_RESPONSE, b'', None
+        resp = yield from captcha.submit(challenge, response, MC.recaptcha_private, ip)
+        return resp.is_valid
+
+    @http_service(['GET'], '/send_reset_password', None, None, None)
+    def emr_reset_password(self, headers, body, context, matches, key):
+        challenge = context['recaptcha_challenge_field'][0]
+        response = context['recaptcha_response_field'][0]
+        username = context[CONTEXT.USER][0].upper()
+        customer = int(context[CONTEXT.CUSTOMERID][0])
+        ip = headers.get_headers()['X-Real-IP']
+        valid = yield from self.verify_recaptcha(challenge, response, ip)
+        if not valid:
+            return HTTP.BAD_RESPONSE, b'', None
+        else:
+            TASK(self.notify_user_reset_password(customer, username))
+            TASK(self.persistence.audit_log(username, 'self-service reset password', customer))
+            return HTTP.OK_RESPONSE, b'', None

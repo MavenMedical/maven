@@ -723,6 +723,7 @@ def get_matching_pathways(composition, conn):
         # It's important the the list/array of problem list/encounter DXs is an empty list as opposed to being null
         encounter_snomedIDs = composition.get_encounter_dx_snomeds()
         problem_list_snomedIDs = composition.get_problem_list_dx_snomeds()
+        history_snomedIDs = composition.get_history_dx_snomeds()
         patient_age = composition.get_patient_age()
         provider_id = composition.author.get_provider_id()
         encounter_id = composition.encounter.get_csn()
@@ -734,12 +735,13 @@ def get_matching_pathways(composition, conn):
                 composition.subject.gender,
                 encounter_snomedIDs,
                 problem_list_snomedIDs,
+                history_snomedIDs,
                 composition.subject.get_pat_id(),
                 composition.customer_id,
                 patient_meds,
                 provider_id,
                 encounter_id]
-        cur = yield from conn.execute_single("SELECT * FROM trees.evalnode(%s, %s,%s,%s,%s,%s,%s,%s,%s,%s)", extra=args)
+        cur = yield from conn.execute_single("SELECT * FROM trees.evalnode(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", extra=args)
 
         rtn_matched_rules = []
         for result in cur:

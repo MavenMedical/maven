@@ -822,6 +822,10 @@ class Composition(Resource):
         rtn_snomed_list = [coding.code for condition in self.get_encounter_conditions() for coding in condition.code.coding if coding.system == "SNOMED CT" and condition.category == "Problem List"]
         return rtn_snomed_list
 
+    def get_history_dx_snomeds(self):
+        rtn_snomed_list = [coding.code for condition in self.get_encounter_conditions() for coding in condition.code.coding if coding.system == "SNOMED CT" and condition.category == "History"]
+        return rtn_snomed_list
+
     def get_encounter_meds(self):
         raise NotImplementedError
 

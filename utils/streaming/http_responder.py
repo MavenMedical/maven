@@ -86,7 +86,11 @@ def wrap_response(response_type, text, extra_header_list=None):
 
     if not extra_header_list:
         extra_header_list = []
-    return b'\r\n'.join([response_type] + DEFAULT_HEADERS + extra_header_list +
+    if any([s[:12] == b'Content-Type' for s in extra_header_list]):
+        default_headers = [d for d in DEFAULT_HEADERS if d[:12] != b'Content-Type']
+    else:
+        default_headers = DEFAULT_HEADERS
+    return b'\r\n'.join([response_type] + default_headers + extra_header_list +
                         [b'Content-length: ' + bytes(str(len(text)), "utf-8"), b'',
                          (text if type(text) == bytes else bytes(text, "utf-8"))])
 

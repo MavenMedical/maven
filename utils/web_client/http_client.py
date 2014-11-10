@@ -22,7 +22,6 @@ _http_responses = {
 class HttpClientException(Exception):
 
     def __init__(self, string):
-        WARN("Exception invalid response from server: %s", str(string))
         Exception.__init__(self, str(string))
 
 
