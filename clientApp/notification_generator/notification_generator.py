@@ -224,7 +224,7 @@ class NotificationGenerator():
         #        alert_contents.append(sa)
 
         pathway_alerts = yield from self._web_pathway_alert_generator(composition, templateEnv)
-        alert_contents.append(pathway_alerts)
+        alert_contents.extend(pathway_alerts)
 
         ML.DEBUG("Generated %s Web Alerts" % len(alert_contents))
 
@@ -235,22 +235,24 @@ class NotificationGenerator():
 
         TEMPLATE_FILE = "pathway_alert.html"
         template = templateEnv.get_template(TEMPLATE_FILE)
+        pathway_links = []
 
         # TODO - This composition method is ONLY PULLING ONE Pathway alert even if multiple have fired
-        pathway_alert = composition.get_alerts_by_type(type=ALERT_TYPES.PATHWAY)
+        pathway_alerts = composition.get_alerts_by_type(type=ALERT_TYPES.PATHWAY)
 
-        templateVars = {"http_address": MC.http_addr,
-                        "pathway_id": pathway_alert.CDS_rule,
-                        "node_id": 1,
-                        "encounter_id": urllib.parse.quote(composition.encounter.get_csn()),
-                        "encounter_date": composition.encounter.get_admit_date().date().isoformat(),
-                        "patient_id": composition.subject.get_pat_id(),
-                        "user": composition.author.get_provider_username(),
-                        "user_auth": composition.userAuth,
-                        "customer_id": composition.customer_id}
-        notification_body = template.render(templateVars)
+        for pathway_alert in pathway_alerts:
+            templateVars = {"http_address": MC.http_addr,
+                            "pathway_id": pathway_alert.CDS_rule,
+                            "node_id": 1,
+                            "encounter_id": urllib.parse.quote(composition.encounter.get_csn()),
+                            "encounter_date": composition.encounter.get_admit_date().date().isoformat(),
+                            "patient_id": composition.subject.get_pat_id(),
+                            "user": composition.author.get_provider_username(),
+                            "user_auth": composition.userAuth,
+                            "customer_id": composition.customer_id}
+            pathway_links.append(template.render(templateVars))
 
-        return notification_body
+        return pathway_links
 
     @asyncio.coroutine
     def _web_cost_alert_generator(self, composition, templateEnv):

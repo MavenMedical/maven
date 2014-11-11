@@ -800,15 +800,9 @@ class Composition(Resource):
                 if alert.category == type:
                     return alert
         elif type == ALERT_TYPES.PATHWAY:
-            for alert in alerts_section.content:
-                if alert.category == type:
-                    return alert
+            return [alert for alert in alerts_section.content if alert.category == type]
         else:
-            rtn_alerts = []
-            for alert in alerts_section.content:
-                if alert.category == type:
-                    rtn_alerts.append(alert)
-            return rtn_alerts
+            return [alert for alert in alerts_section.content if alert.category == type]
 
     def get_encounter_conditions(self):
         enc_conditions_section = self.get_section_by_coding("http://loinc.org", "11450-4")
