@@ -864,18 +864,43 @@ button:hover .btn-hover { display: inline; }
 /***************************************************************
  * The following customize the timed followup, etc. widgets *
  ***************************************************************/
-
-
 .advanced-settings {
     display: none;
 }
 
-#show-advanced-settings, #add-new-followup {
+#show-advanced-settings, #add-new-followup, #remove-new-followup {
     cursor: pointer;
 }
 
 .followup-header, .followup {
+    display: table;
     margin-bottom: 10px;
+}
+
+.followup .row {
+    display: table-row;
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+
+.followup .row .column {
+    display: table-cell;
+}
+
+.fulabel {
+    padding-top: 5px;
+    padding-right: 5px;
+    float: right;
+}
+
+.followup .row .column .left {
+    display: block;
+    float: left;
+}
+
+.followup .row .column .right {
+    display: block;
+    float: right;
 }
 
 .followup-footer {
