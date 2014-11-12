@@ -48,7 +48,9 @@ define([
             var that = this
             this.parent = parent
             $("#detail-modal").modal({'show': 'true'});
-            CKEDITOR.replace('newNodeSideText');
+            require(['ckeditor'], function() {
+                CKEDITOR.replace('newNodeSideText');
+            })
 
         }
 

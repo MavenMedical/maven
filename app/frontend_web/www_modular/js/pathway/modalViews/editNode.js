@@ -30,8 +30,10 @@ define([
                 }
 
                 $("#detail-modal").modal({'show': 'true'});
-                CKEDITOR.replace('ProtocolText');
-                CKEDITOR.instances.ProtocolText.setData(treeContext.get('selectedNode').get('protocol'));
+                require(['ckeditor'], function() {
+                    CKEDITOR.replace('ProtocolText');
+                    CKEDITOR.instances.ProtocolText.setData(treeContext.get('selectedNode').get('protocol'));
+                })
                 $('#NoteToCopyText', this.$el).val(treeContext.get('selectedNode').get('noteToCopy'))
             }else{
                 this.template = _.template(nodeTemplate),
@@ -46,7 +48,9 @@ define([
                       curTree.trigger('propagate')
                 }
                 $("#detail-modal").modal({'show': 'true'});
-                CKEDITOR.replace('newNodeSideText');
+                require(['ckeditor'], function() {
+                    CKEDITOR.replace('newNodeSideText');
+                })
             }
         }
 

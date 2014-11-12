@@ -17,7 +17,9 @@ define([
         el: $("#modal-target"),
         initialize: function(parent){
             this.$el.html(this.template())
-            CKEDITOR.replace('ProtocolText');
+            require(['ckeditor'], function() {
+                CKEDITOR.replace('ProtocolText');
+            })
             followups = new Array();
 
             var that = this

@@ -232,9 +232,10 @@ define([
 		    that.set({pathid:newpathid},{silent:true})
 		    if (newpathid != oldpathid) {that.fetch()}
 		}
-                if (contextModel.get('page') == 'pathEditor')
+                if (contextModel.get('page') == 'pathEditor') {
+                    require(['ckeditor'], function(){})
                     Backbone.history.navigate("pathwayeditor/"+newpathid+ "/node/" + contextModel.get('code'));
-                else {
+                } else {
                     Backbone.history.navigate("pathway/"+newpathid+ "/node/" + contextModel.get('code'));
                 }
             })
@@ -263,6 +264,9 @@ define([
 		this.fetch()
 		treeContext.trigger('propagate')
 	    }
+            if (contextModel.get('page') == 'pathEditor') {
+                require(['ckeditor'], function(){})
+            }
             this.elPairs = []
         },
         getNextNodeID: function(){

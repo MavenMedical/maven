@@ -25,7 +25,9 @@ define([
                                    $('#detail-modal').modal('hide')
                           }
             $("#detail-modal").modal({'show':'true'});
-            CKEDITOR.replace('richText');
+            require(['ckeditor'], function() {
+                CKEDITOR.replace('richText');
+            })
 
         }
 
