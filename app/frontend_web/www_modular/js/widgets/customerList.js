@@ -106,7 +106,7 @@ define([
 	reset: function() {
 	    $('.customertable > tbody', this.$el).empty();
 	    this.$el.hide();
-	},
+	}
     });
 
     return CustomerList;

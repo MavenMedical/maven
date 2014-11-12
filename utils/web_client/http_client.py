@@ -87,8 +87,9 @@ class http_api():
             headers.update(newheaders)
         resp = None
         try:
+            connector = aiohttp.TCPConnector(force_close=True, verify_ssl=False)
             resp = yield from aiohttp.request(method, self.base_url + resource, params=params,
-                                              data=data, headers=headers)
+                                              data=data, headers=headers, connector=connector)
             if resp.status < 200 or resp.status >= 300:
                 WARN('query %s returned %s' % (self.base_url + resource, resp.status))
                 raise HttpClientException("HTTP %s: %s" % (resp.status, _http_responses.get(resp.status, '')))

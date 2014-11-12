@@ -23,7 +23,7 @@ require.config({
 	amchartspie: 'libs/amcharts/pie',
 	amchartslight: 'libs/amcharts/themes/light',
 	amchartsserial: 'libs/amcharts/serial',
-	amcharts: 'libs/amcharts/amcharts',
+	amcharts: 'libs/amcharts/amcharts'
     },
     shim: {
         bootstrap :{
@@ -36,11 +36,11 @@ require.config({
             deps: ['jquery','moment', 'jquery_ui']
         },
 	jquery_ui: {
-	    deps: ['jquery'],
+	    deps: ['jquery']
 	},
 	amchartspie: { deps: ['amcharts'], exports: 'AmCharts', init: function() {AmCharts.isReady = true;}},
 	amchartsserial: { deps: ['amcharts'], exports: 'AmCharts', init: function() {AmCharts.isReady = true;}},
-	amchartslight: { deps: ['amcharts'], exports: 'AmCharts', init: function() {AmCharts.isReady = true;}},
+	amchartslight: { deps: ['amcharts'], exports: 'AmCharts', init: function() {AmCharts.isReady = true;}}
     }
 });
 

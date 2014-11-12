@@ -20,7 +20,7 @@ define([
             'keyup #official-name-input':'doentersave',
             'keyup #display-name-input':'doentersave',
             'keyup #login-password':'doenterlogin',
-            'keyup #login-new-password':'doenterchange',
+            'keyup #login-new-password':'doenterchange'
         },
         render: function () {
 

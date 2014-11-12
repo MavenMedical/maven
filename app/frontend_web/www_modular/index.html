@@ -3,8 +3,9 @@
 <html class="no-js ie6 oldie" lang="en"> <![endif]-->
 <!--[if IE 7]>
 <html class="no-js ie7 oldie" lang="en"> <![endif]-->
-<!--[if IE 8]>
-<html class="no-js ie8 oldie" lang="en"> <![endif]-->
+<![if lt IE 8]>
+<script src="//cdnjs.cloudflare.com/ajax/libs/json3/3.3.2/json3.min.js"></script>
+<![endif]>
 <!--[if gt IE 8]><!-->
 <html class="no-js" lang="en"> <!--<![endif]-->
 <head>
@@ -30,7 +31,7 @@
             "Imaging": "#36485c",
             "Laboratory": "#eb4b3b",
             "Medication": "#9155ad",
-            "Procedure": "#3598dc",
+            "Procedure": "#3598dc"
         };
         findColor = function (type) {
             if (type in colorMap)

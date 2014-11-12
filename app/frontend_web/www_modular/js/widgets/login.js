@@ -22,7 +22,7 @@ define([
 	    'click #update-password': 'dologin',
 	    'keyup #login-user':'doenterlogin',
 	    'keyup #login-password':'doenterlogin',
-	    'keyup #login-new-password':'doenterchange',
+	    'keyup #login-new-password':'doenterchange'
 	},
         render: function () {
 	    //currentContext.setUser('notarealpassword', Backbone.history.fragment);  // hack for now

@@ -42,7 +42,7 @@ define([
 	    });
 	},
     events: {
-	    'click .download-user-audits': 'downloadAudits',
+	    'click .download-user-audits': 'downloadAudits'
     },
     downloadAudits: function() {
         that = this;
@@ -114,7 +114,7 @@ define([
 	reset: function() {
 	    $('.audittable > tbody', this.$el).empty();
 	    this.$el.hide();
-	},
+	}
     });
 
     return AuditList;

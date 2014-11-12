@@ -38,7 +38,7 @@ define([
                     url: "/send_message?" + $.param(contextModel.toParams()) + "&target_user="+$("#recipientUserName").val(),
                     data: JSON.stringify({
                         "subject": "Please review this patient - " + contextModel.get("official_name"),
-                        "message": message,
+                        "message": message
                     }),
                     error: function (){
                         alert("There was a problem sending the message.");
