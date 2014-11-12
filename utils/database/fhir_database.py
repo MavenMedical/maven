@@ -750,7 +750,8 @@ def get_matching_pathways(composition, conn):
             rtn_matched_rules.append(FHIR_API.Rule(protocol_details=full_spec,
                                                    CDS_rule_id=result[0],
                                                    name=result[1],
-                                                   short_description=result[2]))
+                                                   short_description=result[2],
+                                                   priority=result[4]))
         return rtn_matched_rules
     except:
         raise Exception("Error matching pathways from database")
