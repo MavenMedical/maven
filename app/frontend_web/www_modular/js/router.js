@@ -33,7 +33,7 @@ define([
     // array length should match the number of layouts
     // the sum of each array should be 12 (Following bootstrap grid)
     var pageLayout = {
-        "home": [0, 9, 3],
+        "home": [0, 12, 0],
         "patient": [0, 9, 3],
         "episode": [0, 9, 3],
         "pathway": [0, 12, 0],
