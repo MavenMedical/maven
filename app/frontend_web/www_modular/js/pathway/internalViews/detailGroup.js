@@ -39,6 +39,7 @@ define([
           //Events:  Render when the list is changed, or a new rule is loaded from persistance`
           this.list.on('add', this.render, this)
           this.list.on('remove', this.render, this)
+          this.list.on('change', curTree.trigger('propagate'), this)
 
         },
         render: function(){
