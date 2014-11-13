@@ -1152,7 +1152,7 @@ class WebPersistence():
             # PL/pgsql function
             cmd = ["INSERT INTO alert_config (customer_id, department, category, rule_id, validation_status)",
                    "VALUES (%s, %s, %s, %s, %s)"]
-            cmdArgs = [customer_id, -1, "PATHWAY", tree_id, 400]
+            cmdArgs = [customer_id, -1, "PATHWAY", canonical_id, 400]
             cur = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
 
             # Update/Insert the trees.codelist records for the protocol
