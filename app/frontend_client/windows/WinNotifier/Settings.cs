@@ -19,6 +19,7 @@ namespace MavenAsDemo
         public string machine = System.Uri.EscapeDataString(System.Environment.MachineName);
         public string os = System.Uri.EscapeDataString(System.Environment.OSVersion.VersionString);
         public string custId = "";
+        public string mavenuserid = "";
 
         /// <summary>
         /// The different ways to alert people of stuff. 
@@ -131,6 +132,7 @@ namespace MavenAsDemo
             }
             //else, use the default
         }
+      
         /// <summary>
         /// Gets the alert mode from the registry
         /// </summary>
