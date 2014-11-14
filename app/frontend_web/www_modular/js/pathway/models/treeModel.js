@@ -5,8 +5,9 @@ define([
     'globalmodels/contextModel',
     'pathway/models/nodeModel',
     'pathway/models/pathwayCollection',
-    'pathway/models/treeContext'
-], function($, _, Backbone, contextModel, nodeModel, pathwayCollection, treeContext){
+    'pathway/models/treeContext',
+    'pathway/models/triggerGroupCollection'
+], function($, _, Backbone, contextModel, nodeModel, pathwayCollection, triggerGroupCollection){
     var treeModel;
 
     var deleteRecur = function(me , toDelete, saveChildren){
@@ -293,12 +294,14 @@ define([
         },
         toJSON: function(options){
 	    if (!options) {options={}}
-	    var children = [];
-	    children = this.get('children').toJSON(options)
-            var retMap = _.omit(this.attributes, ['children', 'hasLeft', 'hasRight'])
-	    if (options && options.toExport) {retMap = _.omit(retMap, ['nodeID', 'nodeCount', 'id', 'pathid'])}
-            retMap.children = children
-            retMap.triggers = retMap.triggers.toJSON()
+            var retMap = _.omit(this.attributes, ['children', 'triggers', 'hasLeft', 'hasRight'])
+	    if (options && options.toExport) {
+            retMap = _.omit(retMap, ['nodeID', 'nodeCount', 'id', 'pathid'])
+        }
+            retMap.children = this.get('children').toJSON(options)
+            retMap.triggers = this.get('triggers').toJSON()
+
+       /*     retMap.triggers = retMap.triggers.toJSON()
             for (var i in retMap.triggers){
 
                 var curGroup = retMap.triggers[i]
@@ -310,7 +313,7 @@ define([
 
                 }
             }
-
+        */
             console.log('the json will look like', retMap)
 
             return retMap
@@ -372,13 +375,16 @@ define([
 		sidePanelText: response.sidePanelText,
 		pathid: response.pathid,
 		protocol: response.protocol,
-		name: response.name,
+		name: response.name
 	    }, {silent: true})
 	    	    this.populateChildren(response.children, options)
 
-            var result = new Backbone.Collection()
-        var triggerJSON = response.triggers
 
+        this.set('triggers', new triggerGroupCollection(response.triggers));
+
+
+
+/*
         console.log('testing', typeof(triggerJSON))
         if (!Object.prototype.toString.call( triggerJSON ) === '[object Array]' ){
             var theGroup = new Backbone.Model()
@@ -407,6 +413,8 @@ define([
             }
          }
             this.set('triggers', result, {silent: true})
+*/
+
         }
 
     })
