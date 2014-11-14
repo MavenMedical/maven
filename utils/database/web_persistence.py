@@ -1175,29 +1175,36 @@ class WebPersistence():
                "node_id=%s"]
         cmdArgs = [canonical_id, root_node_id]
         yield from self.db.execute_single(' '.join(cmd), extra=cmdArgs)
+        
+        for triggerGroup in treeDict.get('triggers'):
+            
+            # Extract the Group Relationships
+            # groupRelationship = triggerGroup.get('relationship')
+            
+            triggerGroupDetails = triggerGroup.get('details')
 
-        # Insert the Protocol Triggering Codelist(s) for ENCOUNTER Diagnoses
-        enc_dx_triggers = protocol_trigger_dict.get('enc_dx', None)
-        if enc_dx_triggers:
-            yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'enc_dx', enc_dx_triggers)
-
-        # Insert the Protocol Triggering Codelist(s) for HISTORIC Diagnoses
-        pl_dx_triggers = protocol_trigger_dict.get('pl_dx', None)
-        if pl_dx_triggers:
-            yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'hist_dx', pl_dx_triggers)
-
-        # Insert the Protocol Triggering Codelist(s) for HISTORIC Diagnoses
-        hist_dx_triggers = protocol_trigger_dict.get('hist_dx', None)
-        if hist_dx_triggers:
-            yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'hist_dx', hist_dx_triggers)
-
-        # Recursively insert the codelists for all of the child nodes
-        all_dx_triggers = protocol_trigger_dict.get('all_dx', None)
-        if all_dx_triggers:
-            yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'all_dx', all_dx_triggers)
-
-        # Recursively insert the codelists for all of the child nodes
-            # pass
+            # Insert the Protocol Triggering Codelist(s) for ENCOUNTER Diagnoses
+            enc_dx_triggers = triggerGroupDetails.get('enc_dx', None)
+            if enc_dx_triggers:
+                yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'enc_dx', enc_dx_triggers)
+    
+            # Insert the Protocol Triggering Codelist(s) for HISTORIC Diagnoses
+            pl_dx_triggers = triggerGroupDetails.get('pl_dx', None)
+            if pl_dx_triggers:
+                yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'hist_dx', pl_dx_triggers)
+    
+            # Insert the Protocol Triggering Codelist(s) for HISTORIC Diagnoses
+            hist_dx_triggers = triggerGroupDetails.get('hist_dx', None)
+            if hist_dx_triggers:
+                yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'hist_dx', hist_dx_triggers)
+    
+            # Recursively insert the codelists for all of the child nodes
+            all_dx_triggers = triggerGroupDetails.get('all_dx', None)
+            if all_dx_triggers:
+                yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'all_dx', all_dx_triggers)
+    
+            # Recursively insert the codelists for all of the child nodes
+                # pass
 
     @asyncio.coroutine
     def upsert_snomed_triggers(self, canonical_id, node_id, list_type, triggers):
