@@ -11,7 +11,9 @@ define([
     'pathway/models/treeModel',
     'Helpers',
     'text!templates/pathway/detailSection.html',
-    'text!templates/pathway/disjoinedGroups.html'
+    'text!templates/pathway/disjoinedGroups.html',
+    'bootstrapswitch',
+
 
 ], function ($, _, Backbone, contextModel, layoutModel, detailEditor, DetailGroup, curTree, helpers, detailSection, disjoinedGroupTemplate) {
     var printGroup = function(key, curGroup, location){
@@ -26,7 +28,8 @@ define([
                                             //create a new detail group for this detail type, and send it the collection of details of this type
                                             var cur  = new DetailGroup({group: curGroup, el: $('.items').last(), lineTemplate:toTemplate, list: toList, type: key})
                                             cur.render();
-
+                                            $(".toggles").bootstrapSwitch()
+                                            $(".toggles").on('switchChange.bootstrapSwitch', function(){alert()})
 
                             };}(key));
 
