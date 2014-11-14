@@ -172,7 +172,7 @@ define([
 
     var TreeModel = nodeModel.extend({
         elPairs: [],
-	idAttribute: 'pathid',
+	    idAttribute: 'pathid',
         urlRoot: '/tree',
         changeNodePosition: function(target, change){
             var pointer = {}
@@ -302,7 +302,8 @@ define([
 		'name': params.name,
 		'protocol': null,
 		'nodeCount': 0,
-		'nodeID': 0
+		'nodeID': 0,
+        'folder': params.folder
 	    }, {silent: true})
 	    this.populateChildren()
 

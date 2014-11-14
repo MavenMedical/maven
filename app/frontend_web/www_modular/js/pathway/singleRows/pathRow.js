@@ -19,7 +19,7 @@ define([
 ], function ($, _, Backbone, router, contextModel, pathwayCollection, pathRowTemplate) {
 
     var ruleRow = Backbone.View.extend({
-        tagName: "div class='ui-state-default'",
+        tagName: "div class='ui-state-default path-row'",
         template: _.template(pathRowTemplate),
         events:{
 	      'click .select-button': 'handleSelect',
@@ -27,6 +27,51 @@ define([
         },
         render: function(){
             $(this.el).html(this.template(this.model.toJSON()));
+            this.model.url = "/list/" + this.model.get("id");
+            /*
+            that = this;
+            $(document).ready(function(){
+                that.$el.closest('.path-header').attr("value", "hello");
+             });*/
+
+            //$(".sortable-folder").sortable("refresh");
+           /* if (typeof params !=="undefined"){
+                if (typeof params.newly_added != "undefined") {
+                    //if ($(this.el).sibling(".pathway-folder-title").child(".folder-state").hasClass("glyphicon-folder-close")) {
+                       // $(this.el).siblings(".pathway-folder-title").find(".folder-state").switchClass("glyphicon-folder-close", "glyphicon-folder-open");
+                   // }
+                    //$(this.el).siblings().css("display", "inline-block");
+
+                    $(this.el).css("display", "inline-block");
+                    that = this;
+                }
+            }*/
+            $(this.el).sortable({
+                connectWith: ".sortable-folder",
+                items: '> div:not(.pathway-folder-title, ui-folder-placeholder)', //don't allow user to move the folder title
+                helper : 'clone',
+                containment: "#avail-paths-list",
+                sort: function (event, ui) {
+                    //make the sort function more responsive and user friendly
+                    //var that = $(this),
+                    var el = $(this);//ui.placeholder.parent();
+                    var w = ui.helper.outerHeight();
+                    el.children().each(function () {
+                        if ($(this).hasClass('ui-sortable-helper') || $(this).hasClass('ui-sortable-placeholder'))
+                            return true;
+                        // If overlap is more than half of the dragged item
+                        var dist = Math.abs(ui.position.top - $(this).position().top),
+                            before = ui.position.top > $(this).position().top;
+                        if ((w - dist) > (w / 2) && (dist < w)) {
+                            if (before)
+                                $('.ui-sortable-placeholder', el).insertBefore($(this));
+                            else
+                                $('.ui-sortable-placeholder', el).insertAfter($(this));
+                            return false;
+                        }
+                    });
+                },
+            });
             return this;
         },
         initialize: function(params){
@@ -41,7 +86,12 @@ define([
                 pathwayCollection.fetch()
             }})
 
+            this.undelegateEvents(); // Unbind all local event bindings
 
+            $(this.el).remove(); // Remove view from DOM
+
+            delete this.$el; // Delete the jQuery wrapped object variable
+            delete this.el; // Delete the variable reference to this node
     	}
     });
 

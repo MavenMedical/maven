@@ -44,7 +44,8 @@ class PathwaysWebservices():
         return (HTTP.OK_RESPONSE,
                 json.dumps([{CONTEXT.PATHID: k[0],
                              CONTEXT.CANONICALID: k[2],
-                             'name': k[1]} for k in protocols]),
+                             CONTEXT.FOLDER: k[3],
+                             'name': k[1], 'canonical': k[2], 'folder': k[3]} for k in protocols]),
                 None)
 
     @http_service(['GET'], '/search',
@@ -79,7 +80,9 @@ class PathwaysWebservices():
         full_spec = json.loads(body.decode('utf-8'))
         customer_id = context[CONTEXT.CUSTOMERID]
         user_id = context[CONTEXT.USERID]
-        id = yield from self.persistence.create_protocol(full_spec, customer_id, user_id)
+        folder = full_spec.get(CONTEXT.FOLDER, None)
+        del full_spec[CONTEXT.FOLDER]
+        id = yield from self.persistence.create_protocol(full_spec, customer_id, user_id, folder)
         full_spec[CONTEXT.PATHID] = id
         return (HTTP.OK_RESPONSE, json.dumps(full_spec), None)
 
@@ -117,6 +120,22 @@ class PathwaysWebservices():
         activity_msg = json.loads(body.decode('utf-8'))
 
         result = yield from self.persistence.post_protocol_activity(customer_id, user_id, activity_msg)
+
+        if result:
+            return HTTP.OK_RESPONSE, "", None
+        else:
+            return HTTP.BAD_RESPONSE, "", None
+
+    @http_service(['POST'], '/update_pathway_location',
+                  [CONTEXT.USERID, CONTEXT.CUSTOMERID, CONTEXT.CANONICALID],
+                  {CONTEXT.USERID: int, CONTEXT.CUSTOMERID: int, CONTEXT.CANONICALID: int},
+                  {USER_ROLES.provider, USER_ROLES.supervisor})
+    def post_pathway_location(self, _header, body, context, _matches, _key):
+        customer_id = context[CONTEXT.CUSTOMERID]
+        canonical_id = context[CONTEXT.CANONICALID]
+        location_msg = json.loads(body.decode('utf-8'))
+
+        result = yield from self.persistence.post_pathway_location(customer_id, canonical_id, location_msg)
 
         if result:
             return HTTP.OK_RESPONSE, "", None

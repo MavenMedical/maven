@@ -12,15 +12,23 @@ define([
     'backbone',    // lib/backbone/backbone
     'router',
     'globalmodels/contextModel',
-    'text!templates/pathway/pathwayFolderEntry.html'
+    'text!templates/pathway/pathwayFolderEntry.html',
+    'pathway/modalViews/newPathway',
+    'pathway/modalViews/newPathwayFolder',
+     'pathway/models/pathwayCollection',
 
-], function ($, _, Backbone, router, contextModel, pathFolderRowTemplate) {
+
+], function ($, _, Backbone, router, contextModel, pathFolderRowTemplate, NewPathway, NewPathwayFolder, curCollection) {
+        console.log(NewPathwayFolder);
 
     var ruleRow = Backbone.View.extend({
         tagName: "div class='pathway-sub-folder ui-state-default sortable-folder'",
         template: _.template(pathFolderRowTemplate),
+        parentList: [], //parent folders
         events: {
             "click .pathway-folder-title": 'toggleFolder',
+            "click .add-sub-pathway": 'handleNewPathway',
+            "click .add-sub-folder": 'handleNewSubFolder',
         },
         toggleFolder: function(event){
             event.stopPropagation();
@@ -39,6 +47,14 @@ define([
 
                     //curFolder.siblings().hide();
                 }
+        },
+        handleNewPathway: function(event) {
+            event.stopPropagation();
+            new NewPathway({el: '#modal-target', parentList: this.parentList});
+        },
+        handleNewSubFolder: function(event) {
+            event.stopPropagation();
+            var a = new NewPathwayFolder({el: '#modal-target', parentFolder: $(this.el), parentList: this.parentList});
         },
         render: function(){
             that = this;
@@ -64,9 +80,9 @@ define([
 
             $(this.el).sortable({
                 connectWith: ".sortable-folder",
-                items: '> div:not(.pathway-folder-title)', //don't allow user to move the folder title
+                items: '> div:not(.pathway-folder-title):not(.ui-folder-placeholder)', //don't allow user to move the folder title
                 helper : 'clone',
-                containment: "parent",
+                containment: "#avail-paths-list",
                 sort: function (event, ui) {
                     //make the sort function more responsive and user friendly
                     //var that = $(this),
@@ -97,18 +113,20 @@ define([
                         $(".ui-state-default", that.$el).css("display","inline-block");
                     event.stopImmediatePropagation();
                     event.stopPropagation();
+                    curCollection.saveOrder();
                     }
                     /*else {
                         $(event.target).closest("display", "inline-block");
                     }*/
 
             });
-
-
             return this;
         },
         initialize: function(params){
             this.model = params.model
+            this.parentList = params.parentList;
+            this.parentList.push(this.model.attributes.name);
+            //$.extend(this.parents, this.parents,[]);
         },
     });
 

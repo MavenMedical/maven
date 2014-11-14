@@ -12,6 +12,7 @@ define([
     'pathway/models/treeModel',
     'pathway/modalViews/newPathway',
     'pathway/modalViews/ruleWizard',
+    'pathway/modalViews/saveDialog',
 
     'pathway/singleRows/pathRow',
     'pathway/internalViews/treeNodeActionSet',
@@ -19,7 +20,7 @@ define([
     'text!templates/pathway/pathwayListEntry.html',
     'text!templates/pathway/toolbar.html'
 
-], function ($, _, Backbone, contextModel, curCollection, curTree, NewPathway, ruleWizard, PathRow, treeNodeActionSet, listEntry, toolbarTemplate) {
+], function ($, _, Backbone, contextModel, curCollection, curTree, NewPathway, ruleWizard, SaveDialog, PathRow, treeNodeActionSet, listEntry, toolbarTemplate) {
     var exportPathway = function (strData, strFileName, strMimeType) {
 	require(['libs/jquery/Blob', 'libs/jquery/FileSaver.min'], function(blob, saveAs) {
 	    var b = new Blob([strData], {type: strMimeType});
@@ -34,22 +35,10 @@ define([
             'click #trigger-button': 'addTrigger',
 	        'change .btn-file :file': 'importPath',
             'click #exportpath-button': 'exportPath',
-            'click #testButton': 'handleTest',
-            'click #paths-list-add-directory': 'showDirectoryEditor',
-            'click #add-directory-form': 'keepManagerOpen',
-            'click #new-directory-text': 'keepManagerOpen'
+            'click #testButton': 'handleTest'
         },
         handleTest: function () {
             curTree.changeNodePosition(curTree.get('selectedNode'), -1)
-        },
-        keepManagerOpen: function(event) {
-            event.preventDefault();
-            event.stopPropagation();
-        },
-        showDirectoryEditor: function(event) {
-            event.preventDefault();
-            event.stopPropagation();
-            $("#add-directory-form").show();
         },
         initialize: function () {
             console.log("this.$el", this.$el)
@@ -63,15 +52,12 @@ define([
             this.$el.html(this.template())
             if (contextModel.get('page') != 'pathEditor')
                 this.$el.hide()
-            curCollection.on('sync', this.renderPathList, this)
+            //curCollection.on('sync', this.renderPathList, this)
             curTree.on('propagate', this.renderActions, this)
+            contextModel.on('change:pathid change:page', this.showSaveDialog, this)
 
-            this.renderPathList();
+            //this.renderPathList();
             this.renderActions();
-
-            $("#avail-paths-dropdown").sortable({
-              connectWith: ".connectedSortableMain"
-            }).disableSelection();
         },
         addTrigger: function () {
             var newEditor = new ruleWizard({triggerNode: curTree})
@@ -92,21 +78,24 @@ define([
 
         },
         renderPathList: function () {
-            $('#avail-paths-dropdown').html("")
+            $('#avail-paths').html("")
             _.each(curCollection.models, function (cur) {
-                var thisModel = new Backbone.Model({id: cur.get('pathid'), name: cur.get('name')})
-                var thisRow = new PathRow({model: thisModel})
-                $('#avail-paths-dropdown').append(thisRow.render().$el)
+                var thisRow = new PathRow({model: cur})
+                $('#avail-paths').append(thisRow.render().$el)
             }, this)
         },
         handle_newPath: function () {
-
-
             a = new NewPathway({el: '#modal-target'});
 
         },
         handle_save: function () {
             curTree.save()
+        },
+        showSaveDialog: function(){
+            if(curTree.changedAttributes()){
+                //if(!curTree.changedAttributes().hideChildren)
+                        //new SaveDialog();
+            }
         },
         importPath: function () {
 	    var input = $('.btn-file :file')

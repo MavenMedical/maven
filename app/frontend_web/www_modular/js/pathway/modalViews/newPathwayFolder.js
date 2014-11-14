@@ -3,47 +3,65 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbones
-    'pathway/models/nodeModel',
-    'globalmodels/contextModel',
+    'pathway/models/pathwayCollection',
+
     'text!templates/pathway/newPathwayFolder.html',
-    'pathway/singleRows/folderRow',
 
-], function ($, _, Backbone, NodeModel, contextModel, newPathwayFolderTemplate, FolderRow) {
+], function ($, _, Backbone, curCollection, newPathwayFolderTemplate) {
 
-    var newPathwayFolder = Backbone.View.extend({
+   var FolderRow;
+
+    var NewPathwayFolder = Backbone.View.extend({
         template: _.template(newPathwayFolderTemplate),
-        el: $("#modal-target"),
-        initialize: function (parent) {
-            var that = this;
-            this.parent = parent;
-            this.$el.html(this.template(that.attributes));
+        parentList: [],
+        parentFolder: null,
+        events: {
+            'click .createPathwayFolder': 'handleCreateFolder',
+        },
+        initialize: function (arg) {
+            FolderRow = require('pathway/singleRows/folderRow');
+            if (typeof arg.parentFolder !== "undefined") {
+                this.parentFolder = arg.parentFolder;
+            }
+            if (typeof arg.parentList !== "undefined") {
+                this.parentList = arg.parentList;
+            }
+
+            //var that = this;
+            //this.parent = parent;
+            this.$el.html(this.template(this.attributes));
             $("#detail-modal").modal({'show': 'true'});
+            //$(".createPathwayFolder", this.$el).on("click", this.handleCreateFolder);
+        },
+        handleCreateFolder: function(){
+            $('#detail-modal').modal('hide');
 
-            $("#createPathwayFolder", this.$el).on("click", function () {
-                var folder_name = $("#pathwayFolderName").val();
-                var thisModel = new Backbone.Model({name: folder_name});
-                var thisRow = new FolderRow({model: thisModel})
+            var folder_name = $(".pathwayFolderName", this.$el).val();
+            var thisModel = new Backbone.Model({name: folder_name});
+            var thisRow = new FolderRow({model: thisModel, parentList: this.parentList})
+            if (this.parentFolder !== null) {
+                //add folder
+                this.parentFolder.append(thisRow.render().$el);
+
+                //open parent folder
+                $(".folder-state", this.parentFolder).switchClass("glyphicon-folder-close", "glyphicon-folder-open");
+                 //$(".ui-state-default", this.$el).css("display","inline-block");
+                    thisRow.$el.siblings().css("display","inline-block");
+
+            }
+            else {
                 $("#pathway-directory").append(thisRow.render().$el);
+            }
+            $(thisRow.el).css('display','inline-block');
+            curCollection.addFolder(folder_name, this.parentList);
+            this.undelegateEvents(); // Unbind all local event bindings
 
-                $('#detail-modal').modal('hide');
-                /*
-                 $.ajax({
-                 type: 'POST',
-                 dataType: 'json',
-                 url: "/send_message?" + $.param(contextModel.toParams()) + "&target_user="+recipientUserName,
-                 data: JSON.stringify({
-                 "subject": "Please review this patient - " + contextModel.get("official_name"),
-                 "message": message,
-                 }),
-                 error: function (){
-                 alert("There was a problem sending the message.");
-                 }
-                 });
-                 */
+            //$(this.el).empty(); // Remove view from DOM
 
+            delete this.$el; // Delete the jQuery wrapped object variable
+            delete this.el; // Delete the variable reference to this node
 
-            });
         }
     });
-    return newPathwayFolder;
+    return NewPathwayFolder;
 });

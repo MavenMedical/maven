@@ -11,34 +11,103 @@ define([
     'pathway/models/treeModel',
     'pathway/modalViews/newPathway',
 
-
-
     'pathway/singleRows/pathRow',
     'text!templates/pathway/pathwaysList.html',
 
     'pathway/modalViews/newPathwayFolder',
+    'pathway/singleRows/folderRow',
 
-], function ($, _, Backbone,  curCollection, curTree,  NewPathway, PathRow, pathwaysListTemplate, newPathwayFolder) {
+
+], function ($, _, Backbone,  curCollection, curTree,  NewPathway, PathRow, pathwaysListTemplate, newPathwayFolder, FolderRow) {
 
     var PathwaysList = Backbone.View.extend({
         template: _.template(pathwaysListTemplate),
-         events: {
+        events: {
             'click #newpath-button': 'handle_newPath',
             'click #save-button': 'handle_save',
             'click #paths-list-add-folder': 'handle_new_folder'
         },
 	initialize: function(){
-	    curCollection.on('sync',this.render, this)
-        this.render();
+	    //curCollection.on('sync', this.render, this)
+        curCollection.bind('add', this.addNewPathway, this);
 
+        this.render();
+        console.log(newPathwayFolder);
 	},
+    renderFolder: function(folderName, children, parentFolder, that) {
+        var thisModel = new Backbone.Model({name: folderName});
+        var thisRow = new FolderRow({model: thisModel})
+        parentFolder.append(thisRow.render().$el);
+        $.each(children, (function(index, value){
+            that.renderFolder(index, value, thisRow.$el, that);
+        }));
+    },
+    addNewPathway: function(model){
+        this.insertPathway(model, true);
+    },
+    insertPathway: function(model, newlyAdded){
+        //given a pathway's location, add it to the proper folder; if folder doesn't exist, create it
+        /*if (path == ""){
+            return "#avail-paths-list";
+        }*/
+        var currentEl = $("#avail-paths-list");
+        var path = model.get('folder');
+
+        if (path!=null && path!="") {
+            var folders = path.substring(1).split('/');
+
+            //$.each(folders, function(index,value){
+            for (var i = 0; i < folders.length; i++) {
+                //var curFolder = $(currentEl).children(".pathway-sub-folder");
+                var foundFolder = false;
+                $.each(currentEl.children(".pathway-sub-folder"), function () {
+                    var title = $(this).children(".pathway-folder-title").attr("name");
+                    if (title == folders[i]) {
+                        currentEl = $(this);
+                        foundFolder = true;
+                        return false;
+                    }
+                });                //.children(".folder-title[name='" + folders[i] + "']");
+                if (foundFolder) {
+                    //folder exists
+                    continue;
+                    //currentEl = $(curFolder).closest(".pathway-sub-folder");
+                }
+                else {
+                    //folder doesn't exist, so create it
+                    var thisModel = new Backbone.Model({name: folders[i]});
+                    var thisRow = new FolderRow({model: thisModel, parentList: folders.slice(0,i)})
+                    currentEl.append(thisRow.render().$el);
+                    currentEl = $(thisRow.el);
+                }
+            }
+        }
+        var thisModel = new Backbone.Model({id: model.get('pathid'), name: model.get('name')})
+        var pathRow = new PathRow({model: thisModel})
+
+        $(currentEl).append(pathRow.render().$el)
+        if (newlyAdded) {
+            //open folder if this has been added by the user
+            $(currentEl).children().css("display", "inline-block");
+            if ($(currentEl)!=$("#avail-paths-list")){
+                $(currentEl).children(".pathway-folder-title").children(".folder-state").switchClass("glyphicon-folder-close", "glyphicon-folder-open");
+            }
+        }
+        //$('.sortable-folder').sortable("refresh");
+        //return $(currentEl);
+    },
 	render: function(){
+        var that = this;
         this.$el.html(this.template());
         var appendEl =  $('#avail-paths-list', this.$el)
+        /*$.each(curCollection.folders, (function(folderName, children){
+            that.renderFolder(folderName, children, $("#pathway-directory"), that);
+        }));*/
         _.each(curCollection.models, function(cur){
-            var thisModel = new Backbone.Model({id: cur.get('pathid'), name: cur.get('name')})
-            var thisRow = new PathRow({model: thisModel})
-            appendEl.append(thisRow.render().$el)
+            //var thisModel = new Backbone.Model({id: cur.get('pathid'), name: cur.get('name')})
+            //var thisRow = new PathRow({model: thisModel})
+            that.insertPathway(cur, false);
+            //$(appendEl).append(thisRow.render().$el)
         }, this)
 /*
         $('.sortable-folder').sortable({
@@ -94,7 +163,7 @@ define([
 
     },
     handle_new_folder: function() {
-        new newPathwayFolder(this.model);
+        a = new newPathwayFolder({el: '#modal-target'});
     },
         handle_newPath: function () {
             a = new NewPathway({el: '#modal-target'});

@@ -1131,7 +1131,7 @@ class WebPersistence():
             raise Exception('Not implemented yet')
         cmd = []
         cmdArgs = []
-        cmd.append("SELECT current_id, name, canonical_id FROM trees.canonical_protocol")
+        cmd.append("SELECT current_id, name, canonical_id, folder FROM trees.canonical_protocol")
         cmd.append("WHERE (customer_id=%s OR customer_id IS NULL)")
         cmdArgs.append(customer_id)
         if not includedeleted:
@@ -1140,11 +1140,11 @@ class WebPersistence():
         return ret
 
     @asyncio.coroutine
-    def create_protocol(self, treeJSON, customer_id, user_id):
+    def create_protocol(self, treeJSON, customer_id, user_id, folder=None):
 
         cmd = ["SELECT trees.insertprotocol(%s, %s, %s, %s, %s, %s, %s, %s)"]
         cmdArgs = [json.dumps(treeJSON), customer_id, user_id, treeJSON['name'],
-                   None, 0.00, 200.00, '%']
+                   folder, 0.00, 200.00, '%']
         try:
             cur = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
             tree_id = cur.fetchone()[0]
@@ -1297,6 +1297,20 @@ class WebPersistence():
             return True
         else:
             return False
+
+    @asyncio.coroutine
+    def post_pathway_location(self, customer_id, canonical_id, location_msg):
+
+        location = location_msg.get('location', None)
+        # position = location_msg.get('position', None)
+
+        cmd = ["UPDATE trees.canonical_protocol set folder = %s WHERE customer_id=%s and canonical_id=%s"]
+        cmdArgs = [location, customer_id, canonical_id]
+
+        result = yield from self.execute(cmd, cmdArgs, {}, {})
+        if result:
+            return True
+        return False
 
     ##########################################################################################
     ##########################################################################################

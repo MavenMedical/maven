@@ -991,8 +991,8 @@ button:hover .btn-hover { display: inline; }
 
 .pathway-sub-folder > .ui-state-default {
     display:none;
-    width:95%;
-    margin-left:5%;
+    width:95% !important;
+    margin-left:5% !important;
 }
 
 #paths-list-add-folder{
