@@ -11,11 +11,18 @@ define([
             if (JSON){
                 for (var i in JSON){
                     var curGroup = JSON[i]
-                    this.add(new TriggerGroup({JSON: curGroup}))
+
+                    var t = new TriggerGroup({JSON: curGroup})
+                    t.on('cascade', function(){ this.trigger('cascade')} )
+                    this.add(t)
                 }
             } else {
-                this.add(new TriggerGroup("or"))
+                var t = new TriggerGroup("or")
+                t.on ('cascade', function(){ this.trigger('cascade')})
+                this.add()
             }
+            this.on('add', function(){this.trigger('cascade')})
+            this.on('remove', function(){this.trigger('cascade')})
 
         },
         addGroup: function(relationship){
@@ -29,11 +36,16 @@ define([
         initialize: function(param){
             if (param.JSON){
                 this.set('relationship', param.JSON['relationship'])
-                this.set('details', new TriggerDetailTypes(param.JSON['details']))
+                var t = new TriggerDetailTypes(param.JSON['details'])
+                t.on('cascade', function(){ this.trigger('cascade')})
+                this.set('details', t)
             } else if (param.relationship){
                 this.set('relationship', param.relationship)
-                this.set('details', new TriggerDetailTypes())
+                var t = new TriggerDetailTypes()
+                t.on('cascade', function(){ this.trigger('cascade')})
+                this.set('details', t)
             }
+            this.on('change', this.trigger('cascade'))
 
         },
         toJSON: function(){
@@ -48,13 +60,17 @@ define([
         initialize: function(JSON){
             for (var key in JSON){
                 var value = JSON[key]
-                this.set(key, new TriggerDetailCollection(value))
+                var t = new TriggerDetailCollection(value)
+                t.on('cascade', function(){this.trigger('cascade')})
+                this.set(key, t)
             }
+            this.on('change', this.trigger('cascade'))
         },
         toJSON: function(){
             var ret = {}
             for (var key in this.attributes){
                 var value = this.attributes[key]
+
                 ret[key] = value.toJSON();
             }
         }
@@ -63,8 +79,13 @@ define([
         initialize: function(JSON){
                 for (var i in JSON){
                     var curDetail = JSON[i]
-                    this.add(new TriggerDetail(curDetail))
+
+                    var t = new TriggerDetail(curDetail)
+                    t.on('cascade', function(){this.trigger('cascade')})
+                    this.add(t)
                 }
+                this.on('add', function(){this.trigger('cascade')})
+                this.on('remove', function(){this.trigger('cascade')})
         }
     })
     var TriggerDetail = Backbone.Model.extend({
@@ -73,6 +94,7 @@ define([
                 var value = JSON[key]
                 this.set(key, value)
             }
+            this.on('change', function(){this.trigger('cascade')})
         }
 
     })
