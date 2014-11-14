@@ -4,8 +4,9 @@ define([
     'backbone',
     'globalmodels/contextModel',
     'pathway/models/nodeModel',
-    'pathway/models/pathwayCollection'
-], function($, _, Backbone, contextModel, nodeModel, pathwayCollection){
+    'pathway/models/pathwayCollection',
+    'pathway/models/treeContext'
+], function($, _, Backbone, contextModel, nodeModel, pathwayCollection, treeContext){
     var treeModel;
 
     var deleteRecur = function(me , toDelete, saveChildren){
@@ -40,8 +41,7 @@ define([
         if (cur.get('nodeID') == target){
             for (var i in path){
                 var cur2 = path[i]
-                cur2.set('hideChildren', "false",  {silent: true})
-
+		cur2.showChildren()
             }
 
         } else {
@@ -117,7 +117,7 @@ define([
             var toCheck = []
             for (var x in me.get('children').models){
                 var cur = me.get('children').models[x]
-                if (cur.get('hideChildren')=="false"){
+                if (cur.childrenHidden && !cur.childrenHidden()){
                     toCheck.push(cur)
 
                 }
@@ -162,7 +162,7 @@ define([
 
 
         if (node.get('isProtocol')) return
-        node.set('hideChildren', "true", {silent: true})
+        node.hideChildren()
         _.each(node.attributes.children.models, function(cur){
             recursiveCollapse(cur)
         })
@@ -198,18 +198,20 @@ define([
 
         },
         getPathToIDS: function(ids){
-            this.collapse(this)
+	    this.collapse(this)
+	    if (!ids) {
+                ids = contextModel.get('code').split('-')
+	    }
             for (var i in ids){
-
-
                 var cur = ids[i]
-                if (cur!="")
+                if (cur)
                       openPathToTarget(this, (cur), [this])
             }
-            this.trigger('propagate')
         },
         initialize: function(){
-
+	    //this.on('all', function(evt) {
+	    //console.log(evt)}
+	    //)
             this.set({
 		'triggers': new Backbone.Collection(),
 		'tooltip': 'triggers tooltip',
@@ -219,41 +221,53 @@ define([
 	    this.populateChildren();
             var that = this
             contextModel.on('change:page', function(){
-                that.trigger('propagate')
+                treeContext.trigger('propagate')
             })
             contextModel.on('change:pathid', function(){
 		var newpathid = contextModel.get('pathid')
                 if (newpathid && newpathid != '0') {
+		    treeContext.clear()
+		    that.getPathToIDS()
 		    var oldpathid = that.get('pathid')
 		    that.set({pathid:newpathid},{silent:true})
 		    if (newpathid != oldpathid) {that.fetch()}
 		}
-                if (contextModel.get('page') == 'pathEditor')
+                if (contextModel.get('page') == 'pathEditor') {
+                    require(['ckeditor'], function(){})
                     Backbone.history.navigate("pathwayeditor/"+newpathid+ "/node/" + contextModel.get('code'));
-                else {
+                } else {
                     Backbone.history.navigate("pathway/"+newpathid+ "/node/" + contextModel.get('code'));
                 }
             })
             contextModel.on('change:code', function(){
-                var openNodes = contextModel.get('code').split('-')
-                that.getPathToIDS(openNodes)
-
+                that.getPathToIDS()
+		treeContext.trigger('propagate')
             })
+	    this.on('propagate', function() {
+		if(this.oldContent!=JSON.stringify(this.toJSON())) {
+		    this.save()
+		} else {
+		    treeContext.trigger('propagate')
+		}
+	    }, this)
             this.on('sync', function(obj, data){
+		this.oldContent = JSON.stringify(this.toJSON())
+		this.set({'pathid': data.pathid}, {silent:true})
 		contextModel.set({'pathid': String(data.pathid)})
 		pathwayCollection.fetch()
-                setTimeout(function(){
-		    that.collapse(that)
-                    var openNodes = contextModel.get('code').split('-')
-                    that.getPathToIDS(openNodes)
-                }, 30);
+		this.getPathToIDS()
+		treeContext.trigger('propagate')
             }, this)
 	    if (contextModel.get('pathid')) {
 		that.set({pathid:contextModel.get('pathid')},{silent:true})
+		this.getPathToIDS()
 		this.fetch()
+		treeContext.trigger('propagate')
 	    }
+            if (contextModel.get('page') == 'pathEditor') {
+                require(['ckeditor'], function(){})
+            }
             this.elPairs = []
-
         },
         getNextNodeID: function(){
             this.set('nodeCount', this.get('nodeCount')+1, {silent: true})
@@ -269,22 +283,19 @@ define([
               recursiveCollapse(node)
           }
         },
-
-
-        deleteNode: function(toDelete, saveChildren){
+	deleteNode: function(toDelete, saveChildren){
 
             deleteRecur(this, toDelete, saveChildren)
-
-            this.trigger('propagate')
+	    this.save()
         },
         getNodeType: function(){
           return "treeModel"
         },
         toJSON: function(options){
+	    if (!options) {options={}}
 	    var children = [];
 	    children = this.get('children').toJSON(options)
-            var retMap = _.omit(this.attributes, ['children', 'hideChildren', 'selectedNode', 'selectedNodeOffset',
-						 'hasLeft', 'hasRight'])
+            var retMap = _.omit(this.attributes, ['children', 'hasLeft', 'hasRight'])
 	    if (options && options.toExport) {retMap = _.omit(retMap, ['nodeID', 'nodeCount', 'id', 'pathid'])}
             retMap.children = children
             retMap.triggers = retMap.triggers.toJSON()
@@ -359,13 +370,11 @@ define([
             this.set({
 		tooltip: response.tooltip,
 		sidePanelText: response.sidePanelText,
-		id: response.pathid,
+		pathid: response.pathid,
 		protocol: response.protocol,
 		name: response.name,
-		hideChildren: "false"
 	    }, {silent: true})
-	    this.populateChildren(response.children, options)
-            this.once('sync',  function(){recursiveCollapse(this)}, this)
+	    	    this.populateChildren(response.children, options)
             var triggers = new Backbone.Model()
             var result = new Backbone.Collection()
         var triggerJSON = response.triggers

@@ -29,7 +29,7 @@ namespace MavenAsDemo
             //first of all, don't do nuthin if there's already a mavendesktop running
             if (isAlreadyRunning())
             {
-                //ignore for citrix
+                //for citrix, ignore this. 
                 //return;
             }
             try
@@ -197,8 +197,15 @@ namespace MavenAsDemo
             string lastExceptionMessage = "";
             ServicePointManager.ServerCertificateValidationCallback = new System.Net.Security.RemoteCertificateValidationCallback(AcceptAllCertifications);
             int pollnum = 0; //get a polling counter to remind us to check the token every so often. 
+
+            /////debug only 
+            //Thread.Sleep(50000);
+            //alert("", "", "https://dev.mavenmedical.net/#/pathway/1022/node/1/patient/66632/2014-10-18");
+
+
             while (continueOn)
             {
+               
                 try
                 {
                     if (pollnum == 10)
@@ -208,8 +215,8 @@ namespace MavenAsDemo
                     pollnum++; //increment the polling counter
                     string rqstUrl = "https://" + cursettings.pollingServer + "/broadcaster/poll?userAuth=" + WindowsDPAPI.Decrypt(EncryptedKey)
                         + "&osUser=" + cursettings.osUser + "&machine=" + cursettings.machine + "&osVersion=" + cursettings.os
-                        +"&user="+Authenticator.getMavenUserId()+"&customer_id="+cursettings.custId
-                        + "&provider=" + Authenticator.getProviderId() + "&roles[]=notification";
+                        +"&user="+Authenticator.getMavenUserName()+"&customer_id="+cursettings.custId
+                        + "&provider=" + Authenticator.getProviderId() + "&roles[]=notification&userid=" + Authenticator.getMavenUserID();
                     WebRequest rqst = WebRequest.Create(rqstUrl);
                     rqst.Timeout = 600000;
                     HttpWebResponse rsp = (HttpWebResponse)rqst.GetResponse();
@@ -351,9 +358,9 @@ namespace MavenAsDemo
         {
             string rqstUrl = "https://" + cursettings.pollingServer + "/broadcaster/notifypref?userAuth=" + WindowsDPAPI.Decrypt(EncryptedKey)
                         + "&notify1="+primary+"&notify2="+secondary
-                        + "&osUser=" + cursettings.osUser + "&machine=" + cursettings.machine + "&osVersion=" + cursettings.os
-                        + "&user=" + Authenticator.getMavenUserId() + "&customer_id=" + cursettings.custId
-                        + "&provider=" + Authenticator.getProviderId() + "&roles[]=notification";
+                         + "&osUser=" + cursettings.osUser + "&machine=" + cursettings.machine + "&osVersion=" + cursettings.os
+                        + "&user=" + Authenticator.getMavenUserName() + "&customer_id=" + cursettings.custId
+                        + "&provider=" + Authenticator.getProviderId() + "&roles[]=notification&userid=" + Authenticator.getMavenUserID();
             try
             {
                 WebRequest rqst = WebRequest.Create(rqstUrl);

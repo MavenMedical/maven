@@ -1147,16 +1147,16 @@ class WebPersistence():
                    None, 0.00, 200.00, '%']
         try:
             cur = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
-            tree_id = cur.fetchone()[0]
+            tree_id, canonical_id = cur.fetchone()[0]
             # Insert a record into alert_config so that the Pathway actually fires (it's referenced in the evalnode()
             # PL/pgsql function
             cmd = ["INSERT INTO alert_config (customer_id, department, category, rule_id, validation_status)",
                    "VALUES (%s, %s, %s, %s, %s)"]
-            cmdArgs = [customer_id, -1, "PATHWAY", tree_id, 400]
+            cmdArgs = [customer_id, -1, "PATHWAY", canonical_id, 400]
             cur = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
 
             # Update/Insert the trees.codelist records for the protocol
-            yield from self.upsert_codelists(treeJSON)
+            yield from self.upsert_codelists(treeJSON, canonical_id)
 
             # Return Tree_ID to the front-end
             return tree_id
@@ -1165,26 +1165,42 @@ class WebPersistence():
         return None
 
     @asyncio.coroutine
-    def upsert_codelists(self, treeDict):
-        protocol_id = treeDict.get('id', None)
+    def upsert_codelists(self, treeDict, canonical_id):
+
         root_node_id = treeDict.get('nodeID', None)
         protocol_trigger_dict = treeDict.get('triggers', None)
+
+        cmd = ["DELETE FROM trees.codelist",
+               "WHERE canonical_id=%s AND "
+               "node_id=%s"]
+        cmdArgs = [canonical_id, root_node_id]
+        yield from self.db.execute_single(' '.join(cmd), extra=cmdArgs)
 
         # Insert the Protocol Triggering Codelist(s) for ENCOUNTER Diagnoses
         enc_dx_triggers = protocol_trigger_dict.get('enc_dx', None)
         if enc_dx_triggers:
-            yield from self.upsert_snomed_triggers(protocol_id, root_node_id, 'enc_dx', enc_dx_triggers)
+            yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'enc_dx', enc_dx_triggers)
+
+        # Insert the Protocol Triggering Codelist(s) for HISTORIC Diagnoses
+        pl_dx_triggers = protocol_trigger_dict.get('pl_dx', None)
+        if pl_dx_triggers:
+            yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'hist_dx', pl_dx_triggers)
 
         # Insert the Protocol Triggering Codelist(s) for HISTORIC Diagnoses
         hist_dx_triggers = protocol_trigger_dict.get('hist_dx', None)
         if hist_dx_triggers:
-            yield from self.upsert_snomed_triggers(protocol_id, root_node_id, 'hist_dx', hist_dx_triggers)
+            yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'hist_dx', hist_dx_triggers)
 
         # Recursively insert the codelists for all of the child nodes
-            # TODO
+        all_dx_triggers = protocol_trigger_dict.get('all_dx', None)
+        if all_dx_triggers:
+            yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'all_dx', all_dx_triggers)
+
+        # Recursively insert the codelists for all of the child nodes
+            # pass
 
     @asyncio.coroutine
-    def upsert_snomed_triggers(self, protocol_id, node_id, list_type, triggers):
+    def upsert_snomed_triggers(self, canonical_id, node_id, list_type, triggers):
 
         for cl in triggers:
             # Parse the "exists" JSON element FROM a string INTO a Python integer
@@ -1204,7 +1220,7 @@ class WebPersistence():
                 framemax = 99999
 
             cmd = ["SELECT trees.upsert_codelist(%s, %s, %s::varchar, %s, %s::integer[], %s::varchar[], %s, %s)"]
-            cmdArgs = [protocol_id, node_id, list_type, exists, int_snomeds, None, framemin, framemax]
+            cmdArgs = [canonical_id, node_id, list_type, exists, int_snomeds, None, framemin, framemax]
             yield from self.db.execute_single(' '.join(cmd), extra=cmdArgs)
 
     def convert_string_to_boolean(self, str):
@@ -1255,9 +1271,9 @@ class WebPersistence():
         cmdArgs = [protocol_id, json.dumps(protocol_json), customer_id, user_id]
         try:
             cur = yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
-            newid = cur.fetchone()[0]
+            newid, canonical_id = cur.fetchone()[0]
             # Update/Insert the trees.codelist records for the protocol
-            yield from self.upsert_codelists(protocol_json)
+            yield from self.upsert_codelists(protocol_json, canonical_id)
             return newid
         except:
             ML.EXCEPTION("Error Updating TreeID #{}".format(protocol_json.get('pathid', None)))

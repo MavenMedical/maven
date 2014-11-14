@@ -147,9 +147,13 @@ namespace MavenAsDemo
         {
             return GetDecryptedRegistryVaue("provider");
         }
-        public static string getMavenUserId()
+        public static string getMavenUserName()
         {
             return GetDecryptedRegistryVaue("MavenUser").ToUpper();
+        }
+        public static string getMavenUserID()
+        {
+            return GetDecryptedRegistryVaue("mavenuserid");
         }
         private static string GetDecryptedRegistryVaue(string key)
         {
@@ -171,7 +175,8 @@ namespace MavenAsDemo
             string rtn = "";
             try
             {
-                trimfrom = trimfrom.Substring(trimfrom.IndexOf("\"" + key + "\": \""));
+                string findstr = "\"" + key + "\": \"";
+                trimfrom = trimfrom.Substring(trimfrom.IndexOf(findstr));
                 trimfrom = trimfrom.Replace("\"" + key + "\": \"", "");
                 rtn = trimfrom.Substring(0, trimfrom.IndexOf("\"")).Replace("\"", "").Trim();
 

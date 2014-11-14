@@ -3744,7 +3744,6 @@
 		<row><td>IDS__TargetReq_DESC_RAM</td><td>1033</td><td>The amount of RAM is not adequate for running [ProductName].</td><td>0</td><td/><td>1948406638</td></row>
 		<row><td>IDS__TargetReq_DESC_RESOLUTION</td><td>1033</td><td>The screen resolution is not adequate for running [ProductName].</td><td>0</td><td/><td>1948406638</td></row>
 		<row><td>ID_STRING1</td><td>1033</td><td/><td>0</td><td/><td>1948406638</td></row>
-		<row><td>ID_STRING2</td><td>1033</td><td>MAVEND~1|MavenDesktop</td><td>0</td><td/><td>2082606958</td></row>
 		<row><td>ID_STRING3</td><td>1033</td><td>MAVEND~1|MavenDesktop</td><td>0</td><td/><td>2082662222</td></row>
 		<row><td>ID_STRING4</td><td>1033</td><td>UNINST~1|Uninstall Maven</td><td>0</td><td/><td>2082615150</td></row>
 		<row><td>ID_STRING5</td><td>1033</td><td>http://www.MavenMedical.net</td><td>0</td><td/><td>-601707698</td></row>
@@ -3859,7 +3858,6 @@
 		<col def="S255">ISBuildSourcePath</col>
 		<col def="I2">ISIconIndex</col>
 		<row><td>ARPPRODUCTICON.exe</td><td/><td>C:\Users\dave\Documents\Visual Studio 2012\Projects\MavenAsDemo\maven.ico</td><td>0</td></row>
-		<row><td>NewShortcut1_214BBDF73D10419185D1E15950EEC1CB.exe</td><td/><td>C:\Users\dave\Documents\Visual Studio 2012\Projects\MavenAsDemo\bin\Debug\maven.ico</td><td>0</td></row>
 		<row><td>NewShortcut2_40F4F62B28DB4B6C97DC1BD094771648.exe</td><td/><td>C:\Users\dave\Documents\Visual Studio 2012\Projects\MavenAsDemo\bin\Debug\MavenDesktop.exe</td><td>0</td></row>
 		<row><td>NewShortcut3_B056B2D638A04214A393D12D9FCCF55E.exe</td><td/><td>C:\Program Files (x86)\InstallShield\2013LE\Redist\Language Independent\OS Independent\uninstall.ico</td><td>0</td></row>
 	</table>
@@ -3994,7 +3992,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>ISTheme</td><td>InstallShield Blue.theme</td></row>
 		<row><td>ISUSLock</td><td>{00B24F15-8231-4E66-A5A0-D573E71188DB}</td></row>
 		<row><td>ISUSSignature</td><td>{1480B414-9F54-443B-A580-B293FD106892}</td></row>
-		<row><td>ISVisitedViews</td><td>viewAssistant,viewRegistry,viewInstallScriptStd,viewCustomActions,viewUI,viewAppFiles,viewFeatureFiles,viewObjects,viewDependencies,viewShortcuts,viewSystemSearch,viewSupportFiles,viewRelease,viewProject,viewSetupDesign,viewISToday,viewAppV</td></row>
+		<row><td>ISVisitedViews</td><td>viewAssistant,viewRegistry,viewInstallScriptStd,viewCustomActions,viewUI,viewAppFiles,viewFeatureFiles,viewObjects,viewDependencies,viewShortcuts,viewSystemSearch,viewSupportFiles,viewRelease,viewProject,viewSetupDesign,viewISToday,viewAppV,viewRealSetupDesign,viewSetupTypes,viewUpgradePaths,viewUpdateService</td></row>
 		<row><td>Limited</td><td>1</td></row>
 		<row><td>LockPermissionMode</td><td>1</td></row>
 		<row><td>MsiExecCmdLineOptions</td><td/></row>
@@ -4436,7 +4434,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<col def="s72">Component_</col>
 		<col def="I4">ISAttributes</col>
 		<row><td>Registry1</td><td>2</td><td>SYSTEM\CurrentControlSet\services\eventlog\Application\MavenDesktop</td><td/><td/><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
-		<row><td>Registry10</td><td>1</td><td>Software\Maven\PathwaysDesktop\Settings</td><td>server</td><td>162.222.177.174</td><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
+		<row><td>Registry10</td><td>1</td><td>Software\Maven\PathwaysDesktop\Settings</td><td>server</td><td>cua.mavenmedical.net</td><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
 		<row><td>Registry11</td><td>1</td><td>Software\Maven\PathwaysDesktop\Settings</td><td>location</td><td>BR</td><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
 		<row><td>Registry12</td><td>1</td><td>Software\Maven\PathwaysDesktop\Settings</td><td>FadeSlowness</td><td>3</td><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
 		<row><td>Registry13</td><td>1</td><td>Software\Maven\PathwaysDesktop\Settings</td><td>mode</td><td>deskSoft</td><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
@@ -4537,7 +4535,6 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<col def="S255">ISComments</col>
 		<col def="S255">ISShortcutName</col>
 		<col def="I4">ISAttributes</col>
-		<row><td>NewShortcut1</td><td>DesktopFolder</td><td>##ID_STRING2##</td><td>MavenDesktop.exe</td><td>[INSTALLDIR]MavenDesktop.exe</td><td/><td/><td/><td>NewShortcut1_214BBDF73D10419185D1E15950EEC1CB.exe</td><td>0</td><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 		<row><td>NewShortcut2</td><td>ProgramMenuFolder</td><td>##ID_STRING3##</td><td>MavenDesktop.exe</td><td>[INSTALLDIR]MavenDesktop.exe</td><td/><td/><td/><td>NewShortcut2_40F4F62B28DB4B6C97DC1BD094771648.exe</td><td>1</td><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 		<row><td>NewShortcut3</td><td>ProgramMenuFolder</td><td>##ID_STRING4##</td><td>ISX_DEFAULTCOMPONENT1</td><td>[SystemFolder]MsiExec.exe</td><td>/x [ProductCode]</td><td/><td/><td>NewShortcut3_B056B2D638A04214A393D12D9FCCF55E.exe</td><td>0</td><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 	</table>
