@@ -375,7 +375,7 @@ define([
 		name: response.name,
 	    }, {silent: true})
 	    	    this.populateChildren(response.children, options)
-            var triggers = new Backbone.Model()
+
             var result = new Backbone.Collection()
         var triggerJSON = response.triggers
 
