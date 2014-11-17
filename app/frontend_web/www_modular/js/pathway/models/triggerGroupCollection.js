@@ -66,6 +66,8 @@ define([
         addDetail: function(model, type){
               var enhancedModel = new TriggerDetail()
               enhancedModel.populate(model.attributes)
+              enhancedModel.on('cascade', this.trigger('cascade'))
+
               var detailGroup = this.get('details')
 
               if (detailGroup.get(type)){
@@ -73,6 +75,7 @@ define([
               } else {
                   var temp = new TriggerDetailCollection()
                   temp.add(enhancedModel, {silent: true})
+                  temp.on('cascade', this.trigger('cascade'))
                   detailGroup.set(type, temp, {silent: true})
               }
 

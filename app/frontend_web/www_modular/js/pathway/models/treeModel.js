@@ -429,7 +429,6 @@ define([
             }
 
             versions[this.get('protocolVersion')](response, options)
-            alert()
             this.set('protocolVersion', CURRENT_VERSION)
         }
     });
