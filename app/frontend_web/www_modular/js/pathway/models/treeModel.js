@@ -8,6 +8,7 @@ define([
     'pathway/models/treeContext',
     'pathway/models/triggerGroupCollection'
 ], function ($, _, Backbone, contextModel, nodeModel, pathwayCollection, treeContext, triggerGroupCollection) {
+    var CURRENT_VERSION = "version1";
     var treeModel;
 
     var deleteRecur = function (me, toDelete, saveChildren) {
@@ -363,69 +364,75 @@ define([
 
         },
         parse: function (response, options) {
-            if (options && options.toImport) {
-                response = _.omit(response, ['nodeID', 'nodeCount'])
-            }
-            if (!response.nodeCount) {
-                this.set({nodeCount: 0}, {silent: true})
+            if (!response.protocolVersion) {
+                this.set('protocolVersion', "preversion",{silent: true})
             } else {
-                this.set('nodeCount', response.nodeCount, {silent: true})
+                this.set('protocolVersion', response.protocolVersion ,{silent: true})
             }
-            if (!response.nodeID) {
-                this.set('nodeID', this.getNextNodeID(), {silent: true})
-            } else {
-                this.set('nodeID', response.nodeID, {silent: true})
+            var self = this;
+
+
+            var versions = {
+                "preversion": function (response, options) {
+                    if (options && options.toImport) {
+                        response = _.omit(response, ['nodeID', 'nodeCount'])
+                    }
+                    if (!response.nodeCount) {
+                        self.set({nodeCount: 0}, {silent: true})
+                    } else {
+                        self.set('nodeCount', response.nodeCount, {silent: true})
+                    }
+                    if (!response.nodeID) {
+                        self.set('nodeID', self.getNextNodeID(), {silent: true})
+                    } else {
+                        self.set('nodeID', response.nodeID, {silent: true})
+                    }
+                    self.set({
+                        tooltip: response.tooltip,
+                        sidePanelText: response.sidePanelText,
+                        pathid: response.pathid,
+                        protocol: response.protocol,
+                        name: response.name
+                    }, {silent: true})
+                    self.populateChildren(response.children, options)
+                    var n = new triggerGroupCollection()
+                    n.populate(response.triggers, self.get('protocolVersion'));
+                    self.set('triggers', n, {silent: true});
+                },
+                "version1": function (response, options) {
+                    if (options && options.toImport) {
+                        response = _.omit(response, ['nodeID', 'nodeCount'])
+                    }
+                    if (!response.nodeCount) {
+                        self.set({nodeCount: 0}, {silent: true})
+                    } else {
+                        self.set('nodeCount', response.nodeCount, {silent: true})
+                    }
+                    if (!response.nodeID) {
+                        self.set('nodeID', self.getNextNodeID(), {silent: true})
+                    } else {
+                        self.set('nodeID', response.nodeID, {silent: true})
+                    }
+                    self.set({
+                        tooltip: response.tooltip,
+                        sidePanelText: response.sidePanelText,
+                        pathid: response.pathid,
+                        protocol: response.protocol,
+                        name: response.name
+                    }, {silent: true})
+                    self.populateChildren(response.children, options)
+                    var n = new triggerGroupCollection()
+                    n.populate(response.triggers, self.get('protocolVersion'));
+                    self.set('triggers', n, {silent: true});
+                }
+
             }
-            this.set({
-                tooltip: response.tooltip,
-                sidePanelText: response.sidePanelText,
-                pathid: response.pathid,
-                protocol: response.protocol,
-                name: response.name
-            }, {silent: true})
-            this.populateChildren(response.children, options)
-            var n = new triggerGroupCollection()
-            n.populate(response.triggers);
-            this.set('triggers', n, {silent: true});
 
-            console.log(this.get('triggers'));
-
-
-            /*
-             console.log('testing', typeof(triggerJSON))
-             if (!Object.prototype.toString.call( triggerJSON ) === '[object Array]' ){
-             var theGroup = new Backbone.Model()
-             for (var n in triggerJSON){
-             triggerJSON[n] = new Backbone.Collection(triggerJSON[n])
-             }
-             theGroup.set({details: new Backbone.Model(triggerJSON), relationship: 'and'})
-
-             result =  new Backbone.Collection([theGroup])
-             } else {
-             for (var i in triggerJSON){
-             var cur = triggerJSON[i]
-             var curGroup = new Backbone.Model()
-             curGroup.set('relationship', cur.relationship)
-
-             var detailsModel = new Backbone.Model()
-             for (var i2 in cur.details){
-             detailsModel.set(i2, cur.details[i2])
-             for (var i3 in detailsModel.attributes){
-             detailsModel.set(i3, new Backbone.Collection(detailsModel.get(i3)))
-             }
-             }
-             curGroup.set('details', detailsModel)
-
-             result.add(curGroup)
-             }
-             }
-             this.set('triggers', result, {silent: true})
-             */
-
+            versions[this.get('protocolVersion')](response, options)
+            alert()
+            this.set('protocolVersion', CURRENT_VERSION)
         }
-
-    })
-
+    });
 
     treeModel = new TreeModel()
     return treeModel

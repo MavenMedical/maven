@@ -7,22 +7,29 @@ define([
 
 
     var TriggerGroupCollection = Backbone.Collection.extend({
-        populate: function(JSON){
+
+        populate: function(JSON, protocolVersion){
             var self = this
-            if (JSON){
+            if (protocolVersion == "version1"){
                 for (var i in JSON){
                     var curGroup = JSON[i]
 
                     var t = new TriggerGroup()
                     t.populate({JSON: curGroup})
                     t.on('cascade', function(){ self.trigger('cascade')} )
-                    this.add(t)
+                    this.add(t, {silent: true})
                 }
-            } else {
+            } else if (protocolVersion == "preversion"){
                 var t = new TriggerGroup()
-                t.populate({relationship : "or"})
+                t.populate({relationship : "and"})
+
                 t.on ('cascade', function(){ self.trigger('cascade')})
-                this.add()
+
+                var temp = new TriggerDetailTypes()
+                temp.populate(JSON)
+                t.set('details', temp, {silent: true})
+
+                this.add(t, {silent: true})
             }
             this.on('add', function(){self.trigger('cascade')})
             this.on('remove', function(){self.trigger('cascade')})
@@ -45,13 +52,13 @@ define([
                 var t = new TriggerDetailTypes()
                 t.populate(param.JSON['details'])
                 t.on('cascade', function(){ self.trigger('cascade')})
-                this.set('details', t)
+                this.set('details', t, {silent: true})
             } else if (param.relationship){
-                this.set('relationship', param.relationship)
+                this.set('relationship', param.relationship, {silent: true})
                 var t = new TriggerDetailTypes()
-                t.populate()
+
                 t.on('cascade', function(){ self.trigger('cascade')})
-                this.set('details', t)
+                this.set('details', t, {silent: true})
             }
             this.on('change', this.trigger('cascade'))
 
@@ -62,10 +69,10 @@ define([
               var detailGroup = this.get('details')
 
               if (detailGroup.get(type)){
-                  detailGroup.get(type).add(enhancedModel)
+                  detailGroup.get(type).add(enhancedModel, {silent: true})
               } else {
                   var temp = new TriggerDetailCollection()
-                  temp.add(enhancedModel)
+                  temp.add(enhancedModel, {silent: true})
                   detailGroup.set(type, temp, {silent: true})
               }
 
@@ -87,7 +94,7 @@ define([
                 var t = new TriggerDetailCollection()
                 t.populate(value)
                 t.on('cascade', function(){self.trigger('cascade')})
-                this.set(key, t)
+                this.set(key, t, {silent: true})
             }
             this.on('change', self.trigger('cascade'))
         },
@@ -108,7 +115,7 @@ define([
                 var curDetail = JSON[i]
                 var t = new TriggerDetail()
                 t.populate(curDetail)
-                this.add(t)
+                this.add(t, {silent: true})
             }
                 //this.on('add', function(){this.trigger('cascade')})
                 //this.on('remove', function(){this.trigger('cascade')})
@@ -119,7 +126,7 @@ define([
         populate: function(JSON){
             for (var key in JSON){
                 var value = JSON[key]
-                this.set(key, value)
+                this.set(key, value, {silent: true})
             }
         }
 
