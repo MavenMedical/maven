@@ -39,6 +39,7 @@ namespace MavenAsDemo
 
         private void frmHardAlert_Load(object sender, EventArgs e)
         {
+            this.Icon = new Icon(System.IO.Path.GetDirectoryName(Application.ExecutablePath) + "\\Maven.ico");
             //timer ticks every second
             timer.Interval = 1000;
             timer.Start(); //go
