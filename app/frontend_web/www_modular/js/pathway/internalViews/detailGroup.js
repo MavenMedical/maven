@@ -35,20 +35,7 @@ define([
             this.type = params.type;
             this.group = params.group;
             this.el = params.el;
-            //Events:  Render when the list is changed, or a new rule is loaded from persistance`
-            this.list.on('add', function () {
-                curTree.trigger('propagate')
-                self.render()
-            }, this)
-            this.list.on('remove', function () {
-                curTree.trigger('propagate')
-                self.render()
-            }, this)
 
-            this.list.on('change', function () {
-                curTree.trigger('propagate')
-                self.render()
-            }, this)
 
 
         },

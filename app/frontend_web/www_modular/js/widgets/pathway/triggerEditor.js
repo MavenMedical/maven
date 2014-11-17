@@ -27,9 +27,10 @@ define([
 
                                             //create a new detail group for this detail type, and send it the collection of details of this type
                                             var cur  = new DetailGroup({group: curGroup, el: $('.items').last(), lineTemplate:toTemplate, list: toList, type: key})
-                                            cur.render();
-                                            $(".toggles").bootstrapSwitch()
-                                            $(".toggles").on('switchChange.bootstrapSwitch', function(){alert()})
+
+                                        cur.render();
+
+
 
                             };}(key));
 
@@ -39,10 +40,8 @@ define([
          el: '#modal-target',
 
         initialize: function(params){
-            console.log('test2', detailEditor)
             this.template = _.template(params.template)
-                            var that = this
-            curTree.get('triggers').on('triggerChange', this.render, this)
+            var that = this
 
             contextModel.on('change:page', function(){
                     if (contextModel.get('page')== 'triggerEditor'){
@@ -66,7 +65,10 @@ define([
         },
         render: function(){
             var that = this
+            curTree.once('sync', function(){that.render()})
+
             this.$el.html(this.template())
+
 
             $('.createButton').on('click', function(button){
                 var detailType = button.currentTarget.id
@@ -82,16 +84,16 @@ define([
             $('#add-group-button').on('click', function(){
 
                 curTree.get('triggers').addGroup("and")
-                that.render()
 
 
             })
-                       var disjGroup  = _.template(disjoinedGroupTemplate)
+                    var disjGroup  = _.template(disjoinedGroupTemplate)
 
                     for (var i in curTree.get("triggers").models){
                         var curGroup = curTree.get('triggers').models[i]
-
-                        $('#disjoinedGroups').append(disjGroup(curGroup.attributes))
+                        var params = curGroup.attributes
+                        params['groupID'] = curGroup.cid
+                        $('#disjoinedGroups').append(disjGroup(params))
                         var context = this;
                         //load this detail type's template
                          for (var key in curGroup.get('details').attributes){
