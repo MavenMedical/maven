@@ -1,13 +1,22 @@
 import asyncio
 from utils.database.database import AsyncConnectionPool
 import maven_config as MC
-
+from utils.database.remote_database_connector import RemoteDatabaseConnector
+from functools import lru_cache
 CONFIG_DATABASE = 'database'
 CONFIG_PERSISTENCE = 'search'
 EMPTY_RETURN = [{'id': 000000, 'term': "No Results Found", 'code': 000000, 'type': 'none'}]
 
 
-class web_search():
+@lru_cache()
+def web_search(configname):
+    server = RemoteDatabaseConnector(MC.MavenConfig[configname][CONFIG_DATABASE])
+    ret = server.create_client(web_search_base)
+    ret.schedule = lambda *args: None
+    return ret
+
+
+class web_search_base():
 
     @asyncio.coroutine
     def get_routes(self):

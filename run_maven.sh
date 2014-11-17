@@ -4,6 +4,8 @@ source /home/devel/.bashrc
 echo ${MAVEN_ROOT}
 cd ${MAVEN_ROOT}
 
+nohup ${MAVEN_ROOT}/env/bin/python ${MAVEN_ROOT}/app/database/endpoint/database_endpoint.py &
+sleep 1
 nohup ${MAVEN_ROOT}/env/bin/python ${MAVEN_ROOT}/app/backend/webservices/data_router_all_svcs.py &
 sleep 1
 # ${MAVEN_ROOT}/env/bin/python ${MAVEN_ROOT}/clientApp/webservice/client_server.py &

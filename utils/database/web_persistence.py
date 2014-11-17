@@ -7,6 +7,7 @@ import dateutil.relativedelta
 import dateutil.parser
 import json
 from functools import lru_cache
+from utils.database.remote_database_connector import RemoteDatabaseConnector
 from utils.enums import ALERT_VALIDATION_STATUS, FOLLOWUPTASK_STATUS
 from utils.database.database import AsyncConnectionPool
 from utils.database.database import MappingUtilites as DBMapUtils
@@ -219,7 +220,14 @@ def append_extras(cmd, cmdargs, datefield, startdate, enddate, orderby, ascendin
 
 
 @lru_cache()
-class WebPersistence():
+def WebPersistence(configname):
+    server = RemoteDatabaseConnector(MC.MavenConfig[configname][CONFIG_DATABASE])
+    ret = server.create_client(WebPersistenceBase)
+    ret.schedule = lambda *args: None
+    return ret
+
+
+class WebPersistenceBase():
     def __init__(self, configname):
         self.db = AsyncConnectionPool(MC.MavenConfig[configname][CONFIG_DATABASE])
         self.scheduled = False
@@ -1137,7 +1145,7 @@ class WebPersistence():
         if not includedeleted:
             cmd.append('AND NOT deleted')
         ret = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
-        return ret
+        return list(ret)
 
     @asyncio.coroutine
     def create_protocol(self, treeJSON, customer_id, user_id):

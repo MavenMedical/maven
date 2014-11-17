@@ -110,7 +110,7 @@ class rpc(SP.StreamProcessor):
         self.outstanding = {}
 
     def register(self, obj):
-        """ Register an object instance to act as it's classes server object for RPCs
+        """ Register an object instance to act as its classes server object for RPCs
         """
         self.registered[str(obj.__class__)] = obj
 
@@ -126,8 +126,8 @@ class rpc(SP.StreamProcessor):
         :param uid: the unique id of the message to send
         :param fut: the future to set when a response comes back
         """
-        self.outstanding[uid] = fut
         self.write_object(msg)
+        self.outstanding[uid] = fut
 
     @asyncio.coroutine
     def read_object(self, obj, key):
