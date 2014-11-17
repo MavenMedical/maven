@@ -19,7 +19,6 @@ from utils.streaming.http_svcs_wrapper import CONFIG_PERSISTENCE
 import asyncio
 import maven_config as MC
 import utils.database.web_persistence as WP
-import utils.database.tree_persistence as TP
 import utils.streaming.stream_processor as SP
 import utils.streaming.http_responder as HTTP
 import utils.streaming.http_helper as HH
@@ -73,8 +72,8 @@ def run():
                     CONFIG_PERSISTENCE: "persistence layer",
                 },
             'persistence layer': {WP.CONFIG_DATABASE: 'webservices conn pool', },
-            'persistance': {TP.CONFIG_DATABASE: 'webservices conn pool'},
-            'search': {TP.CONFIG_DATABASE: 'webservices conn pool'},
+            'persistance': {WP.CONFIG_DATABASE: 'webservices conn pool'},
+            'search': {WP.CONFIG_DATABASE: 'webservices conn pool'},
             'webservices conn pool':
                 {
                     AsyncConnectionPool.CONFIG_CONNECTION_STRING: MC.dbconnection,
