@@ -1181,7 +1181,7 @@ class WebPersistence():
             # Extract the Group Relationships
             # groupRelationship = triggerGroup.get('relationship')
             
-            triggerGroupDetails = triggerGroup.get('details')
+            triggerGroupDetails = triggerGroup.get('details', None)
 
             # Insert the Protocol Triggering Codelist(s) for ENCOUNTER Diagnoses
             enc_dx_triggers = triggerGroupDetails.get('enc_dx', None)
