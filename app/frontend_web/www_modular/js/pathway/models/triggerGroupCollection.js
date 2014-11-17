@@ -33,7 +33,8 @@ define([
             group.populate({relationship : relationship})
             this.add(group)
             return group
-        }
+        },
+
     })
 
     var TriggerGroup = Backbone.Model.extend({
@@ -65,7 +66,7 @@ define([
               } else {
                   var temp = new TriggerDetailCollection()
                   temp.add(enhancedModel)
-                  detailGroup.set(type, temp)
+                  detailGroup.set(type, temp, {silent: true})
               }
 
         },
@@ -97,6 +98,7 @@ define([
 
                 ret[key] = value.toJSON();
             }
+            return ret;
         }
     })
     var TriggerDetailCollection = Backbone.Collection.extend({
