@@ -581,7 +581,7 @@ class MappingParser(asyncio.Protocol):
                 self.transport.close()
 
     def connection_made(self, transport):
-        peercert = transport.get_extra_info('peercert')
+        peercert = transport and transport.get_extra_info('peercert')
         if peercert:
             ML.INFO(peercert)
         self.update_last_activity()
