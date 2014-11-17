@@ -152,16 +152,9 @@ define([
                 }, this)
 
                 if (panel.newDetail){
-                    if (that.group.get(panel.type)){
-                        that.group.get(panel.type).add(panel.model);
-                    } else {
-                    //if the cur rule doesnt have a detail of this type, make a new collection representing details of
-                    //this type in the rule, and add this model to it
-                        var model = new Backbone.Collection();
-                        model.add(panel.model);
-                        that.group.set(panel.type, model);
 
-                    }
+                    that.group.addDetail(panel.model, panel.type);
+
 
                 }
                //hide the detail modal

@@ -72,18 +72,16 @@ define([
                 var detailType = button.currentTarget.id
 
                     require(['text!templates/pathway/details/' + detailType +"_editor.html"], function(template){
-                        var curEditor = new detailEditor({group: curTree.get('triggers').models[0].get('details'), template: _.template(template), model: new Backbone.Model(), newDetail: true, el:$('#modal-target'), triggerNode: that.triggerNode, type: detailType})
+
+                        var curEditor = new detailEditor({group: curTree.get('triggers').models[0], template: _.template(template), model: new Backbone.Model(), newDetail: true, el:$('#modal-target'), triggerNode: that.triggerNode, type: detailType})
+
                         curEditor.render()
                     })
 
             })
             $('#add-group-button').on('click', function(){
-                var newGroup = new Backbone.Model();
 
-                newGroup.set('details', new Backbone.Model())
-                newGroup.set('relationship', "or")
-
-                curTree.get('triggers').add(newGroup)
+                curTree.get('triggers').addGroup("and")
                 that.render()
 
 

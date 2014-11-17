@@ -384,9 +384,9 @@ define([
                 name: response.name
             }, {silent: true})
             this.populateChildren(response.children, options)
-
-
-            this.set('triggers', new triggerGroupCollection(response.triggers));
+            var n = new triggerGroupCollection()
+            n.populate(response.triggers);
+            this.set('triggers', n, {silent: true});
 
             console.log(this.get('triggers'));
 

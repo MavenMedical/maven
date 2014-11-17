@@ -1,16 +1,14 @@
-
-
 /*
 
 
-Backbone View displaying the set of details of a particular type contained in curRule
-Displayed Under: Details
-Param:
-    lineTemplate : the template to be used for single detail of the type used
-    el           : the DOM element wherin to render the entire group
-    list         : the set of details to render
+ Backbone View displaying the set of details of a particular type contained in curRule
+ Displayed Under: Details
+ Param:
+ lineTemplate : the template to be used for single detail of the type used
+ el           : the DOM element wherin to render the entire group
+ list         : the set of details to render
 
-*/
+ */
 
 
 define([
@@ -29,21 +27,32 @@ define([
 
         template: _.template(detailSectionTemplate),
 
-        initialize: function(params){
+        initialize: function (params) {
+            var self = this;
+            // load the params into the object
+            this.lineTemplate = params.lineTemplate;
+            this.list = params.list;
+            this.type = params.type;
+            this.group = params.group;
+            this.el = params.el;
+            //Events:  Render when the list is changed, or a new rule is loaded from persistance`
+            this.list.on('add', function () {
+                curTree.trigger('propagate')
+                self.render()
+            }, this)
+            this.list.on('remove', function () {
+                curTree.trigger('propagate')
+                self.render()
+            }, this)
 
-          // load the params into the object
-          this.lineTemplate = params.lineTemplate;
-          this.list= params.list;
-          this.type = params.type;
-         this.group = params.group;
-          this.el = params.el;
-          //Events:  Render when the list is changed, or a new rule is loaded from persistance`
-          this.list.on('add', this.render, this)
-          this.list.on('remove', this.render, this)
-          this.list.on('change', curTree.trigger('propagate'), this)
+            this.list.on('change', function () {
+                curTree.trigger('propagate')
+                self.render()
+            }, this)
+
 
         },
-        render: function(){
+        render: function () {
             this.$el.html("");
             var type = this.type;
             var panel = this
@@ -55,7 +64,7 @@ define([
             //      detail: the object model of the detail represented by the line
             var detailLine = Backbone.View.extend({
 
-                initialize: function(params){
+                initialize: function (params) {
                     this.el = params.el
                     this.$el.html(params.text)
                     this.group = params.group
@@ -65,27 +74,27 @@ define([
 
                     var that = this
                     // if the user clicks the  el '.detail-item' link in this line, load the editor template for this detail and display the modal for editing
-                    $('.detail-item', this.$el)[0].onclick = function(){
+                    $('.detail-item', this.$el)[0].onclick = function () {
 
-                             require(['text!/templates/pathway/details/' + type + '_editor.html'],
-                                     function(curTemplate) {
+                        require(['text!/templates/pathway/details/' + type + '_editor.html'],
+                            function (curTemplate) {
 
-                                        var curView = new DetailEditor({group: that.group, model: that.detail, el:$('#modal-target'), template:_.template(curTemplate), type: type});
-                                        curView.render()
+                                var curView = new DetailEditor({group: that.group, model: that.detail, el: $('#modal-target'), template: _.template(curTemplate), type: type});
+                                curView.render()
 
-                                     }
-                                  );
+                            }
+                        );
                     }
                     //if the user clicks the '.remove-detail' X in the line remove the detail
-                    $('.remove-detail', this.$el)[0].onclick = function(){
-                       that.group.get('details').get(type).remove(that.detail);
+                    $('.remove-detail', this.$el)[0].onclick = function () {
+                        that.group.get('details').get(type).remove(that.detail);
 
                     }
 
                 }
             })
             //for each detail in the list create a spot for a detailLine view and create a detailLine view to be rendered in that spot
-            this.list.each(function(cur) {
+            this.list.each(function (cur) {
                 cur.off('change')
                 //rerender the group if one of the details within it changes
                 cur.on('change', this.render, this)
@@ -95,9 +104,7 @@ define([
                 new detailLine({group: this.group, el: $('.item-holder', this.$el).last(), text: this.lineTemplate(cur.attributes), detail: cur})
 
 
-
-
-            } , this);
+            }, this);
 
             return this;
 
