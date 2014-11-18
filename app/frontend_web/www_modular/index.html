@@ -16,17 +16,44 @@
 
         <title>maven</title>
 
-        <link rel="stylesheet" href="js/libs/jquery/jquery-ui.css"/>
-
-        <!-- Load fullCalendar style sheet -->
-        <link href="js/libs/fullCalendar/fullcalendar.css" rel="stylesheet" type="text/css">
-        <link href="css/style2.css" rel="alternate stylesheet" type="text/css" title="demo">
+        <!-- bootstrap & fontawesome -->
         <link rel="stylesheet" href="ace/assets/css/bootstrap.css" />
         <link rel="stylesheet" href="ace/assets/css/font-awesome.css" />
+
+        <!-- page specific plugin styles -->
+
+		<!-- text fonts -->
         <link rel="stylesheet" href="ace/assets/css/ace-fonts.css" />
-        <link rel="stylesheet" href="ace/assets/css/jquery-ui.custom.css" />
+
+        <!-- ace styles -->
         <link href="ace/assets/css/ace.css" rel="stylesheet" type="text/css" id="main-ace-style" title="demo">
+
+        <!--[if lte IE 9]>
+			<link rel="stylesheet" href="ace/assets/css/ace-part2.css" class="ace-main-stylesheet" />
+		<![endif]-->
+
+		<!--[if lte IE 9]>
+		  <link rel="stylesheet" href="ace/assets/css/ace-ie.css" />
+		<![endif]-->
+
+        <!-- ace settings handler -->
+		<script src="ace/assets/js/ace-extra.js"></script>
+
+		<!-- HTML5shiv and Respond.js for IE8 to support HTML5 elements and media queries -->
+
+		<!--[if lte IE 8]>
+		<script src="ace/assets/js/html5shiv.js"></script>
+		<script src="ace/assets/js/respond.js"></script>
+		<![endif]-->
+
+        <link rel="stylesheet" href="ace/assets/css/jquery-ui.custom.css" />
         <link rel="stylesheet" href="ace/assets/css/ace-rtl.css" />
+
+        <!--
+        <link rel="stylesheet" href="js/libs/jquery/jquery-ui.css"/>
+
+        <!-- Load fullCalendar style sheet
+        <link href="js/libs/fullCalendar/fullcalendar.css" rel="stylesheet" type="text/css">-->
         <!--<link href="css/style1.css" rel="stylesheet" type="text/css" title='original'>
         <link href="css/style2.css" rel="alternate stylesheet" type="text/css" title="demo">
         <link href="css/style.css" rel="alternate stylesheet" type="text/css" title="alternate">-->
@@ -76,6 +103,7 @@
     </head>
 
     <body class="no-skin">
+
         <div id='modal-target'></div>
         <div id="login-modal" class="modal fade" role="login"></div>
         <div id="datepicker-modal" class="modal fade" role="datepicker"></div>
@@ -91,63 +119,6 @@
 
         <div id="main-container" class="main-container">
             <div id="sidebar" class="sidebar responsive">
-                <div class="sidebar-toggle sidebar-collapse" id="sidebar-collapse">
-                    <i class="ace-icon fa fa-angle-double-left" data-icon1="ace-icon fa fa-angle-double-left" data-icon2="ace-icon fa fa-angle-double-right"></i>
-                </div>
-
-                <!-- /section:basics/sidebar.layout.minimize -->
-                <script type="text/javascript">
-                    try{ace.settings.check('sidebar' , 'collapsed')}catch(e){}
-                </script>
-
-                <ul class="nav nav-list" id="app-switcher">
-                    <li class="active">
-                        <a href="index.html">
-                            <i class="menu-icon fa fa-tachometer"></i>
-                            <span class="menu-text"> Dashboard </span>
-                        </a>
-                        <b class="arrow"></b>
-                    </li>
-                    <li class="">
-                        <a href="#" class="dropdown-toggle" id="pathwayEditor_button">
-                            <i class="menu-icon fa fa-cloud"></i>
-                            <span class="menu-text"> Pathway Mgmt </span>
-                        </a>
-                    </li>
-                    <li class="">
-                        <a href="#" class="dropdown-toggle">
-                            <i class="menu-icon fa fa-users"></i>
-                            <span class="menu-text"> Users </span>
-                        </a>
-                    </li>
-                    <li class="">
-                        <a href="#">
-                            <i class="menu-icon fa fa-bar-chart-o"></i>
-                            <span class="menu-text"> Reports </span>
-                        </a>
-                        <b class="arrow"></b>
-                    </li>
-                    <li class="">
-                        <a href="#">
-                            <i class="menu-icon fa fa-institution"></i>
-                            <span class="menu-text">
-                                Research
-                            </span>
-                        </a>
-                        <b class="arrow"></b>
-                    </li>
-                    <li class="">
-                        <a href="#">
-                            <i class="menu-icon fa fa-database"></i>
-                            <span class="menu-text">
-                                EHR Setup
-                            </span>
-                        </a>
-                        <b class="arrow"></b>
-                    </li>
-                </ul><!-- /.nav-list -->
-
-                <!-- #section:basics/sidebar.layout.minimize -->
 
             </div>
 
@@ -218,30 +189,17 @@
         </div>
 
 
+		<!-- page specific plugin scripts -->
 
+		<!--[if lte IE 8]>
+		  <script src="ace/assets/js/excanvas.js"></script>
+		<![endif]-->
 
-        <!--[if !IE]> -->
-        <script type="text/javascript">
-                window.jQuery || document.write("<script src='ace/assets/js/jquery.js'>"+"<"+"/script>");
-        </script>
-        <script src="js/libs/jquery/jquery-min.js" type="text/javascript"></script>
-        <!-- <![endif]-->
-
-        <!--[if IE]>
-<script type="text/javascript">
- window.jQuery || document.write("<script src='ace/assets/js/jquery1x.min.js'>"+"<"+"/script>");
-</script>
-        <![endif]-->
-        <script type="text/javascript">
-            if('ontouchstart' in document.documentElement) document.write("<script src='ace/assets/js/jquery.mobile.custom.min.js'>"+"<"+"/script>");
-        </script>
-
-        <script src="ace/assets/js/bootstrap.js"></script>
         <!-- page specific plugin scripts -->
         <!-- ace scripts -->
         <script src="ace/assets/js/ace-elements.js"></script>
         <script src="ace/assets/js/ace.js"></script>
-    
+
         <script src="ace/assets/js/jquery-ui.custom.js"></script>
 		<script src="ace/assets/js/jquery.ui.touch-punch.js"></script>
 		<script src="ace/assets/js/jquery.easypiechart.js"></script>
