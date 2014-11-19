@@ -36,7 +36,6 @@ namespace MavenAsDemo
             url = inUrl.Replace("http://","https://");
             InitializeComponent();
         }
-
         private void frmHardAlert_Load(object sender, EventArgs e)
         {
             this.Icon = new Icon(System.IO.Path.GetDirectoryName(Application.ExecutablePath) + "\\Maven.ico");
@@ -53,8 +52,38 @@ namespace MavenAsDemo
             mover.MouseUp += MouseUp;
             mover.MouseMove += MouseMove; 
             //put the form at the right part of the screen and keep it on top
+            sizeForm();
             this.Location = getLocation(loc);
             this.TopMost = true;
+        }
+
+        private void sizeForm()
+        {
+            int startheight = this.Height;
+            int startwidth = this.Width;
+            Rectangle workingArea = Screen.GetWorkingArea(this);
+            int wide=workingArea.Width;
+            int hi=workingArea.Height;
+            if (wide > 1280)
+            {
+                if (wide > 1499)
+                {
+                   
+                    this.Width = 1400;
+                }
+            }
+            if (hi > 900)
+            {
+                this.Height = hi - 125;
+            }
+            int wdiff = this.Width - startwidth;
+            int hdiff = this.Height - startheight;
+            browserDisplay.Width += wdiff;
+            browserDisplay.Height += hdiff;
+            boxHeader.Width += wdiff;
+            mover.Width += wdiff;
+            btnMinMax.Left += wdiff;
+            btnclose.Left += wdiff;
         }
         /// <summary>
         /// Close out on clicking the x

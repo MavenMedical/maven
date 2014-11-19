@@ -90,11 +90,11 @@
             this.btnMinMax.BackColor = System.Drawing.Color.WhiteSmoke;
             this.btnMinMax.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
             this.btnMinMax.ErrorImage = null;
-            this.btnMinMax.Image = global::MavenAsDemo.Properties.Resources.minmax;
+            this.btnMinMax.Image = global::MavenAsDemo.Properties.Resources.min;
             this.btnMinMax.InitialImage = null;
-            this.btnMinMax.Location = new System.Drawing.Point(23, 3);
+            this.btnMinMax.Location = new System.Drawing.Point(987, 4);
             this.btnMinMax.Name = "btnMinMax";
-            this.btnMinMax.Size = new System.Drawing.Size(25, 15);
+            this.btnMinMax.Size = new System.Drawing.Size(16, 15);
             this.btnMinMax.TabIndex = 4;
             this.btnMinMax.TabStop = false;
             this.btnMinMax.Click += new System.EventHandler(this.btnMinMax_Click);
