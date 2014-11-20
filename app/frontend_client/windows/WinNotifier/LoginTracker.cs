@@ -162,8 +162,8 @@ namespace MavenAsDemo
         }
         private static bool getisEmrUserLoggedIn(ArrayList list, string WindowTitle)
         {
-            if (!WindowTitle.Contains("Allscripts"))
-            {//if it's an EMR.exe, but the window title doesnt say "allscripts" then you've just launched the EXE. You're not logged in. 
+            if (WindowTitle=="Login")
+            {//if it's an EMR.exe, but the window title doesnt says "Login" then you've just launched the EXE. You're not logged in. 
                 return false;
             }
             int logincount = 0;
