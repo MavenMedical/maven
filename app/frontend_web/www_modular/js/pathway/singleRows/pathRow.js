@@ -14,15 +14,18 @@ define([
     'router',
     'globalmodels/contextModel',
     'pathway/models/pathwayCollection',
-    'text!templates/pathway/pathwayListEntry.html'
+    'text!templates/pathway/pathwayListEntry.html',
+    '../../widgets/pathway/historyList',
 
-], function ($, _, Backbone, router, contextModel, pathwayCollection, pathRowTemplate) {
+], function ($, _, Backbone, router, contextModel, pathwayCollection, pathRowTemplate, HistoryList) {
 
     var ruleRow = Backbone.View.extend({
         tagName: "div class='ui-state-default path-row'",
         template: _.template(pathRowTemplate),
+        historyList: null,
         events:{
 	      'click .select-button': 'handleSelect',
+	      'click .history-button': 'handleHistory',
 	      'click .delete-button': 'handleRemove'
         },
         render: function(){
@@ -32,7 +35,7 @@ define([
             that = this;
             $(document).ready(function(){
                 that.$el.closest('.path-header').attr("value", "hello");
-             });*/
+             });*/2
 
             //$(".sortable-folder").sortable("refresh");
            /* if (typeof params !=="undefined"){
@@ -48,7 +51,7 @@ define([
             }*/
             $(this.el).sortable({
                 connectWith: ".sortable-folder",
-                items: '> div:not(.pathway-folder-title, ui-folder-placeholder)', //don't allow user to move the folder title
+                items: '> div:not(.pathway-folder-title, ui-folder-placeholder, .path-header)', //don't allow user to move the folder title
                 helper : 'clone',
                 containment: "#avail-paths-list",
                 sort: function (event, ui) {
@@ -78,8 +81,20 @@ define([
             this.model = params.model
         },
         handleSelect: function() {
-                contextModel.set('pathid', String(this.model.get('pathid')))
-
+            contextModel.set('pathid', String(this.model.get('id')))
+        },
+        handleHistory: function() {
+            var pathwayHistory = $(".pathway-history-section", this.$el)
+            pathwayHistory.toggle();
+            if (pathwayHistory.is(":visible")){
+                //hide all other history views
+                $(".pathway-history-section").not(pathwayHistory).hide();
+                if (pathwayHistory.is(":empty")) {
+                    //only fetch history if not yet fetched
+                    var extraData = {canonical: this.model.get('id')};
+                    this.historyList = new HistoryList({el: $(".pathway-history-section", this.$el), extraData: extraData});
+                }
+            }
         },
     	handleRemove: function() {
             this.model.destroy({success: function(){

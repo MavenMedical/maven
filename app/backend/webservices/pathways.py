@@ -48,6 +48,24 @@ class PathwaysWebservices():
                              'name': k[1], 'canonical': k[2], 'folder': k[3]} for k in protocols]),
                 None)
 
+    @http_service(['GET'], '/history',
+                  [CONTEXT.USER, CONTEXT.CUSTOMERID],
+                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int},
+                  {USER_ROLES.provider, USER_ROLES.supervisor})
+    def get_hist(self, _header, body, context, _matches, _key):
+        return HTTP.OK_RESPONSE, json.dumps(['Alzheimer\'s', 'Diabetes']), None
+
+    """
+        customer_id = context[CONTEXT.CUSTOMERID]
+        protocols = yield from self.persistence.get_protocol_history(customer_id)
+
+        return (HTTP.OK_RESPONSE,
+                json.dumps([{CONTEXT.PATHID: k[0],
+                             CONTEXT.CANONICALID: k[2],
+                             CONTEXT.FOLDER: k[3],
+                             'name': k[1], 'canonical': k[2], 'folder': k[3]} for k in protocols]),
+                None)
+    """
     @http_service(['GET'], '/search',
                   [CONTEXT.SEARCH_PARAM],
                   {'type': str, CONTEXT.SEARCH_PARAM: str},

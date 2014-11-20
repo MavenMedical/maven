@@ -169,6 +169,8 @@ define([
 
                 if (contextModel.get('page') == 'pathEditor')
                     $('#pathwayName').html("Now Editing Pathway: " + curTree.attributes.name);
+                else if (contextModel.get('page') == 'pathHistory')
+                    $('#pathwayName').html("Now Viewing History for Pathway: " + curTree.attributes.name);
                 else {
                     $('#pathwayName').html("")
                 }

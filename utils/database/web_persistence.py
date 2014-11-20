@@ -1233,6 +1233,23 @@ class WebPersistence():
             return None
 
     @asyncio.coroutine
+    def get_protocol_hist(self, customer_id, protocol_id=None):
+        return ["1", "2", "3"]
+
+    """
+        cmd = ["SELECT  from trees.protocol",
+               "WHERE protocol_id=%s AND (customer_id IS NULL OR customer_id=%s)"]
+        cmdArgs = [protocol_id, customer_id]
+        try:
+            cur = yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
+            result = cur.fetchone()[0]
+            result['pathid'] = protocol_id
+            return result
+        except:
+            ML.EXCEPTION("Error Selecting TreeID #{}".format(protocol_id))
+            return None """
+
+    @asyncio.coroutine
     def delete_protocol(self, customer_id, protocol_id=None, canonical_id=None):
         if canonical_id:
             cmd = ["UPDATE trees.canonical_protocol SET deleted=TRUE ",

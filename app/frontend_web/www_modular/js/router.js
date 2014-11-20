@@ -37,7 +37,8 @@ define([
         "patient": [0, 9, 3],
         "episode": [0, 9, 3],
         "pathway": [0, 12, 0],
-        "pathEditor": [3, 12, 0]
+        "pathEditor": [3, 9, 0],
+        "pathHistory": [6, 6, 0]
     };
     changePageLayout = function (page) {
 
@@ -85,7 +86,8 @@ define([
             "evidence/:id/patient/:id/evi/:id(/login/:user/:customer/)(:userAuth)": 'showEvidence',
             "pathway/:id/node/:id(/patient/:id/:date)(/login/:user/:customer/)(:userAuth)": 'showPathway',
             "pathwayeditor/:id/node/:id(/login/:user/:customer/)(:userAuth)": 'EditPathway',
-	    "password/:type/:user/:customer/:oauth": 'password',
+            "pathwayhistory/:id/node/:id(/login/:user/:customer/)(:userAuth)": 'showPathwayHistory',
+	        "password/:type/:user/:customer/:oauth": 'password',
             //default
             '*action': 'defaultAction',
         },
@@ -132,6 +134,10 @@ define([
         },
         EditPathway: function (path, code, user, customer, userAuth) {
             currentContext.set({page: 'pathEditor',  pathid: path, code: code});
+            showPage(user, customer, userAuth);
+        },
+        showPathwayHistory: function (path, code, user, customer, userAuth) {
+            currentContext.set({page: 'pathHistory',  pathid: path, code: code});
             showPage(user, customer, userAuth);
         },
         logout: function () {

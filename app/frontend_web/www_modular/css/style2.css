@@ -1002,3 +1002,55 @@ button:hover .btn-hover { display: inline; }
 .paths-list-add-sub-folder, .paths-list-add-sub-pathway {
     float:right;
 }
+
+.pathway-row-title, .history-row-title {
+    float: left;
+    width: 70%;
+    overflow:hidden !important;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pathway-row-control {
+    float: right;
+    width:10%;
+}
+
+.history-row-control {
+    float: right;
+    width: 25%;
+}
+
+.pathway-row-control > span, .history-row-control > a {
+    float: right;
+}
+
+.pathway-row-hist {
+    float: left;
+    width: 10%;
+}
+
+.pathway-row-hist > span {
+    float: left;
+}
+
+.pathway-history-section {
+    width:100%;
+    float:left;
+    padding-left:10%;
+}
+
+.history-row{
+    width:100%;
+    float:left;
+}
+
+.history-row-control > a {
+    padding: 0;
+}
+
+.history-row-control > a > .glyphicon {
+    font-size:17px !important;
+    padding: 0;
+    margin: 0;
+}

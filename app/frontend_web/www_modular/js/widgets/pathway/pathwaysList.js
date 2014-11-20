@@ -7,6 +7,8 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
+    'globalmodels/contextModel',
+
     'pathway/models/pathwayCollection',
     'pathway/models/treeModel',
     'pathway/modalViews/newPathway',
@@ -18,7 +20,7 @@ define([
     'pathway/singleRows/folderRow',
 
 
-], function ($, _, Backbone,  curCollection, curTree,  NewPathway, PathRow, pathwaysListTemplate, newPathwayFolder, FolderRow) {
+], function ($, _, Backbone,  contextModel, curCollection, curTree,  NewPathway, PathRow, pathwaysListTemplate, newPathwayFolder, FolderRow) {
 
     var PathwaysList = Backbone.View.extend({
         template: _.template(pathwaysListTemplate),
@@ -28,11 +30,17 @@ define([
             'click #paths-list-add-folder': 'handle_new_folder'
         },
 	initialize: function(){
+        contextModel.on('change:page', function () {
+                if (contextModel.get('page') != 'pathEditor') {
+                    this.$el.hide()
+                } else {
+                    this.$el.show()
+                }
+            }, this)
 	    //curCollection.on('sync', this.render, this)
         curCollection.bind('add', this.addNewPathway, this);
 
         this.render();
-        console.log(newPathwayFolder);
 	},
     renderFolder: function(folderName, children, parentFolder, that) {
         var thisModel = new Backbone.Model({name: folderName});
@@ -123,13 +131,14 @@ define([
 
         $('.sortable-folder').sortable({
             connectWith: ".sortable-folder",
-            items: '> div:not(.pathway-folder-title)', //don't allow user to move the folder title
+            items: '> div:not(.pathway-folder-title, ui-folder-placeholder, .path-header)', //don't allow user to move the folder title
             helper : 'clone',
-            containment: "parent",
+            containment: "#avail-paths-list",
             sort: function (event, ui) {
                 //make the sort function more responsive and user friendly
                 //var that = $(this),
                 var that = $(this);//ui.placeholder.parent();
+
                 var w = ui.helper.outerHeight();
                 that.children().each(function () {
                     if ($(this).hasClass('ui-sortable-helper') || $(this).hasClass('ui-sortable-placeholder'))
