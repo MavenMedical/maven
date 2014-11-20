@@ -14,7 +14,7 @@
                 <% if (page == 'pathEditor' && (treeNode.children.length > 0||treeNode.protocol) ) {%>
                 <div class="btn-group btn-group-xs">
                     <button type="button" id = "collapseButton" class="toolbar-button btn btn-default ">
-                            <% if (treeNode.hideChildren=="true"){%>
+                            <% if (childrenHidden){%>
                             <img src="../images/temp/expand.jpg" style="width: 25px; height: 25px">Expand Node
                             <%}else{%>
                             <img src="../images/temp/collapse.jpg" style="width: 25px; height: 25px">Collapse Node

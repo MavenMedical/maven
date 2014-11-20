@@ -265,7 +265,7 @@ class Alert(Resource):
     def __init__(self, customer_id, category=None, status=None, subject=None, author=None, provider_id=None, encounter_id=None,
                  code_trigger=None, code_trigger_type=None, CDS_rule=None, alert_datetime=None, short_title=None, long_title=None,
                  short_description=None, long_description=None, override_indications=None, outcome=None, saving=None, resourceType="Alert",
-                 related_observations=None, cost_breakdown=None, validation_status=None, triggering_order=None):
+                 related_observations=None, cost_breakdown=None, validation_status=None, triggering_order=None, priority=None):
         Resource.__init__(self, customer_id=customer_id, resourceType=resourceType)
         self.category = category
         self.status = status
@@ -298,6 +298,7 @@ class Alert(Resource):
         else:
             self.cost_breakdown = cost_breakdown
         self.validation_status = validation_status
+        self.priority = priority
 
 
 class AllergyIntolerance(Resource):
@@ -800,15 +801,9 @@ class Composition(Resource):
                 if alert.category == type:
                     return alert
         elif type == ALERT_TYPES.PATHWAY:
-            for alert in alerts_section.content:
-                if alert.category == type:
-                    return alert
+            return [alert for alert in alerts_section.content if alert.category == type]
         else:
-            rtn_alerts = []
-            for alert in alerts_section.content:
-                if alert.category == type:
-                    rtn_alerts.append(alert)
-            return rtn_alerts
+            return [alert for alert in alerts_section.content if alert.category == type]
 
     def get_encounter_conditions(self):
         enc_conditions_section = self.get_section_by_coding("http://loinc.org", "11450-4")
@@ -4809,7 +4804,7 @@ class Rule(Resource):
 
     def __init__(self, customer_id=None, CDS_rule_id=None, CDS_rule_status=None, code_trigger=None, code_trigger_type=None,
                  dep_id=None, name=None, short_title=None, long_title=None, short_description=None, long_description=None,
-                 rule_details=None, protocol_details=None, triggering_order=None):
+                 rule_details=None, protocol_details=None, triggering_order=None, priority=None):
         Resource.__init__(self, customer_id=customer_id)
         self.CDS_rule_id = CDS_rule_id
         self.CDS_rule_status = CDS_rule_status
@@ -4830,6 +4825,7 @@ class Rule(Resource):
         self.lab_rules = []
         self.drug_list_rules = []
         self.triggering_order = triggering_order
+        self.priority = priority
 
         # extract the rule_details JSON object into respective lists of each type
         if self.rule_details:

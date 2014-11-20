@@ -20,18 +20,31 @@ if isfile('/etc/mavenmedical/maven.config'):
     config.read(['/etc/mavenmedical/maven.config'])
     for section in config.keys():
         MavenConfig[section] = dict(config.items(section))
-    dbconnection = MavenConfig['global']['dbconnection']
+    dbconnection = MavenConfig['global'].get('dbconnection', None)
+    dbhost = MavenConfig['global'].get('dbhost', None)
     http_addr = MavenConfig['global']['http_addr']
     recaptcha_public = MavenConfig['global'].get('recaptcha_public', '')
     recaptcha_private = MavenConfig['global'].get('recaptcha_private', '')
-
+    sslcrtfile = None
+    sslkeyfile = None
+    sslkeypassword = None
+    sslcadata = None
+    sslcapath = None
+    sslcafile = None
 
 else:
     dbconnection = ("dbname=%s user=%s password=%s host=%s port=%s" % ('maven', 'maven', 'temporary', 'localhost', '5432'))
 
+    dbhost = 'localhost'
     http_addr = 'http://localhost'
     recaptcha_public = '6Lcy3vwSAAAAAD0uy8wRFxf7rO60sPwx5OA5AGij'
     recaptcha_private = '6Lcy3vwSAAAAAN-X2jIbEqKh7NFwpIux8WRS8Lby'
+    sslcrtfile = None
+    sslkeyfile = None
+    sslkeypassword = None
+    sslcadata = None
+    sslcapath = None
+    sslcafile = None
 
 
 class InvalidConfig(Exception):

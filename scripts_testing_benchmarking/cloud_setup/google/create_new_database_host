@@ -39,7 +39,7 @@ gcloud compute instances attach-disk $SYSNAME --disk $DISKNAME --zone us-central
 
 # Send the Setup Scripts needed to install the components for the database host
 gcloud compute copy-files setup_scripts/common.sh setup_scripts/database_only.sh setup_scripts/postgres_helper.sh $SYSNAME:~/ --zone us-central1-f
-gcloud compute copy-files ~/maven/app/database rel-1:~/database --zone us-central1-f
+gcloud compute copy-files ~/maven/app/database $SYSNAME:~/database --zone us-central1-f
 
 # Run the Setup Scripts
 #echo "bash common.sh" | gcloud compute ssh $SYSNAME --zone us-central1-f

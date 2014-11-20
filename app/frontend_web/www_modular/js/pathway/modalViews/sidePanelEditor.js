@@ -4,12 +4,12 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'pathway/models/nodeModel',
-    'pathway/models/treeModel',
+    'pathway/models/treeContext',
     'globalmodels/contextModel',
      'text!templates/pathway/richTextEditor.html',
 
 
-], function ($, _, Backbone, NodeModel, curTree, contextModel, nodeTemplate) {
+], function ($, _, Backbone, NodeModel, treeContext, contextModel, nodeTemplate) {
 
     var sidePanelModal = Backbone.View.extend({
         template: _.template(nodeTemplate),
@@ -21,11 +21,13 @@ define([
             this.$el.html(this.template())
             $('#confirmButton')[0].onclick = function(){
                                    var data =  CKEDITOR.instances.richText.getData()
-                                   curTree.get('selectedNode').set('sidePanelText', data)
+                                   treeContext.get('selectedNode').set('sidePanelText', data)
                                    $('#detail-modal').modal('hide')
                           }
             $("#detail-modal").modal({'show':'true'});
-            CKEDITOR.replace('richText');
+            require(['ckeditor'], function() {
+                CKEDITOR.replace('richText');
+            })
 
         }
 

@@ -3,11 +3,13 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
+    'pathway/models/treeModel',
     'pathway/internalViews/detailSearchBox',
-    'pathway/internalViews/multiSelectSearch',
+    'pathway/internalViews/multiSelectSearch'
 
 
-], function ($, _, Backbone,  detailSearchBox, multiSelectSearch, routeListBox) {
+
+], function ($, _, Backbone,  curTree, detailSearchBox, multiSelectSearch) {
 
     var DetailEditor = Backbone.View.extend({
 
@@ -16,12 +18,12 @@ define([
         initialize: function(param){
 
             //load the params
+            this.group = param.group
             this.model = param.model;
             this.newDetail = param.newDetail
             this.$el = param.el;
             this.template = param.template
             this.type = param.type;
-            this.triggerNode = param.triggerNode;
 
             this.$el.html(this.template());
             //an array representing all of the search boxes, so that on exit we can check if they have all been filled
@@ -150,37 +152,18 @@ define([
                 }, this)
 
                 if (panel.newDetail){
-                    var triggerList = panel.triggerNode.get('triggers')
-                    if (triggerList.get(panel.type)){
-                        triggerList.get(panel.type).add(panel.model);
-                    } else {
-                    //if the cur rule doesnt have a detail of this type, make a new collection representing details of
-                    //this type in the rule, and add this model to it
-                        var model = new Backbone.Collection();
 
-                        model.add(panel.model);
-                        triggerList.set(panel.type, model);
+                    that.group.addDetail(panel.model, panel.type);
 
-                    }
 
                 }
                //hide the detail modal
-               require(['pathway/modalViews/ruleWizard'], function(wizard){
                    $('#detail-modal').modal('hide');
-                   $('#detail-modal').on('hidden.bs.modal', function () {
-                         new wizard({triggerNode: panel.triggerNode, })
-                    })
-               })
             }
 
             //when the cancel button is pressed just hide the editor
             $('.cancel-edit-button', this.$el)[0].onclick = function(){
-                require(['pathway/modalViews/ruleWizard'], function(wizard){
                    $('#detail-modal').modal('hide');
-                   $('#detail-modal').on('hidden.bs.modal', function () {
-                         new wizard({triggerNode: panel.triggerNode, })
-                    })
-               })
             }
               $("#detail-modal").modal({'show':'true'});
 
@@ -198,11 +181,7 @@ define([
 
 
 
-
-
-
     });
-
 
     return DetailEditor;
 

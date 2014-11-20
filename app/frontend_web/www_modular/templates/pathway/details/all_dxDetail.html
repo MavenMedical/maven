@@ -1,0 +1,21 @@
+
+<div class="detail-entry">
+    <a class="detail-item">
+    <% if (exists == "false") { %>
+            Alert will <b>be shown</b> if any of: <b class = "mouseover"title = "<% for (var i in codeterm){
+                    var cur = codeterm[i]
+                    print(cur+'&#013;')
+                }%>">these</b>
+        have ever existed in the problem list, encounter diagnosis, or history.
+    <%} else { %>
+            Alert will <b>be shown only</b> if any of: <b class = "mouseover" title = "<% for (var i in codeterm){
+                    var cur = codeterm[i]
+                    print(cur+'&#013;')
+                }%>">these</b>
+        have ever existed in the problem list, encounter diagnosis, or history.
+
+    <%}%>
+    </a>
+    <a style = "float: right" class="remove-detail">&#10006</a>
+
+</div>

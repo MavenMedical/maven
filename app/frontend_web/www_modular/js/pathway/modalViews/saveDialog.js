@@ -13,6 +13,7 @@ define([
          template: _.template(template),
          el: '#modal-target',
          initialize: function() {
+             return
              this.$el.html(this.template())
              $('#detail-modal').modal('show')
          },

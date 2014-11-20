@@ -4,23 +4,31 @@ define([
         'backbone',    // lib/backbone/backbone
         'globalmodels/contextModel',
         'pathway/models/treeModel',
+        'pathway/models/treeContext',
         'pathway/internalViews/triggerNode',
         'pathway/modalViews/nodeEditor',
         'pathway/Helpers',
         'pathway/models/pathwayCollection',
         'text!templates/pathway/treeTemplate.html',
         'text!templates/pathway/insertDiv.html',
-        'jsplumb',
-        'ckeditor'
+        'jsplumb'
     ],
 
-    function ($, _, Backbone, contextModel, curTree, TriggerNode, NodeEditor, Helpers, pathwayCollection, treeTemplate, insertDiv) {
+    function ($, _, Backbone, contextModel, curTree, treeContext, TriggerNode, NodeEditor, Helpers, pathwayCollection, treeTemplate, insertDiv) {
 
         var TreeView = Backbone.View.extend({
 
             template: _.template(treeTemplate),
             initialize: function () {
                 this.$el.html(this.template())
+                contextModel.on('change:page', function(){
+                    if (contextModel.get('page')== 'pathEditor' || contextModel.get('page') == 'pathway'){
+                        this.$el.show()
+
+                    }    else {
+                        this.$el.hide()
+                    }
+                }, this)
                 this.plumb = jsPlumb.getInstance({
                     MaxConnections: -1,
                     Connector: [ "Flowchart", { cornerRadius: 3 }],
@@ -44,11 +52,11 @@ define([
                 that.treeEl.css({'opacity': 0})
                 this.treeEl.draggable({
                     start: function (event, ui) {
-                        curTree.suppressClick = true
+                        treeContext.suppressClick = true
                     },
                     stop: function (event, ui) {
                         setTimeout(function () {
-                            curTree.suppressClick = false
+                            treeContext.suppressClick = false
                         }, 100)
                         $(event.toElement).one('click', function (e) {
                             e.stopImmediatePropagation();
@@ -57,7 +65,7 @@ define([
                 })
                 this.treeEl.click(function (param1) {
                     //Don't track clicks in edit mode (where page would be "pathwayEditor")
-                    if (contextModel.get('page') != 'pathway' || curTree.suppressClick) {
+                    if (contextModel.get('page') != 'pathway' || treeContext.suppressClick) {
                         return;
                     }
                     var target = $(param1.target)
@@ -132,13 +140,12 @@ define([
                         that.render()
                     }, 100)
                 }
-                curTree.on('propagate', function () {
+                treeContext.on('propagate sync', function () {
                     this.render();
                 }, this)
-                curTree.on('drawJSPlumb', this.renderJSPlumb, this)
                 //contextModel.on('change', this.render, this)
                 contextModel.on('change:pathid', function () {
-                    curTree.set({'selectedNodeOffset': null, 'selectedNode': null}, {silent: true})
+                    treeContext.set({'selectedNodeOffset': null, 'selectedNode': null}, {silent: true})
                     that.treeEl.css({'opacity': 0})
                     that.reset = true
                     if (that.treeEl[0].style.transform) {
@@ -150,8 +157,18 @@ define([
                 this.render()
             },
             render: function () {
+
+
                 var that = this
-                that.treeEl.css({'cursor': 'wait'})
+                    if (contextModel.get('page')== 'pathEditor' || contextModel.get('page') == 'pathway'){
+                        this.$el.show()
+
+                    }    else {
+                       return
+                    }
+
+                that.treeEl.css({'cursor':'wait'})
+
                 var pathid = contextModel.get('pathid');
                 if (pathid && pathid != '0') {
                     this.$el.show()
@@ -199,13 +216,10 @@ define([
                 var boxnode = $('.nodeEl', this.$el)
                 var boundingW = boxnode.width()
                 var boundingH = boxnode.height()
-                console.log(boundingW, boundingH, scale)
 
                 var l = this.$el.offset().left, t = this.$el.offset().top
                 var w = this.$el.width(), h = this.$el.height()
                 var box = [l + (100 - boundingW) * scale, t + (50 - boundingH) * scale, l + w - 100 * scale, t + h - 100 * scale]
-                console.log(l, t)
-                console.log(box)
                 this.treeEl.draggable('option', 'containment', box)
             },
             renderJSPlumb: function () {
@@ -289,7 +303,7 @@ define([
                 }
 
                 var selected = $('.selected.treeNode')
-                var old = curTree.get('selectedNodeOffset')
+                var old = treeContext.get('selectedNodeOffset')
                 if (old && selected.length && selected.is(':visible') && old.clickid == selected.attr('clickid')) {
                     var tree = this.treeEl.offset();
                     var cur = selected.offset();

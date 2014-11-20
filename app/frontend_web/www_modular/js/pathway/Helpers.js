@@ -12,6 +12,7 @@ define([
             'enc_pl_dx': "Encounter or Problem List Diagnosis",
             'pl_dx': "Problem List Diagnosis",
             'hist_dx': "Historical Diagnosis",
+            'all_dx': "Historical Diagnosis",
             'lab': "Lab Results",
             'enc_dx': "Encounter Diagnosis",
             'hist_proc': "Historic Procedure",

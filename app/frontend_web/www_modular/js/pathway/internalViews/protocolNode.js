@@ -6,11 +6,12 @@ define([
     'globalmodels/contextModel',
     'pathway/internalViews/treeNode',
     'pathway/models/treeModel',
+    'pathway/models/treeContext',
     'pathway/modalViews/sendProtocol',
     'pathway/modalViews/sendFollowups',
     'text!templates/pathway/protocolNode.html',
 
-], function ($, _, Backbone, currentContext, treeNode, curTree, SendProtocol, SendFollowups, nodeTemplate) {
+], function ($, _, Backbone, currentContext, treeNode, curTree, treeContext , SendProtocol, SendFollowups, nodeTemplate) {
 
     var protocolNode = Backbone.View.extend({
 
@@ -42,8 +43,8 @@ define([
 
             setSelectedNode: function(){
                 this.getMyElement().off('click');
-                curTree.set('selectedNode', this.model, {silent: true});
-                curTree.trigger('propagate')
+                treeContext.set('selectedNode', this.model, {silent: true});
+                treeContext.trigger('propagate')
             },
 
 
@@ -53,16 +54,16 @@ define([
             } else {
                 this.$el.html(this.template({pathID: curTree.get('pathid'), protocolNode: this.model.attributes, page: currentContext.get('page')}));
             }
-            if (this.model == curTree.get('selectedNode')){
+            if (this.model == treeContext.get('selectedNode')){
                 $('.protocolNode', this.$el).addClass("selected")
             }
             return this
         },
         copyProtocole: function () {
 
-             this.trackActivity("copytext");
+             //this.trackActivity("copytext");
 
-             $('<div>'+this.model.get("protocol").noteToCopy+'</div>').attr('id', 'copiedText').appendTo('.container');
+             $('<div>'+this.model.attributes.noteToCopy+'</div>').attr('id', 'copiedText').appendTo('body');
 
             $('#toast').css('visibility', 'visible');
 
@@ -88,7 +89,10 @@ define([
         getMyElement: function(){
                 return $('.protocolNode', this.$el).first()
 
-        }
+        },
+	childrenHidden: function() {return false;},
+	hideChildren: function() {},
+	showChildren: function() {}
 
     })
     return protocolNode;

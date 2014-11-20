@@ -18,6 +18,7 @@ import amqp
 import traceback
 import socket
 import time
+import ssl
 import concurrent.futures
 import maven_config as MC
 import maven_logging as ML
@@ -287,6 +288,24 @@ class StreamProcessor():
 #############################
 
 
+def create_ssl_context(configname, client=True):
+    keyfile = MC.sslkeyfile
+    crtfile = MC.sslcrtfile
+    keypassword = MC.sslkeypassword
+    cadata = MC.sslcadata
+    capath = MC.sslcapath
+    cafile = MC.sslcafile
+    ssl_context = None
+    if keyfile or keypassword or cadata or capath or cafile:
+        purpose = ssl.Purpose.SERVER_AUTH if client else ssl.Purpose.CLIENT_AUTH
+        ssl_context = ssl.create_default_context(purpose=purpose, cafile=cafile,
+                                                 capath=capath, cadata=cadata)
+        ssl_context.verify_mode = ssl.CERT_REQUIRED
+        if crtfile:
+            ssl_context.load_cert_chain(crtfile, keyfile, keypassword)
+    return ssl_context
+
+
 class ReEstablishProtocol(asyncio.Protocol):
     def __init__(self, loop, transport_cb, host=None, port=None, ssl=None, server_hostname=None,
                  protocol_factory=None):
@@ -314,12 +333,12 @@ class ReEstablishProtocol(asyncio.Protocol):
                 yield from self.loop.create_connection(self.factory, host=self.host,
                                                        port=self.port, ssl=self.ssl,
                                                        server_hostname=self.server_hostname)
-
                 sleeptime = 0
-            except:
+            except Exception as e:
                 sleeptime = sleeptime * 2
                 if sleeptime > 2:
                     sleeptime = 4
+                    ML.WARN(e)
                     # traceback.print_exc()
                 # print("trying again after sleeping for "+str(sleeptime))
                 yield from asyncio.sleep(sleeptime, self.loop)
@@ -368,8 +387,11 @@ class _SocketServerReader():
     def schedule(self, loop):
         self.loop = loop
         # start a listening server which creates a new instance of the parser for each connection
+        ssl_context = create_ssl_context(self.configname, client=False)
         server = asyncio.Task(loop.create_server(self.parser_factory_factory(loop),
-                                                 host=self.host, port=self.port), loop=loop)
+                                                 host=self.host, port=self.port,
+                                                 ssl=ssl_context),
+                              loop=loop)
         self.server = loop.run_until_complete(server)
         return self.server
 
@@ -397,7 +419,8 @@ class _SocketQueryReader():
         self.loop = loop
         # start a listening server which creates a new instance of the parser for each connection
         protocol = ReEstablishProtocol(loop, self.set_transport, host=self.host, port=self.port,
-                                       protocol_factory=self.parser_factory_factory)
+                                       protocol_factory=self.parser_factory_factory,
+                                       ssl=create_ssl_context(self.configname))
         self.server = asyncio.Task(protocol.connect())
         loop.run_until_complete(asyncio.sleep(.01))
         return self.server
@@ -558,6 +581,9 @@ class MappingParser(asyncio.Protocol):
                 self.transport.close()
 
     def connection_made(self, transport):
+        peercert = transport and transport.get_extra_info('peercert')
+        if peercert:
+            ML.INFO(peercert)
         self.update_last_activity()
         if self.register_fn:
             self.transport = transport
@@ -691,7 +717,8 @@ class _SocketClientWriter(_BaseWriter):
 
     def schedule(self, loop):
         self.loop = loop
-        protocol = ReEstablishProtocol(loop, self.set_transport, host=self.host, port=self.port)
+        protocol = ReEstablishProtocol(loop, self.set_transport, host=self.host, port=self.port,
+                                       ssl=create_ssl_context(self.configname))
         loop.run_until_complete(asyncio.Task(protocol.connect()))
 
     def set_transport(self, transport):

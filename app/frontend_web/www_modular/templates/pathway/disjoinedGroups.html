@@ -1,0 +1,5 @@
+<div style = "font-size: 130%">Show Alert if <input id = "group-<%=groupID%>" class = "toggles" type="checkbox" <%if (relationship == "and"){%>checked<%}%> name="my-checkbox" checked data-off-text="All" data-on-text="Any"> of these are true</div>
+<div style = "font-size: 70%" class='detail-sections'></div>
+          <script>
+              $(".toggles").bootstrapSwitch()
+            </script>

@@ -4,10 +4,11 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'pathway/models/treeModel',
+    'pathway/models/treeContext',
     'text!templates/pathway/deleteModal.html'
 
 
-], function ($, _, Backbone,   curTree, template) {
+], function ($, _, Backbone,   curTree, treeContext, template) {
 
     var deleteDialog = Backbone.View.extend({
          template: _.template(template),
@@ -16,13 +17,13 @@ define([
             this.$el.html(this.template())
             $('#detail-modal').modal('show')
             $('#thisNode').on('click', function(){
-               curTree.deleteNode(curTree.get('selectedNode'), true)
+               curTree.deleteNode(treeContext.get('selectedNode'), true)
                $('#detail-modal').modal('hide')
 
             })
             $('#allChildren').on('click', function(){
 
-                curTree.deleteNode(curTree.get('selectedNode'), false)
+                curTree.deleteNode(treeContext.get('selectedNode'), false)
                 $('#detail-modal').modal('hide')
 
             })
