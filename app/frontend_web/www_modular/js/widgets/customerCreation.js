@@ -7,15 +7,28 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'globalmodels/contextModel',
-], function ($, _, Backbone, contextModel) {
+    'widgets/pageOption'
+], function ($, _, Backbone, contextModel,pageOption) {
 
     var CustomerCreation = Backbone.View.extend({
         initialize: function (arg) {
             this.template = _.template(arg.template);
             this.render();
+            new pageOption({'Cutomers':['fa-user', 'customer']})
+            contextModel.on('change:page', this.showhide(), this)
+
         },
         events: {
             'click .add-customer-button': 'addCustomer'
+        },
+        showhide: function(){
+           // alert('page change')
+            console.log('showhide',contextModel.get('page'))
+            if(contextModel.get('page') == 'customer'){
+                this.$el.show();
+            }else{
+                this.$el.hide();
+            }
         },
         addCustomer: function () {
             var name = $("#customer-name-input").val();
@@ -66,7 +79,7 @@ define([
         render: function(){
             this.$el.html(this.template);
             return this;
-        },
+        }
     });
 
     return CustomerCreation;

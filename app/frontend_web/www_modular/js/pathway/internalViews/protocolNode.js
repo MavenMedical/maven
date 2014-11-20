@@ -61,7 +61,7 @@ define([
         },
         copyProtocole: function () {
 
-             this.trackActivity("copytext");
+             //this.trackActivity("copytext");
 
              $('<div>'+this.model.get("protocol").noteToCopy+'</div>').attr('id', 'copiedText').appendTo('.container');
 
