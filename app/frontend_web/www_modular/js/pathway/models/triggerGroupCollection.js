@@ -142,7 +142,6 @@ define([
                 this.set(key, value, {silent: true})
 
             }
-            this.on('change', function(){self.trigger('cascade')})
         }
 
     })

@@ -68,14 +68,10 @@ define([
             curTree.once('sync', function(){that.render()})
 
             this.$el.html(this.template())
-
-
-            $('.createButton').on('click', function(button){
-                var detailType = button.currentTarget.id
-
-
-
-            })
+            $('#back-to-editor').on('click', function(){
+                        Backbone.history.navigate("pathwayeditor/" + contextModel.get('pathid') + "/node/"+contextModel.get('code'), {trigger: true});
+               })
+            
             $('.createButton').draggable({ revert: true })
             $('#add-group-button').on('click', function(){
 
@@ -111,6 +107,7 @@ define([
 
                     var params = {relationship: this.group.get('relationship'), groupID:this.group.cid}
                     this.$el.html(this.template(params))
+
                     $('.group-delete', this.$el).on('click', function(){
                         curTree.get('triggers').remove(self.group)
                     })

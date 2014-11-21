@@ -2,7 +2,7 @@
 <div class="detail-entry">
     <a class="detail-item">
     <% if (exists == "false") { %>
-            Alert will <b>be shown</b> if the subject had any of the diagnoses: <b class = "mouseover"title = "<% for (var i in codeterm){
+            Alert will <b>not be shown</b> if the subject had any of the diagnoses: <b class = "mouseover"title = "<% for (var i in codeterm){
                     var cur = codeterm[i]
                     print(cur+'&#013;')
                 }%>">these</b>
