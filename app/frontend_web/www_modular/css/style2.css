@@ -355,7 +355,8 @@ html, body {
 .detail-entry {
     border-top:solid;
     border-color: lightblue;
-    font-size: 110%;
+    border-width: 2px;
+    font-size: 125%;
 
 }
 

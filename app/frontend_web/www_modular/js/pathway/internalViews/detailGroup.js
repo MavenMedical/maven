@@ -61,7 +61,8 @@ define([
 
                     var that = this
                     // if the user clicks the  el '.detail-item' link in this line, load the editor template for this detail and display the modal for editing
-                    $('.detail-item', this.$el)[0].onclick = function () {
+                    $('.detail-item', this.$el).off('click')
+                    $('.detail-item', this.$el).on('click' , function () {
 
                         require(['text!/templates/pathway/details/' + type + '_editor.html'],
                             function (curTemplate) {
@@ -71,12 +72,13 @@ define([
 
                             }
                         );
-                    }
+                    })
                     //if the user clicks the '.remove-detail' X in the line remove the detail
-                    $('.remove-detail', this.$el)[0].onclick = function () {
+                     $('.remove-detail', this.$el).off('click');
+                    $('.remove-detail', this.$el).on('click',function(){
                         that.group.get('details').get(type).remove(that.detail);
 
-                    }
+                    })
 
                 }
             })

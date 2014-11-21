@@ -60,7 +60,7 @@ define([
                 t.on('cascade', function(){ self.trigger('cascade')})
                 this.set('details', t, {silent: true})
             }
-            this.on('change', this.trigger('cascade'))
+            this.on('change', function(){this.trigger('cascade')})
 
         },
         addDetail: function(model, type){
