@@ -57,6 +57,17 @@ namespace MavenAsDemo
             }
 
         }
+        
+        public Settings()
+        {
+            PrepBrowserSettings();
+            getMode();
+            getFadeSlowness();
+            getLocation();
+            getServer();
+            getCustomer();
+            getCurVers();
+        }
         public void getCurVers()
         {
             //look to the registry which should be where this is stored
@@ -66,15 +77,6 @@ namespace MavenAsDemo
                 //if you found the key, then by all means use it
                 softwareVersion = (string)settingKey.GetValue("version");
             }
-        }
-        public Settings()
-        {
-            PrepBrowserSettings();
-            getMode();
-            getFadeSlowness();
-            getLocation();
-            getServer();
-            getCustomer();
         }
         /// <summary>
         /// Saves the settings to the registry
