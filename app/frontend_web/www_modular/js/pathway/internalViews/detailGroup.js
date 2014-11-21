@@ -90,7 +90,17 @@ define([
                 //create a div in which to render the new detail line
                 this.$el.append("<div class = 'item-holder'></div>")
                 //create the detail line to be rendered in the div, set the text to use the line template
-                new detailLine({group: this.group, el: $('.item-holder', this.$el).last(), text: this.lineTemplate(cur.attributes), detail: cur})
+                var params = {}
+                for (var i in cur.attributes){
+                    var c = cur.attributes[i]
+                    if (c.models ){
+                        params[i] = c.models
+                    } else {
+                        params[i] = c
+                    }
+                }
+
+                new detailLine({group: this.group, el: $('.item-holder', this.$el).last(), text: this.lineTemplate(params), detail: cur})
 
 
             }, this);

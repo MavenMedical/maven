@@ -38,7 +38,8 @@ define([
         "patient": [0, 9, 3],
         "episode": [0, 9, 3],
         "pathway": [0, 12, 0],
-        "pathEditor": [0, 12, 0]
+        "pathEditor": [0, 12, 0],
+        "triggerEditor": [0,12, 0]
     };
     changePageLayout = function (page) {
 
@@ -86,6 +87,7 @@ define([
             "evidence/:id/patient/:id/evi/:id(/login/:user/:customer/)(:userAuth)": 'showEvidence',
             "pathway/:id/node/:id(/patient/:id/:date)(/login/:user/:customer/)(:userAuth)": 'showPathway',
             "pathwayeditor/:id/node/:id(/login/:user/:customer/)(:userAuth)": 'EditPathway',
+            "triggereditor/:id/node/:id(/login/:user/:customer/)(:userAuth)": 'EditTriggers',
 	    "password/:type/:user/:customer/:oauth": 'password',
             //default
             '*action': 'defaultAction',
@@ -136,6 +138,11 @@ define([
         EditPathway: function (path, code, user, customer, userAuth) {
             layoutModel.set('fluidContent', true)
             currentContext.set({page: 'pathEditor',  pathid: path, code: code});
+            showPage(user, customer, userAuth);
+        },
+        EditTriggers: function (path, code, user, customer, userAuth) {
+            layoutModel.set('fluidContent', false)
+            currentContext.set({page: 'triggerEditor',  pathid: path, code: code});
             showPage(user, customer, userAuth);
         },
         logout: function () {
