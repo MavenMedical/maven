@@ -1,20 +1,9 @@
 #!/bin/bash
-sudo yum install pcre-devel zlib-devel openssl-devel gcc libpqxx-devel libpqxx libffi-devel policycoreutils-python-2.2.5-11.el7_0.1.x86_64 nodejs -y
+sudo yum install pcre-devel zlib-devel openssl-devel gcc libpqxx-devel libpqxx libffi-devel policycoreutils-python-2.2.5-11.el7_0.1.x86_64 nodejs strongswan -y
 
 echo "export MAVEN_ROOT=~/maven
 export PYTHONPATH=$MAVEN_ROOT" >> .bashrc
 source ~/.bashrc
-
-cd
-#for python3
-wget http://www.python.org/ftp/python/3.4.1/Python-3.4.1.tar.xz
-xz -d Python-3.4.1.tar.xz
-tar -xvf Python-3.4.1.tar
-cd Python-3.4.1
-./configure
-make -j 4
-sudo make altinstall
-
 
 cd
 # python db connectivity
@@ -31,8 +20,8 @@ cp scripts_testing_benchmarking/gitHooks/cloudBoxes/* .git/hooks/
 chmod +x .git/hooks/*
 
 cd
-# for nginx
-wget http://nginx.org/packages/centos/7/noarch/RPMS/nginx-release-centos-7-0.el7.ngx.noarch.rpm
+ for nginx
+wget http://nginx.org/packages/centos/7/noarch/RPMS/nginx-release-centos#-7-0.el7.ngx.noarch.rpm
 sudo rpm -i nginx-*.rpm
 sudo yum install nginx -y
 # sudo chkconfig nginx off

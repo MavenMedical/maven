@@ -7,6 +7,7 @@ import dateutil.relativedelta
 import dateutil.parser
 import json
 from functools import lru_cache
+from utils.database.remote_database_connector import RemoteDatabaseConnector
 from utils.enums import ALERT_VALIDATION_STATUS, FOLLOWUPTASK_STATUS
 from utils.database.database import AsyncConnectionPool
 from utils.database.database import MappingUtilites as DBMapUtils
@@ -219,7 +220,14 @@ def append_extras(cmd, cmdargs, datefield, startdate, enddate, orderby, ascendin
 
 
 @lru_cache()
-class WebPersistence():
+def WebPersistence(configname):
+    server = RemoteDatabaseConnector(MC.MavenConfig[configname][CONFIG_DATABASE])
+    ret = server.create_client(WebPersistenceBase)
+    ret.schedule = lambda *args: None
+    return ret
+
+
+class WebPersistenceBase():
     def __init__(self, configname):
         self.db = AsyncConnectionPool(MC.MavenConfig[configname][CONFIG_DATABASE])
         self.scheduled = False
@@ -1104,7 +1112,6 @@ class WebPersistence():
     def shared_secret(self):
         cmd = ['SELECT shared FROM shared_bytes ORDER BY created_on DESC LIMIT 1']
         ret = yield from self.execute(cmd, [], _build_format(), {0: 0})
-        print(ret[0][0])
         return ret[0][0]
 
     ##########################################################################################
@@ -1137,7 +1144,7 @@ class WebPersistence():
         if not includedeleted:
             cmd.append('AND NOT deleted')
         ret = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
-        return ret
+        return list(ret)
 
     @asyncio.coroutine
     def create_protocol(self, treeJSON, customer_id, user_id):
@@ -1150,9 +1157,9 @@ class WebPersistence():
             tree_id, canonical_id = cur.fetchone()[0]
             # Insert a record into alert_config so that the Pathway actually fires (it's referenced in the evalnode()
             # PL/pgsql function
-            cmd = ["INSERT INTO alert_config (customer_id, department, category, rule_id, validation_status)",
-                   "VALUES (%s, %s, %s, %s, %s)"]
-            cmdArgs = [customer_id, -1, "PATHWAY", tree_id, 400]
+            cmd = ["INSERT INTO alert_config (customer_id, department, category, rule_id, validation_status, priority)",
+                   "VALUES (%s, %s, %s, %s, %s, %s)"]
+            cmdArgs = [customer_id, -1, "PATHWAY", canonical_id, 400, 100]
             cur = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
 
             # Update/Insert the trees.codelist records for the protocol
@@ -1168,7 +1175,6 @@ class WebPersistence():
     def upsert_codelists(self, treeDict, canonical_id):
 
         root_node_id = treeDict.get('nodeID', None)
-        protocol_trigger_dict = treeDict.get('triggers', None)
 
         cmd = ["DELETE FROM trees.codelist",
                "WHERE canonical_id=%s AND "
@@ -1176,28 +1182,35 @@ class WebPersistence():
         cmdArgs = [canonical_id, root_node_id]
         yield from self.db.execute_single(' '.join(cmd), extra=cmdArgs)
 
-        # Insert the Protocol Triggering Codelist(s) for ENCOUNTER Diagnoses
-        enc_dx_triggers = protocol_trigger_dict.get('enc_dx', None)
-        if enc_dx_triggers:
-            yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'enc_dx', enc_dx_triggers)
+        for triggerGroup in treeDict.get('triggers'):
 
-        # Insert the Protocol Triggering Codelist(s) for HISTORIC Diagnoses
-        pl_dx_triggers = protocol_trigger_dict.get('pl_dx', None)
-        if pl_dx_triggers:
-            yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'hist_dx', pl_dx_triggers)
+            # Extract the Group Relationships
+            # groupRelationship = triggerGroup.get('relationship')
 
-        # Insert the Protocol Triggering Codelist(s) for HISTORIC Diagnoses
-        hist_dx_triggers = protocol_trigger_dict.get('hist_dx', None)
-        if hist_dx_triggers:
-            yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'hist_dx', hist_dx_triggers)
+            triggerGroupDetails = triggerGroup.get('details', None)
 
-        # Recursively insert the codelists for all of the child nodes
-        all_dx_triggers = protocol_trigger_dict.get('all_dx', None)
-        if all_dx_triggers:
-            yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'all_dx', all_dx_triggers)
+            # Insert the Protocol Triggering Codelist(s) for ENCOUNTER Diagnoses
+            enc_dx_triggers = triggerGroupDetails.get('enc_dx', None)
+            if enc_dx_triggers:
+                yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'enc_dx', enc_dx_triggers)
 
-        # Recursively insert the codelists for all of the child nodes
-            # pass
+            # Insert the Protocol Triggering Codelist(s) for HISTORIC Diagnoses
+            pl_dx_triggers = triggerGroupDetails.get('pl_dx', None)
+            if pl_dx_triggers:
+                yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'pl_dx', pl_dx_triggers)
+
+            # Insert the Protocol Triggering Codelist(s) for HISTORIC Diagnoses
+            hist_dx_triggers = triggerGroupDetails.get('hist_dx', None)
+            if hist_dx_triggers:
+                yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'hist_dx', hist_dx_triggers)
+
+            # Recursively insert the codelists for all of the child nodes
+            all_dx_triggers = triggerGroupDetails.get('all_dx', None)
+            if all_dx_triggers:
+                yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'all_dx', all_dx_triggers)
+
+            # Recursively insert the codelists for all of the child nodes
+                # pass
 
     @asyncio.coroutine
     def upsert_snomed_triggers(self, canonical_id, node_id, list_type, triggers):

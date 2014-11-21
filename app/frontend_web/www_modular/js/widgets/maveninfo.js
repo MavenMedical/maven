@@ -9,7 +9,7 @@ define([
     'backbone',    // lib/backbone/backbone
     'globalmodels/contextModel',
     'pathway/models/treeModel',
-    'pathway/models/treeContext'
+    'pathway/models/treeContext',
 ], function ($, _, Backbone, contextModel, curTree, treeContext) {
     var MavenInfo = Backbone.View.extend({
 
@@ -77,7 +77,7 @@ define([
                     $('#side-popup').css('top', 'none');
                     $('#side-popup').css('left', 'none');
                     $('#side-popup').css('bottom', 5);
-                    $('#side-popup').css('right', 5);
+                    $('#side-popup').css('right', 11);
                 }
 
                 this.$el.show(1000);

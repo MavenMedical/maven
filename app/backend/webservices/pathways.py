@@ -15,9 +15,7 @@ __author__ = 'Yuki Uchino'
 # LAST MODIFIED FOR JIRA ISSUE: MAV-303
 # *************************************************************************
 import utils.database.web_search as WS
-
 import utils.database.web_persistence as WP
-
 import maven_config as MC
 from utils.streaming.http_svcs_wrapper import http_service, CONTEXT, CONFIG_PERSISTENCE, EMPTY_RETURN
 from utils.enums import USER_ROLES
@@ -129,7 +127,6 @@ class PathwaysWebservices():
 def run():
     from utils.database.database import AsyncConnectionPool
     import utils.streaming.stream_processor as SP
-    import utils.database.tree_persistence as TP
     import utils.streaming.webservices_core as WC
     import asyncio
 
@@ -139,11 +136,11 @@ def run():
                 {
                     SP.CONFIG_HOST: 'localhost',
                     SP.CONFIG_PORT: 8087,
-                    TP.CONFIG_PERSISTENCE: "persistence layer",
+                    WP.CONFIG_PERSISTENCE: "persistence layer",
                 },
-            'persistence layer': {TP.CONFIG_DATABASE: 'webservices conn pool', },
-            'persistance': {TP.CONFIG_DATABASE: 'webservices conn pool'},
-            'search': {TP.CONFIG_DATABASE: 'webservices conn pool'},
+            'persistence layer': {WP.CONFIG_DATABASE: 'webservices conn pool', },
+            'persistance': {WP.CONFIG_DATABASE: 'webservices conn pool'},
+            'search': {WP.CONFIG_DATABASE: 'webservices conn pool'},
             'webservices conn pool':
                 {
                     AsyncConnectionPool.CONFIG_CONNECTION_STRING: MC.dbconnection,

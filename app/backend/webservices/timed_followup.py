@@ -62,7 +62,7 @@ class TimedFollowUpService():
                                                                       msg, msg_type="followup_task",
                                                                       delivery_method=delivery_method))
             except:
-                ML.EXCEPTION("ERROR, Will Robinson")
+                ML.EXCEPTION("Exception has occurred in the Timed Followup Service/Daemon")
             yield from asyncio.sleep(self.sleep_interval)
 
     @http_service(['POST'], '/add_task',

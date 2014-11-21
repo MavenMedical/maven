@@ -56,8 +56,9 @@ define([
             this.renderActions();
         },
         addTrigger: function () {
-            var newEditor = new ruleWizard({triggerNode: curTree})
-            newEditor.render()
+            contextModel.set('page', 'triggerEditor')
+        //    var newEditor = new ruleWizard({triggerNode: curTree})
+        //    newEditor.render()
         },
         renderActions: function () {
             if (contextModel.get('page') != 'pathEditor')

@@ -1,0 +1,1 @@
+update alert_config set priority = 100;

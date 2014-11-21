@@ -1,4 +1,9 @@
-﻿<?xml version="1.0" encoding="utf-8" ?> 
-<customerId>
-  7
-</customerId>
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<root>
+  <customerId>
+    1
+  </customerId>
+  <server>
+    dev.mavenmedical.net
+  </server>
+</root>

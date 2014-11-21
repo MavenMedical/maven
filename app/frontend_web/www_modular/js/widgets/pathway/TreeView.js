@@ -21,6 +21,14 @@ define([
             template: _.template(treeTemplate),
             initialize: function () {
                 this.$el.html(this.template())
+                contextModel.on('change:page', function(){
+                    if (contextModel.get('page')== 'pathEditor' || contextModel.get('page') == 'pathway'){
+                        this.$el.show()
+
+                    }    else {
+                        this.$el.hide()
+                    }
+                }, this)
                 this.plumb = jsPlumb.getInstance({
                     MaxConnections: -1,
                     Connector: [ "Flowchart", { cornerRadius: 3 }],
@@ -149,8 +157,18 @@ define([
                 this.render()
             },
             render: function () {
+
+
                 var that = this
-                that.treeEl.css({'cursor': 'wait'})
+                    if (contextModel.get('page')== 'pathEditor' || contextModel.get('page') == 'pathway'){
+                        this.$el.show()
+
+                    }    else {
+                       return
+                    }
+
+                that.treeEl.css({'cursor':'wait'})
+
                 var pathid = contextModel.get('pathid');
                 if (pathid && pathid != '0') {
                     this.$el.show()

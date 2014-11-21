@@ -1,13 +1,22 @@
 import asyncio
 from utils.database.database import AsyncConnectionPool
 import maven_config as MC
-
+from utils.database.remote_database_connector import RemoteDatabaseConnector
+from functools import lru_cache
 CONFIG_DATABASE = 'database'
 CONFIG_PERSISTENCE = 'search'
 EMPTY_RETURN = [{'id': 000000, 'term': "No Results Found", 'code': 000000, 'type': 'none'}]
 
 
-class web_search():
+@lru_cache()
+def web_search(configname):
+    server = RemoteDatabaseConnector(MC.MavenConfig[configname][CONFIG_DATABASE])
+    ret = server.create_client(web_search_base)
+    ret.schedule = lambda *args: None
+    return ret
+
+
+class web_search_base():
 
     @asyncio.coroutine
     def get_routes(self):
@@ -61,7 +70,7 @@ class web_search():
                 return EMPTY_RETURN
             ret = []
             for row in results:
-                 ret.append({'id': int(row[0]), 'term': row[1], 'code': int(row[0]), 'type': 'snomed'})
+                ret.append({'id': int(row[0]), 'term': row[1], 'code': int(row[0]), 'type': 'snomed'})
             return ret
 
         if (search_type == "snomed_zoom_in"):
@@ -82,7 +91,7 @@ class web_search():
             if(results.rowcount == 0):
                 return EMPTY_RETURN
             for row in results:
-                ret.append({'id': int(row[0]), 'term': row[1], 'code': int(row[0]), 'type' : 'snomed'})
+                ret.append({'id': int(row[0]), 'term': row[1], 'code': int(row[0]), 'type': 'snomed'})
             return ret
 
         if (search_type == "snomed_zoom_out"):
@@ -124,11 +133,10 @@ class web_search():
             if(results.rowcount == 0):
                 return EMPTY_RETURN
             for row in results:
-                 ret.append({'id': int(row[0]), 'term': row[1], 'code': int(row[0]), 'type': 'snomed'})
+                ret.append({'id': int(row[0]), 'term': row[1], 'code': int(row[0]), 'type': 'snomed'})
             return ret
 
         if (search_type == "loinc"):
-
 
             cmd.append("SELECT loinc_num, component FROM terminology.loinc WHERE to_tsvector('maven', component) @@ plainto_tsquery('maven', %s) OR loinc_num = %s ")
             cmd.append("LIMIT 50")
@@ -166,7 +174,7 @@ class web_search():
     #   cmd.append("'"+str(ruleJSON).replace("'", '"')+"')")
 
         cmd.append("RETURNING ruleid")
-        c = yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
+        c = yield from self.db.execute_single(' '.join(cmd) + ';', cmdArgs)
         return c.fetchone()[0]
 
     @asyncio.coroutine
@@ -187,18 +195,18 @@ class web_search():
         cmdArgs.append(str(ruleJSON).replace("'", '"'))
         cmd.append("WHERE ruleid =")
         cmd.append(str(id))
-        yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
+        yield from self.db.execute_single(' '.join(cmd) + ';', cmdArgs)
         cmd = []
 
         # triggers = ruleJSON['triggers']
         cmd.append("DELETE FROM rules.trigcodes * where ruleid = ")
         cmd.append(str(id))
-        yield from self.db.execute_single(' '.join(cmd)+';', [])
+        yield from self.db.execute_single(' '.join(cmd) + ';', [])
 
         cmd = []
         cmd.append("DELETE FROM rules.codelists * WHERE ruleid = ")
         cmd.append(str(id))
-        yield from self.db.execute_single(' '.join(cmd)+';', [])
+        yield from self.db.execute_single(' '.join(cmd) + ';', [])
         count = 0
 
         count += yield from (self.writeExplicitSnomed('hist_dx', ruleJSON))
@@ -212,12 +220,12 @@ class web_search():
         cmd = []
         cmdArgs = []
         cmd.append("SELECT distinct a.detailid, b.detailid from rules.codelists a, rules.codelists b  where a.ruleid=b.ruleid and a.isintersect='t' and  b.isintersect='f'"
-                       " and a.intlist && b.intlist and "
-                       "("
-                       "   (a.listtype = 'enc_dx' and b.listtype in ('enc_dx', 'enc_pl_dx')) "
-                       "OR (a.listtype = 'pl_dx' AND b.listtype in ('pl_dx', 'enc_pl_dx')) "
-                       "OR (a.listtype = 'enc_pl_dx' AND b.listtype in ('pl_dx', 'enc_pl_dx', 'enc_dx'))"
-                       ")")
+                   " and a.intlist && b.intlist and "
+                   "("
+                   "   (a.listtype = 'enc_dx' and b.listtype in ('enc_dx', 'enc_pl_dx')) "
+                   "OR (a.listtype = 'pl_dx' AND b.listtype in ('pl_dx', 'enc_pl_dx')) "
+                   "OR (a.listtype = 'enc_pl_dx' AND b.listtype in ('pl_dx', 'enc_pl_dx', 'enc_dx'))"
+                   ")")
 
         result = yield from self.db.execute_single(' '.join(cmd) + ';', cmdArgs)
         conflicts = []
@@ -231,7 +239,7 @@ class web_search():
             cmd.append("insert into rules.codelists (ruleid, listtype, isintersect, intlist)")
             cmd.append("(select %s, 'pl_dx', false, array[-99999])")
             cmdArgs.append(ruleJSON['id'])
-            yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
+            yield from self.db.execute_single(' '.join(cmd) + ';', cmdArgs)
         if (ruleJSON['triggerType'] == 'NDC'):
             yield from self.writeDrugTriggers(ruleJSON)
         elif (ruleJSON['triggerType'] == 'HCPCS'):
@@ -313,7 +321,7 @@ class web_search():
                     cmdArgs.append(desired_array)
                     cmdArgs.append(cur['exists'] == 'true')
 
-                yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
+                yield from self.db.execute_single(' '.join(cmd) + ';', cmdArgs)
                 return 1
 
         return 0
@@ -345,7 +353,7 @@ class web_search():
                 cmdArgs.append(cur['exists'] == 'true')
                 cmdArgs.append(tuple(cur['code']))
                 cmdArgs.append(cur['route'])
-                yield from self.db.execute_single(' '.join(cmd)+';', cmdArgs)
+                yield from self.db.execute_single(' '.join(cmd) + ';', cmdArgs)
             return 1
         return 0
 
@@ -383,7 +391,7 @@ class web_search():
             cmdArgs.append(cur)
             # cmdArgs.append(rule['id'])
 
-        yield from self.db.execute_single(' '.join(cmd)+";", cmdArgs)
+        yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
 
         return
 
@@ -397,7 +405,7 @@ class web_search():
             cmdArgs.append(str(rule['id']))
             cmdArgs.append(cur['code'])
 
-            yield from self.db.execute_single(' '.join(cmd)+";", cmdArgs)
+            yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
         return
 
     @asyncio.coroutine
@@ -438,7 +446,7 @@ class web_search():
     def fetch_rules(self):
         cmd = []
         cmd.append("SELECT ruleid, name FROM rules.evirule ORDER BY name asc")
-        rows = yield from self.db.execute_single(' '.join(cmd)+';', [])
+        rows = yield from self.db.execute_single(' '.join(cmd) + ';', [])
         amalgamation = []
         for row in rows:
             amalgamation.append(row)

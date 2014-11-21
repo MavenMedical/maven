@@ -29,7 +29,7 @@ namespace MavenAsDemo
             //first of all, don't do nuthin if there's already a mavendesktop running
             if (isAlreadyRunning())
             {
-                //ignore for citrix
+                //for citrix, ignore this. 
                 //return;
             }
             try
@@ -98,7 +98,7 @@ namespace MavenAsDemo
             else if (m == Settings.AlertMode.deskHard)
             {
                 frmHardAlert frm = new frmHardAlert(url, cursettings.location);
-                frm.ShowInTaskbar = false;
+                frm.ShowInTaskbar = true;
                 frm.Visible = true;
                 Application.Run(frm);
             }
@@ -124,7 +124,7 @@ namespace MavenAsDemo
             else if (cursettings.mode == Settings.AlertMode.deskHard)
             {
                 frmHardAlert frm = new frmHardAlert(url, cursettings.location);
-                frm.ShowInTaskbar = false;
+                frm.ShowInTaskbar = true;
                 frm.Visible = true;
                 frm.TopMost = true;
                 Application.Run(frm);
@@ -196,34 +196,44 @@ namespace MavenAsDemo
         {
             string lastExceptionMessage = "";
             ServicePointManager.ServerCertificateValidationCallback = new System.Net.Security.RemoteCertificateValidationCallback(AcceptAllCertifications);
-            int pollnum = 0; //get a polling counter to remind us to check the token every so often. 
-            while (continueOn)
+            AllScriptsProLoginTracker tracker = new AllScriptsProLoginTracker(Authenticator.getMavenUserName());
+            tracker.Start();
+            /////debug only 
+            //Thread.Sleep(50000);
+            //alert("", "", "https://dev.mavenmedical.net/#/pathway/1022/node/1/patient/66632/2014-10-18");
+
+
+            while (continueOn )
             {
+               
                 try
                 {
-                    if (pollnum == 10)
+                    //if you're not even logged in, then just sit around and wait for a while
+                    if (!tracker.isEmrUserLoggedIn)
                     {
-                        pollnum = 0; //reset the polling counter every ten loops
+                        System.Threading.Thread.Sleep(10000);
                     }
-                    pollnum++; //increment the polling counter
-                    string rqstUrl = "https://" + cursettings.pollingServer + "/broadcaster/poll?userAuth=" + WindowsDPAPI.Decrypt(EncryptedKey)
-                        + "&osUser=" + cursettings.osUser + "&machine=" + cursettings.machine + "&osVersion=" + cursettings.os
-                        +"&user="+Authenticator.getMavenUserId()+"&customer_id="+cursettings.custId
-                        + "&provider=" + Authenticator.getProviderId() + "&roles[]=notification";
-                    WebRequest rqst = WebRequest.Create(rqstUrl);
-                    rqst.Timeout = 600000;
-                    HttpWebResponse rsp = (HttpWebResponse)rqst.GetResponse();
-                    HttpStatusCode status = rsp.StatusCode;
-                    if (status == HttpStatusCode.OK)
+                    else //ok, you're logged in. poll. 
                     {
-                        Stream dataStream = rsp.GetResponseStream();
-                        StreamReader reader = new StreamReader(dataStream);
-                        string responseFromServer = reader.ReadToEnd();
-                        if (responseFromServer != "[]")
+                        string rqstUrl = "https://" + cursettings.pollingServer + "/broadcaster/poll?userAuth=" + WindowsDPAPI.Decrypt(EncryptedKey)
+                            + "&osUser=" + cursettings.osUser + "&machine=" + cursettings.machine + "&osVersion=" + cursettings.os
+                            + "&user=" + Authenticator.getMavenUserName() + "&customer_id=" + cursettings.custId
+                            + "&provider=" + Authenticator.getProviderId() + "&roles[]=notification&userid=" + Authenticator.getMavenUserID();
+                        WebRequest rqst = WebRequest.Create(rqstUrl);
+                        rqst.Timeout = 600000;
+                        HttpWebResponse rsp = (HttpWebResponse)rqst.GetResponse();
+                        HttpStatusCode status = rsp.StatusCode;
+                        if (status == HttpStatusCode.OK)
                         {
-                            //string alertUrl = responseFromServer.Split(',')[0].Replace("[{\"LINK\": \"", "").Replace("\"", "");
-                            string alertUrl = responseFromServer.Replace("[\"", "").Replace("\"]", "");
-                            alert("", "", alertUrl);
+                            Stream dataStream = rsp.GetResponseStream();
+                            StreamReader reader = new StreamReader(dataStream);
+                            string responseFromServer = reader.ReadToEnd();
+                            if (responseFromServer != "[]")
+                            {
+                                //string alertUrl = responseFromServer.Split(',')[0].Replace("[{\"LINK\": \"", "").Replace("\"", "");
+                                string alertUrl = responseFromServer.Replace("[\"", "").Replace("\"]", "");
+                                alert("", "", alertUrl);
+                            }
                         }
                     }
                 }
@@ -249,6 +259,8 @@ namespace MavenAsDemo
                     lastExceptionMessage = e.Message;
                 }
             }
+            //continueon=false. stop the tracker and exit gracefully
+            tracker.Stop();
 
         }
         /// <summary>
@@ -351,9 +363,9 @@ namespace MavenAsDemo
         {
             string rqstUrl = "https://" + cursettings.pollingServer + "/broadcaster/notifypref?userAuth=" + WindowsDPAPI.Decrypt(EncryptedKey)
                         + "&notify1="+primary+"&notify2="+secondary
-                        + "&osUser=" + cursettings.osUser + "&machine=" + cursettings.machine + "&osVersion=" + cursettings.os
-                        + "&user=" + Authenticator.getMavenUserId() + "&customer_id=" + cursettings.custId
-                        + "&provider=" + Authenticator.getProviderId() + "&roles[]=notification";
+                         + "&osUser=" + cursettings.osUser + "&machine=" + cursettings.machine + "&osVersion=" + cursettings.os
+                        + "&user=" + Authenticator.getMavenUserName() + "&customer_id=" + cursettings.custId
+                        + "&provider=" + Authenticator.getProviderId() + "&roles[]=notification&userid=" + Authenticator.getMavenUserID();
             try
             {
                 WebRequest rqst = WebRequest.Create(rqstUrl);
@@ -484,6 +496,27 @@ namespace MavenAsDemo
                 EventLog el = new EventLog("Application");
                 el.Source = "MavenDesktop";
                 el.WriteEntry(msg, System.Diagnostics.EventLogEntryType.Warning, 234);
+                //TODO: handle an actual registered event id. now it's event 0 which is getting a "desc cannot be found" message
+                //codeproject.com/Articles/4153/Getting-the-most-out-of-Event-Viewer
+            }
+            catch
+            {
+                //TODO: Call this function recursively if writing to the error log fails. Just kidding...
+            }
+        }
+        /// <summary>
+        /// handle logging debug messages
+        /// </summary>
+        /// <param name="msg">the entire message that should be logged.</param>
+        public static void LogMessage(string msg,System.Diagnostics.EventLogEntryType type)
+        {
+            try
+            {
+                //HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\eventlog\Application\MavenDesktop must exist  
+                //Created during install
+                EventLog el = new EventLog("Application");
+                el.Source = "MavenDesktop";
+                el.WriteEntry(msg, type);
                 //TODO: handle an actual registered event id. now it's event 0 which is getting a "desc cannot be found" message
                 //codeproject.com/Articles/4153/Getting-the-most-out-of-Event-Viewer
             }

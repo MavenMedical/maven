@@ -19,7 +19,6 @@ import pickle
 from utils.streaming import stream_processor as SP
 import utils.streaming.rpc_processor as RP
 from utils.enums import CONFIG_PARAMS, USER_ROLES
-from utils.database.database import AsyncConnectionPool
 import utils.database.web_persistence as WP
 from app.backend.remote_procedures.server_rpc_endpoint import ServerEndpoint
 import asyncio
@@ -28,7 +27,6 @@ import utils.crypto.authorization_key as AK
 import maven_logging as ML
 from maven_logging import TASK
 from utils.streaming.http_svcs_wrapper import CONFIG_PERSISTENCE
-import utils.database.tree_persistence as TP
 import utils.streaming.webservices_core as WC
 from app.backend.webservices.transparent import TransparentWebservices
 from app.backend.webservices.pathways import PathwaysWebservices
@@ -90,6 +88,7 @@ def main(loop):
     outgoingtohospitalsmessagehandler = 'responder socket'
     incomingtomavenmessagehandler = 'receiver socket'
     rpc_server_stream_processor = 'Server-side RPC Stream Processor'
+    rpc_database_stream_processor = 'Client to Database RPC Stream Processor'
     from clientApp.webservice.clientapp_rpc_endpoint import ClientAppEndpoint
 
     MavenConfig = {
@@ -161,28 +160,16 @@ def main(loop):
         {
             SP.CONFIG_WRITERKEY: 1
         },
-        CONFIG_PARAMS.PERSISTENCE_SVC.value: {WP.CONFIG_DATABASE: CONFIG_PARAMS.DATABASE_SVC.value, },
-        CONFIG_PARAMS.DATABASE_SVC.value:
-        {
-            AsyncConnectionPool.CONFIG_CONNECTION_STRING: MC.dbconnection,
-            AsyncConnectionPool.CONFIG_MIN_CONNECTIONS: 4,
-            AsyncConnectionPool.CONFIG_MAX_CONNECTIONS: 8
-        },
+        CONFIG_PARAMS.PERSISTENCE_SVC.value: {WP.CONFIG_DATABASE: rpc_database_stream_processor},
         "httpserver":
         {
             SP.CONFIG_HOST: 'localhost',
             SP.CONFIG_PORT: 8087,
-            CONFIG_PERSISTENCE: "persistence layer",
+            CONFIG_PERSISTENCE: CONFIG_PARAMS.PERSISTENCE_SVC.value,
         },
-        'persistence layer': {WP.CONFIG_DATABASE: 'webservices conn pool', },
-        'persistance': {TP.CONFIG_DATABASE: 'webservices conn pool'},
-        'search': {TP.CONFIG_DATABASE: 'webservices conn pool'},
-        'webservices conn pool':
-        {
-            AsyncConnectionPool.CONFIG_CONNECTION_STRING: MC.dbconnection,
-            AsyncConnectionPool.CONFIG_MIN_CONNECTIONS: 4,
-            AsyncConnectionPool.CONFIG_MAX_CONNECTIONS: 8
-        },
+        'persistence layer': {WP.CONFIG_DATABASE: rpc_database_stream_processor},
+        'persistance': {WP.CONFIG_DATABASE: rpc_database_stream_processor},
+        'search': {WP.CONFIG_DATABASE: rpc_database_stream_processor},
         CONFIG_PARAMS.NOTIFY_SVC.value:
         {
             SP.CONFIG_HOST: 'localhost',
@@ -199,12 +186,26 @@ def main(loop):
             SP.CONFIG_PORT: 8093,
             CONFIG_PARAMS.FOLLOWUP_SLEEP_INTERVAL.value: 60,
             "persistence": CONFIG_PARAMS.PERSISTENCE_SVC.value,
-        }
+        },
+        rpc_database_stream_processor: {
+            SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOSOCKETREPLY,
+            SP.CONFIG_WRITERNAME: rpc_database_stream_processor + '.Writer1',
+            SP.CONFIG_READERTYPE: SP.CONFIGVALUE_ASYNCIOSOCKETQUERY,
+            SP.CONFIG_READERNAME: rpc_database_stream_processor + '.Reader1',
+            SP.CONFIG_WRITERDYNAMICKEY: 3,
+            SP.CONFIG_DEFAULTWRITEKEY: 3,
+        },
+        rpc_database_stream_processor + ".Writer1": {
+            SP.CONFIG_WRITERKEY: 3,
+        },
+        rpc_database_stream_processor + ".Reader1": {
+            SP.CONFIG_HOST: MC.dbhost,
+            SP.CONFIG_PORT: '54729',
+        },
     }
     MC.MavenConfig.update(MavenConfig)
 
-    persistence = WP.WebPersistence('persistence layer')
-    persistence.schedule()
+    persistence = WP.WebPersistence(CONFIG_PARAMS.PERSISTENCE_SVC.value)
 
     @asyncio.coroutine
     def get_key():
@@ -219,16 +220,16 @@ def main(loop):
 
     asyncio.Task(get_key())
 
-    rpc = RP.rpc(rpc_server_stream_processor)
-    rpc.schedule(loop)
+    clientapp_rpc = RP.rpc(rpc_server_stream_processor)
+    clientapp_rpc.schedule(loop)
 
     sp_consumer = IncomingMessageHandler(incomingtomavenmessagehandler)
     sp_consumer.schedule(loop)
 
-    client_interface = rpc.create_client(ClientAppEndpoint)
+    client_interface = clientapp_rpc.create_client(ClientAppEndpoint)
     server_endpoint = ServerEndpoint(client_interface, lambda x: sp_consumer.write_object(x, writer_key="CostEval"))
     server_endpoint.persistence.schedule(loop)
-    rpc.register(server_endpoint)
+    clientapp_rpc.register(server_endpoint)
 
     sp_producer = OutgoingMessageHandler(outgoingtohospitalsmessagehandler, client_interface)
     sp_producer.schedule(loop)
@@ -239,7 +240,7 @@ def main(loop):
               TransparentWebservices, PathwaysWebservices,
               AdministrationWebservices, SupportWebservices,
               TimedFollowUpService]:
-        core_scvs.register_services(c('httpserver', rpc))
+        core_scvs.register_services(c('httpserver', clientapp_rpc))
     core_scvs.schedule(loop)
 
     (notification_service,

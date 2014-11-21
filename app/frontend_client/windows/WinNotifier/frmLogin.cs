@@ -229,12 +229,14 @@ namespace MavenAsDemo
                 //get the provider id and auth key
                 string provider = Authenticator.trimKeyValue("provider", responseFromServer);
                 string oAuth = Authenticator.trimKeyValue("oauth", responseFromServer);
+                string mavenuserid = Authenticator.trimKeyValue("userid", responseFromServer);
 
                 //write the provider id and auth key, etc
                 WriteKey(provider, "provider");
                 WriteKey(oAuth, "Auth");
                 WriteKey(Authenticator.trimKeyValue("user", responseFromServer), "MavenUser");
                 WriteKey(txtUser.Text.ToUpper(), "User");
+                WriteKey(mavenuserid, "mavenuserid");
                 //hack up the response from server to be a reauth string. then save the reauthstring
                 responseFromServer = removeUserauth(responseFromServer); 
                 WriteKey(responseFromServer, "oAuthString");
