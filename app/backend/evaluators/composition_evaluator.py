@@ -81,7 +81,7 @@ class CompositionEvaluator(SP.StreamProcessor):
         yield from self.evaluate_alternative_meds(composition)
 
         # Use the FHIR Database API to look up each Condition's codes (ICD-9) and add Snomed CT concepts to the Condition
-        yield from self.fhir_persistence.get_snomeds_and_append_to_encounter_dx(composition)
+        composition = yield from self.fhir_persistence.get_snomeds_and_append_to_encounter_dx(composition)
 
         # Analyze Choosing Wisely/CDS Rules
         yield from self.evaluate_CDS_rules(composition)

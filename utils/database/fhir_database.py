@@ -575,6 +575,7 @@ class FHIRPersistanceBase():
     
                 for snomed_id in snomed_ids:
                     condition.code.coding.append(FHIR_API.Coding(system="SNOMED CT", code=snomed_id))
+            return composition
         except:
             raise Exception("Error gathering SNOMED CT codes for Encounter Diagnoses")
     
