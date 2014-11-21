@@ -20,6 +20,7 @@ namespace MavenAsDemo
         public string os = System.Uri.EscapeDataString(System.Environment.OSVersion.VersionString);
         public string custId = "";
         public string mavenuserid = "";
+        public string softwareVersion = "";
 
         /// <summary>
         /// The different ways to alert people of stuff. 
@@ -55,6 +56,16 @@ namespace MavenAsDemo
                 }
             }
 
+        }
+        public void getCurVers()
+        {
+            //look to the registry which should be where this is stored
+            RegistryKey settingKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Maven\\PathwaysDesktop\\Settings\\", false);
+            if (settingKey != null && settingKey.GetValue("version") != null)
+            {
+                //if you found the key, then by all means use it
+                softwareVersion = (string)settingKey.GetValue("version");
+            }
         }
         public Settings()
         {

@@ -218,7 +218,7 @@ namespace MavenAsDemo
                         string rqstUrl = "https://" + cursettings.pollingServer + "/broadcaster/poll?userAuth=" + WindowsDPAPI.Decrypt(EncryptedKey)
                             + "&osUser=" + cursettings.osUser + "&machine=" + cursettings.machine + "&osVersion=" + cursettings.os
                             + "&user=" + Authenticator.getMavenUserName() + "&customer_id=" + cursettings.custId
-                            + "&provider=" + Authenticator.getProviderId() + "&roles[]=notification&userid=" + Authenticator.getMavenUserID();
+                            + "&provider=" + Authenticator.getProviderId() + "&roles[]=notification&userid=" + Authenticator.getMavenUserID()+"&ver="+cursettings.softwareVersion;
                         WebRequest rqst = WebRequest.Create(rqstUrl);
                         rqst.Timeout = 600000;
                         HttpWebResponse rsp = (HttpWebResponse)rqst.GetResponse();
