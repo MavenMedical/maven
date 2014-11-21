@@ -102,7 +102,7 @@ class AsyncConnectionPool():
         :param future: a future to hold the result if we are calling form multiple_queries
                        otherwise None
         """
-        ML.INFO('About to execute %s' % str((cmd, extra)))
+        ML.DEBUG('About to execute %s' % str((cmd, extra)))
         conn = yield from self._get_connection()  # get a connection, blocking if necessary
         if conn is None:
             ML.ERROR("Error establishing a connection with database")

@@ -1112,7 +1112,6 @@ class WebPersistenceBase():
     def shared_secret(self):
         cmd = ['SELECT shared FROM shared_bytes ORDER BY created_on DESC LIMIT 1']
         ret = yield from self.execute(cmd, [], _build_format(), {0: 0})
-        print(ret[0][0])
         return ret[0][0]
 
     ##########################################################################################

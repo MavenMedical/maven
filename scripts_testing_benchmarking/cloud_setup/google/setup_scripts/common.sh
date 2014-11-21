@@ -1,13 +1,23 @@
 #!/bin/bash
 sudo yum update -y
 sudo yum install epel-release -y
-sudo yum install elinks screen git emacs kernel-headers fuse-libs fuse-devel fuse lvm2 wireshark nc iptraf iftop psacct pam-devel collectl -y
+sudo yum install elinks screen git emacs kernel-headers fuse-libs fuse-devel fuse lvm2 wireshark nc iptraf iftop psacct pam-devel collectl pcre-devel zlib-devel openssl-devel gcc libpqxx-devel libpqxx libffi-devel -y
 
-sudo useradd logaccess -G adm
 sudo sed -i -e 's/^create$/create 640 root adm/' /etc/logrotate.conf
 
 sudo chgrp -R adm /var/log
 sudo chmod -R g+r /var/log
+
+cd
+#for python3
+wget http://www.python.org/ftp/python/3.4.1/Python-3.4.2.tar.xz
+xz -d Python-3.4.2.tar.xz
+tar -xvf Python-3.4.2.tar
+cd Python-3.4.2
+./configure
+make -j 4
+sudo make altinstall
+
 
 wget http://yum.postgresql.org/9.4/redhat/rhel-7-x86_64/pgdg-centos94-9.4-1.noarch.rpm
 sudo yum install pgdg-centos94-9.4-1.noarch.rpm -y
@@ -35,6 +45,5 @@ echo "/var/log/audit /var/log/messages /var/log/secure /tmp/maven" | sudo tee /e
 sudo mkdir /etc/limited
 sudo chmod -R 755 /etc/limited
 
-#using visudo, add %adm ALL=NOPASSWD: /usr/bin/truecrypt,/etc/limited/restartpostgres,/etc/limited/restartnginx
-#%adm ALL=(postgres)NOPASSWD: /usr/bin/psql
+#%adm ALL=(postgres)NOPASSWD: /usr/bin/mount,/etc/limited/restartpostgres,/etc/limited/restartnginx 
 
