@@ -140,6 +140,7 @@ namespace MavenAsDemo
             string iconpath = System.IO.Path.GetDirectoryName(Application.ExecutablePath) + "\\Maven.ico";
             //MessageBox.Show(iconpath);
             tray.Icon = new System.Drawing.Icon(iconpath);
+            tray.Text = "Maven Desktop - " + cursettings.softwareVersion;
             ContextMenu ctx = new ContextMenu();
 
             MenuItem modeitm = new MenuItem("Alert Mode");
