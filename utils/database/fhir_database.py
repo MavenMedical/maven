@@ -108,9 +108,10 @@ class FHIRPersistanceBase():
             encounter_admit_time = encounter_date
             encounter_disch_time = None
             customer_id = composition.customer_id
+            last_modified = datetime.datetime.now()
     
-            cur = yield from self.db.execute_single("SELECT upsert_encounter(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
-                                                 extra=[encounter_id, patient_id, encounter_type, encounter_date, provider_id, bill_prov_id, encounter_dep, encounter_admit_time, encounter_disch_time, customer_id])
+            cur = yield from self.db.execute_single("SELECT upsert_encounter(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                                                 extra=[encounter_id, patient_id, encounter_type, encounter_date, provider_id, bill_prov_id, encounter_dep, encounter_admit_time, encounter_disch_time, customer_id, last_modified])
             cur.close()
     
         except:
@@ -123,7 +124,8 @@ class FHIRPersistanceBase():
             customer_id = composition.customer_id
             encID = composition.encounter.get_csn()
             json_composition = json.dumps(composition, default=FHIR_API.jdefault)
-            cur = yield from self.db.execute_single("INSERT INTO composition (patient_id, encounter_id, customer_id, comp_body) VALUES (%s, %s, %s, %s)", extra=[patient_id, encID, customer_id, json_composition])
+            datetime_insertion = datetime.datetime.now()
+            cur = yield from self.db.execute_single("INSERT INTO composition (patient_id, encounter_id, customer_id, comp_body, datetime_inserted) VALUES (%s, %s, %s, %s, %s)", extra=[patient_id, encID, customer_id, json_composition, datetime_insertion])
             cur.close()
     
         except:
