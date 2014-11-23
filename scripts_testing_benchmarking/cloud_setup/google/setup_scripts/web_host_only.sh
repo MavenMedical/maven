@@ -6,17 +6,6 @@ export PYTHONPATH=$MAVEN_ROOT" >> .bashrc
 source ~/.bashrc
 
 cd
-#for python3
-wget http://www.python.org/ftp/python/3.4.1/Python-3.4.1.tar.xz
-xz -d Python-3.4.1.tar.xz
-tar -xvf Python-3.4.1.tar
-cd Python-3.4.1
-./configure
-make -j 4
-sudo make altinstall
-
-
-cd
 # python db connectivity
 sudo yum install python-psycopg2 -y
 

@@ -19,10 +19,11 @@ namespace MavenAsDemo
 
         private string emrUser = "";
         private bool wasloggedin = false;
-        private string  curname = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
+        private string curname = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
         private ArrayList curchildren = new ArrayList();
         private bool keepgoing = true;
         private string loginkeys = "";
+        private bool strangerLogin = false; //tracks whether a "stranger" is logged into the emr
 
         public AllScriptsProLoginTracker(string emrUserName)
         {
@@ -63,7 +64,7 @@ namespace MavenAsDemo
         }
         private void GetActiveEmrWindowState()
         {
-
+            bool ProcessLoggedin = true; //seems safest to start by assuming we're logged in and ask for verification. Side effect of not being logged in is keylogging on the attached process id. 
             int handle = 0;
             handle = GetForegroundWindow();
             string active = writeWindoInfo(handle);
@@ -72,15 +73,24 @@ namespace MavenAsDemo
             if (curemrprocid > 0 && attachedEMRProcess == -99999)
             {
                 attachedEMRProcess = curemrprocid;
-                Program.LogMessage("Attaching to EMR process " + curemrprocid,EventLogEntryType.Information);
+                Program.LogMessage("Attaching to EMR process " + curemrprocid, EventLogEntryType.Information);
                 //ok, you're attaching to an emr process. assume that it was logged in. if it turns out it isnt, we just treat it as an immediate logout
                 wasloggedin = true;
             }
             //if the Attached emr window has focus, see if it's logged in
-            if (curemrprocid == attachedEMRProcess && active.Contains("Allscripts"))
+            if (curemrprocid == attachedEMRProcess )
             {
                 GetAllWindows(handle);
-                isEmrUserLoggedIn = getisEmrUserLoggedIn(curchildren);
+                ProcessLoggedin=getisEmrUserLoggedIn(curchildren, active);
+                if (ProcessLoggedin & !strangerLogin)
+                {
+                    isEmrUserLoggedIn = true; //if it's logged in and not a stranger, then go for it. 
+                }
+                if (!ProcessLoggedin)
+                {
+                    strangerLogin = false;
+                    isEmrUserLoggedIn = false;
+                }
             }
             else //if the emr is not focussed, check if allscripts is even running
             {
@@ -88,6 +98,7 @@ namespace MavenAsDemo
                 if (!IsEmrRunning())
                 {
                     isEmrUserLoggedIn = false;//if none then set isEmrUserLoggedIn=false;
+                    strangerLogin = false;
                     attachedEMRProcess = -99999;
                 }
 
@@ -99,11 +110,12 @@ namespace MavenAsDemo
                 if (isEmrUserLoggedIn)
                 {
                     //first see if this is a login for the user we're polling for
-                    if (!loginkeys.Contains(emrUser))
+                    if (!closeEnough(loginkeys).Contains(closeEnough(emrUser)))
                     {
                         isEmrUserLoggedIn = false; //switch back. our user is still logged out
-                        string msg="We suspect that the user who logged into the EMR is not "+emrUser+", therefore alerting will remain suspended for the time being. "+DateTime.Now.ToLongTimeString();
+                        string msg = "We suspect that the user who logged into the EMR is not " + emrUser + ", therefore alerting will remain suspended for the time being. " + DateTime.Now.ToLongTimeString();
                         Program.LogMessage(msg, EventLogEntryType.Information);
+                        strangerLogin = true;
                     }
                     //if this is a new login, wipe the login string
                     loginkeys = "";
@@ -112,21 +124,21 @@ namespace MavenAsDemo
             }
 
             //check to see if we're in the process of logging in with the same user
-            if (!isEmrUserLoggedIn && curemrprocid == attachedEMRProcess)
+            if (!ProcessLoggedin && curemrprocid == attachedEMRProcess)
             {
                 //if we;re logged out and the emr has focus, see if the login is for our user
                 string tst = logKeys(handle);
                 loginkeys += tst;
             }
             wasloggedin = isEmrUserLoggedIn;//update wasloggedin to the current status
-            
+
             curchildren = new ArrayList();
 
         }
 
         private void log(bool loggedin)
         {
-            string msg="";
+            string msg = "";
             if (!loggedin)
             {
                 msg = "The user logged out of the EMR at " + DateTime.Now.ToLongTimeString() + ". Alerting is paused.";
@@ -134,7 +146,7 @@ namespace MavenAsDemo
             else
             {
                 msg = "The user logged into the EMR at " + DateTime.Now.ToLongTimeString() + ". Alerting has been resumed.";
-           
+
             }
             Program.LogMessage(msg, System.Diagnostics.EventLogEntryType.Information);
         }
@@ -148,8 +160,12 @@ namespace MavenAsDemo
 
             return windowHandles;
         }
-        private static bool getisEmrUserLoggedIn(ArrayList list)
+        private static bool getisEmrUserLoggedIn(ArrayList list, string WindowTitle)
         {
+            if (WindowTitle=="Login")
+            {//if it's an EMR.exe, but the window title doesnt says "Login" then you've just launched the EXE. You're not logged in. 
+                return false;
+            }
             int logincount = 0;
             foreach (string str in list)
             {
@@ -211,16 +227,69 @@ namespace MavenAsDemo
                         }
                         else
                         {
-                            rtn += (Keys)i;
+                            string k = ((Keys)i).ToString();
+                            if (k.Length == 2 && k.StartsWith("D"))
+                            {
+                                k = k.Substring(1);
+                            }
+                            else if (k.Contains("ShiftKey")) { k = ""; }//handle shift keys through the close-enough function. 
+                            rtn += k.Replace("NumPad", "Oem");
                             break;
                         }
                     }
                 }
                 Thread.Sleep(10);
             }
+            return keycatchFormat(rtn);
+        }
+        /// for matching usernames, this gets a string that is "Close enough" to match on. 
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns>A comparison string that is "Close enough"</returns>
+        string closeEnough(string input)
+        {
+            string rtn = input.Replace("!", "1");
+            rtn = rtn.Replace("@", "2");
+            rtn = rtn.Replace("#", "3");
+            rtn = rtn.Replace("$", "4");
+            rtn = rtn.Replace("%", "5");
+            rtn = rtn.Replace("^", "6");
+            rtn = rtn.Replace("&", "7");
+            rtn = rtn.Replace("*", "8");
+            rtn = rtn.Replace("(", "9");
+            rtn = rtn.Replace(")", "0");
+            rtn = rtn.Replace("_", "-");
+            rtn = rtn.Replace("+", "=");
+            rtn = rtn.Replace("~", "`");
+            rtn = rtn.Replace(">", ".");
+            rtn = rtn.Replace("<", ",");
+            rtn = rtn.Replace("?", "/");
             return rtn;
         }
-
+        /// <summary>
+        /// do your best to convert the string we got back into an exact string that was typed. 
+        /// This isnt perfect because of little things like uncommonly used characters, etc. And the fact that you might hold the shift key. 
+        /// For example, if you hold the Shift key, This "TesT__123!!" might come through like this "TesT--123!1"
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns>the best we can do to get the exact string.</returns>
+        private string keycatchFormat(string input)
+        {
+            //"LButtonShiftKeyRShiftKey1"
+            input = input.Replace("Oem1", "1");
+            input = input.Replace("Oem2", "2");
+            input = input.Replace("Oem3", "3");
+            input = input.Replace("Oem4", "4");
+            input = input.Replace("Oem5", "5");
+            input = input.Replace("Oem6", "6");
+            input = input.Replace("Oem7", "7");
+            input = input.Replace("Oem8", "8");
+            input = input.Replace("Oem9", "9");
+            input = input.Replace("Oem0", "0");
+            input = input.Replace("Oemcomma", ",");
+            input = input.Replace("OemMinus", "-");
+            return input;
+        }
         private string writeWindoInfo(int handle)
         {
 
@@ -234,7 +303,7 @@ namespace MavenAsDemo
             }
             return rtn;
         }
-        
+
         private bool GetWindowHandle(IntPtr windowHandle, ArrayList windowHandles)
         {
             windowHandles.Add(windowHandle);
@@ -255,6 +324,6 @@ namespace MavenAsDemo
         private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out int lpdwProcessId);
 
         [DllImport("user32.dll")]
-        static extern short GetAsyncKeyState(int vKey); 
+        static extern short GetAsyncKeyState(int vKey);
     }
 }

@@ -18,6 +18,8 @@ __author__ = 'Tom DuBois'
 # *************************************************************************
 
 import asyncio
+import traceback
+import maven_logging as ML
 
 
 # placeholder for a function which should never be called explicitly.
@@ -101,10 +103,11 @@ class builder():
             def worker(cls, obj, *args):
                 # wait for all of the requirements to be satisfied
                 done, pending = yield from asyncio.wait(args, return_when=asyncio.FIRST_EXCEPTION)
-                errors = filter(lambda task: task.exception(), done)
-                if pending or any(errors):
-                    print((done, pending))
-                    raise Exception((done, pending))
+                task_errors = list(filter(lambda task: task.exception(), done))
+                if pending or any(task_errors):
+                    ML.INFO((done, pending))
+                    for task in task_errors:
+                        ML.EXCEPTION(traceback.format_exception_only(type(task.exception()), task.exception()))
                 arg_results = [f.result() for f in args]
                 yield from asyncio.coroutine(func)(cls, obj, *arg_results)  # call the function
 
@@ -138,9 +141,11 @@ class builder():
                     # wait for all workers to finish
                     done, pending = yield from asyncio.wait(worker_tasks, timeout=10,
                                                             return_when=asyncio.FIRST_EXCEPTION)
-                    if pending or any(filter(lambda task: task.exception(), done)):
-                        print((done, pending))
-                        raise Exception((done, pending))
+                    task_errors = list(filter(lambda task: task.exception(), done))
+                    if pending or any(task_errors):
+                        ML.INFO((done, pending))
+                        for task in task_errors:
+                            ML.EXCEPTION(traceback.format_exception_only(type(task.exception()), task.exception()))
                     # pass the obj to the original function
                     return (yield from asyncio.coroutine(func)(s, obj, *args))
                 finally:

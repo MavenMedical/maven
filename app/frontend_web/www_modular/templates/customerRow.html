@@ -4,7 +4,7 @@
 </td>
 <td>
     <div class="customer-row-val"><%= name %></div>
-    <input class="customer-name-row customer-row-edit" type="text" value="<%= name.trim() %>">
+    <input class="customer-name-row customer-row-edit" type="text" value="<%= (name.trim && name.trim()) || name %>">
 </td>
 <td>
     <div class="customer-row-val"><%= abbr %></div>

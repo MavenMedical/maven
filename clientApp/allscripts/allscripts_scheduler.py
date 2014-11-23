@@ -108,10 +108,6 @@ class scheduler():
                                                                     prior, now)
             if documents:
                 for doc in documents:
-                    # Ignore the "first" documents b/c we're starting the client_app server up
-                    if first:
-                        continue
-
                     # Ignore documents/encounters that were created by other providers
                     if not (doc.get('mydocument', 'N') == 'Y'):
                         continue
@@ -134,16 +130,17 @@ class scheduler():
                     encounter_dx = icd9_capture.findall(document_keywords)
 
                     if has_ICD9_keywords and self.evaluations[(provider_id, patient, encounter_id)].get('assessment_and_plan'):
-                        yield from self.build_composition_and_evaluate(provider_username, patient, encounter_id, enc_datetime, encounter_dx, 'assessment_and_plan')
+                        if not first:
+                            yield from self.build_composition_and_evaluate(provider_username, patient, encounter_id, enc_datetime, encounter_dx, 'assessment_and_plan')
                         # Set the flag in the evaluations dictionary so we don't do this evaluation again
                         self.evaluations[(provider_id, patient, encounter_id)]['assessment_and_plan'] = False
-                        break
+                        self.evaluations[(provider_id, patient, encounter_id)]['encounter_create'] = False
 
                     # If there are no ICD9 keywords, perform the "encounter_create" evaluation (if we haven't already)
                     elif self.evaluations[(provider_id, patient, encounter_id)].get('encounter_create'):
-                        yield from self.build_composition_and_evaluate(provider_username, patient, encounter_id, enc_datetime, encounter_dx, 'encounter_create')
+                        if not first:
+                            yield from self.build_composition_and_evaluate(provider_username, patient, encounter_id, enc_datetime, encounter_dx, 'encounter_create')
                         self.evaluations[(provider_id, patient, encounter_id)]['encounter_create'] = False
-                        break
 
         except AllscriptsError as e:
             CLIENT_SERVER_LOG.exception(e)
@@ -152,7 +149,7 @@ class scheduler():
 
     @asyncio.coroutine
     def build_composition_and_evaluate(self, provider_username, patient, encounter_id, enc_datetime, encounter_dx, eval_type):
-        CLIENT_SERVER_LOG.debug("About to send to Composition Builder...")
+        CLIENT_SERVER_LOG.debug("About to send to Composition Builder... %s, %s " % (provider_username, encounter_id))
         composition = yield from self.comp_builder.build_composition(provider_username, patient, encounter_id, enc_datetime, encounter_dx)
         CLIENT_SERVER_LOG.debug(("Sending to backend for %s evaluation. Composition ID = %s" % (composition.id, eval_type)))
         ML.TASK(self.parent.evaluate_composition(composition))

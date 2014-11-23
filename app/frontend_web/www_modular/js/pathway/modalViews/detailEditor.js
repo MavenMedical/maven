@@ -156,6 +156,8 @@ define([
                     that.group.addDetail(panel.model, panel.type);
 
 
+                } else {
+                    curTree.trigger('propagate')
                 }
                //hide the detail modal
                    $('#detail-modal').modal('hide');

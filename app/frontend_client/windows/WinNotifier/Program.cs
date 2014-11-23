@@ -140,6 +140,7 @@ namespace MavenAsDemo
             string iconpath = System.IO.Path.GetDirectoryName(Application.ExecutablePath) + "\\Maven.ico";
             //MessageBox.Show(iconpath);
             tray.Icon = new System.Drawing.Icon(iconpath);
+            tray.Text = "Maven Desktop - " + cursettings.softwareVersion;
             ContextMenu ctx = new ContextMenu();
 
             MenuItem modeitm = new MenuItem("Alert Mode");
@@ -218,7 +219,7 @@ namespace MavenAsDemo
                         string rqstUrl = "https://" + cursettings.pollingServer + "/broadcaster/poll?userAuth=" + WindowsDPAPI.Decrypt(EncryptedKey)
                             + "&osUser=" + cursettings.osUser + "&machine=" + cursettings.machine + "&osVersion=" + cursettings.os
                             + "&user=" + Authenticator.getMavenUserName() + "&customer_id=" + cursettings.custId
-                            + "&provider=" + Authenticator.getProviderId() + "&roles[]=notification&userid=" + Authenticator.getMavenUserID();
+                            + "&provider=" + Authenticator.getProviderId() + "&roles[]=notification&userid=" + Authenticator.getMavenUserID()+"&ver="+cursettings.softwareVersion;
                         WebRequest rqst = WebRequest.Create(rqstUrl);
                         rqst.Timeout = 600000;
                         HttpWebResponse rsp = (HttpWebResponse)rqst.GetResponse();

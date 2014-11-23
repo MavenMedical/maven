@@ -56,7 +56,7 @@ define([
             this.renderActions();
         },
         addTrigger: function () {
-            contextModel.set('page', 'triggerEditor')
+            Backbone.history.navigate("triggereditor/" + contextModel.get('pathid') + "/node/"+contextModel.get('code'), {trigger: true});
         //    var newEditor = new ruleWizard({triggerNode: curTree})
         //    newEditor.render()
         },
