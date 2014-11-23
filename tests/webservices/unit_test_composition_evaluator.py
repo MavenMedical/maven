@@ -173,3 +173,6 @@ class TestCompositionEvaluator(unittest.TestCase):
                      "History Dx: {}".format([coding.code for condition in evaled_composition.get_encounter_conditions() for coding in condition.code.coding if coding.system in ["ICD-9", "ICD9"] and condition.category == "History"]),
                      "====END GENERATED ALERT===="]
                 print("\n".join(l))
+
+    def tearDown(self):
+        self.RABBIT_MSG.close()

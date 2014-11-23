@@ -4,7 +4,7 @@ from tests.webservices.unit_test_composition_evaluator import *
 @click.command()
 @click.option('--customer_id1', prompt='Customer ID')
 @click.option('--provider_username1', prompt='Provider Username')
-@click.option('--patient_id1', prompt='patient_id')
+@click.option('--patient_id1', prompt='Patient ID')
 @click.option('--sandbox1', prompt='Sandbox (13GA, 14GA)', default="13GA")
 
 
@@ -29,7 +29,7 @@ def run_tests(customer_id1, provider_username1, patient_id1, sandbox1):
 
     update_globals(customer_id, provider_username, patient_id, sandboxURL, loop)
 
-    unittest.main()
+    loop.run_until_complete(unittest.main())
 
 if __name__ == '__main__':
     run_tests()
