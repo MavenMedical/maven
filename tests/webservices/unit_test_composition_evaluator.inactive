@@ -137,7 +137,7 @@ class TestCompositionEvaluator(unittest.TestCase):
     @async_test
     def test_build_composition(self):
         global unevaled_composition
-        unevaled_composition = yield from self.COMP_BUILDER.build_composition(self.provider_username, self.patient_id, str(UUID()), datetime.datetime.now(), [])
+        unevaled_composition = yield from self.COMP_BUILDER.build_composition(self.provider_username, self.patient_id, str(UUID()), datetime.datetime.now(), ["185"])
         self.assertTrue(isinstance(unevaled_composition, FHIR_API.Composition))
         self.assertTrue(len(unevaled_composition.section) == 1)
         self.RABBIT_MSG.write_object(unevaled_composition, writer_key="CostEval")
@@ -154,12 +154,15 @@ class TestCompositionEvaluator(unittest.TestCase):
     def print_alerts(self, pathway_alerts):
 
         if len(pathway_alerts) == 0:
-            print("****NO ALERTS GENERATED!!!****")
+            print("====NO ALERTS GENERATED!!!====")
             return
         else:
-            print("****{} ALERT(s) GENERATED****".format(len(pathway_alerts)))
+            print("".join(["\n\n\n=======================================\n",
+                           "========= {} ALERT(s) GENERATED =========\n".format(len(pathway_alerts)),
+                           "=======================================\n"]))
+            i = 1
             for alert in pathway_alerts:
-                l = ["====GENERATED ALERT====",
+                l = ["===== GENERATED ALERT #{} =====".format(i),
                      "Customer ID: {}".format(evaled_composition.customer_id),
                      "Provider Username: {}".format(evaled_composition.author.get_provider_username()),
                      "Provider ID: {}".format(evaled_composition.author.get_provider_id()),
@@ -167,12 +170,15 @@ class TestCompositionEvaluator(unittest.TestCase):
                      "Patient ID: {}".format(evaled_composition.subject.get_pat_id()),
                      "Encounter ID: {}".format(urllib.parse.quote(evaled_composition.encounter.get_csn())),
                      "--",
+                     "Pathway Name: {}".format(alert.long_title),
+                     "Pathway Priority: {}".format(alert.priority),
                      "Pathway ID: {}".format(alert.CDS_rule),
                      "Encounter Dx: {}".format([coding.code for condition in evaled_composition.get_encounter_conditions() for coding in condition.code.coding if coding.system in ["ICD-9", "ICD9"] and condition.category == "Encounter"]),
                      "Problem List Dx: {}".format([coding.code for condition in evaled_composition.get_encounter_conditions() for coding in condition.code.coding if coding.system in ["ICD-9", "ICD9"] and condition.category == "Problem List"]),
                      "History Dx: {}".format([coding.code for condition in evaled_composition.get_encounter_conditions() for coding in condition.code.coding if coding.system in ["ICD-9", "ICD9"] and condition.category == "History"]),
-                     "====END GENERATED ALERT===="]
+                     "===== END GENERATED ALERT =====\n"]
                 print("\n".join(l))
+                i += 1
 
     def tearDown(self):
         self.RABBIT_MSG.close()
