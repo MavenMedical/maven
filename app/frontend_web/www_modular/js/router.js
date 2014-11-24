@@ -102,7 +102,7 @@ define([
 	},
         showHome: function (user, customer, userAuth) {
             /* remove the current patient list, encounter, etc to revert the view to the doctor's user page */
-            currentContext.set({page: 'home', patients: null, encounter: null, patientName: null});
+            currentContext.set({page: 'home', patients: null, encounter: null, patientName: null}, {trigger:true});
             showPage(user, customer, userAuth);
         },
         showPatient: function (patid, user, customer, userAuth) {
@@ -135,7 +135,7 @@ define([
             showPage(user, customer, userAuth);
         },
         showCustomers: function(user, customer, userAuth){
-            currentContext.set({page:'customers'});
+            currentContext.set({page:'customers'}, {trigger:true});
             showPage(user, customer, userAuth);
         },
         logout: function () {

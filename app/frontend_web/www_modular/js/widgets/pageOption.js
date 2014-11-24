@@ -70,6 +70,8 @@ define([
               Backbone.history.navigate("/customers", true);
             }
 
+           console.log('page option', contextModel.get('page'));
+
         }
     });
     return pageOption;
