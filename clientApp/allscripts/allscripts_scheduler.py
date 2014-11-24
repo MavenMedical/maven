@@ -26,7 +26,7 @@ from collections import defaultdict
 from utils.enums import CONFIG_PARAMS
 icd9_keyword_match = re.compile('\(V?[0-9]+(?:\.[0-9]+)?\)')
 icd9_capture = re.compile('(?:\((V?[0-9]+(?:\.[0-9]+)?)\))')
-CLIENT_SERVER_LOG = ML.get_logger('clientApp.webservice.allscripts_server')
+CLIENT_SERVER_LOG = ML.get_logger('clientApp.webservice.clientapp_main_server')
 
 
 class scheduler():
@@ -72,7 +72,7 @@ class scheduler():
                     sched = yield from self.allscripts_api.GetSchedule(None, today)
                     polling_providers = {x[0] for x in filter(self.check_notification_policy, self.active_providers)}
                     tasks = set()
-                    CLIENT_SERVER_LOG.debug('processing %s providers for %s' % (polling_providers, self.customer_id))
+                    #CLIENT_SERVER_LOG.debug('processing %s providers for %s' % (polling_providers, self.customer_id))
 
                     for appointment in sched:
                         provider = appointment['ProviderID']
