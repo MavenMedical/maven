@@ -49,11 +49,20 @@ define([
         $(".refreshButton", this.$el).hover(function(event) {
             $(event.target).attr('title', "Last Refresh: " + customerCollection.getLastRefresh());
         });
+
+        contextModel.on('change:page', this.showhide(), this)
 	},
     events: {
 	    'click #save-customer-changes': 'saveChanges',
         'click document': 'hideEdits'
     },
+        showhide: function(){
+            if(contextModel.get('page') == 'customers'){
+                this.$el.show();
+            }else{
+                this.$el.hide();
+            }
+        },
     hideEdits: function(e) {
     },
     saveChanges: function() {

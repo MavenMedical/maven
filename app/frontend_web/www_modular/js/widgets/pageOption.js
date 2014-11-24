@@ -56,13 +56,18 @@ define([
         },
        setPage: function(e){
 
+
             e.preventDefault();
             var href = $(e.currentTarget).attr("href");
-            contextModel.set({page: href},{trigger:true});
            
-            if (href == 'pathway')
+            if(href =='home'){
+                Backbone.history.navigate('home', true);
+            }
+            else if (href == 'pathway')
             {
               Backbone.history.navigate("pathway/" + contextModel.get('pathid') + "/node/" + contextModel.get('code'), {trigger: true});
+            } else if (href == 'customers'){
+              Backbone.history.navigate("/customers", true);
             }
 
         }

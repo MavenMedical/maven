@@ -14,7 +14,7 @@ define([
         initialize: function (arg) {
             this.template = _.template(arg.template);
             this.render();
-            new pageOption({'Cutomers':['fa-user', 'customer']})
+            new pageOption({'Cutomers':['fa-user', 'customers']})
             contextModel.on('change:page', this.showhide(), this)
 
         },
@@ -22,9 +22,7 @@ define([
             'click .add-customer-button': 'addCustomer'
         },
         showhide: function(){
-           // alert('page change')
-            console.log('showhide',contextModel.get('page'))
-            if(contextModel.get('page') == 'customer'){
+            if(contextModel.get('page') == 'customers'){
                 this.$el.show();
             }else{
                 this.$el.hide();
