@@ -258,8 +258,13 @@ define([
             this.on('sync', function (obj, data) {
                 this.oldContent = JSON.stringify(this.toJSON())
                 this.set({'pathid': data.pathid}, {silent: true})
-                contextModel.set({'pathid': String(data.pathid)})
-                pathwayCollection.fetch()
+
+                if (String(data.pathid) == contextModel.get('pathid')){
+                    alert("Autosave failed")
+                } else {
+                    contextModel.set({'pathid': String(data.pathid)})
+                }
+                    pathwayCollection.fetch()
                 this.getPathToIDS()
                 treeContext.trigger('propagate')
             }, this)
