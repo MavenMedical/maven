@@ -11,7 +11,6 @@ define([
         folders: {'Folder A':{'Folder B':{}, 'Folder C': {}}},
 	    model: Backbone.Model.extend({idAttribute: 'canonical'}),
         url: function() {
-
             return '/list'
         },
         initialize: function(){

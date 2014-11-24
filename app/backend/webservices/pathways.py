@@ -46,24 +46,26 @@ class PathwaysWebservices():
                              'name': k[1], 'canonical': k[2], 'folder': k[3]} for k in protocols]),
                 None)
 
-    @http_service(['GET'], '/history',
+    @http_service(['GET'], '/history(?:(\d+)-(\d+)?)?',
                   [CONTEXT.USER, CONTEXT.CUSTOMERID],
-                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int},
+                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int, CONTEXT.CANONICALID: int},
                   {USER_ROLES.provider, USER_ROLES.supervisor})
     def get_hist(self, _header, body, context, _matches, _key):
-        return HTTP.OK_RESPONSE, json.dumps(['Alzheimer\'s', 'Diabetes']), None
 
-    """
         customer_id = context[CONTEXT.CUSTOMERID]
-        protocols = yield from self.persistence.get_protocol_history(customer_id)
+        canonical_id = context.get(CONTEXT.CANONICALID, None)
+        limit = self.helper.limit_clause(_matches)
 
+        protocols = yield from self.persistence.get_protocol_history(customer_id, canonical_id, limit=limit)
+
+        #return HTTP.OK_RESPONSE, json.dumps(results), None
         return (HTTP.OK_RESPONSE,
                 json.dumps([{CONTEXT.PATHID: k[0],
-                             CONTEXT.CANONICALID: k[2],
-                             CONTEXT.FOLDER: k[3],
-                             'name': k[1], 'canonical': k[2], 'folder': k[3]} for k in protocols]),
+                             CONTEXT.CANONICALID: k[1],
+                             'creation_date': k[2].strftime("%Y-%m-%d %H:%M:%S"),
+                             CONTEXT.OFFICIALNAME: k[3]} for k in protocols]),
                 None)
-    """
+
     @http_service(['GET'], '/search',
                   [CONTEXT.SEARCH_PARAM],
                   {'type': str, CONTEXT.SEARCH_PARAM: str},
@@ -138,6 +140,24 @@ class PathwaysWebservices():
         activity_msg = json.loads(body.decode('utf-8'))
 
         result = yield from self.persistence.post_protocol_activity(customer_id, user_id, activity_msg)
+
+        if result:
+            return HTTP.OK_RESPONSE, "", None
+        else:
+            return HTTP.BAD_RESPONSE, "", None
+
+    @http_service(['POST'], '/pathway',
+                  [CONTEXT.USERID, CONTEXT.CUSTOMERID, CONTEXT.CANONICALID, CONTEXT.PATHID],
+                  {CONTEXT.USERID: int, CONTEXT.CUSTOMERID: int, CONTEXT.CANONICALID: int,
+                   CONTEXT.PATHID: int},
+                  {USER_ROLES.provider, USER_ROLES.supervisor})
+    def update_current_path(self, _header, body, context, _matches, _key):
+        customer_id = context[CONTEXT.CUSTOMERID]
+        canonical_id = context[CONTEXT.CANONICALID]
+        new_path_id = context[CONTEXT.PATHID]
+
+        # TODO - implement
+        result = yield from self.persistence.update_current_path(customer_id, canonical_id, new_path_id)
 
         if result:
             return HTTP.OK_RESPONSE, "", None

@@ -90,7 +90,7 @@ define([
                 }
             }
         }
-        var thisModel = new Backbone.Model({id: model.get('pathid'), name: model.get('name')})
+        var thisModel = new Backbone.Model({id: model.get('pathid'), name: model.get('name'), canonical: model.get("canonical")})
         var pathRow = new PathRow({model: thisModel})
 
         $(currentEl).append(pathRow.render().$el)

@@ -15,13 +15,14 @@ define([
 
     'globalmodels/contextModel',
 
-], function ($, _, Backbone, historyRowTemplate, ContextModel) {
+], function ($, _, Backbone, historyRowTemplate, contextModel) {
 
-    var AuditRow = Backbone.View.extend({
+    var HistoryRow = Backbone.View.extend({
         tagName: "div class='history-row'",
         template: _.template(historyRowTemplate),
         events: {
-            'click .history-checkbox': 'handleCheck'
+            'click .history-checkbox': 'handleCheck',
+            'click .history-select-button': 'handleSelect'
         },
         render: function(){
             $(this.el).html(this.template($.extend({viewid:this.cid},this.model.toJSON())));
@@ -30,9 +31,14 @@ define([
         handleCheck: function(){
             $(this.el).parent().find(".history-checkbox").switchClass("glyphicon-check", "glyphicon-unchecked")
             $(".history-checkbox", this.$el).switchClass("glyphicon-unchecked", "glyphicon-check");
+            $(this.el).trigger("change");
+
+        },
+        handleSelect: function() {
+            contextModel.set('pathid', String(this.model.get('pathid')));
         }
     });
 
-    return AuditRow;
+    return HistoryRow;
 
 });

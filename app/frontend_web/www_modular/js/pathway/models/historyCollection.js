@@ -9,10 +9,9 @@ define([
 
     var HistoryCollection = ScrollCollection.extend({
         url: function () {
-            return '/users' + this.offset + '-' + (this.offset + this.limit);
+            return '/history' + this.offset + '-' + (this.offset + this.limit);
         },
         model: HistoryModel,
-        extraData: {},
         refresh: function () {
             if (contextModel.get('userAuth')) {
                 //allow for additional data to be passed in, aside from the context model

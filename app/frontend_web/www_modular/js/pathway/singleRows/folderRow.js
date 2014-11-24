@@ -48,6 +48,24 @@ define([
                     //curFolder.siblings().hide();
                 }
         },
+        setParents: function(){
+            //check the location of the folder - if it has moved, update the parent list and return true
+
+            var newParentList = [this.parentList[this.parentList.length-1]];
+            var parentFolder = $(this.el).parent().closest(".pathway-sub-folder");
+            while (parentFolder.length){
+                parentName = parentFolder.children(".pathway-folder-title").attr('name');
+                newParentList.push(parentName);
+                parentFolder = $(parentFolder).parent().closest(".pathway-sub-folder");
+            }
+            newParentList.reverse();
+            if (!_.isEqual(newParentList, this.parentList)){
+                //folder location has changed so update the parent list
+                this.parentList = newParentList;
+                return true;
+            }
+            return false;
+        },
         handleNewPathway: function(event) {
             event.stopPropagation();
             new NewPathway({el: '#modal-target', parentList: this.parentList});
@@ -114,7 +132,16 @@ define([
                     event.stopImmediatePropagation();
                     event.stopPropagation();
                     curCollection.saveOrder();
-                    }
+                },
+                update: function(event, ui){
+                    //if the folder row was moved we may need to update the path
+                    that.setParents();
+                },
+                sort: function(event, ui){
+                    //if the folder row was moved we may need to update the path
+                    that.setParents();
+                }
+
                     /*else {
                         $(event.target).closest("display", "inline-block");
                     }*/

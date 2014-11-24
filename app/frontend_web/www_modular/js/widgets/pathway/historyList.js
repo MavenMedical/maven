@@ -16,6 +16,7 @@ define([
     var HistoryList = Backbone.View.extend({
     extraData: {},
     lastHeight: 0,
+    currentPath: 0,
     first: true,
     initialize: function(arg) {
         if (typeof arg.template !== "undefined") {
@@ -27,23 +28,27 @@ define([
         if (typeof arg.extraData !== "undefined") {
             this.extraData = arg.extraData;
         }
+        if (typeof arg.currentPath !== "undefined") {
+            this.currentPath = arg.currentPath;
+        }
         historyCollection = new (HistoryCollection.extend({extraData: this.extraData}));
 
         this.$el.html(this.template({height:$(window).height()-50+'px'}));1
 	    historyCollection.bind('add', this.addHistory, this);
 	    historyCollection.bind('reset', this.reset, this);
-	    historyCollection.bind('sync', this.render, this);
+	    //historyCollection.bind('sync', this.render, this);
 	    //this.render();
 	},
     events: {
 
     },
 	render: function() {
+        this.reset();
+
 	    this.$el.html(this.template(this));
 	    this.addAll();
 	},
 	addAll: function() {
-	    this.reset();
 	    var nonempty = false;
 	    if (historyCollection.length) {
 		for(hist in historyCollection.models) {
@@ -76,14 +81,26 @@ define([
         }
 	},
 	addHistory: function(history) {
+        curpath = history.get("pathid");
+        if (this.currentPath == curpath){
+            history.set({active: 1});
+        }
+        else {
+            history.set({active: 0});
+        }
 	    var historyrow = new HistoryRow({model: history});
 	    $('.historyaccordion', this.$el).append(historyrow.render().el);
+        $(historyrow.el).bind("change", {activePath: historyrow.model.get("pathid"), that: this}, this.updateActivePathway);
+
 	    //this.$el.show();
         //historyrow.events();
-	},	
+	},
+    updateActivePathway: function(event) {
+        event.data.that.currentPath = event.data.activePath;
+        $(this.el).trigger("change");
+    },
 	reset: function() {
-	    $('.historytable > tbody', this.$el).empty();
-	    this.$el.hide();
+	    $(this.$el).empty();
 	},
     });
 

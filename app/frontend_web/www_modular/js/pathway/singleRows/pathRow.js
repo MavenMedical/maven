@@ -91,10 +91,14 @@ define([
                 $(".pathway-history-section").not(pathwayHistory).hide();
                 if (pathwayHistory.is(":empty")) {
                     //only fetch history if not yet fetched
-                    var extraData = {canonical: this.model.get('id')};
-                    this.historyList = new HistoryList({el: $(".pathway-history-section", this.$el), extraData: extraData});
+                    var extraData = {canonical: this.model.get('canonical')};
+                    this.historyList = new HistoryList({el: $(".pathway-history-section", this.$el), currentPath: this.model.get('id'), extraData: extraData});
+                    $(this.historyList.el).bind("change", {that: this}, this.updateActivePathway);
                 }
             }
+        },
+        updateActivePathway: function(event) {
+            event.data.model.set('id', event.data.that.historyList.currentPath);
         },
     	handleRemove: function() {
             this.model.destroy({success: function(){
