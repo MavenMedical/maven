@@ -464,19 +464,20 @@ class CompositionEvaluator(SP.StreamProcessor):
 
             # Discussion 2014-11-11 Yuki-Dave: we should just send the highest priority pathway if multiple are triggered
             matched_pathways.sort(key=lambda x: x.priority, reverse=True)
-            pathway = matched_pathways[0]
-            FHIR_alert = FHIR_API.Alert(customer_id=composition.customer_id,
-                                        category=ALERT_TYPES.PATHWAY,
-                                        subject=composition.subject.get_pat_id(),
-                                        CDS_rule=pathway.CDS_rule_id,
-                                        priority=pathway.priority,
-                                        provider_id=composition.get_author_id(),
-                                        encounter_id=composition.encounter.get_csn(),
-                                        alert_datetime=datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
-                                        short_title=("Clinical Pathway Detected"),
-                                        short_description=("Clinical Pathway recommendations are available"),
-                                        long_description=("Clinical Pathway recommendations are available"))
-            alerts_section.content.append(FHIR_alert)
+            for pathway in matched_pathways:
+                FHIR_alert = FHIR_API.Alert(customer_id=composition.customer_id,
+                                            category=ALERT_TYPES.PATHWAY,
+                                            subject=composition.subject.get_pat_id(),
+                                            CDS_rule=pathway.CDS_rule_id,
+                                            priority=pathway.priority,
+                                            provider_id=composition.get_author_id(),
+                                            encounter_id=composition.encounter.get_csn(),
+                                            alert_datetime=datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                                            short_title=("Clinical Pathway Detected"),
+                                            long_title=pathway.name,
+                                            short_description=("Clinical Pathway recommendations are available"),
+                                            long_description=("Clinical Pathway recommendations are available"))
+                alerts_section.content.append(FHIR_alert)
 
             # Old logic for looping through multiple returned Pathway Rules. Instead, we're sorting based on priority
             # and creating an Alert for only the highest priority
@@ -582,7 +583,6 @@ def run_composition_evaluator():
     MC.MavenConfig.update(MavenConfig)
 
     fhir_persistence = FD.FHIRPersistence(CONFIG_PARAMS.PERSISTENCE_SVC.value)
-
 
     loop = asyncio.get_event_loop()
     sp_message_handler = CompositionEvaluator(rabbithandler, fhir_persistence)
