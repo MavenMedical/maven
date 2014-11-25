@@ -34,8 +34,10 @@
             this.shapeContainer1 = new Microsoft.VisualBasic.PowerPacks.ShapeContainer();
             this.mover = new Microsoft.VisualBasic.PowerPacks.RectangleShape();
             this.boxHeader = new Microsoft.VisualBasic.PowerPacks.RectangleShape();
+            this.btnBack = new System.Windows.Forms.PictureBox();
             this.btnMinMax = new System.Windows.Forms.PictureBox();
             this.btnclose = new System.Windows.Forms.PictureBox();
+            ((System.ComponentModel.ISupportInitialize)(this.btnBack)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.btnMinMax)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.btnclose)).BeginInit();
             this.SuspendLayout();
@@ -85,6 +87,20 @@
             this.boxHeader.Name = "boxHeader";
             this.boxHeader.Size = new System.Drawing.Size(1019, 18);
             // 
+            // btnBack
+            // 
+            this.btnBack.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.btnBack.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+            this.btnBack.ErrorImage = null;
+            this.btnBack.Image = global::MavenAsDemo.Properties.Resources.back;
+            this.btnBack.InitialImage = null;
+            this.btnBack.Location = new System.Drawing.Point(32, 3);
+            this.btnBack.Name = "btnBack";
+            this.btnBack.Size = new System.Drawing.Size(16, 15);
+            this.btnBack.TabIndex = 5;
+            this.btnBack.TabStop = false;
+            this.btnBack.Click += new System.EventHandler(this.btnBack_Click);
+            // 
             // btnMinMax
             // 
             this.btnMinMax.BackColor = System.Drawing.Color.WhiteSmoke;
@@ -119,6 +135,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.LightGray;
             this.ClientSize = new System.Drawing.Size(1024, 768);
+            this.Controls.Add(this.btnBack);
             this.Controls.Add(this.btnMinMax);
             this.Controls.Add(this.btnclose);
             this.Controls.Add(this.browserDisplay);
@@ -127,6 +144,7 @@
             this.Name = "frmHardAlert";
             this.Text = "Maven Pathways";
             this.Load += new System.EventHandler(this.frmHardAlert_Load);
+            ((System.ComponentModel.ISupportInitialize)(this.btnBack)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.btnMinMax)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.btnclose)).EndInit();
             this.ResumeLayout(false);
@@ -142,5 +160,6 @@
         private Microsoft.VisualBasic.PowerPacks.RectangleShape boxHeader;
         private Microsoft.VisualBasic.PowerPacks.RectangleShape mover;
         private System.Windows.Forms.PictureBox btnMinMax;
+        private System.Windows.Forms.PictureBox btnBack;
     }
 }

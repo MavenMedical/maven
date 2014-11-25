@@ -202,6 +202,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </Content>
+    <None Include="Resources\back.png" />
     <None Include="Resources\min.png" />
     <None Include="Resources\minmax.png" />
     <None Include="Resources\small.gif" />
