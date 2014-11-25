@@ -24,8 +24,10 @@ from clientApp.webservice.composition_builder import CompositionBuilder
 import maven_logging as ML
 from collections import defaultdict
 from utils.enums import CONFIG_PARAMS
-icd9_keyword_match = re.compile('\(V?[0-9]+(?:\.[0-9]+)?\)')
-icd9_capture = re.compile('(?:\((V?[0-9]+(?:\.[0-9]+)?)\))')
+#icd9_keyword_match = re.compile('\(V?[0-9]+(?:\.[0-9]+)?\)')
+icd9_keyword_match = re.compile('\(V?[0-9]+(?:\.[0-9]+)?(?:\s+\|\s\w+(?:\.\w+)?)?\)')
+#icd9_capture = re.compile('(?:\((V?[0-9]+(?:\.[0-9]+)?)\))')
+icd9_capture = re.compile('(?:\((V?[0-9]+(?:\.[0-9]+)?)(?:\s+\|\s\w+(?:\.\w+)?)?\))')
 CLIENT_SERVER_LOG = ML.get_logger('clientApp.webservice.allscripts_server')
 
 
@@ -72,10 +74,12 @@ class scheduler():
                     sched = yield from self.allscripts_api.GetSchedule(None, today)
                     polling_providers = {x[0] for x in filter(self.check_notification_policy, self.active_providers)}
                     tasks = set()
-                    CLIENT_SERVER_LOG.debug('processing %s providers for %s' % (polling_providers, self.customer_id))
+                    CLIENT_SERVER_LOG.info('processing %s providers for %s' % (polling_providers, self.customer_id))
 
                     for appointment in sched:
-                        provider = appointment['ProviderID']
+                        provider = appointment.get('ProviderID', None)
+                        if not provider:
+                            ML.WARN('appointment has no provider!  %s' % (appointment,))
                         if provider in polling_providers:
                             patient = appointment['patientID']
                             tasks.add((patient, provider, today, self.firsts[provider]))
@@ -96,7 +100,7 @@ class scheduler():
 
     @asyncio.coroutine
     def evaluate(self, patient, provider_id, today, first):
-        CLIENT_SERVER_LOG.debug('evaluating %s/%s' % (patient, provider_id))
+        CLIENT_SERVER_LOG.info('evaluating %s/%s' % (patient, provider_id))
         provider = self.active_providers.get((provider_id, str(self.customer_id)))
         provider_username = provider.get('user_name')
 
@@ -120,27 +124,29 @@ class scheduler():
 
                     # Add the provider/patient/encounter key to dictionary of evaluations if we haven't already
                     encounter_id = doc.get('DocumentID')
-                    if (provider_id, patient, encounter_id) not in self.evaluations.keys():
-                        self.evaluations[(provider_id, patient, encounter_id)] = {"encounter_create": True,
-                                                                                  "assessment_and_plan": True}
+                    tripple = (provider_id, patient, encounter_id)
+                    if tripple not in self.evaluations:
+                        self.evaluations[tripple] = {"encounter_create": True, "assessment_and_plan": True}
+
                     # Check the keywords, and if there are ICD9 keywords we know that the clinician is already
                     # at the Assessment & Plan, so perform the "assessment_and_plan" evaluation (if haven't already)
                     document_keywords = doc.get('keywords', '')
                     has_ICD9_keywords = icd9_keyword_match.search(document_keywords)
                     encounter_dx = icd9_capture.findall(document_keywords)
 
-                    if has_ICD9_keywords and self.evaluations[(provider_id, patient, encounter_id)].get('assessment_and_plan'):
+                    # CLIENT_SERVER_LOG.info("enc_dx = %s, haskeywords = %s, keywords %s, can_continue = %s" % (encounter_dx, has_ICD9_keywords, document_keywords, self.evaluations[tripple]))
+                    if has_ICD9_keywords and self.evaluations[tripple].get('assessment_and_plan'):
+                        # Set the flag in the evaluations dictionary so we don't do this evaluation again
+                        self.evaluations[tripple]['assessment_and_plan'] = False
+                        self.evaluations[tripple]['encounter_create'] = False
                         if not first:
                             yield from self.build_composition_and_evaluate(provider_username, patient, encounter_id, enc_datetime, encounter_dx, 'assessment_and_plan')
-                        # Set the flag in the evaluations dictionary so we don't do this evaluation again
-                        self.evaluations[(provider_id, patient, encounter_id)]['assessment_and_plan'] = False
-                        self.evaluations[(provider_id, patient, encounter_id)]['encounter_create'] = False
 
                     # If there are no ICD9 keywords, perform the "encounter_create" evaluation (if we haven't already)
-                    elif self.evaluations[(provider_id, patient, encounter_id)].get('encounter_create'):
+                    elif self.evaluations[tripple].get('encounter_create'):
+                        self.evaluations[tripple]['encounter_create'] = False
                         if not first:
                             yield from self.build_composition_and_evaluate(provider_username, patient, encounter_id, enc_datetime, encounter_dx, 'encounter_create')
-                        self.evaluations[(provider_id, patient, encounter_id)]['encounter_create'] = False
 
         except AllscriptsError as e:
             CLIENT_SERVER_LOG.exception(e)
@@ -149,9 +155,9 @@ class scheduler():
 
     @asyncio.coroutine
     def build_composition_and_evaluate(self, provider_username, patient, encounter_id, enc_datetime, encounter_dx, eval_type):
-        CLIENT_SERVER_LOG.debug("About to send to Composition Builder... %s, %s " % (provider_username, encounter_id))
+        CLIENT_SERVER_LOG.info("About to send to Composition Builder... %s, %s " % (provider_username, encounter_id))
         composition = yield from self.comp_builder.build_composition(provider_username, patient, encounter_id, enc_datetime, encounter_dx)
-        CLIENT_SERVER_LOG.debug(("Sending to backend for %s evaluation. Composition ID = %s" % (composition.id, eval_type)))
+        CLIENT_SERVER_LOG.info(("Sending to backend for %s evaluation. Composition ID = %s" % (composition.id, eval_type)))
         ML.TASK(self.parent.evaluate_composition(composition))
 
     def check_notification_policy(self, key):

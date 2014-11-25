@@ -169,7 +169,7 @@ class allscripts_api(http.http_api):
                                            Password=self.apppassword)
                 if not req or req.startswith('error'):
                     raise AllscriptsError('Could not get token - ' + req)
-                INFO('Acquired token')
+                INFO('Acquired token: %s' % (req,))
                 if self.unitytoken == fut:
                     self.unitytoken = req
                 fut.set_result(req)
@@ -480,6 +480,16 @@ class allscripts_api(http.http_api):
                                                             user=username))
         return self.postprocess(ret)
 
+#    @_require_token
+#    def GetDocuments2(self, username: str, patient: str, 
+#                      startdate: {str, 'date', 'datetime'}, enddate: {str, 'date', 'datetime'},
+#                      documentid: str=None, documenttype: str=None):
+#        ret = yield from self.post('/json/MagicJson',
+#                                   data=self._build_message('GetDocuments',
+#                                                            isoformat(startdate), isoformat(enddate),
+#                                                            user=username, patient=patient))
+#        return self.postprocess(ret)
+                                                            
     @_require_token
     def GetDocuments(self, username: str, patient: str,
                      startdate: {str, 'date', 'datetime'}, enddate: {str, 'date', 'datetime'},
@@ -635,11 +645,11 @@ class allscripts_api(http.http_api):
     def build_partial_practitioner(self, provider_result):
 
         # Extract the demographic information
-        firstname = provider_result['FirstName']
+        firstname = provider_result.get('FirstName', None)
         lastname = provider_result['LastName']
 
-        specialty = provider_result['PrimSpecialty']
-        profession = provider_result['Profession']
+        specialty = provider_result.get('PrimSpecialty', None)
+        profession = provider_result.get('Profession', None)
 
         # Extract User State (active vs inactive)
         if provider_result['ProviderInactive'] == "N":
@@ -746,13 +756,13 @@ if __name__ == '__main__':
     api = allscripts_api(config)
     loop = asyncio.get_event_loop()
     # Ehr_username = 'MAVEN'
-    Ehr_username = 'CliffHux'
+    Ehr_username = 'BFULCO'
     # break
     # wrapexn(api.GetProvider(Ehr_username, searchid='10041'))
     if input('GetServerInfo (y/n)? ') == 'y':
         wrapexn(api.GetServerInfo())
-    import sys
-    sys.exit(0)
+    if input('GetProviders (y/n)? ') == 'y':
+        wrapexn(api.GetProviders())
     patient = input('Enter a Patient ID to display (e.g., 22): ')
     if not patient:
         patient = '22'
@@ -791,8 +801,6 @@ if __name__ == '__main__':
         wrapexn(api.GetPatientFull(Ehr_username, patient))
     if input('GetEncounter (y/n)? ') == 'y':
         wrapexn(api.GetEncounter(Ehr_username, patient))
-    if input('GetProviders (y/n)? ') == 'y':
-        wrapexn(api.GetProviders())
     if input('GetProvider (y/n)? ') == 'y':
         wrapexn(api.GetProvider(Ehr_username, searchname='terry'))
     if input('GetUserID (y/n)? ') == 'y':

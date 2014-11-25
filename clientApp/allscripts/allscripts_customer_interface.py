@@ -94,7 +94,7 @@ class AllscriptsCustomerInterface:
     @asyncio.coroutine
     def handle_evaluated_composition(self, composition):
 
-        CLIENT_SERVER_LOG.debug(("Received Composition Object from the Maven backend engine: ID = %s" % composition.id))
+        CLIENT_SERVER_LOG.info(("Received Composition Object from the Maven backend engine: ID = %s" % composition.id))
         # ## tom: this has no authentication yet
         # composition.customer_id
         user = composition.author.get_provider_username().upper()
@@ -102,6 +102,7 @@ class AllscriptsCustomerInterface:
         pat_id = composition.subject.get_pat_id()
         alerts_section = composition.get_section_by_coding(code_system="maven", code_value="alerts")
 
+        ML.INFO('got back %s alerts' % (len(alerts_section.content),))
         if len(alerts_section.content) > 0:
             msg = yield from self.notification_generator.generate_alert_content(composition, 'web', None)
             CLIENT_SERVER_LOG.debug(("Generated Message content: %s" % msg))

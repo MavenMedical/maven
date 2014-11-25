@@ -51,6 +51,7 @@ class CompositionEvaluator(SP.StreamProcessor):
 
     @asyncio.coroutine
     def read_object(self, obj, _):
+        ML.INFO("comp_evaluator received a composition")
 
         # Load the FHIR Composition from the pickle
         composition = pickle.loads(obj)

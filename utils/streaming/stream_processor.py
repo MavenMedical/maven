@@ -608,7 +608,7 @@ class MappingParser(asyncio.Protocol):
 
     def create_task(coro, loop):
         # only called with loop.call_soon_threadsafe, will be called in the main loop
-        asyncio.Task(coro, loop=loop)
+        asyncio.async(coro, loop=loop)
 
 
 class _IdentityParser(MappingParser):

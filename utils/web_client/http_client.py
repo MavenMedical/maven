@@ -101,7 +101,7 @@ class http_api():
             resp = yield from aiohttp.request(method, self.base_url + resource, params=params,
                                               data=data, headers=headers)
             if resp.status < 200 or resp.status >= 300:
-                WARN('query %s returned %s' % (self.base_url + resource, resp.status))
+                WARN('query %s returned %s' % ((self.base_url + resource, params, data, headers), resp.status))
                 raise HttpClientException("HTTP %s: %s" % (resp.status, _http_responses.get(resp.status, '')))
             ret = yield from resp.content.read()
             if self.decode:
