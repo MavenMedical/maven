@@ -22,7 +22,7 @@ define([
         console.log(NewPathwayFolder);
 
     var ruleRow = Backbone.View.extend({
-        tagName: "div class='pathway-sub-folder ui-state-default sortable-folder'",
+        tagName: "li",
         template: _.template(pathFolderRowTemplate),
         parentList: [], //parent folders
         events: {
@@ -38,12 +38,15 @@ define([
                 //open folder - change folder icon to 'open' and show all immediate children
                     $(".folder-state", curFolder).switchClass("glyphicon-folder-close", "glyphicon-folder-open");
                     //$(".ui-state-default", this.$el).css("display","inline-block");
-                    curFolder.siblings().css("display","inline-block");
+                    //$("ol", this.$el).css("display","inline-block");
+                    $(this.el).find("ol").first().show();//css("display","inline-block");
                 }
                 else {
                     //close folder - change folder icon to 'close' and hide all children
                     $(".folder-state", this.$el).switchClass("glyphicon-folder-open", "glyphicon-folder-close");
-                    $(".ui-state-default", this.$el).hide();
+                   // $("ol", this.$el).hide();
+                                    $(this.el).find("ol").first().hide();
+
 
                     //curFolder.siblings().hide();
                 }
@@ -77,7 +80,11 @@ define([
         render: function(){
             that = this;
             $(this.el).html(this.template(this.model.toJSON()));
+            $(this.el).hover(function(){
+                curFolder = $(that.el).find(".pathway-folder-title").first();
 
+                $(".folder-state", curFolder).switchClass("glyphicon-folder-close", "glyphicon-folder-open");
+            });
             /*$(".pathway-folder-title", this.$el).click(function(event){
                 event.stopPropagation();
                 event.stopImmediatePropagation();
@@ -95,13 +102,17 @@ define([
                     connectWith: ".sortable-folder",
                 });*/
 
+/*
+            $('.sortable-folder').nestedSortable({
+                handle: 'div',
+                items: 'li',
+                toleranceElement: '> div',
 
-            $(this.el).sortable({
-                connectWith: ".sortable-folder",
-                items: '> div:not(.pathway-folder-title):not(.ui-folder-placeholder)', //don't allow user to move the folder title
+                //connectWith: ".sortable-folder",
+                //items: '> div:not(.pathway-folder-title):not(.ui-folder-placeholder)', //don't allow user to move the folder title
                 helper : 'clone',
                 containment: "#avail-paths-list",
-                sort: function (event, ui) {
+                /*sort: function (event, ui) {
                     //make the sort function more responsive and user friendly
                     //var that = $(this),
                     var el = $(this);//ui.placeholder.parent();
@@ -142,11 +153,9 @@ define([
                     that.setParents();
                 }
 
-                    /*else {
-                        $(event.target).closest("display", "inline-block");
-                    }*/
 
-            });
+
+            });*/
             return this;
         },
         initialize: function(params){

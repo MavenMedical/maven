@@ -58,7 +58,6 @@ class PathwaysWebservices():
 
         protocols = yield from self.persistence.get_protocol_history(customer_id, canonical_id, limit=limit)
 
-        #return HTTP.OK_RESPONSE, json.dumps(results), None
         return (HTTP.OK_RESPONSE,
                 json.dumps([{CONTEXT.PATHID: k[0],
                              CONTEXT.CANONICALID: k[1],

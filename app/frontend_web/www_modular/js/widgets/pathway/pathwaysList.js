@@ -19,6 +19,7 @@ define([
     'pathway/modalViews/newPathwayFolder',
     'pathway/singleRows/folderRow',
 
+    'nestedSortable'
 
 ], function ($, _, Backbone,  contextModel, curCollection, curTree,  NewPathway, PathRow, pathwaysListTemplate, newPathwayFolder, FolderRow) {
 
@@ -55,67 +56,59 @@ define([
     },
     insertPathway: function(model, newlyAdded){
         //given a pathway's location, add it to the proper folder; if folder doesn't exist, create it
-        /*if (path == ""){
-            return "#avail-paths-list";
-        }*/
+
         var currentEl = $("#avail-paths-list");
         var path = model.get('folder');
 
+        //if path isn't specified, simply add pathway to the top level
         if (path!=null && path!="") {
             var folders = path.substring(1).split('/');
 
-            //$.each(folders, function(index,value){
             for (var i = 0; i < folders.length; i++) {
-                //var curFolder = $(currentEl).children(".pathway-sub-folder");
                 var foundFolder = false;
-                $.each(currentEl.children(".pathway-sub-folder"), function () {
+                $.each(currentEl.children("li"), function () {
                     var title = $(this).children(".pathway-folder-title").attr("name");
-                    if (title == folders[i]) {
-                        currentEl = $(this);
-                        foundFolder = true;
-                        return false;
+                    if (title) {
+                        if (title == folders[i]) {
+                            currentEl = $(this).children("ol");
+                            foundFolder = true;
+                            return false;
+                        }
                     }
-                });                //.children(".folder-title[name='" + folders[i] + "']");
+                });
                 if (foundFolder) {
                     //folder exists
                     continue;
-                    //currentEl = $(curFolder).closest(".pathway-sub-folder");
                 }
                 else {
                     //folder doesn't exist, so create it
                     var thisModel = new Backbone.Model({name: folders[i]});
                     var thisRow = new FolderRow({model: thisModel, parentList: folders.slice(0,i)})
                     currentEl.append(thisRow.render().$el);
-                    currentEl = $(thisRow.el);
+                    currentEl = $(thisRow.el).children("ol");
                 }
             }
         }
+        //create new pathway row
         var thisModel = new Backbone.Model({id: model.get('pathid'), name: model.get('name'), canonical: model.get("canonical")})
         var pathRow = new PathRow({model: thisModel})
 
         $(currentEl).append(pathRow.render().$el)
         if (newlyAdded) {
             //open folder if this has been added by the user
-            $(currentEl).children().css("display", "inline-block");
+            $(currentEl).children().show();//css("display", "inline-block");
             if ($(currentEl)!=$("#avail-paths-list")){
-                $(currentEl).children(".pathway-folder-title").children(".folder-state").switchClass("glyphicon-folder-close", "glyphicon-folder-open");
+                $(currentEl).parent().children(".pathway-folder-title").children(".folder-state").switchClass("glyphicon-folder-close", "glyphicon-folder-open");
             }
         }
-        //$('.sortable-folder').sortable("refresh");
-        //return $(currentEl);
     },
 	render: function(){
         var that = this;
         this.$el.html(this.template());
         var appendEl =  $('#avail-paths-list', this.$el)
-        /*$.each(curCollection.folders, (function(folderName, children){
-            that.renderFolder(folderName, children, $("#pathway-directory"), that);
-        }));*/
+
         _.each(curCollection.models, function(cur){
-            //var thisModel = new Backbone.Model({id: cur.get('pathid'), name: cur.get('name')})
-            //var thisRow = new PathRow({model: thisModel})
             that.insertPathway(cur, false);
-            //$(appendEl).append(thisRow.render().$el)
         }, this)
 /*
         $('.sortable-folder').sortable({
@@ -128,13 +121,36 @@ define([
             zIndex:         9999,
         });
         $('.sortable-folder').disableSelection();*/
-
-        $('.sortable-folder').sortable({
-            connectWith: ".sortable-folder",
-            items: '> div:not(.pathway-folder-title, ui-folder-placeholder, .path-header)', //don't allow user to move the folder title
+    $('ol.sortable-folder').nestedSortable({
+        branchClass: 'mjs-nestedSortable-branch ui-sortable',
+			forcePlaceholderSize: true,
+			handle: 'div',
+			helper:	'clone',
+			items: 'li',
+			opacity: .6,
+			placeholder: 'placeholder',
+			revert: 250,
+			tabSize: 25,
+			tolerance: 'pointer',
+			toleranceElement: '> div',
+			maxLevels: 0,
+			isTree: true,
+			expandOnHover: 700,
+			startCollapsed: true,
+            doNotClear: false,
+            leafClass: 'mjs-nestedSortable-leaf ui-sortable'
+		});/*
+        $('.sortable-folder').nestedSortable({
+            //connectWith: ".sortable-folder",
+            //items: '> div:not(.pathway-folder-title, ui-folder-placeholder, .path-header)', //don't allow user to move the folder title
             helper : 'clone',
             containment: "#avail-paths-list",
-            sort: function (event, ui) {
+
+            handle: 'div',
+            items: 'li',
+            toleranceElement: '> div',
+
+            /*sort: function (event, ui) {
                 //make the sort function more responsive and user friendly
                 //var that = $(this),
                 var that = $(this);//ui.placeholder.parent();
@@ -156,7 +172,7 @@ define([
                 });
             },
             receive: function(event, ui) {
-                /*//if moving to a new folder, make sure the new folder is open and that items are visible
+                //if moving to a new folder, make sure the new folder is open and that items are visible
                 folder = $(event.target).closest(".pathway-sub-folder");
                 if (folder){
                     if (folder.find(".folder-state").hasClass("glyphicon-folder-close")) {
@@ -166,9 +182,9 @@ define([
                 }
                 else {
                     $(event.target).closest("display", "inline-block");
-                }*/
+                }
             }
-        });
+        });*/
 
     },
     handle_new_folder: function() {

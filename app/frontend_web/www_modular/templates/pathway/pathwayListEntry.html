@@ -1,6 +1,18 @@
-<div style="font-size: 150%; clear: both;" id="<%=id%>" class="path-header">
-     <div class="pathway-row-hist"><span style="padding-right: 5px; font-size:17px;"><a class='history-button'><span class="glyphicon glyphicon-list-alt"></span></a></span></div>
-     <div class="pathway-row-title" title="<%=name%>"><span><a class='select-button'><%=name%></a></span></div>
-     <div class="pathway-row-control"><span style="padding-right: 5px;"><a class='delete-button'>&#10006</a></span></div>
-     <div class="pathway-history-section" style="display:none;"></div>
+<div id="<%=id%>" class="path-header path-row">
+     <div class="pathway-row-hist" style="font-size:17px;">
+        <a class='history-button'>
+            <span class="glyphicon glyphicon-list-alt"></span>
+        </a>
+     </div>
+     <div class="pathway-row-title" title="<%=name%>">
+         <span><a class='select-button'><%=name%></a></span>
+     </div>
+     <div class="pathway-row-control">
+         <span style="padding-right: 5px;">
+             <a class='delete-button'>&#10006</a>
+         </span>
+     </div>
 </div>
+<ol class="pathway-history-section sortable-folder">
+
+</ol>

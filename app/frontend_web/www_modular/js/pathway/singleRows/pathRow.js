@@ -20,7 +20,7 @@ define([
 ], function ($, _, Backbone, router, contextModel, pathwayCollection, pathRowTemplate, HistoryList) {
 
     var ruleRow = Backbone.View.extend({
-        tagName: "div class='ui-state-default path-row'",
+        tagName: "li",
         template: _.template(pathRowTemplate),
         historyList: null,
         events:{
@@ -84,17 +84,17 @@ define([
             contextModel.set('pathid', String(this.model.get('id')))
         },
         handleHistory: function() {
-            var pathwayHistory = $(".pathway-history-section", this.$el)
+            var pathwayHistory = $("ol.pathway-history-section", this.$el)
             pathwayHistory.toggle();
             if (pathwayHistory.is(":visible")){
                 //hide all other history views
-                $(".pathway-history-section").not(pathwayHistory).hide();
-                if (pathwayHistory.is(":empty")) {
+                $("ol.pathway-history-section").not(pathwayHistory).hide();
+               // if (pathwayHistory.is(":empty")) {
                     //only fetch history if not yet fetched
                     var extraData = {canonical: this.model.get('canonical')};
                     this.historyList = new HistoryList({el: $(".pathway-history-section", this.$el), currentPath: this.model.get('id'), extraData: extraData});
                     $(this.historyList.el).bind("change", {that: this}, this.updateActivePathway);
-                }
+               // }
             }
         },
         updateActivePathway: function(event) {

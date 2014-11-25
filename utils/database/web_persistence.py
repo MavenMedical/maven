@@ -1264,11 +1264,13 @@ class WebPersistenceBase():
 
     @asyncio.coroutine
     def get_protocol_history(self, customer_id, canonical_id, limit=None):
-        cmd = ["SELECT protocol_id, canonical_id, creation_time, public.users.official_name from trees.protocol",
+        cmd = ["SELECT protocol_id, trees.protocol.canonical_id, creation_time, public.users.official_name ",
+               "from trees.protocol",
                "INNER JOIN public.users ON users.user_id = trees.protocol.creator",
                "INNER JOIN trees.canonical_protocol",
                "ON trees.protocol.canonical_id = trees.canonical_protocol.canonical_id",
-               "WHERE canonical_id=%s AND (trees.protocol.customer_id IS NULL OR trees.protocol.customer_id=%s)",
+               "WHERE trees.protocol.canonical_id=%s AND (trees.protocol.customer_id IS NULL",
+               "OR trees.protocol.customer_id=%s)",
                "ORDER BY creation_time DESC"]
         cmdArgs = [canonical_id, customer_id]
         if limit:
