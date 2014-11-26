@@ -50,8 +50,9 @@ define([
 
         render: function () {
             var protocolText = this.model.get('protocol')
-            var re = /\[\[(.*)\|(.*)\]\]/g
+            var re = /\[\[([\s\S]*?)\|([\s\S]*?)\]\]/g
             protocolText = protocolText.replace(re, function(m, p1, p2) {
+		p2 = p2.split('<p>').join('').split('</p>').join('')
                 return p1+': <input type="checkbox" value="'+p2+'" class="copy-text-button"/>';
             })
             
