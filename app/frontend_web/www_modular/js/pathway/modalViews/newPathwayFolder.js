@@ -39,21 +39,24 @@ define([
             var folder_name = $(".pathwayFolderName", this.$el).val();
             var thisModel = new Backbone.Model({name: folder_name});
             var thisRow = new FolderRow({model: thisModel, parentList: this.parentList})
+
             if (this.parentFolder !== null) {
                 //add folder
                 this.parentFolder.append(thisRow.render().$el);
 
                 //open parent folder
-                $(".folder-state", this.parentFolder).switchClass("glyphicon-folder-close", "glyphicon-folder-open");
+                //$(".folder-state", this.parentFolder).switchClass("glyphicon-folder-close", "glyphicon-folder-open");
                  //$(".ui-state-default", this.$el).css("display","inline-block");
-                    thisRow.$el.siblings().css("display","inline-block");
+                    //thisRow.$el.siblings().css("display","inline-block");
 
             }
             else {
-                $("#pathway-directory").append(thisRow.render().$el);
+                $("#avail-paths-list").append(thisRow.render().$el);
             }
-            $(thisRow.el).css('display','inline-block');
-            curCollection.addFolder(folder_name, this.parentList);
+            curCollection.makeSortable();
+
+            //$(thisRow.el).css('display','inline-block');
+            //curCollection.addFolder(folder_name, this.parentList);
             this.undelegateEvents(); // Unbind all local event bindings
 
             //$(this.el).empty(); // Remove view from DOM

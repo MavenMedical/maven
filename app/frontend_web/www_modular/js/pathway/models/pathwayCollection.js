@@ -2,7 +2,9 @@ define([
     'jquery',
     'underscore',
     'backbone',
-    'globalmodels/contextModel'
+    'globalmodels/contextModel',
+        'nestedSortable'
+
 ], function($, _, Backbone, contextModel){
 
 
@@ -28,7 +30,35 @@ define([
         saveOrder: function(){
             this.handleFolder("#avail-paths-list","", this);
         },
-
+        makeSortable: function(){
+            $('ol.sortable-folder').nestedSortable({
+                forcePlaceholderSize: true,
+			    handle: 'div',
+			    helper:	'clone',
+			    items: 'li',
+			    opacity: .6,
+			    placeholder: 'placeholder',
+			    revert: 250,
+			    tabSize: 25,
+			    tolerance: 'pointer',
+			    toleranceElement: '> div',
+			    maxLevels: 0,
+			    isTree: true,
+			    expandOnHover: 700,
+			    startCollapsed: true,
+                doNotClear: false,
+                branchClass: 'mjs-nestedSortable-branch ui-sortable',
+                leafClass: 'mjs-nestedSortable-leaf ui-sortable',
+                update: function(){
+                    //if the folder row was moved we may need to update the path
+                    that.setParents();
+                },
+                sort: function(){
+                    //if the folder row was moved we may need to update the path
+                    that.setParents();
+                }
+            });
+        },
         handleFolder: function(folder, path, that){
             var position = 0;
             $(folder).children().each(function(){

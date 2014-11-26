@@ -913,7 +913,7 @@ button:hover .btn-hover { display: inline; }
     border-color: white !important;
 }
 
-li.ui-sortable {
+li.ui-sortable, .sub-folder {
     clear:both;
     float:left;
     width:100%;
@@ -970,17 +970,26 @@ li.ui-sortable {
 }
 
 .pathway-folder-title {
-    font-size: 150%;
+    font-size: 125%;
     clear:both;
     float: left;
     width:100%;
     display: inline-block;
 }
 
+.add-sub-folder {
+    font-size:100%;
+}
+
 .folder-control {
     float:right;
     display: inline-block;
     vertical-align: bottom;
+}
+
+.folder-icon {
+    float:left;
+    margin-right: 2px;
 }
 
 .folder-control > a {
@@ -1065,9 +1074,9 @@ li.ui-sortable {
 }
 
 .placeholder {
-			outline: 1px dashed #4183C4;
-			/*-webkit-border-radius: 3px;
-			-moz-border-radius: 3px;
+    outline: 1px dashed #4183C4;
+	/*-webkit-border-radius: 3px;
+	moz-border-radius: 3px;
 			border-radius: 3px;
 			margin: -1px;*/
             float:left;
@@ -1155,10 +1164,18 @@ li.ui-sortable {
 		}
 
 
-		li.mjs-nestedSortable-collapsed > div > .disclose > span:before {
-			content: '+ ';
+		.mjs-nestedSortable-collapsed > .pathway-folder-title > .glyphicon-folder-close {
+            display: inline-block;
 		}
 
-		li.mjs-nestedSortable-expanded > div > .disclose > span:before {
-			content: '- ';
+        .mjs-nestedSortable-collapsed > .pathway-folder-title > .glyphicon-folder-open {
+            display: none;
+        }
+
+		.mjs-nestedSortable-expanded > .pathway-folder-title > .glyphicon-folder-close {
+            display: none;
 		}
+
+        .mjs-nestedSortable-expanded > .pathway-folder-title > .glyphicon-folder-open {
+            display: inline-block;
+        }

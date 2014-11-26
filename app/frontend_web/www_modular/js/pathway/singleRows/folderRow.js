@@ -16,19 +16,31 @@ define([
     'pathway/modalViews/newPathway',
     'pathway/modalViews/newPathwayFolder',
      'pathway/models/pathwayCollection',
+    'nestedSortable'
 
 
 ], function ($, _, Backbone, router, contextModel, pathFolderRowTemplate, NewPathway, NewPathwayFolder, curCollection) {
         console.log(NewPathwayFolder);
 
     var ruleRow = Backbone.View.extend({
-        tagName: "li",
+        tagName: "li class='mjs-nestedSortable-collapsed sub-folder'",
         template: _.template(pathFolderRowTemplate),
         parentList: [], //parent folders
         events: {
-            "click .pathway-folder-title": 'toggleFolder',
+            //"click .pathway-folder-title": 'toggleFolder',
+            "click .glyphicon-folder-open": 'closeFolder',
+            "click .glyphicon-folder-close": 'openFolder',
             "click .add-sub-pathway": 'handleNewPathway',
             "click .add-sub-folder": 'handleNewSubFolder',
+        },
+        openFolder: function(event){
+            //open folder - change folder icon to 'open' and show all immediate children
+            $(event.target).closest("li").switchClass("mjs-nestedSortable-collapsed", "mjs-nestedSortable-expanded");
+        },
+        closeFolder: function(event){
+            //close folder - change folder icon to 'close' and hide all children
+            $(event.target).closest("li").switchClass("mjs-nestedSortable-expanded", "mjs-nestedSortable-collapsed");
+            $(event.target).closest("li").find(".mjs-nestedSortable-branch").switchClass("mjs-nestedSortable-expanded", "mjs-nestedSortable-collapsed");
         },
         toggleFolder: function(event){
             event.stopPropagation();
@@ -39,14 +51,15 @@ define([
                     $(".folder-state", curFolder).switchClass("glyphicon-folder-close", "glyphicon-folder-open");
                     //$(".ui-state-default", this.$el).css("display","inline-block");
                     //$("ol", this.$el).css("display","inline-block");
-                    $(this.el).find("ol").first().show();//css("display","inline-block");
+                    $(this.el).switchClass("mjs-nestedSortable-collapsed", "mjs-nestedSortable-expanded");
+                    //.find("ol").first().show();//css("display","inline-block");
                 }
                 else {
                     //close folder - change folder icon to 'close' and hide all children
                     $(".folder-state", this.$el).switchClass("glyphicon-folder-open", "glyphicon-folder-close");
                    // $("ol", this.$el).hide();
-                                    $(this.el).find("ol").first().hide();
-
+                    $(this.el).switchClass("mjs-nestedSortable-expanded", "mjs-nestedSortable-collapsed");
+                    $(this.el).find(".mjs-nestedSortable-branch").switchClass("mjs-nestedSortable-expanded", "mjs-nestedSortable-collapsed");
 
                     //curFolder.siblings().hide();
                 }
@@ -55,36 +68,34 @@ define([
             //check the location of the folder - if it has moved, update the parent list and return true
 
             var newParentList = [this.parentList[this.parentList.length-1]];
-            var parentFolder = $(this.el).parent().closest(".pathway-sub-folder");
+            var parentFolder = $(this.el).parent().closest(".sub-folder");
             while (parentFolder.length){
                 parentName = parentFolder.children(".pathway-folder-title").attr('name');
                 newParentList.push(parentName);
-                parentFolder = $(parentFolder).parent().closest(".pathway-sub-folder");
+                parentFolder = $(parentFolder).parent().closest(".sub-folder");
             }
             newParentList.reverse();
-            if (!_.isEqual(newParentList, this.parentList)){
-                //folder location has changed so update the parent list
+            /*if (!_.isEqual(newParentList, this.parentList)){
+                //folder location has changed so update the parent list*/
                 this.parentList = newParentList;
-                return true;
-            }
-            return false;
+               // return true;
+            //}
+            //return false;
         },
         handleNewPathway: function(event) {
             event.stopPropagation();
-            new NewPathway({el: '#modal-target', parentList: this.parentList});
+            new NewPathway({el: '#modal-target', parentList: this.parentList,
+                            });
         },
         handleNewSubFolder: function(event) {
             event.stopPropagation();
-            var a = new NewPathwayFolder({el: '#modal-target', parentFolder: $(this.el), parentList: this.parentList});
+            this.setParents();
+            var a = new NewPathwayFolder({el: '#modal-target', parentFolder: $(this.el).children('ol').first(), parentList: this.parentList});
         },
         render: function(){
             that = this;
             $(this.el).html(this.template(this.model.toJSON()));
-            $(this.el).hover(function(){
-                curFolder = $(that.el).find(".pathway-folder-title").first();
 
-                $(".folder-state", curFolder).switchClass("glyphicon-folder-close", "glyphicon-folder-open");
-            });
             /*$(".pathway-folder-title", this.$el).click(function(event){
                 event.stopPropagation();
                 event.stopImmediatePropagation();

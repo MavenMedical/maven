@@ -96,10 +96,8 @@ define([
         $(currentEl).append(pathRow.render().$el)
         if (newlyAdded) {
             //open folder if this has been added by the user
-            $(currentEl).children().show();//css("display", "inline-block");
-            if ($(currentEl)!=$("#avail-paths-list")){
-                $(currentEl).parent().children(".pathway-folder-title").children(".folder-state").switchClass("glyphicon-folder-close", "glyphicon-folder-open");
-            }
+            $(currentEl).closest("li").switchClass("mjs-nestedSortable-collapsed", "mjs-nestedSortable-expanded");
+
         }
     },
 	render: function(){
@@ -110,6 +108,8 @@ define([
         _.each(curCollection.models, function(cur){
             that.insertPathway(cur, false);
         }, this)
+
+        curCollection.makeSortable();
 /*
         $('.sortable-folder').sortable({
             connectWith:    '.sortable-folder',
@@ -120,9 +120,8 @@ define([
             handel:         'ui-state-default',
             zIndex:         9999,
         });
-        $('.sortable-folder').disableSelection();*/
+        $('.sortable-folder').disableSelection();
     $('ol.sortable-folder').nestedSortable({
-        branchClass: 'mjs-nestedSortable-branch ui-sortable',
 			forcePlaceholderSize: true,
 			handle: 'div',
 			helper:	'clone',
@@ -138,6 +137,7 @@ define([
 			expandOnHover: 700,
 			startCollapsed: true,
             doNotClear: false,
+            branchClass: 'mjs-nestedSortable-branch ui-sortable',
             leafClass: 'mjs-nestedSortable-leaf ui-sortable'
 		});/*
         $('.sortable-folder').nestedSortable({
