@@ -30,7 +30,7 @@ require.config({
     },
     shim: {
         bootstrap :{
-            deps: ['jquery']
+            deps: ['jquery', 'jquery_ui']
         },
         bootstrapswitch :{
             deps: ['jquery', 'jquery_ui', 'bootstrap']

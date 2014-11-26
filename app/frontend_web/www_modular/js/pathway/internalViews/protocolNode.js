@@ -9,7 +9,7 @@ define([
     'pathway/models/treeContext',
     'pathway/modalViews/sendProtocol',
     'pathway/modalViews/sendFollowups',
-    'text!templates/pathway/protocolNode.html',
+    'text!templates/pathway/protocolNode.html'
 
 ], function ($, _, Backbone, currentContext, treeNode, curTree, treeContext , SendProtocol, SendFollowups, nodeTemplate) {
 
@@ -49,21 +49,31 @@ define([
 
 
         render: function () {
-            if (this.model.get('protocol') && this.model.get('protocol').attributes) {
-                this.$el.html(this.template({pathID: curTree.get('pathid'), protocolNode: this.model.attributes, page: currentContext.get('page')}));
-            } else {
-                this.$el.html(this.template({pathID: curTree.get('pathid'), protocolNode: this.model.attributes, page: currentContext.get('page')}));
-            }
+            var protocolText = this.model.get('protocol')
+            var re = /\[\[(.*)\|(.*)\]\]/g
+            protocolText = protocolText.replace(re, function(m, p1, p2) {
+                return p1+': <input type="checkbox" value="'+p2+'" class="copy-text-button"/>';
+            })
+            
+            this.$el.html(this.template({pathID: curTree.get('pathid'), protocolNode: this.model.attributes, page: currentContext.get('page'),
+                                         protocolText: protocolText}));
+            $('.copy-text-button', this.$el).click(function(evt) {evt.stopPropagation()})
             if (this.model == treeContext.get('selectedNode')){
                 $('.protocolNode', this.$el).addClass("selected")
             }
             return this
         },
-        copyProtocole: function () {
+        copyProtocole: function (evt) {
+            evt.stopPropagation()
 
              //this.trackActivity("copytext");
+            var copytext = this.model.get('noteToCopy')
+            $('input:checked', this.$el).each(function(index, elem) {
+                copytext = copytext + "  \n\n" + elem.value
+            })
+            console.log(copytext)
 
-             $('<div>'+this.model.attributes.noteToCopy+'</div>').attr('id', 'copiedText').appendTo('body');
+            $('<div>'+copytext+'</div>').attr('id', 'copiedText').appendTo('body');
 
             $('#toast').css('visibility', 'visible');
 
@@ -76,14 +86,16 @@ define([
             }, 2000);
 
         },
-        send: function () {
+        send: function (evt) {
+            evt.stopPropagation()
             var newSendProtocol = new SendProtocol(this.model);
         },
-        followup: function () {
+        followup: function (evt) {
+            evt.stopPropagation()
             var sendFollowups = new SendFollowups(this.model);
         },
-        sendSetup: function () {
-
+        sendSetup: function (evt) {
+            evt.stopPropagation()
 
         },
         getMyElement: function(){
