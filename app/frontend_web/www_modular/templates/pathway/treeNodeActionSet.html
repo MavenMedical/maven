@@ -5,13 +5,13 @@
                 <% if (page == 'pathEditor') { %>
                 <div class="btn-group btn-group-xs">
                     <button type="button" class="toolbar-button btn btn-default" id="addChildButton"><img src="../images/temp/newChild.jpg" style="width: 25px; height: 25px">Add Child</button>
-                    <% if (treeNode.children.length == 0){%>
+                    <% if (treeNode.children && treeNode.children.length == 0){%>
                     <button type="button" class="toolbar-button btn btn-default" id = "addProtocolButton"><img src="../images/temp/newProtocole.jpg" style="width: 25px; height: 25px">Add Protocol</button>
                     <%}%>
                 </div>
                 <%}%>
 
-                <% if (page == 'pathEditor' && (treeNode.children.length > 0||treeNode.protocol) ) {%>
+                <% if (page == 'pathEditor' && ((treeNode.children && treeNode.children.length > 0)||treeNode.protocol) ) {%>
                 <div class="btn-group btn-group-xs">
                     <button type="button" id = "collapseButton" class="toolbar-button btn btn-default ">
                             <% if (childrenHidden){%>
