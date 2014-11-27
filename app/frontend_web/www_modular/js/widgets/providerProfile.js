@@ -7,12 +7,17 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'globalmodels/contextModel',
-], function ($, _, Backbone, contextModel) {
+    'widgets/pageOption',
+], function ($, _, Backbone, contextModel, pageOption) {
 
     var Profile = Backbone.View.extend({
             initialize: function(arg){
                 this.template = _.template(arg.template);
                 this.render();
+                 new pageOption({'Profile':['fa-user', 'profile']})
+                this.showhide();
+                contextModel.on('change:page', this.showhide , this)
+
             },
             events: {
                 'keyup #official-name-input':'doentersave',
@@ -21,6 +26,13 @@ define([
                 'click #change-password': 'dochangepassword',
                 'click #save-settings': 'dosavesettings',
             },
+        showhide: function(){
+            if(contextModel.get('page') == 'profile'){
+                this.$el.show();
+            }else{
+                this.$el.hide();
+            }
+        },
             render: function (){
                 this.$el.html(this.template(contextModel.attributes));
             },

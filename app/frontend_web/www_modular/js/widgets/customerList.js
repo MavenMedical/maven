@@ -50,13 +50,15 @@ define([
             $(event.target).attr('title', "Last Refresh: " + customerCollection.getLastRefresh());
         });
 
-        contextModel.on('change:page', this.showhide(), this)
+         this.showhide();
+         contextModel.on('change:page', this.showhide , this)
+
 	},
     events: {
 	    'click #save-customer-changes': 'saveChanges',
         'click document': 'hideEdits'
     },
-        showhide: function(){
+       showhide: function(){
             if(contextModel.get('page') == 'customers'){
                 this.$el.show();
             }else{

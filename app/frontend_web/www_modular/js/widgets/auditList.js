@@ -8,8 +8,9 @@ define([
     'singleRow/auditRow',
 
     'globalmodels/contextModel',
+    'widgets/pageOption',
     'libs/jquery/jquery-mousestop-event'
-], function ($, _, Backbone, AuditCollection, AuditRow, contextModel) {
+], function ($, _, Backbone, AuditCollection, AuditRow, contextModel,pageOption) {
     var downloadaudit = ['date', 'patient', 'action', 'target', 'device', 'details'];
     var auditCollection;
 
@@ -37,11 +38,23 @@ define([
             auditCollection.initialize();
         });
 
+         new pageOption({'Audit List':['fa-user', '#auditlist']})
+                this.showhide();
+                contextModel.on('change:page', this.showhide , this)
+
+
 	},
     events: {
         'scroll .audit-scroll': 'handleScroll',
-	'click .download-user-audits': 'downloadAudits',
+	'click .download-user-audits': 'downloadAudits'
     },
+        showhide: function(){
+            if(contextModel.get('page') == 'auditlist'){
+                this.$el.show();
+            }else{
+                this.$el.hide();
+            }
+        },
     downloadAudits: function() {
         that = this;
         var argData = {};

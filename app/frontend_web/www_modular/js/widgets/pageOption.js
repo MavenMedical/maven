@@ -55,19 +55,16 @@ define([
             'click a':'setPage'
         },
        setPage: function(e){
-
-
             e.preventDefault();
-            var href = $(e.currentTarget).attr("href");
+
+           var href = $(e.currentTarget).attr("href");
            
-            if(href =='home'){
-                Backbone.history.navigate('home', true);
+            if(href =='pathway'){
+                Backbone.history.navigate("pathway/" + contextModel.get('pathid') + "/node/" + contextModel.get('code'), {trigger: true});
             }
-            else if (href == 'pathway')
+            else
             {
-              Backbone.history.navigate("pathway/" + contextModel.get('pathid') + "/node/" + contextModel.get('code'), {trigger: true});
-            } else if (href == 'customers'){
-              Backbone.history.navigate("/customers", true);
+              Backbone.history.navigate(href, true);
             }
 
            console.log('page option', contextModel.get('page'));

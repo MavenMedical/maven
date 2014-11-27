@@ -14,8 +14,9 @@ define([
         initialize: function (arg) {
             this.template = _.template(arg.template);
             this.render();
-            new pageOption({'Cutomers':['fa-user', 'customers']})
-            contextModel.on('change:page', this.showhide(), this)
+            new pageOption({'Customers':['fa-user', 'customers']})
+            this.showhide();
+            contextModel.on('change:page', this.showhide , this)
 
         },
         events: {

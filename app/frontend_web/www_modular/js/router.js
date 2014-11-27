@@ -80,6 +80,8 @@ define([
         routes: {
             "logout": 'logout',
             "settings": 'settings',
+            "auditlist(login/:user/:customer/)(:userAuth)": 'showAudit',
+            "profile(login/:user/:customer/)(:userAuth)": 'showProfile',
             "customers(login/:user/:customer/)(:userAuth)": 'showCustomers',
             "(login/:user/:customer/)(:userAuth)": 'showHome',
             "patient/:id(/login/:user/:customer/)(:userAuth)": 'showPatient',
@@ -136,6 +138,14 @@ define([
         },
         showCustomers: function(user, customer, userAuth){
             currentContext.set({page:'customers'}, {trigger:true});
+            showPage(user, customer, userAuth);
+        },
+        showProfile: function(user, customer, userAuth){
+            currentContext.set({page:'profile'}, {trigger:true});
+            showPage(user, customer, userAuth);
+        },
+        showAudit: function(user, customer, userAuth){
+            currentContext.set({page:'auditlist'}, {trigger:true});
             showPage(user, customer, userAuth);
         },
         logout: function () {
