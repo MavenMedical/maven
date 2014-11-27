@@ -1441,3 +1441,26 @@ class WebPersistenceBase():
                "SET status=%s WHERE task_id=%s"]
         cmdArgs = [status, task_id]
         yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
+
+    ##########################################################################################
+    ##########################################################################################
+    ##########################################################################################
+    #####
+    # NOTIFICATION SERVICE DATABASE SERVICES
+    #####
+    ##########################################################################################
+    ##########################################################################################
+    ##########################################################################################
+    @asyncio.coroutine
+    def insert_log(self, customer_id, log_datetime, tags, body, username=None, device=None):
+        cmd = ["INSERT INTO log(customer_id, log_datetime, username, device, tags, body)",
+               "VALUES (%s, %s, %s, %s, %s, %s)",
+               "RETURNING log_id"]
+        cmdArgs = [customer_id, log_datetime, tags, body, username, device]
+
+        log_id = yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
+
+        if isinstance(log_id, int):
+            return True
+        else:
+            return False

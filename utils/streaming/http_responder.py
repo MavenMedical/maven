@@ -135,9 +135,9 @@ class _HTTPStreamParser(SP.MappingParser):
         """
 
         ML.DEBUG("RECV: " + str(data))
-        
         # split the data on potential http request boundaries
-        splits = _HTTPStreamParser._starting_re.split(data)
+        # splits = _HTTPStreamParser._starting_re.split(data)
+        splits = [data]
 
         # for each non-empty split, parse it
         for sp in filter(None, splits):

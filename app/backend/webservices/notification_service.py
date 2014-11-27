@@ -7,6 +7,7 @@ import maven_config as MC
 import maven_logging as ML
 import utils.streaming.http_responder as HR
 from utils.enums import USER_ROLES, NOTIFICATION_STATE
+import datetime
 
 CONFIG_QUEUEDELAY = 'queue delay'
 
@@ -172,6 +173,24 @@ class NotificationService():
         else:
             return False
 
+    @http_service(['POST'], '/log',
+                  [CONTEXT.USER, CONTEXT.CUSTOMERID],
+                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int},
+                  {USER_ROLES.notification})
+    @ML.coroutine_trace(logger.debug)
+    def post_log(self, _header, _body, context, _matches, _key):
+
+        customer_id = context.get(CONTEXT.CUSTOMERID, None)
+        user_name = context.get(CONTEXT.USER, None)
+
+        log_json = json.loads(_body.decode('utf-8'))
+        log_datetime = datetime.datetime.now()
+        log_tags = log_json.get('tags', [])
+        log_device = log_json.get('device', None)
+        log_msg = log_json.get('log_body', None)
+
+        rtn = yield from self.server_endpoint.persistence.insert_log(customer_id, log_datetime, log_tags, log_msg, username=user_name, device=log_device)
+        return rtn
 
 import app.backend.webservices.authentication as AU
 
