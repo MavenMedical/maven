@@ -198,10 +198,9 @@ class NotificationService():
         #rtn = yield from self.server_endpoint.persistence.insert_log(customer_id, log_datetime, log_tags, log_msg, username=user_name, device=log_device)
 
         if customer_id and user_name and log_tags and log_msg:
-            rtn = True
+            return HR.OK_RESPONSE
         else:
-            rtn = False
-        return rtn
+            return HR.BAD_RESPONSE
 
 import app.backend.webservices.authentication as AU
 
