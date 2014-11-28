@@ -29,6 +29,7 @@ namespace MavenAsDemo
         {
             inbox, mobile, deskSoft, deskHard, combo, browser
         };
+        [STAThread]
         private void PrepBrowserSettings()
         {
             WebBrowser versTest = new WebBrowser();
@@ -60,7 +61,11 @@ namespace MavenAsDemo
         
         public Settings()
         {
-            PrepBrowserSettings();
+            try
+            {
+                PrepBrowserSettings();
+            }
+            catch { }
             getMode();
             getFadeSlowness();
             getLocation();

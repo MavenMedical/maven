@@ -9,6 +9,7 @@ namespace MavenAsDemo
 {
     class Logger
     {
+        [STAThread]
         public static bool Log(string message, string categories)
         {
             bool rtn = true;
@@ -18,11 +19,11 @@ namespace MavenAsDemo
                 logWeb(message, categories);
             }
             catch (Exception ex){
-                LogLocal(ex.Message);
+                LogLocal("Error logging message to the cloud: "+ex.Message);
             }
             return rtn;
         }
-        private static bool logWeb(string message, string categories)
+        private static bool logWeb(string message, string category)
         {
             /*In the URL (however it's being sent now, don't use labels below literally):
                 1.) customer_id
@@ -36,8 +37,7 @@ namespace MavenAsDemo
             message = message.Replace("\\", "/").Replace("\"", "'");
             Settings cursettings = new Settings();
             string device = cursettings.machine;
-            string body = "{\"message\":\"" + message + "\",\"tags\":\"" + categories + ","+Program.serialnum+"\",\"device\":\"" + device + "\"}";
-            bool rtn = false;
+            string body = "{\"message\":\"" + message + "\",\"tags\":[\"" + category + "\",\""+Program.serialnum+"\"],\"device\":\"" + device + "\"}";
             //TODO: HTTPS
              string rqstUrl = "https://" + cursettings.pollingServer + "/broadcaster/log?userAuth=" + WindowsDPAPI.Decrypt(Program.EncryptedKey)
                             + "&osUser=" + cursettings.osUser + "&machine=" + cursettings.machine + "&osVersion=" + cursettings.os
@@ -75,7 +75,7 @@ namespace MavenAsDemo
             rqst.Abort();
             rqst = null;
 
-            return rtn;
+            return true;
         }
         /// <summary>
         /// handle logging debug messages
