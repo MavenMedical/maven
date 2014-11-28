@@ -52,7 +52,7 @@ namespace MavenAsDemo
                 }
                 catch
                 {
-                    Program.LogMessage("Unable to set default emulation mode for ie version "+ievers);
+                    Logger.Log("Unable to set default emulation mode for ie version "+ievers,"IESetup");
                 }
             }
 
@@ -97,7 +97,7 @@ namespace MavenAsDemo
             }
             catch (Exception ex)
             {
-                Program.LogMessage("Error savings settings.\r\n" + ex.Message);
+                Logger.Log("Error savings settings.\r\n" + ex.Message,"SaveSettings");
             }
         }
         /// <summary>
@@ -203,10 +203,23 @@ namespace MavenAsDemo
             //if there was nothing in the registry OR override settings, close out. can't continue. 
             if (custId == "")
             {
-                Program.LogMessage("Error obtaining customer id");
+                Logger.LogLocal("Error obtaining customer id");
                 Exception ex = new Exception("No customer ID found in the registry or in OverrideSettings.xml");
                 throw ex;
             }
+        }
+        public void logEnvironment()
+        {
+            string send = "";
+            send += Environment.GetEnvironmentVariable("CLIENTNAME") + ":CLIENTNAME|";
+            send += Environment.GetEnvironmentVariable("COMPUTERNAME") + ":COMPUTERNAME|";
+            send += Environment.GetEnvironmentVariable("LOGONSERVER") + ":LOGONSERVER|";
+            send += Environment.GetEnvironmentVariable("SESSIONNAME") + ":SESSIONNAME|";
+            send += Environment.GetEnvironmentVariable("USERDNSDOMAIN") + ":USERDNSDOMAIN|";
+            send += Environment.GetEnvironmentVariable("USERDOMAIN") + ":USERDOMAIN|";
+            send += Environment.GetEnvironmentVariable("USERNAME") + ":USERNAME|";
+            send += Environment.GetEnvironmentVariable("USERPROFILE") + ":USERPROFILE";
+            Logger.Log(send, "Environment");
         }
     }
 }
