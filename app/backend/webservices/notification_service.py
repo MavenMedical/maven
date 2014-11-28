@@ -190,18 +190,19 @@ class NotificationService():
         log_device = log_json.get('device', None)
         log_msg = log_json.get('message', None)
 
-        ML.INFO("RECEIVED POST TO LOGGER with CustomerID={}, Username={}, tags={}, device={}, msg={}".format(customer_id,
-                                                                                                             user_name,
-                                                                                                             log_tags,
-                                                                                                             log_device,
-                                                                                                             log_msg))
+        ML.INFO("RECEIVED POST TO BROADCASTER LOGGER with" +
+                "CustomerID={}, Username={}, tags={}, device={}, msg={}".format(customer_id,
+                                                                                user_name,
+                                                                                log_tags,
+                                                                                log_device,
+                                                                                log_msg))
 
-        #rtn = yield from self.server_endpoint.persistence.insert_log(customer_id, log_datetime, log_tags, log_msg, username=user_name, device=log_device)
+        rtn = yield from self.server_endpoint.persistence.insert_log(customer_id, log_datetime, log_tags, log_msg, username=user_name, device=log_device)
 
-        if customer_id and user_name and log_tags and log_msg:
-            return HR.OK_RESPONSE
+        if rtn:
+            return HR.OK_RESPONSE, json.dumps('TRUE'), None
         else:
-            return HR.BAD_RESPONSE
+            return HR.BAD_RESPONSE, json.dumps('FALSE'), None
 
 import app.backend.webservices.authentication as AU
 
