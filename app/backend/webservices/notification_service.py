@@ -175,7 +175,8 @@ class NotificationService():
 
     @http_service(['POST'], '/log',
                   [CONTEXT.USER, CONTEXT.CUSTOMERID],
-                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int},
+                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int,
+                   CONTEXT.PROVIDER: str},
                   {USER_ROLES.notification})
     @ML.coroutine_trace(logger.debug)
     def post_log(self, _header, _body, context, _matches, _key):
@@ -187,7 +188,7 @@ class NotificationService():
         log_datetime = datetime.datetime.now()
         log_tags = log_json.get('tags', [])
         log_device = log_json.get('device', None)
-        log_msg = log_json.get('log_body', None)
+        log_msg = log_json.get('message', None)
 
         ML.INFO("RECEIVED POST TO LOGGER with CustomerID={}, Username={}, tags={}, device={}, msg={}".format(customer_id,
                                                                                                              user_name,
