@@ -1456,11 +1456,11 @@ class WebPersistenceBase():
         cmd = ["INSERT INTO log(customer_id, log_datetime, username, device, tags, body)",
                "VALUES (%s, %s, %s, %s, (select get_log_tags(%s)), %s)",
                "RETURNING log_id"]
-        cmdArgs = [customer_id, log_datetime, tags, body, username, device]
+        cmdArgs = [customer_id, log_datetime, username, device, tags, body]
 
-        log_id = yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
-
-        if isinstance(log_id, int):
+        try:
+            log_id = yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
+            ML.DEBUG("Log ID {} added".format(log_id))
             return True
-        else:
+        except Exception:
             return False
