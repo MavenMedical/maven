@@ -67,24 +67,39 @@ define([
         copyProtocole: function (evt) {
             evt.stopPropagation()
 
+
+            $('#copiedText').remove();
+
              //this.trackActivity("copytext");
             var copytext = this.model.get('noteToCopy')
             $('input:checked', this.$el).each(function(index, elem) {
                 copytext = copytext + "  \n\n" + elem.value
             })
-            console.log(copytext)
+
 
             $('<div>'+copytext+'</div>').attr('id', 'copiedText').appendTo('body');
 
+
+           //toast code
+            $('#toast').empty()
+            $('<span class="glyphicon glyphicon-ok"></span><span>Note-ready text added to clipboard</span>').appendTo('#toast')
+            //$('#toast').innerHTML = 'Note-ready text added to clipboard'
+
+
+
+            $('#toast').css('top', $('#copybutton').offset().top + 30)
+            $('#toast').css('left', $('#copybutton').offset().left )
+
             $('#toast').css('visibility', 'visible');
+
 
             setTimeout(function () {
 
-                $("#toast").fadeOut("slow", function () {
-                    //$('#toast').css('visibility', 'hidden');
-                });
+               // $("#toast").fadeOut("slow", function () {
+                    $('#toast').css('visibility', 'hidden');
+               // });
 
-            }, 2000);
+            }, 1500);
 
         },
         send: function (evt) {
