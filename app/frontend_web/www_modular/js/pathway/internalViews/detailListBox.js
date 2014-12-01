@@ -7,8 +7,10 @@ define([
 
    'globalmodels/contextModel',
     'text!templates/pathway/ListBox.html',
-    'text!templates/pathway/resultRow.html'
-], function ($, _, Backbone, contextModel, triggerListBox, lineTemplate) {
+    'text!templates/pathway/resultRow.html',
+    'text!templates/pathway/groupResultRow.html'
+
+], function ($, _, Backbone, contextModel, triggerListBox, snomedLineTemplate, groupLineTemplate) {
 
     var detailListBox = Backbone.View.extend({
 
@@ -19,8 +21,11 @@ define([
 
             this.type = params.type;
             this.$el = params.el
-
-            panel.lineTemplate = _.template(lineTemplate)
+            if (this.type == "snomed_diagnosis"){
+                panel.lineTemplate = _.template(snomedLineTemplate)
+            } else if (this.type = "groups"){
+                panel.lineTemplate = _.template(groupLineTemplate)
+            }
             panel.collection.on('add', panel.render, panel);
             panel.collection.on('remove', panel.render, panel)
 

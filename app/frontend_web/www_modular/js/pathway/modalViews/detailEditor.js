@@ -53,11 +53,19 @@ define([
             //for each div with class multi-select search create a multiSelectSearchPanel and render it in the div
             var multiSearchEl = $('.multi-select-search', this.$el)
             $.each(multiSearchEl, function(a, cur){
-
+                var populateType = cur.getAttribute('type')
                 //create a new Backbone Collection representing the available concepts in the 'availale' panel
                 //giving it a url makes it searcahble
-                var anon =  Backbone.Collection.extend( {url: '/search'})
+
+                var anon
+                if (populateType == "snomed_diagnosis")
+                    anon =  Backbone.Collection.extend( {url: '/search'})
+                else if (populateType == "groups")
+                    anon =  Backbone.Collection.extend( {url: '/groups'})
+
                 var avail = new anon
+                if (populateType == "groups")
+                    avail.fetch()
                 //create a new backbone collection representing the currently selected items in the 'selected' panel
                 //it starts out empty
                 var sel = new Backbone.Collection()

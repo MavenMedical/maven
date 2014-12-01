@@ -13,13 +13,15 @@
 
          <div>
 
-         <select class="detail-input form-control attn-text" name="exists">
-              <option value="true" selected>only alert the clinician if</option>
-              <option value="false"> do not alert the clinician if</option>
+         <!--<select class="detail-input form-control attn-text" name="blacklist">
+              <option value="true" >do not alert the clinician if</option>
+              <option value="false" selected> only alert the clinician if</option>
 
-          </select>
-		 <p class="attn-text">The subject had the diagnosis</p>
-         <div style="clear:both" class="multi-select-search" type="snomed_diagnosis" name = "code"></div>
+          </select>-->
+
+		 <p class="attn-text">The subject is in one of the following groups: </p>
+
+             <div style="clear:both; left: 70px" class="multi-select-search" type="groups" name = "groups"></div>
 
 
 
@@ -32,3 +34,4 @@
         </div>
     </div>
 
+</div>
