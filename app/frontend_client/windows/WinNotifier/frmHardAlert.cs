@@ -8,6 +8,7 @@ using System.Text;
 //using System.Threading.Tasks;
 using System.Windows.Forms;
 
+
 namespace MavenAsDemo
 {
     public partial class frmHardAlert : Form
@@ -44,7 +45,7 @@ namespace MavenAsDemo
             timer.Start(); //go
             //navigate to where the user should go
             browserDisplay.Navigate(url);
-            browserDisplay.IsWebBrowserContextMenuEnabled = false; //disable right click
+            //browserDisplay.IsWebBrowserContextMenuEnabled = false; //disable right click
             //disable the scrollbars
             browserDisplay.ScrollBarsEnabled = false;
             //make the form movable my grabbing the mover
@@ -135,6 +136,7 @@ namespace MavenAsDemo
                     {
                         Clipboard.SetText(copytext);
                         elm.InnerText = "";
+                        elm.OuterHtml = "";
                     }
                 }
             }
