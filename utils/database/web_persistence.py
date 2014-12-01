@@ -98,6 +98,8 @@ Results = Enum('Results',
     expire_datetime
     msg_subject
     msg_body
+    groupid
+    group_name
 """)
 
 
@@ -1194,7 +1196,7 @@ class WebPersistenceBase():
             if enc_dx_triggers:
                 yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'enc_dx', enc_dx_triggers)
 
-            # Insert the Protocol Triggering Codelist(s) for HISTORIC Diagnoses
+            # Insert the Protocol Triggering Codelist(s) for PROBLEM LIST Diagnoses
             pl_dx_triggers = triggerGroupDetails.get('pl_dx', None)
             if pl_dx_triggers:
                 yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'pl_dx', pl_dx_triggers)
@@ -1204,10 +1206,15 @@ class WebPersistenceBase():
             if hist_dx_triggers:
                 yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'hist_dx', hist_dx_triggers)
 
-            # Recursively insert the codelists for all of the child nodes
+            # Insert the Protocol Triggering Codelist(s) for ALL Diagnoses
             all_dx_triggers = triggerGroupDetails.get('all_dx', None)
             if all_dx_triggers:
                 yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'all_dx', all_dx_triggers)
+
+            # Insert the Protocol Triggering Codelist(s) for GROUP MEMBERSHIP
+            membership_triggers = triggerGroupDetails.get('membership', None)
+            if membership_triggers:
+                yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'membership', membership_triggers)
 
             # Recursively insert the codelists for all of the child nodes
                 # pass
@@ -1217,11 +1224,18 @@ class WebPersistenceBase():
 
         for cl in triggers:
             # Parse the "exists" JSON element FROM a string INTO a Python integer
-            exists = self.convert_string_to_boolean(cl.get('exists', None))
-
+            str_boolean = cl.get('exists', None)
+            if str_boolean:
+                exists = self.convert_string_to_boolean(str_boolean)
+            else:
+                exists = None
             # Parse the "code" list of string SNOMEDS into Python integers
-            string_snomeds = cl.get('code', None)
-            int_snomeds = [int(ss) for ss in string_snomeds]
+            if list_type == 'membership':
+                str_list = cl.get('groups', None)
+                int_list = [int(sl) for sl in str_list]
+            else:
+                str_list = cl.get('code', None)
+                int_list = [int(sl) for sl in str_list]
 
             # Historic Diagnoses have the framemin/framemax that Encounter Diagnoses do not have, grab 'em
             if list_type == 'hist_dx':
@@ -1233,7 +1247,7 @@ class WebPersistenceBase():
                 framemax = 99999
 
             cmd = ["SELECT trees.upsert_codelist(%s, %s, %s::varchar, %s, %s::integer[], %s::varchar[], %s, %s)"]
-            cmdArgs = [canonical_id, node_id, list_type, exists, int_snomeds, None, framemin, framemax]
+            cmdArgs = [canonical_id, node_id, list_type, exists, int_list, None, framemin, framemax]
             yield from self.db.execute_single(' '.join(cmd), extra=cmdArgs)
 
     def convert_string_to_boolean(self, str):
@@ -1282,14 +1296,19 @@ class WebPersistenceBase():
     def update_protocol(self, protocol_id, customer_id, user_id, protocol_json):
         cmd = ['SELECT trees.updateprotocol(%s, %s, %s, %s)']
         cmdArgs = [protocol_id, json.dumps(protocol_json), customer_id, user_id]
+        newid = None
         try:
             cur = yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
             newid, canonical_id = cur.fetchone()[0]
             # Update/Insert the trees.codelist records for the protocol
             yield from self.upsert_codelists(protocol_json, canonical_id)
-            return newid
+
         except:
+            newid = None
             ML.EXCEPTION("Error Updating TreeID #{}".format(protocol_json.get('pathid', None)))
+
+        finally:
+            return newid
 
     @asyncio.coroutine
     def post_protocol_activity(self, customer_id, user_id, activity_msg):
@@ -1464,3 +1483,42 @@ class WebPersistenceBase():
             return True
         except Exception:
             return False
+    ##########################################################################################
+    ##########################################################################################
+    ##########################################################################################
+    #####
+    # USER GROUP DATABASE SERVICES
+    #####
+    ##########################################################################################
+    ##########################################################################################
+    ##########################################################################################
+    _default_group_info = set((Results.groupid,))
+    _available_group_info = {
+        Results.groupid: "user_group.group_id",
+        Results.group_name: "user_group.group_name",
+    }
+    _display_group_info = _build_format({})
+
+    @asyncio.coroutine
+    def get_groups(self, customer_id):
+        desired = {
+            Results.groupid: "id",
+            Results.group_name: "term",
+        }
+        columns = build_columns(desired.keys(), self._available_group_info,
+                                self._default_group_info)
+        cmd = ["SELECT",
+               columns,
+               "FROM public.user_group",
+               "WHERE customer_id=%s"]
+        cmdArgs = [customer_id]
+
+        rtn = None
+        try:
+            groups = yield from self.execute(cmd, cmdArgs, self._display_group_info, desired)
+            rtn = groups
+        except:
+            ML.EXCEPTION("Error Querying Groups for CustomerID={}".format(customer_id))
+
+        finally:
+            return rtn

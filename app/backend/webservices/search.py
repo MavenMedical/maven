@@ -73,3 +73,16 @@ class SearchWebservices():
         """
         # return HTTP.OK_RESPONSE, json.dumps(results), None
         return HTTP.OK_RESPONSE, json.dumps(['Alzheimer\'s', 'Diabetes']), None
+
+    @http_service(['GET'], '/groups',
+                  [CONTEXT.PROVIDER, CONTEXT.CUSTOMERID],
+                  {CONTEXT.PROVIDER: str, CONTEXT.CUSTOMERID: int},
+                  {USER_ROLES.provider, USER_ROLES.supervisor})
+    def get_customer_groups(self, _header, _body, context, matches, _key):
+
+        customer_id = context[CONTEXT.CUSTOMERID]
+        groups = yield from self.persistence.get_groups(customer_id)
+        if groups:
+            return HTTP.OK_RESPONSE, json.dumps(groups), None
+        else:
+            return HTTP.BAD_RESPONSE, json.dumps('FALSE'), None
