@@ -1441,3 +1441,26 @@ class WebPersistenceBase():
                "SET status=%s WHERE task_id=%s"]
         cmdArgs = [status, task_id]
         yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
+
+    ##########################################################################################
+    ##########################################################################################
+    ##########################################################################################
+    #####
+    # NOTIFICATION SERVICE DATABASE SERVICES
+    #####
+    ##########################################################################################
+    ##########################################################################################
+    ##########################################################################################
+    @asyncio.coroutine
+    def insert_log(self, customer_id, log_datetime, tags, body, username=None, device=None):
+        cmd = ["INSERT INTO log(customer_id, log_datetime, username, device, tags, body)",
+               "VALUES (%s, %s, %s, %s, (select get_log_tags(%s)), %s)",
+               "RETURNING log_id"]
+        cmdArgs = [customer_id, log_datetime, username, device, tags, body]
+
+        try:
+            log_id = yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
+            ML.DEBUG("Log ID {} added".format(log_id))
+            return True
+        except Exception:
+            return False

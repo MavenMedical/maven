@@ -33,17 +33,6 @@ def clear_results():
     _results.truncate(0)
 
 
-def get_logger(name=None):
-    if name is None:
-        modulename = inspect.getmodule(inspect.stack()[1][0]).__name__
-        return logging.getLogger(modulename)
-    else:
-        try:
-            return logging.getLogger(name=name)
-        except:
-            raise Exception("Logger needs a configuration record with that name")
-
-
 def set_debug(filename=None):
     modulename = inspect.getmodule(inspect.stack()[1][0]).__name__
     if modulename == '__main__':
@@ -54,7 +43,7 @@ def set_debug(filename=None):
         handler = logging.FileHandler(filename)
     else:
         handler = logging.StreamHandler(sys.stderr)
-    log.setLevel(logging.DEBUG)
+    log.setLevel(root.getEffectiveLevel())
     handler.setFormatter(logging.Formatter(
         '%(asctime)s     %(levelname)s\t%(process)d\t%(filename)s:%(lineno)d\t%(message)s'))
     log.addHandler(handler)
@@ -167,6 +156,21 @@ INFO = root.info
 WARN = root.warn
 ERROR = root.error
 EXCEPTION = root.exception
+
+def get_logger(name=None):
+    if name is None:
+        modulename = inspect.getmodule(inspect.stack()[1][0]).__name__
+        name=modulename
+
+    try:
+        logger = logging.getLogger(name=name)
+        level = root.getEffectiveLevel()
+        logger.setLevel(level)
+        return logger
+    except:
+        raise Exception("Logger needs a configuration record with that name")
+
+
 
 
 def TASK(coroutine):

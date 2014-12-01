@@ -69,7 +69,6 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Core" />
     <Reference Include="System.Management" />
     <Reference Include="System.Net" />
     <Reference Include="System.Runtime.Serialization" />
@@ -103,6 +102,7 @@
     <Compile Include="frmHardAlert.Designer.cs">
       <DependentUpon>frmHardAlert.cs</DependentUpon>
     </Compile>
+    <Compile Include="Logger.cs" />
     <Compile Include="LoginTracker.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -203,6 +203,8 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </Content>
+    <None Include="Resources\back.png" />
+    <None Include="Resources\min.png" />
     <None Include="Resources\minmax.png" />
     <None Include="Resources\small.gif" />
   </ItemGroup>
