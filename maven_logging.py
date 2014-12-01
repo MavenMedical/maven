@@ -157,10 +157,11 @@ WARN = root.warn
 ERROR = root.error
 EXCEPTION = root.exception
 
+
 def get_logger(name=None):
     if name is None:
         modulename = inspect.getmodule(inspect.stack()[1][0]).__name__
-        name=modulename
+        name = modulename
 
     try:
         logger = logging.getLogger(name=name)
@@ -169,8 +170,6 @@ def get_logger(name=None):
         return logger
     except:
         raise Exception("Logger needs a configuration record with that name")
-
-
 
 
 def TASK(coroutine):
@@ -186,3 +185,7 @@ def TASK(coroutine):
             EXCEPTION('Error in asyncio.Task %s' % stack)
 
     return asyncio.Task(wrapper())
+
+
+def report(message):
+    pass

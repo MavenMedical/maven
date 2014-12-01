@@ -41,6 +41,7 @@ class scheduler():
         self.disabled = disabled
         self.firsts = defaultdict(lambda: True)
         self.evaluations = {}
+        self.report = lambda s: ML.report('/%s/%s' % (self.customer_id, s))
 
         try:
             self.sleep_interval = float(sleep_interval)
@@ -49,12 +50,14 @@ class scheduler():
             self.sleep_interval = float(45)
 
     def update_config(self, config):
+        self.report('update_config')
         self.sleep_interval = float(config.get(CONFIG_PARAMS.EHR_API_POLLING_INTERVAL.value))
         self.disabled = config.get(CONFIG_PARAMS.EHR_DISABLE_INTEGRATION.value, False)
         if self.disabled:
             self.firsts = defaultdict(lambda: True)
 
     def update_active_providers(self, active_provider_list):
+        self.report('update_active_providers')
         self.active_providers = dict(filter(lambda x: x[0][1] == str(self.customer_id), active_provider_list.items()))
         asyncio.Task(self.comp_builder.build_providers())
 
@@ -63,6 +66,7 @@ class scheduler():
 
         yield from self.comp_builder.build_providers()
         while True:
+            self.report('polling')
             try:
                 today = date.today()
                 if today != self.lastday:
@@ -99,6 +103,7 @@ class scheduler():
         CLIENT_SERVER_LOG.debug('evaluating %s/%s' % (patient, provider_id))
         provider = self.active_providers.get((provider_id, str(self.customer_id)))
         provider_username = provider.get('user_name')
+        self.report('provider/' + provider_username + '/query')
 
         now = datetime.now()
         prior = now - timedelta(seconds=12000)
@@ -150,6 +155,7 @@ class scheduler():
     @asyncio.coroutine
     def build_composition_and_evaluate(self, provider_username, patient, encounter_id, enc_datetime, encounter_dx, eval_type):
         CLIENT_SERVER_LOG.debug("About to send to Composition Builder... %s, %s " % (provider_username, encounter_id))
+        self.report('provider/' + provider_username + '/' + eval_type)
         composition = yield from self.comp_builder.build_composition(provider_username, patient, encounter_id, enc_datetime, encounter_dx)
         CLIENT_SERVER_LOG.debug(("Sending to backend for %s evaluation. Composition ID = %s" % (composition.id, eval_type)))
         ML.TASK(self.parent.evaluate_composition(composition))
