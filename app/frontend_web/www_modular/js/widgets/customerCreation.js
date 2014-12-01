@@ -15,6 +15,7 @@ define([
             this.template = _.template(arg.template);
             this.render();
             new pageOption({'Customers':['fa-user', 'customers']})
+
             this.showhide();
             contextModel.on('change:page', this.showhide , this)
 

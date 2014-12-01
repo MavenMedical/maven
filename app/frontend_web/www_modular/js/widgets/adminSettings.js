@@ -10,14 +10,15 @@ define([
     'globalmodels/userCollection',
     'text!templates/adminSettings.html',
     'bootstrapswitch',
-
-], function ($, _, Backbone, contextModel, userCollection, AdminSettingsTemplate) {
+    'widgets/pageOption'
+], function ($, _, Backbone, contextModel, userCollection, AdminSettingsTemplate,pageOption) {
     var AdminModel = Backbone.Model.extend({url: '/customer_info'});
 
     var AdminSettings = Backbone.View.extend({
         model: null,
         extraData: {},
         initialize: function (arg) {
+
             this.model = new AdminModel; //initialize every time this is shown - might not render otherwise
 
             if (typeof arg.template !== "undefined") {
@@ -40,6 +41,7 @@ define([
             'click .lock-admin-button': 'lockSettings',
 	        'change #httphttps': 'httphttps'
         },
+
         httphttps: function() {
             if($("#httphttps").find(":selected").text() == 'http://') {
             alert('Http connections are inherently insecure and must not be used with operational systems.  This option is only for test, or demo systems without any ePHI only.');
