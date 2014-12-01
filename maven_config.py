@@ -22,7 +22,7 @@ if isfile('/etc/mavenmedical/maven.config'):
         MavenConfig[section] = dict(config.items(section))
     dbconnection = MavenConfig['global'].get('dbconnection', None)
     dbhost = MavenConfig['global'].get('dbhost', None)
-    dbhost = MavenConfig['global'].get('reporterhost', None)
+    reporterhost = MavenConfig['global'].get('reporterhost', None)
     http_addr = MavenConfig['global']['http_addr']
     recaptcha_public = MavenConfig['global'].get('recaptcha_public', '')
     recaptcha_private = MavenConfig['global'].get('recaptcha_private', '')
@@ -37,7 +37,7 @@ else:
     dbconnection = ("dbname=%s user=%s password=%s host=%s port=%s" % ('maven', 'maven', 'temporary', 'localhost', '5432'))
 
     dbhost = 'localhost'
-    reporterhost = 'localhost'
+    reporterhost = None
     http_addr = 'http://localhost'
     recaptcha_public = '6Lcy3vwSAAAAAD0uy8wRFxf7rO60sPwx5OA5AGij'
     recaptcha_private = '6Lcy3vwSAAAAAN-X2jIbEqKh7NFwpIux8WRS8Lby'

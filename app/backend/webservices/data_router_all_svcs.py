@@ -239,21 +239,22 @@ def main(loop):
     clientapp_rpc = RP.rpc(rpc_server_stream_processor)
     clientapp_rpc.schedule(loop)
 
-    reporter_rpc = RP.rpc(rpc_reporter_stream_processor)
-    reporter_rpc.schedule(loop)
-    stats_interface = reporter_rpc.create_client(StatsInterface)
-    ML.report = lambda s: asyncio.async(stats_interface.insert(str(s)))
+    if MC.reporterhost:
+        reporter_rpc = RP.rpc(rpc_reporter_stream_processor)
+        reporter_rpc.schedule(loop)
+        stats_interface = reporter_rpc.create_client(StatsInterface)
+        ML.report = lambda s: asyncio.async(stats_interface.insert(str(s)))
 
-    @asyncio.coroutine
-    def heartbeat():
-        while True:
-            try:
-                yield from asyncio.sleep(1)
-                ML.report('/heartbeat')
-            except:
-                pass
-
-    asyncio.async(heartbeat())
+        @asyncio.coroutine
+        def heartbeat():
+            while True:
+                try:
+                    yield from asyncio.sleep(1)
+                    ML.report('/heartbeat')
+                except:
+                    pass
+                    
+        asyncio.async(heartbeat())
 
     sp_consumer = IncomingMessageHandler(incomingtomavenmessagehandler)
     sp_consumer.schedule(loop)
