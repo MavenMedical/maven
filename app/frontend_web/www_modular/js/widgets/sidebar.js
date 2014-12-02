@@ -17,7 +17,8 @@ define([
         {'Users': ['fa-user', 'users']},
         {'Reports': ['fa-bar-chart-o', 'reports']},
         {'Research': ['fa-institution', 'research']},
-        {'EHR Setup': ['fa-database', 'research']}
+        {'EHR Setup': ['fa-database', 'research']},
+      //  {'Customers':['fa-user', 'customers']}
     ];
 
     var Sidebar = Backbone.View.extend({
