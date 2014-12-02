@@ -27,9 +27,12 @@ require.config({
         amchartslight: 'libs/amcharts/themes/light',
         amchartsserial: 'libs/amcharts/serial',
         amcharts: 'libs/amcharts/amcharts',
-
+        ace: 'ace-min',
     },
     shim: {
+        ace: {deps: ['jquery', 'jquery_ui']},
+        'ace/assets/js/flot/jquery.flot.pie': {deps: ['ace/assets/js/flot/jquery.flot']},
+        'ace/assets/js/flot/jquery.flot.resize': {deps: ['ace/assets/js/flot/jquery.flot']},
         bootstrap: {
             deps: ['jquery']
         },
@@ -61,6 +64,7 @@ require([
     //Load our app module and pass it to our definition function
     'app',
     'jquery',
+    'ace',
     'underscore',
     'backbone',
     'bootstrap',
