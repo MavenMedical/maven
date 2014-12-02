@@ -14,8 +14,8 @@ from utils.database.database import MappingUtilites as DBMapUtils
 import maven_config as MC
 import maven_logging as ML
 
-logger = ML.get_logger()
-ML.set_debug('/tmp/web_persistence.log')
+# logger = ML.get_logger()
+# ML.set_debug('/tmp/web_persistence.log')
 
 CONFIG_DATABASE = 'database'
 
@@ -249,7 +249,7 @@ class WebPersistenceBase():
                 #                or desired[k]: display[k](v) for k,v in zip(desired, row)})
                 results.append({desired[k]: display[k](v) for k, v in zip(desired, row)})
 
-        logger.debug(str(cmd) + " " + str(cmdargs) + " -> " + str(results))
+        # logger.debug(str(cmd) + " " + str(cmdargs) + " -> " + str(results))
         return results
 
     @asyncio.coroutine
