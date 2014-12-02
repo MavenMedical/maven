@@ -465,37 +465,48 @@ class CompositionEvaluator(SP.StreamProcessor):
             # Discussion 2014-11-11 Yuki-Dave: we should just send the highest priority pathway if multiple are triggered
             matched_pathways.sort(key=lambda x: x.priority, reverse=True)
             for pathway in matched_pathways:
-                FHIR_alert = FHIR_API.Alert(customer_id=composition.customer_id,
-                                            category=ALERT_TYPES.PATHWAY,
-                                            subject=composition.subject.get_pat_id(),
-                                            CDS_rule=pathway.CDS_rule_id,
-                                            priority=pathway.priority,
-                                            provider_id=composition.get_author_id(),
-                                            encounter_id=composition.encounter.get_csn(),
-                                            alert_datetime=datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
-                                            short_title=("Clinical Pathway Detected"),
-                                            long_title=pathway.name,
-                                            short_description=("Clinical Pathway recommendations are available"),
-                                            long_description=("Clinical Pathway recommendations are available"))
-                alerts_section.content.append(FHIR_alert)
+                trig_dict = pathway.protocol_details.get('triggers', None)
+                remaining_detail_evaluation = yield from self._evaluate_remaining_pathway_details(trig_dict, composition)
 
-            # Old logic for looping through multiple returned Pathway Rules. Instead, we're sorting based on priority
-            # and creating an Alert for only the highest priority
-            """
-            for pathway in matched_pathways:
-                FHIR_alert = FHIR_API.Alert(customer_id=composition.customer_id,
-                                            category=ALERT_TYPES.PATHWAY,
-                                            subject=composition.subject.get_pat_id(),
-                                            CDS_rule=pathway.CDS_rule_id,
-                                            priority=pathway.priority,
-                                            provider_id=composition.get_author_id(),
-                                            encounter_id=composition.encounter.get_csn(),
-                                            alert_datetime=datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
-                                            short_title=("Clinical Pathway Detected"),
-                                            short_description=("Clinical Pathway recommendations are available"),
-                                            long_description=("Clinical Pathway recommendations are available"))
-                alerts_section.content.append(FHIR_alert)
-            """
+                if remaining_detail_evaluation:
+                    FHIR_alert = FHIR_API.Alert(customer_id=composition.customer_id,
+                                                category=ALERT_TYPES.PATHWAY,
+                                                subject=composition.subject.get_pat_id(),
+                                                CDS_rule=pathway.CDS_rule_id,
+                                                priority=pathway.priority,
+                                                provider_id=composition.get_author_id(),
+                                                encounter_id=composition.encounter.get_csn(),
+                                                alert_datetime=datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                                                short_title=("Clinical Pathway Detected"),
+                                                long_title=pathway.name,
+                                                short_description=("Clinical Pathway recommendations are available"),
+                                                long_description=("Clinical Pathway recommendations are available"))
+                    alerts_section.content.append(FHIR_alert)
+
+    @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
+    def _evaluate_remaining_pathway_details(self, trig_dict, composition):
+        """
+        :returns bool: Are the remaining trigger details satisfied or not
+        """
+        username = composition.author.get_provider_username()
+        customer_id = composition.customer_id
+
+        # Loop through the criteria groups and evaluate each additional detail type
+        for trig_group in trig_dict:
+            trig_group_details = trig_group.get('details', None)
+
+            # Test Group Membership detail type
+            membership_triggers = trig_group_details.get('membership', None)
+            if membership_triggers and len(membership_triggers) > 0:
+                user_membership = yield from self.fhir_persistence.get_user_group_membership(username, customer_id)
+                trigger_groups = [int(i) for i in membership_triggers[0]['groups']]
+                intersect = set(user_membership).intersection(trigger_groups)
+                if intersect:
+                    continue
+                else:
+                    return False
+
+        return True
 
     ##########################################################################################
     ##########################################################################################

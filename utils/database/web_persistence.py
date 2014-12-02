@@ -1211,14 +1211,6 @@ class WebPersistenceBase():
             if all_dx_triggers:
                 yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'all_dx', all_dx_triggers)
 
-            # Insert the Protocol Triggering Codelist(s) for GROUP MEMBERSHIP
-            membership_triggers = triggerGroupDetails.get('membership', None)
-            if membership_triggers:
-                yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'membership', membership_triggers)
-
-            # Recursively insert the codelists for all of the child nodes
-                # pass
-
     @asyncio.coroutine
     def upsert_snomed_triggers(self, canonical_id, node_id, list_type, triggers):
 
@@ -1230,12 +1222,8 @@ class WebPersistenceBase():
             else:
                 exists = None
             # Parse the "code" list of string SNOMEDS into Python integers
-            if list_type == 'membership':
-                str_list = cl.get('groups', None)
-                int_list = [int(sl) for sl in str_list]
-            else:
-                str_list = cl.get('code', None)
-                int_list = [int(sl) for sl in str_list]
+            str_list = cl.get('code', None)
+            int_list = [int(sl) for sl in str_list]
 
             # Historic Diagnoses have the framemin/framemax that Encounter Diagnoses do not have, grab 'em
             if list_type == 'hist_dx':
