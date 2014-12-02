@@ -71,7 +71,7 @@ define([
             $('#back-to-editor').on('click', function(){
                         Backbone.history.navigate("pathwayeditor/" + contextModel.get('pathid') + "/node/"+contextModel.get('code'), {trigger: true});
                })
-            
+
             $('.createButton').draggable({ revert: true })
             $('#add-group-button').on('click', function(){
 

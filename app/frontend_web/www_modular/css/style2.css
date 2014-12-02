@@ -134,8 +134,8 @@
         padding-right: 10px;
         background-color: whitesmoke;
         position: fixed;
-        top: 80%;
-        left: 50%;
+        opacity: 0.8;
+        filter: alpha(opacity=80); /* For IE8 and earlier */
         border-radius: 5px;
         -webkit-border-radius: 5px;
         color: #36485c;

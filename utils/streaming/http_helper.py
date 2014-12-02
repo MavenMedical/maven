@@ -42,9 +42,11 @@ class HTTPHelper:
         # add 8 bytes at the beginning for the timeout code
         user_auth = AK.bytestostring(int(timeout).to_bytes(4, 'big')) + user_auth
 
+        thistime = time.time()
         cookie_base = {
             self.context_key: (user_auth, 'HttpOnly;'),
-            'valid-through': int(time.time() + timeout) * 1000,
+            'valid-through': int(thistime + timeout) * 1000,
+            'now': int(thistime) * 1000,
         }
         if all_cookies:
             cookie_base.update({k: self.cookie_map[k](qs[k]) for k in self.contexts_user})

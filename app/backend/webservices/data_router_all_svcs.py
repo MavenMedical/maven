@@ -38,7 +38,7 @@ from app.backend.webservices.administration import AdministrationWebservices
 from app.backend.webservices.support import SupportWebservices
 from app.backend.webservices.timed_followup import TimedFollowUpService
 import app.backend.webservices.notification_service as NS
-
+from reporter.stats_interface import StatsInterface
 ARGS = argparse.ArgumentParser(description='Maven Client Receiver Configs.')
 ARGS.add_argument(
     '--emr', action='store', dest='emr',
@@ -89,6 +89,7 @@ def main(loop):
     incomingtomavenmessagehandler = 'receiver socket'
     rpc_server_stream_processor = 'Server-side RPC Stream Processor'
     rpc_database_stream_processor = 'Client to Database RPC Stream Processor'
+    rpc_reporter_stream_processor = 'Server to Reporter RPC Stream Processor'
     from clientApp.webservice.clientapp_rpc_endpoint import ClientAppEndpoint
 
     MavenConfig = {
@@ -202,6 +203,21 @@ def main(loop):
             SP.CONFIG_HOST: MC.dbhost,
             SP.CONFIG_PORT: '54729',
         },
+        rpc_reporter_stream_processor: {
+            SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOSOCKETREPLY,
+            SP.CONFIG_WRITERNAME: rpc_reporter_stream_processor + '.Writer1',
+            SP.CONFIG_READERTYPE: SP.CONFIGVALUE_ASYNCIOSOCKETQUERY,
+            SP.CONFIG_READERNAME: rpc_reporter_stream_processor + '.Reader1',
+            SP.CONFIG_WRITERDYNAMICKEY: 12,
+            SP.CONFIG_DEFAULTWRITEKEY: 12,
+        },
+        rpc_reporter_stream_processor + ".Writer1": {
+            SP.CONFIG_WRITERKEY: 12,
+        },
+        rpc_reporter_stream_processor + ".Reader1": {
+            SP.CONFIG_HOST: MC.reporterhost,
+            SP.CONFIG_PORT: '54320',
+        },
     }
     MC.MavenConfig.update(MavenConfig)
 
@@ -223,11 +239,29 @@ def main(loop):
     clientapp_rpc = RP.rpc(rpc_server_stream_processor)
     clientapp_rpc.schedule(loop)
 
+    if MC.reporterhost:
+        reporter_rpc = RP.rpc(rpc_reporter_stream_processor)
+        reporter_rpc.schedule(loop)
+        stats_interface = reporter_rpc.create_client(StatsInterface)
+        ML.report = lambda s: asyncio.async(stats_interface.insert(str(s)))
+
+        @asyncio.coroutine
+        def heartbeat():
+            while True:
+                try:
+                    yield from asyncio.sleep(1)
+                    ML.report('/heartbeat')
+                except:
+                    pass
+
+        asyncio.async(heartbeat())
+
     sp_consumer = IncomingMessageHandler(incomingtomavenmessagehandler)
     sp_consumer.schedule(loop)
 
     client_interface = clientapp_rpc.create_client(ClientAppEndpoint)
-    server_endpoint = ServerEndpoint(client_interface, lambda x: sp_consumer.write_object(x, writer_key="CostEval"))
+    server_endpoint = ServerEndpoint(client_interface,
+                                     lambda x: sp_consumer.write_object(x, writer_key="CostEval"))
     server_endpoint.persistence.schedule(loop)
     clientapp_rpc.register(server_endpoint)
 

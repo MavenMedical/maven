@@ -465,7 +465,6 @@ class CompositionEvaluator(SP.StreamProcessor):
             # Discussion 2014-11-11 Yuki-Dave: we should just send the highest priority pathway if multiple are triggered
             matched_pathways.sort(key=lambda x: x.priority, reverse=True)
             for pathway in matched_pathways:
-
                 FHIR_alert = FHIR_API.Alert(customer_id=composition.customer_id,
                                             category=ALERT_TYPES.PATHWAY,
                                             subject=composition.subject.get_pat_id(),
@@ -584,7 +583,6 @@ def run_composition_evaluator():
     MC.MavenConfig.update(MavenConfig)
 
     fhir_persistence = FD.FHIRPersistence(CONFIG_PARAMS.PERSISTENCE_SVC.value)
-
 
     loop = asyncio.get_event_loop()
     sp_message_handler = CompositionEvaluator(rabbithandler, fhir_persistence)

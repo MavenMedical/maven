@@ -102,10 +102,17 @@ class PathwaysWebservices():
         protocol_id = int(matches[0])
         customer = context[CONTEXT.CUSTOMERID]
         userid = context[CONTEXT.USERID]
-        id = yield from self.persistence.update_protocol(protocol_id, customer, userid, protocol_json)
-        protocol_json[CONTEXT.PATHID] = id
-        protocol_json.pop('id', None)
-        return (HTTP.OK_RESPONSE, json.dumps(protocol_json), None)
+
+        try:
+            id = yield from self.persistence.update_protocol(protocol_id, customer, userid, protocol_json)
+            if id:
+                protocol_json[CONTEXT.PATHID] = id
+                protocol_json.pop('id', None)
+                return HTTP.OK_RESPONSE, json.dumps(protocol_json), None
+            else:
+                return HTTP.BAD_RESPONSE, json.dumps('FALSE'), None
+        except Exception:
+            return HTTP.BAD_RESPONSE, json.dumps('FALSE'), None
 
     @http_service(['POST'], '/activity',
                   [CONTEXT.USERID, CONTEXT.CUSTOMERID],

@@ -73,7 +73,7 @@ namespace MavenAsDemo
             if (curemrprocid > 0 && attachedEMRProcess == -99999)
             {
                 attachedEMRProcess = curemrprocid;
-                Program.LogMessage("Attaching to EMR process " + curemrprocid, EventLogEntryType.Information);
+                Logger.Log("Attaching to EMR process " + curemrprocid,"EmrTracking");
                 //ok, you're attaching to an emr process. assume that it was logged in. if it turns out it isnt, we just treat it as an immediate logout
                 wasloggedin = true;
             }
@@ -114,7 +114,7 @@ namespace MavenAsDemo
                     {
                         isEmrUserLoggedIn = false; //switch back. our user is still logged out
                         string msg = "We suspect that the user who logged into the EMR is not " + emrUser + ", therefore alerting will remain suspended for the time being. " + DateTime.Now.ToLongTimeString();
-                        Program.LogMessage(msg, EventLogEntryType.Information);
+                        Logger.Log(msg, "EmrTracking");
                         strangerLogin = true;
                     }
                     //if this is a new login, wipe the login string
@@ -148,7 +148,7 @@ namespace MavenAsDemo
                 msg = "The user logged into the EMR at " + DateTime.Now.ToLongTimeString() + ". Alerting has been resumed.";
 
             }
-            Program.LogMessage(msg, System.Diagnostics.EventLogEntryType.Information);
+            Logger.Log(msg, "EmrTracking");
         }
 
         private ArrayList GetAllWindows(int handle)

@@ -239,7 +239,8 @@ class NotificationGenerator():
 
         # TODO - This composition method is ONLY PULLING ONE Pathway alert even if multiple have fired
         pathway_alerts = composition.get_alerts_by_type(type=ALERT_TYPES.PATHWAY)
-        pathway_alerts.sort(lambda x: x.priority, reverse=True)
+        pathway_alerts.sort(key=lambda x: x.priority, reverse=True)
+
         pathway_alert = pathway_alerts[0]
 
         templateVars = {"http_address": MC.http_addr,

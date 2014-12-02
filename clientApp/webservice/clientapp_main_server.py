@@ -3,7 +3,7 @@ from clientApp.webservice.clientapp_rpc_endpoint import ClientAppEndpoint
 import utils.streaming.rpc_processor as RP
 import utils.streaming.stream_processor as SP
 import maven_config as MC
-from maven_logging import TASK, EXCEPTION
+import maven_logging as ML
 
 if __name__ == '__main__':
     from app.backend.remote_procedures.server_rpc_endpoint import ServerEndpoint
@@ -45,10 +45,21 @@ if __name__ == '__main__':
                 yield from server_interface.get_customer_configurations()
                 return
             except:
-                EXCEPTION('starting up clientapp')
+                ML.EXCEPTION('starting up clientapp')
                 yield from asyncio.sleep(5)
-                
-    TASK(get_customer_configurations())
+
+    ML.TASK(get_customer_configurations())
+
+    @asyncio.coroutine
+    def heartbeat():
+        while True:
+            try:
+                yield from asyncio.sleep(1)
+                yield from server_interface.report('/heartbeat')
+            except:
+                pass
+    ML.TASK(heartbeat())
+    ML.report = lambda s: asyncio.async(server_interface.report(str(s)))
 
     try:
         loop.run_forever()

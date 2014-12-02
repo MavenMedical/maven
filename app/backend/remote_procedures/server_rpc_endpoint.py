@@ -20,6 +20,7 @@ import asyncio
 import utils.database.web_persistence as WP
 import utils.streaming.stream_processor as SP
 from utils.enums import CONFIG_PARAMS
+import maven_logging as ML
 
 
 class ServerEndpoint(SP.StreamProcessor):
@@ -136,3 +137,7 @@ class ServerEndpoint(SP.StreamProcessor):
         asyncio.Task(self.persistence.audit_log(user_name, action, customer_id, patient=patient,
                                                 device=device, details=details, rows=rows,
                                                 target_user_and_customer=(target_user, customer_id)))
+
+    @asyncio.coroutine
+    def report(self, path):
+        ML.report('/clientapp/' + path)
