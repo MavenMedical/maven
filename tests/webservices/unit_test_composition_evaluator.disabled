@@ -1,21 +1,21 @@
-#*************************************************************************
-#Copyright (c) 2014 - Maven Medical
-#************************
-#AUTHOR:
+# *************************************************************************
+# Copyright (c) 2014 - Maven Medical
+# ************************
+# AUTHOR:
 __author__='Yuki Uchino'
-#************************
-#DESCRIPTION:
+# ************************
+# DESCRIPTION:
 #
 #
 #
 #
-#************************
-#ASSUMES:
-#************************
-#SIDE EFFECTS:
-#************************
-#LAST MODIFIED FOR JIRA ISSUE:
-#*************************************************************************
+# ************************
+# ASSUMES:
+# ************************
+# SIDE EFFECTS:
+# ************************
+# LAST MODIFIED FOR JIRA ISSUE:
+# *************************************************************************
 import unittest
 import asyncio
 import maven_config as MC
@@ -29,6 +29,7 @@ from clientApp.webservice.composition_builder import CompositionBuilder
 import utils.web_client.http_client as http
 from utils.enums import CONFIG_PARAMS, ALERT_TYPES
 from uuid import uuid1 as UUID
+import subprocess
 
 
 ML.get_logger(ML.set_debug())
@@ -180,5 +181,8 @@ class TestCompositionEvaluator(unittest.TestCase):
                 print("\n".join(l))
                 i += 1
 
+    @async_test
     def tearDown(self):
+        yield from asyncio.sleep(3)
         self.RABBIT_MSG.close()
+        subprocess.call(["kill `ps -aef | grep python | grep devel/maven/app | awk '{print$2}'`"], shell=True)
