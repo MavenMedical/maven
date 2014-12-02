@@ -1,6 +1,6 @@
 import click
-#from tests.webservices.unit_test_composition_evaluator import *
-from tests.webservices.unit_test_allscripts_trigger_scheduler import *
+from tests.webservices.unit_test_composition_evaluator import *
+# from tests.webservices.unit_test_allscripts_trigger_scheduler import *
 
 @click.command()
 #@click.argument('customer_id1', default=3)
