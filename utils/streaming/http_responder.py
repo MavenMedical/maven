@@ -135,7 +135,7 @@ class _HTTPStreamParser(SP.MappingParser):
         """
 
         ML.DEBUG("RECV: " + str(data))
-
+        
         # split the data on potential http request boundaries
         splits = _HTTPStreamParser._starting_re.split(data)
 
@@ -257,8 +257,8 @@ class HTTPProcessor(SP.StreamProcessor):
 
         headers = obj[0]
         body = obj[1]
+        ML.INFO("header: %s" % str((headers.get_path(), headers.get_query_string())))
         # ML.DEBUG("errno: %s" % headers.get_errno())
-        # ML.INFO("header: %s" % str((headers.get_path(), headers.get_query_string())))
         # ML.DEBUG("method: %s" % headers.get_method())
         # ML.INFO("path: %s" % headers.get_path())
         # ML.DEBUG("status: %s" % headers.get_status_code())

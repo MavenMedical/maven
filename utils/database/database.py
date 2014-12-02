@@ -103,6 +103,7 @@ class AsyncConnectionPool():
                        otherwise None
         """
         ML.DEBUG('About to execute %s' % str((cmd, extra)))
+        ML.INFO('About to execute %s' % str(cmd))
         conn = yield from self._get_connection()  # get a connection, blocking if necessary
         if conn is None:
             ML.ERROR("Error establishing a connection with database")
