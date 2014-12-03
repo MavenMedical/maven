@@ -1269,6 +1269,8 @@ class WebPersistenceBase():
             cmd = ["UPDATE trees.canonical_protocol SET deleted=TRUE ",
                    "WHERE (canonical_id=%s and customer_id=%s)"]
             cmdArgs = [canonical_id, customer_id]
+            yield from self.delete_codelists_deactivate_alert_config(canonical_id)
+
         elif protocol_id:
             cmd = ["UPDATE FROM trees.protocol SET deleted=TRUE",
                    "WHERE (protocol_id=%s AND customer_id=%s)"]
@@ -1279,6 +1281,18 @@ class WebPersistenceBase():
             yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
         except:
             ML.EXCEPTION("Error Deleting TreeID #{}".format(protocol_id))
+
+    @asyncio.coroutine
+    def delete_codelists_deactivate_alert_config(self, canonical_id):
+        cmd = ["BEGIN;",
+               "DELETE FROM trees.codelist",
+               "WHERE canonical_id=%s;",
+               "UPDATE public.alert_config",
+               "SET validation_status=-100",
+               "WHERE rule_id=%s;",
+               "COMMIT;"]
+        cmdArgs = [canonical_id, canonical_id]
+        yield from self.db.execute_single(' '.join(cmd), extra=cmdArgs)
 
     @asyncio.coroutine
     def update_protocol(self, protocol_id, customer_id, user_id, protocol_json):

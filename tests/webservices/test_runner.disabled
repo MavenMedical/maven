@@ -30,7 +30,7 @@ def run_tests(customer_id1, provider_username1, patient_id1, sandbox1):
 
     global loop
     loop = asyncio.get_event_loop()
-
+    subprocess.call(["./run_svcs.sh", "&"], shell=True)
     update_globals(customer_id, provider_username, patient_id, sandboxURL, loop)
 
     loop.run_until_complete(unittest.main())
