@@ -276,6 +276,11 @@ namespace MavenAsDemo
             //flip the switch
             //ismax = !ismax;
         }
+
+        private void btnBack_Click(object sender, EventArgs e)
+        {
+            browserDisplay.GoBack();
+        }
        
     }
 }
