@@ -48,7 +48,7 @@ class TimedTrie:
         obj = self.find(path)
         # print((path, obj))
         # print(obj.children.keys())
-        return {k: obj.children[k].count for k in obj.children}
+        return {k: obj.children[k].count for k in obj.children if obj.children[k].count}
 
     def getchild(self, head):
         return self.children[head]

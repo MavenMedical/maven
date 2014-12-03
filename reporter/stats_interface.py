@@ -6,8 +6,8 @@ from datetime import datetime, timedelta
 class StatsInterface:
     def __init__(self):
         today = datetime.today()
-        self.minutestack = TrieStack(today, timedelta(minutes=1), 10)
-        self.hourstack = TrieStack(today, timedelta(hours=1), 10)
+        self.minutestack = TrieStack(today, timedelta(minutes=1), 5)
+        self.hourstack = TrieStack(today, timedelta(hours=1), 5)
         self.daystack = TrieStack(today, timedelta(days=1), 7)
 
     @asyncio.coroutine
@@ -22,8 +22,8 @@ class StatsInterface:
 
     @asyncio.coroutine
     def hourstats(self, path):
-        return self.minutestack.stats(path)
+        return self.hourstack.stats(path)
 
     @asyncio.coroutine
     def daystats(self, path):
-        return self.minutestack.stats(path)
+        return self.daystack.stats(path)

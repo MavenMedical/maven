@@ -202,6 +202,7 @@ def main(loop):
         rpc_database_stream_processor + ".Reader1": {
             SP.CONFIG_HOST: MC.dbhost,
             SP.CONFIG_PORT: '54729',
+            SP.CONFIG_ONDISCONNECT: SP.CONFIGVALUE_DISCONNECTRESTART,
         },
         rpc_reporter_stream_processor: {
             SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOSOCKETREPLY,
@@ -217,6 +218,7 @@ def main(loop):
         rpc_reporter_stream_processor + ".Reader1": {
             SP.CONFIG_HOST: MC.reporterhost,
             SP.CONFIG_PORT: '54320',
+            SP.CONFIG_ONDISCONNECT: SP.CONFIGVALUE_DISCONNECTRESTART,
         },
     }
     MC.MavenConfig.update(MavenConfig)
@@ -243,7 +245,9 @@ def main(loop):
         reporter_rpc = RP.rpc(rpc_reporter_stream_processor)
         reporter_rpc.schedule(loop)
         stats_interface = reporter_rpc.create_client(StatsInterface)
-        ML.report = lambda s: asyncio.async(stats_interface.insert(str(s)))
+        import socket
+        hostname = socket.gethostname()
+        ML.report = lambda s: asyncio.async(stats_interface.insert(hostname + '/' + str(s)))
 
         @asyncio.coroutine
         def heartbeat():

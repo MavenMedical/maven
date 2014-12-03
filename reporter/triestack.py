@@ -21,7 +21,7 @@ class TrieStack:
         self.stack[0][1].insert(path)
 
     def stats(self, path):
-        return [{'stoptime': elem[0].timestamp(), 'self': elem[1].find(path).count,
+        return [{'stoptime': elem[0], 'self': elem[1].find(path).count,
                  'children': elem[1].getchildrenandcounts(path)}
                 for elem in self.stack]
 

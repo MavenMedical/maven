@@ -25,6 +25,7 @@ if __name__ == '__main__':
         rpc_client_stream_processor + ".Reader1": {
             SP.CONFIG_HOST: '127.0.0.1',
             SP.CONFIG_PORT: '54728',
+            SP.CONFIG_ONDISCONNECT: SP.CONFIGVALUE_DISCONNECTRESTART,
         },
     }
 
