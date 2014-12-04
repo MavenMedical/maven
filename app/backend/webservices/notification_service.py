@@ -56,6 +56,8 @@ class NotificationService():
         ret = []  # build the list of pending messages here.
         key = context[CONTEXT.USER], int(context[CONTEXT.CUSTOMERID])
 
+        ML.report('/%s/poll/%s' % (key[1], key[0]))
+
         if key in self.messages:
             ret = self.messages.pop(key)
         else:
