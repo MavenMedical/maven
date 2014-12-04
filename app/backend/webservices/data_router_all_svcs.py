@@ -80,6 +80,7 @@ class OutgoingMessageHandler(SP.StreamProcessor):
             self.write_object(pickle.dumps(obj), writer_key=obj.write_key[1])
         else:
             customer_id = obj.customer_id
+            ML.report('/%s/evaluated_composition' % (customer_id,))
             yield from self.client_interface.handle_evaluated_composition(customer_id, obj)
 
 

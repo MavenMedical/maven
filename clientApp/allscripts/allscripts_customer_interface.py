@@ -86,9 +86,9 @@ class AllscriptsCustomerInterface:
         try:
             yield from self.ahc.SaveTask(user_name, patient, msg_subject=subject,
                                          message_data=msg, targetuser=target)
-            ML.INFO('sending message from %s to %s' % (user_name, target)) 
+            ML.INFO('sending message from %s to %s' % (user_name, target))
         except:
-            ML.WARN('failed to send message from %s to %s' % (user_name, target)) 
+            ML.WARN('failed to send message from %s to %s' % (user_name, target))
             raise
 
     @asyncio.coroutine
@@ -103,9 +103,9 @@ class AllscriptsCustomerInterface:
         alerts_section = composition.get_section_by_coding(code_system="maven", code_value="alerts")
 
         if len(alerts_section.content) > 0:
+            ML.report('/%s/alert_fired/%s' % (customer, user))
             msg = yield from self.notification_generator.generate_alert_content(composition, 'web', None)
             CLIENT_SERVER_LOG.debug(("Generated Message content: %s" % msg))
-            # mobile_msg = [{'TEXT': 'New Pathway', 'LINK': m} for m in msg]
             yield from self.server_interface.notify_user(customer, user, pat_id, msg)
 
     @asyncio.coroutine
