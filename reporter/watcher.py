@@ -75,7 +75,6 @@ def main():
             SP.CONFIG_WRITERKEY: 2,
         },
         rpc_server_stream_processor + '.Reader2': {
-            SP.CONFIG_HOST: 'localhost',
             SP.CONFIG_PORT: '54320',
         },
         http_server: {

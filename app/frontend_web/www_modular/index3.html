@@ -19,12 +19,15 @@
     <link rel="stylesheet" href="js/libs/jquery/jquery-ui.css"/>
 
     <!-- Load the require script-->
-    <script data-main="js/min" src="js/libs/require/require.js"></script>
+    <script data-main="js/main" src="js/libs/require/require.js"></script>
 
     <!-- Load fullCalendar style sheet -->
     <link href="js/libs/fullCalendar/fullcalendar.css" rel="stylesheet" type="text/css">
 
     <script type="text/javascript">
+      var console = Object
+      console.log = function() {}
+
         var colorMap = {
             "Consultation": "#18bc9a",
             "Imaging": "#36485c",
@@ -80,6 +83,7 @@
 <div id="settings-modal" class="modal fade" role="login"></div>
 <div id='mouse-target' style='display:none; position:absolute; z-index:10000'></div>
 <div id="side-popup"></div>
+<div id="toast"></div>
 
 
 
@@ -88,7 +92,7 @@
     <div id='fixed-topB' class='row'></div>
 </div>
 
-<div class="container">
+<div id="contentContainer" class="container">
     <div class="row">
         <div id="floating-left" class="col-md-3 content"></div>
         <div id="dynamic-content" class="col-md-6 content"></div>
