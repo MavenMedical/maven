@@ -39,8 +39,8 @@ define([
         });
 
          new pageOption({'Audit List':['fa-user', 'auditlist']})
-                this.showhide();
-                contextModel.on('change:page', this.showhide , this)
+         this.showhide();
+         contextModel.on('change:page', this.showhide , this)
 
 
 	},

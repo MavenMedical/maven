@@ -9,23 +9,28 @@ define([
         'pathway/modalViews/nodeEditor',
         'pathway/Helpers',
         'pathway/models/pathwayCollection',
+        'widgets/pageOption',
         'text!templates/pathway/treeTemplate.html',
         'text!templates/pathway/insertDiv.html',
         'jsplumb'
     ],
 
-    function ($, _, Backbone, contextModel, curTree, treeContext, TriggerNode, NodeEditor, Helpers, pathwayCollection, treeTemplate, insertDiv) {
+    function ($, _, Backbone, contextModel, curTree, treeContext, TriggerNode, NodeEditor, Helpers, pathwayCollection, pageOption, treeTemplate, insertDiv) {
 
         var TreeView = Backbone.View.extend({
 
             template: _.template(treeTemplate),
             initialize: function () {
                 this.$el.html(this.template())
-                contextModel.on('change:page', function(){
-                    if (contextModel.get('page')== 'pathEditor' || contextModel.get('page') == 'pathway'){
+                new pageOption({'Pathway Mgmt': ['fa-cloud', 'pathway', [
+                    {'Pathway Viewer': ['icon', 'pathway']},
+                    {'Pathway Editor': ['icon', 'pathwayEditor']}
+                ]]});
+                contextModel.on('change:page', function () {
+                    if (contextModel.get('page') == 'pathEditor' || contextModel.get('page') == 'pathway') {
                         this.$el.show()
 
-                    }    else {
+                    } else {
                         this.$el.hide()
                     }
                 }, this)
@@ -48,7 +53,7 @@ define([
                     that.reset = true;
                     that.render()
                 }, 200)
-                this.treeEl = $('.tree', this.$el)
+                this.treeEl = $('.pathtree', this.$el)
                 that.treeEl.css({'opacity': 0})
                 this.treeEl.draggable({
                     start: function (event, ui) {
@@ -160,14 +165,14 @@ define([
 
 
                 var that = this
-                    if (contextModel.get('page')== 'pathEditor' || contextModel.get('page') == 'pathway'){
-                        this.$el.show()
+                if (contextModel.get('page') == 'pathEditor' || contextModel.get('page') == 'pathway') {
+                    this.$el.show()
 
-                    }    else {
-                       return
-                    }
+                } else {
+                    return
+                }
 
-                that.treeEl.css({'cursor':'wait'})
+                that.treeEl.css({'cursor': 'wait'})
 
                 var pathid = contextModel.get('pathid');
                 if (pathid && pathid != '0') {
@@ -179,8 +184,8 @@ define([
                 this.plumb.deleteEveryEndpoint();
                 this.treeEl.html('')
 
-                $('.tree', that.$el).append("<div style= 'width:auto; height: auto' class='nodeEl'></div>")
-                $('.tree', that.$el).append("<div style='height:100px'></div>")
+                $('.pathtree', that.$el).append("<div style= 'width:auto; height: auto' class='nodeEl'></div>")
+                $('.pathtree', that.$el).append("<div style='height:100px'></div>")
 
                 var topLevel = new TriggerNode({el: $('.nodeEl', this.$el).last(), model: curTree});
 

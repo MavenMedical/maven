@@ -28,9 +28,9 @@ define([
         },
         render: function () {
             this.$el.html(this.template());
-            for (o in sidebarList){
-                new pageOption(sidebarList[o]);
-           }
+            //for (o in sidebarList){
+               new pageOption(sidebarList[0]);
+          // }
 
         }
 

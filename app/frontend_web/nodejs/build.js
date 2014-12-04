@@ -18,7 +18,8 @@
         'ckeditor': 'empty:',
         'amcharts': 'empty:',
         'bootstrapswitch': 'empty:',
-        '/services/recaptcha': 'empty:'
+        '/services/recaptcha': 'empty:',
+        'ace-min': 'empty:',
     },
     shim: {
         bootstrap: {
