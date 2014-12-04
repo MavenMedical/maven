@@ -4,7 +4,7 @@
  * AUTHOR: 'Tom DuBois'
  * DESCRIPTION: This Javascript file handle a hierarchy of rulelist view
  *              so we can handle events easier.
- * 
+ *
  **************************************************************************/
 define([
     // These are path alias that we configured in our main.js
@@ -20,22 +20,23 @@ define([
 ], function ($, _, Backbone, router, contextModel, pathwayCollection, pathRowTemplate, HistoryList) {
 
     var ruleRow = Backbone.View.extend({
-        tagName: "li",
+        tagName: "li class='pathrow-sortable'",
         template: _.template(pathRowTemplate),
         historyList: null,
         events:{
 	      'click .select-button': 'handleSelect',
 	      'click .history-button': 'handleHistory',
-	      'click .delete-button': 'handleRemove'
+	      'click .delete-button': 'handleRemove',
+	      'click .pathway-checkbox': 'handleCheck',
         },
         render: function(){
             $(this.el).html(this.template(this.model.toJSON()));
-            this.model.url = "/list/" + this.model.get("id");
+            this.model.url = "/list/" + this.model.get("canonical");
             /*
             that = this;
             $(document).ready(function(){
                 that.$el.closest('.path-header').attr("value", "hello");
-             });*/2
+             });*/
 
             //$(".sortable-folder").sortable("refresh");
            /* if (typeof params !=="undefined"){
@@ -49,7 +50,7 @@ define([
                     that = this;
                 }
             }*/
-            $(this.el).sortable({
+                /*     $(this.el).sortable({
                 connectWith: ".sortable-folder",
                 items: '> div:not(.pathway-folder-title, ui-folder-placeholder, .path-header)', //don't allow user to move the folder title
                 helper : 'clone',
@@ -74,21 +75,45 @@ define([
                         }
                     });
                 },
-            });
+            });*/
             return this;
         },
         initialize: function(params){
             this.model = params.model
+
         },
         handleSelect: function() {
+            if (contextModel.get('code') == 'undefined') {
+                if (contextModel.get('canonical') != this.model.get('canonical')){
+                    contextModel.set('code', 'undefined', {silent: true});
+                }
+            }
             contextModel.set('pathid', String(this.model.get('id')))
+            contextModel.set('canonical', String(this.model.get('canonical')))
+
+            $(".active-pathway").removeClass("active-pathway");
+            $(this.el).children(".path-row").addClass("active-pathway")
+        },
+        handleCheck: function(event){
+            var active = false;
+            if ($(event.target).hasClass("glyphicon-check")) {
+                $(event.target).switchClass("glyphicon-check", "glyphicon-unchecked", 0);
+                $(".history-checkbox", this.$el.parent()).addClass("check-disabled",0);
+            }
+            else {
+                active = true;
+                $(event.target).switchClass("glyphicon-unchecked", "glyphicon-check", 0);
+                $(".history-checkbox", this.$el.parent()).removeClass("check-disabled",0);
+            }
+            //$(this.el).trigger("change");
+            this.model.save({active: active});
         },
         handleHistory: function() {
-            var pathwayHistory = $("ol.pathway-history-section", this.$el)
+            var pathwayHistory = $(".pathway-history-section", this.$el)
             pathwayHistory.toggle();
             if (pathwayHistory.is(":visible")){
                 //hide all other history views
-                $("ol.pathway-history-section").not(pathwayHistory).hide();
+                $(".pathway-history-section").not(pathwayHistory).hide();
                // if (pathwayHistory.is(":empty")) {
                     //only fetch history if not yet fetched
                     var extraData = {canonical: this.model.get('canonical')};

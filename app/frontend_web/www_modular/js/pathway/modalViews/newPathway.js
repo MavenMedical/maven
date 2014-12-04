@@ -15,6 +15,7 @@ define([
     var NewPathway = Backbone.View.extend({
         template: _.template(newPathwayTemplate),
         parentList: "",
+        parentFolder: null,
         events: {
             'click #create-button': 'handle_createPathway'
         },
@@ -22,6 +23,9 @@ define([
 
             if (typeof params.parentList !== 'undefined'){
                 this.parentList = "/" + params.parentList.join("/");
+            }
+                        if (typeof params.parentFolder !== "undefined") {
+                this.parentFolder = params.parentFolder;
             }
 
             this.$el.html(this.template());
@@ -31,8 +35,12 @@ define([
         handle_createPathway: function(){
             //hide modal
             $("#newpathwaymodal").modal('hide');
-            curTree.loadNewPathway({name: $('#newPathName').val(), folder: this.parentList});
+            curTree.loadNewPathway({name: $('#newPathName').val(), folder: this.parentList, parentFolder: this.parentFolder});
 
+            this.undelegateEvents(); // Unbind all local event bindings
+
+            delete this.$el; // Delete the jQuery wrapped object variable
+            delete this.el; // Delete the variable reference to this node
         }
     });
     return NewPathway;

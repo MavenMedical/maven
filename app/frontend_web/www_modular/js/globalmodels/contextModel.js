@@ -101,6 +101,7 @@ define([
             patientAuth: '',
             patientName:'',
             pathid: 0,
+            canonical: null,
             provider: null,
             encounter: null,
             department: null,

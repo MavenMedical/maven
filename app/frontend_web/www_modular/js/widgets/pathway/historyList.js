@@ -8,9 +8,11 @@ define([
     'pathway/singleRows/historyRow',
 
     'text!templates/pathway/historyScroll.html',
+    'pathway/models/treeModel',
+
     'globalmodels/contextModel',
 
-], function ($, _, Backbone, HistoryCollection, HistoryRow, HistoryListTemplate, contextModel) {
+], function ($, _, Backbone, HistoryCollection, HistoryRow, HistoryListTemplate, curTree, contextModel) {
     var historyCollection;
 
     var HistoryList = Backbone.View.extend({
@@ -33,9 +35,10 @@ define([
         }
         historyCollection = new (HistoryCollection.extend({extraData: this.extraData}));
 
-        this.$el.html(this.template({height:$(window).height()-50+'px'}));1
+        this.$el.html(this.template({height:$(window).height()-50+'px'}));
 	    historyCollection.bind('add', this.addHistory, this);
-	    historyCollection.bind('reset', this.reset, this);
+	    historyCollection.bind('reset', this.render, this);
+        curTree.bind('propagate', historyCollection.refresh, historyCollection)
 	    //historyCollection.bind('sync', this.render, this);
 	    //this.render();
 	},
@@ -81,13 +84,13 @@ define([
         }
 	},
 	addHistory: function(history) {
-        curpath = history.get("pathid");
+     /*   curpath = history.get("pathid");
         if (this.currentPath == curpath){
             history.set({active: 1});
         }
         else {
             history.set({active: 0});
-        }
+        }*/
 	    var historyrow = new HistoryRow({model: history});
 	    $('.historyaccordion', this.$el).append(historyrow.render().el);
         $(historyrow.el).bind("change", {activePath: historyrow.model.get("pathid"), that: this}, this.updateActivePathway);

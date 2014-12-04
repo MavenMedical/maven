@@ -56,6 +56,7 @@ class CONTEXT():
     NOTIFY_PRIMARY = 'notify1'
     NOTIFY_SECONDARY = 'notify2'
     FOLDER = 'folder'
+    ACTIVE = 'active'
 
 
 def http_service(methods, url, required, available, roles):

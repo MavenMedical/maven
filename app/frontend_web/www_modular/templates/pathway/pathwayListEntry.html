@@ -1,18 +1,16 @@
-<div id="<%=id%>" class="path-header path-row">
-     <div class="pathway-row-hist" style="font-size:17px;">
-        <a class='history-button'>
-            <span class="glyphicon glyphicon-list-alt"></span>
-        </a>
-     </div>
-     <div class="pathway-row-title" title="<%=name%>">
-         <span><a class='select-button'><%=name%></a></span>
-     </div>
-     <div class="pathway-row-control">
-         <span style="padding-right: 5px;">
-             <a class='delete-button'>&#10006</a>
-         </span>
-     </div>
+<div id="<%=id%>" class="manager-row-header path-row">
+    <div class="row-expansion" style="font-size:17px;">
+        <span class="glyphicon glyphicon-list-alt history-button"></span>
+    </div>
+    <div class="manager-row-title" title="<%=name%>">
+        <span><a class='select-button'><%=name%></a></span>
+    </div>
+    <div class="manager-row-control">
+        <a class='delete-button'><span style="padding-right: 1px;" class='glyphicon glyphicon-remove'></span></a>
+        <a><span style="padding-right: 1px;"
+            class="glyphicon <%= (enabled == 1) ? 'glyphicon-check' : 'glyphicon-unchecked' %> pathway-checkbox"></span></a>
+    </div>
 </div>
-<ol class="pathway-history-section sortable-folder">
+<div class="pathway-history-section">
 
-</ol>
+</div>

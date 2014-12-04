@@ -62,7 +62,7 @@ define([
 
         //if path isn't specified, simply add pathway to the top level
         if (path!=null && path!="") {
-            var folders = path.substring(1).split('/');
+            var folders = path.split('/');
 
             for (var i = 0; i < folders.length; i++) {
                 var foundFolder = false;
@@ -90,7 +90,7 @@ define([
             }
         }
         //create new pathway row
-        var thisModel = new Backbone.Model({id: model.get('pathid'), name: model.get('name'), canonical: model.get("canonical")})
+        var thisModel = new Backbone.Model({id: model.get('pathid'), name: model.get('name'), canonical: model.get("canonical"), enabled: model.get("enabled")})
         var pathRow = new PathRow({model: thisModel})
 
         $(currentEl).append(pathRow.render().$el)

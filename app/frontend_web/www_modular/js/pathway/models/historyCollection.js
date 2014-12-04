@@ -17,12 +17,16 @@ define([
                 //allow for additional data to be passed in, aside from the context model
                 var data = {};
                 $.extend(data, contextModel.toParams(), this.extraData);
-
+                that = this;
                 this.tried = 0;
                 this.offset = 0;
                 this.fetch({
                     data: $.param(data),
-                    remove: true});
+                    remove: true,
+                    success: function(){
+                        that.trigger('reset');
+                    }
+                });
             }
         }
     });

@@ -1139,7 +1139,7 @@ class WebPersistenceBase():
             raise Exception('Not implemented yet')
         cmd = []
         cmdArgs = []
-        cmd.append("SELECT current_id, name, canonical_id, folder FROM trees.canonical_protocol")
+        cmd.append("SELECT current_id, name, canonical_id, folder, enabled FROM trees.canonical_protocol")
         cmd.append("WHERE (customer_id=%s OR customer_id IS NULL)")
         cmdArgs.append(customer_id)
         if not includedeleted:
@@ -1264,14 +1264,15 @@ class WebPersistenceBase():
 
     @asyncio.coroutine
     def get_protocol_history(self, customer_id, canonical_id, limit=None):
-        cmd = ["SELECT protocol_id, trees.protocol.canonical_id, creation_time, public.users.official_name ",
+        cmd = ["SELECT protocol_id, trees.protocol.canonical_id, creation_time, public.users.official_name, ",
+               "(case trees.canonical_protocol.current_id WHEN trees.protocol.protocol_id THEN 1 ELSE 0 END) as active "
                "from trees.protocol",
                "INNER JOIN public.users ON users.user_id = trees.protocol.creator",
                "INNER JOIN trees.canonical_protocol",
                "ON trees.protocol.canonical_id = trees.canonical_protocol.canonical_id",
                "WHERE trees.protocol.canonical_id=%s AND (trees.protocol.customer_id IS NULL",
                "OR trees.protocol.customer_id=%s)",
-               "ORDER BY creation_time DESC"]
+               "ORDER BY active DESC, creation_time DESC"]
         cmdArgs = [canonical_id, customer_id]
         if limit:
             cmd.append(limit)
@@ -1279,6 +1280,26 @@ class WebPersistenceBase():
         ret = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
 
         return list(ret)
+
+    @asyncio.coroutine
+    def select_active_pathway(self, customer_id, canonical_id, protocol_id):
+        cmd = ["UPDATE trees.canonical_protocol SET current_id=%s ",
+               "WHERE (canonical_id=%s and customer_id=%s)"]
+        cmdArgs = [protocol_id, canonical_id, customer_id]
+        try:
+            yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
+        except:
+            ML.EXCEPTION("Error Updating TreeID #{}".format(canonical_id))
+
+    @asyncio.coroutine
+    def toggle_pathway(self, customer_id, canonical_id, enabled=False):
+        cmd = ["UPDATE trees.canonical_protocol SET enabled=%s ",
+               "WHERE (canonical_id=%s and customer_id=%s)"]
+        cmdArgs = [enabled, canonical_id, customer_id]
+        try:
+            yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
+        except:
+            ML.EXCEPTION("Error Updating TreeID #{}".format(canonical_id))
 
     @asyncio.coroutine
     def delete_protocol(self, customer_id, protocol_id=None, canonical_id=None):

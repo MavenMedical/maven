@@ -48,18 +48,13 @@ define([
                 //$(".folder-state", this.parentFolder).switchClass("glyphicon-folder-close", "glyphicon-folder-open");
                  //$(".ui-state-default", this.$el).css("display","inline-block");
                     //thisRow.$el.siblings().css("display","inline-block");
-
             }
             else {
                 $("#avail-paths-list").append(thisRow.render().$el);
             }
             curCollection.makeSortable();
 
-            //$(thisRow.el).css('display','inline-block');
-            //curCollection.addFolder(folder_name, this.parentList);
             this.undelegateEvents(); // Unbind all local event bindings
-
-            //$(this.el).empty(); // Remove view from DOM
 
             delete this.$el; // Delete the jQuery wrapped object variable
             delete this.el; // Delete the variable reference to this node

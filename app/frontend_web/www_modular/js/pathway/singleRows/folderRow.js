@@ -16,8 +16,6 @@ define([
     'pathway/modalViews/newPathway',
     'pathway/modalViews/newPathwayFolder',
      'pathway/models/pathwayCollection',
-    'nestedSortable'
-
 
 ], function ($, _, Backbone, router, contextModel, pathFolderRowTemplate, NewPathway, NewPathwayFolder, curCollection) {
         console.log(NewPathwayFolder);
@@ -35,12 +33,12 @@ define([
         },
         openFolder: function(event){
             //open folder - change folder icon to 'open' and show all immediate children
-            $(event.target).closest("li").switchClass("mjs-nestedSortable-collapsed", "mjs-nestedSortable-expanded");
+            $(event.target).closest("li").switchClass("mjs-nestedSortable-collapsed", "mjs-nestedSortable-expanded",0);
         },
         closeFolder: function(event){
             //close folder - change folder icon to 'close' and hide all children
-            $(event.target).closest("li").switchClass("mjs-nestedSortable-expanded", "mjs-nestedSortable-collapsed");
-            $(event.target).closest("li").find(".mjs-nestedSortable-branch").switchClass("mjs-nestedSortable-expanded", "mjs-nestedSortable-collapsed");
+            $(event.target).closest("li").switchClass("mjs-nestedSortable-expanded", "mjs-nestedSortable-collapsed",0);
+            $(event.target).closest("li").find(".mjs-nestedSortable-branch").switchClass("mjs-nestedSortable-expanded", "mjs-nestedSortable-collapsed",0);
         },
         toggleFolder: function(event){
             event.stopPropagation();
@@ -67,7 +65,7 @@ define([
         setParents: function(){
             //check the location of the folder - if it has moved, update the parent list and return true
 
-            var newParentList = [this.parentList[this.parentList.length-1]];
+            var newParentList = [$(this.el).children().first().attr("name")]; //initialize with current folder name [this.parentList[this.parentList.length-1]];
             var parentFolder = $(this.el).parent().closest(".sub-folder");
             while (parentFolder.length){
                 parentName = parentFolder.children(".pathway-folder-title").attr('name');
@@ -75,17 +73,13 @@ define([
                 parentFolder = $(parentFolder).parent().closest(".sub-folder");
             }
             newParentList.reverse();
-            /*if (!_.isEqual(newParentList, this.parentList)){
-                //folder location has changed so update the parent list*/
-                this.parentList = newParentList;
-               // return true;
-            //}
-            //return false;
+            this.parentList = newParentList;
+            return newParentList;
         },
         handleNewPathway: function(event) {
             event.stopPropagation();
-            new NewPathway({el: '#modal-target', parentList: this.parentList,
-                            });
+
+            new NewPathway({el: '#modal-target', parentList: this.setParents()});
         },
         handleNewSubFolder: function(event) {
             event.stopPropagation();
