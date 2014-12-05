@@ -369,7 +369,8 @@ define([
                 'nodeID': 0
             }, {silent: true})
             this.populateChildren()
-
+           var n = new triggerGroupCollection()
+            n.populate()
             this.set('triggers', n, {silent: true});
             this.unset('pathid', {silent: true})
             var that = this
