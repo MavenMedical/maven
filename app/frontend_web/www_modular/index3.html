@@ -25,9 +25,7 @@
     <link href="js/libs/fullCalendar/fullcalendar.css" rel="stylesheet" type="text/css">
 
     <script type="text/javascript">
-      try {
-      console.log('starting')
-      } catch (err) {
+      if (typeof console === "undefined" || typeof console.log === "undefined") {
       var console = Object
       console.log = function() {}
       }
