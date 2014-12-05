@@ -370,6 +370,7 @@ define([
             }, {silent: true})
             this.populateChildren()
 
+            this.set('triggers', n, {silent: true});
             this.unset('pathid', {silent: true})
             var that = this
             this.save({}, {
