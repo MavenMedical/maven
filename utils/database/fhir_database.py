@@ -70,8 +70,8 @@ class FHIRPersistanceBase():
     @asyncio.coroutine
     def last_node_clicked(self, customer, protocol, patient):
         try:
-            cur = yield from self.db.execute_single("SELECT node_id FROM trees.activity WHERE customer_id = %s AND patient_id = %s AND canonical_id = (SELECT canonical_id FROM trees.protocol WHERE protocol_id = %s) ORDER BY datetime DESC LIMIT 1", extra=[customer, protocol, patient])
-            return cur[0]
+            cur = yield from self.db.execute_single("SELECT node_id FROM trees.activity WHERE customer_id=%s AND patient_id=%s AND canonical_id=(SELECT canonical_id FROM trees.protocol WHERE protocol_id=%s) ORDER BY datetime DESC LIMIT 1", extra=[customer, patient, protocol])
+            return cur.fetchone()[0]
         except:
             return None
 

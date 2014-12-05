@@ -471,7 +471,7 @@ class CompositionEvaluator(SP.StreamProcessor):
                 if remaining_detail_evaluation:
                     node_id = yield from self.fhir_persistence.last_node_clicked(composition.customer_id,
                                                                                  pathway.CDS_rule_id,
-                                                                                 composition.subject.get_pat_id)
+                                                                                 composition.subject.get_pat_id())
                     FHIR_alert = FHIR_API.Alert(customer_id=composition.customer_id,
                                                 category=ALERT_TYPES.PATHWAY,
                                                 subject=composition.subject.get_pat_id(),
