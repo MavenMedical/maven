@@ -296,6 +296,8 @@ def main(loop):
 
     try:
         TASK(followup_task_service.run())
+        if MC.wrap_exception:
+            ML.wrap_exception()
         loop.run_forever()
     except KeyboardInterrupt:
         sp_consumer.close()
