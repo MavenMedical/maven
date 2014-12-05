@@ -67,6 +67,14 @@ class FHIRPersistanceBase():
         for result in cur:
             print(result)
 
+    @asyncio.coroutine
+    def last_node_clicked(self, customer, protocol, patient):
+        try:
+            cur = yield from self.db.execute_single("SELECT node_id FROM trees.activity WHERE customer_id = %s AND patient_id = %s AND canonical_id = (SELECT canonical_id FROM trees.protocol WHERE protocol_id = %s) ORDER BY datetime DESC LIMIT 1", extra=[customer, protocol, patient])
+            return cur[0]
+        except:
+            return None
+
     @ML.coroutine_trace(timing=True, write=FHIR_DB_LOG.debug)
     def write_composition_to_db(self, composition):
         yield from self.write_composition_patient(composition)

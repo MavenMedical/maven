@@ -1314,11 +1314,12 @@ class WebPersistenceBase():
 
     @asyncio.coroutine
     def post_protocol_activity(self, customer_id, user_id, activity_msg):
-        column_map = ["customer_id", "user_id", "patient_id", "protocol_id", "node_id", "datetime", "action"]
+        column_map = ["customer_id", "user_id", "patient_id", "protocol_id",
+                      "node_id", "datetime", "action", 'canonical_id']
         columns = DBMapUtils().select_rows_from_map(column_map)
 
         cmd = ["INSERT INTO trees.activity(" + columns + ")",
-               "VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING activity_id"]
+               "VALUES (%s, %s, %s, %s, %s, %s, %s, (SELECT canonical_id FROM trees.protocol WHERE protocol_id = %s)) RETURNING activity_id"]
 
         node_state_raw = activity_msg.get('node_state', None)
         node_state = node_state_raw.split("-")
@@ -1326,14 +1327,16 @@ class WebPersistenceBase():
         # Splice the last element from the node state (which returns a single element list),
         # and then take the only element from it and turn it into an integer
         node_id = node_state[-1:][0]
+        protocol_id = activity_msg.get('protocol_id', None)
         cmdArgs = [customer_id,
                    user_id,
                    activity_msg.get('patient_id', None),
-                   activity_msg.get('protocol_id', None),
+                   protocol_id,
                    node_id,
                    activity_msg.get('datetime', None),
-                   activity_msg.get('action', None)]
-
+                   activity_msg.get('action', None),
+                   protocol_id]
+        print(cmdArgs)
         try:
             cur = yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
             result = cur.fetchone()[0]

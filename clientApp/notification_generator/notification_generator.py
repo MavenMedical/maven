@@ -242,10 +242,14 @@ class NotificationGenerator():
         pathway_alerts.sort(key=lambda x: x.priority, reverse=True)
 
         pathway_alert = pathway_alerts[0]
+        try:
+            node_id = pathway_alert.CDS_node
+        except:
+            node_id = 'null'
 
         templateVars = {"http_address": MC.http_addr,
                         "pathway_id": pathway_alert.CDS_rule,
-                        "node_id": 1,
+                        "node_id": node_id,
                         "encounter_id": urllib.parse.quote(composition.encounter.get_csn()),
                         "encounter_date": composition.encounter.get_admit_date().date().isoformat(),
                         "patient_id": composition.subject.get_pat_id(),
