@@ -6,15 +6,16 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
-    'globalmodels/contextModel',
-    'widgets/pageOption'
-], function ($, _, Backbone, contextModel,pageOption) {
+    'globalmodels/contextModel'
+
+], function ($, _, Backbone, contextModel) {
 
     var CustomerCreation = Backbone.View.extend({
         initialize: function (arg) {
             this.template = _.template(arg.template);
             this.render();
-            new pageOption({'Customers':['fa-user', 'customers']})
+
+
             this.showhide();
             contextModel.on('change:page', this.showhide , this)
 

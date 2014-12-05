@@ -17,7 +17,8 @@ define([
         {'Users': ['fa-user', 'users']},
         {'Reports': ['fa-bar-chart-o', 'reports']},
         {'Research': ['fa-institution', 'research']},
-        {'EHR Setup': ['fa-database', 'research']}
+        {'EHR Setup': ['fa-database', 'research']},
+      //  {'Customers':['fa-user', 'customers']}
     ];
 
     var Sidebar = Backbone.View.extend({
@@ -27,9 +28,9 @@ define([
         },
         render: function () {
             this.$el.html(this.template());
-            for (o in sidebarList){
-                new pageOption(sidebarList[o]);
-            }
+            //for (o in sidebarList){
+               new pageOption(sidebarList[0]);
+          // }
 
         }
 

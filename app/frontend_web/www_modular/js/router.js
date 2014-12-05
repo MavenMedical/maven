@@ -88,7 +88,7 @@ define([
             "episode/:id/patient/:id/:date(/login/:user/:customer/)(:userAuth)": 'showEpisode',
             "evidence/:id/patient/:id/evi/:id(/login/:user/:customer/)(:userAuth)": 'showEvidence',
             "pathway/:id/node/:id(/patient/:id/:date)(/login/:user/:customer/)(:userAuth)": 'showPathway',
-            "pathwayEditor/:id/node/:id(/login/:user/:customer/)(:userAuth)": 'EditPathway',
+            "pathwayeditor/:id/node/:id(/login/:user/:customer/)(:userAuth)": 'EditPathway',
 	        "password/:type/:user/:customer/:oauth": 'password',
             //default
             '*action': 'defaultAction',

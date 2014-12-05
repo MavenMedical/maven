@@ -62,6 +62,9 @@ define([
             if(href =='pathway'){
                 Backbone.history.navigate("pathway/" + contextModel.get('pathid') + "/node/" + contextModel.get('code'), {trigger: true});
             }
+            else if (href == 'pathwayEditor'){
+                Backbone.history.navigate("pathwayeditor/" + contextModel.get('pathid') +"/node/" + contextModel.get('code') , true);
+            }
             else
             {
               Backbone.history.navigate(href, true);

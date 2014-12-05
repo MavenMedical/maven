@@ -1,7 +1,7 @@
 <div class="widget-column col-sm-12">
     <!--<div style="width:40px; float:left;"></div> <!-- spacing horizontal -->
     <li style="float:left; width: auto">
-        <div  title="<%=node.tooltip%>" clickID = "TN-<%=pathid%>-<%=node.nodeID%>" <%if (childrenHidden){%> style = "background-color: lightyellow" <%}%> class="treeNode click-tracked">
+        <div  title="<%=node.tooltip%>" clickID = "TN-<%=pathid%>-<%=node.nodeID%>" <%if (node.children.length > 0 && childrenHidden){%> style = "background-color: #e8e8e8" <%}%> class="treeNode click-tracked">
             <span data-toggle="tooltip" > <%=node.name%></span>
 
             <br>

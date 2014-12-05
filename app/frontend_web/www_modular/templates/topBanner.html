@@ -1,5 +1,5 @@
 <!-- #section:basics/navbar.layout -->
-		<div id="navbar" class="navbar navbar-default">
+		<div id="navbar" class="navbar navbar-default navbar-collapse">
 			<script type="text/javascript">
 				try{ace.settings.check('navbar' , 'fixed')}catch(e){}
 			</script>
@@ -25,6 +25,7 @@
 							maven
 						</small>
 					</a>
+
 
 					<!-- /section:basics/navbar.layout.brand -->
 
@@ -308,14 +309,14 @@
 							</a>
 
 							<ul class="user-menu dropdown-menu-right dropdown-menu dropdown-yellow dropdown-caret dropdown-close">
-								<li>
+								<li id ='settings_button'>
 									<a href="#">
 										<i class="ace-icon fa fa-cog"></i>
 										Settings
 									</a>
 								</li>
 
-								<li>
+								<li id="profile_button">
 									<a href="#">
 										<i class="ace-icon fa fa-user"></i>
 										Profile
