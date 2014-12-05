@@ -25,6 +25,11 @@
     <link href="js/libs/fullCalendar/fullcalendar.css" rel="stylesheet" type="text/css">
 
     <script type="text/javascript">
+      if (typeof console === "undefined" || typeof console.log === "undefined") {
+      var console = Object
+      console.log = function() {}
+      }
+
         var colorMap = {
             "Consultation": "#18bc9a",
             "Imaging": "#36485c",
