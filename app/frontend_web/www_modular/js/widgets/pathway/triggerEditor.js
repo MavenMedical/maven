@@ -87,6 +87,7 @@ define([
                 },
                 render: function(){
                     var self = this;
+                    this.$el.css({'border-style': 'solid', 'border-width': '4px'})
                     this.$el.droppable({
                         drop: function( event, ui ) {
                             var detailType = ui.draggable[0].id
@@ -100,8 +101,8 @@ define([
 
 
                         },
-                         activeClass: "ui-state-hover",
-                         hoverClass: "ui-state-active"
+                         activeClass: "activeDrop",
+                         hoverClass: "hoverDrop"
                     })
 
 
