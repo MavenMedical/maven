@@ -189,3 +189,36 @@ def TASK(coroutine):
 
 def report(message):
     pass
+
+
+def wrap_exception():
+    global EXCEPTION
+    last_exception_map = {}
+
+    url = 'https://hooks.slack.com/services/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'
+
+    import aiohttp
+    from datetime import datetime, timedelta
+    import socket
+    import json
+    import sys
+
+    hostname = socket.gethostname() + ' ' + sys.argv[0] + ": "
+    old_exception = EXCEPTION
+
+    @asyncio.coroutine
+    def msg_to_slack(x):
+        resp = yield from aiohttp.request('POST',
+                                          url,
+                                          data=json.dumps({"text": hostname + x}))
+        resp.close()
+
+    def handle_exception(x):
+        old_exception(x)
+        last = last_exception_map.get(x, datetime.min)
+        now = datetime.now()
+        if now - last > timedelta(minutes=5):
+            last_exception_map[x] = now
+            print('firing off message')
+            TASK(msg_to_slack(x))
+    EXCEPTION = handle_exception

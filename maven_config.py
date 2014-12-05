@@ -26,6 +26,7 @@ if isfile('/etc/mavenmedical/maven.config'):
     http_addr = MavenConfig['global']['http_addr']
     recaptcha_public = MavenConfig['global'].get('recaptcha_public', '')
     recaptcha_private = MavenConfig['global'].get('recaptcha_private', '')
+    wrap_exception = MavenConfig['global'].get('wrap_exception', None)
     sslcrtfile = None
     sslkeyfile = None
     sslkeypassword = None
@@ -38,6 +39,7 @@ else:
 
     dbhost = 'localhost'
     reporterhost = None
+    wrap_exception = None
     http_addr = 'http://localhost'
     recaptcha_public = '6Lcy3vwSAAAAAD0uy8wRFxf7rO60sPwx5OA5AGij'
     recaptcha_private = '6Lcy3vwSAAAAAN-X2jIbEqKh7NFwpIux8WRS8Lby'

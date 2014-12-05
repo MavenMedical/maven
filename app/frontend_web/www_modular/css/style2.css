@@ -671,7 +671,15 @@ border-right: 1px solid rgb(204, 204, 204);
     float:left;
     padding-top: 3%;
 }
+.hoverDrop{
+    border-style: dashed !important;
+    background-color: #d3d3d3 !important;
 
+}
+.activeDrop{
+    border-style: dashed !important;
+    border-color: #808080;
+}
 .setting-footer > button {
     float:left;
     margin-right: 10px;

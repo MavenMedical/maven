@@ -33,11 +33,18 @@ define([
             }
             this.on('add', function(){self.trigger('cascade')})
             this.on('remove', function(){self.trigger('cascade')})
+            if (self.models.length == 0){
+                self.addGroup("and")
+            }
 
         },
         addGroup: function(relationship){
             var group = new TriggerGroup();
+            var self = this;
             group.populate({relationship : relationship})
+            group.on('cascade', function(){
+                self.trigger('cascade')
+            })
             this.add(group)
             return group
         }
