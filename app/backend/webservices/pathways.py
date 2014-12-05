@@ -81,7 +81,6 @@ class PathwaysWebservices():
 
         return (HTTP.OK_RESPONSE, "", None)
 
-
     @http_service(['GET'], '/search',
                   [CONTEXT.SEARCH_PARAM],
                   {'type': str, CONTEXT.SEARCH_PARAM: str},
@@ -174,11 +173,9 @@ class PathwaysWebservices():
         msg = json.loads(body.decode('utf-8'))
         active = msg.get("active")
 
-
         self.persistence.toggle_pathway(customer_id, canonical_id, enabled=active)
 
         return (HTTP.OK_RESPONSE, "", None)
-
 
     @http_service(['POST'], '/update_pathway_location',
                   [CONTEXT.USERID, CONTEXT.CUSTOMERID, CONTEXT.CANONICALID],

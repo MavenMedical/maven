@@ -9,8 +9,6 @@ define([
 
 
     var pathCollection = Backbone.Collection.extend({
-        elPairs: [],
-        folders: {'Folder A':{'Folder B':{}, 'Folder C': {}}},
 	    model: Backbone.Model.extend({idAttribute: 'canonical'}),
         url: function() {
             return '/list'
@@ -19,19 +17,11 @@ define([
             this.fetch()
 
         },
-        addFolder: function(folderName, parents){
-            currentFolder = this.folders;
-            for(var i = 0; i < parents.length; i++){
-                    currentFolder = currentFolder[parents[i]];
-            }
-            currentFolder[folderName] = {};
-
-        },
         makeSortable: function(){
             that = this;
             $('ol.sortable-folder').nestedSortable({
                 forcePlaceholderSize: true,
-			    handle: 'div',
+			    handle: 'div:not(.bootstrap-switch)',
                 connectWith:'li, ol',
 			    helper:	'clone',
 			    items: 'li',
@@ -40,7 +30,7 @@ define([
 			    revert: 250,
 			    tabSize: 25,
 			    tolerance: 'pointer',
-			    toleranceElement: '> div',
+			    toleranceElement: '> div:not(.bootstrap-switch)',
 			    maxLevels: 0,
 			    isTree: true,
 			    expandOnHover: 700,
@@ -48,31 +38,46 @@ define([
                 doNotClear: false,
                 branchClass: 'mjs-nestedSortable-branch',
                 leafClass: 'mjs-nestedSortable-leaf',
+               // containment: '.sortable-folder',
                 isAllowed:function(item, parent){
                     if (parent==null) return true;
-                    if (parent.hasClass("sub-folder") || parent.hasClass("sub-folder")) return true;
+                    if ($(parent).is("li") || $(parent).is("ol")) return true;
                     return false;
                 },
                 receive: function(event, ui){
                     //when a pathway or folder is moved, we need to update the path(s) in the database
-                    var path = that.getParents(ui.item).join("/");
+                    var parents = that.getParents(ui.item);
+                    if (parents.length) {
+                        var path = parents.join("/").substring(1);
+                    }
+                    var parentFolder = $(ui.item).closest('.sub-folder');
+/*
+                    else {
+                        var parentFolder = $('#avail-paths-list');
+                        var path = "";
+                    }*/
 
                     if ($(ui.item).hasClass('pathrow-sortable')){
                         //pathway was moved
                         //var canonical_id = $(".path-row", $(ui.item)).attr("id");
-                        that.handleMovedFolder($(ui.item).closest('.sub-folder'), path, that, false)
+                        that.handleMovedFolder(parentFolder, path, that, false)
                     }
                     else {
                         //entire folder was moved; need to update all contained pathways
-                        that.handleMovedFolder($(ui.item).closest('.sub-folder'), path, that, true)
+                        that.handleMovedFolder(parentFolder, path, that, true)
                     }
-
+                },
+                sort: function(event, ui){
+                    if ($(ui.item).hasClass('mjs-nestedSortable-expanded')) {
+                        $(ui.item).switchClass("mjs-nestedSortable-expanded", "mjs-nestedSortable-collapsed", 0);
+                        $(ui.helper).switchClass("mjs-nestedSortable-expanded", "mjs-nestedSortable-collapsed", 0);
+                        $(ui.placeholder).height($(ui.item).height())
+                    }
                 }
             });
         },
         getParents: function(item) {
             //get the parents of an item (pathway or folder)
-
             var parentList = [];
             if ($(item).hasClass('sub-folder')) {
                 parentList.push($(item).children().first().attr("name")); //initialize with current folder name if folder
@@ -80,6 +85,7 @@ define([
             var parentFolder = $(item).parent().closest(".sub-folder");
             while (parentFolder.length){
                 var parentName = parentFolder.children(".pathway-folder-title").attr('name');
+                if (parentName == '') break;
                 parentList.push(parentName);
                 parentFolder = $(parentFolder).parent().closest(".sub-folder");
             }
@@ -115,7 +121,6 @@ define([
                     that.handleMovedFolder(this, new_path, that);
                 }
             });
-
         }
 
     })

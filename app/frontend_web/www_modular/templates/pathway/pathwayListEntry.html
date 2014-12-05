@@ -1,4 +1,4 @@
-<div id="<%=id%>" class="manager-row-header path-row">
+<div id="<%=canonical%>" class="manager-row-header path-row">
     <div class="row-expansion" style="font-size:17px;">
         <span class="glyphicon glyphicon-list-alt history-button"></span>
     </div>
@@ -6,9 +6,11 @@
         <span><a class='select-button'><%=name%></a></span>
     </div>
     <div class="manager-row-control">
-        <a class='delete-button'><span style="padding-right: 1px;" class='glyphicon glyphicon-remove'></span></a>
-        <a><span style="padding-right: 1px;"
-            class="glyphicon <%= (enabled == 1) ? 'glyphicon-check' : 'glyphicon-unchecked' %> pathway-checkbox"></span></a>
+        <a class='delete-button'><span style="padding-right: 1px;" class='glyphicon glyphicon-trash'></span></a>
+        <!--<a><span style="padding-right: 1px;"
+            class="glyphicon <%= (enabled == 1) ? 'glyphicon-check' : 'glyphicon-unchecked' %> pathway-checkbox"></span></a>-->
+        <input class="pathway-enable" type="checkbox" data-on-text="On" data-off-text="Off" data-size="extra-mini"
+                        <%= (enabled == 1) ? "checked" : "" %>>
     </div>
 </div>
 <div class="pathway-history-section">

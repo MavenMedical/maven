@@ -16,6 +16,7 @@ define([
     'pathway/models/pathwayCollection',
     'text!templates/pathway/pathwayListEntry.html',
     '../../widgets/pathway/historyList',
+    'bootstrapswitch',
 
 ], function ($, _, Backbone, router, contextModel, pathwayCollection, pathRowTemplate, HistoryList) {
 
@@ -28,10 +29,32 @@ define([
 	      'click .history-button': 'handleHistory',
 	      'click .delete-button': 'handleRemove',
 	      'click .pathway-checkbox': 'handleCheck',
+	      'click .pathway-switch-label': 'handleToggle',
+        },
+        handleToggle: function(event){
+            event.stopPropagation();
+            event.stopImmediatePropagation();
         },
         render: function(){
             $(this.el).html(this.template(this.model.toJSON()));
             this.model.url = "/list/" + this.model.get("canonical");
+
+            that = this;
+            $(document).ready(function(){
+                $(".pathway-enable", that.$el).bootstrapSwitch();
+                $('.pathway-enable', that.$el).on('switchChange.bootstrapSwitch', function(event, state) {
+                   // event.stopPropagation();
+                    if (state){
+                        $(".history-checkbox", this.$el).removeClass("check-disabled",0);
+                    }
+                    else {
+                        $(".history-checkbox", this.$el).addClass("check-disabled",0);
+                    }
+
+                    this.model.save({active: state});
+                });
+            });
+
             /*
             that = this;
             $(document).ready(function(){

@@ -22,7 +22,7 @@ define([
         initialize: function (params) {
 
             if (typeof params.parentList !== 'undefined'){
-                this.parentList = "/" + params.parentList.join("/");
+                this.parentList = params.parentList.join("/");
             }
                         if (typeof params.parentFolder !== "undefined") {
                 this.parentFolder = params.parentFolder;

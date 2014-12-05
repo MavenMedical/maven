@@ -1139,11 +1139,13 @@ class WebPersistenceBase():
             raise Exception('Not implemented yet')
         cmd = []
         cmdArgs = []
-        cmd.append("SELECT current_id, name, canonical_id, folder, enabled FROM trees.canonical_protocol")
+        cmd.append("SELECT current_id, name, canonical_id, folder, enabled")
+        cmd.append("FROM trees.canonical_protocol")
         cmd.append("WHERE (customer_id=%s OR customer_id IS NULL)")
         cmdArgs.append(customer_id)
         if not includedeleted:
             cmd.append('AND NOT deleted')
+        cmd.append("ORDER BY folder, name")
         ret = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
         return list(ret)
 

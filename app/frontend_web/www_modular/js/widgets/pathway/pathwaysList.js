@@ -26,7 +26,8 @@ define([
     var PathwaysList = Backbone.View.extend({
         template: _.template(pathwaysListTemplate),
         events: {
-            'click #newpath-button': 'handle_newPath',
+            //'click #newpath-button': 'handle_newPath',
+            'click #add-base-pathway': 'handle_newPath',
             'click #save-button': 'handle_save',
             'click #paths-list-add-folder': 'handle_new_folder'
         },
@@ -84,7 +85,13 @@ define([
                     //folder doesn't exist, so create it
                     var thisModel = new Backbone.Model({name: folders[i]});
                     var thisRow = new FolderRow({model: thisModel, parentList: folders.slice(0,i)})
-                    currentEl.append(thisRow.render().$el);
+                    var lastFolder = currentEl.children('.sub-folder').last();
+                    if (lastFolder.length){
+                        $(thisRow.render().$el).insertAfter(lastFolder);
+                    }
+                    else {
+                        currentEl.prepend(thisRow.render().$el);
+                    }
                     currentEl = $(thisRow.el).children("ol");
                 }
             }
@@ -191,8 +198,8 @@ define([
         a = new newPathwayFolder({el: '#modal-target'});
     },
         handle_newPath: function () {
+         //   a = new NewPathway({el: '#modal-target'});
             a = new NewPathway({el: '#modal-target'});
-
         },
         handle_save: function(){
             curTree.save()
