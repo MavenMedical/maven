@@ -38,6 +38,17 @@
   -webkit-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
   transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
 }
+.bootstrap-switch.bootstrap-switch-extra-mini {
+  min-width: 50px;
+}
+.bootstrap-switch.bootstrap-switch-extra-mini .bootstrap-switch-handle-on,
+.bootstrap-switch.bootstrap-switch-extra-mini .bootstrap-switch-handle-off,
+.bootstrap-switch.bootstrap-switch-extra-mini .bootstrap-switch-label {
+  padding-bottom: .1px;
+  padding-top: .1px;
+  font-size: 11px;
+  line-height: 17px;
+}
 .bootstrap-switch.bootstrap-switch-mini {
   min-width: 71px;
 }
@@ -46,7 +57,7 @@
 .bootstrap-switch.bootstrap-switch-mini .bootstrap-switch-label {
   padding-bottom: 4px;
   padding-top: 4px;
-  font-size: 10px;
+  font-size: 10zpx;
   line-height: 9px;
 }
 .bootstrap-switch.bootstrap-switch-small {

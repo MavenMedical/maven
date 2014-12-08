@@ -38,7 +38,7 @@ define([
         "patient": [0, 9, 3],
         "episode": [0, 9, 3],
         "pathway": [0, 12, 0],
-        "pathEditor": [0, 12, 0],
+        "pathEditor": [3, 9, 0],
         "triggerEditor": [0,12, 0]
     };
     changePageLayout = function (page) {
@@ -143,6 +143,10 @@ define([
         EditTriggers: function (path, code, user, customer, userAuth) {
             layoutModel.set('fluidContent', false)
             currentContext.set({page: 'triggerEditor',  pathid: path, code: code});
+            showPage(user, customer, userAuth);
+        },
+        showPathwayHistory: function (path, code, user, customer, userAuth) {
+            currentContext.set({page: 'pathHistory',  pathid: path, code: code});
             showPage(user, customer, userAuth);
         },
         logout: function () {

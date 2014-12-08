@@ -1140,20 +1140,22 @@ class WebPersistenceBase():
             raise Exception('Not implemented yet')
         cmd = []
         cmdArgs = []
-        cmd.append("SELECT current_id, name, canonical_id FROM trees.canonical_protocol")
+        cmd.append("SELECT current_id, name, canonical_id, folder, enabled")
+        cmd.append("FROM trees.canonical_protocol")
         cmd.append("WHERE (customer_id=%s OR customer_id IS NULL)")
         cmdArgs.append(customer_id)
         if not includedeleted:
             cmd.append('AND NOT deleted')
+        cmd.append("ORDER BY folder, name")
         ret = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
         return list(ret)
 
     @asyncio.coroutine
-    def create_protocol(self, treeJSON, customer_id, user_id):
+    def create_protocol(self, treeJSON, customer_id, user_id, folder=None):
 
         cmd = ["SELECT trees.insertprotocol(%s, %s, %s, %s, %s, %s, %s, %s)"]
         cmdArgs = [json.dumps(treeJSON), customer_id, user_id, treeJSON['name'],
-                   None, 0.00, 200.00, '%']
+                   folder, 0.00, 200.00, '%']
         try:
             cur = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
             tree_id, canonical_id = cur.fetchone()[0]
@@ -1264,6 +1266,45 @@ class WebPersistenceBase():
             return None
 
     @asyncio.coroutine
+    def get_protocol_history(self, customer_id, canonical_id, limit=None):
+        cmd = ["SELECT protocol_id, trees.protocol.canonical_id, creation_time, public.users.official_name, ",
+               "(case trees.canonical_protocol.current_id WHEN trees.protocol.protocol_id THEN 1 ELSE 0 END) as active "
+               "from trees.protocol",
+               "INNER JOIN public.users ON users.user_id = trees.protocol.creator",
+               "INNER JOIN trees.canonical_protocol",
+               "ON trees.protocol.canonical_id = trees.canonical_protocol.canonical_id",
+               "WHERE trees.protocol.canonical_id=%s AND (trees.protocol.customer_id IS NULL",
+               "OR trees.protocol.customer_id=%s)",
+               "ORDER BY active DESC, creation_time DESC"]
+        cmdArgs = [canonical_id, customer_id]
+        if limit:
+            cmd.append(limit)
+
+        ret = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
+
+        return list(ret)
+
+    @asyncio.coroutine
+    def select_active_pathway(self, customer_id, canonical_id, protocol_id):
+        cmd = ["UPDATE trees.canonical_protocol SET current_id=%s ",
+               "WHERE (canonical_id=%s and customer_id=%s)"]
+        cmdArgs = [protocol_id, canonical_id, customer_id]
+        try:
+            yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
+        except:
+            ML.EXCEPTION("Error Updating TreeID #{}".format(canonical_id))
+
+    @asyncio.coroutine
+    def toggle_pathway(self, customer_id, canonical_id, enabled=False):
+        cmd = ["UPDATE trees.canonical_protocol SET enabled=%s ",
+               "WHERE (canonical_id=%s and customer_id=%s)"]
+        cmdArgs = [enabled, canonical_id, customer_id]
+        try:
+            yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
+        except:
+            ML.EXCEPTION("Error Updating TreeID #{}".format(canonical_id))
+
+    @asyncio.coroutine
     def delete_protocol(self, customer_id, protocol_id=None, canonical_id=None):
         if canonical_id:
             cmd = ["UPDATE trees.canonical_protocol SET deleted=TRUE ",
@@ -1350,6 +1391,20 @@ class WebPersistenceBase():
             return True
         else:
             return False
+
+    @asyncio.coroutine
+    def post_pathway_location(self, customer_id, canonical_id, location_msg):
+
+        location = location_msg.get('location', None)
+        # position = location_msg.get('position', None)
+
+        cmd = ["UPDATE trees.canonical_protocol set folder = %s WHERE customer_id=%s and canonical_id=%s"]
+        cmdArgs = [location, customer_id, canonical_id]
+
+        result = yield from self.execute(cmd, cmdArgs, {}, {})
+        if result:
+            return True
+        return False
 
     ##########################################################################################
     ##########################################################################################

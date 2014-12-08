@@ -49,10 +49,10 @@ define([
             this.$el.html(this.template())
             if (contextModel.get('page') != 'pathEditor')
                 this.$el.hide()
-            curCollection.on('sync', this.renderPathList, this)
+            //curCollection.on('sync', this.renderPathList, this)
             treeContext.on('propagate', this.renderActions, this)
 
-            this.renderPathList();
+            //this.renderPathList();
             this.renderActions();
         },
         addTrigger: function () {
@@ -82,8 +82,6 @@ define([
             }, this)
         },
         handle_newPath: function () {
-
-
             a = new NewPathway({el: '#modal-target'});
 
         },
