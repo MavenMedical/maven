@@ -22,17 +22,21 @@ define([
             $("#detail-modal").modal({'show':'true'});
 
             followups = new Array();
-            $(this.attributes.followups).each(function(){
-                //show all default followups
-                this.sendMode = true;
-                $('#followups', that.$el).append("<div class='followup'></div>");
-                el = $('.followup', $('#followups', that.$el)).last();
-                var followup = new ReminderRow({model:new Backbone.Model(this), el:el});
+            var initBlankFollowup = true;
+            if (typeof this.attributes.followups != 'undefined') {
+                $(this.attributes.followups).each(function () {
+                    initBlankFollowup = false;
+                    //show all default followups
+                    this.sendMode = true;
+                    $('#followups', that.$el).append("<div class='followup'></div>");
+                    el = $('.followup', $('#followups', that.$el)).last();
+                    var followup = new ReminderRow({model: new Backbone.Model(this), el: el});
 
-                followups.push(followup);
-                followup.$el.bind('remove', {followup:followup}, that.removeFollowup);
-            })
-            if (!this.attributes.followups.length) {
+                    followups.push(followup);
+                    followup.$el.bind('remove', {followup: followup}, that.removeFollowup);
+                })
+            }
+            if (initBlankFollowup) {
                 //if no stored followups, initialize with one blank one
                 $('#followups').append("<div class='followup'></div>");
                 el = $('.followup', $('#followups')).last();

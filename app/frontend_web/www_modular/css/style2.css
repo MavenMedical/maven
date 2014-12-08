@@ -879,7 +879,7 @@ button:hover .btn-hover { display: inline; }
     display: none;
 }
 
-#show-advanced-settings, #add-new-followup {
+.show-advanced-settings, #add-new-followup {
     cursor: pointer;
 }
 
