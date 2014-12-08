@@ -24,8 +24,8 @@ from clientApp.webservice.composition_builder import CompositionBuilder
 import maven_logging as ML
 from collections import defaultdict
 from utils.enums import CONFIG_PARAMS
-icd9_keyword_match = re.compile('\(V?[0-9]+(?:\.[0-9]+)?\)')
-icd9_capture = re.compile('(?:\((V?[0-9]+(?:\.[0-9]+)?)\))')
+icd9_keyword_match = re.compile('\(V?[0-9]+(?:\.[0-9]+)?(?:(?:\s+)?\|(?:\s+)?\w+)?\)')
+icd9_capture = re.compile('(?:\((V?[0-9]+(?:\.[0-9]+)?)(?:(?:\s+)?\|(?:\s+)?\w+(?:\.\w+)?)?\))')
 CLIENT_SERVER_LOG = ML.get_logger('clientApp.webservice.clientapp_main_server')
 
 
