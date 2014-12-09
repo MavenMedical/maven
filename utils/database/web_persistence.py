@@ -98,6 +98,7 @@ Results = Enum('Results',
     expire_datetime
     activityid
     protocol
+    protocolname
     msg_subject
     msg_body
     groupid
@@ -1080,7 +1081,9 @@ class WebPersistenceBase():
         Results.patientid: "a.patient_id",
         Results.datetime: "min(a.datetime) AS time",
         Results.username: 'min(u.official_name)',
-        Results.protocol: 'min(p.name)',
+        Results.userid: 'a.user_id',
+        Results.protocolname: 'min(p.name)',
+        Results.protocol: 'a.protocol_id',
     }
 
     _display_interactions = _build_format({
@@ -1088,19 +1091,34 @@ class WebPersistenceBase():
     })
 
     @asyncio.coroutine
-    def interactions(self, desired, customer, provider=None, patients=None,
-                     startdate=None, enddate=None, limit=None):
+    def interactions(self, desired, customer,
+                     # provider=None, patients=None, startdate=None, enddate=None,
+                     limit=None):
         columns = build_columns(desired.keys(), self._available_interactions, set())
         cmd = ["SELECT", columns, "FROM trees.activity AS a",
                "INNER JOIN users AS u ON a.user_id=u.user_id",
                "INNER JOIN trees.canonical_protocol AS p ON a.canonical_id = p.canonical_id",
-               "WHERE a.patient_id IS NOT NULL",
+               "WHERE a.patient_id IS NOT NULL AND a.customer_id = %s",
                "GROUP BY a.patient_id, a.user_id, a.protocol_id, date_trunc('day', a.datetime)",
                "ORDER BY time DESC"]
+        cmdargs = [customer]
 
         if limit:
             cmd.append(limit)
-        results = yield from self.execute(cmd, [], self._display_interactions, desired)
+        results = yield from self.execute(cmd, cmdargs, self._display_interactions, desired)
+        return results
+
+    @asyncio.coroutine
+    def interaction_details(self, customer, providerid, patientid, protocolid, startactivity):
+        cmd = ["SELECT node_id, datetime FROM trees.activity WHERE",
+               "customer_id = %s AND user_id = %s AND patient_id = %s AND protocol_id = %s",
+               "AND activity_id >= %s"]
+        cmdargs = [customer, providerid, patientid, protocolid, startactivity]
+
+        desired = {0: 'node_id', 1: 'datetime'}
+
+        results = yield from self.execute(cmd, cmdargs,
+                                          _build_format({1: _prettify_datetime}), desired)
         return results
 
     @asyncio.coroutine

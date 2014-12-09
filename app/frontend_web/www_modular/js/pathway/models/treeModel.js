@@ -43,7 +43,7 @@ define([
         if (cur.get('nodeID') == target) {
             for (var i in path) {
                 var cur2 = path[i]
-                cur2.showChildren()
+                cur2.showChildren && cur2.showChildren()
             }
 
         } else {

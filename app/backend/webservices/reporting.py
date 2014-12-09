@@ -32,34 +32,58 @@ class ReportingWebservices():
         config = MC.MavenConfig[configname]
         self.persistence = WP.WebPersistence(config[CONFIG_PERSISTENCE])
 
+    @http_service(['GET'], '/interaction_details',
+                  [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.TARGETPROVIDER, CONTEXT.PATIENT,
+                   CONTEXT.PROTOCOL, CONTEXT.ACTIVITY],
+                  {CONTEXT.TARGETPROVIDER: str, CONTEXT.PATIENT: str, CONTEXT.CUSTOMERID: int,
+                   CONTEXT.USER: str, CONTEXT.PROTOCOL: int, CONTEXT.ACTIVITY: int},
+                  {USER_ROLES.supervisor})
+    def get_interaction_details(self, _header, _body, context, _matches, _key):
+        user = context[CONTEXT.USER]
+        provider = context[CONTEXT.TARGETPROVIDER]
+        protocol = context[CONTEXT.PROTOCOL]
+        startactivity = context[CONTEXT.ACTIVITY]
+        patient = context[CONTEXT.PATIENT]
+        customer = context[CONTEXT.CUSTOMERID]
+
+        asyncio.async(self.persistence.audit_log(user, 'get interaction', customer,
+                                                 patient=patient,
+                                                 details=json.dumps([protocol, provider])))
+
+        results = yield from self.persistence.interaction_details(customer, provider, patient,
+                                                                  protocol, startactivity)
+        return HTTP.OK_RESPONSE, json.dumps(results), None
+
     @http_service(['GET'], '/interactions(?:(\d+)-(\d+)?)?',
                   [CONTEXT.USER, CONTEXT.CUSTOMERID],
-                  {CONTEXT.PROVIDER: str, CONTEXT.PATIENTLIST: list, CONTEXT.CUSTOMERID: int,
+                  {CONTEXT.TARGETPROVIDER: str, CONTEXT.PATIENTLIST: list, CONTEXT.CUSTOMERID: int,
                    CONTEXT.STARTDATE: date, CONTEXT.ENDDATE: date, CONTEXT.USER: str},
                   {USER_ROLES.supervisor})
     def get_interactions(self, _header, _body, context, matches, _key):
         user = context[CONTEXT.USER]
-        provider = context.get(CONTEXT.PROVIDER, None)
-        patients = context.get(CONTEXT.PATIENTLIST, None)
+        # provider = context.get(CONTEXT.TARGETPROVIDER, None)
+        # patients = context.get(CONTEXT.PATIENTLIST, None)
         customer = context[CONTEXT.CUSTOMERID]
 
-        startdate = self.helper.get_date(context, CONTEXT.STARTDATE)
-        enddate = self.helper.get_date(context, CONTEXT.ENDDATE)
+        # startdate = self.helper.get_date(context, CONTEXT.STARTDATE)
+        # enddate = self.helper.get_date(context, CONTEXT.ENDDATE)
         limit = self.helper.limit_clause(matches)
 
         desired = {
-            WP.Results.activityid: 'id',
-            WP.Results.patientid: 'patient',
-            WP.Results.protocol: 'protocol',
+            WP.Results.activityid: CONTEXT.ACTIVITY,
+            WP.Results.patientid: CONTEXT.PATIENT,
+            WP.Results.protocolname: 'protocolname',
+            WP.Results.protocol: CONTEXT.PROTOCOL,
             WP.Results.datetime: 'date',
-            WP.Results.username: 'provider',
+            WP.Results.username: 'providername',
+            WP.Results.userid: CONTEXT.TARGETPROVIDER,
         }
 
         results = yield from self.persistence.interactions(desired, customer,
-                                                           provider=provider,
-                                                           patients=patients,
-                                                           startdate=startdate,
-                                                           enddate=enddate,
+                                                           # provider=provider,
+                                                           # patients=patients,
+                                                           # startdate=startdate,
+                                                           # enddate=enddate,
                                                            limit=limit)
 
         if results:

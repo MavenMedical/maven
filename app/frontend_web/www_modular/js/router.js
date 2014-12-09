@@ -121,10 +121,9 @@ define([
             showPage(user, customer, userAuth);
         },
         showPathway: function (path, code, pat, date, user, customer, userAuth) {
-
             layoutModel.set({'fluidContent': false})
             currentContext.set({page: 'pathway', code: code, pathid: path, patients: pat, enc_date: date,
-                startdate: null, enddate: null});
+                                startdate: null, enddate: null});
 
             showPage(user, customer, userAuth);
         },
@@ -137,7 +136,7 @@ define([
         },
         EditPathway: function (path, code, user, customer, userAuth) {
             layoutModel.set('fluidContent', true)
-            currentContext.set({page: 'pathEditor',  pathid: path, code: code});
+            currentContext.set({page: 'pathEditor',  pathid: path, code: code, nextflip: null});
             showPage(user, customer, userAuth);
         },
         EditTriggers: function (path, code, user, customer, userAuth) {

@@ -60,38 +60,38 @@ define([
 	    var nonempty = false;
 	    if (interactionCollection.length) {
 		for(interaction in interactionCollection.models) {
-			this.addInteraction(interactionCollection.models[interaction]);
-			nonempty = true;
+		    this.addInteraction(interactionCollection.models[interaction]);
+		    nonempty = true;
 		}
 	    }
 	    if(!nonempty) {
-            $('.interactiontable > tbody', this.$el).html("<tr><td colspan=\"5\">"+empty_text+"</td></tr>");
-            $('.interactiontable > thead', this.$el).hide();
-            $('.interaction-control-row', this.$el).hide();
-            this.$el.show();
+                $('.interactiontable > tbody', this.$el).html("<tr><td colspan=\"5\">"+empty_text+"</td></tr>");
+                $('.interactiontable > thead', this.$el).hide();
+                $('.interaction-control-row', this.$el).hide();
+                this.$el.show();
 	    }
-        else {
-            $('.interactiontable > thead', this.$el).show();
-            $('.interaction-control-row', this.$el).show();
-            this.$el.show();
-            var interactionlist = $('.interaction-scroll', this.$el);
-            setTimeout(function () {
-                var interactionHeight = interactionlist.innerHeight();
-                if (this.lastHeight != interactionHeight && interactionHeight < parseInt(interactionlist.css('max-height'))) {
-                    this.lastHeight = interactionHeight;
-                    interactionCollection.more();
-                }
-                else {
-
-                    interactionlist.scroll(function(e) {
-                        if(interactionlist.scrollTop() + interactionlist.innerHeight() + 100 >= interactionlist[0].scrollHeight) {
-                            interactionCollection.more();
-                        }
-                        return false;
-                    });
-                }
-            }, 500);
-        }
+            else {
+                $('.interactiontable > thead', this.$el).show();
+                $('.interaction-control-row', this.$el).show();
+                this.$el.show();
+                var interactionlist = $('.interaction-scroll', this.$el);
+                setTimeout(function () {
+                    var interactionHeight = interactionlist.innerHeight();
+                    if (this.lastHeight != interactionHeight && interactionHeight < parseInt(interactionlist.css('max-height'))) {
+                        this.lastHeight = interactionHeight;
+                        interactionCollection.more();
+                    }
+                    else {
+                        
+                        interactionlist.scroll(function(e) {
+                            if(interactionlist.scrollTop() + interactionlist.innerHeight() + 100 >= interactionlist[0].scrollHeight) {
+                                interactionCollection.more();
+                            }
+                            return false;
+                        });
+                    }
+                }, 500);
+            }
 	},
 	addInteraction: function(interaction) {
 	    var interactionrow = new InteractionRow({model: interaction});

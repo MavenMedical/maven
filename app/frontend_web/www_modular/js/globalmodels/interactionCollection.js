@@ -10,7 +10,7 @@ define([
     var InteractionCollection = ScrollCollection.extend({
         url: function() {return '/interactions'+this.offset+'-'+(this.offset+this.limit);},
         model: InteractionModel,
-        limit: 5,
+        limit: 10,
         context: function(){
             $(".interactionlist").on('show',
 		    // make sure the correct interaction list is being loaded (user's own list versus target user)
