@@ -12,14 +12,17 @@ define([
     'globalmodels/contextModel',
     'pathway/models/treeContext',
     //Template
-    'text!templates/interactionRow.html',
-
+    'text!templates/interactionRow.html'
 ], function ($, _, Backbone, contextModel, treeContext, interactionRowTemplate) {
 
     var InteractionRow = Backbone.View.extend({
         tagName: "tr class='interaction-row'",
         template: _.template(interactionRowTemplate),
         initialize: function() {
+            var that=this
+            $(document).keydown(function(evt) {that.keyflip(evt)}) 
+            $(document).on("swiperight", that.flip())
+
             contextModel.on('change:nextflips change:page',
                             function() {
                                 if (contextModel.get('nextflips') && contextModel.get('page') == 'pathway') {
@@ -36,22 +39,33 @@ define([
         events: {
             'click': 'handleClick'
         },
+        flip: function() {
+            var nextcode = contextModel.get('nextcode')
+            if (nextcode) {
+                var navstring = 'pathway/' + contextModel.get('pathid')
+                    + '/node/-' + nextcode + '/patient/' + contextModel.get('patients')
+                    + '/' + contextModel.get('enc_date')
+                console.log(navstring)
+                Backbone.history.navigate(navstring, true)
+            }
+        },
+        keyflip: function(evt) {
+            if (evt.keyCode == 13 || evt.keyCode == 39) {
+                this.flip()
+            }
+        },
         handleClick: function() {
             var that=this
             $.ajax({
                 url: '/interaction_details', 
                 data: that.model.toJSON(), 
                 success: function(data) {
-                    console.log(data)
-                    var nodes =_.map(_.pluck(data, 'node_id'), function(x) {return x.trim()})
-                    var next = nodes[0]
+                    var nodes =_.map(_.pluck(data, 'node_id'), function(x) {return x.trim()}).join('_')
                     var date = data[0].datetime.slice(0,10)
-                    var nextflips= nodes.slice(1)
                     treeContext.suppressClick=true
-                    contextModel.set({nextflips: nextflips})
-                    Backbone.history.navigate('pathway/' + that.model.get('protocol') + '/node/-' + next 
-                                             + '/patient/' + that.model.get('patient') + '/' + date, true)
-                    console.log('should have navigated')
+                    var navstring = 'pathway/' + that.model.get('protocol') + '/node/-' + nodes
+                        + '/patient/' + that.model.get('patient') + '/' + date
+                    Backbone.history.navigate(navstring, true)
                 },
                 error: function(a,b) {console.log('error',arguments)},
                 dataType: 'json',

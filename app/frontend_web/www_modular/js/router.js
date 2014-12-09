@@ -122,7 +122,13 @@ define([
         },
         showPathway: function (path, code, pat, date, user, customer, userAuth) {
             layoutModel.set({'fluidContent': false})
-            currentContext.set({page: 'pathway', code: code, pathid: path, patients: pat, enc_date: date,
+            var delimit = code.search('_')
+            var nextcode = null
+            if (delimit>0) {
+                nextcode = code.slice(delimit+1)
+                code = code.slice(0,delimit)
+            }
+            currentContext.set({page: 'pathway', code: code, nextcode: nextcode, pathid: path, patients: pat, enc_date: date,
                                 startdate: null, enddate: null});
 
             showPage(user, customer, userAuth);
@@ -136,7 +142,7 @@ define([
         },
         EditPathway: function (path, code, user, customer, userAuth) {
             layoutModel.set('fluidContent', true)
-            currentContext.set({page: 'pathEditor',  pathid: path, code: code, nextflip: null});
+            currentContext.set({page: 'pathEditor',  pathid: path, code: code, nextcode: null});
             showPage(user, customer, userAuth);
         },
         EditTriggers: function (path, code, user, customer, userAuth) {

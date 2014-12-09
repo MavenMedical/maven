@@ -20,18 +20,6 @@ define([
             template: _.template(treeTemplate),
             initialize: function () {
                 this.$el.html(this.template())
-                this.$el.on('click', function() {
-                    var rest = contextModel.get('nextflips')
-                    console.log('FLIP', rest)
-                    if (rest) {
-                        contextModel.set('nextflips', rest.slice(1))
-                        Backbone.history.navigate('pathway/' + contextModel.get('pathid')
-                                                  + '/node/-' + rest[0]
-                                                  + '/patient/' + contextModel.get('patients')
-                                                  + '/' + contextModel.get('enc_date')                                
-                                                  , true)
-                    }
-                })
                 contextModel.on('change:page', function(){
                     if (contextModel.get('page')== 'pathEditor' || contextModel.get('page') == 'pathway'){
                         this.$el.show()
