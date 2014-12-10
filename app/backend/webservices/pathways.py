@@ -115,7 +115,7 @@ class PathwaysWebservices():
         customer_id = context[CONTEXT.CUSTOMERID]
         user_id = context[CONTEXT.USERID]
         folder = full_spec.get(CONTEXT.FOLDER, None)
-        del full_spec[CONTEXT.FOLDER]
+        full_spec.pop(CONTEXT.FOLDER, None)
         id = yield from self.persistence.create_protocol(full_spec, customer_id, user_id, folder)
         full_spec[CONTEXT.PATHID] = id
         return (HTTP.OK_RESPONSE, json.dumps(full_spec), None)
