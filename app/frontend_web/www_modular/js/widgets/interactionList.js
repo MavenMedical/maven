@@ -8,7 +8,6 @@ define([
     'singleRow/interactionRow',
 
     'globalmodels/contextModel',
-    'libs/jquery/jquery-mousestop-event'
 ], function ($, _, Backbone, InteractionCollection, InteractionRow, contextModel) {
     var downloadinteraction = ['date', 'patient', 'action', 'target', 'device', 'details'];
     var interactionCollection;
@@ -29,27 +28,42 @@ define([
 	    interactionCollection.bind('reset', this.reset, this);
 	    interactionCollection.bind('sync', this.render, this);
 	    this.render('Loading ...');
-        var interactionlist = $('.interaction-scroll', this.$el);
-
-        $(interactionlist).on('show', function(){
+        this.interactionlist = $('#listinteractions', this.$el);
+        this.interactioncontrols = $('#interactioncontrols', this.$el)
+        $('#nextinteraction', this.$el).click(function() {InteractionRow.flipbook()})
+        $(this.interactionlist).on('show', function(){
             //make sure that interaction list is correct when loaded (target user's interactions vs. current user interactions)
             interactionCollection.reset();
             interactionCollection.initialize();
         });
-	contextModel.on('change:page', function() {
-	    if (contextModel.get('page') == 'pathway') {
-		this.$el.show()
+        this.showhide()
+	contextModel.on('change:page change:nextcode', function() {this.showhide()}, this)
+        
+	},
+        showhide: function() {
+            
+            var page = contextModel.get('page')
+	    if (page == 'pathway' || page=='home') {
+                this.$el.show()
+                console.log('showing interactions')
+                if (contextModel.get('nextcode')) {
+                    $(this.interactionlist).hide()
+                    $(this.interactioncontrols).show()
+                    console.log('hiding list')
+                } else {
+                    $(this.interactioncontrols).hide()
+                    $(this.interactionlist).show()
+                    console.log('showing list')
+                }
 	    } else {
 		this.$el.hide()
+                conslog.log('hiding interactions')
 	    }
-	}, this)
-
-	},
+        },
         events: {
             'scroll .interaction-scroll': 'handleScroll',
         },
 	render: function(empty_text) {
-	    this.$el.html(this.template(this));
 	    this.addAll(empty_text);
             $(".refreshButton", this.$el).click(function(event){
                 $('.interactiontable > tbody', this.$el).empty();

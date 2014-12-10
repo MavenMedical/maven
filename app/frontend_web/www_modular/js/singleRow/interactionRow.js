@@ -76,6 +76,7 @@ define([
         }
     });
 
+    InteractionRow.flipbook = flip
     return InteractionRow;
 
 });
