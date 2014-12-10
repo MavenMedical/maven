@@ -15,14 +15,31 @@ define([
     'text!templates/interactionRow.html'
 ], function ($, _, Backbone, contextModel, treeContext, interactionRowTemplate) {
 
+    var flip=function() {
+        var nextcode = contextModel.get('nextcode')
+        if (nextcode) {
+            var navstring = 'pathway/' + contextModel.get('pathid')
+                + '/node/-' + nextcode + '/patient/' + contextModel.get('patients')
+                + '/' + contextModel.get('enc_date')
+            console.log(navstring)
+            Backbone.history.navigate(navstring, true)
+        }
+    }
+    var keyflip =  function(evt) {
+        if (evt.keyCode == 13 || evt.keyCode == 39) {
+	    evt.preventDefault()
+            flip()
+        }
+    }
+    
+    $(document).keydown(function(evt) {keyflip(evt)})
+
     var InteractionRow = Backbone.View.extend({
         tagName: "tr class='interaction-row'",
         template: _.template(interactionRowTemplate),
         initialize: function() {
             var that=this
-            $(document).keydown(function(evt) {that.keyflip(evt)}) 
-            $(document).on("swiperight", that.flip())
-
+            //$(document).on("swiperight", that.flip())
             contextModel.on('change:nextflips change:page',
                             function() {
                                 if (contextModel.get('nextflips') && contextModel.get('page') == 'pathway') {
@@ -39,28 +56,13 @@ define([
         events: {
             'click': 'handleClick'
         },
-        flip: function() {
-            var nextcode = contextModel.get('nextcode')
-            if (nextcode) {
-                var navstring = 'pathway/' + contextModel.get('pathid')
-                    + '/node/-' + nextcode + '/patient/' + contextModel.get('patients')
-                    + '/' + contextModel.get('enc_date')
-                console.log(navstring)
-                Backbone.history.navigate(navstring, true)
-            }
-        },
-        keyflip: function(evt) {
-            if (evt.keyCode == 13 || evt.keyCode == 39) {
-                this.flip()
-            }
-        },
         handleClick: function() {
             var that=this
             $.ajax({
                 url: '/interaction_details', 
                 data: that.model.toJSON(), 
                 success: function(data) {
-                    var nodes =_.map(_.pluck(data, 'node_id'), function(x) {return x.trim()}).join('_')
+                    var nodes =_.uniq(_.map(_.pluck(data, 'node_id'), function(x) {return x.trim()}), true).join('_')
                     var date = data[0].datetime.slice(0,10)
                     treeContext.suppressClick=true
                     var navstring = 'pathway/' + that.model.get('protocol') + '/node/-' + nodes

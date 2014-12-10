@@ -140,7 +140,7 @@ define([
             },
             addProtocol: function(protoModel){
                  var that = this
-                        console.log('the protocol node', ProtocolNode)
+                //console.log('the protocol node', ProtocolNode)
                         var protoNode = new ProtocolNode({model: protoModel})
                         $('.protocol', that.$el).first().append(protoNode.render().$el)
                         curTree.elPairs.push({source: that, target: protoNode, bold: true})

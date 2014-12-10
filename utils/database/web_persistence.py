@@ -1112,7 +1112,7 @@ class WebPersistenceBase():
     def interaction_details(self, customer, providerid, patientid, protocolid, startactivity):
         cmd = ["SELECT node_id, datetime FROM trees.activity WHERE",
                "customer_id = %s AND user_id = %s AND patient_id = %s AND protocol_id = %s",
-               "AND activity_id >= %s"]
+               "AND activity_id >= %s ORDER BY activity_id"]
         cmdargs = [customer, providerid, patientid, protocolid, startactivity]
 
         desired = {0: 'node_id', 1: 'datetime'}

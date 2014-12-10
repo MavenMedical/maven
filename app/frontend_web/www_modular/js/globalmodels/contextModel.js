@@ -170,6 +170,7 @@ define([
     });
 
     contextModel = new ContextModel;
+    contextModel.on('change:page', function() {window.scrollTo(0,0)})
     
     return contextModel;
 });

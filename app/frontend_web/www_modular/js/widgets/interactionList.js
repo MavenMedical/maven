@@ -36,6 +36,13 @@ define([
             interactionCollection.reset();
             interactionCollection.initialize();
         });
+	contextModel.on('change:page', function() {
+	    if (contextModel.get('page') == 'pathway') {
+		this.$el.show()
+	    } else {
+		this.$el.hide()
+	    }
+	}, this)
 
 	},
         events: {
