@@ -255,11 +255,7 @@ define([
                     })
                     Backbone.history.navigate("pathwayeditor/" + newpathid + "/node/" + contextModel.get('code'));
                 } else {
-                    var nextcode = contextModel.get('nextcode')
                     var code = contextModel.get('code')
-                    if (nextcode) {
-                        code = code + '_' + nextcode
-                    }
                     Backbone.history.navigate("pathway/" + newpathid + "/node/" + code);
                 }
             })

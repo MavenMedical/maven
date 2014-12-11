@@ -15,25 +15,6 @@ define([
     'text!templates/interactionRow.html'
 ], function ($, _, Backbone, contextModel, treeContext, interactionRowTemplate) {
 
-    var flip=function() {
-        var nextcode = contextModel.get('nextcode')
-        if (nextcode) {
-            var navstring = 'pathway/' + contextModel.get('pathid')
-                + '/node/-' + nextcode + '/patient/' + contextModel.get('patients')
-                + '/' + contextModel.get('enc_date')
-            console.log(navstring)
-            Backbone.history.navigate(navstring, true)
-        }
-    }
-    var keyflip =  function(evt) {
-        if (evt.keyCode == 13 || evt.keyCode == 39) {
-	    evt.preventDefault()
-            flip()
-        }
-    }
-    
-    $(document).keydown(function(evt) {keyflip(evt)})
-
     var InteractionRow = Backbone.View.extend({
         tagName: "tr class='interaction-row'",
         template: _.template(interactionRowTemplate),
@@ -62,12 +43,8 @@ define([
                 url: '/interaction_details', 
                 data: that.model.toJSON(), 
                 success: function(data) {
-                    var nodes =_.uniq(_.map(_.pluck(data, 'node_id'), function(x) {return x.trim()}), true).join('_')
-                    var date = data[0].datetime.slice(0,10)
                     treeContext.suppressClick=true
-                    var navstring = 'pathway/' + that.model.get('protocol') + '/node/-' + nodes
-                        + '/patient/' + that.model.get('patient') + '/' + date
-                    Backbone.history.navigate(navstring, true)
+                    contextModel.set({history: data, historydetails: that.model, historyposition: 0})
                 },
                 error: function(a,b) {console.log('error',arguments)},
                 dataType: 'json',
@@ -76,7 +53,6 @@ define([
         }
     });
 
-    InteractionRow.flipbook = flip
     return InteractionRow;
 
 });

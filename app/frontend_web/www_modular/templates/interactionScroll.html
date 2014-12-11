@@ -27,7 +27,12 @@
     </div>
   </div>
   <div id='interactioncontrols'>
-    <span class="headings title">Pathway Interaction Replay</span>
+    <span id='historyheader' class="headings title">Pathway Interaction Replay:</span>
+    <div class="progress">
+      <div class="progress-bar" role="progressbar" style="width: <%= (typeof width !== 'undefined' && width) || 0 %>%;">
+      </div>
+    </div>
+    
     <button id='nextinteraction' type='button' class='btn btn-default'>Next</button>
   </div>
 </div>

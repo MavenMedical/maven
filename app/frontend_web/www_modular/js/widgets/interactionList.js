@@ -8,63 +8,102 @@ define([
     'singleRow/interactionRow',
 
     'globalmodels/contextModel',
-], function ($, _, Backbone, InteractionCollection, InteractionRow, contextModel) {
-    var downloadinteraction = ['date', 'patient', 'action', 'target', 'device', 'details'];
+    'pathway/models/treeContext'
+], function ($, _, Backbone, InteractionCollection, InteractionRow, contextModel, treeContext) {
     var interactionCollection;
 
-    var InteractionList = Backbone.View.extend({
-    extraData: {},
-    lastHeight: 0,
-    first: true,
-    initialize: function(arg) {
-        if (typeof arg.extraData !== "undefined") {
-            this.extraData = arg.extraData;
+    var flip = function() {
+        var historyposition = contextModel.get('historyposition')
+        if (typeof historyposition !== 'undefined') {
+            contextModel.set('historyposition', historyposition+1)
         }
-        interactionCollection = new (InteractionCollection.extend({extraData: this.extraData}));
+    }
 
+    var keyflip =  function(evt) {
+        if (evt.keyCode == 13 || evt.keyCode == 39) {
+	    evt.preventDefault()
+            flip()
+        }
+    }
+    
+    $(document).keydown(function(evt) {keyflip(evt)})
+
+
+    var InteractionList = Backbone.View.extend({
+        extraData: {},
+        lastHeight: 0,
+        first: true,
+        initialize: function(arg) {
+            if (typeof arg.extraData !== "undefined") {
+                this.extraData = arg.extraData;
+            }
+            interactionCollection = new (InteractionCollection.extend({extraData: this.extraData}));
+            
 	    this.template = _.template(arg.template); // this must already be loaded
-        this.$el.html(this.template({height:$(window).height()-50+'px'}));
+            this.$el.html(this.template());
 	    interactionCollection.bind('add', this.addInteraction, this);
 	    interactionCollection.bind('reset', this.reset, this);
 	    interactionCollection.bind('sync', this.render, this);
 	    this.render('Loading ...');
-        this.interactionlist = $('#listinteractions', this.$el);
-        this.interactioncontrols = $('#interactioncontrols', this.$el)
-        $('#nextinteraction', this.$el).click(function() {InteractionRow.flipbook()})
-        $(this.interactionlist).on('show', function(){
-            //make sure that interaction list is correct when loaded (target user's interactions vs. current user interactions)
-            interactionCollection.reset();
-            interactionCollection.initialize();
-        });
-        this.showhide()
-	contextModel.on('change:page change:nextcode', function() {this.showhide()}, this)
-        
+	    contextModel.on('change:page change:history', function() {this.showhide()}, this)
+            contextModel.on('change:history change:historyposition change:historydetails', function() {this.updatehistory()}, this)
 	},
+        updatehistory: function() {
+            var history = contextModel.get('history')
+            var historyposition = contextModel.get('historyposition')
+            var historydetails = contextModel.get('historydetails')
+            if (history == null || historyposition == null || historydetails == null) {
+                Backbone.history.navigate('', true)
+                return
+            }
+            var progress = (historyposition+1)
+            if (progress > history.length) {
+                contextModel.set({history: null, historyposition: null, historydetails: null})
+            } else {
+                var navstring = 'pathway/' + historydetails.get('protocol')
+                    + '/node/-' + history[historyposition]['node_id'] 
+                    //+ '/patient/' + historydetails.get('patient') + '/' + historydetails.get('date').slice(0,10)
+
+                Backbone.history.navigate(navstring, true)
+                $('#historyheader').text(historydetails.get('protocolname') + " pathway interaction replay: " + historydetails.get('providername') +
+                                         " with " + historydetails.get('patientname') + ' on ' + history[historyposition].datetime)
+                $('.progress-bar', this.$el).width((progress*100/history.length)+'%')
+                if (progress == history.length) {
+                    $('#nextinteraction').html('Finish')
+                } else {
+                    $('#nextinteraction').html('Next')
+                }                        
+            }
+        },
         showhide: function() {
             
             var page = contextModel.get('page')
-	    if (page == 'pathway' || page=='home') {
+	    if (page=='home') {
                 this.$el.show()
-                console.log('showing interactions')
-                if (contextModel.get('nextcode')) {
-                    $(this.interactionlist).hide()
-                    $(this.interactioncontrols).show()
-                    console.log('hiding list')
-                } else {
-                    $(this.interactioncontrols).hide()
-                    $(this.interactionlist).show()
-                    console.log('showing list')
-                }
+                $(this.interactioncontrols).hide()
+                $(this.interactionlist).show()
+            } else if (page=='pathway' && contextModel.get('history')) {
+                this.$el.show()
+                $(this.interactionlist).hide()
+                $(this.interactioncontrols).show()
 	    } else {
 		this.$el.hide()
-                console.log('hiding interactions')
 	    }
         },
         events: {
             'scroll .interaction-scroll': 'handleScroll',
         },
 	render: function(empty_text) {
+            this.$el.html(this.template());
 	    this.addAll(empty_text);
+            this.interactionlist = $('#listinteractions', this.$el);
+            this.interactioncontrols = $('#interactioncontrols', this.$el)
+            $('#nextinteraction', this.$el).click(function() {flip()})
+            $(this.interactionlist).on('show', function(){
+                //make sure that interaction list is correct when loaded (target user's interactions vs. current user interactions)
+                interactionCollection.reset();
+                interactionCollection.initialize();
+            });
             $(".refreshButton", this.$el).click(function(event){
                 $('.interactiontable > tbody', this.$el).empty();
                 interactionCollection.refresh();
@@ -72,6 +111,7 @@ define([
             $(".refreshButton", this.$el).hover(function(event) {
                 $(event.target).attr('title', "Last Refresh: " + interactionCollection.getLastRefresh());
             });
+            this.showhide()
 	},
 	addAll: function(empty_text) {
 	    if (!empty_text || typeof(empty_text) != 'string') {
