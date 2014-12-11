@@ -23,6 +23,7 @@ import utils.streaming.http_responder as HTTP
 import json
 from clientApp.webservice.clientapp_rpc_endpoint import ClientAppEndpoint
 
+
 class PathwaysWebservices():
 
     def __init__(self, configname, rpc):
@@ -116,7 +117,8 @@ class PathwaysWebservices():
         customer_id = context[CONTEXT.CUSTOMERID]
         user_id = context[CONTEXT.USERID]
         folder = full_spec.get(CONTEXT.FOLDER, None)
-        del full_spec[CONTEXT.FOLDER]
+        if folder:
+            del full_spec[CONTEXT.FOLDER]
         id = yield from self.persistence.create_protocol(full_spec, customer_id, user_id, folder)
         full_spec[CONTEXT.PATHID] = id
         return (HTTP.OK_RESPONSE, json.dumps(full_spec), None)
@@ -193,7 +195,6 @@ class PathwaysWebservices():
                            .format(child['name'], child['name'], pathway['current_id'], child['current_id']))
                 yield from self.client_interface.notify_user(customer_id, child['creator'], subject, message)
 
-
         return (HTTP.OK_RESPONSE, "", None)
 
     @http_service(['POST'], '/update_pathway_location',
@@ -222,6 +223,7 @@ class PathwaysWebservices():
         treeJson = json.dumps(ret['full_spec'])
 
         return HTTP.OK_RESPONSE, json.dumps({'full_spec': treeJson, 'folder': ret['folder']}), None
+
 
 def run():
     from utils.database.database import AsyncConnectionPool
