@@ -1151,6 +1151,21 @@ class WebPersistenceBase():
         return list(ret)
 
     @asyncio.coroutine
+    def get_protocol_children(self, parent_id, includedeleted=False):
+        cmd = []
+        cmdArgs = []
+        cmd.append("SELECT current_id, name, trees.protocol.canonical_id, creator")
+        cmd.append("FROM trees.canonical_protocol")
+        cmd.append("INNER JOIN trees.protocol")
+        cmd.append("on trees.canonical_protocol.canonical_id = trees.protocol.canonical_id")
+        cmd.append("WHERE parent_id=%s")
+        cmdArgs.append(parent_id)
+        if not includedeleted:
+            cmd.append('AND NOT deleted')
+        ret = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
+        return list(ret)
+
+    @asyncio.coroutine
     def create_protocol(self, treeJSON, customer_id, user_id, folder=None):
 
         cmd = ["SELECT trees.insertprotocol(%s, %s, %s, %s, %s, %s, %s, %s)"]
@@ -1173,6 +1188,37 @@ class WebPersistenceBase():
             return tree_id
         except:
             ML.EXCEPTION("Error Inserting {} Protocol for Customer #{}".format(treeJSON['name'], customer_id))
+        return None
+
+    @asyncio.coroutine
+    def copy_protocol(self, customer_id, user_id, protocol_id, folder=None):
+
+        cmd = ["SELECT trees.insertprotocol",
+               "(trees.protocol.full_spec, %s, %s, trees.canonical_protocol.name, %s, %s, %s, %s,",
+               "trees.protocol.canonical_id, trees.protocol.protocol_id)",
+               "FROM trees.protocol INNER JOIN trees.canonical_protocol",
+               "ON trees.protocol.canonical_id = trees.canonical_protocol.canonical_id",
+               "WHERE trees.protocol.protocol_id=%s"]
+        cmdArgs = [customer_id, user_id, folder, 0.00, 200.00, '%', protocol_id]
+        try:
+            cur = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
+            tree_id, canonical_id = cur.fetchone()[0]
+            # Insert a record into alert_config so that the Pathway actually fires (it's referenced in the evalnode()
+            # PL/pgsql function
+            cmd = ["INSERT INTO alert_config (customer_id, department, category, rule_id, validation_status, priority)",
+                   "VALUES (%s, %s, %s, %s, %s, %s)"]
+            cmdArgs = [customer_id, -1, "PATHWAY", canonical_id, 400, 100]
+            cur = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
+
+            full_spec = yield from self.get_protocol(customer_id, tree_id)
+
+            # Update/Insert the trees.codelist records for the protocol
+            yield from self.upsert_codelists(full_spec, canonical_id)
+
+            # Return Tree_ID to the front-end
+            return {'path_id': tree_id, 'canonical_id': canonical_id, 'full_spec': full_spec, 'folder': folder}
+        except:
+            ML.EXCEPTION("Error Copying {} Protocol for Customer #{}".format(protocol_id, customer_id))
         return None
 
     @asyncio.coroutine
@@ -1297,12 +1343,15 @@ class WebPersistenceBase():
     @asyncio.coroutine
     def toggle_pathway(self, customer_id, canonical_id, enabled=False):
         cmd = ["UPDATE trees.canonical_protocol SET enabled=%s ",
-               "WHERE (canonical_id=%s and customer_id=%s)"]
+               "WHERE (canonical_id=%s and customer_id=%s) RETURNING name, current_id"]
         cmdArgs = [enabled, canonical_id, customer_id]
         try:
-            yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
+            ret = yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
+            return ret
+
         except:
             ML.EXCEPTION("Error Updating TreeID #{}".format(canonical_id))
+            return None
 
     @asyncio.coroutine
     def delete_protocol(self, customer_id, protocol_id=None, canonical_id=None):

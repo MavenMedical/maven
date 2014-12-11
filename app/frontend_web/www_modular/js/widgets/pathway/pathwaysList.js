@@ -102,9 +102,9 @@ define([
 
         $(currentEl).append(pathRow.render().$el)
         if (newlyAdded) {
-            //open folder if this has been added by the user
+            //open folder and select the pathway if this has been added by the user
+            pathRow.handleSelect();
             $(currentEl).closest("li").switchClass("mjs-nestedSortable-collapsed", "mjs-nestedSortable-expanded");
-
         }
     },
 	render: function(){

@@ -21,14 +21,15 @@ from utils.streaming.http_svcs_wrapper import http_service, CONTEXT, CONFIG_PERS
 from utils.enums import USER_ROLES
 import utils.streaming.http_responder as HTTP
 import json
-
+from clientApp.webservice.clientapp_rpc_endpoint import ClientAppEndpoint
 
 class PathwaysWebservices():
 
-    def __init__(self, configname, _rpc):
+    def __init__(self, configname, rpc):
         config = MC.MavenConfig[configname]
         self.persistence = WP.WebPersistence(config[CONFIG_PERSISTENCE])
         self.search_interface = WS.web_search('search')
+        self.client_interface = rpc.create_client(ClientAppEndpoint)
 
     @http_service(['GET'], '/list',
                   [CONTEXT.USER, CONTEXT.CUSTOMERID],
@@ -180,7 +181,18 @@ class PathwaysWebservices():
         msg = json.loads(body.decode('utf-8'))
         active = msg.get("active")
 
-        self.persistence.toggle_pathway(customer_id, canonical_id, enabled=active)
+        pathway = yield from self.persistence.toggle_pathway(customer_id, canonical_id, enabled=active)
+
+        if active and pathway:
+            children = yield from self.persistence.get_protocol_children(canonical_id)
+            for child in children:
+                subject = "Changes for your shared pathway '{}'"
+                message = ("The master version for your pathway {} has a new live version \n"
+                           "Master version: #/pathway/{} \n "
+                           "Your Version: #/pathway/{} \n"
+                           .format(child['name'], child['name'], pathway['current_id'], child['current_id']))
+                yield from self.client_interface.notify_user(customer_id, child['creator'], subject, message)
+
 
         return (HTTP.OK_RESPONSE, "", None)
 
@@ -193,13 +205,23 @@ class PathwaysWebservices():
         canonical_id = context[CONTEXT.CANONICALID]
         location_msg = json.loads(body.decode('utf-8'))
 
-        result = yield from self.persistence.post_pathway_location(customer_id, canonical_id, location_msg)
+        yield from self.persistence.post_pathway_location(customer_id, canonical_id, location_msg)
 
-        if result:
-            return HTTP.OK_RESPONSE, "", None
-        else:
-            return HTTP.BAD_RESPONSE, "", None
+        return (HTTP.OK_RESPONSE, "", None)
 
+    @http_service(['GET'], '/pathway_version',
+                  [CONTEXT.USERID, CONTEXT.CUSTOMERID, CONTEXT.PATHID],
+                  {CONTEXT.USERID: int, CONTEXT.CUSTOMERID: int, CONTEXT.PATHID: int},
+                  {USER_ROLES.provider, USER_ROLES.supervisor})
+    def copy_protocol(self, _header, body, context, matches, _key):
+        customer = context[CONTEXT.CUSTOMERID]
+        user_id = context[CONTEXT.USERID]
+        protocol = context[CONTEXT.PATHID]
+
+        ret = yield from self.persistence.copy_protocol(customer, user_id, protocol)
+        treeJson = json.dumps(ret['full_spec'])
+
+        return HTTP.OK_RESPONSE, json.dumps({'full_spec': treeJson, 'folder': ret['folder']}), None
 
 def run():
     from utils.database.database import AsyncConnectionPool
