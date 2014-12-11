@@ -103,6 +103,7 @@ Results = Enum('Results',
     msg_body
     groupid
     group_name
+    count
 """)
 
 
@@ -122,8 +123,11 @@ class InvalidRequest(Exception):
 
 
 def _prettify_name(s):
-    name = s.split(",")
-    return str.title(name[0]) + ", " + str.title(name[1])
+    try:
+        name = s.split(",")
+        return str.title(name[0]) + ", " + str.title(name[1])
+    except:
+        return s
 
 
 def _prettify_sex(s):
@@ -1079,11 +1083,13 @@ class WebPersistenceBase():
     _available_interactions = {
         Results.activityid: "min(a.activity_id)",
         Results.patientid: "a.patient_id",
+        Results.patientname: "min(p.patname)",
         Results.datetime: "min(a.datetime) AS time",
         Results.username: 'min(u.official_name)',
         Results.userid: 'a.user_id',
-        Results.protocolname: 'min(p.name)',
+        Results.protocolname: 'min(c.name)',
         Results.protocol: 'a.protocol_id',
+        Results.count: 'count(*)',
     }
 
     _display_interactions = _build_format({
@@ -1097,7 +1103,8 @@ class WebPersistenceBase():
         columns = build_columns(desired.keys(), self._available_interactions, set())
         cmd = ["SELECT", columns, "FROM trees.activity AS a",
                "INNER JOIN users AS u ON a.user_id=u.user_id",
-               "INNER JOIN trees.canonical_protocol AS p ON a.canonical_id = p.canonical_id",
+               "INNER JOIN trees.canonical_protocol AS c ON a.canonical_id = c.canonical_id AND a.customer_id=c.customer_id",
+               "INNER JOIN patient AS p ON a.patient_id = p.patient_id AND a.customer_id = p.customer_id ",
                "WHERE a.patient_id IS NOT NULL AND a.customer_id = %s",
                "GROUP BY a.patient_id, a.user_id, a.protocol_id, date_trunc('day', a.datetime)",
                "ORDER BY time DESC"]

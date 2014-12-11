@@ -72,11 +72,13 @@ class ReportingWebservices():
         desired = {
             WP.Results.activityid: CONTEXT.ACTIVITY,
             WP.Results.patientid: CONTEXT.PATIENT,
+            WP.Results.patientname: CONTEXT.PATIENTNAME,
             WP.Results.protocolname: 'protocolname',
             WP.Results.protocol: CONTEXT.PROTOCOL,
             WP.Results.datetime: 'date',
             WP.Results.username: 'providername',
             WP.Results.userid: CONTEXT.TARGETPROVIDER,
+            WP.Results.count: 'eventcount',
         }
 
         results = yield from self.persistence.interactions(desired, customer,
