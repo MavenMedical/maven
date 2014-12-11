@@ -53,9 +53,11 @@ define([
             var historyposition = contextModel.get('historyposition')
             var historydetails = contextModel.get('historydetails')
             if (history == null || historyposition == null || historydetails == null) {
+                treeContext.suppressClick=false
                 Backbone.history.navigate('', true)
                 return
             }
+            treeContext.suppressClick=true
             var progress = (historyposition+1)
             if (progress > history.length) {
                 contextModel.set({history: null, historyposition: null, historydetails: null})
