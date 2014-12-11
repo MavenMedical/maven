@@ -57,7 +57,7 @@ define([
                 }
 	    } else {
 		this.$el.hide()
-                conslog.log('hiding interactions')
+                console.log('hiding interactions')
 	    }
         },
         events: {

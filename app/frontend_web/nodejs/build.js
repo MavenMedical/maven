@@ -14,6 +14,7 @@
         'bootstrap':'empty:',
         'jquery':'empty:',
         'jquery_ui':'empty:',
+	'touch': 'empty:',
 	'underscore':'empty:',
 	'backbone':'empty:',
 	'ckeditor':'empty:',
@@ -22,6 +23,7 @@
 	'/services/recaptcha': 'empty:'
     },
     shim: {
+	touch: {deps: ['jquery_ui', 'jquery']},
         bootstrap :{
             deps: ['jquery']
         },
