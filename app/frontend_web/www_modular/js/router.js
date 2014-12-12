@@ -38,7 +38,7 @@ define([
         "patient": [0, 9, 3],
         "episode": [0, 9, 3],
         "pathway": [0, 12, 0],
-        "pathEditor": [3, 9, 0],
+        "pathEditor": [0, 12, 0],
         "triggerEditor": [0,12, 0]
     };
     changePageLayout = function (page) {
@@ -90,7 +90,7 @@ define([
             "pathway/:id/node/:id(/patient/:id/:date)(/login/:user/:customer/)(:userAuth)": 'showPathway',
             "pathwayeditor/:id/node/:id(/login/:user/:customer/)(:userAuth)": 'EditPathway',
             "triggereditor/:id/node/:id(/login/:user/:customer/)(:userAuth)": 'EditTriggers',
-	    "password/:type/:user/:customer/:oauth": 'password',
+	        "password/:type/:user/:customer/:oauth": 'password',
             //default
             '*action': 'defaultAction',
         },
@@ -104,7 +104,12 @@ define([
 	},
         showHome: function (user, customer, userAuth) {
             /* remove the current patient list, encounter, etc to revert the view to the doctor's user page */
-            currentContext.set({page: 'home', patients: null, encounter: null, patientName: null}, {trigger:true});
+            currentContext.set({page: 'home', patients: null, encounter: null, patientName: null});
+
+            //TODO This is only for Demo purpose
+            if(currentContext.get('official_name') == 'Heathcliff Huxtable'){
+                currentContext.set({page: 'pathway', patients: null, encounter: null, patientName: null});
+            }
             showPage(user, customer, userAuth);
         },
         showPatient: function (patid, user, customer, userAuth) {
@@ -131,7 +136,7 @@ define([
             }
         },
         EditPathway: function (path, code, user, customer, userAuth) {
-            layoutModel.set({'fluidContent': true})
+            layoutModel.set('fluidContent', true)
             currentContext.set({page: 'pathEditor',  pathid: path, code: code});
             showPage(user, customer, userAuth);
         },
@@ -145,15 +150,15 @@ define([
             showPage(user, customer, userAuth);
         },
         showCustomers: function(user, customer, userAuth){
-            currentContext.set({page:'customers'}, {trigger:true});
+            currentContext.set({page:'customers'});
             showPage(user, customer, userAuth);
         },
         showProfile: function(user, customer, userAuth){
-            currentContext.set({page:'profile'}, {trigger:true});
+            currentContext.set({page:'profile'});
             showPage(user, customer, userAuth);
         },
         showAudit: function(user, customer, userAuth){
-            currentContext.set({page:'auditlist'}, {trigger:true});
+            currentContext.set({page:'auditlist'});
             showPage(user, customer, userAuth);
         },
         logout: function () {

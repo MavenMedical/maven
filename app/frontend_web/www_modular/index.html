@@ -60,10 +60,11 @@
     <link href="css/style.css" rel="alternate stylesheet" type="text/css" title="alternate">-->
 
     <script type="text/javascript">
-      if (typeof console === "undefined" || typeof console.log === "undefined") {
-      var console = Object
-      console.log = function() {}
-      }
+        if (typeof console === "undefined" || typeof console.log === "undefined") {
+            var console = Object
+            console.log = function () {
+            }
+        }
 
         var colorMap = {
             "Consultation": "#18bc9a",
@@ -122,18 +123,20 @@
 
 <div id="navbar" class="navbar navbar-default navbar-collapse navbar-fixed-top">
     <div id='fixed-topA' class='navbar-container'></div>
-
 </div>
 
 <div id="main-container" class="main-container">
    <div class="sidebar responsive sidebar-fixed navbar-collapse collapse" id="sidebar" data-sidebar="true" data-sidebar-hover="true" >
 
+</div><!-- /.sidebar -->
+
+    <div class="main-content">
         <div class="main-content-inner">
             <div class="page-content">
 
 
                 <div id='fixed-topB' class='sidebar h-sidebar navbar-collapse collapse'></div>
- <div id="floating-left" class="col-md-3 content"></div>
+
                 <div id="dynamic-content" class="page-content-area"></div>
             </div>
         </div>

@@ -195,7 +195,8 @@ define([
                 var boundingW = boxnode.width()
                 var boundingH = boxnode.height()
 
-                var l = this.$el.offset().left, t = this.$el.offset().top
+
+                var l = this.$el.offset().left , t = this.$el.offset().top
                 var w = this.$el.width(), h = this.$el.height()
                 var box = [l + (100 - boundingW) * scale, t + (50 - boundingH) * scale, l + w - 100 * scale, t + h - 100 * scale]
                 this.treeEl.draggable('option', 'containment', box)

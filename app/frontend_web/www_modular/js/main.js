@@ -13,6 +13,7 @@ require.config({
         jquery: ['libs/jquery/jquery-min'],
         jquery_ui: ['//code.jquery.com/ui/1.10.1/jquery-ui.min', 'libs/jquery/jquery-ui.min'],
         jquery_autocomplete: 'libs/jquery/jquery.ui.autocomplete.html',
+	    touch: 'libs/jquery/jquery.ui.touch-punch.min',
         underscore: 'libs/underscore/underscore-min',
         backbone: ['libs/backbone/backbone', '//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.2/backbone-min.js'],
         jsplumb: ['libs/jsplumb2/js/jquery.jsPlumb-1.6.2-min', 'libs/jsplumb2/js/jsplumb'],
@@ -31,7 +32,7 @@ require.config({
         ace: 'ace-min'
     },
     shim: {
-	touch: {deps: ['jquery_ui']},
+	    touch: {deps: ['jquery_ui']},
         ace: {deps: ['jquery', 'jquery_ui','bootstrap']},
         'ace/assets/js/flot/jquery.flot.pie': {deps: ['ace/assets/js/flot/jquery.flot']},
         'ace/assets/js/flot/jquery.flot.resize': {deps: ['ace/assets/js/flot/jquery.flot']},
@@ -70,6 +71,7 @@ require([
     'underscore',
     'backbone',
     'bootstrap',
+    'bootstrapswitch',
     'ace',
     'text',
 
