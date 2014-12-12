@@ -15,7 +15,9 @@ define([
         },
         initialize: function(){
             this.fetch()
-
+        },
+        addNewPath: function(){
+            this.fetch({add: true})
         },
         makeSortable: function(){
             that = this;

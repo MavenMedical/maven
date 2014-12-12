@@ -74,7 +74,7 @@
 				var self = this;
 				$(this.items).each(function() {
 					var $li = this.item;
-					if ($li.children(self.options.listType).length) {
+					if ($li.children(self.options.listType).length || $li.hasClass('sub-folder')) {
 						$li.addClass(self.options.branchClass);
 						// expand/collapse class only if they have children
 						if ( ! $li.hasClass( self.options.collapsedClass ) && ( ! $li.hasClass( self.options.expandedClass ) ) ) {
@@ -329,7 +329,8 @@
 			) {
 
 				parentItem.after(this.placeholder[0]);
-				if (o.isTree && parentItem.children(o.listItem).children('li:visible:not(.ui-sortable-helper)').length < 1) {
+				if ((o.isTree && parentItem.children(o.listItem).children('li:visible:not(.ui-sortable-helper)').length < 1) &&
+                    !parentItem.hasClass('sub-folder')) {
 					parentItem.removeClass(this.options.branchClass + ' ' + this.options.expandedClass)
 							  .addClass(this.options.leafClass);
 				}
@@ -350,7 +351,7 @@
 
 				this._isAllowed(previousItem, level, level+childLevels+1);
 
-				if (!previousItem.children(o.listType).length) {
+				if (!previousItem.children(o.listType).length || previousItem.hasClass('sub-folder')) {
 					previousItem[0].appendChild(newList);
 					o.isTree && previousItem.removeClass(o.leafClass).addClass(o.branchClass + ' ' + o.expandedClass);
 				}
@@ -588,12 +589,14 @@
 
 			var emptyList = $(item).children(o.listType);
 
-			if (emptyList.length && !emptyList.children().length && !o.doNotClear) {
+			if (emptyList.length && !emptyList.children().length && !o.doNotClear && !$(item).hasClass('sub-folder')) {
 				o.isTree && $(item).removeClass(o.branchClass + ' ' + o.expandedClass).addClass(o.leafClass);
 				emptyList.remove();
-			} else if (o.isTree && emptyList.length && emptyList.children().length && emptyList.is(':visible')) {
+			} else if (o.isTree && (emptyList.length && emptyList.children().length && emptyList.is(':visible'))) {
 				$(item).removeClass(o.leafClass).addClass(o.branchClass + ' ' + o.expandedClass);
 			} else if (o.isTree && emptyList.length && emptyList.children().length && !emptyList.is(':visible')) {
+				$(item).removeClass(o.leafClass).addClass(o.branchClass + ' ' + o.collapsedClass);
+			}else if (o.isTree && $(item).hasClass('sub-folder')) {
 				$(item).removeClass(o.leafClass).addClass(o.branchClass + ' ' + o.collapsedClass);
 			}
 

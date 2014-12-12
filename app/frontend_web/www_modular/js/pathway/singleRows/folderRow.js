@@ -21,7 +21,7 @@ define([
         console.log(NewPathwayFolder);
 
     var ruleRow = Backbone.View.extend({
-        tagName: "li class='mjs-nestedSortable-collapsed sub-folder'",
+        tagName: "li class='mjs-nestedSortable-collapsed sub-folder mjs-nestedSortable-branch'",
         template: _.template(pathFolderRowTemplate),
         parentList: [], //parent folders
         events: {
@@ -30,6 +30,7 @@ define([
             "click .glyphicon-folder-close": 'openFolder',
             "click .add-sub-pathway": 'handleNewPathway',
             "click .add-sub-folder": 'handleNewSubFolder',
+            "click .delete-folder": 'handleDeleteFolder'
         },
         openFolder: function(event){
             //open folder - change folder icon to 'open' and show all immediate children
@@ -69,6 +70,7 @@ define([
             var parentFolder = $(this.el).parent().closest(".sub-folder");
             while (parentFolder.length){
                 parentName = parentFolder.children(".pathway-folder-title").attr('name');
+                if (typeof parentName=='undefined' || parentName=="") break;
                 newParentList.push(parentName);
                 parentFolder = $(parentFolder).parent().closest(".sub-folder");
             }
@@ -81,6 +83,42 @@ define([
 
             new NewPathway({el: '#modal-target', parentList: this.setParents()});
         },
+        handleDeleteFolder: function(event) {
+            event.stopPropagation();
+            if ($(".path-row", this.$el).length) {
+                var r = confirm("WARNING: This will delete all contained pathways. Are you sure you want to do this?");
+                if (!r) return;
+            }
+            this.deleteFolderAndPathways($(this.el), this);
+        },
+        deleteFolderAndPathways: function(folderSelector, that){
+            $(folderSelector).children(".sub-folder-contents").children().each(function() {
+                //delete all children
+                if ($(this).hasClass("pathrow-sortable")){
+                    //current child is a pathway
+                    var canonical = $(this).children(".manager-row-header").attr("id");
+                    $.ajax({
+                        type: 'DELETE',
+                        dataType: 'json',
+                        url: "/list/" +canonical,
+                        error: function (){
+                            alert("Could not delete pathway");
+                        }
+                    });
+                }
+                else{
+                    //current child is a folder
+                    that.deleteFolderAndPathways(this, that);
+                }
+            });
+
+            this.undelegateEvents(); // Unbind all local event bindings
+
+            $(this.el).remove(); // Remove view from DOM
+
+            delete this.$el; // Delete the jQuery wrapped object variable
+            delete this.el; // Delete the variable reference to this node
+        },
         handleNewSubFolder: function(event) {
             event.stopPropagation();
             this.setParents();
@@ -89,6 +127,9 @@ define([
         render: function(){
             that = this;
             $(this.el).html(this.template(this.model.toJSON()));
+            $(document).ready(function(){
+             //   $(that.el).switchClass("mjs-nestedSortable-leaf","mjs-nestedSortable-branch")
+            });
 
             /*$(".pathway-folder-title", this.$el).click(function(event){
                 event.stopPropagation();

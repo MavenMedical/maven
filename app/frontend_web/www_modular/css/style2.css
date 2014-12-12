@@ -917,6 +917,10 @@ button:hover .btn-hover { display: inline; }
     float:left;
 }
 
+/***************************************************************
+ * The following customize the pathway manager                 *
+ ***************************************************************/
+
 .ui-state-default {
     clear: both;
     cursor: pointer;
@@ -928,10 +932,6 @@ button:hover .btn-hover { display: inline; }
 
 .ui-folder-placeholder {
     border-color: white !important;
-}
-
-li.ui-sortable, .sub-folder {
-    width:100%;
 }
 
 .ui-sortable-placeholder {
@@ -967,7 +967,6 @@ li.ui-sortable, .sub-folder {
 .ui-sortable-helper {
 	box-shadow: rgba(0,0,0,0.15) 0 3px 5px 0;
 	width: 100% !important;
-	height: 33px!important;
     clear:both;
 
 }
@@ -997,6 +996,8 @@ li.ui-sortable, .sub-folder {
 .sub-folder-contents {
     display:none;
     padding-left:7% !important;
+    min-height: 20px;
+    width:100%;
 }
 
 .pathway-history-section {
@@ -1068,14 +1069,18 @@ li.ui-sortable, .sub-folder {
     background-color: #46ECBD;
 }
 
-.path-row:hover, .history-row:hover, .pathway-folder-title:hover, {
+.manager-row-header:hover, .history-row:hover, .pathway-folder-title:hover {
     background-color: #BDEC46 !important;
 }
 
-.pathway-folder-title > span, .manager-row-control > a,
-.row-expansion > span:hover {
+.pathway-folder-title > span, .manager-row-control > a, .row-expansion > span {
     cursor: pointer;
 }
+
+.pathway-folder-title > span:hover, .manager-row-control > a:hover, .row-expansion > span:hover {
+    background-color: #BDEC46 !important;
+}
+
 
 .placeholder {
     outline: 1px dashed #4183C4;

@@ -33,13 +33,12 @@ define([
         },
         handleToggle: function(event){
             event.stopPropagation();
-            event.stopImmediatePropagation();
         },
         render: function(){
             $(this.el).html(this.template(this.model.toJSON()));
             this.model.url = "/list/" + this.model.get("canonical");
 
-            that = this;
+            var that = this;
             $(document).ready(function(){
                 $(".pathway-enable", that.$el).bootstrapSwitch();
                 $('.pathway-enable', that.$el).on('switchChange.bootstrapSwitch', function(event, state) {
@@ -51,9 +50,9 @@ define([
                         $(".history-checkbox", this.$el).addClass("check-disabled",0);
                     }
 
-                    this.model.save({active: state});
+                    that.model.save({active: state});
                 });
-            });
+             });
 
             /*
             that = this;
@@ -104,6 +103,9 @@ define([
         initialize: function(params){
             this.model = params.model
 
+            $(this.el).on("remove", function(){
+               console.log("this pathway was removed");
+            });
         },
         handleSelect: function() {
             if (contextModel.get('code') == 'undefined') {
@@ -111,11 +113,22 @@ define([
                     contextModel.set('code', 'undefined', {silent: true});
                 }
             }
-            contextModel.set('pathid', String(this.model.get('id')))
             contextModel.set('canonical', String(this.model.get('canonical')))
+            contextModel.set('pathid', String(this.model.get('id')))
 
             $(".active-pathway").removeClass("active-pathway");
             $(this.el).children(".path-row").addClass("active-pathway")
+
+            contextModel.unbind('change:pathid', this.updateCurPath);
+            contextModel.on("change:pathid", this.updateCurPath, {that: this});
+        },
+        updateCurPath: function(event){
+            if (contextModel.get('canonical') == this.that.model.get('canonical')) {
+                this.that.model.set('id', contextModel.get('pathid'));
+            }
+            else {
+                contextModel.unbind('change:pathid', this.that.updateCurPath);
+            }
         },
         handleCheck: function(event){
             var active = false;

@@ -33,6 +33,7 @@ define([
             'click #trigger-button': 'addTrigger',
 	        'change .btn-file :file': 'importPath',
             'click #exportpath-button': 'exportPath',
+            'click #copypath-button': 'handle_copyPath',
             'click #testButton': 'handleTest'
         },
         handleTest: function () {
@@ -84,6 +85,17 @@ define([
         handle_newPath: function () {
             a = new NewPathway({el: '#modal-target'});
 
+        },
+        handle_copyPath: function(){
+            $.ajax({
+                type: 'GET',
+                url: "/pathway_version?" + $.param(contextModel.toParams()),
+                dataType: "json",
+                success: function (data) {
+                    //curTree.loadNewPathway({name: data['full_spec']['name'], folder: data['folder']});
+                    curCollection.addNewPath();
+                }
+            });
         },
         importPath: function () {
 	    var input = $('.btn-file :file')
