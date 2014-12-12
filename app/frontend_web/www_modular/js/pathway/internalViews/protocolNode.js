@@ -4,15 +4,42 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'globalmodels/contextModel',
-    'pathway/internalViews/treeNode',
     'pathway/models/treeModel',
     'pathway/models/treeContext',
     'pathway/modalViews/sendProtocol',
     'pathway/modalViews/sendFollowups',
     'text!templates/pathway/protocolNode.html'
 
-], function ($, _, Backbone, currentContext, treeNode, curTree, treeContext , SendProtocol, SendFollowups, nodeTemplate) {
+], function ($, _, Backbone, currentContext, curTree, treeContext , SendProtocol, SendFollowups, nodeTemplate) {
 
+    var activityTrack = function (evt) {
+        //Don't track clicks in edit mode (where page would be "pathwayEditor")
+        if (currentContext.get('page') != 'pathway' || treeContext.suppressClick) {
+            return;
+        }
+        var target = $(evt.target)
+        console.log(target.closest('.click-tracked'))
+        if (target.closest('.click-tracked').length) {
+            var node_state = (target.closest('.click-tracked').attr('clickid'));
+
+            var data = {
+                "patient_id": currentContext.get("patients"),
+                "protocol_id": currentContext.get("pathid"),
+                "node_state": node_state,
+                "datetime": (new Date().toISOString()).replace("T", " "),
+                "action": "click"
+            }
+            $.ajax({
+                type: 'POST',
+                dataType: 'json',
+                url: "/activity?" + $.param(currentContext.toParams()),
+                data: JSON.stringify(data),
+                success: function () {
+                    console.log("click tracked");
+                }
+            });
+        }
+    }
     var protocolNode = Backbone.View.extend({
 
 
@@ -41,7 +68,11 @@ define([
 
 
 
-            setSelectedNode: function(){
+            setSelectedNode: function(evt){
+                if (treeContext.suppressClick) {
+                    return
+                }
+                activityTrack(evt);
                 this.getMyElement().off('click');
                 treeContext.set('selectedNode', this.model, {silent: true});
                 treeContext.trigger('propagate')
@@ -123,7 +154,8 @@ define([
 	showChildren: function() {}
 
     })
-    return protocolNode;
+    protocolNode.activityTrack = activityTrack
+    return protocolNode
 
 })
 
