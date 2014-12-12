@@ -17,7 +17,7 @@ define([
                     'class': 'menu-icon fa ' + icon}))
                 .append(
                 $('<span>', {
-                    'class': 'menue-text',
+                    'class': 'menu-text',
                     'text': menu_text})
             )
                 .append(

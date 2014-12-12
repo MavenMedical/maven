@@ -36,12 +36,15 @@
     <link rel="stylesheet" href="ace/assets/css/ace-ie.css"/>
     <![endif]-->
 
+
+
     <!-- HTML5shiv and Respond.js for IE8 to support HTML5 elements and media queries -->
 
     <!--[if lte IE 8]>
     <script src="ace/assets/js/html5shiv.js"></script>
     <script src="ace/assets/js/respond.js"></script>
     <![endif]-->
+
 
     <link rel="stylesheet" href="ace/assets/css/jquery-ui.custom.css"/>
     <link rel="stylesheet" href="ace/assets/css/ace-rtl.css"/>
@@ -97,6 +100,8 @@
     </script>
 
 
+
+
 </head>
 
 <body class="no-skin">
@@ -109,15 +114,16 @@
 <div id='mouse-target' style='display:none; position:absolute; z-index:10000'></div>
 <div id="side-popup"></div>
 
-<div id="wrapper" class="navbar navbar-default">
+
+<div id="navbar" class="navbar navbar-default navbar-collapse navbar-fixed-top">
     <div id='fixed-topA' class='navbar-container'></div>
 
 </div>
 
 <div id="main-container" class="main-container">
-    <div id="sidebar" class="sidebar responsive">
+   <div class="sidebar responsive sidebar-fixed navbar-collapse collapse" id="sidebar" data-sidebar="true" data-sidebar-hover="true" >
 
-    </div>
+</div><!-- /.sidebar -->
 
     <div class="main-content">
         <div class="main-content-inner">
@@ -163,7 +169,7 @@
 <script src="ace/assets/js/bootstrap.js"></script>
 
 
-<!-- Load the require script-->
+  <!-- Load the require script-->
 <script data-main="js/main" src="js/libs/require/require.js"></script>
 
 </body>

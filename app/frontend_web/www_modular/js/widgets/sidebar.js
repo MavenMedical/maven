@@ -6,9 +6,10 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',   // lib/backbone/backbone
+    'ace',
     'globalmodels/contextModel',
     'widgets/pageOption'
-], function ($, _, Backbone, contextModel, pageOption) {
+], function ($, _, Backbone, ace, contextModel, pageOption) {
     var sidebarList = [
         {'Dashboard': ['fa-tachometer', 'home']},
         {'Pathway Mgmt': ['fa-cloud', 'pathway', [
@@ -25,9 +26,13 @@ define([
         initialize: function (arg) {
             this.template = _.template(arg.template);
             this.render();
+
         },
         render: function () {
+
             this.$el.html(this.template());
+
+             //$('#sidebar').ace_sidebar();
             //for (o in sidebarList){
                new pageOption(sidebarList[0]);
           // }
