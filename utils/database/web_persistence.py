@@ -96,10 +96,14 @@ Results = Enum('Results',
     task_status
     due_datetime
     expire_datetime
+    activityid
+    protocol
+    protocolname
     msg_subject
     msg_body
     groupid
     group_name
+    count
 """)
 
 
@@ -119,8 +123,11 @@ class InvalidRequest(Exception):
 
 
 def _prettify_name(s):
-    name = s.split(",")
-    return str.title(name[0]) + ", " + str.title(name[1])
+    try:
+        name = s.split(",")
+        return str.title(name[0]) + ", " + str.title(name[1])
+    except:
+        return s
 
 
 def _prettify_sex(s):
@@ -178,7 +185,7 @@ def _build_format(override=None):
 def build_columns(desired, available, defaults):
     extras = set(desired) - available.keys()
     if extras:
-        raise InvalidRequest("these results are not support: " + str(extras))
+        raise InvalidRequest("these results are not supported: " + str(extras))
 
     # missing = required - set(desired)
     # if missing:
@@ -1071,6 +1078,54 @@ class WebPersistenceBase():
         # make sure we are not losing data
 
         results = yield from self.execute(cmd, cmdargs, self._display_per_encounter, desired)
+        return results
+
+    _available_interactions = {
+        Results.activityid: "min(a.activity_id)",
+        Results.patientid: "a.patient_id",
+        Results.patientname: "min(p.patname)",
+        Results.datetime: "min(a.datetime) AS time",
+        Results.username: 'min(u.official_name)',
+        Results.userid: 'a.user_id',
+        Results.protocolname: 'min(c.name)',
+        Results.protocol: 'a.protocol_id',
+        Results.count: 'count(*)',
+    }
+
+    _display_interactions = _build_format({
+        Results.datetime: lambda x: x and _prettify_datetime(x),
+    })
+
+    @asyncio.coroutine
+    def interactions(self, desired, customer,
+                     # provider=None, patients=None, startdate=None, enddate=None,
+                     limit=None):
+        columns = build_columns(desired.keys(), self._available_interactions, set())
+        cmd = ["SELECT", columns, "FROM trees.activity AS a",
+               "INNER JOIN users AS u ON a.user_id=u.user_id",
+               "INNER JOIN trees.canonical_protocol AS c ON a.canonical_id = c.canonical_id AND a.customer_id=c.customer_id",
+               "INNER JOIN patient AS p ON a.patient_id = p.patient_id AND a.customer_id = p.customer_id ",
+               "WHERE a.patient_id IS NOT NULL AND a.customer_id = %s",
+               "GROUP BY a.patient_id, a.user_id, a.protocol_id, date_trunc('day', a.datetime)",
+               "ORDER BY time DESC"]
+        cmdargs = [customer]
+
+        if limit:
+            cmd.append(limit)
+        results = yield from self.execute(cmd, cmdargs, self._display_interactions, desired)
+        return results
+
+    @asyncio.coroutine
+    def interaction_details(self, customer, providerid, patientid, protocolid, startactivity):
+        cmd = ["SELECT node_id, datetime FROM trees.activity WHERE",
+               "customer_id = %s AND user_id = %s AND patient_id = %s AND protocol_id = %s",
+               "AND activity_id >= %s ORDER BY activity_id"]
+        cmdargs = [customer, providerid, patientid, protocolid, startactivity]
+
+        desired = {0: 'node_id', 1: 'datetime'}
+
+        results = yield from self.execute(cmd, cmdargs,
+                                          _build_format({1: _prettify_datetime}), desired)
         return results
 
     @asyncio.coroutine

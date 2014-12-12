@@ -43,7 +43,7 @@ define([
         if (cur.get('nodeID') == target) {
             for (var i in path) {
                 var cur2 = path[i]
-                cur2.showChildren()
+                cur2.showChildren && cur2.showChildren()
             }
 
         } else {
@@ -255,7 +255,8 @@ define([
                     })
                     Backbone.history.navigate("pathwayeditor/" + newpathid + "/node/" + contextModel.get('code'));
                 } else {
-                    Backbone.history.navigate("pathway/" + newpathid + "/node/" + contextModel.get('code'));
+                    var code = contextModel.get('code')
+                    Backbone.history.navigate("pathway/" + newpathid + "/node/" + code);
                 }
             })
             contextModel.on('change:code', function () {

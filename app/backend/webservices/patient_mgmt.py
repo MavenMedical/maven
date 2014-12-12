@@ -105,5 +105,6 @@ class PatientMgmtWebservices():
         if results:
             asyncio.Task(self.persistence.audit_log(user, 'patient details web service',
                                                     customerid, patientid, rows=1))
-
-        return HTTP.OK_RESPONSE, json.dumps(results[0]), None
+            return HTTP.OK_RESPONSE, json.dumps(results[0]), None
+        else:
+            return HTTP.NOTFOUND_RESPONSE, b'', None

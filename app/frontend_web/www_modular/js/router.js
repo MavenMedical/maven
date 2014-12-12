@@ -68,7 +68,6 @@ define([
                 console.log('showing page ' + currentContext.get('page'));
                 changePageLayout(currentContext.get('page'));
                 /* do more stuff here */
-                window.scrollTo(0, 0);
 		return true;
             } else {
                 console.log('trying to log in');
@@ -121,10 +120,9 @@ define([
             showPage(user, customer, userAuth);
         },
         showPathway: function (path, code, pat, date, user, customer, userAuth) {
-
             layoutModel.set({'fluidContent': false})
             currentContext.set({page: 'pathway', code: code, pathid: path, patients: pat, enc_date: date,
-                startdate: null, enddate: null});
+                                startdate: null, enddate: null});
 
             showPage(user, customer, userAuth);
         },

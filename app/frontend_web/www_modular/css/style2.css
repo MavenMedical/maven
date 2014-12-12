@@ -718,6 +718,14 @@ border-right: 1px solid rgb(204, 204, 204);
     padding-bottom: 15px;
 }
 
+.interaction-scroll {
+    overflow-y:scroll;
+    max-height:300px;
+    width:100%;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+}
+
 .audit-scroll {
     overflow-y:scroll;
     max-height:200px;

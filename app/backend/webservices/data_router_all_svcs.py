@@ -33,6 +33,7 @@ from app.backend.webservices.pathways import PathwaysWebservices
 import app.backend.webservices.authentication as AU
 from app.backend.webservices.patient_mgmt import PatientMgmtWebservices
 from app.backend.webservices.user_mgmt import UserMgmtWebservices
+from app.backend.webservices.reporting import ReportingWebservices
 from app.backend.webservices.search import SearchWebservices
 from app.backend.webservices.administration import AdministrationWebservices
 from app.backend.webservices.support import SupportWebservices
@@ -278,7 +279,7 @@ def main(loop):
               UserMgmtWebservices, SearchWebservices,
               TransparentWebservices, PathwaysWebservices,
               AdministrationWebservices, SupportWebservices,
-              TimedFollowUpService]:
+              TimedFollowUpService, ReportingWebservices]:
         core_scvs.register_services(c('httpserver', clientapp_rpc))
     core_scvs.schedule(loop)
 
