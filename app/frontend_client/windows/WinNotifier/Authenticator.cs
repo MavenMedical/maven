@@ -74,7 +74,7 @@ namespace MavenAsDemo
                 RegistryKey authKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Maven\\PathwaysDesktop\\Security\\", true);
                 authKey.DeleteValue("Auth");
             }
-            catch(Exception ex) {Program.LogMessage("Authenticator Error: Could not clear the authkey or authkey registry item doesn't exist.\r\n"+ex.Message); }
+            catch(Exception ex) {Logger.LogLocal("Authenticator Error: Could not clear the authkey or authkey registry item doesn't exist.\r\n"+ex.Message); }
         }
         /// <summary>
         /// Check with the maven cloud to see if the key is valid

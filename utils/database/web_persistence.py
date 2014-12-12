@@ -14,8 +14,8 @@ from utils.database.database import MappingUtilites as DBMapUtils
 import maven_config as MC
 import maven_logging as ML
 
-logger = ML.get_logger()
-ML.set_debug('/tmp/web_persistence.log')
+# logger = ML.get_logger()
+# ML.set_debug('/tmp/web_persistence.log')
 
 CONFIG_DATABASE = 'database'
 
@@ -96,8 +96,14 @@ Results = Enum('Results',
     task_status
     due_datetime
     expire_datetime
+    activityid
+    protocol
+    protocolname
     msg_subject
     msg_body
+    groupid
+    group_name
+    count
 """)
 
 
@@ -117,8 +123,11 @@ class InvalidRequest(Exception):
 
 
 def _prettify_name(s):
-    name = s.split(",")
-    return str.title(name[0]) + ", " + str.title(name[1])
+    try:
+        name = s.split(",")
+        return str.title(name[0]) + ", " + str.title(name[1])
+    except:
+        return s
 
 
 def _prettify_sex(s):
@@ -176,7 +185,7 @@ def _build_format(override=None):
 def build_columns(desired, available, defaults):
     extras = set(desired) - available.keys()
     if extras:
-        raise InvalidRequest("these results are not support: " + str(extras))
+        raise InvalidRequest("these results are not supported: " + str(extras))
 
     # missing = required - set(desired)
     # if missing:
@@ -247,7 +256,7 @@ class WebPersistenceBase():
                 #                or desired[k]: display[k](v) for k,v in zip(desired, row)})
                 results.append({desired[k]: display[k](v) for k, v in zip(desired, row)})
 
-        logger.debug(str(cmd) + " " + str(cmdargs) + " -> " + str(results))
+        # logger.debug(str(cmd) + " " + str(cmdargs) + " -> " + str(results))
         return results
 
     @asyncio.coroutine
@@ -1071,6 +1080,54 @@ class WebPersistenceBase():
         results = yield from self.execute(cmd, cmdargs, self._display_per_encounter, desired)
         return results
 
+    _available_interactions = {
+        Results.activityid: "min(a.activity_id)",
+        Results.patientid: "a.patient_id",
+        Results.patientname: "min(p.patname)",
+        Results.datetime: "min(a.datetime) AS time",
+        Results.username: 'min(u.official_name)',
+        Results.userid: 'a.user_id',
+        Results.protocolname: 'min(c.name)',
+        Results.protocol: 'a.protocol_id',
+        Results.count: 'count(*)',
+    }
+
+    _display_interactions = _build_format({
+        Results.datetime: lambda x: x and _prettify_datetime(x),
+    })
+
+    @asyncio.coroutine
+    def interactions(self, desired, customer,
+                     # provider=None, patients=None, startdate=None, enddate=None,
+                     limit=None):
+        columns = build_columns(desired.keys(), self._available_interactions, set())
+        cmd = ["SELECT", columns, "FROM trees.activity AS a",
+               "INNER JOIN users AS u ON a.user_id=u.user_id",
+               "INNER JOIN trees.canonical_protocol AS c ON a.canonical_id = c.canonical_id AND a.customer_id=c.customer_id",
+               "INNER JOIN patient AS p ON a.patient_id = p.patient_id AND a.customer_id = p.customer_id ",
+               "WHERE a.patient_id IS NOT NULL AND a.customer_id = %s",
+               "GROUP BY a.patient_id, a.user_id, a.protocol_id, date_trunc('day', a.datetime)",
+               "ORDER BY time DESC"]
+        cmdargs = [customer]
+
+        if limit:
+            cmd.append(limit)
+        results = yield from self.execute(cmd, cmdargs, self._display_interactions, desired)
+        return results
+
+    @asyncio.coroutine
+    def interaction_details(self, customer, providerid, patientid, protocolid, startactivity):
+        cmd = ["SELECT node_id, datetime FROM trees.activity WHERE",
+               "customer_id = %s AND user_id = %s AND patient_id = %s AND protocol_id = %s",
+               "AND activity_id >= %s ORDER BY activity_id"]
+        cmdargs = [customer, providerid, patientid, protocolid, startactivity]
+
+        desired = {0: 'node_id', 1: 'datetime'}
+
+        results = yield from self.execute(cmd, cmdargs,
+                                          _build_format({1: _prettify_datetime}), desired)
+        return results
+
     @asyncio.coroutine
     # @ML.coroutine_trace(print)
     def audit_log(self, username, action, customer, patient=None, device=None,
@@ -1138,20 +1195,22 @@ class WebPersistenceBase():
             raise Exception('Not implemented yet')
         cmd = []
         cmdArgs = []
-        cmd.append("SELECT current_id, name, canonical_id FROM trees.canonical_protocol")
+        cmd.append("SELECT current_id, name, canonical_id, folder, enabled")
+        cmd.append("FROM trees.canonical_protocol")
         cmd.append("WHERE (customer_id=%s OR customer_id IS NULL)")
         cmdArgs.append(customer_id)
         if not includedeleted:
             cmd.append('AND NOT deleted')
+        cmd.append("ORDER BY folder, name")
         ret = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
         return list(ret)
 
     @asyncio.coroutine
-    def create_protocol(self, treeJSON, customer_id, user_id):
+    def create_protocol(self, treeJSON, customer_id, user_id, folder=None):
 
         cmd = ["SELECT trees.insertprotocol(%s, %s, %s, %s, %s, %s, %s, %s)"]
         cmdArgs = [json.dumps(treeJSON), customer_id, user_id, treeJSON['name'],
-                   None, 0.00, 200.00, '%']
+                   folder, 0.00, 200.00, '%']
         try:
             cur = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
             tree_id, canonical_id = cur.fetchone()[0]
@@ -1194,7 +1253,7 @@ class WebPersistenceBase():
             if enc_dx_triggers:
                 yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'enc_dx', enc_dx_triggers)
 
-            # Insert the Protocol Triggering Codelist(s) for HISTORIC Diagnoses
+            # Insert the Protocol Triggering Codelist(s) for PROBLEM LIST Diagnoses
             pl_dx_triggers = triggerGroupDetails.get('pl_dx', None)
             if pl_dx_triggers:
                 yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'pl_dx', pl_dx_triggers)
@@ -1204,24 +1263,24 @@ class WebPersistenceBase():
             if hist_dx_triggers:
                 yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'hist_dx', hist_dx_triggers)
 
-            # Recursively insert the codelists for all of the child nodes
+            # Insert the Protocol Triggering Codelist(s) for ALL Diagnoses
             all_dx_triggers = triggerGroupDetails.get('all_dx', None)
             if all_dx_triggers:
                 yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'all_dx', all_dx_triggers)
-
-            # Recursively insert the codelists for all of the child nodes
-                # pass
 
     @asyncio.coroutine
     def upsert_snomed_triggers(self, canonical_id, node_id, list_type, triggers):
 
         for cl in triggers:
             # Parse the "exists" JSON element FROM a string INTO a Python integer
-            exists = self.convert_string_to_boolean(cl.get('exists', None))
-
+            str_boolean = cl.get('exists', None)
+            if str_boolean:
+                exists = self.convert_string_to_boolean(str_boolean)
+            else:
+                exists = None
             # Parse the "code" list of string SNOMEDS into Python integers
-            string_snomeds = cl.get('code', None)
-            int_snomeds = [int(ss) for ss in string_snomeds]
+            str_list = cl.get('code', None)
+            int_list = [int(sl) for sl in str_list]
 
             # Historic Diagnoses have the framemin/framemax that Encounter Diagnoses do not have, grab 'em
             if list_type == 'hist_dx':
@@ -1233,7 +1292,7 @@ class WebPersistenceBase():
                 framemax = 99999
 
             cmd = ["SELECT trees.upsert_codelist(%s, %s, %s::varchar, %s, %s::integer[], %s::varchar[], %s, %s)"]
-            cmdArgs = [canonical_id, node_id, list_type, exists, int_snomeds, None, framemin, framemax]
+            cmdArgs = [canonical_id, node_id, list_type, exists, int_list, None, framemin, framemax]
             yield from self.db.execute_single(' '.join(cmd), extra=cmdArgs)
 
     def convert_string_to_boolean(self, str):
@@ -1262,11 +1321,52 @@ class WebPersistenceBase():
             return None
 
     @asyncio.coroutine
+    def get_protocol_history(self, customer_id, canonical_id, limit=None):
+        cmd = ["SELECT protocol_id, trees.protocol.canonical_id, creation_time, public.users.official_name, ",
+               "(case trees.canonical_protocol.current_id WHEN trees.protocol.protocol_id THEN 1 ELSE 0 END) as active "
+               "from trees.protocol",
+               "INNER JOIN public.users ON users.user_id = trees.protocol.creator",
+               "INNER JOIN trees.canonical_protocol",
+               "ON trees.protocol.canonical_id = trees.canonical_protocol.canonical_id",
+               "WHERE trees.protocol.canonical_id=%s AND (trees.protocol.customer_id IS NULL",
+               "OR trees.protocol.customer_id=%s)",
+               "ORDER BY active DESC, creation_time DESC"]
+        cmdArgs = [canonical_id, customer_id]
+        if limit:
+            cmd.append(limit)
+
+        ret = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
+
+        return list(ret)
+
+    @asyncio.coroutine
+    def select_active_pathway(self, customer_id, canonical_id, protocol_id):
+        cmd = ["UPDATE trees.canonical_protocol SET current_id=%s ",
+               "WHERE (canonical_id=%s and customer_id=%s)"]
+        cmdArgs = [protocol_id, canonical_id, customer_id]
+        try:
+            yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
+        except:
+            ML.EXCEPTION("Error Updating TreeID #{}".format(canonical_id))
+
+    @asyncio.coroutine
+    def toggle_pathway(self, customer_id, canonical_id, enabled=False):
+        cmd = ["UPDATE trees.canonical_protocol SET enabled=%s ",
+               "WHERE (canonical_id=%s and customer_id=%s)"]
+        cmdArgs = [enabled, canonical_id, customer_id]
+        try:
+            yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
+        except:
+            ML.EXCEPTION("Error Updating TreeID #{}".format(canonical_id))
+
+    @asyncio.coroutine
     def delete_protocol(self, customer_id, protocol_id=None, canonical_id=None):
         if canonical_id:
             cmd = ["UPDATE trees.canonical_protocol SET deleted=TRUE ",
                    "WHERE (canonical_id=%s and customer_id=%s)"]
             cmdArgs = [canonical_id, customer_id]
+            yield from self.delete_codelists_deactivate_alert_config(canonical_id)
+
         elif protocol_id:
             cmd = ["UPDATE FROM trees.protocol SET deleted=TRUE",
                    "WHERE (protocol_id=%s AND customer_id=%s)"]
@@ -1279,25 +1379,43 @@ class WebPersistenceBase():
             ML.EXCEPTION("Error Deleting TreeID #{}".format(protocol_id))
 
     @asyncio.coroutine
+    def delete_codelists_deactivate_alert_config(self, canonical_id):
+        cmd = ["BEGIN;",
+               "DELETE FROM trees.codelist",
+               "WHERE canonical_id=%s;",
+               "UPDATE public.alert_config",
+               "SET validation_status=-100",
+               "WHERE rule_id=%s;",
+               "COMMIT;"]
+        cmdArgs = [canonical_id, canonical_id]
+        yield from self.db.execute_single(' '.join(cmd), extra=cmdArgs)
+
+    @asyncio.coroutine
     def update_protocol(self, protocol_id, customer_id, user_id, protocol_json):
         cmd = ['SELECT trees.updateprotocol(%s, %s, %s, %s)']
         cmdArgs = [protocol_id, json.dumps(protocol_json), customer_id, user_id]
+        newid = None
         try:
             cur = yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
             newid, canonical_id = cur.fetchone()[0]
             # Update/Insert the trees.codelist records for the protocol
             yield from self.upsert_codelists(protocol_json, canonical_id)
-            return newid
+
         except:
+            newid = None
             ML.EXCEPTION("Error Updating TreeID #{}".format(protocol_json.get('pathid', None)))
+
+        finally:
+            return newid
 
     @asyncio.coroutine
     def post_protocol_activity(self, customer_id, user_id, activity_msg):
-        column_map = ["customer_id", "user_id", "patient_id", "protocol_id", "node_id", "datetime", "action"]
+        column_map = ["customer_id", "user_id", "patient_id", "protocol_id",
+                      "node_id", "datetime", "action", 'canonical_id']
         columns = DBMapUtils().select_rows_from_map(column_map)
 
         cmd = ["INSERT INTO trees.activity(" + columns + ")",
-               "VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING activity_id"]
+               "VALUES (%s, %s, %s, %s, %s, %s, %s, (SELECT canonical_id FROM trees.protocol WHERE protocol_id = %s)) RETURNING activity_id"]
 
         node_state_raw = activity_msg.get('node_state', None)
         node_state = node_state_raw.split("-")
@@ -1305,14 +1423,16 @@ class WebPersistenceBase():
         # Splice the last element from the node state (which returns a single element list),
         # and then take the only element from it and turn it into an integer
         node_id = node_state[-1:][0]
+        protocol_id = activity_msg.get('protocol_id', None)
         cmdArgs = [customer_id,
                    user_id,
                    activity_msg.get('patient_id', None),
-                   activity_msg.get('protocol_id', None),
+                   protocol_id,
                    node_id,
                    activity_msg.get('datetime', None),
-                   activity_msg.get('action', None)]
-
+                   activity_msg.get('action', None),
+                   protocol_id]
+        print(cmdArgs)
         try:
             cur = yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
             result = cur.fetchone()[0]
@@ -1326,6 +1446,20 @@ class WebPersistenceBase():
             return True
         else:
             return False
+
+    @asyncio.coroutine
+    def post_pathway_location(self, customer_id, canonical_id, location_msg):
+
+        location = location_msg.get('location', None)
+        # position = location_msg.get('position', None)
+
+        cmd = ["UPDATE trees.canonical_protocol set folder = %s WHERE customer_id=%s and canonical_id=%s"]
+        cmdArgs = [location, customer_id, canonical_id]
+
+        result = yield from self.execute(cmd, cmdArgs, {}, {})
+        if result:
+            return True
+        return False
 
     ##########################################################################################
     ##########################################################################################
@@ -1441,3 +1575,65 @@ class WebPersistenceBase():
                "SET status=%s WHERE task_id=%s"]
         cmdArgs = [status, task_id]
         yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
+
+    ##########################################################################################
+    ##########################################################################################
+    ##########################################################################################
+    #####
+    # NOTIFICATION SERVICE DATABASE SERVICES
+    #####
+    ##########################################################################################
+    ##########################################################################################
+    ##########################################################################################
+    @asyncio.coroutine
+    def insert_log(self, customer_id, log_datetime, tags, body, username=None, device=None):
+        cmd = ["INSERT INTO log(customer_id, log_datetime, username, device, tags, body)",
+               "VALUES (%s, %s, %s, %s, (select get_log_tags(%s)), %s)",
+               "RETURNING log_id"]
+        cmdArgs = [customer_id, log_datetime, username, device, tags, body]
+
+        try:
+            log_id = yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
+            ML.DEBUG("Log ID {} added".format(log_id))
+            return True
+        except Exception:
+            return False
+    ##########################################################################################
+    ##########################################################################################
+    ##########################################################################################
+    #####
+    # USER GROUP DATABASE SERVICES
+    #####
+    ##########################################################################################
+    ##########################################################################################
+    ##########################################################################################
+    _default_group_info = set((Results.groupid,))
+    _available_group_info = {
+        Results.groupid: "user_group.group_id",
+        Results.group_name: "user_group.group_name",
+    }
+    _display_group_info = _build_format({})
+
+    @asyncio.coroutine
+    def get_groups(self, customer_id):
+        desired = {
+            Results.groupid: "id",
+            Results.group_name: "term",
+        }
+        columns = build_columns(desired.keys(), self._available_group_info,
+                                self._default_group_info)
+        cmd = ["SELECT",
+               columns,
+               "FROM public.user_group",
+               "WHERE customer_id=%s"]
+        cmdArgs = [customer_id]
+
+        rtn = None
+        try:
+            groups = yield from self.execute(cmd, cmdArgs, self._display_group_info, desired)
+            rtn = groups
+        except:
+            ML.EXCEPTION("Error Querying Groups for CustomerID={}".format(customer_id))
+
+        finally:
+            return rtn

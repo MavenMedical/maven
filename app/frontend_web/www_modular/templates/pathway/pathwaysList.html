@@ -1,21 +1,30 @@
 <div class = "widget-column col-sm-12">
 <div>
-        <h2 class="headings alerts">
-         Pathways
-        </h2>
+    <h2 class="headings alerts">
+        Pathways
+    </h2>
     <div class="col-md-12">
-    <div style=" padding:0; max-height:600px; overflow-y:auto;">
-         <div class="table-body">
+        <div id="pathway-manager" class="sub-folder">
+            <div style="font-size: 150%;">
+                <a id="paths-list-add-folder">
+                    <span title="New Folder" class="glyphicon glyphicon-folder-close"></span> New Folder
+                </a>
+                <a id='add-base-pathway'><span data-toggle="tooltip" title="New Pathway">
+                    <img src="../images/temp/newPath.jpg" style="width: 25px; height: 25px"></span>New Pathway</a>
+            </div>
+            <ol style=" padding:0; max-height:600px; overflow-y:auto;" class="sortable-folder" id="avail-paths-list">
 
+            </ol>
         </div>
-    </div>
     </div>
 </div>
 <div class="maven-padding"></div>
+</div>
 
-
+    <!--
          <div style="padding-top: 30px; padding-bottom: 30px;" class="col-md-12">
             <div id="action-buttons">
+
                 <button type="button" class="btn btn-default btn-sm path" id="newpath-button">
                 <span data-toggle="tooltip" title="New Pathway">
                     <img src="../images/temp/newPath.jpg" style="width: 30px; height: 30px">New Pathway</span>
@@ -26,7 +35,5 @@
                 </button>
             </div>
             </div>
-
-
-
 </div>
+-->

@@ -123,6 +123,8 @@ class AuthenticationWebservices():
                    CONTEXT.KEY: user_auth}
             method = 'refresh'
             return HTTP.OK_RESPONSE, json.dumps(ret), cookie
+        except IndexError:
+            return HTTP.NOTFOUND_RESPONSE, b'', None
         finally:
             yield from self.persistence.record_login(username, customer,
                                                      method,

@@ -42,8 +42,44 @@ class PathwaysWebservices():
         return (HTTP.OK_RESPONSE,
                 json.dumps([{CONTEXT.PATHID: k[0],
                              CONTEXT.CANONICALID: k[2],
-                             'name': k[1]} for k in protocols]),
+                             CONTEXT.FOLDER: k[3],
+                             'name': k[1], 'canonical': k[2], 'folder': k[3], 'enabled': k[4]} for k in protocols]),
                 None)
+
+    @http_service(['GET'], '/history(?:(\d+)-(\d+)?)?',
+                  [CONTEXT.USER, CONTEXT.CUSTOMERID],
+                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int, CONTEXT.CANONICALID: int},
+                  {USER_ROLES.provider, USER_ROLES.supervisor})
+    def get_hist(self, _header, body, context, _matches, _key):
+
+        customer_id = context[CONTEXT.CUSTOMERID]
+        canonical_id = context.get(CONTEXT.CANONICALID, None)
+        limit = self.helper.limit_clause(_matches)
+
+        protocols = yield from self.persistence.get_protocol_history(customer_id, canonical_id, limit=limit)
+
+        return (HTTP.OK_RESPONSE,
+                json.dumps([{CONTEXT.PATHID: k[0],
+                             CONTEXT.CANONICALID: k[1],
+                             'creation_date': k[2].strftime("%Y-%m-%d %H:%M:%S"),
+                             CONTEXT.OFFICIALNAME: k[3],
+                             CONTEXT.ACTIVE: k[4]} for k in protocols]),
+                None)
+
+    @http_service(['POST'], '/history/(\d+)/(\d+)',
+                  [CONTEXT.USER, CONTEXT.CUSTOMERID],
+                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int},
+                  {USER_ROLES.provider, USER_ROLES.supervisor})
+    def select_hist(self, _header, body, context, matches, _key):
+        # choose which pathway in history is currently active
+
+        canonical_id = int(matches[0])
+        path_id = int(matches[1])
+        customer_id = context[CONTEXT.CUSTOMERID]
+
+        yield from self.persistence.select_active_pathway(customer_id, canonical_id, path_id)
+
+        return (HTTP.OK_RESPONSE, "", None)
 
     @http_service(['GET'], '/search',
                   [CONTEXT.SEARCH_PARAM],
@@ -78,7 +114,9 @@ class PathwaysWebservices():
         full_spec = json.loads(body.decode('utf-8'))
         customer_id = context[CONTEXT.CUSTOMERID]
         user_id = context[CONTEXT.USERID]
-        id = yield from self.persistence.create_protocol(full_spec, customer_id, user_id)
+        folder = full_spec.get(CONTEXT.FOLDER, None)
+        full_spec.pop(CONTEXT.FOLDER, None)
+        id = yield from self.persistence.create_protocol(full_spec, customer_id, user_id, folder)
         full_spec[CONTEXT.PATHID] = id
         return (HTTP.OK_RESPONSE, json.dumps(full_spec), None)
 
@@ -102,10 +140,17 @@ class PathwaysWebservices():
         protocol_id = int(matches[0])
         customer = context[CONTEXT.CUSTOMERID]
         userid = context[CONTEXT.USERID]
-        id = yield from self.persistence.update_protocol(protocol_id, customer, userid, protocol_json)
-        protocol_json[CONTEXT.PATHID] = id
-        protocol_json.pop('id', None)
-        return (HTTP.OK_RESPONSE, json.dumps(protocol_json), None)
+
+        try:
+            id = yield from self.persistence.update_protocol(protocol_id, customer, userid, protocol_json)
+            if id:
+                protocol_json[CONTEXT.PATHID] = id
+                protocol_json.pop('id', None)
+                return HTTP.OK_RESPONSE, json.dumps(protocol_json), None
+            else:
+                return HTTP.BAD_RESPONSE, json.dumps('FALSE'), None
+        except Exception:
+            return HTTP.BAD_RESPONSE, json.dumps('FALSE'), None
 
     @http_service(['POST'], '/activity',
                   [CONTEXT.USERID, CONTEXT.CUSTOMERID],
@@ -117,6 +162,38 @@ class PathwaysWebservices():
         activity_msg = json.loads(body.decode('utf-8'))
 
         result = yield from self.persistence.post_protocol_activity(customer_id, user_id, activity_msg)
+
+        if result:
+            return HTTP.OK_RESPONSE, "", None
+        else:
+            return HTTP.BAD_RESPONSE, "", None
+
+    @http_service(['PUT'], '/list/(\d+)',
+                  [CONTEXT.USERID, CONTEXT.CUSTOMERID],
+                  {CONTEXT.USERID: int, CONTEXT.CUSTOMERID: int},
+                  {USER_ROLES.provider, USER_ROLES.supervisor})
+    def toggle_path(self, _header, body, context, matches, _key):
+        # enable or disable a pathway
+
+        customer_id = context[CONTEXT.CUSTOMERID]
+        canonical_id = int(matches[0])
+        msg = json.loads(body.decode('utf-8'))
+        active = msg.get("active")
+
+        self.persistence.toggle_pathway(customer_id, canonical_id, enabled=active)
+
+        return (HTTP.OK_RESPONSE, "", None)
+
+    @http_service(['POST'], '/update_pathway_location',
+                  [CONTEXT.USERID, CONTEXT.CUSTOMERID, CONTEXT.CANONICALID],
+                  {CONTEXT.USERID: int, CONTEXT.CUSTOMERID: int, CONTEXT.CANONICALID: int},
+                  {USER_ROLES.provider, USER_ROLES.supervisor})
+    def post_pathway_location(self, _header, body, context, _matches, _key):
+        customer_id = context[CONTEXT.CUSTOMERID]
+        canonical_id = context[CONTEXT.CANONICALID]
+        location_msg = json.loads(body.decode('utf-8'))
+
+        result = yield from self.persistence.post_pathway_location(customer_id, canonical_id, location_msg)
 
         if result:
             return HTTP.OK_RESPONSE, "", None

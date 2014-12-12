@@ -32,25 +32,22 @@ import asyncio
 import datetime
 import maven_config as MC
 import maven_logging as ML
-from utils.database.database import AsyncConnectionPool, MappingUtilites
-from utils.enums import ALERT_VALIDATION_STATUS, ORDER_STATUS, ALERT_TYPES
-import utils.database.fhir_database as FHIR_DB
+import utils.database.fhir_database as FD
+from utils.enums import ALERT_VALIDATION_STATUS, ORDER_STATUS, ALERT_TYPES, CONFIG_PARAMS
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
 import utils.streaming.stream_processor as SP
 
-COMP_EVAL_LOG = ML.get_logger('app.backend.evaluators.composition_evaluator')
+COMP_EVAL_LOG = ML.get_logger()
 
 
 class CompositionEvaluator(SP.StreamProcessor):
 
-    def __init__(self, configname):
+    def __init__(self, configname, fhir_persistence):
         SP.StreamProcessor.__init__(self, configname)
-        self.conn = AsyncConnectionPool('EvaluatorConnectionPool')
-        self.DBMapper = MappingUtilites()
+        self.fhir_persistence = fhir_persistence
 
     def schedule(self, loop):
         SP.StreamProcessor.schedule(self, loop)
-        self.conn.schedule(loop)
 
     @asyncio.coroutine
     def read_object(self, obj, _):
@@ -60,7 +57,7 @@ class CompositionEvaluator(SP.StreamProcessor):
 
         # Write the original composition that came across the wire for debugging purposes
         # Eventually we'll want the DB write method below to update the composition as opposed to writing it again
-        yield from FHIR_DB.write_composition_json(composition, self.conn)
+        yield from self.fhir_persistence.write_composition_json(composition)
 
         # Add the alerts section so that the components below can add their respective alerts
         self._add_alerts_section(composition)
@@ -84,7 +81,7 @@ class CompositionEvaluator(SP.StreamProcessor):
         yield from self.evaluate_alternative_meds(composition)
 
         # Use the FHIR Database API to look up each Condition's codes (ICD-9) and add Snomed CT concepts to the Condition
-        yield from FHIR_DB.get_snomeds_and_append_to_encounter_dx(composition, self.conn)
+        composition = yield from self.fhir_persistence.get_snomeds_and_append_to_encounter_dx(composition)
 
         # Analyze Choosing Wisely/CDS Rules
         yield from self.evaluate_CDS_rules(composition)
@@ -93,7 +90,7 @@ class CompositionEvaluator(SP.StreamProcessor):
         yield from self.evaluate_clinical_pathways(composition)
 
         # Write everything to persistent DB storage
-        yield from FHIR_DB.write_composition_to_db(composition, self.conn)
+        yield from self.fhir_persistence.write_composition_to_db(composition)
 
         # Debug Message
         # COMP_EVAL_LOG.debug(json.dumps(FHIR_API.remove_none(json.loads(json.dumps(composition, default=FHIR_API.jdefault))), default=FHIR_API.jdefault, indent=4))
@@ -124,7 +121,7 @@ class CompositionEvaluator(SP.StreamProcessor):
             for order in composition.get_encounter_orders():
 
                 # Loop through each order_detail in each order to identify
-                detail_orders = yield from [(yield from FHIR_DB.identify_encounter_orderable(item, order, composition, self.conn)) for item in order.detail]
+                detail_orders = yield from [(yield from self.fhir_persistence.identify_encounter_orderable(item, order, composition)) for item in order.detail]
 
                 # TODO - Check to make sure duplicate codes that reference the same orderable don't result in duplicate FHIR Procedures/Medications
 
@@ -153,7 +150,7 @@ class CompositionEvaluator(SP.StreamProcessor):
                 return
 
             # Build a list of FHIR_API.Orders encounter orders in the database.order_ord
-            orders_from_db = yield from FHIR_DB.construct_encounter_orders_from_db(composition, self.conn)
+            orders_from_db = yield from self.fhir_persistence.construct_encounter_orders_from_db(composition)
 
             # Check the tuple of (internal ID, orderable_id) to see if there's overlap
             new_orders_clientEMR_IDs = [(order.get_clientEMR_uuid(), order.get_orderable_ID()) for order in composition.get_encounter_orders()]
@@ -167,7 +164,7 @@ class CompositionEvaluator(SP.StreamProcessor):
 
                     # Put the Order in a status of ON HOLD which means we need to figure out if it was Completed/Removed/Canceled
                     order.status = ORDER_STATUS.HD.name
-                    yield from FHIR_DB.write_composition_encounter_order(order, composition, self.conn)
+                    yield from self.fhir_persistence.write_composition_encounter_order(order, composition)
         except:
             raise Exception("Error detecting removed orders")
 
@@ -186,7 +183,7 @@ class CompositionEvaluator(SP.StreamProcessor):
         :param composition: FHIR Composition object with fully identified FHIR Order objects (i.e. already run through order identifier
         """
         # Check the alert configuration for cost and if it's suppress (-1) then return
-        cost_alert_validation_status = yield from FHIR_DB.get_alert_configuration(ALERT_TYPES.COST, composition, self.conn)
+        cost_alert_validation_status = yield from self.fhir_persistence.get_alert_configuration(ALERT_TYPES.COST, composition)
         if cost_alert_validation_status == ALERT_VALIDATION_STATUS.SUPPRESS.value:
             return
 
@@ -196,7 +193,7 @@ class CompositionEvaluator(SP.StreamProcessor):
             order.totalCost = 0
             coding = order.get_proc_med_terminology_coding()
             for order_detail in order.detail:
-                yield from FHIR_DB.get_order_detail_cost(order_detail, composition, self.conn)
+                yield from self.fhir_persistence.get_order_detail_cost(order_detail, composition)
                 order.totalCost += order_detail.cost
 
             encounter_cost_breakdown['details'].append({"order_name": coding.display,
@@ -235,16 +232,16 @@ class CompositionEvaluator(SP.StreamProcessor):
     @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
     def evaluate_recent_results(self, composition):
         # Check to see if recent results alert_config should event generate alerts
-        recent_results_alert_validation_status = yield from FHIR_DB.get_alert_configuration(ALERT_TYPES.REC_RESULT, composition, self.conn)
+        recent_results_alert_validation_status = yield from self.fhir_persistence.get_alert_configuration(ALERT_TYPES.REC_RESULT, composition)
         if recent_results_alert_validation_status == ALERT_VALIDATION_STATUS.SUPPRESS.value:
             return
 
         # Check to see if there are exact duplicate orders (order code AND order code type)from within the last year
-        duplicate_orders = yield from FHIR_DB.get_recently_resulted_orders(composition, self.conn)
+        duplicate_orders = yield from self.fhir_persistence.get_recently_resulted_orders(composition)
 
         if duplicate_orders is not None and len(duplicate_orders) > 0:
             # Check to see if there are relevant lab components to be displayed
-            duplicate_orders_with_observations = yield from FHIR_DB.get_observations_from_duplicate_orders(duplicate_orders, composition, self.conn)
+            duplicate_orders_with_observations = yield from self.fhir_persistence.get_observations_from_duplicate_orders(duplicate_orders, composition)
 
             if duplicate_orders_with_observations is not None and len(duplicate_orders_with_observations) > 0:
                 yield from self._generate_recent_results_alerts(composition, duplicate_orders_with_observations)
@@ -253,7 +250,7 @@ class CompositionEvaluator(SP.StreamProcessor):
     def _generate_recent_results_alerts(self, composition, dup_ords_with_obs):
 
         # Check to see if recent results alert_config should event generate alerts
-        recent_results_alert_validation_status = yield from FHIR_DB.get_alert_configuration(ALERT_TYPES.REC_RESULT, composition, self.conn)
+        recent_results_alert_validation_status = yield from self.fhir_persistence.get_alert_configuration(ALERT_TYPES.REC_RESULT, composition)
         if recent_results_alert_validation_status == ALERT_VALIDATION_STATUS.SUPPRESS.value:
             return
 
@@ -307,13 +304,13 @@ class CompositionEvaluator(SP.StreamProcessor):
     @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
     def evaluate_alternative_meds(self, composition):
         # Check to see if recent results alert_config should event generate alerts
-        alt_meds_alert_validation_status = yield from FHIR_DB.get_alert_configuration(ALERT_TYPES.ALT_MED, composition, self.conn)
+        alt_meds_alert_validation_status = yield from self.fhir_persistence.get_alert_configuration(ALERT_TYPES.ALT_MED, composition)
         if alt_meds_alert_validation_status == ALERT_VALIDATION_STATUS.SUPPRESS.value:
             return
 
         for order in composition.get_encounter_orders():
             if isinstance(order.detail[0], FHIR_API.Medication):
-                alt_meds = yield from FHIR_DB.get_alternative_meds(order, composition, self.conn)
+                alt_meds = yield from self.fhir_persistence.get_alternative_meds(order, composition)
                 if alt_meds:
                     pass
 
@@ -332,12 +329,12 @@ class CompositionEvaluator(SP.StreamProcessor):
 
         """
         # Check to see if recent results alert_config should event generate alerts
-        CDS_rules_alert_validation_status = yield from FHIR_DB.get_alert_configuration(ALERT_TYPES.CDS, composition, self.conn)
+        CDS_rules_alert_validation_status = yield from self.fhir_persistence.get_alert_configuration(ALERT_TYPES.CDS, composition)
         if CDS_rules_alert_validation_status == ALERT_VALIDATION_STATUS.SUPPRESS.value:
             return
 
         # Gather any matching CDS Rules that hit according to Dave's rules.evalrules PL/pgsql function
-        CDS_rules = yield from FHIR_DB.get_matching_CDS_rules(composition, self.conn)
+        CDS_rules = yield from self.fhir_persistence.get_matching_CDS_rules(composition)
 
         # If Dave's evalrules PL/pgsql function returns any rules, go through and evaluate the rule details
         cds_alerts = []
@@ -455,49 +452,65 @@ class CompositionEvaluator(SP.StreamProcessor):
     ##########################################################################################
     @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
     def evaluate_clinical_pathways(self, composition):
-        pathways_alert_validation_status = yield from FHIR_DB.get_alert_configuration(ALERT_TYPES.PATHWAY, composition, self.conn)
+        pathways_alert_validation_status = yield from self.fhir_persistence.get_alert_configuration(ALERT_TYPES.PATHWAY, composition)
         if pathways_alert_validation_status == ALERT_VALIDATION_STATUS.SUPPRESS.value:
             return
 
         # The FHIR_database.py function here returns a list of FHIR.Rule objects that correspond to the Pathway
-        matched_pathways = yield from FHIR_DB.get_matching_pathways(composition, self.conn)
+        matched_pathways = yield from self.fhir_persistence.get_matching_pathways(composition)
 
         if matched_pathways and len(matched_pathways) > 0:
             alerts_section = composition.get_section_by_coding(code_system="maven", code_value="alerts")
 
             # Discussion 2014-11-11 Yuki-Dave: we should just send the highest priority pathway if multiple are triggered
             matched_pathways.sort(key=lambda x: x.priority, reverse=True)
-            pathway = matched_pathways[0]
-            FHIR_alert = FHIR_API.Alert(customer_id=composition.customer_id,
-                                        category=ALERT_TYPES.PATHWAY,
-                                        subject=composition.subject.get_pat_id(),
-                                        CDS_rule=pathway.CDS_rule_id,
-                                        priority=pathway.priority,
-                                        provider_id=composition.get_author_id(),
-                                        encounter_id=composition.encounter.get_csn(),
-                                        alert_datetime=datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
-                                        short_title=("Clinical Pathway Detected"),
-                                        short_description=("Clinical Pathway recommendations are available"),
-                                        long_description=("Clinical Pathway recommendations are available"))
-            alerts_section.content.append(FHIR_alert)
-
-            # Old logic for looping through multiple returned Pathway Rules. Instead, we're sorting based on priority
-            # and creating an Alert for only the highest priority
-            """
             for pathway in matched_pathways:
-                FHIR_alert = FHIR_API.Alert(customer_id=composition.customer_id,
-                                            category=ALERT_TYPES.PATHWAY,
-                                            subject=composition.subject.get_pat_id(),
-                                            CDS_rule=pathway.CDS_rule_id,
-                                            priority=pathway.priority,
-                                            provider_id=composition.get_author_id(),
-                                            encounter_id=composition.encounter.get_csn(),
-                                            alert_datetime=datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
-                                            short_title=("Clinical Pathway Detected"),
-                                            short_description=("Clinical Pathway recommendations are available"),
-                                            long_description=("Clinical Pathway recommendations are available"))
-                alerts_section.content.append(FHIR_alert)
-            """
+                trig_dict = pathway.protocol_details.get('triggers', None)
+                remaining_detail_evaluation = yield from self._evaluate_remaining_pathway_details(trig_dict, composition)
+
+                if remaining_detail_evaluation:
+                    node_id = yield from self.fhir_persistence.last_node_clicked(composition.customer_id,
+                                                                                 pathway.CDS_rule_id,
+                                                                                 composition.subject.get_pat_id())
+                    FHIR_alert = FHIR_API.Alert(customer_id=composition.customer_id,
+                                                category=ALERT_TYPES.PATHWAY,
+                                                subject=composition.subject.get_pat_id(),
+                                                CDS_rule=pathway.CDS_rule_id,
+                                                CDS_node=node_id,
+                                                priority=pathway.priority,
+                                                provider_id=composition.get_author_id(),
+                                                encounter_id=composition.encounter.get_csn(),
+                                                alert_datetime=datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                                                short_title=("Clinical Pathway Detected"),
+                                                long_title=pathway.name,
+                                                short_description=("Clinical Pathway recommendations are available"),
+                                                long_description=("Clinical Pathway recommendations are available"))
+                    alerts_section.content.append(FHIR_alert)
+
+    @ML.coroutine_trace(write=COMP_EVAL_LOG.debug, timing=True)
+    def _evaluate_remaining_pathway_details(self, trig_dict, composition):
+        """
+        :returns bool: Are the remaining trigger details satisfied or not
+        """
+        username = composition.author.get_provider_username()
+        customer_id = composition.customer_id
+
+        # Loop through the criteria groups and evaluate each additional detail type
+        for trig_group in trig_dict:
+            trig_group_details = trig_group.get('details', None)
+
+            # Test Group Membership detail type
+            membership_triggers = trig_group_details.get('membership', None)
+            if membership_triggers and len(membership_triggers) > 0:
+                user_membership = yield from self.fhir_persistence.get_user_group_membership(username, customer_id)
+                trigger_groups = [int(i) for i in membership_triggers[0]['groups']]
+                intersect = set(user_membership).intersection(trigger_groups)
+                if intersect:
+                    continue
+                else:
+                    return False
+
+        return True
 
     ##########################################################################################
     ##########################################################################################
@@ -527,6 +540,8 @@ class CompositionEvaluator(SP.StreamProcessor):
 def run_composition_evaluator():
 
     rabbithandler = 'rabbitmessagehandler'
+    rpc_database_stream_processor = 'Client to Database RPC Stream Processor'
+
     MavenConfig = {
         rabbithandler:
         {
@@ -562,20 +577,34 @@ def run_composition_evaluator():
             SP.CONFIG_KEY: 'logging',
             SP.CONFIG_WRITERKEY: 'logging',
         },
-        'EvaluatorConnectionPool': {
-            AsyncConnectionPool.CONFIG_CONNECTION_STRING: MC.dbconnection,
-            AsyncConnectionPool.CONFIG_MIN_CONNECTIONS: 2,
-            AsyncConnectionPool.CONFIG_MAX_CONNECTIONS: 4
+        CONFIG_PARAMS.PERSISTENCE_SVC.value: {FD.CONFIG_DATABASE: rpc_database_stream_processor},
+        rpc_database_stream_processor: {
+            SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOSOCKETREPLY,
+            SP.CONFIG_WRITERNAME: rpc_database_stream_processor + '.Writer1',
+            SP.CONFIG_READERTYPE: SP.CONFIGVALUE_ASYNCIOSOCKETQUERY,
+            SP.CONFIG_READERNAME: rpc_database_stream_processor + '.Reader1',
+            SP.CONFIG_WRITERDYNAMICKEY: 4,
+            SP.CONFIG_DEFAULTWRITEKEY: 4,
+        },
+        rpc_database_stream_processor + ".Writer1": {
+            SP.CONFIG_WRITERKEY: 4,
+        },
+        rpc_database_stream_processor + ".Reader1": {
+            SP.CONFIG_HOST: MC.dbhost,
+            SP.CONFIG_PORT: '54729',
         },
     }
 
-    MC.MavenConfig = MavenConfig
+    MC.MavenConfig.update(MavenConfig)
+
+    fhir_persistence = FD.FHIRPersistence(CONFIG_PARAMS.PERSISTENCE_SVC.value)
 
     loop = asyncio.get_event_loop()
-    sp_message_handler = CompositionEvaluator(rabbithandler)
+    sp_message_handler = CompositionEvaluator(rabbithandler, fhir_persistence)
     sp_message_handler.schedule(loop)
 
     try:
+        loop.run_until_complete(asyncio.Task(fhir_persistence.test()))
         loop.run_forever()
 
     except KeyboardInterrupt:

@@ -49,14 +49,14 @@ define([
             this.$el.html(this.template())
             if (contextModel.get('page') != 'pathEditor')
                 this.$el.hide()
-            curCollection.on('sync', this.renderPathList, this)
+            //curCollection.on('sync', this.renderPathList, this)
             treeContext.on('propagate', this.renderActions, this)
 
-            this.renderPathList();
+            //this.renderPathList();
             this.renderActions();
         },
         addTrigger: function () {
-            contextModel.set('page', 'triggerEditor')
+            Backbone.history.navigate("triggereditor/" + contextModel.get('pathid') + "/node/"+contextModel.get('code'), {trigger: true});
         //    var newEditor = new ruleWizard({triggerNode: curTree})
         //    newEditor.render()
         },
@@ -82,8 +82,6 @@ define([
             }, this)
         },
         handle_newPath: function () {
-
-
             a = new NewPathway({el: '#modal-target'});
 
         },

@@ -59,14 +59,15 @@ define([
 
             })
 
-            $("#show-advanced-settings", this.$el).on("click", function(event){
+            $(".show-advanced-settings", this.$el).off('click');
+            $(".show-advanced-settings", this.$el).on("click", function(event){
                 if($(".advanced-settings", that.$el).is(":visible")){
-                    $(event.target).attr("class", "glyphicon glyphicon-chevron-right");
-                    $(".advanced-settings", that.$el).slideUp();
+                    $(event.target).switchClass("glyphicon-chevron-down","glyphicon-chevron-right", 0);
+                    $(".advanced-settings", that.$el).slideUp(200);
                 }
                 else {
-                    $(event.target).attr("class", "glyphicon glyphicon-chevron-down");
-                    $(".advanced-settings", that.$el).slideDown();
+                    $(event.target).switchClass("glyphicon-chevron-right", "glyphicon-chevron-down", 0);
+                    $(".advanced-settings", that.$el).slideDown(200);
                 }
             });
 

@@ -43,7 +43,7 @@ define([
         if (cur.get('nodeID') == target) {
             for (var i in path) {
                 var cur2 = path[i]
-                cur2.showChildren()
+                cur2.showChildren && cur2.showChildren()
             }
 
         } else {
@@ -170,11 +170,19 @@ define([
         })
 
     }
+    var recursiveExpand = function (node) {
+        if (node.get('isProtocol')) return
+        node.showChildren()
+        _.each(node.attributes.children.models, function (cur) {
+            recursiveCollapse(cur)
+        })
+
+    }
 
 
     var TreeModel = nodeModel.extend({
         elPairs: [],
-        idAttribute: 'pathid',
+	    idAttribute: 'pathid',
         urlRoot: '/tree',
         changeNodePosition: function (target, change) {
             var pointer = {}
@@ -183,6 +191,9 @@ define([
             var children = pointer.child
             parent.set('children', new Backbone.Collection(children), {silent: true})
             this.trigger('propagate')
+        },
+        expandAll: function () {
+            recursiveExpand(this)
         },
         getShareCode: function () {
             var nodes = findCurNode(this)
@@ -229,7 +240,10 @@ define([
                 var newpathid = contextModel.get('pathid')
                 if (newpathid && newpathid != '0') {
                     treeContext.clear()
+
                     that.getPathToIDS()
+
+
                     var oldpathid = that.get('pathid')
                     that.set({pathid: newpathid}, {silent: true})
                     if (newpathid != oldpathid) {
@@ -241,16 +255,24 @@ define([
                     })
                     Backbone.history.navigate("pathwayeditor/" + newpathid + "/node/" + contextModel.get('code'));
                 } else {
-                    Backbone.history.navigate("pathway/" + newpathid + "/node/" + contextModel.get('code'));
+                    var code = contextModel.get('code')
+                    Backbone.history.navigate("pathway/" + newpathid + "/node/" + code);
                 }
             })
             contextModel.on('change:code', function () {
-                that.getPathToIDS()
-                treeContext.trigger('propagate')
+                if (contextModel.get('code')) {
+                    that.getPathToIDS()
+                    treeContext.trigger('propagate')
+                }
             })
             this.on('propagate', function () {
                 if (this.oldContent != JSON.stringify(this.toJSON())) {
-                    this.save()
+                    this.save(null, {
+                        error: function () {
+                            alert("Auto Save failed")
+
+                        }
+                    })
                 } else {
                     treeContext.trigger('propagate')
                 }
@@ -260,7 +282,16 @@ define([
                 this.set({'pathid': data.pathid}, {silent: true})
                 contextModel.set({'pathid': String(data.pathid)})
                 pathwayCollection.fetch()
-                this.getPathToIDS()
+                if (contextModel.get('code')) {
+                    that.getPathToIDS()
+                } else {
+                    if (contextModel.get('page') == "pathEditor") {
+                        that.expandAll()
+                    } else {
+                        that.collapse()
+                    }
+                }
+
                 treeContext.trigger('propagate')
             }, this)
             if (contextModel.get('pathid')) {
@@ -336,38 +367,44 @@ define([
                 'name': params.name,
                 'protocol': null,
                 'nodeCount': 0,
-                'nodeID': 0
+                'nodeID': 0, 
+                'folder': params.folder
             }, {silent: true})
             this.populateChildren()
-
+           var n = new triggerGroupCollection()
+            n.populate()
+            this.set('triggers', n, {silent: true});
             this.unset('pathid', {silent: true})
             var that = this
-            this.save({}, {success: function (ogj, data) {
-                pathwayCollection.fetch()
-                params.pathid = data.pathid
-                if (options && options.toImport) {
-                    that.parse(params, options)
-                    that.save({},
-                        {success: function () {
-                            contextModel.set({'pathid': that.get('pathid')})
-                            Backbone.history.navigate("pathwayeditor/" + that.get('pathid') + "/node/undefined");
-                            pathwayCollection.fetch()
-                        }})
-
-                } else {
-                    contextModel.set({'pathid': data.pathid})
-                    Backbone.history.navigate("pathwayeditor/" + that.get('pathid') + "/node/undefined");
+            this.save({}, {
+                success: function (ogj, data) {
                     pathwayCollection.fetch()
+                    params.pathid = data.pathid
+                    if (options && options.toImport) {
+                        that.parse(params, options)
+                        that.save({},
+                            {
+                                success: function () {
+                                    contextModel.set({'pathid': that.get('pathid')})
+                                    Backbone.history.navigate("pathwayeditor/" + that.get('pathid') + "/node/undefined");
+                                    pathwayCollection.fetch()
+                                }
+                            })
+
+                    } else {
+                        contextModel.set({'pathid': data.pathid})
+                        Backbone.history.navigate("pathwayeditor/" + that.get('pathid') + "/node/undefined");
+                        pathwayCollection.fetch()
+                    }
                 }
-            }
             })
 
         },
         parse: function (response, options) {
             if (!response.protocolVersion) {
-                this.set('protocolVersion', "preversion",{silent: true})
+                this.set('protocolVersion', "preversion", {silent: true})
             } else {
-                this.set('protocolVersion', response.protocolVersion ,{silent: true})
+                this.set('protocolVersion', response.protocolVersion, {silent: true})
             }
             var self = this;
 
@@ -423,8 +460,12 @@ define([
                     self.populateChildren(response.children, options)
                     var n = new triggerGroupCollection()
                     n.populate(response.triggers, self.get('protocolVersion'));
-                    n.on('cascade', function(){
-                        self.save()
+                    n.on('cascade', function () {
+                        self.save(null, {
+                            error: function () {
+                                alert("Autosave Failed")
+                            }
+                        })
 
                     })
                     self.set('triggers', n, {silent: true});

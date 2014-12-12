@@ -21,7 +21,6 @@ import datetime
 import dateutil.parser
 import math
 from decimal import Decimal
-import itertools
 import json
 from utils.api.pyfhir.pyfhir_datatypes_generated import *
 from utils.enums import ALERT_TYPES, USER_STATE
@@ -265,7 +264,7 @@ class Alert(Resource):
     def __init__(self, customer_id, category=None, status=None, subject=None, author=None, provider_id=None, encounter_id=None,
                  code_trigger=None, code_trigger_type=None, CDS_rule=None, alert_datetime=None, short_title=None, long_title=None,
                  short_description=None, long_description=None, override_indications=None, outcome=None, saving=None, resourceType="Alert",
-                 related_observations=None, cost_breakdown=None, validation_status=None, triggering_order=None, priority=None):
+                 related_observations=None, cost_breakdown=None, validation_status=None, triggering_order=None, priority=None, CDS_node=None):
         Resource.__init__(self, customer_id=customer_id, resourceType=resourceType)
         self.category = category
         self.status = status
@@ -283,6 +282,7 @@ class Alert(Resource):
         self.long_title = long_title
         self.short_description = short_description
         self.long_description = long_description
+        self.CDS_node = CDS_node
         if override_indications is None:
             self.override_indications = []
         else:

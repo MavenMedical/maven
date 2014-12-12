@@ -33,17 +33,6 @@ def clear_results():
     _results.truncate(0)
 
 
-def get_logger(name=None):
-    if name is None:
-        modulename = inspect.getmodule(inspect.stack()[1][0]).__name__
-        return logging.getLogger(modulename)
-    else:
-        try:
-            return logging.getLogger(name=name)
-        except:
-            raise Exception("Logger needs a configuration record with that name")
-
-
 def set_debug(filename=None):
     modulename = inspect.getmodule(inspect.stack()[1][0]).__name__
     if modulename == '__main__':
@@ -54,7 +43,7 @@ def set_debug(filename=None):
         handler = logging.FileHandler(filename)
     else:
         handler = logging.StreamHandler(sys.stderr)
-    log.setLevel(logging.DEBUG)
+    log.setLevel(root.getEffectiveLevel())
     handler.setFormatter(logging.Formatter(
         '%(asctime)s     %(levelname)s\t%(process)d\t%(filename)s:%(lineno)d\t%(message)s'))
     log.addHandler(handler)
@@ -169,6 +158,20 @@ ERROR = root.error
 EXCEPTION = root.exception
 
 
+def get_logger(name=None):
+    if name is None:
+        modulename = inspect.getmodule(inspect.stack()[1][0]).__name__
+        name = modulename
+
+    try:
+        logger = logging.getLogger(name=name)
+        level = root.getEffectiveLevel()
+        logger.setLevel(level)
+        return logger
+    except:
+        raise Exception("Logger needs a configuration record with that name")
+
+
 def TASK(coroutine):
     stack = [s[1:4] for s in inspect.stack()[1:]]
 
@@ -182,3 +185,40 @@ def TASK(coroutine):
             EXCEPTION('Error in asyncio.Task %s' % stack)
 
     return asyncio.Task(wrapper())
+
+
+def report(message):
+    pass
+
+
+def wrap_exception():
+    global EXCEPTION
+    last_exception_map = {}
+
+    url = 'https://hooks.slack.com/services/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'
+
+    import aiohttp
+    from datetime import datetime, timedelta
+    import socket
+    import json
+    import sys
+
+    hostname = socket.gethostname() + ' ' + sys.argv[0] + ": "
+    old_exception = EXCEPTION
+
+    @asyncio.coroutine
+    def msg_to_slack(x):
+        resp = yield from aiohttp.request('POST',
+                                          url,
+                                          data=json.dumps({"text": hostname + x}))
+        resp.close()
+
+    def handle_exception(x):
+        old_exception(x)
+        last = last_exception_map.get(x, datetime.min)
+        now = datetime.now()
+        if now - last > timedelta(minutes=5):
+            last_exception_map[x] = now
+            print('firing off message')
+            TASK(msg_to_slack(x))
+    EXCEPTION = handle_exception

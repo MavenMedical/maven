@@ -68,33 +68,6 @@ define([
                         });
                     }
                 })
-                this.treeEl.click(function (param1) {
-                    //Don't track clicks in edit mode (where page would be "pathwayEditor")
-                    if (contextModel.get('page') != 'pathway' || treeContext.suppressClick) {
-                        return;
-                    }
-                    var target = $(param1.target)
-                    console.log(target.closest('.click-tracked'))
-                    if (target.closest('.click-tracked').length) {
-                        var node_state = (target.closest('.click-tracked').attr('clickid'));
-
-                        var data = { "patient_id": contextModel.get("patients"),
-                            "protocol_id": contextModel.get("pathid"),
-                            "node_state": node_state,
-                            "datetime": (new Date().toISOString()).replace("T", " "),
-                            "action": "click" }
-                        $.ajax({
-                            type: 'POST',
-                            dataType: 'json',
-                            url: "/activity?" + $.param(contextModel.toParams()),
-                            data: JSON.stringify(data),
-                            success: function () {
-                                console.log("click tracked");
-                            }
-                        });
-
-                    }
-                })
                 var that = this
                 this.plumb.setContainer(this.treeEl[0])
                 this.$el.on('wheel', function (data) {
@@ -191,6 +164,8 @@ define([
 
                 if (contextModel.get('page') == 'pathEditor')
                     $('#pathwayName').html("Now Editing Pathway: " + curTree.attributes.name);
+                else if (contextModel.get('page') == 'pathHistory')
+                    $('#pathwayName').html("Now Viewing History for Pathway: " + curTree.attributes.name);
                 else {
                     $('#pathwayName').html("")
                 }

@@ -15,6 +15,7 @@ class CONTEXT():
     ROLES = 'roles'
     DATE = 'date'
     DATERANGE = 'daterange'
+    PATIENT = 'patient'
     PATIENTLIST = 'patients'
     DEPARTMENT = 'department'
     ORDERTYPE = 'ordertype'
@@ -55,6 +56,10 @@ class CONTEXT():
     ITUSER = 'ituser'
     NOTIFY_PRIMARY = 'notify1'
     NOTIFY_SECONDARY = 'notify2'
+    FOLDER = 'folder'
+    ACTIVE = 'active'
+    ACTIVITY = 'activity'
+    PROTOCOL = 'protocol'
 
 
 def http_service(methods, url, required, available, roles):

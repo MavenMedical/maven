@@ -38,7 +38,8 @@ define([
         "patient": [0, 9, 3],
         "episode": [0, 9, 3],
         "pathway": [0, 12, 0],
-        "pathEditor": [0, 12, 0]
+        "pathEditor": [3, 9, 0],
+        "triggerEditor": [0,12, 0]
     };
     changePageLayout = function (page) {
 
@@ -67,7 +68,6 @@ define([
                 console.log('showing page ' + currentContext.get('page'));
                 changePageLayout(currentContext.get('page'));
                 /* do more stuff here */
-                window.scrollTo(0, 0);
 		return true;
             } else {
                 console.log('trying to log in');
@@ -89,7 +89,8 @@ define([
             "evidence/:id/patient/:id/evi/:id(/login/:user/:customer/)(:userAuth)": 'showEvidence',
             "pathway/:id/node/:id(/patient/:id/:date)(/login/:user/:customer/)(:userAuth)": 'showPathway',
             "pathwayeditor/:id/node/:id(/login/:user/:customer/)(:userAuth)": 'EditPathway',
-	        "password/:type/:user/:customer/:oauth": 'password',
+            "triggereditor/:id/node/:id(/login/:user/:customer/)(:userAuth)": 'EditTriggers',
+	    "password/:type/:user/:customer/:oauth": 'password',
             //default
             '*action': 'defaultAction',
         },
@@ -116,10 +117,9 @@ define([
             showPage(user, customer, userAuth);
         },
         showPathway: function (path, code, pat, date, user, customer, userAuth) {
-
             layoutModel.set({'fluidContent': false})
             currentContext.set({page: 'pathway', code: code, pathid: path, patients: pat, enc_date: date,
-                startdate: null, enddate: null});
+                                startdate: null, enddate: null});
 
             showPage(user, customer, userAuth);
         },
@@ -133,6 +133,15 @@ define([
         EditPathway: function (path, code, user, customer, userAuth) {
             layoutModel.set({'fluidContent': true})
             currentContext.set({page: 'pathEditor',  pathid: path, code: code});
+            showPage(user, customer, userAuth);
+        },
+        EditTriggers: function (path, code, user, customer, userAuth) {
+            layoutModel.set('fluidContent', false)
+            currentContext.set({page: 'triggerEditor',  pathid: path, code: code});
+            showPage(user, customer, userAuth);
+        },
+        showPathwayHistory: function (path, code, user, customer, userAuth) {
+            currentContext.set({page: 'pathHistory',  pathid: path, code: code});
             showPage(user, customer, userAuth);
         },
         showCustomers: function(user, customer, userAuth){

@@ -22,7 +22,8 @@
         'ace-min': 'empty:',
     },
     shim: {
-        bootstrap: {
+	touch: {deps: ['jquery_ui', 'jquery']},
+        bootstrap :{
             deps: ['jquery']
         },
         jsplumb: {
@@ -46,7 +47,9 @@
     },
     inlineText: true,
     exclude: [
-
+	'libs/amcharts/serial',
+	'libs/fullCalendar/fullcalendar.min',
+	'libs/fullCalendar/moment.min'
     ],
     include: [
         'ace-extra.js',

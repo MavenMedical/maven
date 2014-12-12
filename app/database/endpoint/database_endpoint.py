@@ -22,6 +22,7 @@ import asyncio
 import maven_config as MC
 import utils.database.web_persistence as WP
 import utils.database.web_search as WS
+import utils.database.fhir_database as FD
 
 
 def main(loop):
@@ -58,10 +59,14 @@ def main(loop):
     persistence.schedule()
     search = WS.web_search_base(CONFIG_PARAMS.PERSISTENCE_SVC.value)
 
+    fhir_persistence = FD.FHIRPersistanceBase(CONFIG_PARAMS.PERSISTENCE_SVC.value)
+    fhir_persistence.schedule()
+
     rpc = RP.rpc(rpc_server_stream_processor)
     rpc.schedule(loop)
 
     rpc.register(persistence)
+    rpc.register(fhir_persistence)
     rpc.register(search)
 
     try:

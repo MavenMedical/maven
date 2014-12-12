@@ -239,18 +239,24 @@ class NotificationGenerator():
 
         # TODO - This composition method is ONLY PULLING ONE Pathway alert even if multiple have fired
         pathway_alerts = composition.get_alerts_by_type(type=ALERT_TYPES.PATHWAY)
+        pathway_alerts.sort(key=lambda x: x.priority, reverse=True)
 
-        for pathway_alert in pathway_alerts:
-            templateVars = {"http_address": MC.http_addr,
-                            "pathway_id": pathway_alert.CDS_rule,
-                            "node_id": 1,
-                            "encounter_id": urllib.parse.quote(composition.encounter.get_csn()),
-                            "encounter_date": composition.encounter.get_admit_date().date().isoformat(),
-                            "patient_id": composition.subject.get_pat_id(),
-                            "user": composition.author.get_provider_username(),
-                            "user_auth": composition.userAuth,
-                            "customer_id": composition.customer_id}
-            pathway_links.append(template.render(templateVars))
+        pathway_alert = pathway_alerts[0]
+        try:
+            node_id = pathway_alert.CDS_node
+        except:
+            node_id = 'null'
+
+        templateVars = {"http_address": MC.http_addr,
+                        "pathway_id": pathway_alert.CDS_rule,
+                        "node_id": node_id,
+                        "encounter_id": urllib.parse.quote(composition.encounter.get_csn()),
+                        "encounter_date": composition.encounter.get_admit_date().date().isoformat(),
+                        "patient_id": composition.subject.get_pat_id(),
+                        "user": composition.author.get_provider_username(),
+                        "user_auth": composition.userAuth,
+                        "customer_id": composition.customer_id}
+        pathway_links.append(template.render(templateVars))
 
         return pathway_links
 

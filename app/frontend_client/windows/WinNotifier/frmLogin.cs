@@ -32,7 +32,7 @@ namespace MavenAsDemo
             }
             catch (Exception ex)
             {
-                Program.LogMessage("Error Launching Login Form: \r\n" + ex.Message);
+                Logger.Log("Error Launching Login Form: \r\n" + ex.Message,"FormLaunch");
                 this.Close();
                 this.Dispose();
             }
@@ -45,7 +45,7 @@ namespace MavenAsDemo
             }
             catch (System.Threading.ThreadAbortException ex)
             {
-                Program.LogMessage("Error Launching Login Form: \r\n" + ex.Message);
+                Logger.Log("Error Launching Login Form: \r\n" + ex.Message,"FormLaunch");
                 this.Close();
                 this.Dispose();
             }
@@ -246,7 +246,7 @@ namespace MavenAsDemo
             catch (Exception ex)
             {
                 //this gets hit if the login fails. 
-                Program.LogMessage("Login Failure: \r\n" + ex.Message);  
+                Logger.LogLocal("Login Failure: \r\n" + ex.Message);  
             }
             
             return rtn;
