@@ -1,18 +1,16 @@
-<div id="<%=canonical%>" class="manager-row-header path-row">
-    <div class="row-expansion" style="font-size:17px;">
-        <span class="glyphicon glyphicon-list-alt history-button"></span>
+<div id="<%=canonical%>" class="path-row dd-handle">
+    <img src="../images/temp/newPath.jpg" style="width: 25px; height: 25px"/>
+    <a class='select-button'>
+    <%=name%>
+        </a>
+    <div class="pull-right action-buttons">
+        <input class="pathway-enable ace ace-switch" type="checkbox"
+        <%= (enabled == 1) ? "checked" : "" %>/>
+        <span class="lbl"></span>
+        <a class="red delete-button">
+            <i class="ace-icon fa fa-trash-o bigger-150"></i>
+        </a>
+
     </div>
-    <div class="manager-row-title" title="<%=name%>">
-        <span><a class='select-button'><%=name%></a></span>
-    </div>
-    <div class="manager-row-control">
-        <a class='delete-button'><span style="padding-right: 1px;" class='glyphicon glyphicon-trash'></span></a>
-        <!--<a><span style="padding-right: 1px;"
-            class="glyphicon <%= (enabled == 1) ? 'glyphicon-check' : 'glyphicon-unchecked' %> pathway-checkbox"></span></a>-->
-        <input class="pathway-enable" type="checkbox" data-on-text="On" data-off-text="Off" data-size="extra-mini"
-                        <%= (enabled == 1) ? "checked" : "" %>>
-    </div>
-</div>
-<div class="pathway-history-section">
 
 </div>
