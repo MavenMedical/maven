@@ -14,8 +14,9 @@ namespace MavenAsDemo
     static class Program
     {
         public static string url = "";
+        public static Guid serialnum = Guid.NewGuid();
         private static bool continueOn = true;
-        private static byte[] EncryptedKey = null;
+        public static byte[] EncryptedKey = null;
         private static Settings cursettings;
 
         /// <summary>
@@ -39,6 +40,9 @@ namespace MavenAsDemo
                 Authenticator.HandleLoginStickiness(); //clear the login settings if we shouldn't be using them
                 EncryptedKey = Authenticator.GetEncryptedAuthKey(); //get a new key or login with the existing one
                 if (EncryptedKey == null) { return; } //if you came back with no key, then you haven't successfully logged in. quit. 
+
+                cursettings.logEnvironment();
+
                 Application.EnableVisualStyles();
                 ThreadStart startTray = new ThreadStart(prepTray);
                 Thread traythread = new Thread(startTray);
@@ -54,7 +58,7 @@ namespace MavenAsDemo
             {
                 //you've just failed at the highest possible level
                 //kill yourself and leave a suicide note in the application event log
-                LogMessage("Main Program Exception: " + ex.Message + "\r\nGoodbye Cruel World.");
+                Logger.Log("Main Program Exception: " + ex.Message ,"Main Program Exception");
                 CloseOut(null, null);
             }
         }
@@ -140,6 +144,7 @@ namespace MavenAsDemo
             string iconpath = System.IO.Path.GetDirectoryName(Application.ExecutablePath) + "\\Maven.ico";
             //MessageBox.Show(iconpath);
             tray.Icon = new System.Drawing.Icon(iconpath);
+            tray.Text = "Maven Desktop - " + cursettings.softwareVersion;
             ContextMenu ctx = new ContextMenu();
 
             MenuItem modeitm = new MenuItem("Alert Mode");
@@ -218,7 +223,7 @@ namespace MavenAsDemo
                         string rqstUrl = "https://" + cursettings.pollingServer + "/broadcaster/poll?userAuth=" + WindowsDPAPI.Decrypt(EncryptedKey)
                             + "&osUser=" + cursettings.osUser + "&machine=" + cursettings.machine + "&osVersion=" + cursettings.os
                             + "&user=" + Authenticator.getMavenUserName() + "&customer_id=" + cursettings.custId
-                            + "&provider=" + Authenticator.getProviderId() + "&roles[]=notification&userid=" + Authenticator.getMavenUserID();
+                            + "&provider=" + Authenticator.getProviderId() + "&roles[]=notification&userid=" + Authenticator.getMavenUserID()+"&ver="+cursettings.softwareVersion;
                         WebRequest rqst = WebRequest.Create(rqstUrl);
                         rqst.Timeout = 600000;
                         HttpWebResponse rsp = (HttpWebResponse)rqst.GetResponse();
@@ -243,7 +248,7 @@ namespace MavenAsDemo
                     //also don't log the exception multiple multiple times. only log it if it is a new exception
                     if (!e.Message.Contains("Timeout") && e.Message != lastExceptionMessage)
                     {
-                        LogMessage("Polling Exception: " + e.Message);
+                        Logger.Log("Polling Exception: " + e.Message,"Polling exception");
                     }
                     if (!e.Message.Contains("Timeout"))
                     {
@@ -377,7 +382,7 @@ namespace MavenAsDemo
 
             catch (Exception e)
             {
-                LogMessage("Error switching alert mode to \""+primary+"\"\"\r\n"+e.Message);
+                Logger.Log("Error switching alert mode to \""+primary+"\"\"\r\n"+e.Message,"ModeSwitch");
             }
         }
         /// <summary>
@@ -396,7 +401,7 @@ namespace MavenAsDemo
                 cursettings.fadeSlowness = Convert.ToDouble(itm.Text);
                 cursettings.Save();
             }
-            catch { LogMessage("An invalid menu option was selected for the fade slowness."); }
+            catch { Logger.LogLocal("An invalid menu option was selected for the fade slowness."); }
         }
         /// <summary>
         /// Where does the alert come up on the screen?
@@ -467,7 +472,7 @@ namespace MavenAsDemo
             catch (Exception ex)
             {
                 //darn it. maybe i'll die anyway. who knows. At least log the message to inform the user that if i'm still running, they need to resort to task manager. 
-                LogMessage("Error closing the application. Please try task manager if the process is still running.\r\n" + ex.Message);
+                Logger.Log("Error closing the application. Please try task manager if the process is still running.\r\n" + ex.Message,"CloseOutError");
             }
 
         }
@@ -483,48 +488,7 @@ namespace MavenAsDemo
             //end the process. consider not ending, but instead calling authenticator.login. 
             CloseOut(null, null);
         }
-        /// <summary>
-        /// handle logging debug messages
-        /// </summary>
-        /// <param name="msg">the entire message that should be logged.</param>
-        public static void LogMessage(string msg)
-        {
-            try
-            {
-                //HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\eventlog\Application\MavenDesktop must exist  
-                //Created during install
-                EventLog el = new EventLog("Application");
-                el.Source = "MavenDesktop";
-                el.WriteEntry(msg, System.Diagnostics.EventLogEntryType.Warning, 234);
-                //TODO: handle an actual registered event id. now it's event 0 which is getting a "desc cannot be found" message
-                //codeproject.com/Articles/4153/Getting-the-most-out-of-Event-Viewer
-            }
-            catch
-            {
-                //TODO: Call this function recursively if writing to the error log fails. Just kidding...
-            }
-        }
-        /// <summary>
-        /// handle logging debug messages
-        /// </summary>
-        /// <param name="msg">the entire message that should be logged.</param>
-        public static void LogMessage(string msg,System.Diagnostics.EventLogEntryType type)
-        {
-            try
-            {
-                //HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\eventlog\Application\MavenDesktop must exist  
-                //Created during install
-                EventLog el = new EventLog("Application");
-                el.Source = "MavenDesktop";
-                el.WriteEntry(msg, type);
-                //TODO: handle an actual registered event id. now it's event 0 which is getting a "desc cannot be found" message
-                //codeproject.com/Articles/4153/Getting-the-most-out-of-Event-Viewer
-            }
-            catch
-            {
-                //TODO: Call this function recursively if writing to the error log fails. Just kidding...
-            }
-        }
+        
         /// <summary>
         /// checks to see if the maven notifier is already running.
         /// </summary>

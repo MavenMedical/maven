@@ -135,9 +135,9 @@ class _HTTPStreamParser(SP.MappingParser):
         """
 
         ML.DEBUG("RECV: " + str(data))
-
         # split the data on potential http request boundaries
-        splits = _HTTPStreamParser._starting_re.split(data)
+        # splits = _HTTPStreamParser._starting_re.split(data)
+        splits = [data]
 
         # for each non-empty split, parse it
         for sp in filter(None, splits):
@@ -257,8 +257,8 @@ class HTTPProcessor(SP.StreamProcessor):
 
         headers = obj[0]
         body = obj[1]
+        ML.INFO("header: %s" % str((headers.get_path(), headers.get_query_string())))
         # ML.DEBUG("errno: %s" % headers.get_errno())
-        # ML.INFO("header: %s" % str((headers.get_path(), headers.get_query_string())))
         # ML.DEBUG("method: %s" % headers.get_method())
         # ML.INFO("path: %s" % headers.get_path())
         # ML.DEBUG("status: %s" % headers.get_status_code())
@@ -268,6 +268,8 @@ class HTTPProcessor(SP.StreamProcessor):
         # ML.DEBUG("query: %s" % str(query_string))
         # print(req_line)
         ret = None
+        report = lambda s: ML.report('/http/%s/%s' % (headers.get_path().replace('/', '.'), s,))
+        report('initiate')
         try:
             self.sslauth(headers.get_headers())
             for (r, fn) in self.handlers:
@@ -287,24 +289,30 @@ class HTTPProcessor(SP.StreamProcessor):
                         if resp == OK_RESPONSE and not body:  # for No Content
                             resp = NOCONTENT_RESPONSE
                         ret = wrap_response(resp, body, extras)
-                    break
+                        report('expected')
         except (KeyError, IndexError, TypeError):  # key error means an object isn't found
             ML.EXCEPTION("keyerror or indexerror")
             ret = wrap_response(NOTFOUND_RESPONSE, b'')
+            report('notfound')
         except ValueError:
             ML.EXCEPTION("value error")
             ret = wrap_response(BAD_RESPONSE, b'')
+            report('valueerror')
         except IncompleteRequest as e:
             ML.WARN("incomplete request: " + str(e))
             ret = wrap_response(BAD_RESPONSE, b'')
+            report('incomplete')
         except UnauthorizedRequest:
             ret = wrap_response(UNAUTHORIZED_RESPONSE, b'')
+            report('unauthorized')
         except:  # handle general errors gracefully
             ML.EXCEPTION("unexpected error")
             ret = wrap_response(ERROR_RESPONSE, b'')
+            report('servererror')
 
         if not ret:  # if there are no matches, respond
             ret = wrap_response(UNAVAILABLE_RESPONSE, b'')
+            report('unavailable')
 
         try:
             self.write_object(ret, writer_key=key)  # send the response

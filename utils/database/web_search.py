@@ -55,12 +55,12 @@ class web_search_base():
 
         if (search_type == "snomed_basic"):
             cmd.append("SET enable_seqscan = off;")
-            cmd.append("SELECT x.ancestor, min(x.term),count(*) FROM  (SELECT  b.ancestor,a.term FROM terminology.descriptions a, terminology.conceptancestry b")
+            cmd.append("SELECT x.ancestor, min(x.term),count(*), x.code, x.codetype FROM  (SELECT b.ancestor,a.term,cm.code,cm.codetype FROM terminology.descriptions a, terminology.conceptancestry b inner join terminology.codemap cm on b.ancestor=cm.snomedid")
             cmd.append("WHERE (to_tsvector('maven',term) @@ plainto_tsquery('maven', %s) OR conceptid = %s)")
             cmd.append("AND active=1 and languagecode='en'")
             cmd.append("AND a.conceptid=b.ancestor) as x")
             cmd.append("GROUP BY")
-            cmd.append("x.ancestor")
+            cmd.append("x.ancestor, x.codetype, x.code")
             cmd.append("ORDER BY count DESC")
             cmd.append("LIMIT 25")
             cmd_args.append(search_str)
@@ -111,13 +111,13 @@ class web_search_base():
 
             print("QUERYING")
             cmd.append("SET enable_seqscan = off;")
-            cmd.append("SELECT x.ancestor, min(x.term),count(*) FROM  (SELECT  b.ancestor,a.term FROM terminology.descriptions a, terminology.conceptancestry b")
+            cmd.append("SELECT x.ancestor, min(x.term),count(*), x.code, x.codetype FROM  (SELECT b.ancestor,a.term,cm.code,cm.codetype FROM terminology.descriptions a, terminology.conceptancestry b inner join terminology.codemap cm on b.ancestor=cm.snomedid")
             cmd.append("WHERE (to_tsvector('maven',term) @@ plainto_tsquery('maven', %s))")
             cmd.append("AND active=1 and languagecode='en'")
             cmd.append("AND a.conceptid  = b.ancestor")
             cmd.append("AND a.conceptid IN (SELECT child FROM terminology.conceptancestry b WHERE b.ancestor = %s)) AS x")
             cmd.append("GROUP BY")
-            cmd.append("x.ancestor")
+            cmd.append("x.ancestor, x.code, x.codetype")
             cmd.append("ORDER BY count DESC")
             cmd.append("LIMIT 25")
             cmd_args.append(search_str)
@@ -133,7 +133,9 @@ class web_search_base():
             if(results.rowcount == 0):
                 return EMPTY_RETURN
             for row in results:
-                ret.append({'id': int(row[0]), 'term': row[1], 'code': int(row[0]), 'type': 'snomed'})
+                code = row[3]
+                codetype = row[4]
+                ret.append({'id': int(row[0]), 'term': row[1], 'code': int(row[0]), 'type': 'snomed', 'codetype': codetype, 'codedvalue': code})
             return ret
 
         if (search_type == "loinc"):

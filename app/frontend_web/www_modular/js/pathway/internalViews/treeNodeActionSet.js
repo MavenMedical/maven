@@ -1,5 +1,6 @@
 
 define([
+    //This file is not used with acetheme
     // These are path alias that we configured in our main.js
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
@@ -9,17 +10,13 @@ define([
     'pathway/models/treeContext',
     'pathway/modalViews/editNode',
     'pathway/modalViews/newPathway',
-    'pathway/modalViews/detailEditor',
-    'pathway/modalViews/nodeEditor',
-    'pathway/modalViews/protocolEditor',
-    'pathway/modalViews/sidePanelEditor',
     'pathway/modalViews/nodeEditor',
     'pathway/modalViews/protocolEditor',
     'pathway/modalViews/DeleteDialog',
 
     'text!templates/pathway/treeNodeActionSet.html'
 
-], function ($, _, Backbone, contextModel, curTree, treeContext, editNode, NewPathway, DetailEditor, nodeModal,protocolModal, sidePanelEditor, NodeEditor, ProtocolEditor,  deleteDialog, treeNodeActionSetTemplate) {
+], function ($, _, Backbone, contextModel, curTree, treeContext, editNode, NewPathway, NodeEditor, ProtocolEditor,  deleteDialog, treeNodeActionSetTemplate) {
 
 
     var treeNodeActionSet = Backbone.View.extend({
@@ -33,6 +30,8 @@ define([
             }
             $('#deleteNodeButton', this.$el)[0].onclick = this.deleteNode
             $('#setNodeTitleButton', this.$el)[0].onclick = this.editNode
+
+
             var addChildButton = $('#addChildButton', this.$el)
 	    if (addChildButton.length) {addChildButton[0].onclick = this.addChild}
             var protocolButton = $('#addProtocolButton', this.$el)[0]

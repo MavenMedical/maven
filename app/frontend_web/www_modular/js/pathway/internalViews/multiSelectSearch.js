@@ -42,20 +42,26 @@ define([
             this.avail = params.avail;
             this.selected_items = params.selected
             this.el = params.el;
+
             this.avail.on('sync', this.render, this);
-            $('.search-button', this.$el)[0].onclick = function(){
-                var t = contextModel.toParams();
-                $.extend( t, {'search_param': $('.search-input', panel.$el).val()})
-                $.extend( t, {'type': panel.type});
-                panel.avail.fetch({data:$.param(t)})
-            }
-            $('.search-input', this.$el)[0].onkeypress = function(key){
-                if (key.keyCode == 13){
+            if (this.type == "snomed_diagnosis"){
+                 $('.search-button', this.$el)[0].onclick = function(){
                     var t = contextModel.toParams();
                     $.extend( t, {'search_param': $('.search-input', panel.$el).val()})
                     $.extend( t, {'type': panel.type});
                     panel.avail.fetch({data:$.param(t)})
                 }
+                $('.search-input', this.$el)[0].onkeypress = function(key){
+                    if (key.keyCode == 13){
+                        var t = contextModel.toParams();
+                        $.extend( t, {'search_param': $('.search-input', panel.$el).val()})
+                        $.extend( t, {'type': panel.type});
+                        panel.avail.fetch({data:$.param(t)})
+                    }
+                }
+            } else {
+                $('.search-input').hide()
+                 $('.search-button').hide()
             }
             this.render()
         },

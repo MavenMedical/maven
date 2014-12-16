@@ -24,9 +24,9 @@ from clientApp.webservice.composition_builder import CompositionBuilder
 import maven_logging as ML
 from collections import defaultdict
 from utils.enums import CONFIG_PARAMS
-icd9_keyword_match = re.compile('\(V?[0-9]+(?:\.[0-9]+)?\)')
-icd9_capture = re.compile('(?:\((V?[0-9]+(?:\.[0-9]+)?)\))')
-CLIENT_SERVER_LOG = ML.get_logger('clientApp.webservice.allscripts_server')
+icd9_keyword_match = re.compile('\(V?[0-9]+(?:\.[0-9]+)?(?:(?:\s+)?\|(?:\s+)?\w+)?\)')
+icd9_capture = re.compile('(?:\((V?[0-9]+(?:\.[0-9]+)?)(?:(?:\s+)?\|(?:\s+)?\w+(?:\.\w+)?)?\))')
+CLIENT_SERVER_LOG = ML.get_logger('clientApp.webservice.clientapp_main_server')
 
 
 class scheduler():
@@ -41,6 +41,7 @@ class scheduler():
         self.disabled = disabled
         self.firsts = defaultdict(lambda: True)
         self.evaluations = {}
+        self.report = lambda s: ML.report('/%s/%s' % (self.customer_id, s))
 
         try:
             self.sleep_interval = float(sleep_interval)
@@ -49,12 +50,14 @@ class scheduler():
             self.sleep_interval = float(45)
 
     def update_config(self, config):
+        self.report('update_config')
         self.sleep_interval = float(config.get(CONFIG_PARAMS.EHR_API_POLLING_INTERVAL.value))
         self.disabled = config.get(CONFIG_PARAMS.EHR_DISABLE_INTEGRATION.value, False)
         if self.disabled:
             self.firsts = defaultdict(lambda: True)
 
     def update_active_providers(self, active_provider_list):
+        self.report('update_active_providers')
         self.active_providers = dict(filter(lambda x: x[0][1] == str(self.customer_id), active_provider_list.items()))
         asyncio.Task(self.comp_builder.build_providers())
 
@@ -63,6 +66,7 @@ class scheduler():
 
         yield from self.comp_builder.build_providers()
         while True:
+            self.report('polling')
             try:
                 today = date.today()
                 if today != self.lastday:
@@ -99,6 +103,7 @@ class scheduler():
         CLIENT_SERVER_LOG.debug('evaluating %s/%s' % (patient, provider_id))
         provider = self.active_providers.get((provider_id, str(self.customer_id)))
         provider_username = provider.get('user_name')
+        self.report('provider/' + provider_username + '/query')
 
         now = datetime.now()
         prior = now - timedelta(seconds=12000)
@@ -108,10 +113,6 @@ class scheduler():
                                                                     prior, now)
             if documents:
                 for doc in documents:
-                    # Ignore the "first" documents b/c we're starting the client_app server up
-                    if first:
-                        continue
-
                     # Ignore documents/encounters that were created by other providers
                     if not (doc.get('mydocument', 'N') == 'Y'):
                         continue
@@ -134,16 +135,17 @@ class scheduler():
                     encounter_dx = icd9_capture.findall(document_keywords)
 
                     if has_ICD9_keywords and self.evaluations[(provider_id, patient, encounter_id)].get('assessment_and_plan'):
-                        yield from self.build_composition_and_evaluate(provider_username, patient, encounter_id, enc_datetime, encounter_dx, 'assessment_and_plan')
+                        if not first:
+                            yield from self.build_composition_and_evaluate(provider_username, patient, encounter_id, enc_datetime, encounter_dx, 'assessment_and_plan')
                         # Set the flag in the evaluations dictionary so we don't do this evaluation again
                         self.evaluations[(provider_id, patient, encounter_id)]['assessment_and_plan'] = False
-                        break
+                        self.evaluations[(provider_id, patient, encounter_id)]['encounter_create'] = False
 
                     # If there are no ICD9 keywords, perform the "encounter_create" evaluation (if we haven't already)
                     elif self.evaluations[(provider_id, patient, encounter_id)].get('encounter_create'):
-                        yield from self.build_composition_and_evaluate(provider_username, patient, encounter_id, enc_datetime, encounter_dx, 'encounter_create')
+                        if not first:
+                            yield from self.build_composition_and_evaluate(provider_username, patient, encounter_id, enc_datetime, encounter_dx, 'encounter_create')
                         self.evaluations[(provider_id, patient, encounter_id)]['encounter_create'] = False
-                        break
 
         except AllscriptsError as e:
             CLIENT_SERVER_LOG.exception(e)
@@ -152,7 +154,8 @@ class scheduler():
 
     @asyncio.coroutine
     def build_composition_and_evaluate(self, provider_username, patient, encounter_id, enc_datetime, encounter_dx, eval_type):
-        CLIENT_SERVER_LOG.debug("About to send to Composition Builder...")
+        CLIENT_SERVER_LOG.debug("About to send to Composition Builder... %s, %s " % (provider_username, encounter_id))
+        self.report('provider/' + provider_username + '/' + eval_type)
         composition = yield from self.comp_builder.build_composition(provider_username, patient, encounter_id, enc_datetime, encounter_dx)
         CLIENT_SERVER_LOG.debug(("Sending to backend for %s evaluation. Composition ID = %s" % (composition.id, eval_type)))
         ML.TASK(self.parent.evaluate_composition(composition))

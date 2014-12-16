@@ -33,11 +33,18 @@ define([
             }
             this.on('add', function(){self.trigger('cascade')})
             this.on('remove', function(){self.trigger('cascade')})
+            if (self.models.length == 0){
+                self.addGroup("and")
+            }
 
         },
         addGroup: function(relationship){
             var group = new TriggerGroup();
+            var self = this;
             group.populate({relationship : relationship})
+            group.on('cascade', function(){
+                self.trigger('cascade')
+            })
             this.add(group)
             return group
         }
@@ -60,7 +67,7 @@ define([
                 t.on('cascade', function(){ self.trigger('cascade')})
                 this.set('details', t, {silent: true})
             }
-            this.on('change', this.trigger('cascade'))
+            this.on('change', function(){this.trigger('cascade')})
 
         },
         addDetail: function(model, type){
@@ -132,9 +139,16 @@ define([
             var self = this
             for (var key in JSON){
                 var value = JSON[key]
+           /*     if (value instanceof Array){
+                    value = new Backbone.Collection(value)
+
+                    value.on('add', function(){self.trigger('cascade')})
+                    value.on('remove', function(){self.trigger('cascade')})
+                    value.on('change', function(){self.trigger('cascade')})
+                } */
                 this.set(key, value, {silent: true})
+
             }
-            this.on('change', function(){self.trigger('cascade')})
         }
 
     })

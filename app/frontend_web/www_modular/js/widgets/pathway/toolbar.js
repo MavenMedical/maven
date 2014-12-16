@@ -11,7 +11,13 @@ define([
     'pathway/models/pathwayCollection',
     'pathway/models/treeModel',
     'pathway/models/treeContext',
+
     'pathway/modalViews/newPathway',
+    'pathway/modalViews/editNode',
+    'pathway/modalViews/nodeEditor',
+    'pathway/modalViews/protocolEditor',
+     'pathway/modalViews/DeleteDialog',
+
     'pathway/modalViews/ruleWizard',
     'pathway/singleRows/pathRow',
     'pathway/internalViews/treeNodeActionSet',
@@ -19,7 +25,11 @@ define([
     'text!templates/pathway/pathwayListEntry.html',
     'text!templates/pathway/toolbar.html'
 
-], function ($, _, Backbone, contextModel, curCollection, curTree, treeContext, NewPathway, ruleWizard, PathRow, treeNodeActionSet, listEntry, toolbarTemplate) {
+], function ($, _, Backbone, contextModel, curCollection, curTree, treeContext,
+             NewPathway, editNode, NodeEditor, ProtocolEditor,deleteDialog,
+             ruleWizard, PathRow, treeNodeActionSet, listEntry, toolbarTemplate) {
+
+
     var exportPathway = function (strData, strFileName, strMimeType) {
 	require(['libs/jquery/Blob', 'libs/jquery/FileSaver.min'], function(blob, saveAs) {
 	    var b = new Blob([strData], {type: strMimeType});
@@ -33,44 +43,47 @@ define([
             'click #trigger-button': 'addTrigger',
 	        'change .btn-file :file': 'importPath',
             'click #exportpath-button': 'exportPath',
+            'click #copypath-button': 'handle_copyPath',
+            'click #editNode-button': 'editNode',
+            'click #deleteNodeButton': 'deleteNode',
+            'click #addChildButton': 'addChild',
+            'click #addProtocolButton': 'addProtocol',
+            'click #collapseButton': 'expandCollapse',
             'click #testButton': 'handleTest'
         },
         handleTest: function () {
             curTree.changeNodePosition(treeContext.get('selectedNode'), -1)
         },
         initialize: function () {
-            contextModel.on('change:page', function () {
-                if (contextModel.get('page') != 'pathEditor') {
-                    this.$el.hide()
-                } else {
-                    this.$el.show()
-                }
-            }, this)
-            this.$el.html(this.template())
-            if (contextModel.get('page') != 'pathEditor')
-                this.$el.hide()
-            curCollection.on('sync', this.renderPathList, this)
-            treeContext.on('propagate', this.renderActions, this)
 
-            this.renderPathList();
+           if(treeContext.get('selectedNode')){
+		        var selected = treeContext.get('selectedNode')
+                this.$el.html(this.template({treeNode: selected.attributes, childrenHidden: selected.childrenHidden && selected.childrenHidden(), page: contextModel.get('page')}))
+            } else {
+                this.$el.html(this.template({treeNode: null, childrenHidden: null, page: contextModel.get('page')}))
+           }
+            contextModel.on('change:page', this.showhide, this)
+            this.showhide();
+            treeContext.on('propagate', this.renderActions, this)
             this.renderActions();
         },
+        showhide: function(){
+            if(contextModel.get('page') == 'pathEditor'){
+                this.$el.show();
+            }else{
+                this.$el.hide();
+            }
+        },
         addTrigger: function () {
-            contextModel.set('page', 'triggerEditor')
-        //    var newEditor = new ruleWizard({triggerNode: curTree})
-        //    newEditor.render()
+            Backbone.history.navigate("triggereditor/" + contextModel.get('pathid') + "/node/"+contextModel.get('code'), {trigger: true});
+
         },
         renderActions: function () {
-            if (contextModel.get('page') != 'pathEditor')
-                this.$el.hide()
-            else {
-                var el = $('#node-action-set')
-                //console.log("find the action set", el)
                 if (treeContext.get('selectedNode')) {
-                    var myActions = new treeNodeActionSet({el: el})
-                    $('#action-set', el).append(myActions.render().$el)
+                    var selected = treeContext.get('selectedNode')
+                this.$el.html(this.template({treeNode: selected.attributes, childrenHidden: selected.childrenHidden && selected.childrenHidden(), page: contextModel.get('page')}))
                 }
-            }
+
 
 
         },
@@ -81,11 +94,21 @@ define([
                 $('#avail-paths').append(thisRow.render().$el)
             }, this)
         },
-        handle_newPath: function () {
-
-
+        handle_newPath: function (e) {
+             e.preventDefault();
             a = new NewPathway({el: '#modal-target'});
 
+        },
+        handle_copyPath: function(){
+            $.ajax({
+                type: 'GET',
+                url: "/pathway_version?" + $.param(contextModel.toParams()),
+                dataType: "json",
+                success: function (data) {
+                    //curTree.loadNewPathway({name: data['full_spec']['name'], folder: data['folder']});
+                    curCollection.addNewPath();
+                }
+            });
         },
         importPath: function () {
 	    var input = $('.btn-file :file')
@@ -112,6 +135,32 @@ define([
 	},
         exportPath: function () {
            exportPathway(JSON.stringify(curTree.toJSON({'toExport':true})) , curTree.get('name')+'.pathway', 'text/plain');
+        },
+        addChild : function(){
+
+            var newEditor = new NodeEditor(treeContext.get('selectedNode'))
+        },
+        addProtocol: function(){
+            var newEditor = new ProtocolEditor(treeContext.get('selectedNode'))
+        },
+        expandCollapse: function(){
+                           if (!treeContext.get('selectedNode').childrenHidden()){
+                               curTree.collapse(treeContext.get('selectedNode'))
+                           } else{
+                               treeContext.get('selectedNode').showChildren()
+                           }
+            curTree.getShareCode()
+            treeContext.trigger('propagate')
+        },
+        editNode: function(){
+            new editNode();
+
+        },
+
+        deleteNode: function(){
+            new deleteDialog()
+
+
         }
 
     });

@@ -27,12 +27,12 @@ define([
 
     var contextModel;
 
-    function scheduleLogout() {
+    function scheduleLogout(offset) {
 	var expiration = readCookie('valid-through');
 	if(expiration) {
-	    var remaining = expiration - (new Date());
+	    var remaining = expiration - (new Date()) + offset;
 	    if (remaining > 0) {
-		setTimeout(scheduleLogout, remaining);
+		setTimeout(function() {scheduleLogout(offset)}, remaining);
 	    } else {
 		eraseCookie('valid-through');
 		location.href = '#logout';
@@ -42,7 +42,8 @@ define([
 
     var loginCallback = function (res) {
         console.log('login call back', contextModel);
-	scheduleLogout();
+        var offset = (new Date()) - readCookie('now')
+        scheduleLogout(offset);
 	contextModel.set({'loginTemplate':null});
 	//if(res.get('stylesheet')) {
 
@@ -101,6 +102,7 @@ define([
             patientAuth: '',
             patientName:'',
             pathid: 0,
+            canonical: null,
             provider: null,
             encounter: null,
             department: null,
@@ -168,6 +170,7 @@ define([
     });
 
     contextModel = new ContextModel;
+    contextModel.on('change:page', function() {window.scrollTo(0,0)})
     
     return contextModel;
 });

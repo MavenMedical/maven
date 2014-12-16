@@ -12,19 +12,24 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="description" content="">
     <meta name="author" content="developer">
-    <meta name="viewport" content="width=device-width,initialbs-example-modal-lg-scale=1">
-
+    <meta name="viewport" 
+	  content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>maven</title>
 
     <link rel="stylesheet" href="js/libs/jquery/jquery-ui.css"/>
 
     <!-- Load the require script-->
-    <script data-main="js/min" src="js/libs/require/require.js"></script>
+    <script data-main="js/main" src="js/libs/require/require.js"></script>
 
     <!-- Load fullCalendar style sheet -->
     <link href="js/libs/fullCalendar/fullcalendar.css" rel="stylesheet" type="text/css">
 
     <script type="text/javascript">
+      if (typeof console === "undefined" || typeof console.log === "undefined") {
+      var console = Object
+      console.log = function() {}
+      }
+
         var colorMap = {
             "Consultation": "#18bc9a",
             "Imaging": "#36485c",
@@ -70,7 +75,7 @@
     <!--<link href="css/style.css" rel="alternate stylesheet" type="text/css" title="alternate">-->
 </head>
 
-<body>
+<body id='BODY'>
 
 
 <div id='modal-target'></div>
@@ -80,6 +85,7 @@
 <div id="settings-modal" class="modal fade" role="login"></div>
 <div id='mouse-target' style='display:none; position:absolute; z-index:10000'></div>
 <div id="side-popup"></div>
+<div id="toast"></div>
 
 
 
@@ -88,7 +94,7 @@
     <div id='fixed-topB' class='row'></div>
 </div>
 
-<div class="container">
+<div id="contentContainer" class="container">
     <div class="row">
         <div id="floating-left" class="col-md-3 content"></div>
         <div id="dynamic-content" class="col-md-6 content"></div>

@@ -1,0 +1,173 @@
+define([
+    'jquery',     // lib/jquery/jquery
+    'underscore', // lib/underscore/underscore
+    'backbone',    // lib/backbone/backbone
+
+    //views
+    'globalmodels/interactionCollection',
+    'singleRow/interactionRow',
+
+    'globalmodels/contextModel',
+    'pathway/models/treeContext'
+], function ($, _, Backbone, InteractionCollection, InteractionRow, contextModel, treeContext) {
+    var interactionCollection;
+
+    var flip = function() {
+        var historyposition = contextModel.get('historyposition')
+        if (typeof historyposition !== 'undefined') {
+            contextModel.set('historyposition', historyposition+1)
+        }
+    }
+
+    var keyflip =  function(evt) {
+        if (evt.keyCode == 13 || evt.keyCode == 39) {
+	    evt.preventDefault()
+            flip()
+        }
+    }
+    
+    $(document).keydown(function(evt) {keyflip(evt)})
+
+
+    var InteractionList = Backbone.View.extend({
+        extraData: {},
+        lastHeight: 0,
+        first: true,
+        initialize: function(arg) {
+            if (typeof arg.extraData !== "undefined") {
+                this.extraData = arg.extraData;
+            }
+            interactionCollection = new (InteractionCollection.extend({extraData: this.extraData}));
+            
+	    this.template = _.template(arg.template); // this must already be loaded
+            this.$el.html(this.template());
+	    interactionCollection.bind('add', this.addInteraction, this);
+	    interactionCollection.bind('reset', this.reset, this);
+	    interactionCollection.bind('sync', this.render, this);
+	    this.render('Loading ...');
+	    contextModel.on('change:page change:history', function() {this.showhide()}, this)
+            contextModel.on('change:history change:historyposition change:historydetails', function() {this.updatehistory()}, this)
+	},
+        updatehistory: function() {
+            var history = contextModel.get('history')
+            var historyposition = contextModel.get('historyposition')
+            var historydetails = contextModel.get('historydetails')
+            if (history == null || historyposition == null || historydetails == null) {
+                treeContext.suppressClick=false
+                Backbone.history.navigate('', true)
+                return
+            }
+            treeContext.suppressClick=true
+            var progress = (historyposition+1)
+            if (progress > history.length) {
+                contextModel.set({history: null, historyposition: null, historydetails: null})
+            } else {
+                var navstring = 'pathway/' + historydetails.get('protocol')
+                    + '/node/-' + history[historyposition]['node_id'] 
+                    //+ '/patient/' + historydetails.get('patient') + '/' + historydetails.get('date').slice(0,10)
+
+                Backbone.history.navigate(navstring, true)
+                $('#historyheader').text(historydetails.get('protocolname') + " pathway interaction replay: " + historydetails.get('providername') +
+                                         " with " + historydetails.get('patientname') + ' on ' + history[historyposition].datetime)
+                $('.progress-bar', this.$el).width((progress*100/history.length)+'%')
+                if (progress == history.length) {
+                    $('#nextinteraction').html('Finish')
+                } else {
+                    $('#nextinteraction').html('Next')
+                }                        
+            }
+        },
+        showhide: function() {
+            
+            var page = contextModel.get('page')
+	    if (page=='home') {
+                this.$el.show()
+                $(this.interactioncontrols).hide()
+                $(this.interactionlist).show()
+            } else if (page=='pathway' && contextModel.get('history')) {
+                this.$el.show()
+                $(this.interactionlist).hide()
+                $(this.interactioncontrols).show()
+	    } else {
+		this.$el.hide()
+	    }
+        },
+        events: {
+            'scroll .interaction-scroll': 'handleScroll',
+        },
+	render: function(empty_text) {
+            this.$el.html(this.template());
+	    this.addAll(empty_text);
+            this.interactionlist = $('#listinteractions', this.$el);
+            this.interactioncontrols = $('#interactioncontrols', this.$el)
+            $('#nextinteraction', this.$el).click(function() {flip()})
+            $(this.interactionlist).on('show', function(){
+                //make sure that interaction list is correct when loaded (target user's interactions vs. current user interactions)
+                interactionCollection.reset();
+                interactionCollection.initialize();
+            });
+            $(".refreshButton", this.$el).click(function(event){
+                $('.interactiontable > tbody', this.$el).empty();
+                interactionCollection.refresh();
+            });
+            $(".refreshButton", this.$el).hover(function(event) {
+                $(event.target).attr('title', "Last Refresh: " + interactionCollection.getLastRefresh());
+            });
+            this.showhide()
+	},
+	addAll: function(empty_text) {
+	    if (!empty_text || typeof(empty_text) != 'string') {
+		empty_text = 'None available';
+	    }
+	    this.reset();
+	    var nonempty = false;
+	    if (interactionCollection.length) {
+		for(interaction in interactionCollection.models) {
+		    this.addInteraction(interactionCollection.models[interaction]);
+		    nonempty = true;
+		}
+	    }
+	    if(!nonempty) {
+                $('.interactiontable > tbody', this.$el).html("<tr><td colspan=\"5\">"+empty_text+"</td></tr>");
+                $('.interactiontable > thead', this.$el).hide();
+                $('.interaction-control-row', this.$el).hide();
+                this.$el.show();
+	    }
+            else {
+                $('.interactiontable > thead', this.$el).show();
+                $('.interaction-control-row', this.$el).show();
+                this.$el.show();
+                var interactionlist = $('.interaction-scroll', this.$el);
+                setTimeout(function () {
+                    var interactionHeight = interactionlist.innerHeight();
+                    if (this.lastHeight != interactionHeight && interactionHeight < parseInt(interactionlist.css('max-height'))) {
+                        this.lastHeight = interactionHeight;
+                        interactionCollection.more();
+                    }
+                    else {
+                        
+                        interactionlist.scroll(function(e) {
+                            if(interactionlist.scrollTop() + interactionlist.innerHeight() + 100 >= interactionlist[0].scrollHeight) {
+                                interactionCollection.more();
+                            }
+                            return false;
+                        });
+                    }
+                }, 500);
+            }
+	},
+	addInteraction: function(interaction) {
+	    var interactionrow = new InteractionRow({model: interaction});
+	    $('.interactiontable', this.$el).append(interactionrow.render().el);
+	    this.$el.show();
+        //interactionrow.events();
+	},	
+	reset: function() {
+	    $('.interactiontable > tbody', this.$el).empty();
+	    this.$el.hide();
+	},
+    });
+
+    return InteractionList;
+
+});

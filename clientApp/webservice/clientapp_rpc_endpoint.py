@@ -18,6 +18,7 @@ __author__ = 'Yuki Uchino'
 # *************************************************************************
 import asyncio
 import clientApp.allscripts.allscripts_customer_interface as ACI
+import maven_logging as ML
 
 
 class ClientAppEndpoint():
@@ -52,6 +53,7 @@ class ClientAppEndpoint():
     @asyncio.coroutine
     def notify_user(self, customer_id, user_name, subject, msg, patient=None, target=None):
         customer_interface = self.customer_interfaces[customer_id]
+        ML.report('/%s/nofify/%s/%s' % (customer_id, user_name, target))
         yield from customer_interface.notify_user(user_name, patient, subject,
                                                   msg, target or user_name)
 
