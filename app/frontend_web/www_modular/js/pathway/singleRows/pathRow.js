@@ -20,7 +20,7 @@ define([
 ], function ($, _, Backbone, router, contextModel, pathwayCollection, pathRowTemplate, HistoryList) {
 
     var ruleRow = Backbone.View.extend({
-        tagName: "li class='dd-item'",
+        tagName: "li class='dd-item pathrow-item'",
         template: _.template(pathRowTemplate),
         historyList: null,
         events:{
