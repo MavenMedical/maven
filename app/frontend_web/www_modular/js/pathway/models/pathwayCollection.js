@@ -21,7 +21,7 @@ define([
         },
         makeSortable: function(){
             that = this;
-            $('ol.sortable-folder').nestedSortable({
+            $('ol.dd-list').nestedSortable({
                 forcePlaceholderSize: true,
 			    handle: 'div:not(.bootstrap-switch)',
                 connectWith:'li, ol',
@@ -40,7 +40,7 @@ define([
                 doNotClear: false,
                 branchClass: 'mjs-nestedSortable-branch',
                 leafClass: 'mjs-nestedSortable-leaf',
-               // containment: '.sortable-folder',
+               // containment: '.dd-list',
                 isAllowed:function(item, parent){
                     if (parent==null) return true;
                     if ($(parent).is("li") || $(parent).is("ol")) return true;
