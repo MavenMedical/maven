@@ -1,30 +1,89 @@
-<div class = "btn-group" style = "clear: both; width:100%; height:100%">
-    <button type ="button" class="toolbar-button btn btn-default" id="setNodeTitleButton">Edit Selected Node</button>
-    <button class = "toolbar-button btn btn-default" id="deleteNodeButton">Delete Selected Node</button>
-    <div style ="float: left" class="btn-group" role="toolbar">
-                <% if (page == 'pathEditor') { %>
-                <div class="btn-group btn-group-xs">
-                    <button type="button" class="toolbar-button btn btn-default" id="addChildButton"><img src="../images/temp/newChild.jpg" style="width: 25px; height: 25px">Add Child</button>
-                    <% if (treeNode.children && treeNode.children.length == 0){%>
-                    <button type="button" class="toolbar-button btn btn-default" id = "addProtocolButton"><img src="../images/temp/newProtocole.jpg" style="width: 25px; height: 25px">Add Protocol</button>
-                    <%}%>
-                </div>
-                <%}%>
+<li class="hover" id="editNode-button">
+    <a href="javascript:void(0)">
+        <i class="menu-icon">
+            <img src="../images/temp/newPath.jpg"
+                 style="width: 30px; height: 25px"></i>
+			 <span class="menu-text">
+			  Edit Selected Node
+			 </span>
 
-                <% if (page == 'pathEditor' && ((treeNode.children && treeNode.children.length > 0)||treeNode.protocol) ) {%>
-                <div class="btn-group btn-group-xs">
-                    <button type="button" id = "collapseButton" class="toolbar-button btn btn-default ">
-                            <% if (childrenHidden){%>
-                            <img src="../images/temp/expand.jpg" style="width: 25px; height: 25px">Expand Node
-                            <%}else{%>
-                            <img src="../images/temp/collapse.jpg" style="width: 25px; height: 25px">Collapse Node
+    </a>
+    <b class="arrow"></b>
+</li>
 
-                        <%}%>
-                    </button>
-                </div>
-                <% } %>
+<li class="hover" id="deleteNodeButton">
+    <a href="javascript:void(0)">
+        <i class="menu-icon">
+            <img src="../images/temp/newPath.jpg"
+                 style="width: 30px; height: 25px"></i>
+			 <span class="menu-text">
+			  Delete Selected Node
+			 </span>
 
-    </div>
-</div>
+    </a>
+    <b class="arrow"></b>
+</li>
+
+
+<% if (page == 'pathEditor') { %>
+
+<li class="hover" id="addChildButton">
+    <a href="javascript:void(0)">
+        <i class="menu-icon">
+            <img src="../images/temp/newChild.jpg"
+                 style="width: 30px; height: 25px"></i>
+			 <span class="menu-text">
+			  Add Child
+			 </span>
+
+    </a>
+    <b class="arrow"></b>
+</li>
+
+
+<% if (treeNode.children && treeNode.children.length == 0){%>
+<li class="hover" id="addProtocolButton">
+    <a href="javascript:void(0)">
+        <i class="menu-icon">
+            <img src="../images/temp/newProtocole.jpg"
+                 style="width: 30px; height: 25px"></i>
+			 <span class="menu-text">
+			  Add Protocol
+			 </span>
+
+    </a>
+    <b class="arrow"></b>
+</li>
+<%}%>
+<%}%>
+
+<% if (page == 'pathEditor' && ((treeNode.children && treeNode.children.length > 0)||treeNode.protocol) ) {%>
+
+<li class="hover" id="collapseButton">
+    <a href="javascript:void(0)">
+        <% if (childrenHidden){%>
+        <i class="menu-icon">
+            <img src="../images/temp/expand.jpg"
+                 style="width: 30px; height: 25px"></i>
+			 <span class="menu-text">
+			  Expand Node
+			 </span>
+        <%}else{%>
+        <i class="menu-icon">
+            <img src="../images/temp/collapse.jpg"
+                 style="width: 30px; height: 25px"></i>
+			 <span class="menu-text">
+			  Collapse Node
+			 </span>
+        <%}%>
+    </a>
+    <b class="arrow"></b>
+</li>
+
+
+<% } %>
+
 <%= (typeof sidePanelText !== 'undefined') ? sidePanelText : '' %>
+
+
 
