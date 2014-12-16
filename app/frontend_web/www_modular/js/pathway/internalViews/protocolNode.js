@@ -17,17 +17,30 @@ define([
         if (currentContext.get('page') != 'pathway' || treeContext.suppressClick) {
             return;
         }
-        var target = $(evt.target)
-        console.log(target.closest('.click-tracked'))
-        if (target.closest('.click-tracked').length) {
-            var node_state = (target.closest('.click-tracked').attr('clickid'));
-
+        var target = $(evt.target).closest('.click-tracked')
+        if (target.length) {
+            var node_state = (target.attr('clickid'));
+            var action_type = (target.attr('clickaction'));
+            var details = target.attr('clickextra');
+            if (!action_type) {
+                if (target.is(':checkbox')) {
+                    if (target.is(':checked')) {
+                        action_type = 'checked'
+                    } else {
+                        action_type = 'unchecked'
+                    }
+                } else {
+                    action_type = 'click'
+                }
+            }
+            
             var data = {
                 "patient_id": currentContext.get("patients"),
                 "protocol_id": currentContext.get("pathid"),
                 "node_state": node_state,
                 "datetime": (new Date().toISOString()).replace("T", " "),
-                "action": "click"
+                "action": action_type,
+                "details": details
             }
             $.ajax({
                 type: 'POST',
@@ -46,7 +59,7 @@ define([
         nodeType: "protocol",
         template: _.template(nodeTemplate),
         events: {
-            'click button#copybutton': 'copyProtocole',
+            'click button#copybutton': 'copyProtocol',
             'click button#sendSetup-button': 'sendSetup',
             'click button#send-button': 'send',
             'click button#followup-button': 'followup',
@@ -82,22 +95,25 @@ define([
         render: function () {
             var protocolText = this.model.get('protocol')
             var re = /\[\[([\s\S]*?)\|([\s\S]*?)\]\]/g
+            var that=this
             protocolText = protocolText.replace(re, function(m, p1, p2) {
 		p2 = p2.split('<p>').join('').split('</p>').join('')
-                return '<input type="checkbox" value="'+p2+'" class="copy-text-button"/> '+p1;
+                
+                return '<input type="checkbox" value="'+p2+'" class="copy-text-button click-tracked" clickextra="' + p1 + '" clickid="TN-' + curTree.get('pathid') + '-' + that.model.get('nodeID')  + '"/> '+p1;
             })
             
             this.$el.html(this.template({pathID: curTree.get('pathid'), protocolNode: this.model.attributes, page: currentContext.get('page'),
                                          protocolText: protocolText}));
+            $('.click-tracked input:checkbox', this.$el).click(function(evt) {activityTrack(evt)})
             $('.copy-text-button', this.$el).click(function(evt) {evt.stopPropagation()})
             if (this.model == treeContext.get('selectedNode')){
                 $('.protocolNode', this.$el).addClass("selected")
             }
             return this
         },
-        copyProtocole: function (evt) {
+        copyProtocol: function (evt) {
             evt.stopPropagation()
-
+            activityTrack(evt)
 
             $('#copiedText').remove();
 
@@ -135,10 +151,12 @@ define([
         },
         send: function (evt) {
             evt.stopPropagation()
+            activityTrack(evt)
             var newSendProtocol = new SendProtocol(this.model);
         },
         followup: function (evt) {
             evt.stopPropagation()
+            activityTrack(evt)
             var sendFollowups = new SendFollowups(this.model);
         },
         sendSetup: function (evt) {
