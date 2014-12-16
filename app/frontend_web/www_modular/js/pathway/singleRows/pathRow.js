@@ -16,7 +16,6 @@ define([
     'pathway/models/pathwayCollection',
     'text!templates/pathway/pathwayListEntry.html',
     '../../widgets/pathway/historyList',
-    'bootstrapswitch',
 
 ], function ($, _, Backbone, router, contextModel, pathwayCollection, pathRowTemplate, HistoryList) {
 
