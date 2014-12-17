@@ -68,6 +68,7 @@ define([
         initialize: function (params) {
 
             this.model = params.model
+            this.hidden = params.hidden
 
         },
         makeExit: function(jsPlumb2){
@@ -94,7 +95,7 @@ define([
 
         render: function () {
             var that=this
-            if (currentContext.get('patients')) {
+            if (currentContext.get('patients') && !this.hidden) {
                 $.ajax({
                     type: 'GET',
                     dataType: 'json',
@@ -122,14 +123,14 @@ define([
                    
             var counts = {}
             protocolText = protocolText.replace(re, function(m, p1, p2) {
-                p1=p1.replace(/\s/g, '').toLowerCase()
+                key=p1.replace(/\s/g, '').toLowerCase()
 		p2 = p2.split('<p>').join('').split('</p>').join('')
-                if (counts[p1] !== undefined) {
-                    counts[p1] += 1
+                if (counts[key] !== undefined) {
+                    counts[key] += 1
                 } else {
-                    counts[p1]=0
+                    counts[key]=0
                 }
-                return '<input type="checkbox" value="'+p2+'" class="copy-text-button click-tracked" clickextra="' + p1 + '|' + counts[p1] + '" clickid="TN-' + curTree.get('pathid') + '-' + that.model.get('nodeID')  + '"/> '+p1;
+                return '<input type="checkbox" value="'+p2+'" class="copy-text-button click-tracked" clickextra="' + key + '|' + counts[key] + '" clickid="TN-' + curTree.get('pathid') + '-' + that.model.get('nodeID')  + '"/> '+p1;
             })
             
             this.$el.html(this.template({pathID: curTree.get('pathid'), protocolNode: this.model.attributes, page: currentContext.get('page'),
