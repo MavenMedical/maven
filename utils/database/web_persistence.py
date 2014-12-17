@@ -1080,6 +1080,26 @@ class WebPersistenceBase():
         results = yield from self.execute(cmd, cmdargs, self._display_per_encounter, desired)
         return results
 
+    @asyncio.coroutine
+    def last_checks(self, customer, protocol, patient, node):
+        cmd = ["SELECT details, action, max(datetime) FROM trees.activity",
+               "WHERE customer_id=%s",
+               "AND canonical_id=(SELECT canonical_id from trees.protocol where protocol_id=%s)",
+               "AND patient_id=%s",
+               "AND node_id=%s",
+               "AND (action='checked' OR action='unchecked')",
+               "GROUP BY action, details"]
+        cmdargs = [customer, protocol, patient, node]
+        results = yield from self.execute(cmd, cmdargs, _build_format(),
+                                          {0: 'details', 1: 'action', 2: 'datetime'})
+        grouped = {}
+        for result in results:
+            if (result['details'] not in grouped
+               or grouped[result['details']][0] < result['datetime']):
+                grouped[result['details']] = (result['datetime'], result['action'])
+        ret = {k: v[1] for k, v in grouped.items()}
+        return ret
+
     _available_interactions = {
         Results.activityid: "min(a.activity_id)",
         Results.patientid: "a.patient_id",

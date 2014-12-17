@@ -14,7 +14,7 @@ define([
 
     var activityTrack = function (evt) {
         //Don't track clicks in edit mode (where page would be "pathwayEditor")
-        if (currentContext.get('page') != 'pathway' || treeContext.suppressClick) {
+        if (currentContext.get('page') != 'pathway' || treeContext.suppressClick || !currentContext.get('patients')) {
             return;
         }
         var target = $(evt.target).closest('.click-tracked')
@@ -93,13 +93,43 @@ define([
 
 
         render: function () {
+            var that=this
+            if (currentContext.get('patients')) {
+                $.ajax({
+                    type: 'GET',
+                    dataType: 'json',
+                    url: "/node_activity",
+                    data: decodeURIComponent($.param({
+                        'protocol': curTree.get('pathid'),
+                        'patient': currentContext.get("patients"),
+                        'node_id': this.model.get('nodeID')
+                    })),
+                    success: function (data) {
+                        var elem = $('input[type="checkbox"]', that.$el)
+                        _.map(data, function(value, key) {
+                            key = key.replace(/\s/g, '').toLowerCase()
+                            var elem = $('input[clickextra="'+key+'"]', that.$el)
+                            if (elem) {
+                                elem.prop('checked', value=='checked')
+                            }
+                        })
+                    }
+                });
+            }
+
             var protocolText = this.model.get('protocol')
             var re = /\[\[([\s\S]*?)\|([\s\S]*?)\]\]/g
-            var that=this
+                   
+            var counts = {}
             protocolText = protocolText.replace(re, function(m, p1, p2) {
+                p1=p1.replace(/\s/g, '').toLowerCase()
 		p2 = p2.split('<p>').join('').split('</p>').join('')
-                
-                return '<input type="checkbox" value="'+p2+'" class="copy-text-button click-tracked" clickextra="' + p1 + '" clickid="TN-' + curTree.get('pathid') + '-' + that.model.get('nodeID')  + '"/> '+p1;
+                if (counts[p1] !== undefined) {
+                    counts[p1] += 1
+                } else {
+                    counts[p1]=0
+                }
+                return '<input type="checkbox" value="'+p2+'" class="copy-text-button click-tracked" clickextra="' + p1 + '|' + counts[p1] + '" clickid="TN-' + curTree.get('pathid') + '-' + that.model.get('nodeID')  + '"/> '+p1;
             })
             
             this.$el.html(this.template({pathID: curTree.get('pathid'), protocolNode: this.model.attributes, page: currentContext.get('page'),
