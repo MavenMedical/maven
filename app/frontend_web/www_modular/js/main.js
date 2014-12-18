@@ -23,7 +23,7 @@ require.config({
 	    nestedSortable: 'libs/nestedSortable/nestedSortable',
         fullcalendar: 'libs/fullCalendar/fullcalendar.min',
         moment: 'libs/fullCalendar/moment.min',
-        ckeditor: ['//cdn.ckeditor.com/4.4.5/standard/ckeditor', 'libs/ckeditor/ckeditor'],
+        ckeditor: 'libs/ckeditor/ckeditor',
 	templates: '../templates',
 	amchartspie: 'libs/amcharts/pie',
 	amchartslight: 'libs/amcharts/themes/light',

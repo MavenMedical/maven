@@ -37,7 +37,7 @@ define([
                     followup.$el.bind('remove', {followup: followup}, that.removeFollowup);
                 })
             }
-
+                if ($('#addNodeButton').length) {
                 $('#addNodeButton')[0].onclick = function () {
                     var protocolText = CKEDITOR.instances.ProtocolText.getData();
                     treeContext.get('selectedNode').set('protocol', protocolText);
@@ -67,7 +67,7 @@ define([
 
                     $('#detail-modal').modal('hide')
                     curTree.trigger('propagate')
-                }
+                }}
 
                 $("#detail-modal").modal({'show': 'true'});
                 require(['ckeditor'], function() {
