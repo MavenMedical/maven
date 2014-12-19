@@ -24,6 +24,7 @@ namespace MavenAsDemo
         private bool keepgoing = true;
         private string loginkeys = "";
         private bool strangerLogin = false; //tracks whether a "stranger" is logged into the emr
+        private DateTime firstattachtime = DateTime.MinValue; //tracks whether this is the first time we're attaching to something in this session
 
         public AllScriptsProLoginTracker(string emrUserName)
         {
@@ -64,6 +65,7 @@ namespace MavenAsDemo
         }
         private void GetActiveEmrWindowState()
         {
+
             bool ProcessLoggedin = true; //seems safest to start by assuming we're logged in and ask for verification. Side effect of not being logged in is keylogging on the attached process id. 
             int handle = 0;
             handle = GetForegroundWindow();
@@ -75,7 +77,7 @@ namespace MavenAsDemo
                 attachedEMRProcess = curemrprocid;
                 Logger.Log("Attaching to EMR process " + curemrprocid,"EmrTracking");
                 //ok, you're attaching to an emr process. assume that it was logged in. if it turns out it isnt, we just treat it as an immediate logout
-                wasloggedin = true;
+                //wasloggedin = true;
             }
             //if the Attached emr window has focus, see if it's logged in
             if (curemrprocid == attachedEMRProcess )
@@ -106,11 +108,16 @@ namespace MavenAsDemo
             //if the status of login has changed, do something about it
             if (isEmrUserLoggedIn != wasloggedin)
             {
+                if (isEmrUserLoggedIn && firstattachtime == DateTime.MinValue)//we have logged in successfully, anything after this is nolonger the first attach
+                {
+                    firstattachtime = DateTime.Now;
+                    Logger.Log("Initiated logging for the first time in this session.", "EmrTracking");
+                }
                 log(isEmrUserLoggedIn);
                 if (isEmrUserLoggedIn)
                 {
-                    //first see if this is a login for the user we're polling for
-                    if (!closeEnough(loginkeys).Contains(closeEnough(emrUser)))
+                    //first see if this is a login for the user we're polling for. If this is the first time we're attaching, let it slide (maven might be slow to launch and miss some login keys)
+                    if (!closeEnough(loginkeys).Contains(closeEnough(emrUser)) && firstattachtime.AddSeconds(5)<DateTime.Now)
                     {
                         isEmrUserLoggedIn = false; //switch back. our user is still logged out
                         string msg = "We suspect that the user who logged into the EMR is not " + emrUser + ", therefore alerting will remain suspended for the time being. " + DateTime.Now.ToLongTimeString();
