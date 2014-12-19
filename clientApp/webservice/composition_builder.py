@@ -38,6 +38,7 @@ class Types(Enum):
     CDASummary = 3
     Practitioners = 4
     Practitioner = 5
+    Orders = 6
 
 
 class CompositionBuilder(builder):
@@ -79,6 +80,14 @@ class CompositionBuilder(builder):
     def _clin_summary(self, username, patient, doc_id, doc_datetime, encounter_dx):
         ret = yield from self.allscripts_api.GetClinicalSummary(username, patient, AHC.CLINICAL_SUMMARY.All)
         return ret, encounter_dx
+
+    # @builder.provide(Types.Orders)
+    # @ML.coroutine_trace(COMP_BUILD_LOG.debug(), True)
+    # def _orders(self, username, patient, doc_id, doc_datetime, encounter_dx):
+        # TODO - Should probably move lookback_until to something configurable (default 6 months)
+    #    lookback_until = datetime.now()-timedelta(days=180)
+    #    ret = yield from self.allscripts_api.GetOrders(username, patient, lookback_date=lookback_until.date().isoformat())
+    #    return ret
 
     @builder.provide(Types.CDASummary)
     def _CDA_summary(self, username, patient, doc_id, doc_datetime, encounter_dx):

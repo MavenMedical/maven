@@ -504,6 +504,63 @@ class allscripts_api(http.http_api):
             raise AllscriptsError('Error parsing XML ' + e)
 
     @_require_token
+    def GetOrders(self, username: str, patient: str, lookback_date: str):
+        ret = yield from self.post('/json/MagicJson', data=self._build_message('GetOrders',
+                                                                               lookback_date,
+                                                                               user=username, patient=patient))
+        return ret
+
+    @_require_token
+    def GetProcedureRule(self, username: str, patient: str, proc_rule_name: str=None, proc_rule_id: str=None):
+        rtn = yield from self.post('/json/MagicJson', data=self._build_message('GetProcedureRule',
+                                                                               proc_rule_name or "",
+                                                                               proc_rule_id or "",
+                                                                               user=username, patient=patient))
+        return rtn
+
+    @_require_token
+    def GetListOfDictionaries(self, username: str):
+        rtn = yield from self.post('/json/MagicJson', data=self._build_message('GetListOfDictionaries',
+                                                                               user=username))
+        return rtn
+
+    @_require_token
+    def GetDictionary(self, username: str, dictionaryid: str=None):
+        rtn = yield from self.post('/json/MagicJson', data=self._build_message('GetDictionary',
+                                                                               dictionaryid or "",
+                                                                               user=username))
+        return rtn
+
+    @_require_token
+    def SearchChargeCodes(self, username: str, patient: str, searchlib: str=None, searchtext: str=None):
+        rtn = yield from self.post('/json/MagicJson', data=self._build_message('SearchChargeCodes',
+                                                                               searchlib or "",
+                                                                               searchtext or "",
+                                                                               user=username, patient=patient))
+        return rtn
+
+    @_require_token
+    def GetHIEDocument(self, username: str, patient: str):
+        """
+        This call is broken as of 2014-12-18 -- requires a State HIE Integration Service not in the sandbox
+        :param username:
+        :param patient:
+        :return:
+        """
+        rtn = yield from self.post('/json/MagicJson', data=self._build_message('GetHIEDocument',
+                                                                               user=username,
+                                                                               patient=patient))
+        return rtn
+
+    @_require_token
+    def GetMedicationByTransID(self, username: str, patient: str, transid: str):
+        rtn = yield from self.post('/json/MagicJson', data=self._build_message('GetMedicationByTransID',
+                                                                               transid,
+                                                                               user=username,
+                                                                               patient=patient))
+        return rtn
+
+    @_require_token
     def SaveTask(self, username: str, patient: str,
                  msg_subject: str=None, note_format: str="", binary_data: bytes=None,
                  document_id: str="", message_data: str=None, task_type: str=TASK_TYPE.SENDCHART, targetuser: str=None):
@@ -750,6 +807,20 @@ if __name__ == '__main__':
     patient = input('Enter a Patient ID to display (e.g., 22): ')
     if not patient:
         patient = '22'
+    # if input('GetProcedureRule (y/n)? ' == 'y'):
+    #    wrapexn(api.GetProcedureRule(username=Ehr_username, patient=patient, proc_rule_name=""))
+    if input('GetMedicationByTransID (y/n)? ') == 'y':
+        wrapexn(api.GetMedicationByTransID(username=Ehr_username, patient=patient, transid="M1020"))
+    if input('GetDictionary (y/n)? ') == 'y':
+        wrapexn(api.GetDictionary(username=Ehr_username))
+    if input('SearchChargeCodes (y/n)? ') == 'y':
+        wrapexn(api.SearchChargeCodes(username=Ehr_username, patient=patient, searchlib="ProcedureMaster", searchtext="PSA"))
+    if input('GetListOfDictionaries (y/n)? ') == 'y':
+        wrapexn(api.GetListOfDictionaries(username=Ehr_username))
+    if input('GetOrders (y/n)? ') == 'y':
+        wrapexn(api.GetOrders(username=Ehr_username, patient=patient, lookback_date='2014-08-01'))
+    if input('GetProcedureRule (y/n)? ') == 'y':
+        wrapexn(api.GetProcedureRule(username=Ehr_username, patient=patient))
     if input('GetServerInfo (y/n)? ') == 'y':
         wrapexn(api.GetServerInfo())
     if input('SaveTask (y/n)? ') == 'y':
