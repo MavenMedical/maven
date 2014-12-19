@@ -57,12 +57,12 @@ class NotificationService():
                                             or self.recent_count[(customer, user)])))
 
     @asyncio.coroutine
-    def decrement_count(self, customer, user):
-        yield from asyncio.sleep(10)
+    def decrement_count(self, customer, user, sleeptime):
+        yield from asyncio.sleep(sleeptime)
         self.recent_count[(customer, user)] -= 1
         if not self.recent_count[(customer, user)]:
             yield from self.listening_state(customer, user,
-                                           (NOTIFICATION_STATE.EHR_INBOX.value in user_notify_settings[(user, customer)].values()))
+                                           (NOTIFICATION_STATE.EHR_INBOX.value in self.user_notify_settings[(user, customer)].values()))
 
     @http_service(['GET'], '/poll',
                   [CONTEXT.USER, CONTEXT.CUSTOMERID],
@@ -76,6 +76,7 @@ class NotificationService():
         if not self.recent_count[(customer, user)]:
             yield from self.listening_state(customer, user, True)
         self.recent_count[(customer, user)] += 1
+        ML.TASK(self.decrement_count(customer, user, 120))  # 2 minutes
 
         ML.report('/%s/poll/%s' % (customer, user))
 
@@ -94,7 +95,6 @@ class NotificationService():
                 pass
             finally:
                 # wait_for does not cancel the future, so do that explicitly upon any error
-                asyncio.async(self.decrement_count(customer, user))
                 if not f.done():
                     f.cancel()
 

@@ -40,8 +40,8 @@ class ClientAppEndpoint():
             aci = ACI.AllscriptsCustomerInterface(customer_id, config,
                                                   self.server_interface)
             yield from aci.validate_config()  # raises on failure
-            yield from aci.start()
             self.customer_interfaces[customer_id] = aci
+            yield from aci.start()
 
     @asyncio.coroutine
     def test_customer_configuration(self, customer_id, config):

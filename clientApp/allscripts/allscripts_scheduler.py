@@ -65,10 +65,10 @@ class scheduler():
     def update_listening(self, user, state):
         if state:
             self.listening.add(user)
-            ML.report('/user/' + user + '/stopped_listening')
+            ML.report('/' + str(self.customer_id) + '/user/' + user + '/started_listening')
         else:
             self.listening.discard(user)
-            ML.report('/user/' + user + '/started_listening')
+            ML.report('/' + str(self.customer_id) + '/user/' + user + '/stopped_listening')
 
     @asyncio.coroutine
     def run(self):
@@ -93,7 +93,7 @@ class scheduler():
                             patient = appointment['patientID']
                             tasks.add((patient, provider, today, self.firsts[provider]))
                         else:
-                            ML.report('/provider/' + provider + '/not_active_or_listening')
+                            ML.report('/' + str(self.customer_id) + '/provider/' + provider + '/not_active_or_listening')
                     for provider in polling_providers:
                         self.firsts[provider] = False
                     for task in tasks:
