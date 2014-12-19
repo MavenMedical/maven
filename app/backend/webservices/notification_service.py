@@ -7,6 +7,7 @@ import maven_config as MC
 import maven_logging as ML
 import utils.streaming.http_responder as HR
 from utils.enums import USER_ROLES, NOTIFICATION_STATE
+from collections import defaultdict
 import datetime
 
 CONFIG_QUEUEDELAY = 'queue delay'
@@ -19,9 +20,10 @@ ML.set_debug()
 
 
 class NotificationService():
-    def __init__(self, configname, server_endpoint, save_task_fn, loop=None):
+    def __init__(self, configname, server_endpoint, listening_state, save_task_fn, loop=None):
         self.config = MC.MavenConfig[configname]
         self.server_endpoint = server_endpoint
+        self.listening_state = listening_state
         self.user_notify_settings = {}
 
         def expire_fn(key, value):
@@ -35,6 +37,7 @@ class NotificationService():
         self.queue_delay = self.config.get(CONFIG_QUEUEDELAY, 0)
         self.loop = loop or asyncio.get_event_loop()
         self.save_task_fn = save_task_fn
+        self.recent_count = defaultdict(lambda: 0)
         # self.send_messages('MAVEN', '1', ['SOME TEXT HERE'])
 
     @asyncio.coroutine
@@ -47,16 +50,34 @@ class NotificationService():
         notify_prefs = {"notify_primary": user_pref["notify_primary"],
                         "notify_secondary": user_pref["notify_secondary"]}
         self.user_notify_settings[(user_pref['user_name'], user_pref['customer_id'])] = notify_prefs
+        customer = user_pref['customer_id']
+        user = user_pref['user_name']
+        asyncio.async(self.listening_state(customer, user,
+                                           (NOTIFICATION_STATE.EHR_INBOX.value in notify_prefs.values()
+                                            or self.recent_count[(customer, user)])))
+
+    @asyncio.coroutine
+    def decrement_count(self, customer, user):
+        yield from asyncio.sleep(10)
+        self.recent_count[(customer, user)] -= 1
+        if not self.recent_count[(customer, user)]:
+            yield from self.listening_state(customer, user,
+                                           (NOTIFICATION_STATE.EHR_INBOX.value in user_notify_settings[(user, customer)].values()))
 
     @http_service(['GET'], '/poll',
                   [CONTEXT.USER, CONTEXT.CUSTOMERID],
-                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: str},
+                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int},
                   {USER_ROLES.notification})
     def get_poll(self, _header, _body, context, _matches, _key):
         ret = []  # build the list of pending messages here.
-        key = context[CONTEXT.USER], int(context[CONTEXT.CUSTOMERID])
+        user = context[CONTEXT.USER]
+        customer = context[CONTEXT.CUSTOMERID]
+        key = user, customer
+        if not self.recent_count[(customer, user)]:
+            yield from self.listening_state(customer, user, True)
+        self.recent_count[(customer, user)] += 1
 
-        ML.report('/%s/poll/%s' % (key[1], key[0]))
+        ML.report('/%s/poll/%s' % (customer, user))
 
         if key in self.messages:
             ret = self.messages.pop(key)
@@ -73,6 +94,7 @@ class NotificationService():
                 pass
             finally:
                 # wait_for does not cancel the future, so do that explicitly upon any error
+                asyncio.async(self.decrement_count(customer, user))
                 if not f.done():
                     f.cancel()
 
@@ -156,6 +178,9 @@ class NotificationService():
 
             is_successful_update = yield from self.server_endpoint.persistence.update_user_notify_preferences(prov_user_name, customer_id, notify_primary, notify_secondary)
             if is_successful_update:
+                asyncio.async(self.listening_state(customer_id, prov_user_name,
+                                               (NOTIFICATION_STATE.EHR_INBOX.value in {notify_primary, notify_secondary}
+                                                or self.recent_count[(customer_id, prov_user_name)])))
                 self.user_notify_settings[(prov_user_name, customer_id)] = {"notify_primary": notify_primary,
                                                                             "notify_secondary": notify_secondary}
                 return HR.OK_RESPONSE, json.dumps(['TRUE']), None
@@ -177,8 +202,7 @@ class NotificationService():
 
     @http_service(['POST'], '/log',
                   [CONTEXT.USER, CONTEXT.CUSTOMERID],
-                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int,
-                   CONTEXT.PROVIDER: str},
+                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int},
                   {USER_ROLES.notification})
     @ML.coroutine_trace(logger.debug)
     def post_log(self, _header, _body, context, _matches, _key):
@@ -209,10 +233,10 @@ class NotificationService():
 import app.backend.webservices.authentication as AU
 
 
-def notification_server(configname, server_endpoint, save_task_fn=None):
+def notification_server(configname, server_endpoint, listening_state, save_task_fn=None):
     import utils.streaming.webservices_core as WC
     core_scvs = WC.WebserviceCore(configname)
-    ns = NotificationService(configname, server_endpoint, save_task_fn=save_task_fn)
+    ns = NotificationService(configname, server_endpoint, save_task_fn, listening_state)
     core_scvs.register_services(ns)
     core_scvs.register_services(AU.AuthenticationWebservices(configname, None,
                                                              timeout=60 * 60 * 12))

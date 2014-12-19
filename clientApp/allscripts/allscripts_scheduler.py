@@ -42,7 +42,8 @@ class scheduler():
         self.firsts = defaultdict(lambda: True)
         self.evaluations = {}
         self.report = lambda s: ML.report('/%s/%s' % (self.customer_id, s))
-
+        self.listening = set()
+        
         try:
             self.sleep_interval = float(sleep_interval)
         except ValueError as e:
@@ -60,6 +61,14 @@ class scheduler():
         self.report('update_active_providers')
         self.active_providers = dict(filter(lambda x: x[0][1] == str(self.customer_id), active_provider_list.items()))
         asyncio.Task(self.comp_builder.build_providers())
+
+    def update_listening(self, user, state):
+        if state:
+            self.listening.add(user)
+            ML.report('/user/' + user + '/stopped_listening')
+        else:
+            self.listening.discard(user)
+            ML.report('/user/' + user + '/started_listening')
 
     @asyncio.coroutine
     def run(self):
@@ -83,6 +92,8 @@ class scheduler():
                         if provider in polling_providers:
                             patient = appointment['patientID']
                             tasks.add((patient, provider, today, self.firsts[provider]))
+                        else:
+                            ML.report('/provider/' + provider + '/not_active_or_listening')
                     for provider in polling_providers:
                         self.firsts[provider] = False
                     for task in tasks:
@@ -162,7 +173,8 @@ class scheduler():
 
     def check_notification_policy(self, key):
         provider = self.active_providers.get(key)
-        if provider.get('state') == USER_STATE.ACTIVE.value and provider.get('ehr_state') == USER_STATE.ACTIVE.value:
+        if (provider.get('state') == USER_STATE.ACTIVE.value and provider.get('ehr_state') == USER_STATE.ACTIVE.value
+           and provider.get('user_name') in self.listening):
             return True
         else:
             return False

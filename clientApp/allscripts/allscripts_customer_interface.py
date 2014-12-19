@@ -24,7 +24,6 @@ import utils.web_client.allscripts_http_client as AHC
 import clientApp.notification_generator.notification_generator as NG
 from utils.enums import CONFIG_PARAMS
 
-
 CONFIG_API = 'api'
 CLIENT_SERVER_LOG = ML.get_logger('clientApp.webservice.allscripts_customer_interface')
 
@@ -57,6 +56,9 @@ class AllscriptsCustomerInterface:
 
         # self.user_sync_service.subscribe(self.notification_users_fn)
         # self.user_sync_service.subscribe(self.allscripts_scheduler.update_active_providers)
+
+    def listening_state(self, user, listening):
+        self.allscripts_scheduler.update_listening(user, listening)
 
     @asyncio.coroutine
     def validate_config(self):

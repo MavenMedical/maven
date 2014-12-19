@@ -66,3 +66,7 @@ class ClientAppEndpoint():
     def update_user_state(self, customer_id, user_name, state):
         customer_interface = self.customer_interfaces[customer_id]
         customer_interface.update_user(user_name, state)
+
+    @asyncio.coroutine
+    def listening_state(self, customer_id, user, listening):
+        self.customer_interfaces[customer_id].listening_state(user, listening)
