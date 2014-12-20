@@ -4,6 +4,7 @@ import asyncio
 import json
 from functools import wraps
 from xml.etree import ElementTree as ETree
+from lxml import etree
 from enum import Enum
 from maven_config import MavenConfig
 import maven_logging as ML
@@ -416,6 +417,16 @@ class allscripts_api(http.http_api):
         ret = yield from self.post('/json/MagicJson',
                                    data=self._build_message('GetPatientCDA',
                                                             user=username, patient=patient))
+        ret = self.postprocess(check_output(ret))[0]
+        cdax = ret.get('cdaxml', None)
+        if cdax:
+            cda_etree = etree.fromstring(cdax)
+            print(cda_etree)
+            print(type(cda_etree))
+            default_ns = cda_etree.nsmap.get(None, None)
+            print(default_ns)
+            cda_etree.findall('{{{}}}{}'.format(default_ns, 'component'))
+            print("asdfasdf")
         return self.postprocess(check_output(ret))[0]
 
     @_require_token
@@ -801,14 +812,16 @@ if __name__ == '__main__':
     api = allscripts_api(config)
     loop = asyncio.get_event_loop()
     # Ehr_username = 'MAVEN'
-    Ehr_username = 'CliffHux'
+    Ehr_username = 'MAVEN1'
     # break
     # wrapexn(api.GetProvider(Ehr_username, searchid='10041'))
     patient = input('Enter a Patient ID to display (e.g., 22): ')
     if not patient:
-        patient = '22'
+        patient = '66561'
     # if input('GetProcedureRule (y/n)? ' == 'y'):
     #    wrapexn(api.GetProcedureRule(username=Ehr_username, patient=patient, proc_rule_name=""))
+    if input('GetPatientCDA (y/n)? ') == 'y':
+        wrapexn(api.GetPatientCDA(Ehr_username, patient))
     if input('GetMedicationByTransID (y/n)? ') == 'y':
         wrapexn(api.GetMedicationByTransID(username=Ehr_username, patient=patient, transid="M1020"))
     if input('GetDictionary (y/n)? ') == 'y':
@@ -852,8 +865,6 @@ if __name__ == '__main__':
         wrapexn(api.GetPatientSections(Ehr_username, patient, 1))
     if input('GetPatientByMRN (y/n)? ') == 'y':
         wrapexn(api.GetPatientByMRN(Ehr_username, patient))
-    if input('GetPatientCDA (y/n)? ') == 'y':
-        wrapexn(api.GetPatientCDA(Ehr_username, patient))
     if input('GetPatientFull (y/n)? ') == 'y':
         wrapexn(api.GetPatientFull(Ehr_username, patient))
     if input('GetEncounter (y/n)? ') == 'y':

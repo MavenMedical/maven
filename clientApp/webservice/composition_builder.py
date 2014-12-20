@@ -17,6 +17,9 @@ __author__ = 'Yuki Uchino'
 # LAST MODIFIED FOR JIRA ISSUE: MAV-289
 # *************************************************************************
 from enum import Enum
+from lxml import etree
+import dateutil.parser
+import re
 import json
 import asyncio
 import maven_config as MC
@@ -102,6 +105,12 @@ class CompositionBuilder(builder):
         # Virtual Medical Record for Clinical Decision Support ("74028-2") and append to the FHIR Bundle's Entries
         composition.type = FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(system="http://loinc.org",
                                                                             code="74028-2")])
+
+        # Extract the "J-codes" (HCPCS procedure codes) from the CDA
+        proc_history_section = self._extract_hcpcs_codes_from_cda(CDA_summary_result)
+        if proc_history_section:
+            composition.section.append(proc_history_section)
+
         composition.customer_id = self.customer_id
         composition.subject = self._build_subject(patient_result)
         fhir_dx_section = self._build_conditions(clin_summary_result)
@@ -125,6 +134,70 @@ class CompositionBuilder(builder):
 
     def _build_encounter(self):
         pass
+
+    def _extract_hcpcs_codes_from_cda(self, cda_result):
+
+        # Make sure the CDA result is there
+        if cda_result.get('cdaxml', None) is None:
+            return None
+
+        # Make lxml ElementTree object
+        cda_etree = etree.fromstring(cda_result['cdaxml']).getroottree()
+
+        # Extract default namespace to add to xml path queries
+        default_ns = cda_etree.nsmap.get(None, None)
+
+        # Get the list of component sections which contain the patient data
+        proc_hist_rows = None
+        for sec in cda_etree.findall('.//{}section'.format(default_ns)):
+            c = sec.find('{}code'.format(default_ns))
+            if c.get('code') == '45719-4':
+                proc_hist_rows = sec.find('{}text'.format(default_ns)).\
+                    find('{}tbody'.format(default_ns)).getchildren()
+                break
+        # If no procedure history rows detected, return
+        if proc_hist_rows is None:
+            return None
+
+        # Create a new FHIR Composition Section for holding Orders
+        fhir_orders_section = FHIR_API.Section(title="History of Procedures",
+                                               code=FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(system="http://loinc.org",
+                                                                                                     code="47519-4")]))
+
+        # Regular Expression for pulling HCPCS jcodes (procedure codes) from CDA html
+        jcode_regex = re.compile('(?:\(([Jj]\S+)\))')
+
+        # Extract HCPCS code, datetime, order status and generate FHIR Order object
+        for row in proc_hist_rows:
+
+            # Extract the jcode
+            procname = row[0]
+            jcode = jcode_regex.findall(procname)
+            if len(jcode) == 0:
+                # if no code continuing looping through the other rows
+                continue
+
+            # Ignore "-" value when parsing dates
+            date_collected = None if row[1] == "-" else dateutil.parser.parse(row[1])
+            # date_completed = None if row[2] == "-" else dateutil.parser.parse(row[2])
+
+            # Order Status
+            procstatus = row[4]
+
+            # Generate the FHIR Procedure/Order Object and add to the Encounter Orders Composition Section
+            procedure = FHIR_API.Procedure(name=procname,
+                                           date=date_collected,
+                                           type=FHIR_API.CodeableConcept(text="Procedure",
+                                                                         coding=[FHIR_API.Coding(system="HCPCS",
+                                                                                                 code=jcode,
+                                                                                                 display=procname)]))
+            order = FHIR_API.Order(text=procname,
+                                   status=procstatus,
+                                   detail=[procedure])
+
+            fhir_orders_section.content.append(order)
+
+        return fhir_orders_section
 
 
 if __name__ == '__main__':
