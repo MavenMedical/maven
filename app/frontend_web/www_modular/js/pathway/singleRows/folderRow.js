@@ -21,7 +21,7 @@ define([
         console.log(NewPathwayFolder);
 
     var ruleRow = Backbone.View.extend({
-        tagName: "li class='mjs-nestedSortable-collapsed sub-folder mjs-nestedSortable-branch'",
+        tagName: "li class='sub-folder dd-item'",
         template: _.template(pathFolderRowTemplate),
         parentList: [], //parent folders
         events: {
@@ -130,78 +130,6 @@ define([
             $(document).ready(function(){
              //   $(that.el).switchClass("mjs-nestedSortable-leaf","mjs-nestedSortable-branch")
             });
-
-            /*$(".pathway-folder-title", this.$el).click(function(event){
-                event.stopPropagation();
-                event.stopImmediatePropagation();
-                if ($(".folder-state", that.$el).hasClass("glyphicon-folder-close")){
-                    $(".folder-state", that.$el).switchClass("glyphicon-folder-close", "glyphicon-folder-open");
-                    $(".ui-state-default", that.$el).css("display","inline-block");
-                }
-                else {
-                    $(".folder-state", that.$el).switchClass("glyphicon-folder-open", "glyphicon-folder-close");
-                    $(".ui-state-default", that.$el).hide();
-                }
-            })*/
-
-               /*            $(this.el).sortable({
-                    connectWith: ".sortable-folder",
-                });*/
-
-/*
-            $('.sortable-folder').nestedSortable({
-                handle: 'div',
-                items: 'li',
-                toleranceElement: '> div',
-
-                //connectWith: ".sortable-folder",
-                //items: '> div:not(.pathway-folder-title):not(.ui-folder-placeholder)', //don't allow user to move the folder title
-                helper : 'clone',
-                containment: "#avail-paths-list",
-                /*sort: function (event, ui) {
-                    //make the sort function more responsive and user friendly
-                    //var that = $(this),
-                    var el = $(this);//ui.placeholder.parent();
-                    var w = ui.helper.outerHeight();
-                    el.children().each(function () {
-                        if ($(this).hasClass('ui-sortable-helper') || $(this).hasClass('ui-sortable-placeholder'))
-                            return true;
-                        // If overlap is more than half of the dragged item
-                        var dist = Math.abs(ui.position.top - $(this).position().top),
-                            before = ui.position.top > $(this).position().top;
-                        if ((w - dist) > (w / 2) && (dist < w)) {
-                            if (before)
-                                $('.ui-sortable-placeholder', el).insertBefore($(this));
-                            else
-                                $('.ui-sortable-placeholder', el).insertAfter($(this));
-                            return false;
-                        }
-                    });
-                },
-                receive: function(event, ui) {
-                    //if moving to a new folder, make sure the new folder is open and that items are visible
-                    //folder = $(event.target).closest(".pathway-sub-folder");
-                    //if (folder){
-                        if ($(".folder-state", that.$el).hasClass("glyphicon-folder-close")) {
-                            $(".folder-state", that.$el).switchClass("glyphicon-folder-close", "glyphicon-folder-open");
-                        }
-                        $(".ui-state-default", that.$el).css("display","inline-block");
-                    event.stopImmediatePropagation();
-                    event.stopPropagation();
-                    curCollection.saveOrder();
-                },
-                update: function(event, ui){
-                    //if the folder row was moved we may need to update the path
-                    that.setParents();
-                },
-                sort: function(event, ui){
-                    //if the folder row was moved we may need to update the path
-                    that.setParents();
-                }
-
-
-
-            });*/
             return this;
         },
         initialize: function(params){

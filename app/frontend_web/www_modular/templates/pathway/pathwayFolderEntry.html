@@ -1,18 +1,21 @@
-<div class="pathway-folder-title manager-row-header" name="<%=name%>">
-    <div class="row-expansion">
-        <span class="glyphicon glyphicon-folder-close folder-state"></span>
-        <span class="glyphicon glyphicon-folder-open folder-state"></span>
+<div class="pathway-folder-title dd-handle" name="<%=name%>">
+    <span title="New Folder" class="glyphicon glyphicon-folder-close"></span>
+    <%=name%>
+    <div class="pull-right action-buttons">
+
+        <a class="add-sub-folder">
+            <i class="ace-icon fa fa-plus bigger-150"></i>
+        </a>
+        <a class="add-sub-pathway">
+            <i class="ace-icon fa fa-plus bigger-150"></i>
+        </a>
+        <a class="red delete-folder">
+            <i class="ace-icon fa fa-trash-o bigger-150"></i>
+        </a>
+
     </div>
-    <div class="manager-row-title" width="*">
-        <span class="folder-title"><%= (typeof name !== "undefined" ? name : '' ) %></span>
-    </div>
-    <div class="manager-row-control">
-        <a><span title="Delete Folder" class="glyphicon glyphicon-trash delete-folder"></span></a>
-        <a><span title="New Folder" class="glyphicon glyphicon-folder-close add-sub-folder"></span></a>
-        <a><span data-toggle="tooltip" title="New Pathway" class="add-sub-pathway">
-                <img src="../images/temp/newPath.jpg" style="width: 20px; height: 20px"></span></a>
-    </div>
+
 </div>
-<ol class="sub-folder-contents sortable-folder">
+<ol class="sub-folder-contents dd-list">
 
 </ol>

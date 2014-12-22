@@ -1,10 +1,60 @@
-<div class = "widget-column col-sm-12 grid">
- <h2 class="headings title">  <span id="pathwayName"> </span></h2>
+<hr/>
+<div class="col-xs-12 col-sm-12 widget-container-col">
+    <!-- #section:custom/widget-box -->
+    <div class="widget-box">
+        <div class="widget-header widget-header-large">
+            <h4 class="widget-title">Pathway Editor</h4>
+            <!-- #section:custom/widget-box.toolbar -->
+            <div class="widget-toolbar">
+                <div class="widget-menu">
+                    <a href="#" data-action="fullscreen" class="orange2">
+                        <i class="ace-icon fa fa-expand"></i>
+                    </a>
 
-<div style="text-align:center; clear:both; width: 100000px; height: auto; min-height:600px; transform: scale(1.0);" class="pathtree">
+                    <a href="#" data-action="reload">
+                        <i class="ace-icon fa fa-refresh"></i>
+                    </a>
 
-</div>
-<div style="width:auto; clear:both">
-</div>
-
+                    <a href="#" data-action="collapse">
+                        <i class="ace-icon fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <!-- /section:custom/widget-box.toolbar -->
+        </div>
+        <div class="widget-body">
+            <div class="widget-toolbox">
+                <div class="btn-toolbar">
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-success btn-white btn-round" id="trigger-button">
+                            <i class="ace-icon fa fa-check bigger-110 green"></i>
+                            Edit Triggers
+                        </button>
+                        <button class="btn btn-sm btn-danger btn-white btn-round">
+                            <i class="ace-icon fa fa-times bigger-110 green"></i>
+                            Edit Node
+                        </button>
+                        <button class="btn btn-sm btn-danger btn-white btn-round">
+                            <i class="ace-icon fa fa-times bigger-110 green"></i>
+                            Delete Node
+                        </button>
+                        <button class="btn btn-sm btn-danger btn-white btn-round">
+                            <i class="ace-icon fa fa-times bigger-110 green"></i>
+                            Add Child
+                        </button>
+                        <button class="btn btn-sm btn-danger btn-white btn-round">
+                            <i class="ace-icon fa fa-times bigger-110 green"></i>
+                            Expand Children
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="widget-main">
+                <div style="text-align:center; clear:both; height: auto; min-height:600px; transform: scale(1.0);"
+                     class="pathtree container-fluid">
+                </div>
+                <div style="width:auto; clear:both"></div>
+            </div>
+        </div>
+    </div>
 </div>

@@ -1,23 +1,155 @@
-<div class = "widget-column col-sm-12">
-<div>
-    <h2 class="headings alerts">
+<div class="page-header">
+    <h1>
         Pathways
-    </h2>
-    <div class="col-md-12">
-        <div id="pathway-manager" class="sub-folder">
-            <div style="font-size: 150%;">
-                <a id="paths-list-add-folder">
-                    <span title="New Folder" class="glyphicon glyphicon-folder-close"></span> New Folder
-                </a>
-                <a id='add-base-pathway'><span data-toggle="tooltip" title="New Pathway">
-                    <img src="../images/temp/newPath.jpg" style="width: 25px; height: 25px"></span>New Pathway</a>
-            </div>
-            <ol style=" padding:0; max-height:600px; overflow-y:auto;" class="sortable-folder" id="avail-paths-list">
+        <small>
+            <i class="ace-icon fa fa-angle-double-right"></i>
+            Pathway Management &amp; Editing
+        </small>
+    </h1>
+</div>
+<div class="row">
+    <div class="col-xs-12 col-sm-12 widget-container-col">
+        <!-- #section:custom/widget-box -->
+        <div class="widget-box">
+            <div class="widget-header widget-header-large">
+                <h4 class="widget-title">Library</h4>
+                <!-- #section:custom/widget-box.toolbar -->
+                <div class="widget-toolbar">
+                    <div class="widget-menu">
+                        <a href="#" data-action="fullscreen" class="orange2">
+                            <i class="ace-icon fa fa-expand"></i>
+                        </a>
 
-            </ol>
+                        <a href="#" data-action="reload">
+                            <i class="ace-icon fa fa-refresh"></i>
+                        </a>
+
+                        <a href="#" data-action="collapse">
+                            <i class="ace-icon fa fa-chevron-up"></i>
+                        </a>
+                    </div>
+                </div>
+                <!-- /section:custom/widget-box.toolbar -->
+            </div>
+            <div class="widget-body">
+                <div class="widget-main">
+                    <div class="row">
+                        <div class="col-sm-8 widget-container-col">
+                            <div class="widget-box transparent">
+                                <div class="widget-header">
+                                    <h5 class="widget-title lighter">Folder &amp; Documents</h5>
+
+                                    <div class="widget-toolbar">
+                                        <div class="widget-menu">
+                                            <a data-action="settings" data-toggle="dropdown">
+                                                <i class="ace-icon fa fa-plus"></i>
+                                            </a>
+                                            <ul class="dropdown-menu dropdown-menu-right dropdown-light-blue dropdown-caret dropdown-closer">
+                                                <li>
+                                                    <a id='paths-list-add-folder' class="blue">
+                                                        New Folder
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a id='add-base-pathway' class="blue">
+                                                        New Pathway
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                            <a href="#"><span class="ace-icon fa fa-cloud-upload light-blue"></span></a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="widget-body">
+                                    <div class="widget-main">
+                                        <div class="dd" id="nestable" style="max-width: NONE; width:100%">
+                                            <ol class="dd-list" id="avail-paths-list">
+
+                                            </ol>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4 widget-container-col">
+                            <!-- #section:custom/widget-box.options.transparent -->
+                            <div class="widget-box transparent">
+                                <div class="widget-header">
+                                    <h5 class="widget-title lighter">Versioning</h5>
+                                </div>
+                                <div class="widget-body">
+                                    <div class="widget-main">
+                                        <table class="table table-striped table-bordered table-hover">
+                                            <tbody>
+                                            <tr>
+                                                <td class="">Alex</td>
+
+                                                <td>
+                                                    <a href="#">alex@email.com</a>
+                                                </td>
+
+                                                <td class="hidden-480">
+                                                    <span class="label label-warning">Pending</span>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="">Fred</td>
+
+                                                <td>
+                                                    <a href="#">fred@email.com</a>
+                                                </td>
+
+                                                <td class="hidden-480">
+                                                    <span class="label label-success arrowed-in arrowed-in-right">Approved</span>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="">Jack</td>
+
+                                                <td>
+                                                    <a href="#">jack@email.com</a>
+                                                </td>
+
+                                                <td class="hidden-480">
+                                                    <span class="label label-warning">Pending</span>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="">John</td>
+
+                                                <td>
+                                                    <a href="#">john@email.com</a>
+                                                </td>
+
+                                                <td class="hidden-480">
+                                                    <span class="label label-inverse arrowed">Blocked</span>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="">James</td>
+
+                                                <td>
+                                                    <a href="#">james@email.com</a>
+                                                </td>
+
+                                                <td class="hidden-480">
+                                                    <span class="label label-info arrowed-in arrowed-in-right">Online</span>
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- /section:custom/widget-box.options.transparent -->
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
-<div class="maven-padding"></div>
-</div>
-

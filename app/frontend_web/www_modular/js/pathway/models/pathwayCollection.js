@@ -21,7 +21,7 @@ define([
         },
         makeSortable: function(){
             that = this;
-            $('ol.sortable-folder').nestedSortable({
+            $('ol.dd-list').nestedSortable({
                 forcePlaceholderSize: true,
 			    handle: 'div:not(.bootstrap-switch)',
                 connectWith:'li, ol',
@@ -40,7 +40,7 @@ define([
                 doNotClear: false,
                 branchClass: 'mjs-nestedSortable-branch',
                 leafClass: 'mjs-nestedSortable-leaf',
-               // containment: '.sortable-folder',
+               // containment: '.dd-list',
                 isAllowed:function(item, parent){
                     if (parent==null) return true;
                     if ($(parent).is("li") || $(parent).is("ol")) return true;
@@ -49,17 +49,20 @@ define([
                 receive: function(event, ui){
                     //when a pathway or folder is moved, we need to update the path(s) in the database
                     var parents = that.getParents(ui.item);
+                    var path = "";
                     if (parents.length) {
-                        var path = parents.join("/").substring(1);
+                        if (parents.length > 1) path = parents.join("/");
+                        else path = parents[0];
                     }
                     var parentFolder = $(ui.item).closest('.sub-folder');
+                    if (!parentFolder.length) parentFolder = $("#nestable");
 /*
                     else {
                         var parentFolder = $('#avail-paths-list');
                         var path = "";
                     }*/
 
-                    if ($(ui.item).hasClass('pathrow-sortable')){
+                    if ($(ui.item).hasClass('pathrow-item')){
                         //pathway was moved
                         //var canonical_id = $(".path-row", $(ui.item)).attr("id");
                         that.handleMovedFolder(parentFolder, path, that, false)
@@ -111,7 +114,7 @@ define([
         handleMovedFolder: function(folder, path, that, recursive){
             var position = 0;
             $(folder).children('ol').children().each(function(){
-                if ($(this).hasClass("pathrow-sortable")){
+                if ($(this).hasClass("pathrow-item")){
                     //update order
                     position++;
                     var locationData = { "location": path, "position": position}
