@@ -75,6 +75,9 @@ define([
             }
         },
         addTrigger: function () {
+            //clear previous modals
+            $('#modal-target').empty();
+            $('#detailed-trigger-modal').empty();
            // Backbone.history.navigate("triggereditor/" + contextModel.get('pathid') + "/node/"+contextModel.get('code'), {trigger: true});
             a = new ruleWizard({el: '#modal-target'});
         },

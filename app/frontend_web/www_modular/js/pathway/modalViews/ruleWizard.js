@@ -65,8 +65,6 @@ define([
                             require(['text!templates/pathway/details/' + detailType + "_editor.html"], function (template) {
                                 var curEditor = new detailEditor({group: self.group, template: _.template(template), model: new Backbone.Model(), newDetail: true, el: $('#detailed-trigger-modal'), triggerNode: that.triggerNode, type: detailType})
                                 curEditor.render()
-
-
                             })
 
 
