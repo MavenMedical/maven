@@ -14,7 +14,7 @@ define([
     var DetailEditor = Backbone.View.extend({
         //replace this load with one which will take a parameter template
         template: _.template(editorTemplate),
-         el: '#modal-target',
+         el: '#detailed-trigger-modal',
         initialize: function(param){
             this.triggerNode = param.triggerNode
             //replace this load with one which will take a parameter template

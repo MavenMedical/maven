@@ -67,7 +67,7 @@ define([
                         require(['text!/templates/pathway/details/' + type + '_editor.html'],
                             function (curTemplate) {
 
-                                var curView = new DetailEditor({group: that.group, model: that.detail, el: $('#modal-target'), template: _.template(curTemplate), type: type});
+                                var curView = new DetailEditor({group: that.group, model: that.detail, el: $('#detailed-trigger-modal'), template: _.template(curTemplate), type: type});
                                 curView.render()
 
                             }

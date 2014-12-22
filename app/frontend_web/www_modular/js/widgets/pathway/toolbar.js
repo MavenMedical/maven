@@ -75,8 +75,8 @@ define([
             }
         },
         addTrigger: function () {
-            Backbone.history.navigate("triggereditor/" + contextModel.get('pathid') + "/node/"+contextModel.get('code'), {trigger: true});
-
+           // Backbone.history.navigate("triggereditor/" + contextModel.get('pathid') + "/node/"+contextModel.get('code'), {trigger: true});
+            a = new ruleWizard({el: '#modal-target'});
         },
         renderActions: function () {
                 if (treeContext.get('selectedNode')) {
