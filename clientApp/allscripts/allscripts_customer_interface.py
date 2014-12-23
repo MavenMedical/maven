@@ -58,7 +58,6 @@ class AllscriptsCustomerInterface:
         # self.user_sync_service.subscribe(self.allscripts_scheduler.update_active_providers)
 
     def listening_state(self, user, listening):
-        ML.INFO('customer interface listening state ' + user)
         self.allscripts_scheduler.update_listening(user, listening)
 
     @asyncio.coroutine
