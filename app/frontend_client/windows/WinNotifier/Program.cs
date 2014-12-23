@@ -48,6 +48,14 @@ namespace MavenAsDemo
                 Thread traythread = new Thread(startTray);
                 traythread.Start();
                 Thread t = JobOffPollingThread();
+                if (cursettings.mode == Settings.AlertMode.deskSoft || cursettings.mode == Settings.AlertMode.deskHard) //if we're in desktop mode, double check that we're set to desktop,off
+                {
+                    try
+                    {
+                        SetAlertMode("desktop", "off");
+                    }
+                    catch { }//meh, at least we tried
+                }
                 //stay alive until polling dies
                 while (t.IsAlive && continueOn)
                 {

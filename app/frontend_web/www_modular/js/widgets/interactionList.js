@@ -70,6 +70,24 @@ define([
                 $('#historyheader').text(historydetails.get('protocolname') + " pathway interaction replay: " + historydetails.get('providername') +
                                          " with " + historydetails.get('patientname') + ' on ' + history[historyposition].datetime)
                 $('.progress-bar', this.$el).width((progress*100/history.length)+'%')
+                
+                var action = history[historyposition]['action']
+                console.log(action)
+                if (action == 'click') {
+                    $('#historydetails').text('traversing the tree')
+                } else if (action == 'send') {
+                    $('#historydetails').text('forwarding the chart')
+                } else if (action == 'copy') {
+                    $('#historydetails').text('copying protocol text to the clipboard')
+                } else if (action == 'followup') {
+                    $('#historydetails').text('scheduling a follow-up message')
+                } else if (action == 'checked') {
+                    $('#historydetails').text('checking an optional item ' + history[historyposition]['details'])
+                } else if (action == 'unchecked') {
+                    $('#historydetails').text('unchecking an optional item ' + history[historyposition]['details'])
+                } else {
+                    $('#historydetails').text('')
+                }
                 if (progress == history.length) {
                     $('#nextinteraction').html('Finish')
                 } else {

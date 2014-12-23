@@ -1080,6 +1080,26 @@ class WebPersistenceBase():
         results = yield from self.execute(cmd, cmdargs, self._display_per_encounter, desired)
         return results
 
+    @asyncio.coroutine
+    def last_checks(self, customer, protocol, patient, node):
+        cmd = ["SELECT details, action, max(datetime) FROM trees.activity",
+               "WHERE customer_id=%s",
+               "AND canonical_id=(SELECT canonical_id from trees.protocol where protocol_id=%s)",
+               "AND patient_id=%s",
+               "AND node_id=%s",
+               "AND (action='checked' OR action='unchecked')",
+               "GROUP BY action, details"]
+        cmdargs = [customer, protocol, patient, node]
+        results = yield from self.execute(cmd, cmdargs, _build_format(),
+                                          {0: 'details', 1: 'action', 2: 'datetime'})
+        grouped = {}
+        for result in results:
+            if (result['details'] not in grouped
+               or grouped[result['details']][0] < result['datetime']):
+                grouped[result['details']] = (result['datetime'], result['action'])
+        ret = {k: v[1] for k, v in grouped.items()}
+        return ret
+
     _available_interactions = {
         Results.activityid: "min(a.activity_id)",
         Results.patientid: "a.patient_id",
@@ -1117,12 +1137,12 @@ class WebPersistenceBase():
 
     @asyncio.coroutine
     def interaction_details(self, customer, providerid, patientid, protocolid, startactivity):
-        cmd = ["SELECT node_id, datetime FROM trees.activity WHERE",
+        cmd = ["SELECT node_id, datetime, action, details FROM trees.activity WHERE",
                "customer_id = %s AND user_id = %s AND patient_id = %s AND protocol_id = %s",
                "AND activity_id >= %s ORDER BY activity_id"]
         cmdargs = [customer, providerid, patientid, protocolid, startactivity]
 
-        desired = {0: 'node_id', 1: 'datetime'}
+        desired = {0: 'node_id', 1: 'datetime', 2: 'action', 3: 'details'}
 
         results = yield from self.execute(cmd, cmdargs,
                                           _build_format({1: _prettify_datetime}), desired)
@@ -1460,11 +1480,11 @@ class WebPersistenceBase():
     @asyncio.coroutine
     def post_protocol_activity(self, customer_id, user_id, activity_msg):
         column_map = ["customer_id", "user_id", "patient_id", "protocol_id",
-                      "node_id", "datetime", "action", 'canonical_id']
+                      "node_id", "datetime", "action", 'details', 'canonical_id']
         columns = DBMapUtils().select_rows_from_map(column_map)
 
         cmd = ["INSERT INTO trees.activity(" + columns + ")",
-               "VALUES (%s, %s, %s, %s, %s, %s, %s, (SELECT canonical_id FROM trees.protocol WHERE protocol_id = %s)) RETURNING activity_id"]
+               "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, (SELECT canonical_id FROM trees.protocol WHERE protocol_id = %s)) RETURNING activity_id"]
 
         node_state_raw = activity_msg.get('node_state', None)
         node_state = node_state_raw.split("-")
@@ -1480,8 +1500,8 @@ class WebPersistenceBase():
                    node_id,
                    activity_msg.get('datetime', None),
                    activity_msg.get('action', None),
+                   activity_msg.get('details', None),
                    protocol_id]
-        print(cmdArgs)
         try:
             cur = yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
             result = cur.fetchone()[0]

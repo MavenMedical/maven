@@ -17,7 +17,7 @@ import functools
 import asyncio
 import utils.streaming.stream_processor as SP
 from maven_config import MavenConfig
-# import maven_logging as ML
+import maven_logging as ML
 
 """
 CONFIGVALUE_RPCPARSER = 'rpc parser'
@@ -146,7 +146,10 @@ class rpc(SP.StreamProcessor):
             uid = obj[0]
             try:
                 ret = yield from self._execute(*obj)
+            except IndexError:
+                raise
             except Exception as e:
+                ML.EXCEPTION('caught in rpc')
                 ret = e
             msg = pickle.dumps((uid, ret))
             self.write_object(msg, key)

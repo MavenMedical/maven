@@ -70,6 +70,9 @@ DEFAULT_HEADERS = \
     [
         b'Content-Type: application/json',
         b'Connection: close',
+        b'Cache-Control: no-cache, no-store, must-revalidate',
+        b'Pragma: no-cache',
+        b'Expires: 0',
     ]
 # text/plain
 
