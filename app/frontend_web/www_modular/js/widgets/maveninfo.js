@@ -17,8 +17,6 @@ define([
                 this.template = _.template(arg.template);
                 treeContext.on('propagate', this.render, this);
                 contextModel.on('change:page change:pathid', this.hidePopup, this);
-                this.dynamicLayout = false;
-
             },
             test: function () {
                 console.log("hi there test");
@@ -28,7 +26,6 @@ define([
             },
             events: {
                 'click button.close': 'hidePopup',
-                'click #toggleLayout': 'toggleLayout'
 
             },
             render: function () {
@@ -68,29 +65,13 @@ define([
                 this.selectedNode = treeContext.get('selectedNode');
             },
             showPopup: function () {
-                if (this.dynamicLayout) {
-                    $('#side-popup').css('top', treeContext.get('selectedNodeOffset').top);
-                    $('#side-popup').css('left', treeContext.get('selectedNodeOffset').left + treeContext.get('selectedNodeWidth') + 10);
-                    $('#side-popup').css('bottom', 'none');
-                    $('#side-popup').css('right', 'none');
-                } else {
-                    $('#side-popup').css('top', 'none');
-                    $('#side-popup').css('left', 'none');
-                    $('#side-popup').css('bottom', 5);
-                    $('#side-popup').css('right', 11);
-                }
-
+                $('#side-popup').css('top', 'none');
+                $('#side-popup').css('left', 'none');
+                $('#side-popup').css('bottom', 5);
+                $('#side-popup').css('right', 11);
                 this.$el.show(1000);
 
             },
-            toggleLayout: function () {
-                if (this.dynamicLayout) {
-                    this.dynamicLayout = false;
-                } else {
-                    this.dynamicLayout = true;
-                }
-                this.showPopup();
-            }
         })
         ;
     return MavenInfo;
