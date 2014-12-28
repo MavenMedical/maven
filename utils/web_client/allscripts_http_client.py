@@ -4,7 +4,6 @@ import asyncio
 import json
 from functools import wraps
 from xml.etree import ElementTree as ETree
-from lxml import etree
 from enum import Enum
 from maven_config import MavenConfig
 import maven_logging as ML
@@ -417,16 +416,6 @@ class allscripts_api(http.http_api):
         ret = yield from self.post('/json/MagicJson',
                                    data=self._build_message('GetPatientCDA',
                                                             user=username, patient=patient))
-        ret = self.postprocess(check_output(ret))[0]
-        cdax = ret.get('cdaxml', None)
-        if cdax:
-            cda_etree = etree.fromstring(cdax)
-            print(cda_etree)
-            print(type(cda_etree))
-            default_ns = cda_etree.nsmap.get(None, None)
-            print(default_ns)
-            cda_etree.findall('{{{}}}{}'.format(default_ns, 'component'))
-            print("asdfasdf")
         return self.postprocess(check_output(ret))[0]
 
     @_require_token

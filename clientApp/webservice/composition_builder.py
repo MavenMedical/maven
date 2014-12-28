@@ -145,7 +145,8 @@ class CompositionBuilder(builder):
         cda_etree = etree.fromstring(cda_result['cdaxml']).getroottree()
 
         # Extract default namespace to add to xml path queries
-        default_ns = cda_etree.nsmap.get(None, None)
+        cda_root = cda_etree.getroot()
+        default_ns = "{{{}}}".format(cda_root.nsmap.get(None, None))
 
         # Get the list of component sections which contain the patient data
         proc_hist_rows = None
