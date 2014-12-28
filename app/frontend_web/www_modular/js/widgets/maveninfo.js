@@ -18,9 +18,6 @@ define([
                 treeContext.on('propagate', this.render, this);
                 contextModel.on('change:page change:pathid', this.hidePopup, this);
             },
-            test: function () {
-                console.log("hi there test");
-            },
             showhide: function () {
                 this.$el.show();
             },
@@ -29,7 +26,6 @@ define([
 
             },
             render: function () {
-                console.log('propagate', treeContext.get('selectedNode'))
                 if (!treeContext.get('selectedNode')) {
                     this.hidePopup()
                     return

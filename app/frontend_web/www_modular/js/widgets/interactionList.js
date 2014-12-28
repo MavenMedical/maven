@@ -72,7 +72,7 @@ define([
                 $('.progress-bar', this.$el).width((progress*100/history.length)+'%')
                 
                 var action = history[historyposition]['action']
-                console.log(action)
+
                 if (action == 'click') {
                     $('#historydetails').text('traversing the tree')
                 } else if (action == 'send') {

@@ -19,7 +19,7 @@
         'amcharts': 'empty:',
         'bootstrapswitch': 'empty:',
         '/services/recaptcha': 'empty:',
-        'ace-min': 'empty:',
+        'ace': 'empty:',
     },
     shim: {
         bootstrap: {
@@ -88,6 +88,7 @@
         'globalmodels/histogramModel',
         'globalmodels/contextModel',
         'globalmodels/alertCollection',
+        'widgets/sidebar',
         'widgets/welcome',
         'widgets/patientSearch',
         'widgets/datepicker-calendar',
@@ -123,7 +124,7 @@
         'singleRow/alertRow',
         'singleRow/reminderRow',
         'singleRow/patientRow',
-        'text'
-
+        'text',
+        'textstub'
     ]
 })
