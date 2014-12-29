@@ -22,10 +22,6 @@ define([
             template: _.template(treeTemplate),
             initialize: function () {
                 this.$el.html(this.template())
-                new pageOption({'Pathway Mgmt': ['fa-cloud', 'pathway', [
-                    {'Pathway Viewer': ['icon', 'pathway']},
-                    {'Pathway Editor': ['icon', 'pathwayEditor']}
-                ]]});
                 contextModel.on('change:page', function () {
                     if (contextModel.get('page') == 'pathEditor' || contextModel.get('page') == 'pathway') {
                         this.$el.show()
