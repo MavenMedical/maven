@@ -30,11 +30,13 @@ require.config({
         amchartslight: 'libs/amcharts/themes/light',
         amchartsserial: 'libs/amcharts/serial',
         amcharts: 'libs/amcharts/amcharts',
-        ace: 'ace-min'
+        ace: 'libs/ace/ace.min',
+        aceelements: 'libs/ace/ace-elements.min'
     },
     shim: {
-	    touch: {deps: ['jquery_ui']},
-        ace: {deps: ['jquery', 'jquery_ui','bootstrap']},
+	touch: {deps: ['jquery_ui']},
+        ace: {deps: ['jquery', 'jquery_ui','bootstrap', 'aceelements']},
+        aceelements: {deps: ['bootstrap']},
         'ace/assets/js/flot/jquery.flot.pie': {deps: ['ace/assets/js/flot/jquery.flot']},
         'ace/assets/js/flot/jquery.flot.resize': {deps: ['ace/assets/js/flot/jquery.flot']},
         bootstrap: {
