@@ -1,19 +1,25 @@
-<div id="<%=canonical%>" class="path-row dd-handle">
-    <img src="../images/temp/newPath.jpg" style="width: 25px; height: 25px"/>
-    <a class='select-button'>
-    <%=name%>
-        </a>
-    <div class="pull-right action-buttons" style="vertical-align: middle">
-        <span class="badge badge-success" style="position: relative;">active</span>
-        <a>
-            <input class="ace ace-switch ace-switch-3 pathway-enable" type="checkbox"
-            <%= (enabled == 1) ? "checked" : "" %>/>
-            <span class="lbl"></span>
-        </a>
-        <a class="red delete-button">
-            <i class="ace-icon fa fa-trash-o bigger-150"></i>
-        </a>
+<div id="<%=canonical%>" class="path-row dd-handle dd2-handle">
+        														<!--<i class="normal-icon ace-icon fa fa-signal orange bigger-130"></i>-->
 
+        <img class='normal-icon' src="../images/temp/newPath.jpg" style="width: 20px; height: 20px"/>
+
+        <i class="drag-icon ace-icon fa fa-arrows bigger-125"></i>
     </div>
+    <div class="dd2-content">
+        <a class='select-button'><%=name%></a>
+        <div class="pull-right action-buttons" style="vertical-align: middle">
+            <span class="badge badge-success" style="position: relative;">active</span>
+            <a>
+                <input class="ace ace-switch ace-switch-3 pathway-enable" type="checkbox"
+                <%= (enabled == 1) ? "checked" : "" %>/>
+                <span class="lbl"></span>
+            </a>
+            <a class="red delete-button">
+                <i class="ace-icon fa fa-trash-o bigger-150"></i>
+            </a>
 
-</div>
+        </div>
+    </div>
+        <ol class="pathway-history-section dd-list">
+
+            </ol>

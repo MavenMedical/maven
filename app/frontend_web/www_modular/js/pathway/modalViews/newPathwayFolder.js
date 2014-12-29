@@ -52,7 +52,11 @@ define([
             else {
                 $("#avail-paths-list").append(thisRow.render().$el);
             }
-            curCollection.makeSortable();
+          /*  $(document).ready(function() {
+               // curCollection.makeSortable();
+                    $(thisRow.el).removeClass("dd-collapsed");
+
+            });*/
 
             this.undelegateEvents(); // Unbind all local event bindings
 

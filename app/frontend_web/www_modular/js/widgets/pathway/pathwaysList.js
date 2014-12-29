@@ -20,8 +20,6 @@ define([
     'pathway/singleRows/folderRow',
     'widgets/pageOption',
 
-    'nestedSortable'
-
 ], function ($, _, Backbone,  contextModel, curCollection, curTree,  NewPathway, PathRow, pathwaysListTemplate, newPathwayFolder, FolderRow, pageOption) {
 
     var PathwaysList = Backbone.View.extend({

@@ -1,8 +1,14 @@
-<div class="row-expansion">&nbsp;</div>
-<div class="manager-row-title" title="Author: <%=official_name%>
-Date: <%=creation_date%>"><span><a class='history-select-button'><%=creation_date%></a></span></div>
-<div class="manager-row-control">
-    <a><span style="padding-right: 1px;" class='glyphicon glyphicon-trash'></span></a>
-    <a><span style="padding-right: 1px;"
+<div class="dd-handle dd2-handle" name="<%=name%>">
+    <i class="normal-icon ace-icon fa fa-book orange bigger-130"></i>
+</div>
+<div class="dd2-content" title="Author: <%=official_name%>
+Date: <%=creation_date%>">
+<span><a class='history-select-button'><%=creation_date%></a></span>
+    <div class="pull-right action-buttons">
+        <a><span style="padding-right: 1px;"
              class="glyphicon <%= (active == 1) ? 'glyphicon-check' : 'glyphicon-unchecked' %> history-checkbox"></span></a>
+        <a class="red delete-hist" href="#">
+		    <i class="ace-icon fa fa-trash-o bigger-130"></i>
+	    </a>
+    </div>
 </div>

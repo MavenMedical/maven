@@ -193,3 +193,20 @@ a.disabled {
    pointer-events: none;
    cursor: default;
 }
+
+
+/******************************************************************
+ * The following customize the pathway manager *
+ ******************************************************************/
+
+.action-buttons > a {
+    cursor: pointer;
+}
+
+.active-pathway > .dd2-content{
+    background-color: #F89406 !important;
+}
+
+.active-history > .dd2-content {
+    background-color: #FEE188 !important;
+}

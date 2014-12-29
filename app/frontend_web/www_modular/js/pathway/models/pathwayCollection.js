@@ -3,14 +3,13 @@ define([
     'underscore',
     'backbone',
     'globalmodels/contextModel',
-     'nestedSortable'
+    'nestable'
 
 ], function($, _, Backbone, contextModel){
 
-
     var pathCollection = Backbone.Collection.extend({
 	    model: Backbone.Model.extend({idAttribute: 'canonical'}),
-        url: function() {
+        url: function() {athway
             return '/list'
         },
         initialize: function(){
@@ -20,7 +19,25 @@ define([
             this.fetch({add: true})
         },
         makeSortable: function(){
-            that = this;
+            jQuery(function($){
+
+				$('.dd').nestable();
+
+				$('.dd-handle a').on('mousedown', function(e){
+					e.stopPropagation();
+				});
+
+				$('[data-rel="tooltip"]').tooltip();
+			});/*
+          $('.dd').nestable();
+
+	        $('.dd-handle a').on('mousedown', function(e){
+					e.stopPropagation();
+			});
+
+			$('[data-rel="tooltip"]').tooltip();
+        /*
+             that = this;
             $('ol.dd-list').nestedSortable({
                 forcePlaceholderSize: true,
 			    handle: 'div:not(.bootstrap-switch)',
@@ -56,11 +73,10 @@ define([
                     }
                     var parentFolder = $(ui.item).closest('.sub-folder');
                     if (!parentFolder.length) parentFolder = $("#nestable");
-/*
                     else {
                         var parentFolder = $('#avail-paths-list');
                         var path = "";
-                    }*/
+                    }
 
                     if ($(ui.item).hasClass('pathrow-item')){
                         //pathway was moved
@@ -79,7 +95,7 @@ define([
                         $(ui.placeholder).height($(ui.item).height())
                     }
                 }
-            });
+            });*/
         },
         getParents: function(item) {
             //get the parents of an item (pathway or folder)

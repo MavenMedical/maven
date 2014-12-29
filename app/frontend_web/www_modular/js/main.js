@@ -21,6 +21,7 @@ require.config({
         bootstrap: '../css/bootstrap/js/bootstrap.min',
 	    bootstrapswitch: 'libs/bootstrap-switch/bootstrap-switch',
 	    nestedSortable: 'libs/nestedSortable/nestedSortable',
+	    nestable: '../ace/assets/js/jquery.nestable',
         fullcalendar: 'libs/fullCalendar/fullcalendar.min',
         moment: 'libs/fullCalendar/moment.min',
         ckeditor: ['//cdn.ckeditor.com/4.4.5/standard/ckeditor', 'libs/ckeditor/ckeditor'],
