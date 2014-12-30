@@ -45,7 +45,7 @@ define([
                     if (state){
                         $(".history-checkbox", this.$el).removeClass("check-disabled",0);
                     }
-                    else {
+                    else {folderrow
                         $(".history-checkbox", this.$el).addClass("check-disabled",0);
                     }
 
@@ -56,14 +56,10 @@ define([
         },
         initialize: function(params){
             this.model = params.model
-
+            that = this;
             $(this.el).on("remove", function(){
                console.log("this pathway was removed");
             });
-
-            $(this.el).on("change", function(){
-                console.log('changed');
-            })
         },
         handleSelect: function() {
             if (contextModel.get('code') == 'undefined') {

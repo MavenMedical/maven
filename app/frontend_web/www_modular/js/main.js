@@ -46,6 +46,9 @@ require.config({
         bootstrapswitch: {
             deps: ['jquery', 'jquery_ui', 'bootstrap']
         },
+        nestable: {
+            deps: ['jquery', 'jquery_ui', 'bootstrap']
+        },
         jsplumb: {
             deps: ['jquery', 'jquery_ui']
         },

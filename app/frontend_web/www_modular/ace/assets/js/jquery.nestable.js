@@ -43,9 +43,7 @@
             noDragClass     : 'dd-nodrag',
             emptyClass      : 'dd-empty',
             expandBtnHTML   : '<button data-action="expand" title="Expand" class="show-hist">expand</button>',
-            //expandBtnHTML   : '<span class="glyphicon glyphicon-folder-open"></spanl>',
             collapseBtnHTML : '<button data-action="collapse" title="Collapse">collapse</button>',
-            //collapseBtnHTML : '<span class="glyphicon glyphicon-folder-close"></span>',
             group           : 0,
             maxDepth        : 5,
             threshold       : 20
@@ -304,6 +302,7 @@
             if (this.hasNewRoot) {
                 this.dragRootEl.trigger('change');
             }
+            el.trigger('change');
             this.reset();
         },
 

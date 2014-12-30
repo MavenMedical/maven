@@ -3,13 +3,12 @@ define([
     'underscore',
     'backbone',
     'globalmodels/contextModel',
-    'nestable'
 
 ], function($, _, Backbone, contextModel){
 
     var pathCollection = Backbone.Collection.extend({
 	    model: Backbone.Model.extend({idAttribute: 'canonical'}),
-        url: function() {athway
+        url: function() {
             return '/list'
         },
         initialize: function(){
@@ -19,7 +18,7 @@ define([
             this.fetch({add: true})
         },
         makeSortable: function(){
-            jQuery(function($){
+            			jQuery(function($){
 
 				$('.dd').nestable();
 
@@ -28,7 +27,9 @@ define([
 				});
 
 				$('[data-rel="tooltip"]').tooltip();
-			});/*
+
+			});
+/*
           $('.dd').nestable();
 
 	        $('.dd-handle a').on('mousedown', function(e){

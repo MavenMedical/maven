@@ -43,7 +43,7 @@ define([
         setParents: function(){
             //check the location of the folder - if it has moved, update the parent list and return true
 
-            var newParentList = [$(this.el).children().first().attr("name")]; //initialize with current folder name [this.parentList[this.parentList.length-1]];
+            var newParentList = [$(this.el).children(".pathway-folder-title").attr("name")]; //initialize with current folder name [this.parentList[this.parentList.length-1]];
             var parentFolder = $(this.el).parent().closest(".sub-folder");
             while (parentFolder.length){
                 parentName = parentFolder.children(".pathway-folder-title").attr('name');
@@ -99,12 +99,46 @@ define([
         handleNewSubFolder: function(event) {
             event.stopPropagation();
             this.setParents();
-            var a = new NewPathwayFolder({el: '#modal-target', parentFolder: $(this.el).children('ol').first(), parentList: this.parentList});
+            var a = new NewPathwayFolder({el: '#modal-targets', parentFolder: $(this.el).children('ol').first(), parentList: this.parentList});
+        },
+        handleMove: function(folder, path, that){
+            //if the folder is moved, or if a pathway is moved into this folder, pathway locations will need to be updated
+            var position = 0;
+            $(folder).children('ol').children().each(function(){
+                if ($(this).hasClass("pathrow-item")){
+                    //update order
+                    position++;
+                    var locationData = { "location": path, "position": position}
+                    var canonical_id = $(".path-row", $(this)).attr("id");
+                    that.handleMovedPath(canonical_id, locationData)
+                }
+                else {
+                    var new_path = path + "/" + $(".pathway-folder-title",$(this)).first().attr('name');
+                    that.handleMove(this, new_path, that);
+                }
+            });
+        },
+        handleMovedPath: function(canonical_id, locationData){
+            //update order
+            var data = {'canonical': canonical_id, 'customer_id': contextModel.get("customer_id"), 'userid': contextModel.get("userid")}
+            $.extend(data, contextModel.toParams(), data);
+            $.ajax({
+                type: 'POST',
+                dataType: 'json',
+                url: "/update_pathway_location?" + $.param(data),
+                data: JSON.stringify(locationData),
+                success: function () {
+                    console.log("pathway location updated");
+                }
+            });
         },
         render: function(){
-            that = this;
+            var that =this;
             $(this.el).html(this.template(this.model.toJSON()));
-
+            $(this.el).on("change", function(event){
+                event.stopPropagation();
+                that.handleMove($(that.el), that.setParents().join("/"), that);
+            })
             return this;
         },
         initialize: function(params){
