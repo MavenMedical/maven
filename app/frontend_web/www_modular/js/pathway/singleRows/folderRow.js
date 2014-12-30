@@ -146,7 +146,6 @@ define([
             this.parentList = params.parentList;
             this.parentList.push(this.model.attributes.name);
             //$.extend(this.parents, this.parents,[]);
-
         },
     });
 
