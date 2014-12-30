@@ -18,8 +18,6 @@ define([
      'pathway/models/pathwayCollection',
 
 ], function ($, _, Backbone, router, contextModel, pathFolderRowTemplate, NewPathway, NewPathwayFolder, curCollection) {
-        console.log(NewPathwayFolder);
-
     var ruleRow = Backbone.View.extend({
         tagName: "li class='sub-folder dd-item'",
         template: _.template(pathFolderRowTemplate),
