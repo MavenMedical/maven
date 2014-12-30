@@ -10,8 +10,7 @@ define([
     'globalmodels/userCollection',
     'text!templates/adminSettings.html',
     'bootstrapswitch',
-    'widgets/pageOption'
-], function ($, _, Backbone, contextModel, userCollection, AdminSettingsTemplate,pageOption) {
+], function ($, _, Backbone, contextModel, userCollection, AdminSettingsTemplate) {
     var AdminModel = Backbone.Model.extend({url: '/customer_info'});
 
     var AdminSettings = Backbone.View.extend({

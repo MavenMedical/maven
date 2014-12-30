@@ -7,12 +7,14 @@ define([
     'underscore',
     'backbone',
     'bootstrap',
-    'router'
-], function ($, _, Backbone, Bootstrap, AppRouter) {
+    'router',
+    'widgets/sidebar'
+], function ($, _, Backbone, Bootstrap, AppRouter, Sidebar) {
     var initialize = function () {
 
         // Pass in our Router module and        call it's initialize function
         new AppRouter;
+        new Sidebar;
     };
 
     return {

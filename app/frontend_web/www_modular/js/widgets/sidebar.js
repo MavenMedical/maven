@@ -8,33 +8,43 @@ define([
     'backbone',   // lib/backbone/backbone
     'ace',
     'globalmodels/contextModel',
-    'widgets/pageOption'
-], function ($, _, Backbone, ace, contextModel, pageOption) {
-    var sidebarList = [
-        {'Dashboard': ['fa-tachometer', 'home']},
-        {'Pathway Mgmt': ['fa-cloud', 'pathway', [
+    'globalmodels/sidebarModel',
+    'widgets/pageOption',
+    'text!../templates/sidebar.html'
+], function ($, _, Backbone, ace, contextModel, sidebarModel, PageOption, sidebarTemplate) {
+    var sidebarMap = {
+        'Dashboard': ['fa-tachometer', 'home'],
+        'Pathway Mgmt': ['fa-cloud', 'pathway', [
             {'Pathway Viewer': ['icon', 'pathway']},
-            {'Pathway Editor': ['icon', 'pathwayEditor']}]]},
-        {'Users': ['fa-user', 'users']},
-        {'Reports': ['fa-bar-chart-o', 'reports']},
-        {'Research': ['fa-institution', 'research']},
-        {'EHR Setup': ['fa-database', 'research']},
-      //  {'Customers':['fa-user', 'customers']}
-    ];
+            {'Pathway Editor': ['icon', 'pathwayEditor']}]],
+        'Users': ['fa-user', 'users'],
+        'Reports': ['fa-bar-chart-o', 'reports'],
+        'Research': ['fa-institution', 'research'],
+        'EHR Setup': ['fa-database', 'research'],
+        'Customers':['fa-user', 'customers']
+    }
 
     var Sidebar = Backbone.View.extend({
         initialize: function (arg) {
-            this.template = _.template(arg.template);
+            this.template = _.template(sidebarTemplate);
             this.render();
-
+            sidebarModel.on('change', this.change, this)
+            sidebarModel.addOption('Dashboard')
         },
+        change: function() {
+            _.each(sidebarModel.changed, function(v, k) {
+                var obj = {}
+                obj[k]=v
+                new PageOption(obj)
+            })
+        },
+        el: '#sidebar',
         render: function () {
 
             this.$el.html(this.template());
 
              //$('#sidebar').ace_sidebar();
             //for (o in sidebarList){
-               new pageOption(sidebarList[0]);
           // }
 
         }

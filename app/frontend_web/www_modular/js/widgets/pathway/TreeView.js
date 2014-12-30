@@ -9,13 +9,12 @@ define([
         'pathway/modalViews/nodeEditor',
         'pathway/Helpers',
         'pathway/models/pathwayCollection',
-        'widgets/pageOption',
         'text!templates/pathway/treeTemplate.html',
         'text!templates/pathway/insertDiv.html',
         'jsplumb'
     ],
 
-    function ($, _, Backbone, contextModel, curTree, treeContext, TriggerNode, NodeEditor, Helpers, pathwayCollection, pageOption, treeTemplate, insertDiv) {
+    function ($, _, Backbone, contextModel, curTree, treeContext, TriggerNode, NodeEditor, Helpers, pathwayCollection, treeTemplate, insertDiv) {
 
         var TreeView = Backbone.View.extend({
 

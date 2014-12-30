@@ -5,9 +5,22 @@ define([
     'backbone'
 ],
        function(Backbone) {
-	   var SidebarModel = Backbone.Event.extend({
-	   })
-
+           var details = {
+               'Profile':['fa-user', 'profile'],
+               'Customers':['fa-user', 'customers'],
+               'Pathways':['fa-user', 'pathways'],
+               'Pathway Mgmt': ['fa-cloud', 'pathway', [
+                   {'Pathway Viewer': ['icon', 'pathway']},
+                   {'Pathway Editor': ['icon', 'pathwayEditor']}]],
+               'Dashboard': ['fa-tachometer', 'home']
+           }
+           
+	   var SidebarModel = Backbone.Model.extend({
+               
+	       addOption: function(name) {
+                   this.set(name, details[name]) 
+               }
+           })
+           
 	   return new SidebarModel
-       })
-
+       })      
