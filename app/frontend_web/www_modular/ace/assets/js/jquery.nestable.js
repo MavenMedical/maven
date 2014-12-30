@@ -303,6 +303,7 @@
                 this.dragRootEl.trigger('change');
             }
             el.trigger('change');
+            //el.parent().closest(".sub-folder").removeClass("collapsed");
             this.reset();
         },
 
