@@ -9,8 +9,8 @@ define([
     'backbone',    // lib/backbone/backbone
     'jsplumb',
     'globalmodels/contextModel',
-    'widgets/pageOption'
-], function ($, _, Backbone, jsPlumb, contextModel,pageOption) {
+    'globalmodels/sidebarModel'
+], function ($, _, Backbone, jsPlumb, contextModel,sidebarModel) {
     var Pathway = Backbone.View.extend({
         initialize: function (arg) {
             _.bindAll(this, 'render', 'drawTree', 'showFirstchild', 'expandAll', 'suggested');
@@ -18,7 +18,7 @@ define([
             this.template = _.template(arg.template);
             this.$el.html(this.template());
             console.log('pathway ini');
-             new pageOption({'Pathways':['fa-user', 'pathways']})
+            sidebarModel.addOption('Pathways')
             this.showhide();
             contextModel.on('change:page', this.showhide , this)
             //$('#content').css("width", "80%");

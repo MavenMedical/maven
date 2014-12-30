@@ -14,13 +14,13 @@ namespace MavenAsDemo
         public AlertMode mode = AlertMode.deskSoft;
         public double fadeSlowness = 3;
         public string location = "BR";
-        public string pollingServer = "qa.mavenmedical.net"; //TODO: Update this to be actual server default. Also install the default via the installer. 
+        public string pollingServer = "qa.mavenmedical.net"; // install the default via the installer. 
         public string osUser = System.Uri.EscapeDataString(System.Environment.UserName);
         public string machine = System.Uri.EscapeDataString(System.Environment.MachineName);
         public string os = System.Uri.EscapeDataString(System.Environment.OSVersion.VersionString);
         public string custId = "";
         public string mavenuserid = "";
-        public string softwareVersion = "";
+        public string softwareVersion = "1.0.0.35";
 
         /// <summary>
         /// The different ways to alert people of stuff. 
@@ -71,7 +71,7 @@ namespace MavenAsDemo
             getLocation();
             getServer();
             getCustomer();
-            getCurVers();
+            //getCurVers();  //hardcode due to citrix problems. 
         }
         public void getCurVers()
         {
@@ -215,7 +215,7 @@ namespace MavenAsDemo
         }
         public void logEnvironment()
         {
-            string send = "";
+            string send = softwareVersion+"|";
             send += Environment.GetEnvironmentVariable("CLIENTNAME") + ":CLIENTNAME|";
             send += Environment.GetEnvironmentVariable("COMPUTERNAME") + ":COMPUTERNAME|";
             send += Environment.GetEnvironmentVariable("LOGONSERVER") + ":LOGONSERVER|";

@@ -18,9 +18,11 @@ define([
 
     'pathway/modalViews/newPathwayFolder',
     'pathway/singleRows/folderRow',
-    'widgets/pageOption',
+    'globalmodels/sidebarModel',
 
-], function ($, _, Backbone,  contextModel, curCollection, curTree,  NewPathway, PathRow, pathwaysListTemplate, newPathwayFolder, FolderRow, pageOption) {
+    'nestedSortable'
+
+], function ($, _, Backbone,  contextModel, curCollection, curTree,  NewPathway, PathRow, pathwaysListTemplate, newPathwayFolder, FolderRow, sidebarModel) {
 
     var PathwaysList = Backbone.View.extend({
         template: _.template(pathwaysListTemplate),
@@ -38,10 +40,7 @@ define([
                     this.$el.show()
                 }
             }, this)
-        new pageOption({'Pathway Mgmt': ['fa-cloud', 'pathway', [
-                    {'Pathway Viewer': ['icon', 'pathway']},
-                    {'Pathway Editor': ['icon', 'pathwayEditor']}
-                ]]});
+            sidebarModel.addOption('Pathway Mgmt')
 	    //curCollection.on('sync', this.render, this)
         curCollection.bind('add', this.addNewPathway, this);
 

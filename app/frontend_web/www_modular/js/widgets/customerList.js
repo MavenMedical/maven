@@ -8,8 +8,8 @@ define([
     'singleRow/customerRow',
 
     'globalmodels/contextModel',
-    'widgets/pageOption'
-], function ($, _, Backbone, customerCollection, CustomerRow, contextModel, pageOption) {
+    'globalmodels/sidebarModel'
+], function ($, _, Backbone, customerCollection, CustomerRow, contextModel, sidebarModel) {
 
     var CustomerList = Backbone.View.extend({
 	initialize: function(arg) {
@@ -50,9 +50,9 @@ define([
         $(".refreshButton", this.$el).hover(function(event) {
             $(event.target).attr('title', "Last Refresh: " + customerCollection.getLastRefresh());
         });
-        new pageOption({'Customers':['fa-user', 'customers']})
-         this.showhide();
-         contextModel.on('change:page', this.showhide , this)
+            sidebarModel.addOption('Customers')
+            this.showhide();
+            contextModel.on('change:page', this.showhide , this)
 
 	},
     events: {

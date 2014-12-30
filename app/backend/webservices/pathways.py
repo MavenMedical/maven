@@ -154,6 +154,19 @@ class PathwaysWebservices():
         except Exception:
             return HTTP.BAD_RESPONSE, json.dumps('FALSE'), None
 
+    @http_service(['GET'], '/node_activity',
+                  [CONTEXT.CUSTOMERID, CONTEXT.PROTOCOL, CONTEXT.NODEID],
+                  {CONTEXT.CUSTOMERID: int, CONTEXT.PROTOCOL: int,
+                   CONTEXT.NODEID: str, CONTEXT.PATIENT: str},
+                  {USER_ROLES.supervisor, USER_ROLES.provider, USER_ROLES.mavensupport})
+    def last_checks(self, _header, _body, context, _matches, _key):
+        customer = context[CONTEXT.CUSTOMERID]
+        protocol = context[CONTEXT.PROTOCOL]
+        patient = context.get(CONTEXT.PATIENT, '')
+        node = context[CONTEXT.NODEID]
+        results = yield from self.persistence.last_checks(customer, protocol, patient, node)
+        return HTTP.OK_RESPONSE, json.dumps(results), None
+
     @http_service(['POST'], '/activity',
                   [CONTEXT.USERID, CONTEXT.CUSTOMERID],
                   {CONTEXT.USERID: int, CONTEXT.CUSTOMERID: int},

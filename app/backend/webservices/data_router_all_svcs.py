@@ -287,7 +287,8 @@ def main(loop):
      notification_fn,
      update_notify_prefs_fn) = NS.notification_server(CONFIG_PARAMS.NOTIFY_SVC.value,
                                                       server_endpoint,
-                                                      client_interface.notify_user)
+                                                      client_interface.notify_user,
+                                                      client_interface.listening_state)
     followup_task_service = TimedFollowUpService(CONFIG_PARAMS.FOLLOWUP_SVC.value, server_endpoint)
 
     notification_service.schedule(loop)

@@ -24,17 +24,20 @@ require.config({
 	    nestable: '../ace/assets/js/jquery.nestable',
         fullcalendar: 'libs/fullCalendar/fullcalendar.min',
         moment: 'libs/fullCalendar/moment.min',
-        ckeditor: ['//cdn.ckeditor.com/4.4.5/standard/ckeditor', 'libs/ckeditor/ckeditor'],
+        ckeditor2: 'libs/ckeditor/ckeditor',
+        ckeditor: 'ckeditor-customize',
         templates: '../templates',
         amchartspie: 'libs/amcharts/pie',
         amchartslight: 'libs/amcharts/themes/light',
         amchartsserial: 'libs/amcharts/serial',
         amcharts: 'libs/amcharts/amcharts',
-        ace: 'ace-min'
+        ace: 'libs/ace/ace.min',
+        aceelements: 'libs/ace/ace-elements.min'
     },
     shim: {
-	    touch: {deps: ['jquery_ui']},
-        ace: {deps: ['jquery', 'jquery_ui','bootstrap']},
+	touch: {deps: ['jquery_ui']},
+        ace: {deps: ['jquery', 'jquery_ui','bootstrap', 'aceelements']},
+        aceelements: {deps: ['bootstrap']},
         'ace/assets/js/flot/jquery.flot.pie': {deps: ['ace/assets/js/flot/jquery.flot']},
         'ace/assets/js/flot/jquery.flot.resize': {deps: ['ace/assets/js/flot/jquery.flot']},
         bootstrap: {

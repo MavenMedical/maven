@@ -7,14 +7,14 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'globalmodels/contextModel',
-    'widgets/pageOption',
-], function ($, _, Backbone, contextModel, pageOption) {
+    'globalmodels/sidebarModel',
+], function ($, _, Backbone, contextModel, sidebarModel) {
 
     var Profile = Backbone.View.extend({
             initialize: function(arg){
                 this.template = _.template(arg.template);
                 this.render();
-                 new pageOption({'Profile':['fa-user', 'profile']})
+                sidebarModel.addOption('Profile')
                 this.showhide();
                 contextModel.on('change:page', this.showhide , this)
 

@@ -43,6 +43,7 @@ class CONTEXT():
     ACTIONCOMMENT = 'action_comment'
     PATHID = 'pathid'
     CANONICALID = 'canonical'
+    NODEID = 'node_id'
     SEARCH_PARAM = 'search_param'
     TARGETUSER = 'target_user'
     TARGETPROVIDER = 'target_provider'

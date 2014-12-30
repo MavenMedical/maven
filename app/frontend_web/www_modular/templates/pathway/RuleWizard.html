@@ -1,38 +1,78 @@
-<div id="detail-modal" class="modal fade" role="dialog" aria-hidden="true">
+<div id="detail-modal" class="modal fade" role="dialog" aria-hidden="true" style="z-index: 1030">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal"><span
                         aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                <h4 class="modal-title">Detail Creation Wizard</h4>
+                <h4 class="modal-title">Pathway Triggers</h4>
             </div>
 
             <div class="modal-body">
 
-                <div style = "clear:both" class="detail-sections"><div style="text-align: center; font-size: 240%">Show this pathway if the patient has: </div></div>
+                <div style = "clear:both" class="detail-sections"><div style="text-align: center;">All of the Following Groups of Requirements Must be Fulfilled in Order to Show the
+    Pathway
+                </div></div>
+
                 <br>
-                <div style = "float:left">
-                        <button class = 'createButton btn-default btn'
-                                id = 'enc_dx'
-                                title ="Specify a constraint based on any diagnosis currently associated with the encounter such as chief complaints, differential diagnoses, or symptoms that have been discretely documented and transmitted to Maven."
-                                >
-                           Encounter Diagnosis
-                        </button>
-                </div>
-
-                <div style = "float:left">
-                        <button class = 'createButton btn-default btn'
-                                id = "hist_dx"
-                                title ="Specify a constraint based on a diagnosis in the patient’s diagnostic history"
-                                >
-                           Historic Diagnosis
-                        </button>
-                </div>
+<div style="margin-left: 15%; margin-right:15%; max-width: 60%" id="disjoinedGroups">
 
 
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                </div>
+</div>
+
+
+<br>
+<div style="float:left">
+    <div class='detailButton btn-default btn'
+         id='enc_dx'
+         title="Specify a constraint based on any diagnosis currently associated with the encounter such as chief complaints, differential diagnoses, or symptoms that have been discretely documented and transmitted to Maven."
+            >
+        Encounter Diagnosis
+    </div>
+</div>
+
+<div style="float:left">
+    <div class='detailButton btn-default btn'
+         id="hist_dx"
+         title="Specify a constraint based on a diagnosis in the patient’s diagnostic history"
+            >
+        Historic Diagnosis
+    </div>
+</div>
+
+
+<div style="float:left">
+    <div class='detailButton btn-default btn'
+         id="pl_dx"
+         title="Specify a constraint based on a diagnosis in the patient’s problem list"
+            >
+        Problem List Diagnosis
+    </div>
+</div>
+<div style="float:left">
+    <div class='detailButton btn-default btn'
+         id="all_dx"
+         title="Specify a constraint based on a diagnosis in the patient’s problem list"
+            >
+        All Diagnoses
+    </div>
+</div>
+<div style="float:left">
+    <div class='detailButton btn-default btn'
+         id="membership"
+         title="Specify a constraint based on the receiving clinicians group memberships"
+            >
+        Clinician Groups
+    </div>
+</div>
+<button id="add-group-button" class="btn btn-default" >Add Group</button>
+
+
+
             </div>
+            <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button id="back-to-editor" class="btn btn-primary">Confirm</button>
+                </div>
         </div>
     </div>
+</div>

@@ -352,7 +352,7 @@ define([
              }
              }
              */
-            console.log('the json will look like', retMap)
+            //console.log('the json will look like', retMap)
 
             return retMap
         },

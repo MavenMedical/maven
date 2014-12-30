@@ -210,3 +210,24 @@ a.disabled {
 .active-history > .dd2-content {
     background-color: #FEE188 !important;
 }
+/******************************************************************
+ * The following customize the fonts and colors of the trigger modal *
+ ******************************************************************/
+#modal-target{
+    z-index: 1030 !important;
+}
+#detailed-trigger-modal{
+    	z-index: 1020 !important;
+
+}
+
+
+.hoverDrop{
+    border-style: dashed !important;
+    background-color: #d3d3d3 !important;
+
+}
+.activeDrop{
+    border-style: dashed !important;
+    border-color: #808080;
+}

@@ -9,23 +9,18 @@ define([
         'pathway/modalViews/nodeEditor',
         'pathway/Helpers',
         'pathway/models/pathwayCollection',
-        'widgets/pageOption',
         'text!templates/pathway/treeTemplate.html',
         'text!templates/pathway/insertDiv.html',
         'jsplumb'
     ],
 
-    function ($, _, Backbone, contextModel, curTree, treeContext, TriggerNode, NodeEditor, Helpers, pathwayCollection, pageOption, treeTemplate, insertDiv) {
+    function ($, _, Backbone, contextModel, curTree, treeContext, TriggerNode, NodeEditor, Helpers, pathwayCollection, treeTemplate, insertDiv) {
 
         var TreeView = Backbone.View.extend({
 
             template: _.template(treeTemplate),
             initialize: function () {
                 this.$el.html(this.template())
-                new pageOption({'Pathway Mgmt': ['fa-cloud', 'pathway', [
-                    {'Pathway Viewer': ['icon', 'pathway']},
-                    {'Pathway Editor': ['icon', 'pathwayEditor']}
-                ]]});
                 contextModel.on('change:page', function () {
                     if (contextModel.get('page') == 'pathEditor' || contextModel.get('page') == 'pathway') {
                         this.$el.show()

@@ -3,59 +3,130 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
+    'globalmodels/contextModel',
+    'globalmodels/layoutModel',
     'pathway/modalViews/detailEditor',
     'pathway/internalViews/detailGroup',
     'pathway/models/treeModel',
     'Helpers',
+    'text!templates/pathway/detailSection.html',
+    'text!templates/pathway/disjoinedGroups.html',
     'text!templates/pathway/RuleWizard.html',
-    'text!templates/pathway/detailSection.html'
+    'bootstrapswitch',
 
-], function ($, _, Backbone, detailEditor, DetailGroup, curTree, helpers, wizardTemplate, detailSection) {
+], function ($, _, Backbone, contextModel, layoutModel, detailEditor, DetailGroup, curTree, helpers, detailSection, disjoinedGroupTemplate ,wizardTemplate) {
+    var printGroup = function(key, curGroup, location){
+        require (['text!/templates/pathway/details/' + key + 'Detail.html'], function(key) {return  function(curTemplate){
+                                //load the list of details of this type
+                                var toList = curGroup.get('details').get(key);
+                                var toTemplate = _.template(curTemplate);
+                                var sectionTemplate = _.template(detailSection);
 
+                                            location.append(sectionTemplate());
+
+                                            //create a new detail group for this detail type, and send it the collection of details of this type
+                                            var cur  = new DetailGroup({group: curGroup, el: $('.items').last(), lineTemplate:toTemplate, list: toList, type: key})
+
+                                        cur.render();
+
+
+
+                            };}(key));
+
+  };
     var ruleWizard = Backbone.View.extend({
          el: '#modal-target',
 
         initialize: function(params){
-            this.triggerNode = params.triggerNode
             this.template = _.template(wizardTemplate)
             this.$el.html(this.template())
-                            var that = this
-
-            $('.createButton').on('click', function(button){
-                var detailType = button.currentTarget.id
-                $("#detail-modal").modal('hide');
-                $('#detail-modal').on('hidden.bs.modal', function () {
-
-                    require(['text!templates/pathway/details/' + detailType +"_editor.html"], function(template){
-                        var curEditor = new detailEditor({template: _.template(template), model: new Backbone.Model(), newDetail: true, el:$('#modal-target'), triggerNode: that.triggerNode, type: detailType})
-                        curEditor.render()
-                    })
-
-                })
-
+            $('.detailButton').draggable({ revert: true })
+          this.render();
+        },
+        render: function(){
+             var that = this
+            curTree.once('sync', function () {
+                that.render()
             })
 
 
-            for (var key in curTree.get("triggers").attributes){
-                   //only proceed if the key is NOT in the set of attributes that arent details
-                       //show the details, there are some
-                        var context = this;
-                        //load this detail type's template
-                        require (['text!/templates/pathway/details/' + key + 'Detail.html'], function(key) {return  function(curTemplate){
-                            //load the list of details of this type
-                            var toList = curTree.get('triggers').get(key);
-                            var toTemplate = _.template(curTemplate);
-                            var sectionTemplate = _.template(detailSection);
+            $('#add-group-button').on('click', function () {
+                curTree.get('triggers').addGroup("and")
+            })
 
-                                        $('.detail-sections', context.$el).append(sectionTemplate({heading:helpers.detailHeadings[key]}));
+             var groupView = Backbone.View.extend({
+                template: _.template(disjoinedGroupTemplate),
+                initialize: function (param) {
+                    this.group = param.group
+                     this.$el.droppable({
+                        drop: function (event, ui) {
+                            console.log(this.group)
+                            var detailType = ui.draggable[0].id
+                            require(['text!templates/pathway/details/' + detailType + "_editor.html"], function (template) {
+                                var curEditor = new detailEditor({group: self.group, template: _.template(template), model: new Backbone.Model(), newDetail: true, el: $('#detailed-trigger-modal'), triggerNode: that.triggerNode, type: detailType})
+                                curEditor.render()
+                            })
 
-                                        //create a new detail group for this detail type, and send it the collection of details of this type
-                                        var cur  = new DetailGroup({el: $('.items', context.$el).last(), lineTemplate:toTemplate, list: toList, type: key})
-                                        cur.render();
+
+                        },
+                        activeClass: "activeDrop",
+                        hoverClass: "hoverDrop"
+                    })
+
+                },
+
+                render: function () {
+                    var self = this;
+                    this.$el.css({'border-style': 'solid', 'border-width': '4px'})
 
 
-                        };}(key));
-                   }
+
+                    var params = {relationship: this.group.get('relationship'), groupID: this.group.cid}
+                    this.$el.html(this.template(params))
+
+                    $('.group-delete', this.$el).on('click', function () {
+                        curTree.get('triggers').remove(self.group)
+                    })
+
+                    $(".toggles", this.$el).bootstrapSwitch()
+                    $(".toggles", this.$el).bootstrapSwitch('onText', "Any")
+                    $(".toggles", this.$el).bootstrapSwitch('offText', "All")
+
+                    if (self.group.get('relationship') == "and") {
+                        $(".toggles", this.$el).bootstrapSwitch("state", false, false)
+                    } else {
+                        $(".toggles", this.$el).bootstrapSwitch("state", true, false)
+                    }
+                    $(".toggles", this.$el).on('switchChange.bootstrapSwitch', function (a, b) {
+                        if ($(".toggles", self.$el).bootstrapSwitch('state') == false) {
+                            self.group.set('relationship', "and")
+                        }
+                        else {
+                            self.group.set('relationship', "or")
+                        }
+
+
+                    })
+
+                    for (var key in this.group.get('details').attributes) {
+                        var location = $('.detail-sections', this.$el)
+                        printGroup(key, this.group, location)
+                    }
+                    return this
+
+
+                }
+            })
+
+             for (var i in curTree.get("triggers").models) {
+                var curGroup = new groupView({group: curTree.get('triggers').models[i]})
+                $('#disjoinedGroups').append(curGroup.$el)
+                $('#disjoinedGroups').append("<div style='height:25px'></div>")
+                curGroup.render()
+
+            }
+
+
             $("#detail-modal").modal({'show':'true'});
         }
 

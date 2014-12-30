@@ -150,8 +150,7 @@ define([
         },
         addProtocol: function (protoModel) {
             var that = this
-            //console.log('the protocol node', ProtocolNode)
-            var protoNode = new ProtocolNode({model: protoModel})
+            var protoNode = new ProtocolNode({model: protoModel, hidden: this.model.childrenHidden()})
             $('.protocol', that.$el).first().append(protoNode.render().$el)
             curTree.elPairs.push({source: that, target: protoNode, bold: true})
             $('.removeProtocolButton', that.$el).on("click", function () {
