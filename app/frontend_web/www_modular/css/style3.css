@@ -231,3 +231,7 @@ a.disabled {
     border-style: dashed !important;
     border-color: #808080;
 }
+
+.widget-column {
+    background-color: #ffffff;
+}
