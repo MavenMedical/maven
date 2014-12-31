@@ -15,13 +15,12 @@ define([
     'text!templates/pathway/pathwayFolderEntry.html',
     'pathway/modalViews/newPathway',
     'pathway/modalViews/newPathwayFolder',
-     'pathway/models/pathwayCollection',
 
-], function ($, _, Backbone, router, contextModel, pathFolderRowTemplate, NewPathway, NewPathwayFolder, curCollection) {
+], function ($, _, Backbone, router, contextModel, pathFolderRowTemplate, NewPathway, NewPathwayFolder) {
         console.log(NewPathwayFolder);
 
     var ruleRow = Backbone.View.extend({
-        tagName: "li class='sub-folder dd-item'",
+        tagName: "li class='sub-folder dd-item dd2-item dd-collapsed'",
         template: _.template(pathFolderRowTemplate),
         parentList: [], //parent folders
         events: {
@@ -34,39 +33,17 @@ define([
         },
         openFolder: function(event){
             //open folder - change folder icon to 'open' and show all immediate children
-            $(event.target).closest("li").switchClass("mjs-nestedSortable-collapsed", "mjs-nestedSortable-expanded",0);
+            $(event.target).closest(".sub-folder").switchClass("dd-collapsed", "dd-expanded",0);
         },
         closeFolder: function(event){
             //close folder - change folder icon to 'close' and hide all children
-            $(event.target).closest("li").switchClass("mjs-nestedSortable-expanded", "mjs-nestedSortable-collapsed",0);
-            $(event.target).closest("li").find(".mjs-nestedSortable-branch").switchClass("mjs-nestedSortable-expanded", "mjs-nestedSortable-collapsed",0);
-        },
-        toggleFolder: function(event){
-            event.stopPropagation();
-            curFolder = $(this.el).find(".pathway-folder-title").first();
-
-            if ($(".folder-state", curFolder).hasClass("glyphicon-folder-close")){
-                //open folder - change folder icon to 'open' and show all immediate children
-                    $(".folder-state", curFolder).switchClass("glyphicon-folder-close", "glyphicon-folder-open");
-                    //$(".ui-state-default", this.$el).css("display","inline-block");
-                    //$("ol", this.$el).css("display","inline-block");
-                    $(this.el).switchClass("mjs-nestedSortable-collapsed", "mjs-nestedSortable-expanded");
-                    //.find("ol").first().show();//css("display","inline-block");
-                }
-                else {
-                    //close folder - change folder icon to 'close' and hide all children
-                    $(".folder-state", this.$el).switchClass("glyphicon-folder-open", "glyphicon-folder-close");
-                   // $("ol", this.$el).hide();
-                    $(this.el).switchClass("mjs-nestedSortable-expanded", "mjs-nestedSortable-collapsed");
-                    $(this.el).find(".mjs-nestedSortable-branch").switchClass("mjs-nestedSortable-expanded", "mjs-nestedSortable-collapsed");
-
-                    //curFolder.siblings().hide();
-                }
+            $(event.target).closest(".sub-folder").switchClass("dd-expanded", "dd-collapsed",0);
+            $(event.target).closest(".sub-folder").find(".sub-folder").switchClass("dd-expanded", "dd-collapsed",0);
         },
         setParents: function(){
             //check the location of the folder - if it has moved, update the parent list and return true
 
-            var newParentList = [$(this.el).children().first().attr("name")]; //initialize with current folder name [this.parentList[this.parentList.length-1]];
+            var newParentList = [$(this.el).children(".pathway-folder-title").attr("name")]; //initialize with current folder name [this.parentList[this.parentList.length-1]];
             var parentFolder = $(this.el).parent().closest(".sub-folder");
             while (parentFolder.length){
                 parentName = parentFolder.children(".pathway-folder-title").attr('name');
@@ -94,9 +71,9 @@ define([
         deleteFolderAndPathways: function(folderSelector, that){
             $(folderSelector).children(".sub-folder-contents").children().each(function() {
                 //delete all children
-                if ($(this).hasClass("pathrow-sortable")){
+                if ($(this).hasClass("pathrow-item")){
                     //current child is a pathway
-                    var canonical = $(this).children(".manager-row-header").attr("id");
+                    var canonical = $(this).children(".path-row").attr("id");
                     $.ajax({
                         type: 'DELETE',
                         dataType: 'json',
@@ -122,14 +99,46 @@ define([
         handleNewSubFolder: function(event) {
             event.stopPropagation();
             this.setParents();
-            var a = new NewPathwayFolder({el: '#modal-target', parentFolder: $(this.el).children('ol').first(), parentList: this.parentList});
+            var a = new NewPathwayFolder({el: '#modal-targets', parentFolder: $(this.el).children('ol').first(), parentList: this.parentList});
+        },
+        handleMove: function(folder, path, that){
+            //if the folder is moved, or if a pathway is moved into this folder, pathway locations will need to be updated
+            var position = 0;
+            $(folder).children('ol').children().each(function(){
+                if ($(this).hasClass("pathrow-item")){
+                    //update order
+                    position++;
+                    var locationData = { "location": path, "position": position}
+                    var canonical_id = $(".path-row", $(this)).attr("id");
+                    that.handleMovedPath(canonical_id, locationData)
+                }
+                else {
+                    var new_path = path + "/" + $(".pathway-folder-title",$(this)).first().attr('name');
+                    that.handleMove(this, new_path, that);
+                }
+            });
+        },
+        handleMovedPath: function(canonical_id, locationData){
+            //update order
+            var data = {'canonical': canonical_id, 'customer_id': contextModel.get("customer_id"), 'userid': contextModel.get("userid")}
+            $.extend(data, contextModel.toParams(), data);
+            $.ajax({
+                type: 'POST',
+                dataType: 'json',
+                url: "/update_pathway_location?" + $.param(data),
+                data: JSON.stringify(locationData),
+                success: function () {
+                    console.log("pathway location updated");
+                }
+            });
         },
         render: function(){
-            that = this;
+            var that =this;
             $(this.el).html(this.template(this.model.toJSON()));
-            $(document).ready(function(){
-             //   $(that.el).switchClass("mjs-nestedSortable-leaf","mjs-nestedSortable-branch")
-            });
+            $(this.el).on("change", function(event){
+                event.stopPropagation();
+                that.handleMove($(that.el), that.setParents().join("/"), that);
+            })
             return this;
         },
         initialize: function(params){

@@ -9,7 +9,7 @@ define([
     'globalmodels/contextModel'
 ], function ($, _, Backbone, contextModel) {
     var elem = function (page, icon, menu_text) {
-        return $('<li>', {'class': ""}).append(
+        return $('<li>', {}).append(
             $('<a>', {
                 'href': page,
                 'class': "dropdown-toggle"}).append(

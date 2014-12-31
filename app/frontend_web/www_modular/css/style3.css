@@ -75,7 +75,7 @@
 .pathtree li div.protocolNode {
     text-align: left;
     max-width: 400px;
-    border: 2px solid #18bc9a;
+    border: 3px solid #18bc9a;
     background-color: whitesmoke;
     padding: 5px 10px;
     text-decoration: none;
@@ -194,6 +194,22 @@ a.disabled {
    cursor: default;
 }
 
+
+/******************************************************************
+ * The following customize the pathway manager *
+ ******************************************************************/
+
+.action-buttons > a {
+    cursor: pointer;
+}
+
+.active-pathway > .dd2-content{
+    background-color: lightyellow !important;
+}
+
+.active-history > .dd2-content {
+    background-color: #FEE188 !important;
+}
 /******************************************************************
  * The following customize the fonts and colors of the trigger modal *
  ******************************************************************/
@@ -222,5 +238,8 @@ a.disabled {
   line-height: 1.5;
 }
 .btn-group > .btn-app:first-child:not(:last-child):not(.dropdown-toggle) {
-  margin-right: 2px;
+    margin-right: 2px;
+}
+.widget-column {
+    background-color: #ffffff;
 }

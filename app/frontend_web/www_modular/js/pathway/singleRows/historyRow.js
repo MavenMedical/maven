@@ -18,7 +18,7 @@ define([
 ], function ($, _, Backbone, historyRowTemplate, contextModel) {
 
     var HistoryRow = Backbone.View.extend({
-        tagName: "div class='history-row'",
+        tagName: "li class='dd-item history-row'",
         template: _.template(historyRowTemplate),
         events: {
             'click .history-checkbox': 'handleCheck',
@@ -46,8 +46,8 @@ define([
             contextModel.set('pathid', String(this.model.get('pathid')))
             contextModel.set('canonical', String(this.model.get('canonical')))
 
-            $(".active-history").removeClass("active-history");
-            $(this.el).addClass("active-history")
+            $(".active-pathway").removeClass("active-pathway");
+            $(this.el).addClass("active-pathway")
         }
     });
 

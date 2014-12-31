@@ -8,7 +8,7 @@
  **************************************************************************/
 define([
     // These are path alias that we configured in our main.js
-    'jquery',     // lib/jquery/jquery
+    'jquery',     // lib/jquery/jqueryq
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'router',
@@ -20,12 +20,12 @@ define([
 ], function ($, _, Backbone, router, contextModel, pathwayCollection, pathRowTemplate, HistoryList) {
 
     var ruleRow = Backbone.View.extend({
-        tagName: "li class='dd-item pathrow-item'",
+        tagName: "li class='dd-item pathrow-item dd2-item dd-collapsed'",
         template: _.template(pathRowTemplate),
         historyList: null,
         events:{
 	      'click .select-button': 'handleSelect',
-	      'click .history-button': 'handleHistory',
+	      'click .show-hist': 'handleHistory',
 	      'click .delete-button': 'handleRemove',
 	      'click .pathway-checkbox': 'handleCheck',
 	      'click .pathway-switch-label': 'handleToggle',
@@ -45,7 +45,7 @@ define([
                     if (state){
                         $(".history-checkbox", this.$el).removeClass("check-disabled",0);
                     }
-                    else {
+                    else {folderrow
                         $(".history-checkbox", this.$el).addClass("check-disabled",0);
                     }
 
@@ -56,7 +56,7 @@ define([
         },
         initialize: function(params){
             this.model = params.model
-
+            that = this;
             $(this.el).on("remove", function(){
                console.log("this pathway was removed");
             });
@@ -71,7 +71,7 @@ define([
             contextModel.set('pathid', String(this.model.get('id')))
 
             $(".active-pathway").removeClass("active-pathway");
-            $(this.el).children(".path-row").addClass("active-pathway")
+            $(this.el).addClass("active-pathway")
 
             contextModel.unbind('change:pathid', this.updateCurPath);
             contextModel.on("change:pathid", this.updateCurPath, {that: this});
@@ -100,17 +100,17 @@ define([
         },
         handleHistory: function() {
             var pathwayHistory = $(".pathway-history-section", this.$el)
-            pathwayHistory.toggle();
-            if (pathwayHistory.is(":visible")){
+           // pathwayHistory.toggle();
+            //if (pathwayHistory.is(":visible")){
                 //hide all other history views
-                $(".pathway-history-section").not(pathwayHistory).hide();
-               // if (pathwayHistory.is(":empty")) {
+                //$(".pathway-history-section").not(pathwayHistory).hide();
+                //if (pathwayHistory.is(":empty")) {
                     //only fetch history if not yet fetched
                     var extraData = {canonical: this.model.get('canonical')};
-                    this.historyList = new HistoryList({el: $(".pathway-history-section", this.$el), currentPath: this.model.get('id'), extraData: extraData});
+                    this.historyList = new HistoryList({el: pathwayHistory, currentPath: this.model.get('id'), extraData: extraData});
                     $(this.historyList.el).bind("change", {that: this}, this.updateActivePathway);
-               // }
-            }
+                //}
+           // }
         },
         updateActivePathway: function(event) {
             event.data.model.set('id', event.data.that.historyList.currentPath);

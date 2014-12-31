@@ -15,14 +15,11 @@ define([
 
                 this.template = _.template(arg.template);
                 this.render();
-                  this.showhide();
-            contextModel.on('change:page', this.showhide , this)
-		    contextModel.on('change:pathid', this.render, this);
-
-
+                this.showhide();
+                contextModel.on('change:page', this.showhide , this)
+		contextModel.on('change:pathid', this.render, this);
             },
             render: function (){
-                console.log('render welcome')
 		if (contextModel.get('pathid') && contextModel.get('pathid') > 0) {
 		    this.$el.hide();
 		} else {

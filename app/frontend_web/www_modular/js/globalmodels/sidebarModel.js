@@ -18,7 +18,9 @@ define([
 	   var SidebarModel = Backbone.Model.extend({
                
 	       addOption: function(name) {
-                   this.set(name, details[name]) 
+                   if (!this.get(name)) {
+                       this.set(name, details[name]) 
+                   }
                }
            })
            

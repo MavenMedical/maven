@@ -32,7 +32,7 @@
 
     var defaults = {
             listNodeName    : 'ol',
-            itemNodeName    : 'li',
+            itemNodeName    : 'li:not(.history-row)',
             rootClass       : 'dd',
             listClass       : 'dd-list',
             itemClass       : 'dd-item',
@@ -42,8 +42,8 @@
             placeClass      : 'dd-placeholder',
             noDragClass     : 'dd-nodrag',
             emptyClass      : 'dd-empty',
-            expandBtnHTML   : '<button data-action="expand" type="button">Expand</button>',
-            collapseBtnHTML : '<button data-action="collapse" type="button">Collapse</button>',
+            expandBtnHTML   : '<button data-action="expand" title="Expand" class="show-hist">expand</button>',
+            collapseBtnHTML : '<button data-action="collapse" title="Collapse">collapse</button>',
             group           : 0,
             maxDepth        : 5,
             threshold       : 20
@@ -239,7 +239,7 @@
                 li.prepend($(this.options.expandBtnHTML));
                 li.prepend($(this.options.collapseBtnHTML));
             }
-            li.children('[data-action="expand"]').hide();
+            li.children('[data-action="collapse"]').hide();
         },
 
         unsetParent: function(li)
@@ -302,6 +302,8 @@
             if (this.hasNewRoot) {
                 this.dragRootEl.trigger('change');
             }
+            el.trigger('change');
+            //el.parent().closest(".sub-folder").removeClass("collapsed");
             this.reset();
         },
 

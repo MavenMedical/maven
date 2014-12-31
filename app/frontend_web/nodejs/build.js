@@ -20,11 +20,17 @@
         'bootstrapswitch': 'empty:',
         '/services/recaptcha': 'empty:',
         'ace': 'empty:',
+        'aceelements': 'empty:',
+        'aceextra': 'empty:',
     },
     shim: {
+        jquery: {exports: 'jQuery'},
         bootstrap: {
             deps: ['jquery']
         },
+        ace: {deps: ['jquery', 'jquery_ui','bootstrap', 'aceelements']},
+        aceextra: {deps: ['bootstrap', 'jquery', 'jquery_ui']},
+        aceelements: {deps: ['aceextra', 'bootstrap', 'jquery_ui', 'jquery']},
         jsplumb: {
             deps: ['jquery', 'jquery_ui']
         },
