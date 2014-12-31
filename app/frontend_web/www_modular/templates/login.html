@@ -1,40 +1,102 @@
-<div class = "widget-column col-sm-12">
-<div class="modal-dialog modal-lg login">
-    <div class="modal-content">
-        <div class="modal-body">
-          <h3><span class="glyphicon glyphicon-lock"></span><span class="brand"><b>maven</b></span> Sign In</h3>
-	  <div id='login-message' style="color:red"></div>
-	  <div class="col-md-12">
-               <p><input id="login-user" type="text" name="user" placeholder="User name" value="<% if(user) print(user); %>" required></p>
-               <p><input id="login-customer" type="text" name="customer" placeholder="Customer ID" value="<% if (customer) print(customer); %>" required></p>
-                <p><input id="login-password" type="password" placeholder="password" name="password" autofocus></p>
-            </div>
-            <div id="login-buttons" >
-                <button id="login-button">Log in</button>
-                <button id="toggle-password" class='pull-right'
-                        onclick='$("#new-password-container").show();$("#login-buttons").hide();'>Change Password
-                </button>
-            </div>
-            <div id='new-password-container' style='display:none'>
-                <b>New</b> Password: <input id="login-new-password" type="password" name="password">
+<div class="col-sm-10">
+    <div class="login-container">
+        <div class="modal-backdrop fade in"></div>
+        <div class="modal-dialog login">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div id="login-box" class="login-box visible widget-box no-border">
+                        <div class="widget-body">
+                            <div class="widget-main">
+                                <h4 class="header blue lighter bigger">
+                                    <i class="glyphicon glyphicon-lock blue"></i>
+                                    Maven Secure Login
+                                </h4>
 
-                <div> New passwords must contain:</div>
-                <ul>
-                    <li>At least 8 characters <i id='pw-len-cb'></i></li>
-                    <li>A lower-case character <i id='pw-low-cb'></i></li>
-                    <li>An upper-case character <i id='pw-up-cb'></i></li>
-                    <li>A number<i id='pw-num-cb'></i></li>
-                </ul>
-                <div> And it must be different from the old password <i id="pw-diff-cb"></i></div>
-                <div>
-                    <button id="update-password">Update Password</button>
+                                <div class="space-6"></div>
+
+                                <form role="form">
+                                    <fieldset>
+                                        <label class="block clearfix">
+														<span class="block input-icon input-icon-right">
+															<input id="login-user" name="user" type="text"
+                                                                   class="form-control"
+                                                                   placeholder="Username"
+                                                                   value="<% if(user) print(user); %>" required/>
+															<i class="ace-icon fa fa-user"></i>
+														</span>
+                                        </label>
+                                        <label class="block clearfix">
+														<span class="block input-icon input-icon-right">
+															<input id="login-customer" name="customer" type="text"
+                                                                   class="form-control"
+                                                                   placeholder="Customer ID"
+                                                                   value="<% if (customer) print(customer); %>"
+                                                                   required/>
+															<i class="ace-icon fa fa-research"></i>
+														</span>
+                                        </label>
+
+                                        <label class="block clearfix">
+														<span class="block input-icon input-icon-right">
+															<input id="login-password" name="password" type="password"
+                                                                   class="form-control"
+                                                                   placeholder="Password"/>
+															<i class="ace-icon fa fa-lock"></i>
+														</span>
+                                        </label>
+
+                                        <div class="clearfix" id="login-buttons">
+                                            <button id="login-button" type="button"
+                                                    class="width-35 pull-right btn btn-sm btn-primary">
+                                                <i class="ace-icon fa fa-key"></i>
+                                                <span class="bigger-110">Login</span>
+                                            </button>
+                                            <button id="toggle-password" class='btn btn-link pull-left yellow'
+                                                    onclick='$("#new-password-container").show();$("#login-buttons").hide();'>
+                                                Change
+                                                Password
+                                            </button>
+
+                                        </div>
+
+
+                                        <div class="space-4"></div>
+                                    </fieldset>
+                                </form>
+                                <div class="space-6"></div>
+                                <div id='new-password-container' style='display:none'>
+                                    <b>New</b> Password: <input id="login-new-password" type="password"
+                                                                name="password">
+
+                                    <div> New passwords must contain:</div>
+                                    <ul>
+                                        <li>At least 8 characters <i id='pw-len-cb'></i></li>
+                                        <li>A lower-case character <i id='pw-low-cb'></i></li>
+                                        <li>An upper-case character <i id='pw-up-cb'></i></li>
+                                        <li>A number<i id='pw-num-cb'></i></li>
+                                    </ul>
+                                    <div> And it must be different from the old password <i id="pw-diff-cb"></i>
+                                    </div>
+                                    <div>
+                                        <div class="btn-group">
+                                            <button class="btn btn-primary btn-sm" id="update-password">Update
+                                                Password
+                                            </button>
+                                            <button class="btn btn-default btn-sm" data-dismiss="modal">Cancel</button>
+                                        </div>
+                                    </div>
+                                    <div style='float:right'>
+                                        <a id='reset-password'>Reset</a> password through EMR
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- /.widget-main -->
+                        </div>
+                        <!-- /.widget-body -->
+                    </div>
+                    <!-- /.login-box -->
                 </div>
-		<div style='float:right'>
-		  <a id='reset-password'>Reset</a> password through EMR
-		</div>
             </div>
         </div>
     </div>
-</div>
-
 </div>
