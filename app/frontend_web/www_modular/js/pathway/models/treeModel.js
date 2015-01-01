@@ -212,7 +212,7 @@ define([
         },
         getPathToIDS: function (ids) {
             this.collapse(this)
-            if (!ids) {
+            if (!ids && contextModel.get('code')) {
                 ids = contextModel.get('code').split('-')
             }
             for (var i in ids) {
