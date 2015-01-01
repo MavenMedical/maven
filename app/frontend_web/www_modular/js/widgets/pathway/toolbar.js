@@ -71,8 +71,11 @@ define([
         showhide: function(){
             if(contextModel.get('page') == 'pathEditor'){
                 this.$el.show();
+                $('#toolbar').show()
+
             }else{
                 this.$el.hide();
+                 $('#toolbar').hide()
             }
         },
         addTrigger: function () {

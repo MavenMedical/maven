@@ -1,4 +1,4 @@
-<ul class="nav nav-list">
+<ul id='toolbar' class="nav nav-list">
     <li class="hover" id="newpath-button">
         <a href="javascript:void(0)">
             <i class="menu-icon">
@@ -11,23 +11,23 @@
         <b class="arrow"></b>
     </li>
 
-    <li class="hover">
+        <li class="hover">
 
-        <a href="javascript:void(0)">
+            <a href="javascript:void(0)">
 
-            <i class="menu-icon">
-                <img src="../images/temp/newPath.jpg"
-                     style="width: 30px; height: 25px"></i>
+                <i class="menu-icon">
+                    <img src="../images/temp/newPath.jpg"
+                         style="width: 30px; height: 25px"></i>
 
-			 <span class="menu-text">
-			  Import Pathway
-			 </span>
+                 <span class="menu-text">
+                  Import Pathway
+                 </span>
 
-            <input id='browser' type="file" accept='.pathway'>
+                <input id='browser' type="file" accept='.pathway'>
 
-        </a>
-        <b class="arrow"></b>
-    </li>
+            </a>
+            <b class="arrow"></b>
+        </li>
 
     <li class="hover" id="exportpath-button">
         <a href="javascript:void(0)">
@@ -42,18 +42,7 @@
         <b class="arrow"></b>
     </li>
 
-    <li class="hover" id="trigger-button">
-        <a href="javascript:void(0)">
-            <i class="menu-icon">
-                <img src="../images/temp/newPath.jpg"
-                     style="width: 30px; height: 25px"></i>
-			 <span class="menu-text">
-			  Edit Triggers
-			 </span>
 
-        </a>
-        <b class="arrow"></b>
-    </li>
 
     <li class="hover" id="copypath-button">
         <a href="javascript:void(0)" class="disabled">
@@ -69,6 +58,19 @@
     </li>
 
     <% if (treeNode) { %>
+
+    <li class="hover" id="trigger-button">
+        <a href="javascript:void(0)">
+            <i class="menu-icon">
+                <img src="../images/temp/newPath.jpg"
+                     style="width: 30px; height: 25px"></i>
+			 <span class="menu-text">
+			  Edit Triggers
+			 </span>
+
+        </a>
+        <b class="arrow"></b>
+    </li>
 
     <li class="hover" id="editNode-button">
         <a href="javascript:void(0)">
@@ -149,6 +151,7 @@
 
     <% } %>
 </ul>
+
 
 
 

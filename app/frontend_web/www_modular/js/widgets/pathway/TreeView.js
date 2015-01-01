@@ -5,6 +5,7 @@ define([
         'globalmodels/contextModel',
         'pathway/models/treeModel',
         'pathway/models/treeContext',
+        'widgets/pathway/toolbar',
         'pathway/internalViews/triggerNode',
         'pathway/modalViews/nodeEditor',
         'pathway/Helpers',
@@ -14,13 +15,15 @@ define([
         'jsplumb'
     ],
 
-    function ($, _, Backbone, contextModel, curTree, treeContext, TriggerNode, NodeEditor, Helpers, pathwayCollection, treeTemplate, insertDiv) {
+    function ($, _, Backbone, contextModel, curTree, treeContext,toolbar, TriggerNode, NodeEditor, Helpers, pathwayCollection, treeTemplate, insertDiv) {
 
         var TreeView = Backbone.View.extend({
 
             template: _.template(treeTemplate),
             initialize: function () {
                 this.$el.html(this.template())
+                new toolbar({el:this.$('#pathway-toolbox')})
+
                 contextModel.on('change:page', function () {
                     if (contextModel.get('page') == 'pathEditor' || contextModel.get('page') == 'pathway') {
                         this.$el.show()
