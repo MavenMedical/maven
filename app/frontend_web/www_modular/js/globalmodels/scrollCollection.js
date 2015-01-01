@@ -13,9 +13,8 @@ define([
     var ScrollCollection = Backbone.Collection.extend({
     url: null,
     limit: 10,
-    tried: 0,
     offset: 0,
-	model: ScrollModel,
+    model: ScrollModel,
     extraData: {},
     lastRefresh: new Date(),
     getLastRefresh: function() {
@@ -26,30 +25,37 @@ define([
         //context change listener - this will need to be defined by the subclass
     },
     initialize: function(){
-        this.tried = 0;
         this.offset = 0;
         if(contextModel.get('userAuth') && this.url) {
             //allow for additional data to be passed in, aside from the context model
             var data = {};
             $.extend(data,contextModel.toParams(),this.extraData);
-
-            this.fetch({data: $.param(data), remove:true});
+            this.active=1
+            var that = this
+            this.fetch({
+                data: $.param(data), remove:true,
+                success: function(res) {that.full = res.length < that.limit; that.active=0},
+                error: function() {that.full = 1; that.active=0}
+            });
+            
 	    }
 
         //setup context change listener
         this.context();
     },
     more: function() {
-	    if(this.tried <= this.models.length) {
+	if(!this.full && !this.active) {
             //allow for additional data to be passed in, aside from the context model
             var data = {};
             $.extend(data,contextModel.toParams(),this.extraData);
-
+            var that=this
             this.offset = this.models.length;
-            this.tried = this.models.length+this.limit;
+            this.active=1
             this.fetch({
                 data: $.param(data),
-                remove:false
+                remove:false,
+                success: function(res) {that.active=0;that.full = res.length < that.limit},
+                error: function() {that.full = 1;that.active=0}
             });
         }
 	}
