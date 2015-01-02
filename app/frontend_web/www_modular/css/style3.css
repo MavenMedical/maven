@@ -19,6 +19,11 @@
 
 }
 
+#avail-paths-list {
+    max-height:300px;
+    overflow-y:scroll;
+}
+
 .pathtree ul {
     padding-top: 20px;
     position: relative;
