@@ -19,9 +19,7 @@ define([
     'pathway/modalViews/newPathwayFolder',
     'pathway/singleRows/folderRow',
     'globalmodels/sidebarModel',
-        'nestable',
-    'nestedSortable'
-
+    'nestable',
 
 ], function ($, _, Backbone,  contextModel, curCollection, curTree,  NewPathway, PathRow, pathwaysListTemplate, newPathwayFolder, FolderRow, sidebarModel) {
 
@@ -35,7 +33,7 @@ define([
         },
         initialize: function(){
             contextModel.on('change:page', function () {
-                    if (contextModel.get('page') != 'pathEditor') {
+                    if (contextModel.get('page') != 'pathEditor' && contextModel.get('page')!= 'pathway') {
                         this.$el.hide()
                     } else {
                         this.$el.show()

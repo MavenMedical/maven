@@ -104,11 +104,11 @@ define([
 	},
         showHome: function (user, customer, userAuth) {
             /* remove the current patient list, encounter, etc to revert the view to the doctor's user page */
-            currentContext.set({page: 'home', patients: null, encounter: null, patientName: null});
+            currentContext.set({page: 'pathEditor', patients: null, encounter: null, patientName: null});
 
             //TODO This is only for Demo purpose
             if(currentContext.get('official_name') == 'Heathcliff Huxtable'){
-                currentContext.set({page: 'pathway', patients: null, encounter: null, patientName: null});
+                currentContext.set({page: 'pathEditor', patients: null, encounter: null, patientName: null});
             }
             showPage(user, customer, userAuth);
         },
