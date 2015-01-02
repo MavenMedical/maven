@@ -42,7 +42,6 @@ define([
             'click #newpath-button': 'handle_newPath',
             'click #trigger-button': 'addTrigger',
 	        'change .btn-file :file': 'importPath',
-            'click #mvn-importpath-btn': 'importPath',
             'click #exportpath-button': 'exportPath',
             'click #copypath-button': 'handle_copyPath',
             'click #editNode-button': 'editNode',

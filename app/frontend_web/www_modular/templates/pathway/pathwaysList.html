@@ -36,9 +36,8 @@
 
                                     <div class="widget-toolbar">
                                         <div class="widget-menu">
-                                            <a href="#" data-action="settings" data-toggle="dropdown">
-                                                <i class="ace-icon fa fa-plus"></i>
-                                            </a>
+                                            <button class="btn btn-white btn-primary btn-xs dropdown-toggle" data-action="settings" data-toggle="dropdown">New<span class="ace-icon fa fa-caret-down icon-on-right"></span>
+                                            </button>
                                             <ul class="dropdown-menu dropdown-menu-right dropdown-light-blue dropdown-caret dropdown-closer">
                                                 <li>
                                                     <a id='paths-list-add-folder' class="blue">
@@ -52,9 +51,11 @@
                                                 </li>
                                             </ul>
                                         </div>
-                                        <button class="btn btn-link no-border btn-file path" id="mvn-importpath-btn" data-action="settings"><i class="ace-icon fa fa-cloud-upload light-blue">Upload</i>
-                                            <input id="browser" type="file" accept=".pathway">
-                                        </button>
+                                        <div class="widget-menu">
+                                            <button class="btn btn-white btn-primary btn-xs dz-clickable path" id="mvn-importpath-btn"><span class="ace-icon fa fa-cloud-upload light-blue"></span>Import
+                                                <input id="browser" type="file" accept=".pathway" class="mvn-importpath">
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="widget-body">

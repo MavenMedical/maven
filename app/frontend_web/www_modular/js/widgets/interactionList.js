@@ -43,7 +43,7 @@ define([
             this.$el.html(this.template());
 	    interactionCollection.bind('add', this.addInteraction, this);
 	    interactionCollection.bind('reset', this.reset, this);
-	    interactionCollection.bind('sync', this.render, this);
+	    //interactionCollection.bind('sync', this.render, this);
 	    this.render('Loading ...');
 	    contextModel.on('change:page change:history', function() {this.showhide()}, this)
             contextModel.on('change:history change:historyposition change:historydetails', function() {this.updatehistory()}, this)
@@ -110,13 +110,18 @@ define([
 		this.$el.hide()
 	    }
         },
-        events: {
-            'scroll .interaction-scroll': 'handleScroll',
-        },
 	render: function(empty_text) {
             this.$el.html(this.template());
 	    this.addAll(empty_text);
             this.interactionlist = $('#listinteractions', this.$el);
+            var interactionscroll = $('.interaction-scroll', this.$el)
+            interactionscroll.scroll(function(e) {
+                if(interactionscroll.scrollTop() + interactionscroll.innerHeight() + 100 >= interactionscroll[0].scrollHeight) {
+                    interactionCollection.more();
+                }
+                return false;
+            });
+            
             this.interactioncontrols = $('#interactioncontrols', this.$el)
             $('#nextinteraction', this.$el).click(function() {flip()})
             $(this.interactionlist).on('show', function(){
@@ -161,15 +166,6 @@ define([
                     if (this.lastHeight != interactionHeight && interactionHeight < parseInt(interactionlist.css('max-height'))) {
                         this.lastHeight = interactionHeight;
                         interactionCollection.more();
-                    }
-                    else {
-                        
-                        interactionlist.scroll(function(e) {
-                            if(interactionlist.scrollTop() + interactionlist.innerHeight() + 100 >= interactionlist[0].scrollHeight) {
-                                interactionCollection.more();
-                            }
-                            return false;
-                        });
                     }
                 }, 500);
             }

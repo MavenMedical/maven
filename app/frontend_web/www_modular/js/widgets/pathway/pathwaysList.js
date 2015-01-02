@@ -29,7 +29,8 @@ define([
             //'click #newpath-button': 'handle_newPath',
             'click #add-base-pathway': 'handle_newPath',
             'click #save-button': 'handle_save',
-            'click #paths-list-add-folder': 'handle_new_folder'
+            'click #paths-list-add-folder': 'handle_new_folder',
+            'change .mvn-importpath': 'importPathway'
         },
         initialize: function(){
             contextModel.on('change:page', function () {
@@ -55,6 +56,29 @@ define([
         },
         addNewPathway: function(model){
             this.insertPathway(model, true);
+        },
+        importPathway: function(){
+            var input = $('.mvn-importpath')
+            file = input.get(0).files[0];
+            if (file) {
+                var reader = new FileReader();
+                reader.readAsText(file, "UTF-8");
+                reader.onload = function (evt) {
+                    try{
+                        var importedPath = JSON.parse(evt.target.result);
+                        curTree.loadNewPathway(importedPath, {toImport: true})
+                    }
+                    catch(e){
+                        alert("The format of the file doesn't match Pathway format. Please try another file");
+                    }
+
+                }
+                reader.onerror = function (evt) {
+                    alert('error reading file')
+                }
+                input.wrap('<form>').closest('form').get(0).reset();
+                input.unwrap();
+            }
         },
         insertPathway: function(model, newlyAdded){
             //given a pathway's location, add it to the proper folder; if folder doesn't exist, create it
