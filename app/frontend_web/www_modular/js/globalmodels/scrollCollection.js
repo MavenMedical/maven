@@ -14,6 +14,7 @@ define([
     url: null,
     limit: 10,
     offset: 0,
+    full: 1,
     model: ScrollModel,
     extraData: {},
     lastRefresh: new Date(),
@@ -34,7 +35,7 @@ define([
             var that = this
             this.fetch({
                 data: $.param(data), remove:true,
-                success: function(res) {that.full = res.length < that.limit; that.active=0},
+                success: function(fulcol, res) {that.full = res.length < that.limit; that.active=0},
                 error: function() {that.full = 1; that.active=0}
             });
             
@@ -54,11 +55,30 @@ define([
             this.fetch({
                 data: $.param(data),
                 remove:false,
-                success: function(res) {that.active=0;that.full = res.length < that.limit},
+                success: function(fullcol, res) {that.active=0;that.full = res.length < that.limit;console.log(res.length, that.limit, that.full)},
                 error: function() {that.full = 1;that.active=0}
             });
         }
-	}
+	},
+    refresh: function() {this.fetch_refresh()},
+    fetch_refresh: function() {
+        if (contextModel.get('userAuth')) {
+            
+            var data = {};
+            $.extend(data, contextModel.toParams(), this.extraData);
+            
+            this.offset = 0;
+            this.full = 0;
+            this.active = 1;
+            var that=this
+            this.fetch({
+                data: $.param(data),
+                remove: true,
+                success: function(fullcol, res) {that.full = res.length < that.limit; that.active=0},
+                error: function() {that.full = 1; that.active=0}
+            });
+        }
+    },
     });
 
     return ScrollCollection;
