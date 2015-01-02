@@ -99,7 +99,7 @@ define([
         handleNewSubFolder: function(event) {
             event.stopPropagation();
             this.setParents();
-            var a = new NewPathwayFolder({el: '#modal-targets', parentFolder: $(this.el).children('ol').first(), parentList: this.parentList});
+            new NewPathwayFolder({el: '#modal-target', parentFolder: $(this.el).children('ol').first(), parentList: this.parentList});
         },
         handleMove: function(folder, path, that){
             //if the folder is moved, or if a pathway is moved into this folder, pathway locations will need to be updated
