@@ -22,7 +22,7 @@ define([
             template: _.template(treeTemplate),
             initialize: function () {
                 this.$el.html(this.template())
-                new toolbar({el:this.$('#pathway-toolbox')})
+                this.toolbar = new toolbar({el:this.$('#pathway-toolbox')})
 
                 contextModel.on('change:page', function () {
                     if (contextModel.get('page') == 'pathEditor' || contextModel.get('page') == 'pathway') {
@@ -138,6 +138,7 @@ define([
                 var that = this
                 if (contextModel.get('page') == 'pathEditor' || contextModel.get('page') == 'pathway') {
                     this.$el.show()
+                    this.toolbar.showhide()
 
                 } else {
                     return
