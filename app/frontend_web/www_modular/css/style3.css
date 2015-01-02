@@ -254,3 +254,26 @@ a.disabled {
 .widget-column {
     background-color: #ffffff;
 }
+
+.userlist {
+    width: 99%;
+    margin:auto;
+    padding-bottom: 15px;
+}
+
+.interaction-scroll {
+    overflow-y:scroll;
+    max-height:300px;
+    width:100%;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+}
+
+.audit-scroll {
+    overflow-y:scroll;
+    max-height:200px;
+    width:100%;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+}
+

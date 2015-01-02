@@ -11,6 +11,7 @@ define([
         url: function() {return '/audits'+this.offset+'-'+(this.offset+this.limit);},
         model: AuditModel,
         limit: 5,
+        full: 1,
         context: function(){
             $(".auditlist").on('show',
 		    // make sure the correct audit list is being loaded (user's own list versus target user)
@@ -21,11 +22,16 @@ define([
                 var data = {};
                 $.extend(data, contextModel.toParams(), this.extraData);
 
-                this.tried = 0;
                 this.offset = 0;
+                this.full = 0;
+                this.active = 1;
+                var that=this;
                 this.fetch({
                     data: $.param(data),
-                    remove: true});
+                    remove: true,
+                    success: function(res) {that.full = res.length < that.limit; that.active=0},
+                    error: function() {that.full = 1; that.active=0}
+                });
             }
         },
     });
