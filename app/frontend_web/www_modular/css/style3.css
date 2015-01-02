@@ -197,6 +197,7 @@ background-position:-2px -2px, -2px -2px, -1px -1px, -1px -1px
     text-align: right;
     background: white;
     max-width: 20px;
+    overflow: auto;
 }
 
 
