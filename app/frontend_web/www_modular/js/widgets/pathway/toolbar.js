@@ -72,10 +72,12 @@ define([
             if(contextModel.get('page') == 'pathEditor'){
                 this.$el.show();
                 $('#toolbar').show()
+                $('#widget-toolbox').addClass('grid')
 
             }else{
                 this.$el.hide();
                  $('#toolbar').hide()
+                $('#widget-toolbox').removeClass('grid')
             }
         },
         addTrigger: function () {
