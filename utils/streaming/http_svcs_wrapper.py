@@ -60,6 +60,7 @@ class CONTEXT():
     FOLDER = 'folder'
     ACTIVE = 'active'
     ACTIVITY = 'activity'
+    ENABLED = 'enabled'
     PROTOCOL = 'protocol'
 
 
