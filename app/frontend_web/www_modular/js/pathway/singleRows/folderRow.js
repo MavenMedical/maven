@@ -17,7 +17,6 @@ define([
     'pathway/modalViews/newPathwayFolder',
 
 ], function ($, _, Backbone, router, contextModel, pathFolderRowTemplate, NewPathway, NewPathwayFolder) {
-        console.log(NewPathwayFolder);
 
     var ruleRow = Backbone.View.extend({
         tagName: "li class='sub-folder dd-item dd2-item dd-collapsed'",
