@@ -41,9 +41,6 @@ define([
         initialize: function(params){
             this.template = _.template(wizardTemplate)
             this.$el.html(this.template())
-                        $('#add-group-button').on('click', function () {
-                curTree.get('triggers').addGroup("and")
-            })
             $('.detailButton').draggable({ revert: true })
 
           this.render();
@@ -60,7 +57,10 @@ define([
             }
             curTree.workaround = true
             var that = this
-
+            $('#add-group-button').off('click')
+            $('#add-group-button').on('click', function () {
+                curTree.get('triggers').addGroup("and")
+            })
              var groupView = Backbone.View.extend({
                 template: _.template(disjoinedGroupTemplate),
                 initialize: function (param) {

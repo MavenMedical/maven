@@ -58,7 +58,7 @@ define([
                 //giving it a url makes it searcahble
 
                 var anon
-                if (populateType == "snomed_diagnosis")
+                if (populateType == "snomed_diagnosis" || populateType =="hist_proc")
                     anon =  Backbone.Collection.extend( {url: '/search'})
                 else if (populateType == "groups")
                     anon =  Backbone.Collection.extend( {url: '/groups'})
