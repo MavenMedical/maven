@@ -24,8 +24,17 @@ define([
                 this.$el.html(this.template())
                 this.toolbar = new toolbar({el:this.$('#pathway-toolbox')})
 
-                contextModel.on('change:page', function () {
+                if(contextModel.get('page') == 'pathway') {
+                    $('.widget-title', this.$el).html('Pathway')
+                } else {
+                    $('.widget-title', this.$el).html('Pathway Editor')
+                }                contextModel.on('change:page', function () {
                     if (contextModel.get('page') == 'pathEditor' || contextModel.get('page') == 'pathway') {
+                        if(contextModel.get('page') == 'pathway') {
+                            $('.widget-title', this.$el).html('Pathway')
+                        } else {
+                            $('.widget-title', this.$el).html('Pathway Editor')
+                        }
                         this.$el.show()
 
                     } else {
