@@ -39,13 +39,16 @@ define([
 
             var that = this;
             $(document).ready(function(){
-                //$(".pathway-enable", that.$el).bootstrapSwitch();
-                $('.pathway-enable', that.$el).on('switchChange.bootstrapSwitch', function(event, state) {
+                $('.pathway-enable', that.$el).click(function(event) {
                    // event.stopPropagation();
-                    if (state){
+                    var state = false;
+                    if (event.target.checked){
+                        state = true;
+                        $(event.target).attr('title','Disable Pathway');
                         $(".history-checkbox", this.$el).removeClass("check-disabled",0);
                     }
-                    else {folderrow
+                    else {
+                        $(event.target).attr('title','Enable Pathway');
                         $(".history-checkbox", this.$el).addClass("check-disabled",0);
                     }
 

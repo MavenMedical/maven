@@ -1,12 +1,25 @@
-<div class="dd-handle dd2-handle" name="<%=name%>">
+<div class="dd-handle dd2-handle" name="<%=name%>" title="Pathway Historical Snapshot">
     <i class="normal-icon ace-icon fa fa-book orange bigger-130"></i>
 </div>
-<div class="dd2-content" title="Author: <%=official_name%>
-Date: <%=creation_date%>">
-<span><a class='history-select-button'><%=creation_date%></a></span>
+<div class="dd2-content">
+<span title="Author: <%=official_name%>
+Date: <%=creation_date%>"><a class='history-select-button'><%=creation_date%></a></span>
     <div class="pull-right action-buttons">
-        <a><span style="padding-right: 1px;"
-             class="glyphicon <%= (active == 1) ? 'glyphicon-check' : 'glyphicon-unchecked' %> history-checkbox"></span></a>
+    <%  var check_title = '';
+        var check_class = 'glyphicon history-checkbox';
+        if (active == 1) {
+            //current SNAPSHOT is enabled
+            check_class = check_class + ' glyphicon-check'
+        }
+        else {
+            check_title = 'Use This Snapshot'
+            check_class = check_class + ' glyphicon-unchecked';
+        }
+        if (enabled != 1){
+            //current PATHWAY is NOT enabled
+            check_class = check_class + " check-disabled";
+        } %>
+        <a><span style="padding-right: 1px;" class="<%=check_class%>" title="<%=check_title%>"></span></a>
         <a class="red delete-hist" href="#">
 		    <i class="ace-icon fa fa-trash-o bigger-130"></i>
 	    </a>
