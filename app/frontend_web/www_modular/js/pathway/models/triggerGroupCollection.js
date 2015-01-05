@@ -139,6 +139,7 @@ define([
             var self = this
             for (var key in JSON){
                 var value = JSON[key]
+                /*
                 if (value instanceof Array){
                     value = new Backbone.Collection(value)
 
@@ -146,6 +147,7 @@ define([
                     value.on('remove', function(){self.trigger('cascade')})
                     value.on('change', function(){self.trigger('cascade')})
                 }
+                */
                 this.set(key, value, {silent: true})
 
             }

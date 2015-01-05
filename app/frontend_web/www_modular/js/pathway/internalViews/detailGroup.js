@@ -37,7 +37,6 @@ define([
             this.el = params.el;
 
 
-
         },
         render: function () {
             this.$el.html("");
@@ -62,20 +61,24 @@ define([
                     var that = this
                     // if the user clicks the  el '.detail-item' link in this line, load the editor template for this detail and display the modal for editing
                     $('.detail-item', that.$el).off('click')
-                    $('.detail-item', that.$el).on('click' , function () {
+                    $('.detail-item', that.$el).on('click', function () {
 
-                        require(['text!/templates/pathway/details/' + type + '_editor.html'],
-                            function (curTemplate) {
 
-                                var curView = new DetailEditor({group: that.group, model: that.detail, el: $('#detailed-trigger-modal'), template: _.template(curTemplate), type: type});
+                        $('#detail-modal').on('hidden.bs.modal', function () {
+                            require(['text!templates/pathway/details/' + type + "_editor.html"], function (template) {
+                                var curView = new DetailEditor({group: that.group, model: that.detail, el: $('#detailed-trigger-modal'), template: _.template(template), type: type});
                                 curView.render()
+                                $("#detail-modal").modal('show');
+                            })
 
-                            }
-                        );
-                    })
+                        })
+                        $("#detail-modal").modal('hide');
+
+
+                    });
                     //if the user clicks the '.remove-detail' X in the line remove the detail
-                     $('.remove-detail', that.$el).off('click');
-                    $('.remove-detail', that.$el).on('click',function(){
+                    $('.remove-detail', that.$el).off('click');
+                    $('.remove-detail', that.$el).on('click', function () {
                         that.group.get('details').get(type).remove(that.detail);
 
                     })
@@ -83,7 +86,7 @@ define([
                 }
             })
             //for each detail in the list create a spot for a detailLine view and create a detailLine view to be rendered in that spot
-            for (var c = 0; c<  that.list.models.length; c++) {
+            for (var c = 0; c < that.list.models.length; c++) {
                 var cur = that.list.models[c]
                 cur.off('change')
                 //rerender the group if one of the details within it changes
@@ -91,18 +94,19 @@ define([
                 //create a div in which to render the new detail line
                 //create the detail line to be rendered in the div, set the text to use the line template
                 var params = {}
-                for (var i in cur.attributes){
+                for (var i in cur.attributes) {
                     var c = cur.attributes[i]
-                    if (c.models ){
+                    if (c.models) {
                         params[i] = c.models
                     } else {
                         params[i] = c
                     }
                 }
-                var n = new detailLine({group: that.group,  text: that.lineTemplate(params), detail: cur})
+                var n = new detailLine({group: that.group, text: that.lineTemplate(params), detail: cur})
                 that.$el.append(n.$el)
 
-            };
+            }
+            ;
 
             return this;
 
