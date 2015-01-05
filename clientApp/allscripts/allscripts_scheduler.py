@@ -114,7 +114,7 @@ class scheduler():
         CLIENT_SERVER_LOG.debug('evaluating %s/%s' % (patient, provider_id))
         provider = self.active_providers.get((provider_id, str(self.customer_id)))
         provider_username = provider.get('user_name')
-        self.report('provider/' + provider_username + '/query')
+        self.report('user/' + provider_username + '/query')
 
         now = datetime.now()
         prior = now - timedelta(seconds=12000)
@@ -166,7 +166,7 @@ class scheduler():
     @asyncio.coroutine
     def build_composition_and_evaluate(self, provider_username, patient, encounter_id, enc_datetime, encounter_dx, eval_type):
         CLIENT_SERVER_LOG.debug("About to send to Composition Builder... %s, %s " % (provider_username, encounter_id))
-        self.report('provider/' + provider_username + '/' + eval_type)
+        self.report('user/' + provider_username + '/' + eval_type)
         composition = yield from self.comp_builder.build_composition(provider_username, patient, encounter_id, enc_datetime, encounter_dx)
         CLIENT_SERVER_LOG.debug(("Sending to backend for %s evaluation. Composition ID = %s" % (composition.id, eval_type)))
         ML.TASK(self.parent.evaluate_composition(composition))
