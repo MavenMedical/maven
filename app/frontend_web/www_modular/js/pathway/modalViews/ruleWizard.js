@@ -12,22 +12,23 @@ define([
     'text!templates/pathway/detailSection.html',
     'text!templates/pathway/disjoinedGroups.html',
     'text!templates/pathway/RuleWizard.html',
-    'bootstrapswitch',
+    'bootstrapswitch'
 
 ], function ($, _, Backbone, contextModel, layoutModel, detailEditor, DetailGroup, curTree, helpers, detailSection, disjoinedGroupTemplate ,wizardTemplate) {
     var printGroup = function(key, curGroup, location){
+
         require (['text!/templates/pathway/details/' + key + 'Detail.html'], function(key) {return  function(curTemplate){
+
                                 //load the list of details of this type
                                 var toList = curGroup.get('details').get(key);
                                 var toTemplate = _.template(curTemplate);
                                 var sectionTemplate = _.template(detailSection);
 
-                                            location.append(sectionTemplate());
 
                                             //create a new detail group for this detail type, and send it the collection of details of this type
-                                            var cur  = new DetailGroup({group: curGroup, el: $('.items').last(), lineTemplate:toTemplate, list: toList, type: key})
+                                            var cur  = new DetailGroup({group: curGroup, lineTemplate:toTemplate, list: toList, type: key})
 
-                                        cur.render();
+                                            location.append(cur.render().$el);
 
 
 
@@ -41,31 +42,46 @@ define([
             this.template = _.template(wizardTemplate)
             this.$el.html(this.template())
             $('.detailButton').draggable({ revert: true })
+
           this.render();
-        },
-        render: function(){
-             var that = this
-            curTree.once('sync', function () {
-                that.render()
+            var that = this;
+            curTree.get('triggers').on('cascade', function(){
+               that.render();
             })
 
-
+        },
+        render: function(){
+             $('#disjoinedGroups').html("")
+            if (curTree.workaround){
+                return;
+            }
+            curTree.workaround = true
+            var that = this
+            $('#add-group-button').off('click')
             $('#add-group-button').on('click', function () {
                 curTree.get('triggers').addGroup("and")
             })
-
              var groupView = Backbone.View.extend({
                 template: _.template(disjoinedGroupTemplate),
                 initialize: function (param) {
+                    var self = this;
+                    var that = this;
                     this.group = param.group
                      this.$el.droppable({
                         drop: function (event, ui) {
-                            console.log(this.group)
+                            console.log(self.group)
                             var detailType = ui.draggable[0].id
-                            require(['text!templates/pathway/details/' + detailType + "_editor.html"], function (template) {
-                                var curEditor = new detailEditor({group: self.group, template: _.template(template), model: new Backbone.Model(), newDetail: true, el: $('#detailed-trigger-modal'), triggerNode: that.triggerNode, type: detailType})
-                                curEditor.render()
-                            })
+
+                                $('#detail-modal').on('hidden.bs.modal', function () {
+                                    require(['text!templates/pathway/details/' + detailType + "_editor.html"], function (template) {
+                                      var curEditor = new detailEditor({group: self.group, template: _.template(template), model: new Backbone.Model(), newDetail: true, el: $('#detailed-trigger-modal'), triggerNode: that.triggerNode, type: detailType})
+                                      curEditor.render()
+                                      $("#detail-modal").modal('show');
+                                    })
+
+                                })
+                          $("#detail-modal").modal('hide');
+
 
 
                         },
@@ -117,7 +133,7 @@ define([
 
                 }
             })
-
+             $('#disjoinedGroups').html("")
              for (var i in curTree.get("triggers").models) {
                 var curGroup = new groupView({group: curTree.get('triggers').models[i]})
                 $('#disjoinedGroups').append(curGroup.$el)
@@ -125,9 +141,9 @@ define([
                 curGroup.render()
 
             }
+            curTree.workaround = false;
 
 
-            $("#detail-modal").modal({'show':'true'});
         }
 
 
