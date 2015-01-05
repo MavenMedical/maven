@@ -1352,6 +1352,11 @@ class WebPersistenceBase():
             if all_dx_triggers:
                 yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'all_dx', all_dx_triggers)
 
+            # Insert codelists for Procedure History
+            hist_proc_triggers = triggerGroupDetails.get('hist_proc')
+            if hist_proc_triggers:
+                yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'hist_proc', hist_proc_triggers)
+
     @asyncio.coroutine
     def upsert_snomed_triggers(self, canonical_id, node_id, list_type, triggers):
 
