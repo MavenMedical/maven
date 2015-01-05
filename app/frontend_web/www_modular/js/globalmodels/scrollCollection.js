@@ -55,7 +55,7 @@ define([
             this.fetch({
                 data: $.param(data),
                 remove:false,
-                success: function(fullcol, res) {that.active=0;that.full = res.length < that.limit;console.log(res.length, that.limit, that.full)},
+                success: function(fullcol, res) {that.active=0;that.full = res.length < that.limit},
                 error: function() {that.full = 1;that.active=0}
             });
         }

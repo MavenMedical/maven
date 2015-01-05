@@ -41,7 +41,6 @@ define([
         events: {
             'click #newpath-button': 'handle_newPath',
             'click #trigger-button': 'addTrigger',
-	        'change .btn-file :file': 'importPath',
             'click #exportpath-button': 'exportPath',
             'click #copypath-button': 'handle_copyPath',
             'click #editNode-button': 'editNode',
@@ -118,29 +117,6 @@ define([
                 }
             });
         },
-        importPath: function () {
-	    var input = $('.btn-file :file')
-            file = input.get(0).files[0];
-            if (file) {
-                var reader = new FileReader();
-                reader.readAsText(file, "UTF-8");
-                reader.onload = function (evt) {
-                    try{
-                        var importedPath = JSON.parse(evt.target.result);
-                        curTree.loadNewPathway(importedPath, {toImport: true})
-                    }
-                    catch(e){
-                        alert("The format of the file doesn't match Pathway format. Please try another file");
-                    }
-		    
-                }
-                reader.onerror = function (evt) {
-                    alert('error reading file')
-                }
-		input.wrap('<form>').closest('form').get(0).reset();
-		input.unwrap();
-            }
-	},
         exportPath: function () {
            exportPathway(JSON.stringify(curTree.toJSON({'toExport':true})) , curTree.get('name')+'.pathway', 'text/plain');
         },

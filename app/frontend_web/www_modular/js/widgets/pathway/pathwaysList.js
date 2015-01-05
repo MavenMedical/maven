@@ -134,7 +134,10 @@ define([
         },
         render: function(){
             var that = this;
-            this.$el.html(this.template());
+            this.$el.html(this.template());                    
+            if (contextModel.get('page') != 'pathEditor') {
+                this.$el.hide()
+            }
             var appendEl =  $('#avail-paths-list', this.$el)
 
             _.each(curCollection.models, function(cur){
