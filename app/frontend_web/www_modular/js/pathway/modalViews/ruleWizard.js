@@ -14,51 +14,46 @@ define([
     'text!templates/pathway/RuleWizard.html',
     'bootstrapswitch',
 
-], function ($, _, Backbone, contextModel, layoutModel, detailEditor, DetailGroup, curTree, helpers, detailSection, disjoinedGroupTemplate ,wizardTemplate) {
-    var printGroup = function(key, curGroup, location){
-        require (['text!/templates/pathway/details/' + key + 'Detail.html'], function(key) {return  function(curTemplate){
-                                //load the list of details of this type
-                                var toList = curGroup.get('details').get(key);
-                                var toTemplate = _.template(curTemplate);
-                                var sectionTemplate = _.template(detailSection);
+], function ($, _, Backbone, contextModel, layoutModel, detailEditor, DetailGroup, curTree, helpers, detailSection, disjoinedGroupTemplate, wizardTemplate) {
+    var printGroup = function (key, curGroup, location) {
+        require(['text!/templates/pathway/details/' + key + 'Detail.html'], function (key) {
+            return  function (curTemplate) {
+                //load the list of details of this type
+                var toList = curGroup.get('details').get(key);
+                var toTemplate = _.template(curTemplate);
+                var sectionTemplate = _.template(detailSection);
 
-                                            location.append(sectionTemplate());
+                location.append(sectionTemplate());
 
-                                            //create a new detail group for this detail type, and send it the collection of details of this type
-                                            var cur  = new DetailGroup({group: curGroup, el: $('.items').last(), lineTemplate:toTemplate, list: toList, type: key})
+                //create a new detail group for this detail type, and send it the collection of details of this type
+                var cur = new DetailGroup({group: curGroup, el: $('.items').last(), lineTemplate: toTemplate, list: toList, type: key})
 
-                                        cur.render();
+                cur.render();
 
 
+            };
+        }(key));
 
-                            };}(key));
-
-  };
+    };
     var ruleWizard = Backbone.View.extend({
-         el: '#modal-target',
+        el: '#modal-target',
 
-        initialize: function(params){
+        initialize: function (params) {
             this.template = _.template(wizardTemplate)
             this.$el.html(this.template())
             $('.detailButton').draggable({ revert: true })
-          this.render();
+            this.render();
         },
-        render: function(){
-             var that = this
-            curTree.once('sync', function () {
-                that.render()
-            })
 
 
-            $('#add-group-button').on('click', function () {
-                curTree.get('triggers').addGroup("and")
-            })
+        render: function () {
+            var that = this
 
-             var groupView = Backbone.View.extend({
+            var groupView = Backbone.View.extend({
                 template: _.template(disjoinedGroupTemplate),
                 initialize: function (param) {
                     this.group = param.group
-                     this.$el.droppable({
+                    this.$el.droppable({
                         drop: function (event, ui) {
                             console.log(this.group)
                             var detailType = ui.draggable[0].id
@@ -78,14 +73,17 @@ define([
                 render: function () {
                     var self = this;
                     this.$el.css({'border-style': 'solid', 'border-width': '4px'})
-
-
-
                     var params = {relationship: this.group.get('relationship'), groupID: this.group.cid}
                     this.$el.html(this.template(params))
 
-                    $('.group-delete', this.$el).on('click', function () {
+                    $('.group-delete', this.$el).on('click', function (e) {
                         curTree.get('triggers').remove(self.group)
+                        var id =e.currentTarget.id;
+                        var group = '#group-'+id.substr(id.indexOf('-')+1)
+                        console.log(group, self.group);
+                        $(group).parent().remove();
+
+
                     })
 
                     $(".toggles", this.$el).bootstrapSwitch()
@@ -118,7 +116,20 @@ define([
                 }
             })
 
-             for (var i in curTree.get("triggers").models) {
+
+            $('#add-group-button').on('click', function () {
+                curTree.get('triggers').addGroup('and')
+                var models = curTree.get('triggers').models
+                var newGroup = new groupView({group: models[models.length -1]})
+                $('#disjoinedGroups').append(newGroup.$el)
+                $('#disjoinedGroups').append("<div style='height:25px'></div>")
+                newGroup.render();
+
+            })
+
+            $('#disjoinedGroups').empty();
+
+            for (var i in curTree.get("triggers").models) {
                 var curGroup = new groupView({group: curTree.get('triggers').models[i]})
                 $('#disjoinedGroups').append(curGroup.$el)
                 $('#disjoinedGroups').append("<div style='height:25px'></div>")
@@ -127,7 +138,7 @@ define([
             }
 
 
-            $("#detail-modal").modal({'show':'true'});
+            $("#detail-modal").modal({'show': 'true'});
         }
 
 
