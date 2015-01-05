@@ -112,7 +112,10 @@ define([
         },
 	render: function(empty_text) {
             this.$el.html(this.template());
-	    this.addAll(empty_text);
+            if (interactionCollection.length) {
+                
+            }
+	    this.addAll();
             this.interactionlist = $('#listinteractions', this.$el);
             var interactionscroll = $('.interaction-scroll', this.$el)
             interactionscroll.scroll(function(e) {
@@ -139,9 +142,6 @@ define([
             this.showhide()
 	},
 	addAll: function(empty_text) {
-	    if (!empty_text || typeof(empty_text) != 'string') {
-		empty_text = 'None available';
-	    }
 	    this.reset();
 	    var nonempty = false;
 	    if (interactionCollection.length) {
@@ -150,16 +150,10 @@ define([
 		    nonempty = true;
 		}
 	    }
-	    if(!nonempty) {
-                $('.interactiontable > tbody', this.$el).html("<tr><td colspan=\"5\">"+empty_text+"</td></tr>");
-                $('.interactiontable > thead', this.$el).hide();
-                $('.interaction-control-row', this.$el).hide();
-                this.$el.show();
-	    }
             else {
                 $('.interactiontable > thead', this.$el).show();
                 $('.interaction-control-row', this.$el).show();
-                this.$el.show();
+                this.showhide();
                 var interactionlist = $('.interaction-scroll', this.$el);
                 setTimeout(function () {
                     var interactionHeight = interactionlist.innerHeight();
@@ -173,7 +167,7 @@ define([
 	addInteraction: function(interaction) {
 	    var interactionrow = new InteractionRow({model: interaction});
 	    $('.interactiontable', this.$el).append(interactionrow.render().el);
-	    this.$el.show();
+	    this.showhide();
         //interactionrow.events();
 	},	
 	reset: function() {
