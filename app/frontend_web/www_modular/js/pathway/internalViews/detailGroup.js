@@ -61,21 +61,17 @@ define([
                     var that = this
                     // if the user clicks the  el '.detail-item' link in this line, load the editor template for this detail and display the modal for editing
                     $('.detail-item', that.$el).off('click')
-                    $('.detail-item', that.$el).on('click', function () {
+                    $('.detail-item', that.$el).on('click' , function () {
 
+                        require(['text!/templates/pathway/details/' + type + '_editor.html'],
+                            function (curTemplate) {
 
-                        $('#detail-modal').on('hidden.bs.modal', function () {
-                            require(['text!templates/pathway/details/' + type + "_editor.html"], function (template) {
-                                var curView = new DetailEditor({group: that.group, model: that.detail, el: $('#detailed-trigger-modal'), template: _.template(template), type: type});
+                                var curView = new DetailEditor({group: that.group, model: that.detail, el: $('#detailed-trigger-modal'), template: _.template(curTemplate), type: type});
                                 curView.render()
-                                $("#detail-modal").modal('show');
-                            })
 
-                        })
-                        $("#detail-modal").modal('hide');
-
-
-                    });
+                            }
+                        );
+                    })
                     //if the user clicks the '.remove-detail' X in the line remove the detail
                     $('.remove-detail', that.$el).off('click');
                     $('.remove-detail', that.$el).on('click', function () {

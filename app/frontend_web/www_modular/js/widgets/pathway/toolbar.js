@@ -80,9 +80,10 @@ define([
         },
         addTrigger: function () {
             //clear previous modals
-           // Backbone.history.navigate("triggereditor/" + contextModel.get('pathid') + "/node/"+contextModel.get('code'), {trigger: true});
+           $('#modal-target').empty();
+            $('#detailed-trigger-modal').empty();
             a = new ruleWizard({el: '#modal-target'});
-            $('#detail-modal').modal('show')
+
         },
         renderActions: function () {
                 if (treeContext.get('selectedNode')) {

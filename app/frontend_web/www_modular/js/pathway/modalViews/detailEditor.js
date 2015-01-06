@@ -21,7 +21,7 @@ define([
             this.group = param.group
             this.model = param.model;
             this.newDetail = param.newDetail
-            this.$el = $('#modal-target');
+            this.$el = param.el;
             this.template = param.template
             this.type = param.type;
 
@@ -93,7 +93,7 @@ define([
                 this.fillTemplate();
             }
             //show the el
-            this.$el.show();
+           // this.$el.show();
 
 
             var panel = this;
@@ -168,26 +168,17 @@ define([
                     curTree.trigger('propagate')
                 }
                //hide the detail modal
-                    $('#detail-modal').on('hidden.bs.modal', function () {
-                        require(['pathway/modalViews/ruleWizard'], function(wizard){
-                            a = new wizard({el: '#modal-target'});
-                            $("#detail-modal").modal('show');
-                        })
-                    })
-                    $("#detail-modal").modal('hide');
+
+                $("#detail-modal").modal('hide');
             }
 
             //when the cancel button is pressed just hide the editor
             $('.cancel-edit-button', this.$el)[0].onclick = function(){
-                   $('#detail-modal').on('hidden.bs.modal', function () {
-                        require(['pathway/modalViews/ruleWizard'], function(wizard){
-                            a = new wizard({el: '#modal-target'});
-                            $("#detail-modal").modal('show');
-                        })
-                    })
+
                     $("#detail-modal").modal('hide');
             }
-              $("#detail-modal").modal({'show':'true'});
+
+            $("#detail-modal").modal({'show':'true'});
 
         },
         //called if the rule is not a new rule, fill all of the normal input fields to have the value currently stored

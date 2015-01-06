@@ -58,15 +58,14 @@ define([
                             console.log(self.group)
                             var detailType = ui.draggable[0].id
 
-                            $('#detail-modal').on('hidden.bs.modal', function () {
+
                                 require(['text!templates/pathway/details/' + detailType + "_editor.html"], function (template) {
                                     var curEditor = new detailEditor({group: self.group, template: _.template(template), model: new Backbone.Model(), newDetail: true, el: $('#detailed-trigger-modal'), triggerNode: that.triggerNode, type: detailType})
                                     curEditor.render()
-                                    $("#detail-modal").modal('show');
+
                                 })
 
-                            })
-                            $("#detail-modal").modal('hide');
+
 
 
                         },
@@ -140,8 +139,8 @@ define([
                 curGroup.render()
 
             }
-            curTree.workaround = false;
 
+        $("#detail-modal").modal({'show': 'true'});
 
         }
 
