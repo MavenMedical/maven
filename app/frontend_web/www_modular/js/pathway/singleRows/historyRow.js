@@ -37,7 +37,7 @@ define([
             if (r != true) return;
 
             $(this.el).parent().find(".history-checkbox").switchClass("glyphicon-check", "glyphicon-unchecked")
-            $(this.el).parent().find(".history-checkbox").attr('title','Use This Snapshot');
+            $(this.el).parent().find(".history-checkbox").attr('title','Publish this snapshot');
             $(".history-checkbox", this.$el).switchClass("glyphicon-unchecked", "glyphicon-check");
             $(".history-checkbox", this.$el).attr('title','');
             //$(this.el).trigger("change");

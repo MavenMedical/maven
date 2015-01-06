@@ -1,0 +1,20 @@
+
+<div class="detail-entry">
+    <a class="detail-item">
+    <% if (exists == "false") { %>
+            Alert will <b>not be shown</b> if the subject had any of the diagnoses: <b class = "mouseover"title = "<% for (var i in codeterm){
+                    var cur = codeterm[i]
+                    print(cur+'&#013;')
+                }%>">these</b>
+            <br>in the time frame <b><%=minDays%></b> to <b><%=maxDays%></b> days from the present
+    <%} else { %>
+            Alert will <b>be shown only</b> if the subject had any of the diagnoses: <b class = "mouseover" title = "<% for (var i in codeterm){
+                    var cur = codeterm[i]
+                    print(cur+'&#013;')
+                }%>">these</b>
+            <br>in the time frame <b><%=minDays%></b> to <b><%=maxDays%></b> days from the present
+    <%}%>
+    </a>
+    <a style = "float: right" class="remove-detail">&#10006</a>
+
+</div>

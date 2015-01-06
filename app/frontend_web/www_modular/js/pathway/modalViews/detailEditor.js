@@ -58,7 +58,7 @@ define([
                 //giving it a url makes it searcahble
 
                 var anon
-                if (populateType == "snomed_diagnosis")
+                if (populateType == "snomed_diagnosis" || populateType =="hist_proc")
                     anon =  Backbone.Collection.extend( {url: '/search'})
                 else if (populateType == "groups")
                     anon =  Backbone.Collection.extend( {url: '/groups'})
@@ -93,7 +93,7 @@ define([
                 this.fillTemplate();
             }
             //show the el
-            this.$el.show();
+           // this.$el.show();
 
 
             var panel = this;
@@ -168,14 +168,17 @@ define([
                     curTree.trigger('propagate')
                 }
                //hide the detail modal
-                   $('#detail-modal').modal('hide');
+
+                $("#detail-modal").modal('hide');
             }
 
             //when the cancel button is pressed just hide the editor
             $('.cancel-edit-button', this.$el)[0].onclick = function(){
-                   $('#detail-modal').modal('hide');
+
+                    $("#detail-modal").modal('hide');
             }
-              $("#detail-modal").modal({'show':'true'});
+
+            $("#detail-modal").modal({'show':'true'});
 
         },
         //called if the rule is not a new rule, fill all of the normal input fields to have the value currently stored

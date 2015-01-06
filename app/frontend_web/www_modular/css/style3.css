@@ -289,3 +289,5 @@ a.disabled {
     border-top-right-radius: 3px;
 }
 
+/* Needed to make autocomplete work in modals */
+ul.ui-autocomplete.ui-menu {   z-index: 100000; }
