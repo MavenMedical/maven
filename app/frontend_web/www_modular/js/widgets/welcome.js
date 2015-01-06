@@ -17,15 +17,15 @@ define([
                 this.render();
                 this.showhide();
                 contextModel.on('change:page', this.showhide , this)
-		contextModel.on('change:pathid', this.render, this);
+		        contextModel.on('change:pathid', this.render, this);
             },
             render: function (){
-		if (contextModel.get('pathid') && contextModel.get('pathid') > 0) {
-		    this.$el.hide();
-		} else {
-                    this.$el.html(this.template(contextModel.attributes));
-		    this.$el.show();
-		}
+            if (contextModel.get('pathid') && contextModel.get('pathid') > 0) {
+                this.$el.hide();
+            } else {
+                this.$el.html(this.template(contextModel.attributes));
+                this.showhide(); //$el.show();
+		    }
             },
         showhide: function(){
             if(contextModel.get('page') == 'home'){

@@ -32,6 +32,10 @@ define([
         },
         handleCheck: function(event){
             if ($(event.target).hasClass("check-disabled")) return;
+
+            var r = confirm("Are you sure you want to push this version of the pathway into production?")
+            if (r != true) return;
+
             $(this.el).parent().find(".history-checkbox").switchClass("glyphicon-check", "glyphicon-unchecked")
             $(this.el).parent().find(".history-checkbox").attr('title','Use This Snapshot');
             $(".history-checkbox", this.$el).switchClass("glyphicon-unchecked", "glyphicon-check");

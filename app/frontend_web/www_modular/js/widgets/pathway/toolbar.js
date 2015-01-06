@@ -43,6 +43,7 @@ define([
             'click #trigger-button': 'addTrigger',
             'click #exportpath-button': 'exportPath',
             'click #copypath-button': 'handle_copyPath',
+            'click #publishpath-button': 'handle_publishPath',
             'click #editNode-button': 'editNode',
             'click #deleteNodeButton': 'deleteNode',
             'click #addChildButton': 'addChild',
@@ -102,9 +103,23 @@ define([
             }, this)
         },
         handle_newPath: function (e) {
-             e.preventDefault();
+            e.preventDefault();
             a = new NewPathway({el: '#modal-target'});
+        },
+        handle_publishPath: function (e) {
+            e.preventDefault();
 
+            var r = confirm("Are you sure you want to push this version of the pathway into production?");
+            if (r != true) return;
+
+            $.ajax({
+                type: 'POST',
+                url: "/history/"  + contextModel.get("canonical") + "/" + curTree.get('pathid'),
+                dataType: "json",
+                success: function (data) {
+                    console.log("Pathway version published");
+                }
+            });
         },
         handle_copyPath: function(){
             $.ajax({
