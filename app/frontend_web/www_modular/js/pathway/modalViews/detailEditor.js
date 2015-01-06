@@ -21,7 +21,7 @@ define([
             this.group = param.group
             this.model = param.model;
             this.newDetail = param.newDetail
-            this.$el = param.el;
+            this.$el = $('#modal-target');
             this.template = param.template
             this.type = param.type;
 
@@ -58,7 +58,7 @@ define([
                 //giving it a url makes it searcahble
 
                 var anon
-                if (populateType == "snomed_diagnosis")
+                if (populateType == "snomed_diagnosis" || populateType =="hist_proc")
                     anon =  Backbone.Collection.extend( {url: '/search'})
                 else if (populateType == "groups")
                     anon =  Backbone.Collection.extend( {url: '/groups'})
@@ -168,12 +168,24 @@ define([
                     curTree.trigger('propagate')
                 }
                //hide the detail modal
-                   $('#detail-modal').modal('hide');
+                    $('#detail-modal').on('hidden.bs.modal', function () {
+                        require(['pathway/modalViews/ruleWizard'], function(wizard){
+                            a = new wizard({el: '#modal-target'});
+                            $("#detail-modal").modal('show');
+                        })
+                    })
+                    $("#detail-modal").modal('hide');
             }
 
             //when the cancel button is pressed just hide the editor
             $('.cancel-edit-button', this.$el)[0].onclick = function(){
-                   $('#detail-modal').modal('hide');
+                   $('#detail-modal').on('hidden.bs.modal', function () {
+                        require(['pathway/modalViews/ruleWizard'], function(wizard){
+                            a = new wizard({el: '#modal-target'});
+                            $("#detail-modal").modal('show');
+                        })
+                    })
+                    $("#detail-modal").modal('hide');
             }
               $("#detail-modal").modal({'show':'true'});
 

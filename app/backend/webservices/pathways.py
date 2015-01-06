@@ -65,7 +65,8 @@ class PathwaysWebservices():
                              CONTEXT.CANONICALID: k[1],
                              'creation_date': k[2].strftime("%Y-%m-%d %H:%M:%S"),
                              CONTEXT.OFFICIALNAME: k[3],
-                             CONTEXT.ACTIVE: k[4]} for k in protocols]),
+                             CONTEXT.ACTIVE: k[4],
+                             CONTEXT.ENABLED: k[5]} for k in protocols]),
                 None)
 
     @http_service(['POST'], '/history/(\d+)/(\d+)',
