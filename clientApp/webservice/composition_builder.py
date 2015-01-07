@@ -152,9 +152,8 @@ class CompositionBuilder(builder):
         proc_hist_rows = None
         for sec in cda_etree.findall('.//{}section'.format(default_ns)):
             c = sec.find('{}code'.format(default_ns))
-            if c.get('code') == '45719-4':
-                proc_hist_rows = sec.find('{}text'.format(default_ns)).\
-                    find('{}tbody'.format(default_ns)).getchildren()
+            if c.get('code') == '47519-4':
+                proc_hist_rows = sec.find('{}text'.format(default_ns)).find('{}table'.format(default_ns)).find('{}tbody'.format(default_ns)).getchildren()
                 break
         # If no procedure history rows detected, return
         if proc_hist_rows is None:
@@ -172,18 +171,19 @@ class CompositionBuilder(builder):
         for row in proc_hist_rows:
 
             # Extract the jcode
-            procname = row[0]
+            columns = row.getchildren()
+            procname = columns[0].text
             jcode = jcode_regex.findall(procname)
             if len(jcode) == 0:
                 # if no code continuing looping through the other rows
                 continue
 
             # Ignore "-" value when parsing dates
-            date_collected = None if row[1] == "-" else dateutil.parser.parse(row[1])
+            date_collected = None if columns[1].text == "-" else dateutil.parser.parse(columns[1].text)
             # date_completed = None if row[2] == "-" else dateutil.parser.parse(row[2])
 
             # Order Status
-            procstatus = row[4]
+            procstatus = columns[3].text
 
             # Generate the FHIR Procedure/Order Object and add to the Encounter Orders Composition Section
             procedure = FHIR_API.Procedure(name=procname,
