@@ -1876,6 +1876,7 @@
 		<col def="S255">ISBuildSourcePath</col>
 		<col def="I4">ISAttributes</col>
 		<col def="S72">ISComponentSubFolder_</col>
+		<row><td>disconnect.ico</td><td>ISX_DEFAULTCOMPONENT1</td><td>DISCON~1.ICO|disconnect.ico</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\dave\Documents\Visual Studio 2012\Projects\MavenAsDemo\bin\Debug\disconnect.ico</td><td>1</td><td/></row>
 		<row><td>maven.ico</td><td>ISX_DEFAULTCOMPONENT1</td><td>maven.ico</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\dave\Documents\Visual Studio 2012\Projects\MavenAsDemo\bin\Debug\maven.ico</td><td>1</td><td/></row>
 		<row><td>mavendesktop.exe</td><td>MavenDesktop.exe</td><td>MAVEND~1.EXE|MavenDesktop.exe</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\dave\Documents\Visual Studio 2012\Projects\MavenAsDemo\bin\Debug\MavenDesktop.exe</td><td>1</td><td/></row>
 		<row><td>microsoft.visualbasic.powerp</td><td>Microsoft.VisualBasic.PowerPacks.Vs.dll</td><td>MICROS~1.DLL|Microsoft.VisualBasic.PowerPacks.Vs.dll</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\dave\Documents\Visual Studio 2012\Projects\MavenAsDemo\bin\Debug\Microsoft.VisualBasic.PowerPacks.Vs.dll</td><td>1</td><td/></row>
@@ -4367,7 +4368,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>PROGMSG_IIS_ROLLBACKWEBSERVICEEXTENSIONS</td><td>##IDS_PROGMSG_IIS_ROLLBACKWEBSERVICEEXTENSIONS##</td><td/></row>
 		<row><td>ProductCode</td><td>{2FEF2EB0-104F-42E8-A52A-F2CF4B6D83CD}</td><td/></row>
 		<row><td>ProductName</td><td>MavenDesktop</td><td/></row>
-		<row><td>ProductVersion</td><td>1.00.0032</td><td/></row>
+		<row><td>ProductVersion</td><td>1.00.0036</td><td/></row>
 		<row><td>ProgressType0</td><td>install</td><td/></row>
 		<row><td>ProgressType1</td><td>Installing</td><td/></row>
 		<row><td>ProgressType2</td><td>installed</td><td/></row>
