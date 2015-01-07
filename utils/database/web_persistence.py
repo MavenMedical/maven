@@ -1351,6 +1351,11 @@ class WebPersistenceBase():
             if all_dx_triggers:
                 yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'all_dx', all_dx_triggers)
 
+            # Insert codelists for Procedure History
+            hist_proc_triggers = triggerGroupDetails.get('hist_proc')
+            if hist_proc_triggers:
+                yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'hist_proc', hist_proc_triggers)
+
     @asyncio.coroutine
     def upsert_snomed_triggers(self, canonical_id, node_id, list_type, triggers):
 
@@ -1361,9 +1366,14 @@ class WebPersistenceBase():
                 exists = self.convert_string_to_boolean(str_boolean)
             else:
                 exists = None
-            # Parse the "code" list of string SNOMEDS into Python integers
-            str_list = cl.get('code', None)
-            int_list = [int(sl) for sl in str_list]
+
+            # If it's a procedure list, get the str_list
+            if list_type == 'hist_proc':
+                str_list = cl.get('code', None)
+            else:
+                # Parse the "code" list of string SNOMEDS into Python integers
+                str_list = cl.get('code', None)
+                int_list = [int(sl) for sl in str_list]
 
             # Historic Diagnoses have the framemin/framemax that Encounter Diagnoses do not have, grab 'em
             if list_type == 'hist_dx':
@@ -1375,7 +1385,14 @@ class WebPersistenceBase():
                 framemax = 99999
 
             cmd = ["SELECT trees.upsert_codelist(%s, %s, %s::varchar, %s, %s::integer[], %s::varchar[], %s, %s)"]
-            cmdArgs = [canonical_id, node_id, list_type, exists, int_list, None, framemin, framemax]
+
+            # Command arguments for the str-based codelist
+            if list_type == 'hist_proc':
+                cmdArgs = [canonical_id, node_id, list_type, exists, None, str_list, framemin, framemax]
+            # Command arguments for the int-based codelist
+            else:
+                cmdArgs = [canonical_id, node_id, list_type, exists, int_list, None, framemin, framemax]
+
             yield from self.db.execute_single(' '.join(cmd), extra=cmdArgs)
 
     def convert_string_to_boolean(self, str):
