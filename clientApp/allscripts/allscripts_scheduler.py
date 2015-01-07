@@ -16,7 +16,7 @@ __author__ = 'Tom DuBois'
 # *************************************************************************
 import asyncio
 from utils.enums import USER_STATE  # , NOTIFICATION_STATE
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 import re
 from dateutil.parser import parse
 from utils.web_client.allscripts_http_client import AllscriptsError
@@ -43,7 +43,7 @@ class scheduler():
         self.evaluations = {}
         self.report = lambda s: ML.report('/%s/%s' % (self.customer_id, s))
         self.listening = set()
-        
+        self.unitytimeoffset = timedelta()
         try:
             self.sleep_interval = float(sleep_interval)
         except ValueError as e:
@@ -77,9 +77,14 @@ class scheduler():
         while True:
             self.report('polling')
             try:
-                today = date.today()
+                now = datetime.now()
+                today = (now - self.unitytimeoffset).date()
                 if today != self.lastday:
-                    self.lastday = today
+                    # servertime = now
+                    serverinfo = yield from self.allscripts_api.GetServerInfo()
+                    servertime = datetime.strptime(serverinfo['ServerTime'], '%Y-%m-%dT%H:%M:%S')
+                    self.unitytimeoffset = now - servertime
+                    self.lastday = today = servertime.date()
                     self.evaluations.clear()
                 try:
                     sched = yield from self.allscripts_api.GetSchedule(None, today)

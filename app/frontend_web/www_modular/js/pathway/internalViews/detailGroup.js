@@ -82,8 +82,8 @@ define([
                 }
             })
             //for each detail in the list create a spot for a detailLine view and create a detailLine view to be rendered in that spot
-            for (var c = 0; c < that.list.models.length; c++) {
-                var cur = that.list.models[c]
+            for (var count = 0; count < that.list.models.length; count++) {
+                var cur = that.list.models[count]
                 cur.off('change')
                 //rerender the group if one of the details within it changes
                 cur.on('change', this.render, this)

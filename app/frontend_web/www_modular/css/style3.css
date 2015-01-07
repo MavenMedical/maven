@@ -18,7 +18,10 @@
     border: 5px solid #2c2f74 !important;
 
 }
-
+.modal-footer {
+    padding-top: 10px;
+    vertical-align: center;
+}
 #avail-paths-list {
     max-height:300px;
     overflow-y:scroll;
