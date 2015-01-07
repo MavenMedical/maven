@@ -1233,10 +1233,10 @@ class WebPersistenceBase():
         cmd.append("FROM trees.canonical_protocol")
         cmd.append("INNER JOIN trees.protocol")
         cmd.append("on trees.canonical_protocol.canonical_id = trees.protocol.canonical_id")
-        cmd.append("WHERE parent_id=%s")
+        cmd.append("WHERE trees.canonical_protocol.parent_id=%s")
         cmdArgs.append(parent_id)
         if not includedeleted:
-            cmd.append('AND NOT deleted')
+            cmd.append('AND NOT trees.canonical_protocol.deleted')
         ret = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
         return list(ret)
 
@@ -1408,9 +1408,18 @@ class WebPersistenceBase():
 
     @asyncio.coroutine
     def select_active_pathway(self, customer_id, canonical_id, protocol_id):
-        cmd = ["UPDATE trees.canonical_protocol SET current_id=%s ",
-               "WHERE (canonical_id=%s and customer_id=%s)"]
-        cmdArgs = [protocol_id, canonical_id, customer_id]
+        cmd = ["UPDATE trees.canonical_protocol SET current_id=%s"]
+        cmdArgs = [protocol_id]
+
+        if canonical_id == 0:
+            cmd.append('WHERE canonical_id = (SELECT canonical_id FROM trees.protocol where protocol_id=%s)')
+            cmdArgs.append(protocol_id)
+        else:
+            cmd.append('WHERE canonical_id = %s')
+            cmdArgs.append(canonical_id)
+        cmd.append("and customer_id=%s")
+        cmdArgs.append(customer_id)
+
         try:
             yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
         except:

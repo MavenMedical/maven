@@ -82,6 +82,20 @@ class PathwaysWebservices():
 
         yield from self.persistence.select_active_pathway(customer_id, canonical_id, path_id)
 
+        # if anyone has copied this pathway we need to notify them of changes
+        results = yield from self.persistence.get_protocol_children(canonical_id)
+        children = [{CONTEXT.PATHID: k[0],
+                    CONTEXT.NAME: k[1],
+                    CONTEXT.CANONICALID: k[2],
+                    CONTEXT.USERID: k[3]} for k in results]
+        for child in children:
+            subject = "Changes for your shared pathway '{}'"
+            message = ("The master version for your pathway {} has a new live version \n"
+                       "Master version: #/pathway/{} \n "
+                       "Your Version: #/pathway/{} \n"
+                       .format(child[CONTEXT.PATHID], child[CONTEXT.PATHID], path_id, child[CONTEXT.PATHID]))
+            yield from self.client_interface.notify_user(customer_id, child[CONTEXT.USERID], subject, message)
+
         return (HTTP.OK_RESPONSE, "", None)
 
     @http_service(['GET'], '/search',
@@ -196,17 +210,7 @@ class PathwaysWebservices():
         msg = json.loads(body.decode('utf-8'))
         active = msg.get("active")
 
-        pathway = yield from self.persistence.toggle_pathway(customer_id, canonical_id, enabled=active)
-
-        if active and pathway:
-            children = yield from self.persistence.get_protocol_children(canonical_id)
-            for child in children:
-                subject = "Changes for your shared pathway '{}'"
-                message = ("The master version for your pathway {} has a new live version \n"
-                           "Master version: #/pathway/{} \n "
-                           "Your Version: #/pathway/{} \n"
-                           .format(child['name'], child['name'], pathway['current_id'], child['current_id']))
-                yield from self.client_interface.notify_user(customer_id, child['creator'], subject, message)
+        yield from self.persistence.toggle_pathway(customer_id, canonical_id, enabled=active)
 
         return (HTTP.OK_RESPONSE, "", None)
 

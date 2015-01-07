@@ -22,6 +22,7 @@
         'ace': 'empty:',
         'aceelements': 'empty:',
         'aceextra': 'empty:',
+	'touch': 'empty:'
     },
     shim: {
         jquery: {exports: 'jQuery'},

@@ -127,9 +127,22 @@ define([
 
             $(currentEl).append(pathRow.render().$el)
             if (newlyAdded) {
-                //open folder and select the pathway if this has been added by the user
+                //select the pathway if this has been added by the user
                 pathRow.handleSelect();
-                $(currentEl).closest("li").switchClass("mjs-nestedSortable-collapsed", "mjs-nestedSortable-expanded");
+
+                if (path!=null && path!="") {
+                    //if added to a folder, make sure its open
+                    var parentFolder = $(currentEl).closest(".sub-folder");
+                    if (parentFolder.hasClass("dd-collapsed")) {
+                        parentFolder.children(".show-hist").click();
+                    }
+                }
+                //
+                pathRow.$el.prepend("<button data-action='collapse' title='Collapse' style='display:none;'>collapse</button>");
+                pathRow.$el.prepend("<button data-action='expand' title='Expand' class='show-hist'>expand</button>");
+                /*$(document).ready(function(){
+                    curCollection.makeSortable();
+                });*/
             }
         },
         render: function(){
