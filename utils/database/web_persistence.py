@@ -1229,14 +1229,32 @@ class WebPersistenceBase():
     def get_protocol_children(self, parent_id, includedeleted=False):
         cmd = []
         cmdArgs = []
-        cmd.append("SELECT current_id, name, trees.protocol.canonical_id, creator")
+        cmd.append("SELECT current_id, name, trees.protocol.canonical_id, trees.protocol.customer_id, users.user_name")
         cmd.append("FROM trees.canonical_protocol")
         cmd.append("INNER JOIN trees.protocol")
+        cmd.append("INNER JOIN users on user_id=creator")
         cmd.append("on trees.canonical_protocol.canonical_id = trees.protocol.canonical_id")
         cmd.append("WHERE trees.canonical_protocol.parent_id=%s")
         cmdArgs.append(parent_id)
         if not includedeleted:
             cmd.append('AND NOT trees.canonical_protocol.deleted')
+        ret = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
+        return list(ret)
+
+    @asyncio.coroutine
+    def propagate_pathway(self, parent_canonical, child_canonical, parent_customer, child_customer):
+        # copy the newly published version of a pathway
+        cmd = ["INSERT INTO trees.protocol (customer_id, description, minage, maxage, sex,",
+               "full_spec, canonical_id, deleted, creator, parent_id, tags)",
+               "SELECT %s, p.description, p.minage, p.maxage, p.sex, p.full_spec, %s, false,",
+               "p.creator, 0, p.tags",
+               "FROM trees.canonical_protocol c",
+               "INNER join trees.protocol p",
+               "ON c.current_id = p.protocol_id",
+               "WHERE c.canonical_id = %s AND c.customer_id = %s",
+               "returning trees.protocol.protocol_id"]
+        cmdArgs = [child_customer, child_canonical, parent_canonical, parent_customer]
+        sql = ' '.join(cmd) + ";"
         ret = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
         return list(ret)
 
