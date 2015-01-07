@@ -40,14 +40,19 @@ define([
         el: '#modal-target',
 
         initialize: function (params) {
+            var that = this;
             this.template = _.template(wizardTemplate)
             this.$el.html(this.template())
             $('.detailButton').draggable({ revert: true })
             this.render();
+            curTree.on('sync', function(){
+                that.render()
+            })
         },
         render: function () {
-
+            var parent = this;
             var groupView = Backbone.View.extend({
+
                 template: _.template(disjoinedGroupTemplate),
                 initialize: function (param) {
                     var self = this;
@@ -83,12 +88,14 @@ define([
                     var params = {relationship: this.group.get('relationship'), groupID: this.group.cid}
                     this.$el.html(this.template(params))
 
-                    $('.group-delete', this.$el).on('click', function (e) {
+                    $('.group-delete', self.$el).on('click', function (e) {
                         curTree.get('triggers').remove(self.group)
-                        var id =e.currentTarget.id;
+                    /*    var id =e.currentTarget.id;
                         var group = '#group-'+id.substr(id.indexOf('-')+1)
                         console.log(group, self.group);
-                        $(group).parent().remove();
+                        $(group).parent().remove(); */
+
+
                     })
 
                     $(".toggles", this.$el).bootstrapSwitch()
@@ -120,13 +127,12 @@ define([
 
                 }
             })
-
+            $('#add-group-button').off('click');
              $('#add-group-button').on('click', function () {
                 curTree.get('triggers').addGroup("and")
                 var models = curTree.get('triggers').models
                 var newGroup = new groupView({group: models[models.length -1]})
                 $('#disjoinedGroups').append(newGroup.$el)
-                $('#disjoinedGroups').append("<div style='height:25px'></div>")
                 newGroup.render();
 
             })
