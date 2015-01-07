@@ -48,6 +48,8 @@ define([
             curTree.on('sync', function(){
                 that.render()
             })
+            $("#detail-modal").modal({'show': 'true'});
+
         },
         render: function () {
             var parent = this;
@@ -146,7 +148,6 @@ define([
 
             }
 
-        $("#detail-modal").modal({'show': 'true'});
 
         }
 
