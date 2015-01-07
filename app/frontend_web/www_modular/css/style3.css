@@ -246,6 +246,9 @@ a.disabled {
 
 }
 
+.ui-droppable{
+    margin-bottom: 25px;
+}
 
 .hoverDrop{
     border-style: dashed !important;
