@@ -190,7 +190,7 @@ class CompositionBuilder(builder):
                                            date=date_collected,
                                            type=FHIR_API.CodeableConcept(text="Procedure",
                                                                          coding=[FHIR_API.Coding(system="HCPCS",
-                                                                                                 code=jcode,
+                                                                                                 code=jcode[0],
                                                                                                  display=procname)]))
             order = FHIR_API.Order(text=procname,
                                    status=procstatus,
