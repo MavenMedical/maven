@@ -232,6 +232,19 @@ class PathwaysWebservices():
 
         return (HTTP.OK_RESPONSE, "", None)
 
+    @http_service(['POST'], '/protocol/(\d+)/(\d+)',
+                  [CONTEXT.USER, CONTEXT.CUSTOMERID],
+                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int},
+                  {USER_ROLES.provider, USER_ROLES.supervisor})
+    def rename_pathway(self, _header, body, context, matches, _key):
+        canonical_id = int(matches[0])
+        customer_id = int(matches[1])
+        new_name = json.loads(body.decode('utf-8')).get('new_name', None)
+
+        yield from self.persistence.rename_pathway(customer_id, canonical_id, new_name)
+
+        return (HTTP.OK_RESPONSE, "", None)
+
     @http_service(['GET'], '/pathway_version',
                   [CONTEXT.USERID, CONTEXT.CUSTOMERID, CONTEXT.PATHID],
                   {CONTEXT.USERID: int, CONTEXT.CUSTOMERID: int, CONTEXT.PATHID: int},

@@ -1254,7 +1254,6 @@ class WebPersistenceBase():
                "WHERE c.canonical_id = %s AND c.customer_id = %s",
                "returning trees.protocol.protocol_id"]
         cmdArgs = [child_customer, child_canonical, parent_canonical, parent_customer]
-        sql = ' '.join(cmd) + ";"
         ret = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
         return list(ret)
 
@@ -1437,6 +1436,17 @@ class WebPersistenceBase():
             cmdArgs.append(canonical_id)
         cmd.append("and customer_id=%s")
         cmdArgs.append(customer_id)
+
+        try:
+            yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
+        except:
+            ML.EXCEPTION("Error Updating TreeID #{}".format(canonical_id))
+
+    @asyncio.coroutine
+    def rename_pathway(self, customer_id, canonical_id, new_name):
+        cmd = ["UPDATE trees.canonical_protocol SET name = %s",
+               "WHERE canonical_id = %s and customer_id = %s"]
+        cmdArgs = [new_name, canonical_id, customer_id]
 
         try:
             yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
