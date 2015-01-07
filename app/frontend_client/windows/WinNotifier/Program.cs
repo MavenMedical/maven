@@ -18,7 +18,7 @@ namespace MavenAsDemo
         private static bool continueOn = true;
         public static byte[] EncryptedKey = null;
         public static Settings cursettings;
-        private static Tray mytray;
+        public static Tray mytray;
         /// <summary>
         /// The main entry point for the application.
         /// </summary>

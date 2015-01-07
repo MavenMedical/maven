@@ -20,7 +20,7 @@ namespace MavenAsDemo
         public string os = System.Uri.EscapeDataString(System.Environment.OSVersion.VersionString);
         public string custId = "";
         public string mavenuserid = "";
-        public string softwareVersion = "1.0.0.36";
+        public string softwareVersion = "1.0.0.37";
 
         /// <summary>
         /// The different ways to alert people of stuff. 
