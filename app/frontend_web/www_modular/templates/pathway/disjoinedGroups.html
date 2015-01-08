@@ -1,12 +1,15 @@
-<div id="group-<%=groupID%>" style="padding: 8px;  >
-<div  style = " font-size: 130%; margin-bottom: 8px; ">Show Alert if
-<input class="toggles" type="checkbox">
-of these are true
-<div class="group-delete" id="delete-<%=groupID%>" style="float:right"><a>&#10006</a></div>
-</div>
+<div id="group-<%=groupID%>" style="clear: both; padding: 8px;">
+    <div style = "float: left"> Show Alert if </div>
+    <div style = "margin-left: 5px; margin-right: 5px; float: left">
+            <input class="ace ace-switch ace-switch-1 relSwitch" type="checkbox" <%if (relationship == "and"){%>checked = 'true' <%}%>/>
+            <span  class="lbl" data-lbl="ALL&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ANY"></span>
+     </div>
+
+    <div style = "float: left">of these are true</div>
+            <div class="group-delete" id="delete-<%=groupID%>" style="float:right"><a>&#10006</a></div>
 
 
-<div style="font-size: 70%" class='detail-sections'></div>
+    <div style="clear: both; font-size: 70%" class='detail-sections'></div>
 
 </div>
 <div style='height:25px'></div>

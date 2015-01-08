@@ -188,6 +188,7 @@ define([
              for (var i=0;i<inputs.length;i++){
                     var cur = inputs[i];
                     cur.value = this.model.get(cur.name);
+                    $(cur).trigger('ready')
 
                 }
         }

@@ -100,21 +100,18 @@ define([
 
                     })
 
-                    $(".toggles", this.$el).bootstrapSwitch()
-                    $(".toggles", this.$el).bootstrapSwitch('onText', "Any")
-                    $(".toggles", this.$el).bootstrapSwitch('offText', "All")
 
                     if (self.group.get('relationship') == "and") {
                         $(".toggles", this.$el).bootstrapSwitch("state", false, false)
                     } else {
                         $(".toggles", this.$el).bootstrapSwitch("state", true, false)
                     }
-                    $(".toggles", this.$el).on('switchChange.bootstrapSwitch', function (a, b) {
-                        if ($(".toggles", self.$el).bootstrapSwitch('state') == false) {
-                            self.group.set('relationship', "and")
+                    $(".relSwitch", this.$el).on('click', function (a, b) {
+                        if ($(".relSwitch", self.$el)[0].checked == false) {
+                            self.group.set('relationship', "or")
                         }
                         else {
-                            self.group.set('relationship', "or")
+                            self.group.set('relationship', "and")
                         }
 
 
