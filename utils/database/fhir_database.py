@@ -752,9 +752,10 @@ class FHIRPersistanceBase():
             encounter_id = composition.encounter.get_csn()
 
             historic_procs = []
-            for enc_ord in [(order) for order in composition.get_procedure_history() if isinstance(order.detail[0], FHIR_API.Procedure)]:
-                terminology_code = enc_ord.get_proc_med_terminology_coding()
-                historic_procs.append(terminology_code.code)
+            if composition.get_procedure_history() is not None:
+                for enc_ord in [(order) for order in composition.get_procedure_history() if isinstance(order.detail[0], FHIR_API.Procedure)]:
+                    terminology_code = enc_ord.get_proc_med_terminology_coding()
+                    historic_procs.append(terminology_code.code)
 
             # TODO - Need to replace this placeholder list of meds with the real meds
             patient_meds = []

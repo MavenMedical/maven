@@ -1,5 +1,3 @@
-
-
 <div id="detail-modal" class="modal fade" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -9,53 +7,68 @@
                 <h4 class="modal-title">Create/Edit Historical Procedure Constraint</h4>
             </div>
 
-         <div class="modal-body">
+            <div class="modal-body">
 
 
-         <div>
+                <div>
 
-         <select class="detail-input form-control attn-text" name="exists">
-              <option value="true" selected>only alert the clinician if</option>
-              <option value="false"> do not alert the clinician if</option>
+                    <select class="detail-input form-control attn-text" name="exists">
+                        <option value="true" selected>only alert the clinician if</option>
+                        <option value="false"> do not alert the clinician if</option>
 
-          </select>
-		 <p class="attn-text">The subject has undergone the procedure</p>
-         <div style="clear:both; left: 70px" class="multi-select-search" type="hist_proc" name = "code"></div>
-          <p class="attn-text">in the time frame from </p>
-             <div style = 'padding-left: 27%; clear:both; text-align: center'>
+                    </select>
 
-             <br>
-              <div style = "clear:both" name="minDays" class="min-days detail-input">
-                 <div style="float:left">Days<br><input class="range-input days-min" placeholder="Days"></div>
-                 <div style="float:left">Weeks<br><input  class="range-input weeks-min" placeholder="Weeks"></div>
-                 <div style="float:left">Months<br><input class="range-input months-min" placeholder="Months"></div>
-                 <div style="float:left">Years<br><input class="range-input years-min" placeholder="Years"></div>
-             </div>
+                    <p class="attn-text">The subject has undergone the procedure</p>
 
-         <div style = "float: left; width:500px; text-align: center" class = "attn-text">until</div>
+                    <div style="clear:both; left: 70px" class="multi-select-search" type="hist_proc" name="code"></div>
+                    <p class="attn-text">in the time frame from </p>
 
-             <div style = "clear: both" name="maxDays" class="max-days detail-input">
-                 <div style="float:left">Days<br><input class="range-input days-max" placeholder="Days"></div>
-                 <div style="float:left">Weeks<br><input  class="range-input weeks-max" placeholder="Weeks"></div>
-                 <div style="float:left">Months<br><input class="range-input months-max" placeholder="Months"></div>
-                 <div style="float:left">Years<br><input class="range-input years-max" placeholder="Years"></div>
-             </div>
-    </div>
+                    <div style='padding-left: 27%; clear:both; text-align: center'>
 
-	      <div style = "clear:both">
-          <br>
+                        <br>
 
-	      </div>
-          <div style = "clear:both"></div>
+                        <div style="clear:both" name="minDays" class="min-days detail-input">
+                            <div style="float:left">Days<br><input class="range-input days-min" placeholder="Days">
+                            </div>
+                            <div style="float:left">Weeks<br><input class="range-input weeks-min" placeholder="Weeks">
+                            </div>
+                            <div style="float:left">Months<br><input class="range-input months-min"
+                                                                     placeholder="Months"></div>
+                            <div style="float:left">Years<br><input class="range-input years-min" placeholder="Years">
+                            </div>
+                        </div>
+
+                        <div style="float: left; width:500px; text-align: center" class="attn-text">until</div>
+
+                        <div style="clear: both" name="maxDays" class="max-days detail-input">
+                            <div style="float:left">Days<br><input class="range-input days-max" placeholder="Days">
+                            </div>
+                            <div style="float:left">Weeks<br><input class="range-input weeks-max" placeholder="Weeks">
+                            </div>
+                            <div style="float:left">Months<br><input class="range-input months-max"
+                                                                     placeholder="Months"></div>
+                            <div style="float:left">Years<br><input class="range-input years-max" placeholder="Years">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="clear:both">
+                        <br>
+
+                    </div>
+                    <div style="clear:both"></div>
 
 
-                <div class="modal-footer">
-                      <button style = "float:left" class="btn btn-sm btn-info cancel-edit-button">Cancel</button>
-            <button style = "float:right" class="btn btn-sm btn-info confirm-detail-button">Confirm</button>
                 </div>
+            </div>
+
+            <div class="modal-footer">
+                <button style="float:left" class="btn btn-sm btn-default cancel-edit-button">Cancel</button>
+                <button style="float:right" class="btn btn-sm btn-info confirm-detail-button">Confirm</button>
             </div>
         </div>
     </div>
+</div>
 
   <script>
 

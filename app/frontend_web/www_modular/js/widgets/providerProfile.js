@@ -14,7 +14,7 @@ define([
             initialize: function(arg){
                 this.template = _.template(arg.template);
                 this.render();
-                sidebarModel.addOption('Profile')
+                //sidebarModel.addOption('Profile')
                 this.showhide();
                 contextModel.on('change:page', this.showhide , this)
 

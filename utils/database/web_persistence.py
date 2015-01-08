@@ -1081,9 +1081,9 @@ class WebPersistenceBase():
         return results
 
     @asyncio.coroutine
-    def encounter_report(self, customer, provider, patient, date):
-        cmd = 'SELECT EncounterReport(%s,%s,%s,%s);'
-        cur = yield from self.db.execute_single(cmd, [provider, patient, date, customer])
+    def encounter_report(self, customer, user, patient, date):
+        cmd = 'SELECT EncounterReport((SELECT prov_id FROM users WHERE user_id=%s),%s,%s,%s);'
+        cur = yield from self.db.execute_single(cmd, [user, patient, date, customer])
         rows = list(cur)
         try:
             return rows[0][0]
@@ -1117,6 +1117,7 @@ class WebPersistenceBase():
         Results.datetime: "min(a.datetime) AS time",
         Results.username: 'min(u.official_name)',
         Results.userid: 'a.user_id',
+        Results.provid: 'u.prov_id',
         Results.protocolname: 'min(c.name)',
         Results.protocol: 'a.protocol_id',
         Results.count: 'count(*)',
@@ -1146,11 +1147,11 @@ class WebPersistenceBase():
         return results
 
     @asyncio.coroutine
-    def interaction_details(self, customer, providerid, patientid, protocolid, startactivity):
+    def interaction_details(self, customer, userid, patientid, protocolid, startactivity):
         cmd = ["SELECT node_id, datetime, action, details FROM trees.activity WHERE",
                "customer_id = %s AND user_id = %s AND patient_id = %s AND protocol_id = %s",
                "AND activity_id >= %s ORDER BY activity_id"]
-        cmdargs = [customer, providerid, patientid, protocolid, startactivity]
+        cmdargs = [customer, userid, patientid, protocolid, startactivity]
 
         desired = {0: 'node_id', 1: 'datetime', 2: 'action', 3: 'details'}
 

@@ -143,7 +143,6 @@ define([
             for (var i in curTree.get("triggers").models) {
                 var curGroup = new groupView({group: curTree.get('triggers').models[i]})
                 $('#disjoinedGroups').append(curGroup.$el)
-                $('#disjoinedGroups').append("<div style='height:25px'></div>")
                 curGroup.render()
 
             }
