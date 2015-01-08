@@ -15,8 +15,9 @@ define([
     'text!templates/pathway/pathwayFolderEntry.html',
     'pathway/modalViews/newPathway',
     'pathway/modalViews/newPathwayFolder',
+    'pathway/modalViews/rename',
 
-], function ($, _, Backbone, router, contextModel, pathFolderRowTemplate, NewPathway, NewPathwayFolder) {
+], function ($, _, Backbone, router, contextModel, pathFolderRowTemplate, NewPathway, NewPathwayFolder, Rename) {
 
     var ruleRow = Backbone.View.extend({
         tagName: "li class='sub-folder dd-item dd2-item dd-collapsed'",
@@ -28,7 +29,8 @@ define([
             "click .glyphicon-folder-close": 'openFolder',
             "click .add-sub-pathway": 'handleNewPathway',
             "click .add-sub-folder": 'handleNewSubFolder',
-            "click .delete-folder": 'handleDeleteFolder'
+            "click .delete-folder": 'handleDeleteFolder',
+            "click .rename-folder": 'handleRename',
         },
         openFolder: function(event){
             //open folder - change folder icon to 'open' and show all immediate children
@@ -99,6 +101,11 @@ define([
             event.stopPropagation();
             this.setParents();
             new NewPathwayFolder({el: '#modal-target', parentFolder: $(this.el).children('ol').first(), parentList: this.parentList});
+        },
+        handleRename: function(event){
+            event.stopPropagation();
+
+            new Rename({el: '#modal-target', elToRename: this.$el, elType: 'Folder'});
         },
         handleMove: function(folder, path, that){
             //if the folder is moved, or if a pathway is moved into this folder, pathway locations will need to be updated

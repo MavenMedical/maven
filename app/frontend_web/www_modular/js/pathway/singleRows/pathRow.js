@@ -16,8 +16,9 @@ define([
     'pathway/models/pathwayCollection',
     'text!templates/pathway/pathwayListEntry.html',
     '../../widgets/pathway/historyList',
+    'pathway/modalViews/rename',
 
-], function ($, _, Backbone, router, contextModel, pathwayCollection, pathRowTemplate, HistoryList) {
+], function ($, _, Backbone, router, contextModel, pathwayCollection, pathRowTemplate, HistoryList, Rename) {
 
     var ruleRow = Backbone.View.extend({
         tagName: "li class='dd-item pathrow-item dd2-item dd-collapsed'",
@@ -28,6 +29,7 @@ define([
 	      'click .show-hist': 'handleHistory',
 	      'click .delete-button': 'handleRemove',
 	      'click .pathway-checkbox': 'handleCheck',
+	      'click .rename-pathway': 'handleRename',
 	      'click .pathway-switch-label': 'handleToggle',
         },
         handleToggle: function(event){
@@ -63,6 +65,13 @@ define([
             $(this.el).on("remove", function(){
                console.log("this pathway was removed");
             });
+        },
+        handleRename: function(event){
+            event.stopPropagation();
+
+            new Rename({el: '#modal-target', elId: this.model.get('canonical'),
+                        elToRename: $(".select-button",this.$el), elType:'Pathway'});
+
         },
         handleSelect: function() {
             if (contextModel.get('code') == 'undefined') {

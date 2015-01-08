@@ -73,28 +73,33 @@ class PathwaysWebservices():
                   [CONTEXT.USER, CONTEXT.CUSTOMERID],
                   {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int},
                   {USER_ROLES.provider, USER_ROLES.supervisor})
-    def select_hist(self, _header, body, context, matches, _key):
+    def publish_pathway(self, _header, body, context, matches, _key):
         # choose which pathway in history is currently active
 
         canonical_id = int(matches[0])
         path_id = int(matches[1])
         customer_id = context[CONTEXT.CUSTOMERID]
 
-        yield from self.persistence.select_active_pathway(customer_id, canonical_id, path_id)
+        results = yield from self.persistence.select_active_pathway(customer_id, canonical_id, path_id)
+        # full spec of the newly published pathway version
 
         # if anyone has copied this pathway we need to notify them of changes
         results = yield from self.persistence.get_protocol_children(canonical_id)
         children = [{CONTEXT.PATHID: k[0],
                     CONTEXT.NAME: k[1],
                     CONTEXT.CANONICALID: k[2],
-                    CONTEXT.USERID: k[3]} for k in results]
+                    CONTEXT.CUSTOMERID: k[3],
+                    CONTEXT.USER: k[4]} for k in results]
         for child in children:
-            subject = "Changes for your shared pathway '{}'"
-            message = ("The master version for your pathway {} has a new live version \n"
-                       "Master version: #/pathway/{} \n "
+            new_path = yield from self.persistence.propagate_pathway(canonical_id, child[CONTEXT.CANONICALID],
+                                                                     customer_id, child[CONTEXT.CUSTOMERID])
+            subject = "Changes for your shared pathway '{}'".format(child[CONTEXT.NAME])
+            message = ("The master version for your pathway '{}' has a new live version \n"
+                       "New version: #/pathway/{} \n "
                        "Your Version: #/pathway/{} \n"
-                       .format(child[CONTEXT.PATHID], child[CONTEXT.PATHID], path_id, child[CONTEXT.PATHID]))
-            yield from self.client_interface.notify_user(customer_id, child[CONTEXT.USERID], subject, message)
+                       .format(child[CONTEXT.NAME], new_path[0][0], child[CONTEXT.PATHID]))
+            yield from self.client_interface.notify_user(child[CONTEXT.CUSTOMERID], child[CONTEXT.USER],
+                                                         subject, message)
 
         return (HTTP.OK_RESPONSE, "", None)
 
@@ -224,6 +229,19 @@ class PathwaysWebservices():
         location_msg = json.loads(body.decode('utf-8'))
 
         yield from self.persistence.post_pathway_location(customer_id, canonical_id, location_msg)
+
+        return (HTTP.OK_RESPONSE, "", None)
+
+    @http_service(['POST'], '/protocol/(\d+)/(\d+)',
+                  [CONTEXT.USER, CONTEXT.CUSTOMERID],
+                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int},
+                  {USER_ROLES.provider, USER_ROLES.supervisor})
+    def rename_pathway(self, _header, body, context, matches, _key):
+        canonical_id = int(matches[0])
+        customer_id = int(matches[1])
+        new_name = json.loads(body.decode('utf-8')).get('new_name', None)
+
+        yield from self.persistence.rename_pathway(customer_id, canonical_id, new_name)
 
         return (HTTP.OK_RESPONSE, "", None)
 

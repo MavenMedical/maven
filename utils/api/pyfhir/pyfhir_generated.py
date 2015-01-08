@@ -788,6 +788,14 @@ class Composition(Resource):
         except:
             return None
 
+    def get_procedure_history(self):
+        try:
+            enc_orders_section = self.get_section_by_coding("http://loinc.org", "47519-4")
+            if enc_orders_section.content is not None:
+                return enc_orders_section.content
+        except:
+            return None
+
     def get_encounter_order_by_clientEMR_uuid(self, id):
         for order in self.get_encounter_orders():
             if order.get_clientEMR_uuid() == id:

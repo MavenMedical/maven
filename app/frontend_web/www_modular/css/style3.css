@@ -235,6 +235,10 @@ a.disabled {
     color: #696969;
 }
 
+.dd2-handle {
+    z-index: inherit;
+}
+
 /******************************************************************
  * The following customize the fonts and colors of the trigger modal *
  ******************************************************************/
@@ -246,6 +250,9 @@ a.disabled {
 
 }
 
+.ui-droppable{
+    margin-bottom: 25px;
+}
 
 .hoverDrop{
     border-style: dashed !important;

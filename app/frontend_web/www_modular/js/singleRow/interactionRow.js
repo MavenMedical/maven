@@ -44,7 +44,7 @@ define([
                 data: that.model.toJSON(), 
                 success: function(data) {
                     treeContext.suppressClick=true
-                    contextModel.set({history: data, historydetails: that.model, historyposition: 0})
+                    contextModel.set({historysummary: data.summary, history: data.base, historydetails: that.model, historyposition: 0})
                 },
                 error: function(a,b) {console.log('error',arguments)},
                 dataType: 'json',

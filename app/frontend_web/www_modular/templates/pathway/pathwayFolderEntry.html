@@ -5,7 +5,7 @@
     <i class="drag-icon ace-icon fa fa-arrows bigger-125"></i>
 </div>
 <div class="dd2-content">
-    <%=name%>
+    <span class="folder-title"><%=name%></span>
     <div class="pull-right action-buttons">
         <div class="btn-group">
             <button class="btn btn-white btn-primary btn-xs dropdown-toggle" data-toggle="dropdown">New<span class="ace-icon fa fa-caret-down icon-on-right"></span>
@@ -16,6 +16,15 @@
                 </li>
                 <li>
                     <a class="add-sub-pathway">Pathway</a>
+                </li>
+            </ul>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-white btn-primary btn-xs dropdown-toggle" data-toggle="dropdown">Edit<span class="ace-icon fa fa-caret-down icon-on-right"></span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-right dropdown-caret">
+                <li>
+                    <a class="rename-folder">Rename</a>
                 </li>
             </ul>
         </div>
