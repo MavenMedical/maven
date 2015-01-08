@@ -23,9 +23,7 @@
                     <div style="clear:both; left: 70px" class="multi-select-search" type="snomed_diagnosis"
                          name="code"></div>
                     <p class="attn-text">in the time frame from </p>
-                    <<<<<<< HEAD
                     <div style="clear:both" value=0; name="minDays" class="min-days detail-input"></div>
-                    <script> $('.min-days').val(0)</script>
 
 
                     <div style="width: 80%; margin-left: 10%; margin-right: 10%">
@@ -107,14 +105,14 @@
                 </div>
             </div>
 
+<script>
+
+
+        $('.confirm-detail-button').on('click', function () {
+        $('.min-days').val(0)
+    })
+</script>
 
         </div>
     </div>
 </div>
-<script>
-
-
-    $('.confirm-detail-button').on('click', function () {
-        $('.min-days').val(0)
-    })
-</script>
