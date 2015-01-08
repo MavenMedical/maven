@@ -751,6 +751,11 @@ class FHIRPersistanceBase():
             provider_id = composition.author.get_provider_id()
             encounter_id = composition.encounter.get_csn()
 
+            historic_procs = []
+            for enc_ord in [(order) for order in composition.get_procedure_history() if isinstance(order.detail[0], FHIR_API.Procedure)]:
+                terminology_code = enc_ord.get_proc_med_terminology_coding()
+                historic_procs.append(terminology_code.code)
+
             # TODO - Need to replace this placeholder list of meds with the real meds
             patient_meds = []
             args = [1,
@@ -763,8 +768,9 @@ class FHIRPersistanceBase():
                     composition.customer_id,
                     patient_meds,
                     provider_id,
-                    encounter_id]
-            cur = yield from self.db.execute_single("SELECT * FROM trees.evalnode(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", extra=args)
+                    encounter_id,
+                    historic_procs]
+            cur = yield from self.db.execute_single("SELECT * FROM trees.evalnode(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", extra=args)
 
             rtn_matched_rules = []
             for result in cur:
