@@ -52,7 +52,11 @@ class ReportingWebservices():
 
         results = yield from self.persistence.interaction_details(customer, provider, patient,
                                                                   protocol, startactivity)
-        return HTTP.OK_RESPONSE, json.dumps(results), None
+        if results:
+            summary = yield from self.persistence.encounter_report(customer, provider, patient,
+                                                                   results[0]['datetime'])
+
+        return HTTP.OK_RESPONSE, json.dumps({'base': results, 'summary': summary}), None
 
     @http_service(['GET'], '/interactions(?:(\d+)-(\d+)?)?',
                   [CONTEXT.USER, CONTEXT.CUSTOMERID],

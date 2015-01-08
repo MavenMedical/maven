@@ -48,6 +48,7 @@ class TimedFollowUpService():
                 # Retrieve Tasks for the hour
                 current_datetime = datetime.datetime.now()
                 followup_tasks = yield from self.persistence.get_followup_tasks(datetime=current_datetime)
+                ML.report('/followup_tasks/' + str(len(followup_tasks)))
 
                 # Use the Notification Service to Send Due Tasks
                 if followup_tasks:

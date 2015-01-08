@@ -83,14 +83,15 @@ define([
             "auditlist(login/:user/:customer/)(:userAuth)": 'showAudit',
             "profile(login/:user/:customer/)(:userAuth)": 'showProfile',
             "customers(login/:user/:customer/)(:userAuth)": 'showCustomers',
-            "(login/:user/:customer/)(:userAuth)": 'showHome',
+            "home": 'showHome',
             "patient/:id(/login/:user/:customer/)(:userAuth)": 'showPatient',
             "episode/:id/patient/:id/:date(/login/:user/:customer/)(:userAuth)": 'showEpisode',
             "evidence/:id/patient/:id/evi/:id(/login/:user/:customer/)(:userAuth)": 'showEvidence',
             "pathway/:id/node/:id(/patient/:id/:date)(/login/:user/:customer/)(:userAuth)": 'showPathway',
             "pathwayeditor/:id/node/:id(/login/:user/:customer/)(:userAuth)": 'EditPathway',
             "triggereditor/:id/node/:id(/login/:user/:customer/)(:userAuth)": 'EditTriggers',
-	        "password/:type/:user/:customer/:oauth": 'password',
+            "password/:type/:user/:customer/:oauth": 'password',
+            "(login/:user/:customer/)(:userAuth)": 'showPathManager',
             //default
             '*action': 'defaultAction',
         },
@@ -102,14 +103,16 @@ define([
 		new Login({el: '#login-modal'});
 	    }
 	},
+        showPathManager: function (user, customer, userAuth) {
+            /* remove the current patient list, encounter, etc to revert the view to the doctor's user page */
+            console.log('ABCD patheditor')
+            currentContext.set({page: 'pathEditor', patients: null, encounter: null, patientName: null});
+            showPage(user, customer, userAuth);
+        },
         showHome: function (user, customer, userAuth) {
             /* remove the current patient list, encounter, etc to revert the view to the doctor's user page */
-            currentContext.set({page: 'pathEditor', patients: null, encounter: null, patientName: null});
-
-            //TODO This is only for Demo purpose
-            if(currentContext.get('official_name') == 'Heathcliff Huxtable'){
-                currentContext.set({page: 'pathEditor', patients: null, encounter: null, patientName: null});
-            }
+            console.log('setting page to home')
+            currentContext.set({page: 'home', patients: null, encounter: null, patientName: null});
             showPage(user, customer, userAuth);
         },
         showPatient: function (patid, user, customer, userAuth) {
