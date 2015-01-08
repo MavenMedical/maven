@@ -50,11 +50,12 @@ define([
 	},
         updatehistory: function() {
             var history = contextModel.get('history')
+            var historysummary = contextModel.get('historysummary')
             var historyposition = contextModel.get('historyposition')
             var historydetails = contextModel.get('historydetails')
             if (history == null || historyposition == null || historydetails == null) {
                 treeContext.suppressClick=false
-                Backbone.history.navigate('', true)
+                Backbone.history.navigate('home', true)
                 return
             }
             treeContext.suppressClick=true
@@ -90,13 +91,15 @@ define([
                 }
                 if (progress == history.length) {
                     $('#nextinteraction').html('Finish')
+                    if (historysummary) {
+                        $('#historydetails').append(historysummary)
+                    }
                 } else {
                     $('#nextinteraction').html('Next')
                 }                        
             }
         },
         showhide: function() {
-            
             var page = contextModel.get('page')
 	    if (page=='home') {
                 this.$el.show()

@@ -1081,6 +1081,16 @@ class WebPersistenceBase():
         return results
 
     @asyncio.coroutine
+    def encounter_report(self, customer, provider, patient, date):
+        cmd = 'SELECT EncounterReport(%s,%s,%s,%s);'
+        cur = yield from self.db.execute_single(cmd, [provider, patient, date, customer])
+        rows = list(cur)
+        try:
+            return rows[0][0]
+        except:
+            return None
+
+    @asyncio.coroutine
     def last_checks(self, customer, protocol, patient, node):
         cmd = ["SELECT details, action, max(datetime) FROM trees.activity",
                "WHERE customer_id=%s",

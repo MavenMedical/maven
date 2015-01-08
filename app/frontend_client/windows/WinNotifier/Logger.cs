@@ -20,6 +20,7 @@ namespace MavenAsDemo
             }
             catch (Exception ex){
                 LogLocal("Error logging message to the cloud: "+ex.Message);
+                Program.mytray.SetDisconnected();
             }
             return rtn;
         }
