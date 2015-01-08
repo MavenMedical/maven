@@ -16,9 +16,9 @@ define([
     'pathway/models/pathwayCollection',
     'text!templates/pathway/pathwayListEntry.html',
     '../../widgets/pathway/historyList',
-    'pathway/modalViews/renamePathway',
+    'pathway/modalViews/rename',
 
-], function ($, _, Backbone, router, contextModel, pathwayCollection, pathRowTemplate, HistoryList, RenamePathway) {
+], function ($, _, Backbone, router, contextModel, pathwayCollection, pathRowTemplate, HistoryList, Rename) {
 
     var ruleRow = Backbone.View.extend({
         tagName: "li class='dd-item pathrow-item dd2-item dd-collapsed'",
@@ -69,7 +69,8 @@ define([
         handleRename: function(event){
             event.stopPropagation();
 
-            new RenamePathway({el: '#modal-target', canonical_id: this.model.get('canonical'), nameEl: $(".select-button",this.$el)});
+            new Rename({el: '#modal-target', elId: this.model.get('canonical'),
+                        elToRename: $(".select-button",this.$el), elType:'Pathway'});
 
         },
         handleSelect: function() {
