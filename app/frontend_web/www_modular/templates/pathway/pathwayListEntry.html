@@ -6,26 +6,34 @@
 <div class="dd2-content">
     <span title="Select Pathway"><a class='select-button'><%=name%></a></span>
     <div class="pull-right action-buttons">
+
         <div class="btn-group">
-            <button class="btn btn-white btn-primary btn-xs dropdown-toggle" data-toggle="dropdown">Edit<span class="ace-icon fa fa-caret-down icon-on-right"></span>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-right dropdown-caret">
-                <li>
-                    <a class="rename-pathway">Rename</a>
-                </li>
-            </ul>
-        </div>
-        <div class="btn-group">
-            <a>
-                <input class="ace ace-switch ace-switch-3 pathway-enable" type="checkbox"
-                    <%= (enabled == 1) ? "checked title='Disable Pathway'" : "title='Enable Pathway'" %>/>
-                    <span class="lbl"></span>
-            </a>
-        </div>
-        <div class="btn-group">
-            <a class="red delete-button" style="vertical-align: top;" title="Delete Pathway">
-                <i class="ace-icon fa fa-trash-o bigger-140"></i>
-            </a>
+            <div class="btn-group">
+                <button class="btn btn-white btn-primary btn-xs dropdown-toggle" data-toggle="dropdown">Edit<span class="ace-icon fa fa-caret-down icon-on-right"></span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-right dropdown-caret">
+                    <li>
+                        <a class="rename-pathway">Rename</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="btn-group">
+                <ul class="dropdown-menu dropdown-menu-right dropdown-caret">
+                    <li>
+                        <a class="rename-pathway">Rename</a>
+                    </li>
+                </ul>
+                <a>
+                    <input class="ace ace-switch ace-switch-3 pathway-enable" type="checkbox"
+                        <%= (enabled == 1) ? "checked title='Disable Pathway'" : "title='Enable Pathway'" %>/>
+                        <span class="lbl"></span>
+                </a>
+            </div>
+            <div class="btn-group">
+                <a class="red delete-button" style="vertical-align: top;" title="Delete Pathway">
+                    <i class="ace-icon fa fa-trash-o bigger-140"></i>
+                </a>
+            </div>
         </div>
     </div>
 </div>

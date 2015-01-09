@@ -219,7 +219,7 @@ a.disabled {
  * The following customize the pathway manager *
  ******************************************************************/
 
-.action-buttons > a, .dd2-content > span > a {
+.action-buttons > a, .btn-group > a, .dd2-content > span > a {
     cursor: pointer;
 }
 
@@ -246,8 +246,7 @@ a.disabled {
     z-index: 1030 !important;
 }
 #detailed-trigger-modal{
-    	z-index: 1020 !important;
-
+    z-index: 1020 !important;
 }
 
 .ui-droppable{

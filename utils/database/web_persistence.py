@@ -1240,15 +1240,15 @@ class WebPersistenceBase():
     def get_protocol_children(self, parent_id, includedeleted=False):
         cmd = []
         cmdArgs = []
-        cmd.append("SELECT current_id, name, trees.protocol.canonical_id, trees.protocol.customer_id, users.user_name")
-        cmd.append("FROM trees.canonical_protocol")
-        cmd.append("INNER JOIN trees.protocol")
-        cmd.append("INNER JOIN users on user_id=creator")
-        cmd.append("on trees.canonical_protocol.canonical_id = trees.protocol.canonical_id")
-        cmd.append("WHERE trees.canonical_protocol.parent_id=%s")
+        cmd.append("SELECT current_id, name, c.canonical_id, p.customer_id, users.user_name")
+        cmd.append("FROM trees.canonical_protocol c")
+        cmd.append("LEFT JOIN trees.protocol p")
+        cmd.append("LEFT JOIN users on user_id=creator")
+        cmd.append("on c.current_id = p.protocol_id")
+        cmd.append("WHERE c.parent_id=%s")
         cmdArgs.append(parent_id)
         if not includedeleted:
-            cmd.append('AND NOT trees.canonical_protocol.deleted')
+            cmd.append('AND NOT c.deleted')
         ret = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
         return list(ret)
 
@@ -1260,7 +1260,7 @@ class WebPersistenceBase():
                "SELECT %s, p.description, p.minage, p.maxage, p.sex, p.full_spec, %s, false,",
                "p.creator, 0, p.tags",
                "FROM trees.canonical_protocol c",
-               "INNER join trees.protocol p",
+               "LEFT JOIN trees.protocol p",
                "ON c.current_id = p.protocol_id",
                "WHERE c.canonical_id = %s AND c.customer_id = %s",
                "returning trees.protocol.protocol_id"]
@@ -1464,9 +1464,12 @@ class WebPersistenceBase():
             cmdArgs.append(canonical_id)
         cmd.append("and customer_id=%s")
         cmdArgs.append(customer_id)
+        cmd.append("returning (SELECT name FROM customer where customer_id=%s), trees.canonical_protocol.name")
+        cmdArgs.append(customer_id)
 
         try:
-            yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
+            ret = yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
+            return list(ret)
         except:
             ML.EXCEPTION("Error Updating TreeID #{}".format(canonical_id))
 

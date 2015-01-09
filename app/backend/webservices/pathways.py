@@ -22,6 +22,7 @@ from utils.enums import USER_ROLES
 import utils.streaming.http_responder as HTTP
 import json
 from clientApp.webservice.clientapp_rpc_endpoint import ClientAppEndpoint
+import utils.crypto.authorization_key as AK
 
 
 class PathwaysWebservices():
@@ -81,7 +82,8 @@ class PathwaysWebservices():
         customer_id = context[CONTEXT.CUSTOMERID]
 
         results = yield from self.persistence.select_active_pathway(customer_id, canonical_id, path_id)
-        # full spec of the newly published pathway version
+        customer_name = (results[0][0]).strip()
+        parent_name = results[0][1]
 
         # if anyone has copied this pathway we need to notify them of changes
         results = yield from self.persistence.get_protocol_children(canonical_id)
@@ -93,11 +95,22 @@ class PathwaysWebservices():
         for child in children:
             new_path = yield from self.persistence.propagate_pathway(canonical_id, child[CONTEXT.CANONICALID],
                                                                      customer_id, child[CONTEXT.CUSTOMERID])
+            ak = AK.authorization_key([child[CONTEXT.USER], str(child[CONTEXT.CUSTOMERID])], 44, 365 * 24 * 60 * 60)
+            parent_link = '%s#pathwayeditor/%s/node/-1/login/%s/%s/%s' % (MC.http_addr, new_path[0][0],
+                                                                          child[CONTEXT.USER],
+                                                                          child[CONTEXT.CUSTOMERID], ak)
+            child_link = '%s#pathwayeditor/%s/node/-1/login/%s/%s/%s' % (MC.http_addr, child[CONTEXT.PATHID],
+                                                                         child[CONTEXT.USER],
+                                                                         child[CONTEXT.CUSTOMERID], ak)
             subject = "Changes for your shared pathway '{}'".format(child[CONTEXT.NAME])
-            message = ("The master version for your pathway '{}' has a new live version \n"
-                       "New version: #/pathway/{} \n "
-                       "Your Version: #/pathway/{} \n"
-                       .format(child[CONTEXT.NAME], new_path[0][0], child[CONTEXT.PATHID]))
+            message = ("{} has published an update to the pathway '{}' \n\n"
+                       "Your pathway '{}' is derived from this pathway. Please log in and review this change. \n"
+                       "You can accept this change by publishing this new pathway version. \n"
+                       "You can also compare this pathway to your own and make any desired changes. \n"
+                       "If you take no action, your pathway will remain as is. \n\n"
+                       "{}'s newest version: {} \nYour Version: {} \n"
+                       .format(customer_name, parent_name, child[CONTEXT.NAME],
+                               customer_name, parent_link, child_link))
             yield from self.client_interface.notify_user(child[CONTEXT.CUSTOMERID], child[CONTEXT.USER],
                                                          subject, message)
 
