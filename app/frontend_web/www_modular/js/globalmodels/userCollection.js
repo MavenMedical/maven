@@ -13,7 +13,7 @@ define([
         context: function(){
             contextModel.on('change:startdate change:enddate',
 		    // this will be needed once the context filters things
-		    this.refresh);
+		    this.refresh, this);
         },
     });
     return UserCollection;
