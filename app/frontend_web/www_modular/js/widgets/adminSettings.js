@@ -139,7 +139,7 @@ define([
                             alert("Connection settings saved!");
                         }
                         userCollection.refresh();
-                            setTimeout(userCollection.refresh, 7000);
+                        setTimeout(function() {userCollection.refresh()}, 7000);
                         },
                         error: function (resp){
                             alert("The server could NOT successfully connect using this configuration.  " + resp.responseJSON);
