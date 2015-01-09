@@ -22,7 +22,7 @@ define([
 
             this.type = params.type;
             this.$el = params.el
-            if (this.type == "snomed_diagnosis"){
+            if (this.type.split('_')[0] ==  "snomed"){
                 panel.lineTemplate = _.template(snomedLineTemplate)
             } else if (this.type == "groups"){
                 panel.lineTemplate == _.template(groupLineTemplate)
