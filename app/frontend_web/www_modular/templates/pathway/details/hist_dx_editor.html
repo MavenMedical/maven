@@ -23,35 +23,73 @@
                     <div style="clear:both; left: 70px" class="multi-select-search" type="snomed_diagnosis"
                          name="code"></div>
                     <p class="attn-text">in the time frame from </p>
+                    <div style="clear:both" value=0; name="minDays" class="min-days detail-input"></div>
 
-                    <div style='padding-left: 27%; clear:both; text-align: center'>
 
-                        <br>
-
-                        <div style="clear:both" name="minDays" class="min-days detail-input">
-                            <div style="float:left">Days<br><input class="range-input days-min" placeholder="Days">
-                            </div>
-                            <div style="float:left">Weeks<br><input class="range-input weeks-min" placeholder="Weeks">
-                            </div>
-                            <div style="float:left">Months<br><input class="range-input months-min"
-                                                                     placeholder="Months"></div>
-                            <div style="float:left">Years<br><input class="range-input years-min" placeholder="Years">
-                            </div>
-                        </div>
-
-                        <div style="float: left; width:500px; text-align: center" class="attn-text">until</div>
-
-                        <div style="clear: both" name="maxDays" class="max-days detail-input">
-                            <div style="float:left">Days<br><input class="range-input days-max" placeholder="Days">
-                            </div>
-                            <div style="float:left">Weeks<br><input class="range-input weeks-max" placeholder="Weeks">
-                            </div>
-                            <div style="float:left">Months<br><input class="range-input months-max"
-                                                                     placeholder="Months"></div>
-                            <div style="float:left">Years<br><input class="range-input years-max" placeholder="Years">
-                            </div>
-                        </div>
+                    <div style="width: 80%; margin-left: 10%; margin-right: 10%">
+                        <div style="margin-top: 10px; margin-right: 5%;  float: left; width: 80%" id="myslider"
+                             class="ui-slider-simple ui-slider-blue"></div>
+                        <input style="width: 15%" type=text value="0" name="maxDays" class="detail-input" id="maxDays"
+                               style="float: left">
                     </div>
+
+                    <script>
+                        $('#myslider').slider({
+                            value: 0,
+                            range: "min",
+                            animate: true,
+                            max: 105,
+                            min: 0
+                        });
+                    </script>
+                    <div style=" margin-right: 4px; float: left" id="number" style="clear: both">0 Years, 0 Months, 0
+                        Days,
+                    </div>
+                    until the present.
+                    <script>
+                        var handle = function () {
+                            var value = (Math.pow(Math.E, $('#myslider').slider("option", "value") / 10))
+                            $('#maxDays').val(parseInt(value))
+                            var years = parseInt(value / 356)
+                            value %= 365;
+                            var months = parseInt(value / 30);
+                            value %= 30
+                            var days = parseInt(value)
+                            $('#number').html(years + " years, " + months + " months, " + days + " days,")
+                        }
+                        var handleChange = function () {
+                            var maxDaysValue = $('#maxDays').val()
+
+                            console.log(maxDaysValue)
+
+                            maxDaysValue = $('#maxDays').val()
+
+                            console.log(maxDaysValue)
+                            if (!parseInt(maxDaysValue)) {
+                                return;
+                            }
+                            var toSliderNumber = Math.log(maxDaysValue) * 10
+                            var years = parseInt(maxDaysValue / 356)
+                            maxDaysValue %= 365;
+                            var months = parseInt(maxDaysValue / 30);
+                            maxDaysValue %= 30
+                            var days = parseInt(maxDaysValue)
+                            $('#number').html(years + " years, " + months + " months, " + days + " days,")
+                            $("#myslider").slider("value", toSliderNumber)
+                        }
+                        $('#maxDays').change(handleChange)
+                        $('#maxDays').on('ready', handleChange)
+                        $("#myslider").slider({
+
+                            slide: handle,
+                            start: handle,
+                            stop: handle
+
+
+                        });
+
+
+                    </script>
 
                     <div style="clear:both">
                         <br>
@@ -60,43 +98,21 @@
                     <div style="clear:both"></div>
 
 
+                    <div class="modal-footer">
+                        <button style="float:left" class="btn btn-sm btn-info cancel-edit-button">Cancel</button>
+                        <button style="float:right" class="btn btn-sm btn-info confirm-detail-button">Confirm</button>
+                    </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button style="float:left" class="btn btn-sm btn-default cancel-edit-button">Cancel</button>
-                <button style="float:right" class="btn btn-sm btn-info confirm-detail-button">Confirm</button>
-            </div>
-
-        </div>
-    </div>
-</div>
 
 <script>
 
 
-    $('.confirm-detail-button').on('click', function () {
-        var minDays = 0 + parseInt($('.days-min').val())
-        var minWeeks = 0 + parseInt($('.weeks-min').val())
-        var minMonths = 0 + parseInt($('.months-min').val())
-        var minYears = 0 + parseInt($('.years-min').val())
-
-        var maxDays = 0 + parseInt($('.days-max').val())
-        var maxWeeks = 0 + parseInt($('.weeks-max').val())
-        var maxMonths = 0 + parseInt($('.months-max').val())
-        var maxYears = 0 + parseInt($('.years-max').val())
-
-        if (!minDays) minDays = 0;
-        if (!minWeeks) minWeeks = 0;
-        if (!minMonths) minMonths = 0;
-        if (!minYears) minYears = 0;
-
-        if (!maxDays) maxDays = 0;
-        if (!maxWeeks) maxWeeks = 0;
-        if (!maxMonths) maxMonths = 0;
-        if (!maxYears) maxYears = 0;
-        var minval = minDays + 7 * minWeeks + 30 * minMonths + 365 * minYears
-        $('.min-days').val(minval)
-        var maxval = maxDays + 7 * maxWeeks + 30 * maxMonths + 365 * maxYears
-        $('.max-days').val(maxval)
+        $('.confirm-detail-button').on('click', function () {
+        $('.min-days').val(0)
     })
 </script>
+
+        </div>
+    </div>
+</div>
