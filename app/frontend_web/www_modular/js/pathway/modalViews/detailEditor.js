@@ -62,6 +62,8 @@ define([
                     anon =  Backbone.Collection.extend( {url: '/search'})
                 else if (populateType == "groups")
                     anon =  Backbone.Collection.extend( {url: '/groups'})
+                else
+                    anon =  Backbone.Collection.extend( {url: '/search'})
 
                 var avail = new anon
                 if (populateType == "groups")
@@ -83,11 +85,7 @@ define([
                 var searchBox = new multiSelectSearch({avail: avail, type: cur.getAttribute("type"), el: cur, selected: sel})
             })
 
-            //create routeList views for each div in the template with class route-list
-            var routeListEl = $('.route-list', this.$el)
-            $.each(routeListEl, function(a, cur){
-                var listBox = new routeListBox({el: cur})
-            })
+
             //if this is an edited detail fill all of the normal input boxes with the correct values
             if (!this.newDetail){
                 this.fillTemplate();

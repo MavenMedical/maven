@@ -43,13 +43,16 @@ define([
             this.el = params.el;
 
             this.avail.on('sync', this.render, this);
-            if (this.type == "snomed_diagnosis" || this.type == "hist_proc") {
+            if (this.type != "group") {
                 $('.search-button', this.$el)[0].onclick = function () {
                     var t = contextModel.toParams();
                     $.extend(t, {'search_param': $('.search-input', panel.$el).val()})
                     var tp= "snomed_diagnosis"
-                    if (panel.type.split('_')[1] == 'proc')
+                    if (panel.type.split('_')[1] == 'proc'){
                         tp = "CPT"
+                    } else if (panel.type.split("_")[1] == 'NDC' || panel.type.split("_")[1] == 'med'){
+                        tp = "snomed_drug";
+                    }
                     $.extend(t, {'type': tp});
                     panel.avail.fetch({data: $.param(t)})
                 }
@@ -58,8 +61,11 @@ define([
                         var t = contextModel.toParams();
                         $.extend(t, {'search_param': $('.search-input', panel.$el).val()})
                         var tp = "snomed_diagnosis"
-                        if (panel.type.split('_')[1] == 'proc')
-                            tp = "CPT"
+                        if (panel.type.split('_')[1] == 'proc'){
+                        tp = "CPT"
+                        } else if (panel.type.split("_")[1] == 'NDC' || panel.type.split("_")[1] == 'med'){
+                            tp = "snomed_drug";
+                        }
                         $.extend(t, {'type': tp});
                         panel.avail.fetch({data: $.param(t)})
                     }
