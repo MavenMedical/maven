@@ -22,8 +22,7 @@ define([
                 this.$el.show();
             },
             events: {
-                'click button.close': 'hidePopup',
-
+                'click button.close': 'hidePopup'
             },
             render: function () {
                 if (!treeContext.get('selectedNode')) {
@@ -66,8 +65,7 @@ define([
                 $('#side-popup').css('bottom', 5);
                 $('#side-popup').css('right', 11);
                 this.$el.show(1000);
-
-            },
+            }
         })
         ;
     return MavenInfo;

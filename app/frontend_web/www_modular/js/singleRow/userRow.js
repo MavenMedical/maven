@@ -30,6 +30,7 @@ define([
             return this;
         },
         updateNotificationPreferences: function(primary, secondary){
+            var that = this
             $.ajax({
                 url: "/update_user_pref",
                 data: $.param(contextModel.toParams()) + "&target_user=" + this.model.get("user_name") +
@@ -37,6 +38,7 @@ define([
                       "&notify1="+primary+"&notify2="+secondary,
                 success: function () {
                     $("#save-user-message").html("User Updated!");
+                    that.model.set({notify_primary: primary, notify_secondary: secondary})
                 },
                 error: function (){
                     alert("Could not save user information.");
@@ -83,6 +85,7 @@ define([
                                 alert(data);
                             }
                             $("#save-user-message").html("User Updated!");
+                            that.model.set('state', status)
                         },
                         error: function () {
                             alert("Sorry, an error occurred. Please try again later");
@@ -94,6 +97,7 @@ define([
                                 $(button).attr('checked','checked');
                             }
                             $("#save-user-message").html("Sorry, an error occurred. Please try again later");
+
                         }
                     });
                 });
