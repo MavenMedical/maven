@@ -54,6 +54,7 @@ define([
             $("#admin-username-input").prop("disabled",false);
             $("#admin-pw-input").prop("disabled",false);
             $("#httphttps").prop("disabled",false);
+            $("#admin-ehr-disable").prop("disabled",false);
             //$("#admin-ehr-disable").bootstrapSwitch('toggleDisabled');
 
             $("#admin-pw-input").val("");
@@ -66,6 +67,7 @@ define([
             $("#admin-username-input").prop("disabled",true);
             $("#admin-pw-input").prop("disabled",true);
             $("#httphttps").prop("disabled",true);
+            $("#admin-ehr-disable").prop("disabled",true);
             //$("#admin-ehr-disable").bootstrapSwitch('toggleDisabled');
 
             $("#admin-pw-input").val("password");
