@@ -97,13 +97,14 @@ define([
 		}
 	    }
 	    if(!nonempty) {
-            $('.audittable > tbody', this.$el).html("<tr><td colspan=\"5\">"+empty_text+"</td></tr>");
+            $('.audittable > tbody', this.$el).html("<tr class='empty-row'><td colspan=\"5\">"+empty_text+"</td></tr>");
             $('.audittable > thead', this.$el).hide();
             $('.audit-control-row', this.$el).hide();
             this.$el.show();
 	    }
         else {
             $('.audittable > thead', this.$el).show();
+            $('.empty-row', this.$el).hide();
             $('.audit-control-row', this.$el).show();
             this.$el.show();
             var auditlist = $('.audit-scroll', this.$el);

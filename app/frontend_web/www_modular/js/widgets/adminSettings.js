@@ -9,7 +9,6 @@ define([
     'globalmodels/contextModel',
     'globalmodels/userCollection',
     'text!templates/adminSettings.html',
-    'bootstrapswitch',
 ], function ($, _, Backbone, contextModel, userCollection, AdminSettingsTemplate) {
     var AdminModel = Backbone.Model.extend({url: '/customer_info'});
 
@@ -47,7 +46,7 @@ define([
             }
         },
         activateEHR: function() {
-            $("#admin-ehr-disable").bootstrapSwitch('state', true, true); //reset switch to its prior state
+            //$("#admin-ehr-disable").bootstrapSwitch('state', true, true); //reset switch to its prior state
         },
         unlockSettings: function() {
             $("#admin-ip-input").prop("disabled",false);
@@ -55,7 +54,7 @@ define([
             $("#admin-username-input").prop("disabled",false);
             $("#admin-pw-input").prop("disabled",false);
             $("#httphttps").prop("disabled",false);
-            $("#admin-ehr-disable").bootstrapSwitch('toggleDisabled');
+            //$("#admin-ehr-disable").bootstrapSwitch('toggleDisabled');
 
             $("#admin-pw-input").val("");
             $(".lock-admin-button").show();
@@ -67,7 +66,7 @@ define([
             $("#admin-username-input").prop("disabled",true);
             $("#admin-pw-input").prop("disabled",true);
             $("#httphttps").prop("disabled",true);
-            $("#admin-ehr-disable").bootstrapSwitch('toggleDisabled');
+            //$("#admin-ehr-disable").bootstrapSwitch('toggleDisabled');
 
             $("#admin-pw-input").val("password");
             $(".lock-admin-button").hide();
@@ -161,9 +160,9 @@ define([
                 this.model.attributes.settings.target_customer = this.extraData['target_customer'];
             }
             this.$el.html(this.template(this.model.attributes.settings));
-            $(document).ready(function(){
+            /*$(document).ready(function(){
                 $("#admin-ehr-disable", this.$el).bootstrapSwitch();
-            });
+            });*/
             return this;
         },
     });

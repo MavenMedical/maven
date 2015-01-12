@@ -16,7 +16,7 @@
             <div class="row">
                 <div class="col-sm-6">
                     <div class="row">
-                        <div class="span3">Unity Server Address:</div>
+                        <div class="span3">Unity Server Address</div>
                         <div style='float:left'>
                             <% var disabled = "";
 			                   if (typeof EHRURL !== "undefined")
@@ -25,11 +25,11 @@
                                     DISP_URL = EHRURL.replace("http://","").replace("https://","");
                                }
                             %>
-                            <select id='httphttps' class='form-control' <%= disabled %>>
-                                <option class='form-control'
+                            <select id='httphttps' class='chosen-select form-control' <%= disabled %>>
+                                <option
                                     value='https://' <%= (typeof EHRURL !== 'undefined') ? (EHRURL.indexOf("https://") > -1) ? 'selected' : '' : ''%>>https://
                                 </option>
-                                <option class='form-control'
+                                <option
                                     value='http://' <%= (typeof EHRURL !== 'undefined') ? (EHRURL.indexOf("https://") == -1) ? 'selected' : '' : '' %>>http://
                                 </option>
                           </select>
@@ -57,15 +57,12 @@
                 </div>
                 <div class="col-sm-6">
                     <div class="row">
-		      <div class="col-sm-6">
-                <div class="span3">EHR Integration:</div>
-		      </div>
-		      <div class="col-sm-6">
-                  <div style="width:50%;">
-                    <input id="admin-ehr-disable" type="checkbox" data-on-text="On" data-off-text="Off" data-size="small" <%= disabled %>
-                        <%= (typeof EHRDisabled !== 'undefined' && EHRDisabled) ? "" : "checked" %>>
-                  </div>
-			</div>
+                        <div class="span3">EHR Integration</div>
+                            <a>
+                                <input class="ace ace-switch ace-switch-3" type="checkbox"  id="admin-ehr-disable" <%=disabled %>
+                                    <%= (typeof EHRDisabled !== 'undefined' && EHRDisabled) ? "" : "checked" %> >
+                                <span class="lbl"></span>
+                            </a>
                     </div>
                 </div>
                 <div class="col-sm-6">
@@ -82,8 +79,10 @@
                 </div>
                 <div class="col-sm-6">
                     <div style='float:right'>
-                        <button class="btn btn-default btn-xs unlock-admin-button">Edit EHR Settings</button>
-                        <button class="btn btn-default btn-xs lock-admin-button" style="display: none;">Lock EHR Settings</button>
+                        <button class="btn btn-default btn-xs unlock-admin-button"
+                                style="<%= (typeof EHRURL === 'undefined') ? 'display: none;' : '' %>">Edit EHR Settings</button>
+                        <button class="btn btn-default btn-xs lock-admin-button"
+                                style="<%= (typeof EHRURL !== 'undefined') ? 'display: none;' : '' %>">Lock EHR Settings</button>
                     </div>
                 </div>
             </div>
