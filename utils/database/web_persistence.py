@@ -1233,7 +1233,7 @@ class WebPersistenceBase():
         cmd.append("FROM trees.canonical_protocol")
         cmd.append("INNER JOIN trees.protocol")
         cmd.append("on trees.canonical_protocol.canonical_id = trees.protocol.canonical_id")
-        cmd.append("WHERE parent_id=%s")
+        cmd.append("WHERE trees.canonical_protocol.parent_id=%s")
         cmdArgs.append(parent_id)
         if not includedeleted:
             cmd.append('AND NOT deleted')
