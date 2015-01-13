@@ -73,6 +73,7 @@ define([
                         $(event.toElement).one('click', function (e) {
                             e.stopImmediatePropagation();
                         });
+                        that.updateSelectedOffset()
                     }
                 })
                 var that = this
@@ -113,6 +114,7 @@ define([
                             that.treeEl.offset({left: newLeft,
                                 top: newTop});
                             that.setDraggableBox(newScale)
+                            that.updateSelectedOffset()
                         }
                     }
                 )
@@ -129,7 +131,7 @@ define([
                     this.render();
                 }, this)
                 //contextModel.on('change', this.render, this)
-                contextModel.on('change:pathid', function () {
+                contextModel.on('change:canonical', function () {
                     treeContext.set({'selectedNodeOffset': null, 'selectedNode': null}, {silent: true})
                     that.treeEl.css({'opacity': 0})
                     that.reset = true
@@ -184,13 +186,27 @@ define([
             adjustWidth: function () {
 
                 if (this.reset) {
+                    var selected = $('.treeNode.selected')
                     this.reset = false
                     var boundingWidth = $('.nodeEl', this.$el).width()
-                    var widthDiff = (this.$el.width() - boundingWidth) / 2
-                    if (widthDiff > 0) {
-                        var offset = this.treeEl.offset()
-                        offset.left = this.$el.offset().left + widthDiff;
-                        this.treeEl.offset(offset)
+                    var offset = this.treeEl.offset()
+                    var diff = 0
+                    if (selected && selected.length==1) {
+                        var s_offset = selected.offset()
+                        var t_offset = this.treeEl.offset()
+                        var w_offset = this.$el.offset()
+                        var width = this.$el.width()
+                        var diff = s_offset.left - (w_offset.left + width * 2/3)
+                    }
+                    if (diff > 0) {
+                        t_offset.left -= diff
+                        this.treeEl.offset(t_offset)
+                    } else {
+                        var widthDiff = (this.$el.width() - boundingWidth) / 2
+                        if (widthDiff > 0) {
+                            offset.left = this.$el.offset().left + widthDiff;
+                            this.treeEl.offset(offset)
+                        }
                     }
                     this.treeEl.css({'opacity': 1})
                 }
@@ -202,7 +218,6 @@ define([
                 var boxnode = $('.nodeEl', this.$el)
                 var boundingW = boxnode.width()
                 var boundingH = boxnode.height()
-
 
                 var l = this.$el.offset().left , t = this.$el.offset().top
                 var w = this.$el.width(), h = this.$el.height()
@@ -302,6 +317,14 @@ define([
                 that.treeEl.css({'cursor': 'default'})
 
 
+            },
+            updateSelectedOffset: function() {
+                var selected = $('.selected.treeNode')
+                if (selected && old && selected.offset()) {
+                    var old = treeContext.get('selectedNodeOffset')
+                    old.left = selected.offset().left
+                    old.top = selected.offset().top
+                }
             },
             showExtraInfo: function () {
 

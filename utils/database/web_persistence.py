@@ -1288,7 +1288,7 @@ class WebPersistenceBase():
             yield from self.upsert_codelists(treeJSON, canonical_id)
 
             # Return Tree_ID to the front-end
-            return tree_id
+            return tree_id, canonical_id
         except:
             ML.EXCEPTION("Error Inserting {} Protocol for Customer #{}".format(treeJSON['name'], customer_id))
         return None
@@ -1419,13 +1419,15 @@ class WebPersistenceBase():
 
     @asyncio.coroutine
     def get_protocol(self, customer_id, protocol_id=None):
-        cmd = ["SELECT full_spec from trees.protocol",
+        cmd = ["SELECT full_spec, canonical_id from trees.protocol",
                "WHERE protocol_id=%s AND (customer_id IS NULL OR customer_id=%s)"]
         cmdArgs = [protocol_id, customer_id]
         try:
             cur = yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
-            result = cur.fetchone()[0]
+            fetchone = cur.fetchone()
+            result = fetchone[0]
             result['pathid'] = protocol_id
+            result['canonical'] = fetchone[1]
             return result
         except:
             ML.EXCEPTION("Error Selecting TreeID #{}".format(protocol_id))
@@ -1544,7 +1546,7 @@ class WebPersistenceBase():
             ML.EXCEPTION("Error Updating TreeID #{}".format(protocol_json.get('pathid', None)))
 
         finally:
-            return newid
+            return newid, canonical_id
 
     @asyncio.coroutine
     def post_protocol_activity(self, customer_id, user_id, activity_msg):
