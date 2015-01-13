@@ -4,7 +4,7 @@ define(['jquery',
     'globalmodels/contextModel'
 
 ], function ($, Backbone, _, contextModel) {
-    var notificationSet = Backbone.Collection.extend({
+    var notificationSet = Backbone.Model.extend({
         url: "/broadcaster/poll"
     })
 
@@ -16,13 +16,13 @@ define(['jquery',
             this.curNotification.on('sync', function (model, changes) {
 
 
-                if (self.curNotification.models.length > 0 ){
+                if (self.curNotification.attributes){
                     var notification = new Notification("Maven Alert", {
                         body: "There is a standard of care for this patient.\n Click to view the pathway." ,
                         icon: "http://localhost/images/temp/newPath.jpg"
                     })
                     notification.addEventListener("click", function () {
-                        window.open(self.curNotification[0])
+                        window.open(self.curNotification.get(0))
                     })
                 }
                 self.beginPolling()
