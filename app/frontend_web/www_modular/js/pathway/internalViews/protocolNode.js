@@ -88,8 +88,10 @@ define([
                 }
                 activityTrack(evt);
                 this.getMyElement().off('click');
-                treeContext.set('selectedNode', this.model, {silent: true});
-                treeContext.trigger('propagate')
+                if (treeContext.get('selectedNode')!= this.model){
+                   treeContext.set('selectedNode', this.model);
+                   treeContext.trigger('propagate')
+                }
             },
 
 
