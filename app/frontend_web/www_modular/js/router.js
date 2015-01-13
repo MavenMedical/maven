@@ -183,6 +183,8 @@ define([
         initialize: function () {
             //ajaxPrefilter
             $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
+                console.log("prefiltering", options.url)
+                if (options.url!='/broadcaster/poll')
                 options.url = 'services' + options.url;
             });
             Backbone.history.start();
