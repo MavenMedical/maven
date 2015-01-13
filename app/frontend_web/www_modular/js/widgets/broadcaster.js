@@ -14,19 +14,15 @@ define(['jquery',
             var self = this;
             this.curNotification = new notificationSet();
             this.curNotification.on('sync', function (model, changes) {
-                var outputString = ""
-                for (var i in changes) {
-                    var value = changes[i]
-                    console.log(value)
-                    outputString += value
-                    outputString += "\n"
 
 
-                }
-                if (outputString != ""){
-                    var notification = new Notification("Maven Alert", {body: outputString, icon: "http://localhost/images/temp/newPath.jpg"})
+                if (self.curNotification.models.length > 0 ){
+                    var notification = new Notification("Maven Alert", {
+                        body: "There is a standard of care for this patient.\n Click to view the pathway." ,
+                        icon: "http://localhost/images/temp/newPath.jpg"
+                    })
                     notification.addEventListener("click", function () {
-                        alert("notification clicked")
+                        window.open(self.curNotification[0])
                     })
                 }
                 self.beginPolling()
