@@ -16,7 +16,7 @@ define(['jquery',
             this.curNotification.on('sync', function (model, changes) {
 
 
-                if (self.curNotification.attributes){
+                if (self.curNotification.get(0)){
                     var notification = new Notification("Maven Alert", {
                         body: "There is a standard of care for this patient.\n Click to view the pathway." ,
                         icon: "http://localhost/images/temp/newPath.jpg"
