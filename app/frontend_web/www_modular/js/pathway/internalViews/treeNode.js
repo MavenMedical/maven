@@ -58,7 +58,8 @@ define([
                 node: this.model.attributes,
                 childrenHidden: this.model.childrenHidden(),
                 page: currentContext.get('page'),
-                pathid: curTree.get('pathid')
+                pathid: curTree.get('pathid'),
+                preview: currentContext.get('preview')
             }));
             var that = this;
 
@@ -67,7 +68,7 @@ define([
                 if (treeContext.suppressClick) {
                     return
                 }
-                if (currentContext.get('page') == 'pathEditor') {
+                if (currentContext.get('page') == 'pathEditor' ) {
                     if (!that.model.childrenHidden()) {
                         curTree.collapse(that.model)
                     } else {
@@ -101,7 +102,7 @@ define([
                     'selectedNodeWidth': selected.outerWidth(), 'selectedNodeOffset': offset,
                     'selectedNode': that.model
                 }, {silent: true})
-                if (currentContext.get('page') != 'pathEditor') {
+                if (currentContext.get('page') != 'pathEditor' || currentContext.get('preview')) {
                     if (!that.model.childrenHidden()) {
                         curTree.collapse(that.model)
                     } else {
