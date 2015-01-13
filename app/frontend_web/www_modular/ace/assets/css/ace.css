@@ -8788,11 +8788,14 @@ input[type=checkbox].ace.ace-switch.ace-switch-3:checked + .lbl::after {
   text-shadow: none;
 }
 input[type=checkbox].ace.ace-switch.ace-switch-4,
-input[type=checkbox].ace.ace-switch.ace-switch-5 {
+input[type=checkbox].ace.ace-switch.ace-switch-5,
+input[type=checkbox].ace.ace-switch.ace-switch-8 {
   width: 60px;
 }
+
 input[type=checkbox].ace.ace-switch.ace-switch-4 + .lbl::before,
-input[type=checkbox].ace.ace-switch.ace-switch-5 + .lbl::before {
+input[type=checkbox].ace.ace-switch.ace-switch-5 + .lbl::before,
+input[type=checkbox].ace.ace-switch.ace-switch-8 + .lbl::before {
   content: "ON\a0\a0\a0\a0\a0\a0\a0\a0\a0\a0\a0OFF";
   font-size: 12px;
   line-height: 21px;
@@ -8813,7 +8816,8 @@ input[type=checkbox].ace.ace-switch.ace-switch-5 + .lbl::before {
   transition: all .3s ease;
 }
 input[type=checkbox].ace.ace-switch.ace-switch-4 + .lbl::after,
-input[type=checkbox].ace.ace-switch.ace-switch-5 + .lbl::after {
+input[type=checkbox].ace.ace-switch.ace-switch-5 + .lbl::after,
+input[type=checkbox].ace.ace-switch.ace-switch-8 + .lbl::after {
   content: 'III';
   font-size: 11px;
   position: absolute;
@@ -8831,13 +8835,15 @@ input[type=checkbox].ace.ace-switch.ace-switch-5 + .lbl::after {
   transition: all .3s ease;
 }
 input[type=checkbox].ace.ace-switch.ace-switch-4:checked + .lbl::before,
-input[type=checkbox].ace.ace-switch.ace-switch-5:checked + .lbl::before {
+input[type=checkbox].ace.ace-switch.ace-switch-5:checked + .lbl::before,
+input[type=checkbox].ace.ace-switch.ace-switch-8:checked + .lbl::before {
   text-indent: 9px;
   background-color: #468fcc;
   border-color: #468FCC;
 }
 input[type=checkbox].ace.ace-switch.ace-switch-4:checked + .lbl::after,
-input[type=checkbox].ace.ace-switch.ace-switch-5:checked + .lbl::after {
+input[type=checkbox].ace.ace-switch.ace-switch-5:checked + .lbl::after,
+input[type=checkbox].ace.ace-switch.ace-switch-8:checked + .lbl::after {
   left: 34px;
   background-color: #FFF;
   color: #848484;
@@ -8949,7 +8955,7 @@ input[type=checkbox].ace.ace-switch.ace-switch-7 + .lbl::after {
   -o-transition: all 0.2s ease-in-out;
   transition: all 0.2s ease-in-out;
 }
-input[type=checkbox].ace.ace-switch.ace-switch-7:checked + .lbl::before {
+input[type=checkbox].ace.ace-switch.ace-switch-7:checked + .lbl::before, {
   color: #468fcc;
   background-color: #FFF;
   text-indent: -28px;
@@ -8973,7 +8979,8 @@ input[type=checkbox].ace.ace-switch.btn-rotate + .lbl::after {
   font-size: 17px;
 }
 input[type=checkbox].ace.ace-switch-4.btn-rotate + .lbl::after,
-input[type=checkbox].ace.ace-switch-5.btn-rotate + .lbl::after {
+input[type=checkbox].ace.ace-switch-5.btn-rotate + .lbl::after,
+input[type=checkbox].ace.ace-switch-8.btn-rotate + .lbl::after {
   line-height: 17px;
 }
 input[type=checkbox].ace.ace-switch.btn-flat + .lbl::before,

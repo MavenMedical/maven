@@ -10,19 +10,16 @@
 </td>
 <td>
     <div width="100%">
-        <input type="checkbox" class="toggle-status" data-on-text="Active" data-off-text="InActive" data-size="small" style="width:100% !important;"
-            <%= (roles.indexOf("administrator")==-1 && ehr_state != 'active') ? "disabled" : '' %>
-            <%= (state == 'active' && ehr_state == 'active') ? 'checked' : '' %>>
-<!--
-        <button class="btn btn-xs btn-default btn-block btn-status" <%= (ehr_state != 'active') ? "disabled" : '' %>
-                value="<%= (state=='active') ? 'deactivate' : 'activate' %>">
-            <span class="btn-label"><%= (state == 'active' && ehr_state == 'active') ? 'Active' : 'Inactive' %></span>
-            <span class="btn-hover"><%= (state == 'active' && ehr_state == 'active') ? 'De Activate' : 'Activate' %></span>
-        </button>-->
+        <a>
+            <input class="ace ace-switch ace-switch-8 toggle-status" type="checkbox"
+                <%= (roles.indexOf("administrator")==-1 && ehr_state != 'active') ? "disabled" : '' %>
+                <%= (state == 'active' && ehr_state == 'active') ? 'checked' : '' %>>
+            <span class="lbl" data-lbl="Active &nbsp;&nbsp;Inactive"></span>
+        </a>
     </div>
     <% if (ehr_state == 'active' || roles.indexOf("administrator")!=-1) { %>
     <div width="100%">
-        <button class="btn btn-xs reset-user-password btn-default btn-block" value="">Reset Password</button>
+        <button class="btn btn-xs reset-user-password btn-primary btn-block btn-white" value="">Reset Password</button>
     </div>
     <% } %>
 </td>
@@ -35,33 +32,33 @@
     <% notifications = {'desktop': 'Desktop', 'mobile': 'Mobile', 'ehrinbox': 'EHR Inbox', 'off': 'Off', '': 'Off'} %>
 
     <div class="btn-group" style="float:right; width:100%;">
-        <ul class="dropdown-menu dropdown-menu-right" role="menu" style='float:right;'>
-          <li><a class="btn-msg-primary" value="desktop">Desktop</a></li>
-	      <li><a class="btn-msg-primary" value="mobile">Mobile</a></li>
-          <li><a class="btn-msg-primary" value="ehrinbox">EHR Inbox</a></li>
-          <li><a class="btn-msg-primary" value="off">Off</a></li>
-	    </ul>
-
-        <button type="button" class="btn btn-xs btn-default btn-block" data-toggle="dropdown">
-            <span class="msg-primary-label"><%= notifications[notify_primary.toLowerCase()] %></span>
-	        <span class="sr-only">Toggle Dropdown</span>
+        <button class="btn btn-info btn-white btn-xs dropdown-label msg-primary-label" data-toggle="dropdown">
+            <%= notifications[notify_primary.toLowerCase()] %>
         </button>
-
+        <button class="btn btn-info btn-white btn-xs dropdown-toggle" aria-expanded="false" data-toggle="dropdown">
+            <span class="ace-icon fa fa-caret-down icon-only"></span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-right dropdown-caret">
+            <li><a class="btn-msg-primary" value="desktop">Desktop</a></li>
+	        <li><a class="btn-msg-primary" value="mobile">Mobile</a></li>
+            <li><a class="btn-msg-primary" value="ehrinbox">EHR Inbox</a></li>
+            <li><a class="btn-msg-primary" value="off">Off</a></li>
+        </ul>
     </div>
 
     <div class="btn-group" style="float:right; width:100%;">
-        <ul class="dropdown-menu dropdown-menu-right" role="menu" style='float:right;'>
+        <button class="btn btn-info btn-white btn-xs dropdown-label msg-secondary-label" data-toggle="dropdown">
+            <%= notifications[notify_secondary.toLowerCase()] %>
+        </button>
+        <button class="btn btn-info btn-white btn-xs dropdown-toggle" aria-expanded="false" data-toggle="dropdown">
+            <span class="ace-icon fa fa-caret-down icon-only"></span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-right dropdown-caret">
           <li><a class="btn-msg-secondary" value="desktop">Desktop</a></li>
 	      <li><a class="btn-msg-secondary" value="mobile">Mobile</a></li>
           <li><a class="btn-msg-secondary" value="ehrinbox">EHR Inbox</a></li>
           <li><a class="btn-msg-secondary" value="off">Off</a></li>
-	    </ul>
-
-        <button type="button" class="btn btn-xs btn-default btn-block msg-secondary-dropdown" data-toggle="dropdown">
-            <span class="msg-secondary-label"><%= notifications[notify_secondary.toLowerCase()] %></span>
-	        <span class="sr-only">Toggle Dropdown</span>
-        </button>
-
+        </ul>
     </div>
 
 </td>

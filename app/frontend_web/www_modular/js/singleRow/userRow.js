@@ -19,7 +19,6 @@ define([
     'widgets/auditList',
     'text!templates/auditScroll.html',
     'libs/jquery/jquery-mousestop-event',
-    'bootstrapswitch',
 
 ], function ($, _, Backbone, userRowTemplate, contextModel, AuditList, AuditTemplate) {
 
@@ -31,6 +30,7 @@ define([
             return this;
         },
         updateNotificationPreferences: function(primary, secondary){
+            var that = this
             $.ajax({
                 url: "/update_user_pref",
                 data: $.param(contextModel.toParams()) + "&target_user=" + this.model.get("user_name") +
@@ -38,6 +38,7 @@ define([
                       "&notify1="+primary+"&notify2="+secondary,
                 success: function () {
                     $("#save-user-message").html("User Updated!");
+                    that.model.set({notify_primary: primary, notify_secondary: secondary})
                 },
                 error: function (){
                     alert("Could not save user information.");
@@ -55,7 +56,6 @@ define([
             var currentSecondary = this.model.get("notify_secondary").toLowerCase();
 
             $(document).ready(function() {
-                $(".toggle-status", that.$el).bootstrapSwitch();
                 $(that.el).find(".reset-user-password").click(function(){
                     $("#save-user-message").html("&nbsp;");
                     $.ajax({
@@ -71,9 +71,11 @@ define([
                     });
                 });
 
-                $('.toggle-status', that.$el).on('switchChange.bootstrapSwitch', function(event, state) {
+                $('.toggle-status', that.$el).click(function(event) {
+
                     var status = "disabled";
-                    if (state) status = "active";
+                    var button=event.target;
+                    if (button.checked) status = "active";
                     $.ajax({
                         url: "/update_user",
                         data: $.param(contextModel.toParams()) + "&target_user=" + that.model.get("user_name") +
@@ -83,11 +85,19 @@ define([
                                 alert(data);
                             }
                             $("#save-user-message").html("User Updated!");
+                            that.model.set('state', status)
                         },
                         error: function () {
                             alert("Sorry, an error occurred. Please try again later");
-                            $(event.target).bootstrapSwitch('toggleState', true); //reset switch to its prior state
+                            //reset switch to its prior state
+                            if (status =='active'){
+                                $(button).attr('checked','');
+                            }
+                            else {
+                                $(button).attr('checked','checked');
+                            }
                             $("#save-user-message").html("Sorry, an error occurred. Please try again later");
+
                         }
                     });
                 });
