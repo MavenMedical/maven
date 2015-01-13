@@ -1,43 +1,57 @@
 define(['jquery',
-           'backbone',
-           'underscore',
-           'globalmodels/contextModel'
+    'backbone',
+    'underscore',
+    'globalmodels/contextModel'
 
-       ], function ($, backbone, _, contextModel) {
-    var broadcaster = Backbone.view.extend({
-                                               initialize: function () {
-                                                   $.ajax({
-                                                              data: $.param(contextModel.toParams()),
-                                                              url: "/broadcaster",
-                                                              success: beginPolling(),
-                                                              fail: loginFailed
-                                                          });
+], function ($, Backbone, _, contextModel) {
+    var notificationSet = Backbone.Model.extend({
+        url: "/broadcaster/poll"
+    })
 
 
-                                                   var loginFailed = function () {
-                                                       var notification = new Notification("login failed")
-                                                   }
-                                                   var succeed = function () {
+    var broadcaster = Backbone.View.extend({
+        initialize: function () {
+            var self = this;
+            this.curNotification = new notificationSet();
+            this.curNotification.on('sync', function (model, changes) {
 
-                                                       var notification = new Notification("maven notification")
-                                                       beginPolling()
-                                                   }
 
-                                                   var fail = function () {
-                                                       var notification = new Notification("failed connection")
+                if (self.curNotification.get(0)){
+                    var notification = new Notification("Maven Alert", {
+                        body: "There is a standard of care for this patient.\n Click to view the pathway." ,
+                        icon: "http://localhost/images/temp/newPath.jpg"
+                    })
+                    notification.addEventListener("click", function () {
+                        window.open(self.curNotification.get(0))
+                    })
+                }
+                self.beginPolling()
 
-                                                   }
+            })
+            this.beginPolling()
 
-                                                   var beginPolling = function () {
-                                                       $.ajax({
-                                                                  url: "/broadcaster/poll",
-                                                                  success: succeed,
-                                                                  failure: fail,
-                                                                  dataType: "json"
-                                                              });
-                                                   };
-                                               }
-                                           })
+
+        },
+        loginFailed: function () {
+        },
+
+
+        beginPolling: function () {
+            Notification.requestPermission()
+            var self = this;
+            this.curNotification.fetch({
+
+                error: function () {
+                    console.log('polling error')
+
+                    setTimeout(self.beginPolling, 10000)
+                }
+            });
+
+        }
+    })
+
+
     return broadcaster
 
 

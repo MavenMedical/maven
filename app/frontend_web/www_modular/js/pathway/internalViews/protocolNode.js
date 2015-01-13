@@ -88,8 +88,10 @@ define([
                 }
                 activityTrack(evt);
                 this.getMyElement().off('click');
-                treeContext.set('selectedNode', this.model, {silent: true});
-                treeContext.trigger('propagate')
+                if (treeContext.get('selectedNode')!= this.model){
+                   treeContext.set('selectedNode', this.model);
+                   treeContext.trigger('propagate')
+                }
             },
 
 
@@ -133,7 +135,7 @@ define([
                 return '<input type="checkbox" value="'+p2+'" class="copy-text-button click-tracked" clickextra="' + key + '|' + counts[key] + '" clickid="TN-' + curTree.get('pathid') + '-' + that.model.get('nodeID')  + '"/> '+p1;
             })
             
-            this.$el.html(this.template({pathID: curTree.get('pathid'), protocolNode: this.model.attributes, page: currentContext.get('page'),
+            this.$el.html(this.template({pathID: curTree.get('pathid'), protocolNode: this.model.attributes, page: currentContext.get('page'),preview: currentContext.get('preview'),
                                          protocolText: protocolText}));
             $('.click-tracked input:checkbox', this.$el).click(function(evt) {activityTrack(evt)})
             $('.copy-text-button', this.$el).click(function(evt) {evt.stopPropagation()})
