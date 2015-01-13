@@ -459,7 +459,6 @@ define([
                     }, {silent: true})
                     self.populateChildren(response.children, options)
                     var n = new triggerGroupCollection()
-                    n.populate(response.triggers, self.get('protocolVersion'));
                     n.on('cascade', function () {
                         self.save(null, {
                             error: function () {
@@ -468,6 +467,8 @@ define([
                         })
 
                     })
+                    n.populate(response.triggers, self.get('protocolVersion'));
+
                     self.set('triggers', n, {silent: true});
                 }
 

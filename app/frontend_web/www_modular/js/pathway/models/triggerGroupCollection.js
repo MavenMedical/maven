@@ -16,14 +16,17 @@ define([
 
                     var t = new TriggerGroup()
                     t.populate({JSON: curGroup})
-                    t.on('cascade', function(){ self.trigger('cascade')} )
+                    t.off('cascade')
+
                     this.add(t, {silent: true})
                 }
             } else if (protocolVersion == "preversion"){
                 var t = new TriggerGroup()
                 t.populate({relationship : "and"})
-
-                t.on ('cascade', function(){ self.trigger('cascade')})
+                t.off('cascade')
+                t.on ('cascade', function(){
+                    self.trigger('cascade')
+                })
 
                 var temp = new TriggerDetailTypes()
                 temp.populate(JSON)
@@ -31,8 +34,13 @@ define([
 
                 this.add(t, {silent: true})
             }
-            this.on('add', function(){self.trigger('cascade')})
-            this.on('remove', function(){self.trigger('cascade')})
+            this.on('add', function(){
+                self.trigger('cascade')
+            })
+            this.on('remove', function(){
+                self.trigger('cascade')
+            })
+
             if (self.models.length == 0){
                 self.addGroup("and")
             }
@@ -55,7 +63,7 @@ define([
         populate: function(param){
             var self = this
             if (param.JSON){
-                this.set('relationship', param.JSON['relationship'])
+                this.set('relationship', param.JSON['relationship'], {silent: true})
                 var t = new TriggerDetailTypes()
                 t.populate(param.JSON['details'])
                 t.on('cascade', function(){ self.trigger('cascade')})
@@ -67,7 +75,9 @@ define([
                 t.on('cascade', function(){ self.trigger('cascade')})
                 this.set('details', t, {silent: true})
             }
-            this.on('change', function(){this.trigger('cascade')})
+            this.on('change', function(){
+                self.trigger('cascade')
+            })
 
         },
         addDetail: function(model, type){
@@ -125,7 +135,6 @@ define([
             for (var i in JSON){
                 var curDetail = JSON[i]
                 var t = new TriggerDetail()
-                t.on('cascade', function(){self.trigger('cascade')})
                 t.populate(curDetail)
                 this.add(t, {silent: true})
             }
