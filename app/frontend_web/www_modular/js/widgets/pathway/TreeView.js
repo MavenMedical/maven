@@ -246,7 +246,7 @@ define([
 
                                             var myInsert = new insertDiv({source: cur.source.model, target: cur.target.model})
 
-                                            if (contextModel.get('page') == 'pathEditor') {
+                                            if (contextModel.get('page') == 'pathEditor' && !contextModel.get('preview')) {
                                                 return myInsert.$el
                                             } else {
                                                 return $("<div></div>")
@@ -271,7 +271,7 @@ define([
 
                                             // console.log("the source", cur.source)
                                             var myInsert = new insertDiv({source: cur.source.model, target: cur.target.model})
-                                            if (contextModel.get('page') == 'pathEditor') {
+                                            if (contextModel.get('page') == 'pathEditor' && !contextModel.get('preview')) {
                                                 return myInsert.$el
                                             } else {
                                                 return $("<div></div>")
