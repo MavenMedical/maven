@@ -138,7 +138,8 @@ class PathwaysWebservices():
         if not protocol_id:
             return HTTP.NOTFOUND_RESPONSE, b'', None
         ret = yield from self.persistence.get_protocol(customer, protocol_id)
-        ret.pop('id', None)
+        if ret:
+            ret.pop('id', None)
         return (HTTP.OK_RESPONSE, json.dumps(ret), None)
 
     @http_service(['POST'], '/tree',
