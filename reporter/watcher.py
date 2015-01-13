@@ -79,6 +79,7 @@ def main():
         },
         http_server: {
             SP.CONFIG_PORT: '54321',
+            SP.CONFIG_PARSERTIMEOUT: 50,
             'contenttype': 'text/html',
         },
     }

@@ -45,7 +45,7 @@ define([
                 var cur2 = path[i]
                 cur2.showChildren && cur2.showChildren()
             }
-
+            return cur
         } else {
             var list = []
             if (!cur.get('isProtocol')) {
@@ -54,13 +54,10 @@ define([
                     var temp = path.slice(0)
                     temp.push(cur2)
                     var n = openPathToTarget(cur2, target, temp)
+                    if (n) return n
                 }
-
-
             }
         }
-
-
     }
 
     var nodePosition = function (cur, target, change, pointer) {
@@ -213,12 +210,16 @@ define([
         getPathToIDS: function (ids) {
             this.collapse(this)
             if (!ids && contextModel.get('code')) {
-                ids = contextModel.get('code').split('-')
+                ids = _.filter(contextModel.get('code').split('-'), _.identity)
             }
             for (var i in ids) {
                 var cur = ids[i]
-                if (cur)
-                    openPathToTarget(this, (cur), [this])
+                if (cur) {
+                    var node = openPathToTarget(this, (cur), [this])
+                    if (node && ids.length==1 && !treeContext.get('selectedNode')) {
+                        treeContext.set('selectedNode', node, {silent: true});
+                    }
+                }
             }
         },
         initialize: function () {
@@ -280,7 +281,7 @@ define([
             this.on('sync', function (obj, data) {
                 this.oldContent = JSON.stringify(this.toJSON())
                 this.set({'pathid': data.pathid}, {silent: true})
-                contextModel.set({'pathid': String(data.pathid)})
+                contextModel.set({'pathid': String(data.pathid), 'canonical': String(data.canonical)})
                 pathwayCollection.fetch()
                 if (contextModel.get('code')) {
                     that.getPathToIDS()

@@ -86,6 +86,9 @@ class TimedFollowUpService():
         due_datetime_str = task_body.get('due', None)
         due_datetime = due_datetime_str and dateutil.parser.parse(due_datetime_str)
 
+        if not due_datetime:
+            return HTTP.BAD_RESPONSE, 'A date is required for timed followups.', None
+
         # Parse out the EXPIRE datetime if it exists, and if it doesn't exist make the default DUE + 1year
         expire_datetime_str = task_body.get('expire', None)
         if expire_datetime_str:

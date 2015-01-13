@@ -150,10 +150,11 @@ class PathwaysWebservices():
         full_spec = json.loads(body.decode('utf-8'))
         customer_id = context[CONTEXT.CUSTOMERID]
         user_id = context[CONTEXT.USERID]
-        folder = full_spec.get(CONTEXT.FOLDER, None)
-        full_spec.pop(CONTEXT.FOLDER, None)
-        id = yield from self.persistence.create_protocol(full_spec, customer_id, user_id, folder)
+        folder = full_spec.pop(CONTEXT.FOLDER, None)
+        id, canonical_id = yield from self.persistence.create_protocol(full_spec, customer_id,
+                                                                       user_id, folder)
         full_spec[CONTEXT.PATHID] = id
+        full_spec[CONTEXT.CANONICALID] = canonical_id
         return (HTTP.OK_RESPONSE, json.dumps(full_spec), None)
 
     @http_service(['DELETE'], '/list/(\d+)',
@@ -178,10 +179,12 @@ class PathwaysWebservices():
         userid = context[CONTEXT.USERID]
 
         try:
-            id = yield from self.persistence.update_protocol(protocol_id, customer, userid, protocol_json)
+            id, canonical_id = yield from self.persistence.update_protocol(protocol_id, customer,
+                                                                           userid, protocol_json)
             if id:
                 protocol_json[CONTEXT.PATHID] = id
                 protocol_json.pop('id', None)
+                protocol_json[CONTEXT.CANONICALID] = canonical_id
                 return HTTP.OK_RESPONSE, json.dumps(protocol_json), None
             else:
                 return HTTP.BAD_RESPONSE, json.dumps('FALSE'), None
