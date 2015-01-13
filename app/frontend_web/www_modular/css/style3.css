@@ -300,3 +300,26 @@ a.disabled {
 
 /* Needed to make autocomplete work in modals */
 ul.ui-autocomplete.ui-menu {   z-index: 100000; }
+
+
+input[type=checkbox].ace.ace-switch.ace-switch-8 + .lbl::before {
+width: 75px;
+}
+
+input[type=checkbox].ace.ace-switch.ace-switch-8 + .lbl::before {
+text-indent: -20px;
+}
+input[type=checkbox].ace.ace-switch.ace-switch-8:checked + .lbl::before {
+text-indent: 3px;
+}
+input[type=checkbox].ace.ace-switch.ace-switch-8:checked + .lbl::after {
+left: 53px;
+}
+
+.dropdown-label{
+    width: 85%;
+}
+
+.audit-hover{
+    cursor: pointer;
+}
