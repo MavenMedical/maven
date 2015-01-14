@@ -28,7 +28,8 @@ define([
                     $('.widget-title', this.$el).html('Pathway')
                 } else {
                     $('.widget-title', this.$el).html('Pathway Editor')
-                }                contextModel.on('change:page', function () {
+                }
+                contextModel.on('change:page', function () {
                     if (contextModel.get('page') == 'pathEditor' || contextModel.get('page') == 'pathway') {
                         if(contextModel.get('page') == 'pathway') {
                             $('.widget-title', this.$el).html('Pathway')
@@ -58,8 +59,8 @@ define([
                 var that = this
                 setTimeout(function () {
                     that.reset = true;
-                    that.render()
-                }, 200)
+                    that.adjustWidth()
+                }, 500)
                 this.treeEl = $('.pathtree', this.$el)
                 that.treeEl.css({'opacity': 0})
                 this.treeEl.draggable({
@@ -140,6 +141,10 @@ define([
                     } else {
                         that.treeEl.css({left: '', top: '', msTransform: 'scale(1)'});
                     }
+                    setTimeout(function () {
+                        that.reset = true;
+                        that.adjustWidth()
+                    }, 500)
                 })
                 this.render()
             },
@@ -187,6 +192,7 @@ define([
 
                 if (this.reset) {
                     var selected = $('.treeNode.selected')
+                    if(!selected.length) {selected = $('.protocolNode.selected')}
                     this.reset = false
                     var boundingWidth = $('.nodeEl', this.$el).width()
                     var offset = this.treeEl.offset()
