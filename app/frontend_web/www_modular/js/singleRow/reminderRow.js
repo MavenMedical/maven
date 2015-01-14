@@ -24,10 +24,10 @@ define([
         },
         render: function () {
             $(".followup-header-columns").show();
-            $(this.el).html(this.template($.extend({viewid: this.cid}, this.model.toJSON())));
+            $(this.el).html(this.template($.extend({viewid: this.cid, msg_body: window.location.origin + window.location.pathname + '#pathway/' + contextModel.get('pathid') + '/node/' + contextModel.get('code')}, this.model.toJSON())));
 
             that = this;
-            $(".reminderTime", that.$el).datepicker();
+            $(".reminderTime", that.$el).datepicker({minDate: 1});
             //$('#ui-datepicker-div').css('z-index', '10000 !important');
             
             $('.followupRecipient', that.$el).autocomplete({
