@@ -1,58 +1,28 @@
-<div class = "widget-column col-sm-12">
-<div id="newpathwaymodal" class="modal fade" role="edit" >
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-body">
-                <div class="tabbable">
-                    <ul id="pathway-tabs" class="nav nav-tabs ">
-                        <li class="active">
-                            <a href="#pane1" role="tab" data-toggle="tab" class="headings">
-                                Overview
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#pane2" role="tab" data-toggle="tab" class="headings">
-                                Triggers
-                            </a></li>
-                        <li>
-                            <a href="#pane3" role="tab" data-toggle="tab" class="headings">
-                                Details
-                            </a></li>
-                        <li>
-                            <a href="#pane4" role="tab" data-toggle="tab" class="headings">
-                                Evidence
-                            </a></li>
-                        <li>
-                            <a href="#pane5" role="tab" data-toggle="tab" class="headings">
-                                Resources
-                            </a></li>
-                    </ul>
+<div id="newpathwaymodal" class="modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div id="modal-wizard-container">
+                <div class="modal-header">
+                    <h4 class="modal-title">Enter Pathway Name:</h4>
+                </div>
 
-                    <div class="tab-content">
-                        <div id="pane1" class="tab-pane active pane-content">
-                            <h4>Enter The New Name:</h4> <input id = "newPathName">
-                        </div>
-                        <div id="pane2" class="tab-pane pane-content">
-                            <h4>Pane 2 Content</h4>
-                        </div>
-                        <div id="pane3" class="tab-pane pane-content">
-                            <h4>Pane 3 Content</h4>
-                        </div>
-                        <div id="pane4" class="tab-pane pane-content">
-                            <h4>Pane 4 Content</h4>
-                        </div>
-                        <div id="pane5" class="tab-pane pane-content">
-                            <h4></h4>
-                        </div>
-                    </div>
-                    <!-- /.tab-content -->
-                </div>
-                <!-- /.tabbable -->
-                </div>
-                <div class="modal-footer" style="padding: 5px 20px 5px;">
-                    <button type="button" class="btn btn-default" id="create-button">Create New Pathway</button>
+                <div class="modal-body">
+                    <form class="bootbox-form"><input id="newPathName"
+                                                      class="bootbox-input bootbox-input-text form-control" type="text">
+                    </form>
+
                 </div>
             </div>
 
+            <div class="modal-footer wizard-actions">
+                <button class="btn btn-primary btn-sm" id="create-button">Create New Pathway</button>
+
+                <button class="btn btn-grey btn-sm pull-left" data-dismiss="modal">
+                    <i class="ace-icon fa fa-times"></i>
+                    Cancel
+                </button>
+            </div>
         </div>
-</div></div>
+    </div>
+</div><!-- PAGE CONTENT ENDS -->
+

@@ -1,7 +1,7 @@
 #!/bin/bash
 sudo yum update -y
 sudo yum install epel-release -y
-sudo yum install elinks screen git emacs kernel-headers fuse-libs fuse-devel fuse lvm2 wireshark nc iptraf iftop psacct pam-devel collectl pcre-devel zlib-devel openssl-devel gcc libpqxx-devel libpqxx libffi-devel -y
+sudo yum install elinks screen git emacs kernel-headers fuse-libs fuse-devel fuse lvm2 wireshark nc iptraf iftop psacct pam-devel collectl pcre-devel zlib-devel openssl-devel gcc libpqxx-devel libpqxx libffi-devel readline-devel -y
 
 sudo sed -i -e 's/^create$/create 640 root adm/' /etc/logrotate.conf
 

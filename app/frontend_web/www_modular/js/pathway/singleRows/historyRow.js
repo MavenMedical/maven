@@ -18,7 +18,7 @@ define([
 ], function ($, _, Backbone, historyRowTemplate, contextModel) {
 
     var HistoryRow = Backbone.View.extend({
-        tagName: "div class='history-row'",
+        tagName: "li class='dd-item history-row'",
         template: _.template(historyRowTemplate),
         events: {
             'click .history-checkbox': 'handleCheck',
@@ -32,8 +32,14 @@ define([
         },
         handleCheck: function(event){
             if ($(event.target).hasClass("check-disabled")) return;
+
+            var r = confirm("Are you sure you want to push this version of the pathway into production?")
+            if (r != true) return;
+
             $(this.el).parent().find(".history-checkbox").switchClass("glyphicon-check", "glyphicon-unchecked")
+            $(this.el).parent().find(".history-checkbox").attr('title','Publish this snapshot');
             $(".history-checkbox", this.$el).switchClass("glyphicon-unchecked", "glyphicon-check");
+            $(".history-checkbox", this.$el).attr('title','');
             //$(this.el).trigger("change");
             this.model.save();
         },
@@ -46,8 +52,8 @@ define([
             contextModel.set('pathid', String(this.model.get('pathid')))
             contextModel.set('canonical', String(this.model.get('canonical')))
 
-            $(".active-history").removeClass("active-history");
-            $(this.el).addClass("active-history")
+            $(".active-pathway").removeClass("active-pathway");
+            $(this.el).addClass("active-pathway")
         }
     });
 

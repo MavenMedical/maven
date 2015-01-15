@@ -43,18 +43,19 @@ define([
             this.$el.html(this.template());
 	    interactionCollection.bind('add', this.addInteraction, this);
 	    interactionCollection.bind('reset', this.reset, this);
-	    interactionCollection.bind('sync', this.render, this);
+	    //interactionCollection.bind('sync', this.render, this);
 	    this.render('Loading ...');
 	    contextModel.on('change:page change:history', function() {this.showhide()}, this)
             contextModel.on('change:history change:historyposition change:historydetails', function() {this.updatehistory()}, this)
 	},
         updatehistory: function() {
             var history = contextModel.get('history')
+            var historysummary = contextModel.get('historysummary')
             var historyposition = contextModel.get('historyposition')
             var historydetails = contextModel.get('historydetails')
             if (history == null || historyposition == null || historydetails == null) {
                 treeContext.suppressClick=false
-                Backbone.history.navigate('', true)
+                Backbone.history.navigate('home', true)
                 return
             }
             treeContext.suppressClick=true
@@ -72,7 +73,7 @@ define([
                 $('.progress-bar', this.$el).width((progress*100/history.length)+'%')
                 
                 var action = history[historyposition]['action']
-                console.log(action)
+
                 if (action == 'click') {
                     $('#historydetails').text('traversing the tree')
                 } else if (action == 'send') {
@@ -90,13 +91,15 @@ define([
                 }
                 if (progress == history.length) {
                     $('#nextinteraction').html('Finish')
+                    if (historysummary) {
+                        $('#historydetails').append(historysummary)
+                    }
                 } else {
                     $('#nextinteraction').html('Next')
                 }                        
             }
         },
         showhide: function() {
-            
             var page = contextModel.get('page')
 	    if (page=='home') {
                 this.$el.show()
@@ -110,13 +113,21 @@ define([
 		this.$el.hide()
 	    }
         },
-        events: {
-            'scroll .interaction-scroll': 'handleScroll',
-        },
 	render: function(empty_text) {
             this.$el.html(this.template());
-	    this.addAll(empty_text);
+            if (interactionCollection.length) {
+                
+            }
+	    this.addAll();
             this.interactionlist = $('#listinteractions', this.$el);
+            var interactionscroll = $('.interaction-scroll', this.$el)
+            interactionscroll.scroll(function(e) {
+                if(interactionscroll.scrollTop() + interactionscroll.innerHeight() + 100 >= interactionscroll[0].scrollHeight) {
+                    interactionCollection.more();
+                }
+                return false;
+            });
+            
             this.interactioncontrols = $('#interactioncontrols', this.$el)
             $('#nextinteraction', this.$el).click(function() {flip()})
             $(this.interactionlist).on('show', function(){
@@ -134,9 +145,6 @@ define([
             this.showhide()
 	},
 	addAll: function(empty_text) {
-	    if (!empty_text || typeof(empty_text) != 'string') {
-		empty_text = 'None available';
-	    }
 	    this.reset();
 	    var nonempty = false;
 	    if (interactionCollection.length) {
@@ -145,16 +153,10 @@ define([
 		    nonempty = true;
 		}
 	    }
-	    if(!nonempty) {
-                $('.interactiontable > tbody', this.$el).html("<tr><td colspan=\"5\">"+empty_text+"</td></tr>");
-                $('.interactiontable > thead', this.$el).hide();
-                $('.interaction-control-row', this.$el).hide();
-                this.$el.show();
-	    }
             else {
                 $('.interactiontable > thead', this.$el).show();
                 $('.interaction-control-row', this.$el).show();
-                this.$el.show();
+                this.showhide();
                 var interactionlist = $('.interaction-scroll', this.$el);
                 setTimeout(function () {
                     var interactionHeight = interactionlist.innerHeight();
@@ -162,22 +164,13 @@ define([
                         this.lastHeight = interactionHeight;
                         interactionCollection.more();
                     }
-                    else {
-                        
-                        interactionlist.scroll(function(e) {
-                            if(interactionlist.scrollTop() + interactionlist.innerHeight() + 100 >= interactionlist[0].scrollHeight) {
-                                interactionCollection.more();
-                            }
-                            return false;
-                        });
-                    }
                 }, 500);
             }
 	},
 	addInteraction: function(interaction) {
 	    var interactionrow = new InteractionRow({model: interaction});
 	    $('.interactiontable', this.$el).append(interactionrow.render().el);
-	    this.$el.show();
+	    this.showhide();
         //interactionrow.events();
 	},	
 	reset: function() {

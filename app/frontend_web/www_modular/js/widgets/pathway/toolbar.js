@@ -11,7 +11,13 @@ define([
     'pathway/models/pathwayCollection',
     'pathway/models/treeModel',
     'pathway/models/treeContext',
+
     'pathway/modalViews/newPathway',
+    'pathway/modalViews/editNode',
+    'pathway/modalViews/nodeEditor',
+    'pathway/modalViews/protocolEditor',
+     'pathway/modalViews/DeleteDialog',
+
     'pathway/modalViews/ruleWizard',
     'pathway/singleRows/pathRow',
     'pathway/internalViews/treeNodeActionSet',
@@ -19,7 +25,11 @@ define([
     'text!templates/pathway/pathwayListEntry.html',
     'text!templates/pathway/toolbar.html'
 
-], function ($, _, Backbone, contextModel, curCollection, curTree, treeContext, NewPathway, ruleWizard, PathRow, treeNodeActionSet, listEntry, toolbarTemplate) {
+], function ($, _, Backbone, contextModel, curCollection, curTree, treeContext,
+             NewPathway, editNode, NodeEditor, ProtocolEditor,deleteDialog,
+             ruleWizard, PathRow, treeNodeActionSet, listEntry, toolbarTemplate) {
+
+
     var exportPathway = function (strData, strFileName, strMimeType) {
 	require(['libs/jquery/Blob', 'libs/jquery/FileSaver.min'], function(blob, saveAs) {
 	    var b = new Blob([strData], {type: strMimeType});
@@ -31,47 +41,62 @@ define([
         events: {
             'click #newpath-button': 'handle_newPath',
             'click #trigger-button': 'addTrigger',
-	        'change .btn-file :file': 'importPath',
             'click #exportpath-button': 'exportPath',
             'click #copypath-button': 'handle_copyPath',
+            'click #publishpath-button': 'handle_publishPath',
+            'click #editNode-button': 'editNode',
+            'click #deleteNodeButton': 'deleteNode',
+            'click #addChildButton': 'addChild',
+            'click #addProtocolButton': 'addProtocol',
+            'click #collapseButton': 'expandCollapse',
+            'click #previewButton': 'previewPathway',
             'click #testButton': 'handleTest'
         },
         handleTest: function () {
             curTree.changeNodePosition(treeContext.get('selectedNode'), -1)
         },
         initialize: function () {
-            contextModel.on('change:page', function () {
-                if (contextModel.get('page') != 'pathEditor') {
-                    this.$el.hide()
-                } else {
-                    this.$el.show()
-                }
-            }, this)
-            this.$el.html(this.template())
-            if (contextModel.get('page') != 'pathEditor')
-                this.$el.hide()
-            //curCollection.on('sync', this.renderPathList, this)
+this.       preview = true;
+            contextModel.set({preview: false});
+           if(treeContext.get('selectedNode')){
+		        var selected = treeContext.get('selectedNode')
+                this.$el.html(this.template({treeNode: selected.attributes, childrenHidden: selected.childrenHidden && selected.childrenHidden(), page: contextModel.get('page'), preview: contextModel.get('preview')}))
+            } else {
+                this.$el.html(this.template({treeNode: null, childrenHidden: null, page: contextModel.get('page'), preview: contextModel.get('preview')}))
+           }
+            contextModel.on('change:page', this.showhide, this)
+            this.showhide();
             treeContext.on('propagate', this.renderActions, this)
-
-            //this.renderPathList();
             this.renderActions();
+
+        },
+        showhide: function(){
+            if(contextModel.get('page') == 'pathEditor'){
+                this.$el.show();
+                $('#toolbar').show()
+                if(this.preview) {
+                    $('#widget-toolbox').addClass('grid')
+                }
+
+            }else{
+                this.$el.hide();
+                 $('#toolbar').hide()
+                $('#widget-toolbox').removeClass('grid')
+            }
         },
         addTrigger: function () {
-            Backbone.history.navigate("triggereditor/" + contextModel.get('pathid') + "/node/"+contextModel.get('code'), {trigger: true});
-        //    var newEditor = new ruleWizard({triggerNode: curTree})
-        //    newEditor.render()
+            //clear previous modals
+           $('#modal-target').empty();
+            $('#detailed-trigger-modal').empty();
+            a = new ruleWizard({el: '#modal-target'});
+
         },
         renderActions: function () {
-            if (contextModel.get('page') != 'pathEditor')
-                this.$el.hide()
-            else {
-                var el = $('#node-action-set')
-                //console.log("find the action set", el)
                 if (treeContext.get('selectedNode')) {
-                    var myActions = new treeNodeActionSet({el: el})
-                    $('#action-set', el).append(myActions.render().$el)
+                    var selected = treeContext.get('selectedNode')
+                this.$el.html(this.template({treeNode: selected.attributes, childrenHidden: selected.childrenHidden && selected.childrenHidden(), page: contextModel.get('page'), preview: contextModel.get('preview')}))
                 }
-            }
+
 
 
         },
@@ -82,9 +107,24 @@ define([
                 $('#avail-paths').append(thisRow.render().$el)
             }, this)
         },
-        handle_newPath: function () {
+        handle_newPath: function (e) {
+            e.preventDefault();
             a = new NewPathway({el: '#modal-target'});
+        },
+        handle_publishPath: function (e) {
+            e.preventDefault();
 
+            var r = confirm("Are you sure you want to push this version of the pathway into production?");
+            if (r != true) return;
+
+            $.ajax({
+                type: 'POST',
+                url: "/history/"  + contextModel.get("canonical") + "/" + curTree.get('pathid'),
+                dataType: "json",
+                success: function (data) {
+                    console.log("Pathway version published");
+                }
+            });
         },
         handle_copyPath: function(){
             $.ajax({
@@ -97,31 +137,49 @@ define([
                 }
             });
         },
-        importPath: function () {
-	    var input = $('.btn-file :file')
-            file = input.get(0).files[0];
-            if (file) {
-                var reader = new FileReader();
-                reader.readAsText(file, "UTF-8");
-                reader.onload = function (evt) {
-                    try{
-                        var importedPath = JSON.parse(evt.target.result);
-                        curTree.loadNewPathway(importedPath, {toImport: true})
-                    }
-                    catch(e){
-                        alert("The format of the file doesn't match Pathway format. Please try another file");
-                    }
-		    
-                }
-                reader.onerror = function (evt) {
-                    alert('error reading file')
-                }
-		input.wrap('<form>').closest('form').get(0).reset();
-		input.unwrap();
-            }
-	},
         exportPath: function () {
            exportPathway(JSON.stringify(curTree.toJSON({'toExport':true})) , curTree.get('name')+'.pathway', 'text/plain');
+        },
+        addChild : function(){
+
+            var newEditor = new NodeEditor(treeContext.get('selectedNode'))
+        },
+        addProtocol: function(){
+            var newEditor = new ProtocolEditor(treeContext.get('selectedNode'))
+        },
+        expandCollapse: function(){
+                           if (!treeContext.get('selectedNode').childrenHidden()){
+                               curTree.collapse(treeContext.get('selectedNode'))
+                           } else{
+                               treeContext.get('selectedNode').showChildren()
+                           }
+            curTree.getShareCode()
+            treeContext.trigger('propagate')
+        },
+        editNode: function(){
+            new editNode();
+
+        },
+
+        deleteNode: function(){
+            new deleteDialog()
+
+
+        },
+        previewPathway: function(){
+            if (this.preview) {
+                $('#previewButton').addClass('active');
+                contextModel.set({'preview': true});
+                 treeContext.trigger('propagate');
+                $('#widget-toolbox').removeClass('grid')
+                this.preview = false;
+            } else {
+                $('#previewButton').removeClass('active');
+                contextModel.set({'preview': false});
+                 treeContext.trigger('propagate');
+                $('#widget-toolbox').addClass('grid')
+                this.preview = true;
+            }
         }
 
     });

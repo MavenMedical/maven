@@ -48,6 +48,7 @@ class TimedFollowUpService():
                 # Retrieve Tasks for the hour
                 current_datetime = datetime.datetime.now()
                 followup_tasks = yield from self.persistence.get_followup_tasks(datetime=current_datetime)
+                ML.report('/followup_tasks/' + str(len(followup_tasks)))
 
                 # Use the Notification Service to Send Due Tasks
                 if followup_tasks:
@@ -84,6 +85,9 @@ class TimedFollowUpService():
         # Parse out the DUE datetime
         due_datetime_str = task_body.get('due', None)
         due_datetime = due_datetime_str and dateutil.parser.parse(due_datetime_str)
+
+        if not due_datetime:
+            return HTTP.BAD_RESPONSE, 'A date is required for timed followups.', None
 
         # Parse out the EXPIRE datetime if it exists, and if it doesn't exist make the default DUE + 1year
         expire_datetime_str = task_body.get('expire', None)

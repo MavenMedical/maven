@@ -58,10 +58,12 @@ define([
                 //giving it a url makes it searcahble
 
                 var anon
-                if (populateType == "snomed_diagnosis")
+                if (populateType == "snomed_diagnosis" || populateType =="hist_proc")
                     anon =  Backbone.Collection.extend( {url: '/search'})
                 else if (populateType == "groups")
                     anon =  Backbone.Collection.extend( {url: '/groups'})
+                else
+                    anon =  Backbone.Collection.extend( {url: '/search'})
 
                 var avail = new anon
                 if (populateType == "groups")
@@ -83,17 +85,13 @@ define([
                 var searchBox = new multiSelectSearch({avail: avail, type: cur.getAttribute("type"), el: cur, selected: sel})
             })
 
-            //create routeList views for each div in the template with class route-list
-            var routeListEl = $('.route-list', this.$el)
-            $.each(routeListEl, function(a, cur){
-                var listBox = new routeListBox({el: cur})
-            })
+
             //if this is an edited detail fill all of the normal input boxes with the correct values
             if (!this.newDetail){
                 this.fillTemplate();
             }
             //show the el
-            this.$el.show();
+           // this.$el.show();
 
 
             var panel = this;
@@ -168,14 +166,17 @@ define([
                     curTree.trigger('propagate')
                 }
                //hide the detail modal
-                   $('#detail-modal').modal('hide');
+
+                $("#detail-modal").modal('hide');
             }
 
             //when the cancel button is pressed just hide the editor
             $('.cancel-edit-button', this.$el)[0].onclick = function(){
-                   $('#detail-modal').modal('hide');
+
+                    $("#detail-modal").modal('hide');
             }
-              $("#detail-modal").modal({'show':'true'});
+
+            $("#detail-modal").modal({'show':'true'});
 
         },
         //called if the rule is not a new rule, fill all of the normal input fields to have the value currently stored
@@ -185,6 +186,7 @@ define([
              for (var i=0;i<inputs.length;i++){
                     var cur = inputs[i];
                     cur.value = this.model.get(cur.name);
+                    $(cur).trigger('ready')
 
                 }
         }

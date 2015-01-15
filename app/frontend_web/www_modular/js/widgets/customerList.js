@@ -7,8 +7,9 @@ define([
     'globalmodels/customerCollection',
     'singleRow/customerRow',
 
-    'globalmodels/contextModel'
-], function ($, _, Backbone, customerCollection, CustomerRow, contextModel) {
+    'globalmodels/contextModel',
+    'globalmodels/sidebarModel'
+], function ($, _, Backbone, customerCollection, CustomerRow, contextModel, sidebarModel) {
 
     var CustomerList = Backbone.View.extend({
 	initialize: function(arg) {
@@ -49,11 +50,22 @@ define([
         $(".refreshButton", this.$el).hover(function(event) {
             $(event.target).attr('title', "Last Refresh: " + customerCollection.getLastRefresh());
         });
+            sidebarModel.addOption('Customers')
+            this.showhide();
+            contextModel.on('change:page', this.showhide , this)
+
 	},
     events: {
 	    'click #save-customer-changes': 'saveChanges',
         'click document': 'hideEdits'
     },
+       showhide: function(){
+            if(contextModel.get('page') == 'customers'){
+                this.$el.show();
+            }else{
+                this.$el.hide();
+            }
+        },
     hideEdits: function(e) {
     },
     saveChanges: function() {

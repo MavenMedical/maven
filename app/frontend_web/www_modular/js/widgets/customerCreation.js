@@ -6,16 +6,29 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
-    'globalmodels/contextModel',
+    'globalmodels/contextModel'
+
 ], function ($, _, Backbone, contextModel) {
 
     var CustomerCreation = Backbone.View.extend({
         initialize: function (arg) {
             this.template = _.template(arg.template);
             this.render();
+
+
+            this.showhide();
+            contextModel.on('change:page', this.showhide , this)
+
         },
         events: {
             'click .add-customer-button': 'addCustomer'
+        },
+        showhide: function(){
+            if(contextModel.get('page') == 'customers'){
+                this.$el.show();
+            }else{
+                this.$el.hide();
+            }
         },
         addCustomer: function () {
             var name = $("#customer-name-input").val();
@@ -66,7 +79,7 @@ define([
         render: function(){
             this.$el.html(this.template);
             return this;
-        },
+        }
     });
 
     return CustomerCreation;

@@ -3,8 +3,10 @@
         <div title="<%=node.tooltip%>" clickID = "TN-<%=node.id%>-<%=node.nodeID%>" style="text-align: center; border-style:solid;  width:auto;" class="treeNode expanded-path click-tracked">
             <span data-toggle="tooltip" ><%=node.name%></span>
             <br>
-            <% if (page == 'pathEditor'){ %>
-            <button type="button" class="btn btn-default" id="addChildButton"><img src="../images/temp/newChild.jpg" style="width: 25px; height: 25px"></button>
+            <% if (page == 'pathEditor' && !preview){ %>
+            <div style ="clear:both" class="btn-group btn-corner" role="toolbar">
+                <button type="button" class="btn btn-app btn-light btn-sm" id="addChildButton"><img src="../images/temp/newChild.jpg" style="width: 25px; height: 25px"></button>
+                </div>
             <%}%>
 
         </div>

@@ -8,9 +8,10 @@ define([
    'globalmodels/contextModel',
     'text!templates/pathway/ListBox.html',
     'text!templates/pathway/resultRow.html',
-    'text!templates/pathway/groupResultRow.html'
+    'text!templates/pathway/groupResultRow.html',
+    'text!templates/pathway/cptResultRow.html'
 
-], function ($, _, Backbone, contextModel, triggerListBox, snomedLineTemplate, groupLineTemplate) {
+], function ($, _, Backbone, contextModel, triggerListBox, snomedLineTemplate, groupLineTemplate, cptLineTemplate) {
 
     var detailListBox = Backbone.View.extend({
 
@@ -21,10 +22,12 @@ define([
 
             this.type = params.type;
             this.$el = params.el
-            if (this.type == "snomed_diagnosis"){
+            if (this.type.split('_')[0] ==  "snomed"){
                 panel.lineTemplate = _.template(snomedLineTemplate)
-            } else if (this.type = "groups"){
-                panel.lineTemplate = _.template(groupLineTemplate)
+            } else if (this.type == "groups"){
+                panel.lineTemplate == _.template(groupLineTemplate)
+            } else if (this.type = "hist_proc"){
+                panel.lineTemplate = _.template(cptLineTemplate)
             }
             panel.collection.on('add', panel.render, panel);
             panel.collection.on('remove', panel.render, panel)

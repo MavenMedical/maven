@@ -8,8 +8,9 @@ define([
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone
     'jsplumb',
-    'globalmodels/contextModel'
-], function ($, _, Backbone, jsPlumb, contextModel) {
+    'globalmodels/contextModel',
+    'globalmodels/sidebarModel'
+], function ($, _, Backbone, jsPlumb, contextModel,sidebarModel) {
     var Pathway = Backbone.View.extend({
         initialize: function (arg) {
             _.bindAll(this, 'render', 'drawTree', 'showFirstchild', 'expandAll', 'suggested');
@@ -17,6 +18,9 @@ define([
             this.template = _.template(arg.template);
             this.$el.html(this.template());
             console.log('pathway ini');
+            sidebarModel.addOption('Pathways')
+            this.showhide();
+            contextModel.on('change:page', this.showhide , this)
             //$('#content').css("width", "80%");
 
             // this.render();
@@ -93,6 +97,13 @@ define([
             'click button#expandAll': 'expandAll',
             'click button#sugPath': 'suggested'
 
+        },
+         showhide: function(){
+            if(contextModel.get('page') == 'pathways'){
+                this.$el.show();
+            }else{
+                this.$el.hide();
+            }
         },
         render: function () {
 

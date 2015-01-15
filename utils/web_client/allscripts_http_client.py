@@ -801,14 +801,16 @@ if __name__ == '__main__':
     api = allscripts_api(config)
     loop = asyncio.get_event_loop()
     # Ehr_username = 'MAVEN'
-    Ehr_username = 'CliffHux'
+    Ehr_username = 'MAVEN1'
     # break
     # wrapexn(api.GetProvider(Ehr_username, searchid='10041'))
     patient = input('Enter a Patient ID to display (e.g., 22): ')
     if not patient:
-        patient = '22'
+        patient = '66561'
     # if input('GetProcedureRule (y/n)? ' == 'y'):
     #    wrapexn(api.GetProcedureRule(username=Ehr_username, patient=patient, proc_rule_name=""))
+    if input('GetPatientCDA (y/n)? ') == 'y':
+        wrapexn(api.GetPatientCDA(Ehr_username, patient))
     if input('GetMedicationByTransID (y/n)? ') == 'y':
         wrapexn(api.GetMedicationByTransID(username=Ehr_username, patient=patient, transid="M1020"))
     if input('GetDictionary (y/n)? ') == 'y':
@@ -852,8 +854,6 @@ if __name__ == '__main__':
         wrapexn(api.GetPatientSections(Ehr_username, patient, 1))
     if input('GetPatientByMRN (y/n)? ') == 'y':
         wrapexn(api.GetPatientByMRN(Ehr_username, patient))
-    if input('GetPatientCDA (y/n)? ') == 'y':
-        wrapexn(api.GetPatientCDA(Ehr_username, patient))
     if input('GetPatientFull (y/n)? ') == 'y':
         wrapexn(api.GetPatientFull(Ehr_username, patient))
     if input('GetEncounter (y/n)? ') == 'y':

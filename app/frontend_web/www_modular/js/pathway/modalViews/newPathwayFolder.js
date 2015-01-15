@@ -17,6 +17,7 @@ define([
         parentFolder: null,
         events: {
             'click .createPathwayFolder': 'handleCreateFolder',
+            'keyup .pathwayFolderName': 'keyupFolder',
         },
         initialize: function (arg) {
             FolderRow = require('pathway/singleRows/folderRow');
@@ -32,6 +33,10 @@ define([
             this.$el.html(this.template(this.attributes));
             $("#detail-modal").modal({'show': 'true'});
             //$(".createPathwayFolder", this.$el).on("click", this.handleCreateFolder);
+        },
+        keyupFolder: function(event){
+            if (event.keyCode==13) this.handleCreateFolder();
+            else return;
         },
         handleCreateFolder: function(){
             $('#detail-modal').modal('hide');
@@ -52,7 +57,10 @@ define([
             else {
                 $("#avail-paths-list").append(thisRow.render().$el);
             }
-            curCollection.makeSortable();
+            $(document).ready(function() {
+               // curCollection.makeSortable();
+                $(thisRow.el).removeClass("dd-collapsed");
+            });
 
             this.undelegateEvents(); // Unbind all local event bindings
 

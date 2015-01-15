@@ -17,7 +17,8 @@ define([
         parentList: "",
         parentFolder: null,
         events: {
-            'click #create-button': 'handle_createPathway'
+            'click #create-button': 'handle_createPathway', 
+            'keyup #newPathName': 'keyup_Pathway',
         },
         initialize: function (params) {
 
@@ -31,6 +32,10 @@ define([
             this.$el.html(this.template());
             //$('#create-button', this.$el).on('click',this.handle_createPathway)
             $("#newpathwaymodal").modal({'show':'true'});
+        },
+        keyup_Pathway: function(event){
+            if (event.keyCode==13) this.handle_createPathway();
+            else return;
         },
         handle_createPathway: function(){
             //hide modal

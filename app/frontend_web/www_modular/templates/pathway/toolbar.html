@@ -1,55 +1,160 @@
-<div class=row>
-    <div class="col-xs-12 btn-group ">
 
-        <div class="btn-group toolbar-button">
-            <button class="toolbar-button btn btn-default path dropdown-toggle" type="button" id="dropdownMenu1"
-                    data-toggle="dropdown">
-                Pathways
-                <span class="caret"></span>
-            </button>
-            <div id="avail-paths" class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1"
-                style="max-width: 500px">
-                <!--the dropdown rules will render here -->
+<ul id='toolbar' class="nav nav-list">
 
-                <div id="avail-paths-dropdown">
+    <li class="hover" id="exportpath-button">
+        <a href="javascript:void(0)">
+            <i class="menu-icon">
+                <img src="../images/temp/newPath.jpg"
+                     style="width: 30px; height: 25px"></i>
+			 <span class="menu-text">
+			  Export Pathway
+			 </span>
 
-                </div>
-            </div>
-        </div>
-
-        <button type="button" class="toolbar-button btn btn-default  path " id="newpath-button">
-                                 <span data-toggle="tooltip" title="New Pathway">
-                                <img src="../images/temp/newPath.jpg"
-                                     style="width: 30px; height: 25px">New Pathway</span>
-        </button>
-        <div class=" toolbar-button btn btn-default btn-file path" style='overflow:hidden'>
-	  <span data-toggle="tooltip" title="Import Pathway">
-	    <img src="../images/temp/newPath.jpg" style="width: 30px; height: 25px">Import Pathway
-	  </span>
-          <input type="file" accept='.pathway'>
-        </div>
-    <!--[if gte IE 10]><!-->
-        <button type="button" class="toolbar-button btn btn-default  btn-file path " id="exportpath-button">
-            <span data-toggle="tooltip" title="Export Pathway">
-                <img src="../images/temp/newPath.jpg" style="width: 30px; height: 25px">Export Pathway</span>
-        </button>
-        <!--<![endif]-->
-
-        <button type="button" class="toolbar-button btn btn-default" id="trigger-button"><img
-                src="../images/temp/trigger.jpg" title="Add Trigger" style="width: 25px; height: 25px">Edit Triggers
-        </button>
-
-        <button type="button" class="toolbar-button btn btn-default" id="copypath-button"><img
-                src="../images/temp/trigger.jpg" title="Copy Pathway" style="width: 25px; height: 25px">Copy Pathway
-        </button>
+        </a>
+        <b class="arrow"></b>
+    </li>
 
 
-        <div style="float: left" class="btn-group" style=" height:100%" id="node-action-set">
-            <!-- node specific buttons which change based on selected node go here -->
 
-        </div>
+    <li class="hover" id="copypath-button">
+        <a href="javascript:void(0)" class="disabled">
+            <i class="menu-icon">
+                <img src="../images/temp/newPath.jpg"
+                     style="width: 30px; height: 25px"></i>
+			 <span class="menu-text">
+			  Copy Pathway
+			 </span>
 
-    </div>
+        </a>
+        <b class="arrow"></b>
+    </li>
+
+    <li class="hover" id="publishpath-button">
+        <a href="javascript:void(0)" class="disabled">
+            <i class="menu-icon">
+                <img src="../images/temp/newPath.jpg"
+                     style="width: 30px; height: 25px"></i>
+			 <span class="menu-text">
+			  Publish Pathway
+			 </span>
+
+        </a>
+        <b class="arrow"></b>
+    </li>
+
+    <% if (treeNode) { %>
+
+    <li class="hover" id="trigger-button">
+        <a href="javascript:void(0)">
+            <i class="menu-icon">
+                <img src="../images/temp/newPath.jpg"
+                     style="width: 30px; height: 25px"></i>
+			 <span class="menu-text">
+			  Edit Triggers
+			 </span>
+
+        </a>
+        <b class="arrow"></b>
+    </li>
+
+    <li class="hover" id="editNode-button">
+        <a href="javascript:void(0)">
+            <i class="menu-icon">
+                <img src="../images/temp/newPath.jpg"
+                     style="width: 30px; height: 25px"></i>
+             <span class="menu-text">
+              Edit Selected Node
+             </span>
+
+        </a>
+        <b class="arrow"></b>
+    </li>
+
+    <li class="hover" id="deleteNodeButton">
+        <a href="javascript:void(0)">
+            <i class="menu-icon">
+                <img src="../images/temp/newPath.jpg"
+                     style="width: 30px; height: 25px"></i>
+             <span class="menu-text">
+              Delete Selected Node
+             </span>
+
+        </a>
+        <b class="arrow"></b>
+    </li>
+
+     <li class="hover" id="addChildButton">
+        <a href="javascript:void(0)">
+            <i class="menu-icon">
+                <img src="../images/temp/newChild.jpg"
+                     style="width: 30px; height: 25px"></i>
+             <span class="menu-text">
+              Add Child
+             </span>
+
+        </a>
+        <b class="arrow"></b>
+    </li>
+
+        <% if (treeNode.children && treeNode.children.length == 0){%>
+             <li class="hover" id="addProtocolButton">
+        <a href="javascript:void(0)">
+            <i class="menu-icon">
+                <img src="../images/temp/newProtocole.jpg"
+                     style="width: 30px; height: 25px"></i>
+             <span class="menu-text">
+              Add Protocol
+             </span>
+
+        </a>
+        <b class="arrow"></b>
+        </li>
+        <% } %>
+
+          <% if ((treeNode.children && treeNode.children.length > 0)||treeNode.protocol) {%>
+<li class="hover" id="collapseButton">
+        <a href="javascript:void(0)">
+            <% if (childrenHidden){%>
+            <i class="menu-icon">
+                <img src="../images/temp/expand.jpg"
+                     style="width: 30px; height: 25px"></i>
+             <span class="menu-text">
+              Expand Node
+             </span>
+            <%}else{%>
+            <i class="menu-icon">
+                <img src="../images/temp/collapse.jpg"
+                     style="width: 30px; height: 25px"></i>
+             <span class="menu-text">
+              Collapse Node
+             </span>
+            <%}%>
+        </a>
+        <b class="arrow"></b>
+    </li>
+        <% } %>
+
+    <% } %>
+
+    <li class="hover pull-right <%= (preview) ? 'active' : '' %>" id="previewButton">
+        <a href="javascript:void(0)">
+            <i class="menu-icon">
+                <img src="../images/temp/newPath.jpg"
+                     style="width: 30px; height: 25px"></i>
+             <span class="menu-text">
+              Preview
+             </span>
+
+        </a>
+        <b class="arrow"></b>
+    </li>
+
+</ul>
 
 
-</div>
+
+
+
+
+
+

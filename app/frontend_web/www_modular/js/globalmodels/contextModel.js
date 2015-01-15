@@ -83,7 +83,7 @@ define([
 	try {
             new arguments[i]({template: arguments[i+viewlist.length], el: el})
 	    } catch(err) {
-		console.log('failed to start widget ', arguments[i], err)
+		console.log('failed to start widget ', widgetlist[i], err)
 	    }
 	}
 	    $("#content").show();
@@ -102,7 +102,7 @@ define([
             patientAuth: '',
             patientName:'',
             pathid: 0,
-            canonical: null,
+            canonical: 0,
             provider: null,
             encounter: null,
             department: null,

@@ -3,10 +3,8 @@ define([
     'underscore',
     'backbone',
     'globalmodels/contextModel',
-     'nestedSortable'
 
 ], function($, _, Backbone, contextModel){
-
 
     var pathCollection = Backbone.Collection.extend({
 	    model: Backbone.Model.extend({idAttribute: 'canonical'}),
@@ -20,8 +18,28 @@ define([
             this.fetch({add: true})
         },
         makeSortable: function(){
-            that = this;
-            $('ol.sortable-folder').nestedSortable({
+            			jQuery(function($){
+
+				$('.dd').nestable();
+
+				$('.dd-handle a').on('mousedown', function(e){
+					e.stopPropagation();
+				});
+
+				$('[data-rel="tooltip"]').tooltip();
+
+			});
+/*
+          $('.dd').nestable();
+
+	        $('.dd-handle a').on('mousedown', function(e){
+					e.stopPropagation();
+			});
+
+			$('[data-rel="tooltip"]').tooltip();
+        /*
+             that = this;
+            $('ol.dd-list').nestedSortable({
                 forcePlaceholderSize: true,
 			    handle: 'div:not(.bootstrap-switch)',
                 connectWith:'li, ol',
@@ -40,7 +58,7 @@ define([
                 doNotClear: false,
                 branchClass: 'mjs-nestedSortable-branch',
                 leafClass: 'mjs-nestedSortable-leaf',
-               // containment: '.sortable-folder',
+               // containment: '.dd-list',
                 isAllowed:function(item, parent){
                     if (parent==null) return true;
                     if ($(parent).is("li") || $(parent).is("ol")) return true;
@@ -49,17 +67,19 @@ define([
                 receive: function(event, ui){
                     //when a pathway or folder is moved, we need to update the path(s) in the database
                     var parents = that.getParents(ui.item);
+                    var path = "";
                     if (parents.length) {
-                        var path = parents.join("/").substring(1);
+                        if (parents.length > 1) path = parents.join("/");
+                        else path = parents[0];
                     }
                     var parentFolder = $(ui.item).closest('.sub-folder');
-/*
+                    if (!parentFolder.length) parentFolder = $("#nestable");
                     else {
                         var parentFolder = $('#avail-paths-list');
                         var path = "";
-                    }*/
+                    }
 
-                    if ($(ui.item).hasClass('pathrow-sortable')){
+                    if ($(ui.item).hasClass('pathrow-item')){
                         //pathway was moved
                         //var canonical_id = $(".path-row", $(ui.item)).attr("id");
                         that.handleMovedFolder(parentFolder, path, that, false)
@@ -76,7 +96,7 @@ define([
                         $(ui.placeholder).height($(ui.item).height())
                     }
                 }
-            });
+            });*/
         },
         getParents: function(item) {
             //get the parents of an item (pathway or folder)
@@ -111,7 +131,7 @@ define([
         handleMovedFolder: function(folder, path, that, recursive){
             var position = 0;
             $(folder).children('ol').children().each(function(){
-                if ($(this).hasClass("pathrow-sortable")){
+                if ($(this).hasClass("pathrow-item")){
                     //update order
                     position++;
                     var locationData = { "location": path, "position": position}

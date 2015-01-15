@@ -5,6 +5,7 @@ define([
         'globalmodels/contextModel',
         'pathway/models/treeModel',
         'pathway/models/treeContext',
+        'widgets/pathway/toolbar',
         'pathway/internalViews/triggerNode',
         'pathway/modalViews/nodeEditor',
         'pathway/Helpers',
@@ -14,17 +15,30 @@ define([
         'jsplumb'
     ],
 
-    function ($, _, Backbone, contextModel, curTree, treeContext, TriggerNode, NodeEditor, Helpers, pathwayCollection, treeTemplate, insertDiv) {
+    function ($, _, Backbone, contextModel, curTree, treeContext,toolbar, TriggerNode, NodeEditor, Helpers, pathwayCollection, treeTemplate, insertDiv) {
+
         var TreeView = Backbone.View.extend({
 
             template: _.template(treeTemplate),
             initialize: function () {
                 this.$el.html(this.template())
-                contextModel.on('change:page', function(){
-                    if (contextModel.get('page')== 'pathEditor' || contextModel.get('page') == 'pathway'){
+                this.toolbar = new toolbar({el:this.$('#pathway-toolbox')})
+
+                if(contextModel.get('page') == 'pathway') {
+                    $('.widget-title', this.$el).html('Pathway')
+                } else {
+                    $('.widget-title', this.$el).html('Pathway Editor')
+                }
+                contextModel.on('change:page', function () {
+                    if (contextModel.get('page') == 'pathEditor' || contextModel.get('page') == 'pathway') {
+                        if(contextModel.get('page') == 'pathway') {
+                            $('.widget-title', this.$el).html('Pathway')
+                        } else {
+                            $('.widget-title', this.$el).html('Pathway Editor')
+                        }
                         this.$el.show()
 
-                    }    else {
+                    } else {
                         this.$el.hide()
                     }
                 }, this)
@@ -45,9 +59,9 @@ define([
                 var that = this
                 setTimeout(function () {
                     that.reset = true;
-                    that.render()
-                }, 200)
-                this.treeEl = $('.tree', this.$el)
+                    that.adjustWidth()
+                }, 500)
+                this.treeEl = $('.pathtree', this.$el)
                 that.treeEl.css({'opacity': 0})
                 this.treeEl.draggable({
                     start: function (event, ui) {
@@ -60,6 +74,7 @@ define([
                         $(event.toElement).one('click', function (e) {
                             e.stopImmediatePropagation();
                         });
+                        that.updateSelectedOffset()
                     }
                 })
                 var that = this
@@ -100,6 +115,7 @@ define([
                             that.treeEl.offset({left: newLeft,
                                 top: newTop});
                             that.setDraggableBox(newScale)
+                            that.updateSelectedOffset()
                         }
                     }
                 )
@@ -116,7 +132,7 @@ define([
                     this.render();
                 }, this)
                 //contextModel.on('change', this.render, this)
-                contextModel.on('change:pathid', function () {
+                contextModel.on('change:canonical', function () {
                     treeContext.set({'selectedNodeOffset': null, 'selectedNode': null}, {silent: true})
                     that.treeEl.css({'opacity': 0})
                     that.reset = true
@@ -125,6 +141,10 @@ define([
                     } else {
                         that.treeEl.css({left: '', top: '', msTransform: 'scale(1)'});
                     }
+                    setTimeout(function () {
+                        that.reset = true;
+                        that.adjustWidth()
+                    }, 500)
                 })
                 this.render()
             },
@@ -132,14 +152,15 @@ define([
 
 
                 var that = this
-                    if (contextModel.get('page')== 'pathEditor' || contextModel.get('page') == 'pathway'){
-                        this.$el.show()
+                if (contextModel.get('page') == 'pathEditor' || contextModel.get('page') == 'pathway') {
+                    this.$el.show()
+                    this.toolbar.showhide()
 
-                    }    else {
-                       return
-                    }
+                } else {
+                    return
+                }
 
-                that.treeEl.css({'cursor':'wait'})
+                that.treeEl.css({'cursor': 'wait'})
 
                 var pathid = contextModel.get('pathid');
                 if (pathid && pathid != '0') {
@@ -151,8 +172,8 @@ define([
                 this.plumb.deleteEveryEndpoint();
                 this.treeEl.html('')
 
-                $('.tree', that.$el).append("<div style= 'width:auto; height: auto' class='nodeEl'></div>")
-                $('.tree', that.$el).append("<div style='height:100px'></div>")
+                $('.pathtree', that.$el).append("<div style= 'width:auto; height: auto' class='nodeEl'></div>")
+                $('.pathtree', that.$el).append("<div style='height:100px'></div>")
 
                 var topLevel = new TriggerNode({el: $('.nodeEl', this.$el).last(), model: curTree});
 
@@ -170,13 +191,32 @@ define([
             adjustWidth: function () {
 
                 if (this.reset) {
+                    var selected = $('.treeNode.selected')
+                    if(!selected.length) {selected = $('.protocolNode.selected')}
                     this.reset = false
                     var boundingWidth = $('.nodeEl', this.$el).width()
-                    var widthDiff = (this.$el.width() - boundingWidth) / 2
-                    if (widthDiff > 0) {
-                        var offset = this.treeEl.offset()
-                        offset.left = this.$el.offset().left + widthDiff;
-                        this.treeEl.offset(offset)
+                    var offset = this.treeEl.offset()
+                    var diff = 0
+                    if (selected && selected.length==1) {
+                        var s_offset = selected.offset()
+                        var t_offset = this.treeEl.offset()
+                        var w_offset = this.$el.offset()
+                        var left_diff = s_offset.left - (w_offset.left + this.$el.width() * 2/3)
+                        var top_diff = s_offset.top - (w_offset.top + this.$el.height() * 2/3)
+                        if(top_diff > 0) {
+                            t_offset.top -= top_diff
+                            this.treeEl.offset(t_offset)
+                        }
+                    }
+                    if (left_diff > 0) {
+                        t_offset.left -= left_diff
+                        this.treeEl.offset(t_offset)
+                    } else {
+                        var widthDiff = (this.$el.width() - boundingWidth) / 2
+                        if (widthDiff > 0) {
+                            offset.left = this.$el.offset().left + widthDiff;
+                            this.treeEl.offset(offset)
+                        }
                     }
                     this.treeEl.css({'opacity': 1})
                 }
@@ -189,7 +229,7 @@ define([
                 var boundingW = boxnode.width()
                 var boundingH = boxnode.height()
 
-                var l = this.$el.offset().left, t = this.$el.offset().top
+                var l = this.$el.offset().left , t = this.$el.offset().top
                 var w = this.$el.width(), h = this.$el.height()
                 var box = [l + (100 - boundingW) * scale, t + (50 - boundingH) * scale, l + w - 100 * scale, t + h - 100 * scale]
                 this.treeEl.draggable('option', 'containment', box)
@@ -231,7 +271,7 @@ define([
 
                                             var myInsert = new insertDiv({source: cur.source.model, target: cur.target.model})
 
-                                            if (contextModel.get('page') == 'pathEditor') {
+                                            if (contextModel.get('page') == 'pathEditor' && !contextModel.get('preview')) {
                                                 return myInsert.$el
                                             } else {
                                                 return $("<div></div>")
@@ -256,7 +296,7 @@ define([
 
                                             // console.log("the source", cur.source)
                                             var myInsert = new insertDiv({source: cur.source.model, target: cur.target.model})
-                                            if (contextModel.get('page') == 'pathEditor') {
+                                            if (contextModel.get('page') == 'pathEditor' && !contextModel.get('preview')) {
                                                 return myInsert.$el
                                             } else {
                                                 return $("<div></div>")
@@ -287,6 +327,14 @@ define([
                 that.treeEl.css({'cursor': 'default'})
 
 
+            },
+            updateSelectedOffset: function() {
+                var selected = $('.selected.treeNode')
+                if (selected && old && selected.offset()) {
+                    var old = treeContext.get('selectedNodeOffset')
+                    old.left = selected.offset().left
+                    old.top = selected.offset().top
+                }
             },
             showExtraInfo: function () {
 

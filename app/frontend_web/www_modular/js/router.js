@@ -38,7 +38,7 @@ define([
         "patient": [0, 9, 3],
         "episode": [0, 9, 3],
         "pathway": [0, 12, 0],
-        "pathEditor": [3, 9, 0],
+        "pathEditor": [0, 12, 0],
         "triggerEditor": [0,12, 0]
     };
     changePageLayout = function (page) {
@@ -80,14 +80,18 @@ define([
         routes: {
             "logout": 'logout',
             "settings": 'settings',
-            "(login/:user/:customer/)(:userAuth)": 'showHome',
+            "auditlist(login/:user/:customer/)(:userAuth)": 'showAudit',
+            "profile(login/:user/:customer/)(:userAuth)": 'showProfile',
+            "customers(login/:user/:customer/)(:userAuth)": 'showCustomers',
+            "home": 'showHome',
             "patient/:id(/login/:user/:customer/)(:userAuth)": 'showPatient',
             "episode/:id/patient/:id/:date(/login/:user/:customer/)(:userAuth)": 'showEpisode',
             "evidence/:id/patient/:id/evi/:id(/login/:user/:customer/)(:userAuth)": 'showEvidence',
             "pathway/:id/node/:id(/patient/:id/:date)(/login/:user/:customer/)(:userAuth)": 'showPathway',
             "pathwayeditor/:id/node/:id(/login/:user/:customer/)(:userAuth)": 'EditPathway',
             "triggereditor/:id/node/:id(/login/:user/:customer/)(:userAuth)": 'EditTriggers',
-	    "password/:type/:user/:customer/:oauth": 'password',
+            "password/:type/:user/:customer/:oauth": 'password',
+            "(login/:user/:customer/)(:userAuth)": 'showPathManager',
             //default
             '*action': 'defaultAction',
         },
@@ -99,15 +103,15 @@ define([
 		new Login({el: '#login-modal'});
 	    }
 	},
+        showPathManager: function (user, customer, userAuth) {
+            /* remove the current patient list, encounter, etc to revert the view to the doctor's user page */
+            currentContext.set({page: 'pathEditor', patients: null, encounter: null, patientName: null});
+            showPage(user, customer, userAuth);
+        },
         showHome: function (user, customer, userAuth) {
             /* remove the current patient list, encounter, etc to revert the view to the doctor's user page */
+            console.log('setting page to home')
             currentContext.set({page: 'home', patients: null, encounter: null, patientName: null});
-
-            //TODO This is only for Demo purpose
-            if(currentContext.get('official_name') == 'Heathcliff Huxtable'){
-                currentContext.set({page: 'pathway', patients: null, encounter: null, patientName: null});
-            }
-
             showPage(user, customer, userAuth);
         },
         showPatient: function (patid, user, customer, userAuth) {
@@ -147,6 +151,18 @@ define([
             currentContext.set({page: 'pathHistory',  pathid: path, code: code});
             showPage(user, customer, userAuth);
         },
+        showCustomers: function(user, customer, userAuth){
+            currentContext.set({page:'customers'});
+            showPage(user, customer, userAuth);
+        },
+        showProfile: function(user, customer, userAuth){
+            currentContext.set({page:'profile'});
+            showPage(user, customer, userAuth);
+        },
+        showAudit: function(user, customer, userAuth){
+            currentContext.set({page:'auditlist'});
+            showPage(user, customer, userAuth);
+        },
         logout: function () {
 	    eraseCookie('valid-through')
 	    eraseCookie('roles')
@@ -166,6 +182,8 @@ define([
         initialize: function () {
             //ajaxPrefilter
             $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
+                console.log("prefiltering", options.url)
+                if (options.url!='/broadcaster/poll')
                 options.url = 'services' + options.url;
             });
             Backbone.history.start();

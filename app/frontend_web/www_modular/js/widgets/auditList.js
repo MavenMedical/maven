@@ -24,10 +24,8 @@ define([
         auditCollection = new (AuditCollection.extend({extraData: this.extraData}));
 
 	    this.template = _.template(arg.template); // this must already be loaded
-        this.$el.html(this.template({height:$(window).height()-50+'px'}));
 	    auditCollection.bind('add', this.addAudit, this);
 	    auditCollection.bind('reset', this.reset, this);
-	    auditCollection.bind('sync', this.render, this);
 	    this.render('Loading ...');
         var auditlist = $('.audit-scroll', this.$el);
 
@@ -40,8 +38,15 @@ define([
 	},
     events: {
         'scroll .audit-scroll': 'handleScroll',
-	'click .download-user-audits': 'downloadAudits',
+	'click .download-user-audits': 'downloadAudits'
     },
+        showhide: function(){
+            if(contextModel.get('page') == 'auditlist'){
+                this.$el.show();
+            }else{
+                this.$el.hide();
+            }
+        },
     downloadAudits: function() {
         that = this;
         var argData = {};
@@ -69,6 +74,14 @@ define([
 
 	render: function(empty_text) {
 	    this.$el.html(this.template(this));
+            var auditlist = $('.audit-scroll', this.$el);
+            auditlist.scroll(function(e) {
+                if(auditlist.scrollTop() + auditlist.innerHeight() + 100 >= auditlist[0].scrollHeight) {
+                    auditCollection.more();
+                }
+                return false;
+            });
+
 	    this.addAll(empty_text);
 	},
 	addAll: function(empty_text) {
@@ -84,13 +97,14 @@ define([
 		}
 	    }
 	    if(!nonempty) {
-            $('.audittable > tbody', this.$el).html("<tr><td colspan=\"5\">"+empty_text+"</td></tr>");
+            $('.audittable > tbody', this.$el).html("<tr class='empty-row'><td colspan=\"5\">"+empty_text+"</td></tr>");
             $('.audittable > thead', this.$el).hide();
             $('.audit-control-row', this.$el).hide();
             this.$el.show();
 	    }
         else {
             $('.audittable > thead', this.$el).show();
+            $('.empty-row', this.$el).hide();
             $('.audit-control-row', this.$el).show();
             this.$el.show();
             var auditlist = $('.audit-scroll', this.$el);
@@ -99,15 +113,6 @@ define([
                 if (this.lastHeight != auditHeight && auditHeight < parseInt(auditlist.css('max-height'))) {
                     this.lastHeight = auditHeight;
                     auditCollection.more();
-                }
-                else {
-
-                    auditlist.scroll(function(e) {
-                        if(auditlist.scrollTop() + auditlist.innerHeight() + 100 >= auditlist[0].scrollHeight) {
-                            auditCollection.more();
-                        }
-                        return false;
-                    });
                 }
             }, 500);
         }
@@ -120,6 +125,7 @@ define([
 	},	
 	reset: function() {
 	    $('.audittable > tbody', this.$el).empty();
+            //this.render()
 	    this.$el.hide();
 	},
     });

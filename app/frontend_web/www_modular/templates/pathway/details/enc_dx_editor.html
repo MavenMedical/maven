@@ -1,8 +1,3 @@
-
-
-
-
-
 <div id="detail-modal" class="modal fade" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -14,19 +9,25 @@
 
             <div class="modal-body">
 
-                 <select class="detail-input form-control attn-text" name="exists">
-                      <option value="true" selected>Alert the clinician only if</option>
-                      <option value="false"> Do not alert the clinician if</option>
-                  </select>
-		            <p class="attn-text">The patients encounter contains any of the diagnoses </p><div style="clear:both" class="multi-select-search" type="snomed_diagnosis" name = "code"></div>
-	              </div>
+                <select class="detail-input form-control attn-text" name="exists">
+                    <option value="true" selected>Alert the clinician only if</option>
+                    <option value="false"> Do not alert the clinician if</option>
+                </select>
+
+                <p class="attn-text">The patients encounter contains any of the diagnoses </p>
+
+                <div style="clear:both" class="multi-select-search" type="snomed_diagnosis" name="code"></div>
+
+                <div style="clear: both; min-height: 30px;"></div>
+
+            </div>
 
 
-                <div class="modal-footer">
-                     <button style = "float:left" class="btn btn-info cancel-edit-button">Cancel</button>
-                     <button style = "float:right" class="btn btn-info confirm-detail-button">Confirm</button>
-                </div>
+            <div class="modal-footer">
+                <button style="float:left" class="btn btn btn-sm btn-default cancel-edit-button">Cancel</button>
+                <button style="float:right" class="btn btn btn-sm btn-info confirm-detail-button">Confirm</button>
             </div>
         </div>
     </div>
+</div>
 

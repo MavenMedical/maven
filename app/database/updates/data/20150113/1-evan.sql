@@ -1,0 +1,1 @@
+insert into public.layouts (layout_id, widget, template, element, priority) values (2, 'broadcaster', 'customerList.html', 'contentRow', 2);

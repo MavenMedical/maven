@@ -14,20 +14,8 @@ define([
         context: function(){
             $(".auditlist").on('show',
 		    // make sure the correct audit list is being loaded (user's own list versus target user)
-		    this.refresh);
-        },
-        refresh: function() {
-            if (contextModel.get('userAuth')) {
-                var data = {};
-                $.extend(data, contextModel.toParams(), this.extraData);
-
-                this.tried = 0;
-                this.offset = 0;
-                this.fetch({
-                    data: $.param(data),
-                    remove: true});
-            }
-        },
+		    this.fetch_refresh, this);
+        }
     });
 
     return AuditCollection;

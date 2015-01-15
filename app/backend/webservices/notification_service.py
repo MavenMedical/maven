@@ -23,6 +23,7 @@ class NotificationService():
     def __init__(self, configname, server_endpoint, listening_state, save_task_fn, loop=None):
         self.config = MC.MavenConfig[configname]
         self.server_endpoint = server_endpoint
+   #     listening_state = asyncio.coroutine(lambda *args: None)
         self.listening_state = listening_state
         self.user_notify_settings = {}
 
@@ -62,12 +63,12 @@ class NotificationService():
         self.recent_count[(customer, user)] -= 1
         if not self.recent_count[(customer, user)]:
             yield from self.listening_state(customer, user,
-                                           (NOTIFICATION_STATE.EHR_INBOX.value in self.user_notify_settings[(user, customer)].values()))
+                                            (NOTIFICATION_STATE.EHR_INBOX.value in self.user_notify_settings.get((user, customer), {}).values()))
 
     @http_service(['GET'], '/poll',
                   [CONTEXT.USER, CONTEXT.CUSTOMERID],
                   {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int},
-                  {USER_ROLES.notification})
+                  {USER_ROLES.provider, USER_ROLES.notification})
     def get_poll(self, _header, _body, context, _matches, _key):
         ret = []  # build the list of pending messages here.
         user = context[CONTEXT.USER]

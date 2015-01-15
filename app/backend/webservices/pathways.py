@@ -22,6 +22,7 @@ from utils.enums import USER_ROLES
 import utils.streaming.http_responder as HTTP
 import json
 from clientApp.webservice.clientapp_rpc_endpoint import ClientAppEndpoint
+import utils.crypto.authorization_key as AK
 
 
 class PathwaysWebservices():
@@ -65,21 +66,53 @@ class PathwaysWebservices():
                              CONTEXT.CANONICALID: k[1],
                              'creation_date': k[2].strftime("%Y-%m-%d %H:%M:%S"),
                              CONTEXT.OFFICIALNAME: k[3],
-                             CONTEXT.ACTIVE: k[4]} for k in protocols]),
+                             CONTEXT.ACTIVE: k[4],
+                             CONTEXT.ENABLED: k[5]} for k in protocols]),
                 None)
 
     @http_service(['POST'], '/history/(\d+)/(\d+)',
                   [CONTEXT.USER, CONTEXT.CUSTOMERID],
                   {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int},
                   {USER_ROLES.provider, USER_ROLES.supervisor})
-    def select_hist(self, _header, body, context, matches, _key):
+    def publish_pathway(self, _header, body, context, matches, _key):
         # choose which pathway in history is currently active
 
         canonical_id = int(matches[0])
         path_id = int(matches[1])
         customer_id = context[CONTEXT.CUSTOMERID]
 
-        yield from self.persistence.select_active_pathway(customer_id, canonical_id, path_id)
+        results = yield from self.persistence.select_active_pathway(customer_id, canonical_id, path_id)
+        customer_name = (results[0][0]).strip()
+        parent_name = results[0][1]
+
+        # if anyone has copied this pathway we need to notify them of changes
+        results = yield from self.persistence.get_protocol_children(canonical_id)
+        children = [{CONTEXT.PATHID: k[0],
+                    CONTEXT.NAME: k[1],
+                    CONTEXT.CANONICALID: k[2],
+                    CONTEXT.CUSTOMERID: k[3],
+                    CONTEXT.USER: k[4]} for k in results]
+        for child in children:
+            new_path = yield from self.persistence.propagate_pathway(canonical_id, child[CONTEXT.CANONICALID],
+                                                                     customer_id, child[CONTEXT.CUSTOMERID])
+            ak = AK.authorization_key([child[CONTEXT.USER], str(child[CONTEXT.CUSTOMERID])], 44, 365 * 24 * 60 * 60)
+            parent_link = '%s#pathwayeditor/%s/node/-1/login/%s/%s/%s' % (MC.http_addr, new_path[0][0],
+                                                                          child[CONTEXT.USER],
+                                                                          child[CONTEXT.CUSTOMERID], ak)
+            child_link = '%s#pathwayeditor/%s/node/-1/login/%s/%s/%s' % (MC.http_addr, child[CONTEXT.PATHID],
+                                                                         child[CONTEXT.USER],
+                                                                         child[CONTEXT.CUSTOMERID], ak)
+            subject = "Changes for your shared pathway '{}'".format(child[CONTEXT.NAME])
+            message = ("{} has published an update to the pathway '{}' \n\n"
+                       "Your pathway '{}' is derived from this pathway. Please log in and review this change. \n"
+                       "You can accept this change by publishing this new pathway version. \n"
+                       "You can also compare this pathway to your own and make any desired changes. \n"
+                       "If you take no action, your pathway will remain as is. \n\n"
+                       "{}'s newest version: {} \nYour Version: {} \n"
+                       .format(customer_name, parent_name, child[CONTEXT.NAME],
+                               customer_name, parent_link, child_link))
+            yield from self.client_interface.notify_user(child[CONTEXT.CUSTOMERID], child[CONTEXT.USER],
+                                                         subject, message)
 
         return (HTTP.OK_RESPONSE, "", None)
 
@@ -105,7 +138,8 @@ class PathwaysWebservices():
         if not protocol_id:
             return HTTP.NOTFOUND_RESPONSE, b'', None
         ret = yield from self.persistence.get_protocol(customer, protocol_id)
-        ret.pop('id', None)
+        if ret:
+            ret.pop('id', None)
         return (HTTP.OK_RESPONSE, json.dumps(ret), None)
 
     @http_service(['POST'], '/tree',
@@ -116,10 +150,11 @@ class PathwaysWebservices():
         full_spec = json.loads(body.decode('utf-8'))
         customer_id = context[CONTEXT.CUSTOMERID]
         user_id = context[CONTEXT.USERID]
-        folder = full_spec.get(CONTEXT.FOLDER, None)
-        full_spec.pop(CONTEXT.FOLDER, None)
-        id = yield from self.persistence.create_protocol(full_spec, customer_id, user_id, folder)
+        folder = full_spec.pop(CONTEXT.FOLDER, None)
+        id, canonical_id = yield from self.persistence.create_protocol(full_spec, customer_id,
+                                                                       user_id, folder)
         full_spec[CONTEXT.PATHID] = id
+        full_spec[CONTEXT.CANONICALID] = canonical_id
         return (HTTP.OK_RESPONSE, json.dumps(full_spec), None)
 
     @http_service(['DELETE'], '/list/(\d+)',
@@ -144,10 +179,12 @@ class PathwaysWebservices():
         userid = context[CONTEXT.USERID]
 
         try:
-            id = yield from self.persistence.update_protocol(protocol_id, customer, userid, protocol_json)
+            id, canonical_id = yield from self.persistence.update_protocol(protocol_id, customer,
+                                                                           userid, protocol_json)
             if id:
                 protocol_json[CONTEXT.PATHID] = id
                 protocol_json.pop('id', None)
+                protocol_json[CONTEXT.CANONICALID] = canonical_id
                 return HTTP.OK_RESPONSE, json.dumps(protocol_json), None
             else:
                 return HTTP.BAD_RESPONSE, json.dumps('FALSE'), None
@@ -195,17 +232,7 @@ class PathwaysWebservices():
         msg = json.loads(body.decode('utf-8'))
         active = msg.get("active")
 
-        pathway = yield from self.persistence.toggle_pathway(customer_id, canonical_id, enabled=active)
-
-        if active and pathway:
-            children = yield from self.persistence.get_protocol_children(canonical_id)
-            for child in children:
-                subject = "Changes for your shared pathway '{}'"
-                message = ("The master version for your pathway {} has a new live version \n"
-                           "Master version: #/pathway/{} \n "
-                           "Your Version: #/pathway/{} \n"
-                           .format(child['name'], child['name'], pathway['current_id'], child['current_id']))
-                yield from self.client_interface.notify_user(customer_id, child['creator'], subject, message)
+        yield from self.persistence.toggle_pathway(customer_id, canonical_id, enabled=active)
 
         return (HTTP.OK_RESPONSE, "", None)
 
@@ -219,6 +246,19 @@ class PathwaysWebservices():
         location_msg = json.loads(body.decode('utf-8'))
 
         yield from self.persistence.post_pathway_location(customer_id, canonical_id, location_msg)
+
+        return (HTTP.OK_RESPONSE, "", None)
+
+    @http_service(['POST'], '/protocol/(\d+)/(\d+)',
+                  [CONTEXT.USER, CONTEXT.CUSTOMERID],
+                  {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int},
+                  {USER_ROLES.provider, USER_ROLES.supervisor})
+    def rename_pathway(self, _header, body, context, matches, _key):
+        canonical_id = int(matches[0])
+        customer_id = int(matches[1])
+        new_name = json.loads(body.decode('utf-8')).get('new_name', None)
+
+        yield from self.persistence.rename_pathway(customer_id, canonical_id, new_name)
 
         return (HTTP.OK_RESPONSE, "", None)
 

@@ -1,36 +1,33 @@
-<div class="widget-column col-sm-12">
+<div class="widget-column col-sm-12" style="background: transparent;">
     <!--<div style="width:40px; float:left;"></div> <!-- spacing horizontal -->
     <li style="float:left; width: auto">
-        <div  title="<%=node.tooltip%>" clickID = "TN-<%=pathid%>-<%=node.nodeID%>" <%if (childrenHidden){%> style = "background-color: lightyellow" <%}%> class="treeNode click-tracked">
+        <div  title="<%=node.tooltip%>" clickID = "TN-<%=pathid%>-<%=node.nodeID%>" <% if (childrenHidden){ %> style = "background-color: lightyellow" <%}%> class="treeNode click-tracked">
             <span data-toggle="tooltip" > <%=node.name%></span>
 
             <br>
-            <% if (page == 'pathEditor'){ %>
 
-            <div style ="clear:both" class="btn-group btn-group-sm" role="toolbar">
+            <% if (page == 'pathEditor' && !preview){ %>
+
+            <div style ="clear:both" class="btn-group btn-corner" role="toolbar">
                     <% if (node.hasLeft ) { %>
-                        <button class = "btn btn-default" id = "moveLeftButton">&lt;</button>
+                        <button class = "btn btn-app btn-light btn-sm" id = "moveLeftButton">&lt;</button>
                     <%}%>
-                <div class="btn-group btn-group-sm">
-                    <button type="button" class="btn btn-default" id="addChildButton"><img src="../images/temp/newChild.jpg" style="width: 25px; height: 25px"></button>
-                    <% if (node.children.length == 0){%>
-                    <button type="button" class="btn btn-default addProtocolButton"><img src="../images/temp/newProtocole.jpg" style="width: 25px; height: 25px"></button>
+                    <button type="button" class="btn btn-app btn-light btn-sm" id="addChildButton"><img src="../images/temp/newChild.jpg" style="width: 25px; height: 25px"></button>
+                    <% if (node.children.length == 0){ %>
+                    <button type="button" class="btn btn-app btn-light btn-sm addProtocolButton" id="addProtocolButton"><img src="../images/temp/newProtocole.jpg" style="width: 25px; height: 25px"></button>
                     <%}%>
-                </div>
-                <% if ("nodeType == standard" && (node.children.length > 0||node.protocol ))  {%>
-                <div class="btn-group btn-group-sm">
-                    <button type="button" class="btn btn-default collapseButton">
-                            <% if (childrenHidden){%>
+                <% if ("nodeType == standard" && (node.children.length > 0||node.protocol ))  { %>
+                    <button type="button" class="btn btn-app btn-light btn-sm collapseButton">
+                            <% if (childrenHidden){ %>
                             <img src="../images/temp/expand.jpg" style="width: 25px; height: 25px">
-                            <%}else{%>
+                            <%}else{ %>
                             <img src="../images/temp/collapse.jpg" style="width: 25px; height: 25px">
                         <%}%>
                     </button>
-                </div>
                 <% } %>
 
                 <%if (node.hasRight) { %>
-                <button class = "btn btn-default" id = "moveRightButton">&gt;</button>
+                <button class = "btn btn-app btn-light btn-sm" id = "moveRightButton">&gt;</button>
                  <%}%>
 
 

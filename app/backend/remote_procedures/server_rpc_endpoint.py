@@ -134,9 +134,13 @@ class ServerEndpoint(SP.StreamProcessor):
     @asyncio.coroutine
     def write_audit_log(self, user_name, action, customer_id, patient=None, device=None,
                         details=None, rows=None, target_user=None):
+        if target_user:
+            targets = (target_user, customer_id)
+        else:
+            targets = None
         asyncio.Task(self.persistence.audit_log(user_name, action, customer_id, patient=patient,
                                                 device=device, details=details, rows=rows,
-                                                target_user_and_customer=(target_user, customer_id)))
+                                                target_user_and_customer=targets))
 
     @asyncio.coroutine
     def report(self, path):
