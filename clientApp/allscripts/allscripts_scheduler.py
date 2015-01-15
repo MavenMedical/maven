@@ -90,7 +90,7 @@ class scheduler():
                     sched = yield from self.allscripts_api.GetSchedule(None, today)
                     polling_providers = {x[0] for x in filter(self.check_notification_policy, self.active_providers)}
                     tasks = set()
-                    CLIENT_SERVER_LOG.debug('processing %s providers for %s' % (polling_providers, self.customer_id))
+                    CLIENT_SERVER_LOG.info('processing %s providers for %s' % (polling_providers, self.customer_id))
 
                     for appointment in sched:
                         provider = appointment['ProviderID']
