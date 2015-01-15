@@ -54,6 +54,12 @@ class AdministrationWebservices():
         body.update({CONFIG_PARAMS.EHR_USER_SYNC_INTERVAL.value: 60 * 60})
         if 'locked' in clientapp_settings:
             clientapp_settings.pop('locked')
+            result = yield from self.persistence.customer_info({WP.Results.settings: 'settings'},
+                                                               customer=customer)
+            settings = result[0]['settings']
+            if settings:
+                settings.update(clientapp_settings)
+                clientapp_settings = settings
         try:
             yield from self.client_interface.test_customer_configuration(target_customer,
                                                                          clientapp_settings)
