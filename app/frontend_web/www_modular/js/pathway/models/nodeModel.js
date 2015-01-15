@@ -59,19 +59,19 @@ define([
             newChildren.populate(params.children, curTree, options)
 
          //Create the trigger representation if needed
-             var myTriggerModel = new triggerGroupCollection()
-             if (params.triggers){
-                myTriggerModel.populate(params.triggers, curTree.get('protocolVersion'))
+             var myImplicationModel = new triggerGroupCollection()
+             if (params.implications){
+                myImplicationModel.populate(params.implications, curTree.get('protocolVersion'))
              } else {
-                myTriggerModel.populate()
+                myImplicationModel.populate()
              }
-                myTriggerModel.on('cascade', function () {
+                myImplicationModel.on('cascade', function () {
                     curTree.trigger('propagate')
                 })
 
 
             this.set({
-                triggers: myTriggerModel,
+                implications: myImplicationModel,
                 children: newChildren,
                 'name': params.name,
                 'tooltip': params.tooltip,
@@ -92,12 +92,12 @@ define([
 
         },
         toJSON: function (options) {
-            var retMap = _.omit(this.attributes, ['children', 'hasLeft', 'hasRight', 'triggers'])
+            var retMap = _.omit(this.attributes, ['children', 'hasLeft', 'hasRight', 'implications'])
             if (options.toExport) {
                 retMap = _.omit(retMap, ['nodeID'])
             }
-            if (this.get('triggers')){
-                retMap.triggers = this.get('triggers').toJSON()
+            if (this.get('implications')){
+                retMap.implications = this.get('implications').toJSON()
             }
             retMap.children = this.get('children').toJSON(options)
             return retMap
@@ -109,10 +109,7 @@ define([
             }
             this.set({children: newChildren}, {silent: true})
         },
-        populateTriggers: function (triggerJSON, curTree) {
 
-
-         },
 
 
     showChildren: function () {

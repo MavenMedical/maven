@@ -34,6 +34,7 @@ define([
             this.list = params.list;
             this.type = params.type;
             this.group = params.group;
+            this.isTrigger = params.isTrigger
             this.el = params.el;
 
 
@@ -98,6 +99,7 @@ define([
                         params[i] = c
                     }
                 }
+                params.isTrigger =  panel.isTrigger
                 var n = new detailLine({group: that.group, text: that.lineTemplate(params), detail: cur})
                 that.$el.append(n.$el)
 

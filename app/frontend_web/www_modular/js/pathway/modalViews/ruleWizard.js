@@ -18,42 +18,38 @@ define([
     'bootstrapswitch'
 
 ], function ($, _, Backbone, contextModel, layoutModel, detailEditor, DetailGroup, curTree, treeContext, helpers, detailSection, disjoinedGroupTemplate, wizardTemplate) {
-    var printGroup = function (key, curGroup, location) {
+    var printGroup = function (key, curGroup, location, isTrigger) {
 
-        require(['text!/templates/pathway/details/' + key + 'Detail.html'], function (key) {
-            return  function (curTemplate) {
+        require(['text!/templates/pathway/details/' + key + 'Detail.html',  'pathway/internalViews/detailGroup'], function (curTemplate, DetailGroup ) {
 
                 //load the list of details of this type
                 var toList = curGroup.get('details').get(key);
                 var toTemplate = _.template(curTemplate);
                 var sectionTemplate = _.template(detailSection);
-
-
                 //create a new detail group for this detail type, and send it the collection of details of this type
-                var cur = new DetailGroup({group: curGroup, lineTemplate: toTemplate, list: toList, type: key})
+                var cur = new DetailGroup({group: curGroup, lineTemplate: toTemplate, list: toList, type: key, isTrigger: isTrigger})
+
 
                 location.append(cur.render().$el);
+            });
 
-
-            };
-        }(key));
 
     };
     var ruleWizard = Backbone.View.extend({
         el: '#modal-target',
 
         initialize: function (params) {
-            if (treeContext.get('selectedNode')){
-                this.activeTriggers = treeContext.get('selectedNode').get('triggers')
-                this.activeNodeID = treeContext.get('selectedNode').get('nodeID')
+            this.activeNodeID = treeContext.get('selectedNode').get('nodeID')
+            if (this.activeNodeID == curTree.get('nodeID')){
+                this.type = 'triggers'
             } else {
-                this.activeTriggers = curTree.get('triggers')
-                this.activeNodeID = curTree.get('nodeID')
+                this.type  = 'implications'
             }
 
+             this.activeTriggers = treeContext.get('selectedNode').get(this.type)
             var that = this;
             this.template = _.template(wizardTemplate)
-            this.$el.html(this.template())
+            this.$el.html(this.template({isHead: this.type == 'triggers'}))
             $('.detailButton').draggable({ revert: true })
             this.render();
             curTree.on('sync', function () {
@@ -63,7 +59,7 @@ define([
 
         },
         render: function () {
-            this.activeTriggers = curTree.getNodeByID(this.activeNodeID).get('triggers')
+            this.activeTriggers = curTree.getNodeByID(this.activeNodeID).get(this.type)
             var parent = this;
             var self = this
 
@@ -81,7 +77,7 @@ define([
 
 
                             require(['text!templates/pathway/details/' + detailType + "_editor.html"], function (template) {
-                                var curEditor = new detailEditor({group: self.group, template: _.template(template), model: new Backbone.Model(), newDetail: true, el: $('#detailed-trigger-modal'), triggerNode: that.triggerNode, type: detailType})
+                                var curEditor = new detailEditor({group: self.group, template: _.template(template), model: new Backbone.Model(), newDetail: true, el: $('#detailed-trigger-modal'), triggerNode: that.triggerNode, type: detailType, isTrigger: parent.type == 'triggers'})
                                 curEditor.render()
 
                             })
@@ -99,7 +95,7 @@ define([
                     this.$el.css({'border-style': 'solid', 'border-width': '4px'})
 
 
-                    var params = {relationship: this.group.get('relationship'), groupID: this.group.cid}
+                    var params = {relationship: this.group.get('relationship'), groupID: this.group.cid, isHead: parent.type == 'triggers'}
                     this.$el.html(this.template(params))
 
                     $('.group-delete', self.$el).on('click', function (e) {
@@ -131,7 +127,7 @@ define([
 
                     for (var key in this.group.get('details').attributes) {
                         var location = $('.detail-sections', this.$el)
-                        printGroup(key, this.group, location)
+                        printGroup(key, this.group, location, parent.type == 'triggers')
                     }
                     return this
 
@@ -141,7 +137,7 @@ define([
             $('#add-group-button').off('click');
             $('#add-group-button').on('click', function () {
                 self.activeTriggers.addGroup("and")
-                var models = treeContext.get('selectedNode').get('triggers').models
+                var models = treeContext.get('selectedNode').get(self.type).models
                 var newGroup = new groupView({group: models[models.length - 1]})
                 $('#disjoinedGroups').append(newGroup.$el)
                 newGroup.render();

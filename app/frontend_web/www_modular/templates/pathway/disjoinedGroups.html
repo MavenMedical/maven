@@ -1,4 +1,5 @@
 <div id="group-<%=groupID%>" style="clear: both; padding: 8px;">
+    <% if (isHead){%>
     <div style = "float: left"> Show Alert if </div>
     <div style = "margin-left: 5px; margin-right: 5px; float: left">
             <input class="ace ace-switch ace-switch-1 relSwitch" type="checkbox" <%if (relationship == "and"){%>checked = 'true' <%}%>/>
@@ -6,6 +7,7 @@
      </div>
 
     <div style = "float: left">of these are true</div>
+    <%}%>
             <div class="group-delete" id="delete-<%=groupID%>" style="float:right"><a>&#10006</a></div>
 
 
