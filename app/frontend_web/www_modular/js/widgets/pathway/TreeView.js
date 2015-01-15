@@ -28,7 +28,8 @@ define([
                     $('.widget-title', this.$el).html('Pathway')
                 } else {
                     $('.widget-title', this.$el).html('Pathway Editor')
-                }                contextModel.on('change:page', function () {
+                }
+                contextModel.on('change:page', function () {
                     if (contextModel.get('page') == 'pathEditor' || contextModel.get('page') == 'pathway') {
                         if(contextModel.get('page') == 'pathway') {
                             $('.widget-title', this.$el).html('Pathway')
@@ -58,8 +59,8 @@ define([
                 var that = this
                 setTimeout(function () {
                     that.reset = true;
-                    that.render()
-                }, 200)
+                    that.adjustWidth()
+                }, 500)
                 this.treeEl = $('.pathtree', this.$el)
                 that.treeEl.css({'opacity': 0})
                 this.treeEl.draggable({
@@ -140,6 +141,10 @@ define([
                     } else {
                         that.treeEl.css({left: '', top: '', msTransform: 'scale(1)'});
                     }
+                    setTimeout(function () {
+                        that.reset = true;
+                        that.adjustWidth()
+                    }, 500)
                 })
                 this.render()
             },
@@ -187,6 +192,7 @@ define([
 
                 if (this.reset) {
                     var selected = $('.treeNode.selected')
+                    if(!selected.length) {selected = $('.protocolNode.selected')}
                     this.reset = false
                     var boundingWidth = $('.nodeEl', this.$el).width()
                     var offset = this.treeEl.offset()
@@ -195,11 +201,15 @@ define([
                         var s_offset = selected.offset()
                         var t_offset = this.treeEl.offset()
                         var w_offset = this.$el.offset()
-                        var width = this.$el.width()
-                        var diff = s_offset.left - (w_offset.left + width * 2/3)
+                        var left_diff = s_offset.left - (w_offset.left + this.$el.width() * 2/3)
+                        var top_diff = s_offset.top - (w_offset.top + this.$el.height() * 2/3)
+                        if(top_diff > 0) {
+                            t_offset.top -= top_diff
+                            this.treeEl.offset(t_offset)
+                        }
                     }
-                    if (diff > 0) {
-                        t_offset.left -= diff
+                    if (left_diff > 0) {
+                        t_offset.left -= left_diff
                         this.treeEl.offset(t_offset)
                     } else {
                         var widthDiff = (this.$el.width() - boundingWidth) / 2

@@ -63,7 +63,7 @@ class NotificationService():
         self.recent_count[(customer, user)] -= 1
         if not self.recent_count[(customer, user)]:
             yield from self.listening_state(customer, user,
-                                           (NOTIFICATION_STATE.EHR_INBOX.value in self.user_notify_settings[(user, customer)].values()))
+                                            (NOTIFICATION_STATE.EHR_INBOX.value in self.user_notify_settings.get((user, customer), {}).values()))
 
     @http_service(['GET'], '/poll',
                   [CONTEXT.USER, CONTEXT.CUSTOMERID],
