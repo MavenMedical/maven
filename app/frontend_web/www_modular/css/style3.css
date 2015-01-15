@@ -323,3 +323,8 @@ left: 53px;
 .audit-hover{
     cursor: pointer;
 }
+
+.hasDatepicker {
+    position: relative;
+    z-index: 9999 !important;
+}

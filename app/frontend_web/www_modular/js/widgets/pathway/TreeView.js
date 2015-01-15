@@ -28,7 +28,8 @@ define([
                     $('.widget-title', this.$el).html('Pathway')
                 } else {
                     $('.widget-title', this.$el).html('Pathway Editor')
-                }                contextModel.on('change:page', function () {
+                }
+                contextModel.on('change:page', function () {
                     if (contextModel.get('page') == 'pathEditor' || contextModel.get('page') == 'pathway') {
                         if(contextModel.get('page') == 'pathway') {
                             $('.widget-title', this.$el).html('Pathway')
@@ -58,8 +59,8 @@ define([
                 var that = this
                 setTimeout(function () {
                     that.reset = true;
-                    that.render()
-                }, 200)
+                    that.adjustWidth()
+                }, 500)
                 this.treeEl = $('.pathtree', this.$el)
                 that.treeEl.css({'opacity': 0})
                 this.treeEl.draggable({
@@ -73,6 +74,7 @@ define([
                         $(event.toElement).one('click', function (e) {
                             e.stopImmediatePropagation();
                         });
+                        that.updateSelectedOffset()
                     }
                 })
                 var that = this
@@ -113,6 +115,7 @@ define([
                             that.treeEl.offset({left: newLeft,
                                 top: newTop});
                             that.setDraggableBox(newScale)
+                            that.updateSelectedOffset()
                         }
                     }
                 )
@@ -129,7 +132,7 @@ define([
                     this.render();
                 }, this)
                 //contextModel.on('change', this.render, this)
-                contextModel.on('change:pathid', function () {
+                contextModel.on('change:canonical', function () {
                     treeContext.set({'selectedNodeOffset': null, 'selectedNode': null}, {silent: true})
                     that.treeEl.css({'opacity': 0})
                     that.reset = true
@@ -138,6 +141,10 @@ define([
                     } else {
                         that.treeEl.css({left: '', top: '', msTransform: 'scale(1)'});
                     }
+                    setTimeout(function () {
+                        that.reset = true;
+                        that.adjustWidth()
+                    }, 500)
                 })
                 this.render()
             },
@@ -184,13 +191,32 @@ define([
             adjustWidth: function () {
 
                 if (this.reset) {
+                    var selected = $('.treeNode.selected')
+                    if(!selected.length) {selected = $('.protocolNode.selected')}
                     this.reset = false
                     var boundingWidth = $('.nodeEl', this.$el).width()
-                    var widthDiff = (this.$el.width() - boundingWidth) / 2
-                    if (widthDiff > 0) {
-                        var offset = this.treeEl.offset()
-                        offset.left = this.$el.offset().left + widthDiff;
-                        this.treeEl.offset(offset)
+                    var offset = this.treeEl.offset()
+                    var diff = 0
+                    if (selected && selected.length==1) {
+                        var s_offset = selected.offset()
+                        var t_offset = this.treeEl.offset()
+                        var w_offset = this.$el.offset()
+                        var left_diff = s_offset.left - (w_offset.left + this.$el.width() * 2/3)
+                        var top_diff = s_offset.top - (w_offset.top + this.$el.height() * 2/3)
+                        if(top_diff > 0) {
+                            t_offset.top -= top_diff
+                            this.treeEl.offset(t_offset)
+                        }
+                    }
+                    if (left_diff > 0) {
+                        t_offset.left -= left_diff
+                        this.treeEl.offset(t_offset)
+                    } else {
+                        var widthDiff = (this.$el.width() - boundingWidth) / 2
+                        if (widthDiff > 0) {
+                            offset.left = this.$el.offset().left + widthDiff;
+                            this.treeEl.offset(offset)
+                        }
                     }
                     this.treeEl.css({'opacity': 1})
                 }
@@ -202,7 +228,6 @@ define([
                 var boxnode = $('.nodeEl', this.$el)
                 var boundingW = boxnode.width()
                 var boundingH = boxnode.height()
-
 
                 var l = this.$el.offset().left , t = this.$el.offset().top
                 var w = this.$el.width(), h = this.$el.height()
@@ -246,7 +271,7 @@ define([
 
                                             var myInsert = new insertDiv({source: cur.source.model, target: cur.target.model})
 
-                                            if (contextModel.get('page') == 'pathEditor') {
+                                            if (contextModel.get('page') == 'pathEditor' && !contextModel.get('preview')) {
                                                 return myInsert.$el
                                             } else {
                                                 return $("<div></div>")
@@ -271,7 +296,7 @@ define([
 
                                             // console.log("the source", cur.source)
                                             var myInsert = new insertDiv({source: cur.source.model, target: cur.target.model})
-                                            if (contextModel.get('page') == 'pathEditor') {
+                                            if (contextModel.get('page') == 'pathEditor' && !contextModel.get('preview')) {
                                                 return myInsert.$el
                                             } else {
                                                 return $("<div></div>")
@@ -302,6 +327,14 @@ define([
                 that.treeEl.css({'cursor': 'default'})
 
 
+            },
+            updateSelectedOffset: function() {
+                var selected = $('.selected.treeNode')
+                if (selected && old && selected.offset()) {
+                    var old = treeContext.get('selectedNodeOffset')
+                    old.left = selected.offset().left
+                    old.top = selected.offset().top
+                }
             },
             showExtraInfo: function () {
 

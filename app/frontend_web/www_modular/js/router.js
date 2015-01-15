@@ -105,7 +105,6 @@ define([
 	},
         showPathManager: function (user, customer, userAuth) {
             /* remove the current patient list, encounter, etc to revert the view to the doctor's user page */
-            console.log('ABCD patheditor')
             currentContext.set({page: 'pathEditor', patients: null, encounter: null, patientName: null});
             showPage(user, customer, userAuth);
         },
@@ -183,6 +182,8 @@ define([
         initialize: function () {
             //ajaxPrefilter
             $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
+                console.log("prefiltering", options.url)
+                if (options.url!='/broadcaster/poll')
                 options.url = 'services' + options.url;
             });
             Backbone.history.start();

@@ -49,29 +49,34 @@ define([
             'click #addChildButton': 'addChild',
             'click #addProtocolButton': 'addProtocol',
             'click #collapseButton': 'expandCollapse',
+            'click #previewButton': 'previewPathway',
             'click #testButton': 'handleTest'
         },
         handleTest: function () {
             curTree.changeNodePosition(treeContext.get('selectedNode'), -1)
         },
         initialize: function () {
-
+this.       preview = true;
+            contextModel.set({preview: false});
            if(treeContext.get('selectedNode')){
 		        var selected = treeContext.get('selectedNode')
-                this.$el.html(this.template({treeNode: selected.attributes, childrenHidden: selected.childrenHidden && selected.childrenHidden(), page: contextModel.get('page')}))
+                this.$el.html(this.template({treeNode: selected.attributes, childrenHidden: selected.childrenHidden && selected.childrenHidden(), page: contextModel.get('page'), preview: contextModel.get('preview')}))
             } else {
-                this.$el.html(this.template({treeNode: null, childrenHidden: null, page: contextModel.get('page')}))
+                this.$el.html(this.template({treeNode: null, childrenHidden: null, page: contextModel.get('page'), preview: contextModel.get('preview')}))
            }
             contextModel.on('change:page', this.showhide, this)
             this.showhide();
             treeContext.on('propagate', this.renderActions, this)
             this.renderActions();
+
         },
         showhide: function(){
             if(contextModel.get('page') == 'pathEditor'){
                 this.$el.show();
                 $('#toolbar').show()
-                $('#widget-toolbox').addClass('grid')
+                if(this.preview) {
+                    $('#widget-toolbox').addClass('grid')
+                }
 
             }else{
                 this.$el.hide();
@@ -89,7 +94,7 @@ define([
         renderActions: function () {
                 if (treeContext.get('selectedNode')) {
                     var selected = treeContext.get('selectedNode')
-                this.$el.html(this.template({treeNode: selected.attributes, childrenHidden: selected.childrenHidden && selected.childrenHidden(), page: contextModel.get('page')}))
+                this.$el.html(this.template({treeNode: selected.attributes, childrenHidden: selected.childrenHidden && selected.childrenHidden(), page: contextModel.get('page'), preview: contextModel.get('preview')}))
                 }
 
 
@@ -160,6 +165,21 @@ define([
             new deleteDialog()
 
 
+        },
+        previewPathway: function(){
+            if (this.preview) {
+                $('#previewButton').addClass('active');
+                contextModel.set({'preview': true});
+                 treeContext.trigger('propagate');
+                $('#widget-toolbox').removeClass('grid')
+                this.preview = false;
+            } else {
+                $('#previewButton').removeClass('active');
+                contextModel.set({'preview': false});
+                 treeContext.trigger('propagate');
+                $('#widget-toolbox').addClass('grid')
+                this.preview = true;
+            }
         }
 
     });
