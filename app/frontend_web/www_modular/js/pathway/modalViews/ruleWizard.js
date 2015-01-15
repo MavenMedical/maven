@@ -7,14 +7,17 @@ define([
     'globalmodels/layoutModel',
     'pathway/modalViews/detailEditor',
     'pathway/internalViews/detailGroup',
+
     'pathway/models/treeModel',
+    'pathway/models/treeContext',
+
     'Helpers',
     'text!templates/pathway/detailSection.html',
     'text!templates/pathway/disjoinedGroups.html',
     'text!templates/pathway/RuleWizard.html',
     'bootstrapswitch'
 
-], function ($, _, Backbone, contextModel, layoutModel, detailEditor, DetailGroup, curTree, helpers, detailSection, disjoinedGroupTemplate, wizardTemplate) {
+], function ($, _, Backbone, contextModel, layoutModel, detailEditor, DetailGroup, curTree, treeContext, helpers, detailSection, disjoinedGroupTemplate, wizardTemplate) {
     var printGroup = function (key, curGroup, location) {
 
         require(['text!/templates/pathway/details/' + key + 'Detail.html'], function (key) {
@@ -40,21 +43,32 @@ define([
         el: '#modal-target',
 
         initialize: function (params) {
+            if (treeContext.get('selectedNode')){
+                this.activeTriggers = treeContext.get('selectedNode').get('triggers')
+                this.activeNodeID = treeContext.get('selectedNode').get('nodeID')
+            } else {
+                this.activeTriggers = curTree.get('triggers')
+                this.activeNodeID = curTree.get('nodeID')
+            }
+
             var that = this;
             this.template = _.template(wizardTemplate)
             this.$el.html(this.template())
             $('.detailButton').draggable({ revert: true })
             this.render();
-            curTree.on('sync', function(){
+            curTree.on('sync', function () {
                 that.render()
             })
             $("#detail-modal").modal({'show': 'true'});
 
         },
         render: function () {
+            this.activeTriggers = curTree.getNodeByID(this.activeNodeID).get('triggers')
             var parent = this;
-            var groupView = Backbone.View.extend({
+            var self = this
 
+            //internal group view
+            var groupView = Backbone.View.extend({
                 template: _.template(disjoinedGroupTemplate),
                 initialize: function (param) {
                     var self = this;
@@ -66,13 +80,11 @@ define([
                             var detailType = ui.draggable[0].id
 
 
-                                require(['text!templates/pathway/details/' + detailType + "_editor.html"], function (template) {
-                                    var curEditor = new detailEditor({group: self.group, template: _.template(template), model: new Backbone.Model(), newDetail: true, el: $('#detailed-trigger-modal'), triggerNode: that.triggerNode, type: detailType})
-                                    curEditor.render()
+                            require(['text!templates/pathway/details/' + detailType + "_editor.html"], function (template) {
+                                var curEditor = new detailEditor({group: self.group, template: _.template(template), model: new Backbone.Model(), newDetail: true, el: $('#detailed-trigger-modal'), triggerNode: that.triggerNode, type: detailType})
+                                curEditor.render()
 
-                                })
-
-
+                            })
 
 
                         },
@@ -91,11 +103,11 @@ define([
                     this.$el.html(this.template(params))
 
                     $('.group-delete', self.$el).on('click', function (e) {
-                        curTree.get('triggers').remove(self.group)
-                    /*    var id =e.currentTarget.id;
-                        var group = '#group-'+id.substr(id.indexOf('-')+1)
-                        console.log(group, self.group);
-                        $(group).parent().remove(); */
+                        parent.activeTriggers.remove(self.group)
+                        /*    var id =e.currentTarget.id;
+                         var group = '#group-'+id.substr(id.indexOf('-')+1)
+                         console.log(group, self.group);
+                         $(group).parent().remove(); */
 
 
                     })
@@ -127,18 +139,18 @@ define([
                 }
             })
             $('#add-group-button').off('click');
-             $('#add-group-button').on('click', function () {
-                curTree.get('triggers').addGroup("and")
-                var models = curTree.get('triggers').models
-                var newGroup = new groupView({group: models[models.length -1]})
+            $('#add-group-button').on('click', function () {
+                self.activeTriggers.addGroup("and")
+                var models = treeContext.get('selectedNode').get('triggers').models
+                var newGroup = new groupView({group: models[models.length - 1]})
                 $('#disjoinedGroups').append(newGroup.$el)
                 newGroup.render();
 
             })
 
-             $('#disjoinedGroups').empty();
-            for (var i in curTree.get("triggers").models) {
-                var curGroup = new groupView({group: curTree.get('triggers').models[i]})
+            $('#disjoinedGroups').empty();
+            for (var i in this.activeTriggers.models) {
+                var curGroup = new groupView({group: self.activeTriggers.models[i]})
                 $('#disjoinedGroups').append(curGroup.$el)
                 curGroup.render()
 

@@ -37,7 +37,17 @@ define([
         }
 
     }
+    var getNodeByID = function(head, target){
+        var toCheck = [head]
+        while (toCheck){
+            var cur = toCheck.pop()
+            if (cur.get('nodeID') == target){
+                return cur
+            }
+            toCheck = toCheck.concat(cur.get('children').models)
+        }
 
+    }
     var openPathToTarget = function (cur, target, path) {
 
         if (cur.get('nodeID') == target) {
@@ -206,6 +216,9 @@ define([
             }
             contextModel.set('code', nodestr)
 
+        },
+        getNodeByID: function(target){
+            return getNodeByID(this, target)
         },
         getPathToIDS: function (ids) {
             this.collapse(this)

@@ -78,7 +78,7 @@ define([
             $('.createButton').draggable({ revert: true })
             $('#add-group-button').on('click', function () {
 
-                curTree.get('triggers').addGroup("and")
+                curTree.get('selectedNode').get('triggers').addGroup("and")
 
 
             })
@@ -113,7 +113,7 @@ define([
                     this.$el.html(this.template(params))
 
                     $('.group-delete', this.$el).on('click', function () {
-                        curTree.get('triggers').remove(self.group)
+                        curTree.get('selectedNode').get('triggers').remove(self.group)
                     })
 
                     $(".toggles", this.$el).bootstrapSwitch()
@@ -147,7 +147,7 @@ define([
             })
 
             for (var i in curTree.get("triggers").models) {
-                var curGroup = new groupView({group: curTree.get('triggers').models[i]})
+                var curGroup = new groupView({group: curTree.get('selectedNode').get('triggers').models[i]})
                 $('#disjoinedGroups').append(curGroup.$el)
                 $('#disjoinedGroups').append("<div style='height:25px'></div>")
                 curGroup.render()

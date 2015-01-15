@@ -3,30 +3,25 @@ define([
     'underscore',
     'backbone',
     'globalmodels/contextModel'
-], function($, _, Backbone, contextModel){
+], function ($, _, Backbone, contextModel) {
 
 
     var TriggerGroupCollection = Backbone.Collection.extend({
 
-        populate: function(JSON, protocolVersion){
+        populate: function (JSON, protocolVersion) {
             var self = this
-            if (protocolVersion == "version1"){
-                for (var i in JSON){
+            if (protocolVersion == "version1") {
+                for (var i in JSON) {
                     var curGroup = JSON[i]
 
                     var t = new TriggerGroup()
                     t.populate({JSON: curGroup})
-                    t.off('cascade')
 
                     this.add(t, {silent: true})
                 }
-            } else if (protocolVersion == "preversion"){
+            } else if (protocolVersion == "preversion") {
                 var t = new TriggerGroup()
-                t.populate({relationship : "and"})
-                t.off('cascade')
-                t.on ('cascade', function(){
-                    self.trigger('cascade')
-                })
+                t.populate({relationship: "and"})
 
                 var temp = new TriggerDetailTypes()
                 temp.populate(JSON)
@@ -34,25 +29,23 @@ define([
 
                 this.add(t, {silent: true})
             }
-            this.on('add', function(){
+            this.on('add', function () {
                 self.trigger('cascade')
             })
-            this.on('remove', function(){
+            this.on('remove', function () {
                 self.trigger('cascade')
             })
 
-            if (self.models.length == 0){
+            if (self.models.length == 0) {
                 self.addGroup("and")
             }
 
         },
-        addGroup: function(relationship){
+        addGroup: function (relationship) {
             var group = new TriggerGroup();
             var self = this;
-            group.populate({relationship : relationship})
-            group.on('cascade', function(){
-                self.trigger('cascade')
-            })
+            group.populate({relationship: relationship})
+
             this.add(group)
             return group
         }
@@ -60,45 +53,55 @@ define([
     })
 
     var TriggerGroup = Backbone.Model.extend({
-        populate: function(param){
+        populate: function (param) {
             var self = this
-            if (param.JSON){
+            if (param.JSON) {
                 this.set('relationship', param.JSON['relationship'], {silent: true})
                 var t = new TriggerDetailTypes()
                 t.populate(param.JSON['details'])
-                t.on('cascade', function(){ self.trigger('cascade')})
+                t.on('cascade', function () {
+                        self.trigger('cascade')
+                    }
+                )
                 this.set('details', t, {silent: true})
-            } else if (param.relationship){
+            } else if (param.relationship) {
                 this.set('relationship', param.relationship, {silent: true})
                 var t = new TriggerDetailTypes()
                 t.populate();
-                t.on('cascade', function(){ self.trigger('cascade')})
+                t.on('cascade', function () {
+                        self.trigger('cascade')
+                    }
+                )
                 this.set('details', t, {silent: true})
             }
-            this.on('change', function(){
+            this.on('change', function () {
                 self.trigger('cascade')
             })
 
         },
-        addDetail: function(model, type){
+        addDetail: function (model, type) {
             var self = this;
-              var enhancedModel = new TriggerDetail()
-              enhancedModel.populate(model.attributes)
-              enhancedModel.on('cascade', function(){self.trigger('cascade')})
-              var detailGroup = this.get('details')
+            var enhancedModel = new TriggerDetail()
+            enhancedModel.populate(model.attributes)
+            enhancedModel.on('cascade', function () {
+                self.trigger('cascade')
+            })
+            var detailGroup = this.get('details')
 
-              if (detailGroup.get(type)){
-                  detailGroup.get(type).add(enhancedModel)
-              } else {
-                  var temp = new TriggerDetailCollection()
-                  temp.on('cascade', function(){self.trigger('cascade')})
+            if (detailGroup.get(type)) {
+                detailGroup.get(type).add(enhancedModel)
+            } else {
+                var temp = new TriggerDetailCollection()
+                temp.on('cascade', function () {
+                    self.trigger('cascade')
+                })
 
-                  temp.add(enhancedModel)
-                  detailGroup.set(type, temp)
-              }
+                temp.add(enhancedModel)
+                detailGroup.set(type, temp)
+            }
 
         },
-        toJSON: function(){
+        toJSON: function () {
             var ret = {}
             ret['relationship'] = this.get('relationship')
             ret['details'] = this.get('details').toJSON()
@@ -107,21 +110,25 @@ define([
     })
 
     var TriggerDetailTypes = Backbone.Model.extend({
-        populate: function(JSON){
+        populate: function (JSON) {
             var self = this
 
-            for (var key in JSON){
+            for (var key in JSON) {
                 var value = JSON[key]
                 var t = new TriggerDetailCollection()
                 t.populate(value)
-                t.on('cascade', function(){self.trigger('cascade')})
+                t.on('cascade', function () {
+                    self.trigger('cascade')
+                })
                 this.set(key, t, {silent: true})
             }
-            this.on('change', function(){self.trigger('cascade')})
+            this.on('change', function () {
+                self.trigger('cascade')
+            })
         },
-        toJSON: function(){
+        toJSON: function () {
             var ret = {}
-            for (var key in this.attributes){
+            for (var key in this.attributes) {
                 var value = this.attributes[key]
 
                 ret[key] = value.toJSON();
@@ -130,33 +137,37 @@ define([
         }
     })
     var TriggerDetailCollection = Backbone.Collection.extend({
-        populate: function(JSON){
+        populate: function (JSON) {
             var self = this
-            for (var i in JSON){
+            for (var i in JSON) {
                 var curDetail = JSON[i]
                 var t = new TriggerDetail()
                 t.populate(curDetail)
                 this.add(t, {silent: true})
             }
-                this.on('add', function(){self.trigger('cascade')})
-                this.on('remove', function(){self.trigger('cascade')})
+            this.on('add', function () {
+                self.trigger('cascade')
+            })
+            this.on('remove', function () {
+                self.trigger('cascade')
+            })
         }
     })
     var TriggerDetail = Backbone.Model.extend({
 
-        populate: function(JSON){
+        populate: function (JSON) {
             var self = this
-            for (var key in JSON){
+            for (var key in JSON) {
                 var value = JSON[key]
                 /*
-                if (value instanceof Array){
-                    value = new Backbone.Collection(value)
+                 if (value instanceof Array){
+                 value = new Backbone.Collection(value)
 
-                    value.on('add', function(){self.trigger('cascade')})
-                    value.on('remove', function(){self.trigger('cascade')})
-                    value.on('change', function(){self.trigger('cascade')})
-                }
-                */
+                 value.on('add', function(){self.trigger('cascade')})
+                 value.on('remove', function(){self.trigger('cascade')})
+                 value.on('change', function(){self.trigger('cascade')})
+                 }
+                 */
                 this.set(key, value, {silent: true})
 
             }
