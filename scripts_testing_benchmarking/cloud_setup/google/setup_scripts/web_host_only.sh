@@ -41,7 +41,7 @@ sudo usermod -G `whoami` -a nginx
 sudo yum install rabbitmq-server -y
 sudo systemctl start rabbitmq-server
 sudo systemctl enable rabbitmq-server
-
+chown -R rabbitmq:rabbitmq /var/log/rabbitmq
 
 echo "/etc/limited/restartnginx
 su devel -c '(cd ~/maven && source ~/.bashrc && nohup ~/maven/run_maven.sh)'" | sudo tee -a /etc/rc.local
@@ -70,3 +70,4 @@ sudo setsebool -P httpd_read_user_content 1
 sudo semanage port -a -t http_port_t -p tcp 8087
 sudo semanage port -a -t http_port_t -p tcp 8092
 sudo semanage port -a -t http_port_t -p tcp 8088
+sudo semanage port -a -t amqp_port_t -p tcp 25672
