@@ -146,8 +146,8 @@ class rpc(SP.StreamProcessor):
             uid = obj[0]
             try:
                 ret = yield from self._execute(*obj)
-            except IndexError:
-                raise
+            except IndexError as e:
+                ret = e
             except Exception as e:
                 ML.EXCEPTION('caught in rpc')
                 ret = e
