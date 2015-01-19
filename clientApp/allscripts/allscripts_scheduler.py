@@ -90,8 +90,7 @@ class scheduler():
                     sched = yield from self.allscripts_api.GetSchedule(None, today)
                     polling_providers = {x[0] for x in filter(self.check_notification_policy, self.active_providers)}
                     tasks = set()
-                    CLIENT_SERVER_LOG.info('processing %s providers for %s' % (polling_providers, self.customer_id))
-
+                    CLIENT_SERVER_LOG.info('processing %s providers for %s, %s apts' % (polling_providers, self.customer_id, len(sched)))
                     for appointment in sched:
                         provider = appointment['ProviderID']
                         if provider in polling_providers:
@@ -101,6 +100,7 @@ class scheduler():
                             ML.report('/' + str(self.customer_id) + '/provider/' + provider + '/not_active_or_listening')
                     for provider in polling_providers:
                         self.firsts[provider] = False
+                    CLIENT_SERVER_LOG.info('evaluating %s matching apts' % (len(tasks),))
                     for task in tasks:
                         ML.TASK(self.evaluate(*task))
                 except AllscriptsError as e:
