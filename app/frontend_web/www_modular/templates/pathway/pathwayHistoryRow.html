@@ -15,10 +15,7 @@ Date: <%=creation_date%>"><a class='history-select-button'><%=creation_date%></a
             check_title = 'Use This Snapshot'
             check_class = check_class + ' glyphicon-unchecked';
         }
-        if (enabled != 1){
-            //current PATHWAY is NOT enabled
-            check_class = check_class + " check-disabled";
-        } %>
+        %>
         <a><span style="padding-right: 1px;" class="<%=check_class%>" title="<%=check_title%>"></span></a>
         <a class="red delete-hist" href="#" title="Delete Snapshot">
 		    <i class="ace-icon fa fa-trash-o bigger-130"></i>
