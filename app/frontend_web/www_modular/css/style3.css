@@ -240,6 +240,20 @@ a.disabled {
 }
 
 /******************************************************************
+ * The following customize the support widgets *
+ ******************************************************************/
+
+
+.customer-row-edit{
+    display:none;
+}
+
+.customer-info-click {
+    cursor: pointer;
+}
+
+
+/******************************************************************
  * The following customize the fonts and colors of the trigger modal *
  ******************************************************************/
 #modal-target{

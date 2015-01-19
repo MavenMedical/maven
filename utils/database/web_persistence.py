@@ -349,9 +349,9 @@ class WebPersistenceBase():
         cmd.append("UPDATE customer set")
         cmd.append("(name, abbr, license_type, license_exp) = (%s,%s,%s,%s)")
         cmdargs.extend([name, abbr, license_num, license_exp])
-        cmd.append("where customer_id = %s")
+        cmd.append("where customer_id = %s returning customer_id")
         cmdargs.append(customer)
-        self.execute(cmd, cmdargs, _build_format(), {0: 'customer_id'})
+        yield from self.execute(cmd, cmdargs, _build_format(), {0: 'customer_id'})
         # return [row['customer_id'] for row in ret]
 
     @asyncio.coroutine
