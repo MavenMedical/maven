@@ -194,6 +194,8 @@ class AuthenticationWebservices():
                         bcrypt.hashpw(bytes(info[CONTEXT.PASSWORD], 'utf-8'),
                                       passhash[:29]) != passhash):
                     raise LoginError(badLogin, 'Username and/or password are incorrect')
+                if user_info[WP.Results.passexpired] and 'newpassword' not in info:
+                    raise LoginError('expiredPassword')
                 method = 'local'
             else:
                 if info.get(CONTEXT.ROLES, None):
