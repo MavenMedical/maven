@@ -82,7 +82,7 @@ class SearchWebservices():
 
         customer_id = context[CONTEXT.CUSTOMERID]
         groups = yield from self.persistence.get_groups(customer_id)
-        if groups:
+        if groups or isinstance(groups, list):
             return HTTP.OK_RESPONSE, json.dumps(groups), None
         else:
             return HTTP.BAD_RESPONSE, json.dumps('FALSE'), None
