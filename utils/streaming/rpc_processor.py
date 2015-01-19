@@ -134,25 +134,28 @@ class rpc(SP.StreamProcessor):
         """ Got a response from the other side.  Either it's an RPC request
             or an RPC response.  Handle both cases as needed.
         """
-        if len(obj) == 2:
-            uid, ret = obj
-            if uid in self.outstanding:
-                fut = self.outstanding.pop(uid)
-                if isinstance(ret, Exception):
-                    fut.set_exception(ret)
-                else:
-                    fut.set_result(ret)
-        elif len(obj) == 5:
-            uid = obj[0]
-            try:
-                ret = yield from self._execute(*obj)
-            except IndexError as e:
-                ret = e
-            except Exception as e:
-                ML.EXCEPTION('caught in rpc')
-                ret = e
-            msg = pickle.dumps((uid, ret))
-            self.write_object(msg, key)
+        try:
+            if len(obj) == 2:
+                uid, ret = obj
+                if uid in self.outstanding:
+                    fut = self.outstanding.pop(uid)
+                    if isinstance(ret, Exception):
+                        fut.set_exception(ret)
+                    else:
+                        fut.set_result(ret)
+            elif len(obj) == 5:
+                uid = obj[0]
+                try:
+                    ret = yield from self._execute(*obj)
+                except IndexError as e:
+                    ret = e
+                except Exception as e:
+                    ML.EXCEPTION('caught in rpc')
+                    ret = e
+                msg = pickle.dumps((uid, ret))
+                self.write_object(msg, key)
+        except:
+            ML.EXCEPTION('rpc processor failed')
 
     # @ML.coroutine_trace(ML.DEBUG)
     def _execute(self, uid, cls, fn, args, kwargs):
