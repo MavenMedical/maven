@@ -71,7 +71,8 @@ define([
         checkValid: function(){
           for (var i in this.followups){
               var curDue= $('.reminderTime', this.followups[i].$el).val()
-              if (curDue == "")
+              var curRecip = $('.followupRecipient', this.followups[i].$el).val()
+              if (curDue == "" || curRecip == "")
                 return false
           }
             return true
