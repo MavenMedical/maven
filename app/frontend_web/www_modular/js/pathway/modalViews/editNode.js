@@ -24,22 +24,35 @@ define([
            curTree.on('sync', function(){that.render()})
            this.render();
         },
+        removeFollowupByValue: function(value){
+            var newFollowups = new Array()
+            for (var i in this.followups){
+                var cur = this.followups[i]
+                if (cur != value){
+                    newFollowups.push(cur)
+                }
+            }
+            this.followups = newFollowups
+
+
+
+        },
         render: function(){
              //IF this is a protocol node, create a protocol node editor
             var that = this;
             if (treeContext.get('selectedNode').attributes.isProtocol) {
                 this.template = _.template(protocolTemplate),
                     this.$el.html(this.template(treeContext.get('selectedNode').attributes));
-                followups = new Array();
+                that.followups = new Array();
 
             if (typeof treeContext.get('selectedNode').attributes.followups != 'undefined') {
                 $(treeContext.get('selectedNode').attributes.followups).each(function () {
                     //show all default followups
                     $('#followups', that.$el).append("<div class='followup'></div>");
                     var el = $('.followup', $('#followups', that.$el)).last();
-                    var followup = new ReminderRow({model: new Backbone.Model(this), el: el});
+                    var followup = new ReminderRow({model: new Backbone.Model(this), el: el, parent: that});
 
-                    followups.push(followup);
+                    that.followups.push(followup);
                     followup.$el.bind('remove', {followup: followup}, that.removeFollowup);
                 })
             }
@@ -96,11 +109,11 @@ define([
 
             $("#add-new-followup", this.$el).on("click", function() {
                 $('#followups').append("<div class='followup'></div>"); //append(followup.render().el);
-                el = $('.followup', $('#followups')).last();
+                var el = $('.followup', $('#followups')).last();
                 var followup = new ReminderRow({model:new Backbone.Model({edit:true}), el:el});
                 //followup.render();
                 //followup.events();
-                followups.push(followup);
+                that.followups.push(followup);
                 followup.$el.bind('remove', {followup:followup}, that.removeFollowup);
             });
 

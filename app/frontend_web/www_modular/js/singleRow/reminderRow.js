@@ -23,12 +23,20 @@ define([
             this.render();
         },
         render: function () {
+            var that = this;
             $(".followup-header-columns").show();
             $(this.el).html(this.template($.extend({viewid: this.cid, msg_body: window.location.origin + window.location.pathname + '#pathway/' + contextModel.get('pathid') + '/node/' + contextModel.get('code')}, this.model.toJSON())));
 
-            that = this;
+
+            $('.deleteFollowup', this.$el).on('click',  function(){
+                that.$el.remove()
+
+            })
+
+            var that = this;
             $(".reminderTime", that.$el).datepicker({minDate: 1});
             //$('#ui-datepicker-div').css('z-index', '10000 !important');
+
             
             $('.followupRecipient', that.$el).autocomplete({
                 source: function (request, response) {
@@ -73,14 +81,15 @@ define([
                     //prevent the auto focus from changing the value of the text box
                     event.preventDefault();
                 },
+                remove: function(){
+                    this.parent.followups.removeFollowupByValue(this)
+                    this.parent.render()
+                }
             });
                                            
             return this;
         },
-        events: {
-	    'click .deleteFollowup': 'removeFollowup',
-            'click .sendCurrentFollowup': 'sendFollowup'
-        },
+
         removeFollowup: function(that) {
             $(this.el).remove();
         },
