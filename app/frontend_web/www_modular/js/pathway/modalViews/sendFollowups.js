@@ -60,7 +60,7 @@ define([
                     alert("Some followups are incomplete, please make sure they have a date and a recipient")
                     return false;
                 }
-                $(followups).each(function(){
+                $(that.followups).each(function(){
                     this.sendFollowup();
                 });
                 alert("Followups Sent");
