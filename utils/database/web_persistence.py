@@ -1476,6 +1476,9 @@ class WebPersistenceBase():
 
         try:
             ret = yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
+            cur = yield from self.db.execute_single("SELECT full_spec from trees.protocol WHERE protocol_id=%s;", [protocol_id])
+            # Update/Insert the trees.codelist records for the protocol
+            yield from self.upsert_codelists(cur.fetchone()[0], canonical_id)
             return list(ret)
         except:
             ML.EXCEPTION("Error Updating TreeID #{}".format(canonical_id))
@@ -1543,8 +1546,6 @@ class WebPersistenceBase():
         try:
             cur = yield from self.db.execute_single(" ".join(cmd) + ";", cmdArgs)
             newid, canonical_id = cur.fetchone()[0]
-            # Update/Insert the trees.codelist records for the protocol
-            yield from self.upsert_codelists(protocol_json, canonical_id)
 
         except:
             newid = None
