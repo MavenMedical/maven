@@ -349,9 +349,9 @@ class WebPersistenceBase():
         cmd.append("UPDATE customer set")
         cmd.append("(name, abbr, license_type, license_exp) = (%s,%s,%s,%s)")
         cmdargs.extend([name, abbr, license_num, license_exp])
-        cmd.append("where customer_id = %s")
+        cmd.append("where customer_id = %s returning customer_id")
         cmdargs.append(customer)
-        self.execute(cmd, cmdargs, _build_format(), {0: 'customer_id'})
+        yield from self.execute(cmd, cmdargs, _build_format(), {0: 'customer_id'})
         # return [row['customer_id'] for row in ret]
 
     @asyncio.coroutine
@@ -1335,6 +1335,8 @@ class WebPersistenceBase():
         cmdArgs = [canonical_id, root_node_id]
         yield from self.db.execute_single(' '.join(cmd), extra=cmdArgs)
 
+        # Index for creating disjunctive group IDs
+        disjunctivegroupid = 1
         for triggerGroup in treeDict.get('triggers'):
 
             # Extract the Group Relationships
@@ -1345,30 +1347,33 @@ class WebPersistenceBase():
             # Insert the Protocol Triggering Codelist(s) for ENCOUNTER Diagnoses
             enc_dx_triggers = triggerGroupDetails.get('enc_dx', None)
             if enc_dx_triggers:
-                yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'enc_dx', enc_dx_triggers)
+                yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'enc_dx', enc_dx_triggers, disjunctivegroupid)
 
             # Insert the Protocol Triggering Codelist(s) for PROBLEM LIST Diagnoses
             pl_dx_triggers = triggerGroupDetails.get('pl_dx', None)
             if pl_dx_triggers:
-                yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'pl_dx', pl_dx_triggers)
+                yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'pl_dx', pl_dx_triggers, disjunctivegroupid)
 
             # Insert the Protocol Triggering Codelist(s) for HISTORIC Diagnoses
             hist_dx_triggers = triggerGroupDetails.get('hist_dx', None)
             if hist_dx_triggers:
-                yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'hist_dx', hist_dx_triggers)
+                yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'hist_dx', hist_dx_triggers, disjunctivegroupid)
 
             # Insert the Protocol Triggering Codelist(s) for ALL Diagnoses
             all_dx_triggers = triggerGroupDetails.get('all_dx', None)
             if all_dx_triggers:
-                yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'all_dx', all_dx_triggers)
+                yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'all_dx', all_dx_triggers, disjunctivegroupid)
 
             # Insert codelists for Procedure History
             hist_proc_triggers = triggerGroupDetails.get('hist_proc')
             if hist_proc_triggers:
-                yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'hist_proc', hist_proc_triggers)
+                yield from self.upsert_snomed_triggers(canonical_id, root_node_id, 'hist_proc', hist_proc_triggers, disjunctivegroupid)
+
+            # Increment the disjunctive group
+            disjunctivegroupid += 1
 
     @asyncio.coroutine
-    def upsert_snomed_triggers(self, canonical_id, node_id, list_type, triggers):
+    def upsert_snomed_triggers(self, canonical_id, node_id, list_type, triggers, group_id):
 
         for cl in triggers:
             # Parse the "exists" JSON element FROM a string INTO a Python integer
@@ -1395,14 +1400,14 @@ class WebPersistenceBase():
                 framemin = -99999
                 framemax = 99999
 
-            cmd = ["SELECT trees.upsert_codelist(%s, %s, %s::varchar, %s, %s::integer[], %s::varchar[], %s, %s)"]
+            cmd = ["SELECT trees.upsert_codelist(%s, %s, %s::varchar, %s, %s::integer[], %s::varchar[], %s, %s, %s)"]
 
             # Command arguments for the str-based codelist
             if list_type == 'hist_proc':
-                cmdArgs = [canonical_id, node_id, list_type, exists, None, str_list, framemin, framemax]
+                cmdArgs = [canonical_id, node_id, list_type, exists, None, str_list, framemin, framemax, group_id]
             # Command arguments for the int-based codelist
             else:
-                cmdArgs = [canonical_id, node_id, list_type, exists, int_list, None, framemin, framemax]
+                cmdArgs = [canonical_id, node_id, list_type, exists, int_list, None, framemin, framemax, group_id]
 
             yield from self.db.execute_single(' '.join(cmd), extra=cmdArgs)
 

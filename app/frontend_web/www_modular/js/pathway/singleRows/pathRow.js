@@ -47,11 +47,11 @@ define([
                     if (event.target.checked){
                         state = true;
                         $(event.target).attr('title','Disable Pathway');
-                        $(".history-checkbox", this.$el).removeClass("check-disabled",0);
+                        //$(".history-checkbox", this.$el).removeClass("check-disabled",0);
                     }
                     else {
                         $(event.target).attr('title','Enable Pathway');
-                        $(".history-checkbox", this.$el).addClass("check-disabled",0);
+                        //$(".history-checkbox", this.$el).addClass("check-disabled",0);
                     }
 
                     that.model.save({active: state});

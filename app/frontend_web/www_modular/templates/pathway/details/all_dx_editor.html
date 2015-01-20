@@ -4,7 +4,14 @@
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal"><span
                         aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                <h4 class="modal-title">Create/Edit All Diagnosis Constraint</h4>
+                <h4 class="modal-title">
+                    <% if (isTrigger) { %>
+                        Create/Edit All Diagnosis Constraint
+                    <%} else { %>
+                        Create/Edit Diagnostic Implication
+                    <%}%>
+                    </h4>
+
             </div>
 
             <div class="modal-body">
@@ -12,9 +19,13 @@
                 <div>
 
                     <select class="detail-input form-control attn-text" name="exists">
-                        <option value="true" selected>only alert the clinician if</option>
-                        <option value="false"> do not alert the clinician if</option>
-
+                        <% if (isTrigger) { %>
+                            <option value="true" selected>only alert the clinician if</option>
+                            <option value="false"> do not alert the clinician if</option>
+                        <% }else{ %>
+                            <option value="true" selected>Clicking this node will indicate that</option>
+                            <option value="false"> Clicking this node will counter-indicate that</option>
+                         <% } %>
                     </select>
 
                     <p class="attn-text">The subject has ever had a recorded diagnosis</p>

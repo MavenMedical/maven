@@ -25,7 +25,7 @@ define([
             this.template = param.template
             this.type = param.type;
 
-            this.$el.html(this.template());
+            this.$el.html(this.template({isTrigger: param.isTrigger}));
             //an array representing all of the search boxes, so that on exit we can check if they have all been filled
             //out and prevent people from submitting incomplete rules
             //unused in current implementation which uses the multiselect search

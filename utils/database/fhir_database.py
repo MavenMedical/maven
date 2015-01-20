@@ -773,18 +773,94 @@ class FHIRPersistanceBase():
                     historic_procs]
             cur = yield from self.db.execute_single("SELECT * FROM trees.evalnode(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", extra=args)
 
-            rtn_matched_rules = []
+            code_list_items = []
             for result in cur:
-                FHIR_DB_LOG.debug("Result from DB query (get_matching_pathways): %s" % [(result[x]) for x in range(len(result))])
-                full_spec = result[3]
-                rtn_matched_rules.append(FHIR_API.Rule(protocol_details=full_spec,
-                                                       CDS_rule_id=result[0],
-                                                       name=result[1],
-                                                       short_description=result[2],
-                                                       priority=result[4]))
+                code_list_group_record = {
+                    "protocol_id": result[0],
+                    "protocol_name": result[1],
+                    "protocol_desc": result[2],
+                    "protocol_full_spec": json.loads(result[3]),
+                    "protocol_priority": result[4],
+                    "codelist_type": result[5],
+                    "node_id": result[6],
+                    "disjunctive_groupid": result[7],
+                    "should_intersect": result[8],
+                    "int_list": result[9],
+                    "str_list": result[10],
+                    "int_intersects": result[11],
+                    "str_intersects": result[12],
+                }
+                code_list_items.append(code_list_group_record)
+                # FHIR_DB_LOG.debug("Result from DB query (get_matching_pathways): %s" % [(result[x]) for x in range(len(result))])
+
+            rtn_matched_rules = self._pathways_additional_selection_logic(code_list_items)
             return rtn_matched_rules
         except:
             raise Exception("Error matching pathways from database")
+
+    def _pathways_additional_selection_logic(self, codelists):
+
+        rtn_matched_rules = []
+        cur_id = 0
+        cur_id_processed = False
+        cur_groupid = 0
+        last_codelist_eval = True
+        last_codelist = None
+        for cl in codelists:
+
+            # Don't process unnecessarily, continue with loop
+            if cl.get('protocol_id') == cur_id and cur_id_processed:
+                last_codelist = cl
+                continue
+
+            # No need evaluating the next codelist in the same protocol/group if the last codelist failed
+            if cl.get('protocol_id', None) == cur_id and cl.get('disjunctive_groupid') == cur_groupid and not last_codelist_eval:
+                last_codelist = cl
+                continue
+
+            # If the group changes and the last codelist passed, we assume the previous group evaluated to true
+            if cl.get('protocol_id', None) == cur_id and cl.get('disjunctive_groupid') != cur_groupid and last_codelist_eval and cl.get('protocol_full_spec', None) is not None:
+                rtn_matched_rules.append(FHIR_API.Rule(protocol_details=cl.get('protocol_full_spec'),
+                                                       CDS_rule_id=cl.get('protocol_id'),
+                                                       name=cl.get('protocol_name'),
+                                                       short_description=cl.get('protocol_desc'),
+                                                       priority=cl.get('protocol_priority')))
+                cur_id_processed = True
+                last_codelist = cl
+                continue
+
+            # If the id changes, and last codelist passed, we assume the group evaluated to true from the previous codelist
+            if cl.get('protocol_id', None) != cur_id and last_codelist_eval and last_codelist is not None and last_codelist.get('protocol_full_spec', None) is not None:
+                rtn_matched_rules.append(FHIR_API.Rule(protocol_details=last_codelist.get('protocol_full_spec'),
+                                                       CDS_rule_id=last_codelist.get('protocol_id'),
+                                                       name=last_codelist.get('protocol_name'),
+                                                       short_description=last_codelist.get('protocol_desc'),
+                                                       priority=last_codelist.get('protocol_priority')))
+
+            if cl.get('protocol_id') != cur_id:
+                cur_id = cl.get('protocol_id')
+                cur_id_processed = False
+
+            if cl.get('disjunctive_groupid') != cur_groupid:
+                cur_groupid = cl.get('disjunctive_groupid')
+
+            if cl.get('int_list', None) is not None:
+                last_codelist_eval = True if cl.get('should_intersect') == cl.get('int_intersects') else False
+
+            elif cl.get('str_list', None) is not None:
+                last_codelist_eval = True if cl.get('should_intersect') == cl.get('str_intersects') else False
+
+            last_codelist = cl
+
+        # If last_codelist_eval is True at the end, we assume the group/codelist passed, so we add the last_codelist
+        if last_codelist_eval and last_codelist.get('protocol_full_spec', None) is not None:
+            rtn_matched_rules.append(FHIR_API.Rule(protocol_details=last_codelist.get('protocol_full_spec'),
+                                                   CDS_rule_id=last_codelist.get('protocol_id'),
+                                                   name=last_codelist.get('protocol_name'),
+                                                   short_description=last_codelist.get('protocol_desc'),
+                                                   priority=last_codelist.get('protocol_priority')))
+
+        return rtn_matched_rules
 
     @ML.coroutine_trace(timing=True, write=FHIR_DB_LOG.debug)
     def get_user_group_membership(self, provider_username, customer_id):

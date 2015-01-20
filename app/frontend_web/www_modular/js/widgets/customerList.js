@@ -19,9 +19,7 @@ define([
 	    customerCollection.bind('add', this.addCustomer, this);
 	    customerCollection.bind('reset', this.reset, this);
 	    customerCollection.bind('sync', this.addAll, this);
-	    //spendingModel.on('change:typeFilter', function() {
-		//this.render();
-	    //}, this);
+
 	    this.render();
         var customerlist = $('.customeraccordion', this.$el);
 	    customerlist.scrollTop(0);
@@ -46,26 +44,29 @@ define([
         $(".refreshButton", this.$el).click(function(event){
             $('.customertable > tbody', this.$el).empty();
             customerCollection.refresh();
-          });
+        });
         $(".refreshButton", this.$el).hover(function(event) {
             $(event.target).attr('title', "Last Refresh: " + customerCollection.getLastRefresh());
         });
-            sidebarModel.addOption('Customers')
-            this.showhide();
-            contextModel.on('change:page', this.showhide , this)
+        that = this;
+        $("#save-customer-changes", this.$el).click(function(event){
+            that.saveChanges();
+        });
 
+        sidebarModel.addOption('Customers')
+        this.showhide();
+        contextModel.on('change:page', this.showhide , this)
 	},
     events: {
-	    'click #save-customer-changes': 'saveChanges',
         'click document': 'hideEdits'
     },
-       showhide: function(){
-            if(contextModel.get('page') == 'customers'){
-                this.$el.show();
-            }else{
-                this.$el.hide();
-            }
-        },
+    showhide: function(){
+        if(contextModel.get('page') == 'customers'){
+            this.$el.show();
+        }else{
+            this.$el.hide();
+        }
+    },
     hideEdits: function(e) {
     },
     saveChanges: function() {
@@ -99,6 +100,7 @@ define([
 	    var nonempty = false;
 	    if (customerCollection.length) {
 		for(customer in customerCollection.models) {
+            if (customerCollection.models[customer].attributes.customer_id==0) continue;
 			this.addCustomer(customerCollection.models[customer]);
 			nonempty = true;
 		}

@@ -50,7 +50,11 @@
                 <img src="../images/temp/newPath.jpg"
                      style="width: 30px; height: 25px"></i>
 			 <span class="menu-text">
-			  Edit Triggers
+              <%if (isTrigger){%>
+    			  Edit Triggers
+              <%} else { %>
+                 Edit Implications
+              <%}%>
 			 </span>
 
         </a>

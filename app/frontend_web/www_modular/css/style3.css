@@ -231,12 +231,36 @@ a.disabled {
     background-color: #FEE188 !important;
 }
 
-.action-buttons > a > .check-disabled {
+.dd2-handle {
+    z-index: inherit;
+}
+
+/******************************************************************
+ * The following customize the support widgets *
+ ******************************************************************/
+
+
+.customer-row-edit{
+    display:none;
+}
+
+.customer-info-click, .toggle-status {
+    cursor: pointer;
+}
+
+.check-disabled {
     color: #696969;
 }
 
-.dd2-handle {
-    z-index: inherit;
+.user-row{
+    clear: both;
+}
+
+.user-row-dropdown > .dropdown-label {
+    width: 88%;
+}
+.user-row-dropdown > .dropdown-toggle {
+    width: 9%;
 }
 
 /******************************************************************
@@ -327,4 +351,10 @@ left: 53px;
 .hasDatepicker {
     position: relative;
     z-index: 9999 !important;
+}
+
+.footer{
+    background-color: white;
+    overflow:hidden;
+    clear: both;
 }

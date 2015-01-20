@@ -10,9 +10,11 @@
         <%}%>
     <%}else{
         if (exists == "false") { %>
-            Clicking this node implies that all of:
+         Clicking this node implies that none of:
+
         <%}else{%>
-            Clicking this node implies that none of:
+        Clicking this node implies that all of:
+
     <%}%>
         <b class = "mouseover" title = "
                     <%for (var i in codeterm){

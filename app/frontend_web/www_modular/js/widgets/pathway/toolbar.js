@@ -60,9 +60,9 @@ define([
             contextModel.set({preview: false});
            if(treeContext.get('selectedNode')){
 		        var selected = treeContext.get('selectedNode')
-                this.$el.html(this.template({treeNode: selected.attributes, childrenHidden: selected.childrenHidden && selected.childrenHidden(), page: contextModel.get('page'), preview: contextModel.get('preview')}))
+                this.$el.html(this.template({treeNode: selected.attributes, isTrigger: treeContext.get('selectedNode') == curTree, childrenHidden: selected.childrenHidden && selected.childrenHidden(), page: contextModel.get('page'), preview: contextModel.get('preview')}))
             } else {
-                this.$el.html(this.template({treeNode: null, childrenHidden: null, page: contextModel.get('page'), preview: contextModel.get('preview')}))
+                this.$el.html(this.template({treeNode: null, childrenHidden: null, isTrigger: treeContext.get('selectedNode') == curTree, page: contextModel.get('page'), preview: contextModel.get('preview')}))
            }
             contextModel.on('change:page', this.showhide, this)
             this.showhide();
@@ -73,6 +73,7 @@ define([
         showhide: function(){
             if(contextModel.get('page') == 'pathEditor'){
                 this.$el.show();
+		this.$el.addClass('navbar-collapse')
                 $('#toolbar').show()
                 if(! this.preview) {
                     $('#widget-toolbox').addClass('grid')
@@ -80,6 +81,7 @@ define([
 
             }else{
                 this.$el.hide();
+		this.$el.removeClass('navbar-collapse')
                  $('#toolbar').hide()
                 $('#widget-toolbox').removeClass('grid')
             }
@@ -94,9 +96,8 @@ define([
         renderActions: function () {
                 if (treeContext.get('selectedNode')) {
                     var selected = treeContext.get('selectedNode')
-                this.$el.html(this.template({treeNode: selected.attributes, childrenHidden: selected.childrenHidden && selected.childrenHidden(), page: contextModel.get('page'), preview: contextModel.get('preview')}))
+                this.$el.html(this.template({treeNode: selected.attributes, childrenHidden: selected.childrenHidden && selected.childrenHidden(), isTrigger: treeContext.get('selectedNode') == curTree, page: contextModel.get('page'), preview: contextModel.get('preview')}))
                 }
-
 
 
         },
