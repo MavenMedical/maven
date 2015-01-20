@@ -6,7 +6,7 @@ define([
     'pathway/models/nodeModel',
     'globalmodels/contextModel',
     'text!templates/pathway/sendFollowups.html',
-    'singleRow/reminderRow',
+    'singleRow/reminderRow'
 
 ], function ($, _, Backbone, NodeModel, contextModel, sendFollowupsTemplate, ReminderRow) {
 
@@ -21,7 +21,7 @@ define([
             this.$el.html(this.template(this.attributes));
             $("#detail-modal").modal({'show':'true'});
 
-            followups = new Array();
+            this.followups = new Array();
             var initBlankFollowup = true;
             if (typeof this.attributes.followups != 'undefined') {
                 $(this.attributes.followups).each(function () {
@@ -29,10 +29,10 @@ define([
                     //show all default followups
                     this.sendMode = true;
                     $('#followups', that.$el).append("<div class='followup'></div>");
-                    el = $('.followup', $('#followups', that.$el)).last();
+                    var el = $('.followup', $('#followups', that.$el)).last();
                     var followup = new ReminderRow({model: new Backbone.Model(this), el: el});
 
-                    followups.push(followup);
+                    that.followups.push(followup);
                     followup.$el.bind('remove', {followup: followup}, that.removeFollowup);
                 })
             }
@@ -41,7 +41,7 @@ define([
                 $('#followups').append("<div class='followup'></div>");
                 el = $('.followup', $('#followups')).last();
                 var followup = new ReminderRow({model:new Backbone.Model({edit:true}), el:el});
-                followups.push(followup);
+                that.followups.push(followup);
                 followup.$el.bind('remove', {followup:followup}, that.removeFollowup);
             }
 
@@ -50,18 +50,32 @@ define([
                 $('#followups').append("<div class='followup'></div>");
                 el = $('.followup', $('#followups')).last();
                 var followup = new ReminderRow({model:new Backbone.Model({edit:true, sendMode: true}), el:el});
-                followups.push(followup);
+                that.followups.push(followup);
                 followup.$el.bind('remove', {followup:followup}, that.removeFollowup);
             });
 
             $("#sendFollowupsButton", this.$el).on("click", function(){
                 //send all followups
+                if (!that.checkValid()){
+                    alert("Some followups are incomplete, please make sure they have a date and a recipient")
+                    return false;
+                }
                 $(followups).each(function(){
                     this.sendFollowup();
                 });
                 alert("Followups Sent");
                $('#detail-modal').modal('hide')
             })
+
+        },
+        checkValid: function(){
+          for (var i in this.followups){
+              var curDue= $('.reminderTime', this.followups[i].$el).val()
+              if (curDue == "")
+                return false
+          }
+            return true
+
         },
         removeFollowup: function(event) {
             //remove reference to followup
