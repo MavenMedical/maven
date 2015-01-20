@@ -819,7 +819,7 @@ class FHIRPersistanceBase():
                 continue
 
             # If the group changes and the last codelist passed, we assume the previous group evaluated to true
-            if cl.get('protocol_id', None) == cur_id and cl.get('disjunctive_groupid') != cur_groupid and last_codelist_eval:
+            if cl.get('protocol_id', None) == cur_id and cl.get('disjunctive_groupid') != cur_groupid and last_codelist_eval and cl.get('protocol_full_spec', None) is not None:
                 rtn_matched_rules.append(FHIR_API.Rule(protocol_details=cl.get('protocol_full_spec'),
                                                        CDS_rule_id=cl.get('protocol_id'),
                                                        name=cl.get('protocol_name'),
@@ -830,7 +830,7 @@ class FHIRPersistanceBase():
                 continue
 
             # If the id changes, and last codelist passed, we assume the group evaluated to true from the previous codelist
-            if cl.get('protocol_id', None) != cur_id and last_codelist_eval and last_codelist is not None:
+            if cl.get('protocol_id', None) != cur_id and last_codelist_eval and last_codelist is not None and last_codelist.get('protocol_full_spec', None) is not None:
                 rtn_matched_rules.append(FHIR_API.Rule(protocol_details=last_codelist.get('protocol_full_spec'),
                                                        CDS_rule_id=last_codelist.get('protocol_id'),
                                                        name=last_codelist.get('protocol_name'),
@@ -853,7 +853,7 @@ class FHIRPersistanceBase():
             last_codelist = cl
 
         # If last_codelist_eval is True at the end, we assume the group/codelist passed, so we add the last_codelist
-        if last_codelist_eval:
+        if last_codelist_eval and last_codelist.get('protocol_full_spec', None) is not None:
             rtn_matched_rules.append(FHIR_API.Rule(protocol_details=last_codelist.get('protocol_full_spec'),
                                                    CDS_rule_id=last_codelist.get('protocol_id'),
                                                    name=last_codelist.get('protocol_name'),
