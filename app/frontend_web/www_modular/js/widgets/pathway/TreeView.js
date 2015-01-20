@@ -15,23 +15,24 @@ define([
         'jsplumb'
     ],
 
-    function ($, _, Backbone, contextModel, curTree, treeContext,toolbar, TriggerNode, NodeEditor, Helpers, pathwayCollection, treeTemplate, insertDiv) {
+    function ($, _, Backbone, contextModel, curTree, treeContext, toolbar, TriggerNode, NodeEditor, Helpers, pathwayCollection, treeTemplate, insertDiv) {
 
         var TreeView = Backbone.View.extend({
 
             template: _.template(treeTemplate),
             initialize: function () {
                 this.$el.html(this.template())
-                this.toolbar = new toolbar({el:this.$('#pathway-toolbox')})
+                this.toolbar = new toolbar({el: this.$('#pathway-toolbox')})
 
-                if(contextModel.get('page') == 'pathway') {
+                if (contextModel.get('page') == 'pathway') {
                     $('.widget-title', this.$el).html('Pathway')
                 } else {
                     $('.widget-title', this.$el).html('Pathway Editor')
                 }
+
                 contextModel.on('change:page', function () {
                     if (contextModel.get('page') == 'pathEditor' || contextModel.get('page') == 'pathway') {
-                        if(contextModel.get('page') == 'pathway') {
+                        if (contextModel.get('page') == 'pathway') {
                             $('.widget-title', this.$el).html('Pathway')
                         } else {
                             $('.widget-title', this.$el).html('Pathway Editor')
@@ -146,6 +147,37 @@ define([
                         that.adjustWidth()
                     }, 500)
                 })
+                this.userNotified = false;
+                contextModel.on('change:pathid', function () {
+                    if (Object.keys(contextModel.changed).length == 1 && contextModel.get('active') && !this.userNotified) {
+                        // alert('You are about to modify Active pathway')
+                        require(['libs/ace/jquery.gritter'], function () {
+                            $.gritter.add({
+                                // (string | mandatory) the heading of the notification
+                                title: 'You are modifiyng an active pathway',
+                                // (string | mandatory) the text inside the notification
+                                text: 'more explanation goes here',
+                                sticky: false,
+                                time: '3000',
+                                //This is to show only one notification at a time
+                                before_open: function(){
+							if($('.gritter-item-wrapper').length >= 1)
+							{
+								return false;
+							}
+						},
+                                class_name: 'gritter-error gritter-light'
+                            });
+                        })
+
+                        this.userNotified = true;
+
+                    } else if(Object.keys(contextModel.changed).length > 1) {
+                        this.userNotified = false;
+                    }
+                })
+
+
                 this.render()
             },
             render: function () {
@@ -192,18 +224,20 @@ define([
 
                 if (this.reset) {
                     var selected = $('.treeNode.selected')
-                    if(!selected.length) {selected = $('.protocolNode.selected')}
+                    if (!selected.length) {
+                        selected = $('.protocolNode.selected')
+                    }
                     this.reset = false
                     var boundingWidth = $('.nodeEl', this.$el).width()
                     var offset = this.treeEl.offset()
                     var diff = 0
-                    if (selected && selected.length==1) {
+                    if (selected && selected.length == 1) {
                         var s_offset = selected.offset()
                         var t_offset = this.treeEl.offset()
                         var w_offset = this.$el.offset()
-                        var left_diff = s_offset.left - (w_offset.left + this.$el.width() * 2/3)
-                        var top_diff = s_offset.top - (w_offset.top + this.$el.height() * 2/3)
-                        if(top_diff > 0) {
+                        var left_diff = s_offset.left - (w_offset.left + this.$el.width() * 2 / 3)
+                        var top_diff = s_offset.top - (w_offset.top + this.$el.height() * 2 / 3)
+                        if (top_diff > 0) {
                             t_offset.top -= top_diff
                             this.treeEl.offset(t_offset)
                         }
@@ -328,7 +362,7 @@ define([
 
 
             },
-            updateSelectedOffset: function() {
+            updateSelectedOffset: function () {
                 var selected = $('.selected.treeNode')
                 if (selected && old && selected.offset()) {
                     var old = treeContext.get('selectedNodeOffset')

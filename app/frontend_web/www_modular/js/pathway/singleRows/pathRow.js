@@ -16,7 +16,7 @@ define([
     'pathway/models/pathwayCollection',
     'text!templates/pathway/pathwayListEntry.html',
     '../../widgets/pathway/historyList',
-    'pathway/modalViews/rename',
+    'pathway/modalViews/rename'
 
 ], function ($, _, Backbone, router, contextModel, pathwayCollection, pathRowTemplate, HistoryList, Rename) {
 
@@ -30,7 +30,7 @@ define([
 	      'click .delete-button': 'handleRemove',
 	      'click .pathway-checkbox': 'handleCheck',
 	      'click .rename-pathway': 'handleRename',
-	      'click .pathway-switch-label': 'handleToggle',
+	      'click .pathway-switch-label': 'handleToggle'
         },
         handleToggle: function(event){
             event.stopPropagation();
@@ -79,8 +79,10 @@ define([
                     contextModel.set('code', 'undefined', {silent: true});
                 }
             }
-            contextModel.set('canonical', String(this.model.get('canonical')))
-            contextModel.set('pathid', String(this.model.get('id')))
+
+            contextModel.set({'canonical' : String(this.model.get('canonical')),
+                              'pathid': String(this.model.get('id')),
+                              'active': $('.pathway-enable', this.$el)[0].checked});
 
             $(".active-pathway").removeClass("active-pathway");
             $(this.el).addClass("active-pathway")
