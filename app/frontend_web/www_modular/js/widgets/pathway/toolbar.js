@@ -56,7 +56,7 @@ define([
             curTree.changeNodePosition(treeContext.get('selectedNode'), -1)
         },
         initialize: function () {
-this.       preview = true;
+	    this.preview = true;
             contextModel.set({preview: false});
            if(treeContext.get('selectedNode')){
 		        var selected = treeContext.get('selectedNode')
@@ -73,6 +73,7 @@ this.       preview = true;
         showhide: function(){
             if(contextModel.get('page') == 'pathEditor'){
                 this.$el.show();
+		this.$el.addClass('navbar-collapse')
                 $('#toolbar').show()
                 if(this.preview) {
                     $('#widget-toolbox').addClass('grid')
@@ -80,6 +81,7 @@ this.       preview = true;
 
             }else{
                 this.$el.hide();
+		this.$el.removeClass('navbar-collapse')
                  $('#toolbar').hide()
                 $('#widget-toolbox').removeClass('grid')
             }
