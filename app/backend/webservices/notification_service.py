@@ -23,7 +23,7 @@ class NotificationService():
     def __init__(self, configname, server_endpoint, listening_state, save_task_fn, loop=None):
         self.config = MC.MavenConfig[configname]
         self.server_endpoint = server_endpoint
-   #     listening_state = asyncio.coroutine(lambda *args: None)
+        #     listening_state = asyncio.coroutine(lambda *args: None)
         self.listening_state = listening_state
         self.user_notify_settings = {}
 
@@ -79,7 +79,7 @@ class NotificationService():
         self.recent_count[(customer, user)] += 1
         ML.TASK(self.decrement_count(customer, user, 120))  # 2 minutes
 
-        ML.report('/%s/poll/%s' % (customer, user))
+        ML.report('/notification_service/%s/poll/%s' % (customer, user))
 
         if key in self.messages:
             ret = self.messages.pop(key)
@@ -180,8 +180,8 @@ class NotificationService():
             is_successful_update = yield from self.server_endpoint.persistence.update_user_notify_preferences(prov_user_name, customer_id, notify_primary, notify_secondary)
             if is_successful_update:
                 asyncio.async(self.listening_state(customer_id, prov_user_name,
-                                               (NOTIFICATION_STATE.EHR_INBOX.value in {notify_primary, notify_secondary}
-                                                or self.recent_count[(customer_id, prov_user_name)])))
+                                                   (NOTIFICATION_STATE.EHR_INBOX.value in {notify_primary, notify_secondary}
+                                                    or self.recent_count[(customer_id, prov_user_name)])))
                 self.user_notify_settings[(prov_user_name, customer_id)] = {"notify_primary": notify_primary,
                                                                             "notify_secondary": notify_secondary}
                 return HR.OK_RESPONSE, json.dumps(['TRUE']), None
