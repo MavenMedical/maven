@@ -60,7 +60,7 @@ define([
                     alert("Some followups are incomplete, please make sure they have a date and a recipient")
                     return false;
                 }
-                $(followups).each(function(){
+                $(that.followups).each(function(){
                     this.sendFollowup();
                 });
                 alert("Followups Sent");
@@ -71,7 +71,8 @@ define([
         checkValid: function(){
           for (var i in this.followups){
               var curDue= $('.reminderTime', this.followups[i].$el).val()
-              if (curDue == "")
+              var curRecip = $('.followupRecipient', this.followups[i].$el).val()
+              if (curDue == "" || curRecip == "")
                 return false
           }
             return true

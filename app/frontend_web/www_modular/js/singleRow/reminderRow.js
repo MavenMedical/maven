@@ -25,7 +25,7 @@ define([
         render: function () {
             var that = this;
             $(".followup-header-columns").show();
-            $(this.el).html(this.template($.extend({viewid: this.cid, msg_body: window.location.origin + window.location.pathname + '#pathway/' + contextModel.get('pathid') + '/node/' + contextModel.get('code')}, this.model.toJSON())));
+            $(this.el).html(this.template($.extend({viewid: this.cid, msg_body: ""}, this.model.toJSON())));
 
 
             $('.deleteFollowup', this.$el).on('click',  function(){
@@ -140,9 +140,9 @@ define([
                 url: "/add_task?" + $.param(contextModel.toParams()) + extraArg,
                 data: JSON.stringify({
                     "msg_subject": subject,
-                     "msg_body": message,
+                     "msg_body": message + "\n\n\nThe related pathway can be found at: " + window.location.origin + window.location.pathname + '#pathway/' + contextModel.get('pathid') + '/node/' + contextModel.get('code') ,
                      "delivery": "ehrinbox",
-                     "due": date,
+                     "due": date
                 }),
                 error: function (){
                     alert("There was a problem sending this followup: " + subject);

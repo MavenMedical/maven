@@ -56,7 +56,7 @@ define([
             curTree.changeNodePosition(treeContext.get('selectedNode'), -1)
         },
         initialize: function () {
-	    this.preview = true;
+            this.preview = false;
             contextModel.set({preview: false});
            if(treeContext.get('selectedNode')){
 		        var selected = treeContext.get('selectedNode')
@@ -75,7 +75,7 @@ define([
                 this.$el.show();
 		this.$el.addClass('navbar-collapse')
                 $('#toolbar').show()
-                if(this.preview) {
+                if(! this.preview) {
                     $('#widget-toolbox').addClass('grid')
                 }
 
@@ -168,18 +168,18 @@ define([
 
         },
         previewPathway: function(){
-            if (this.preview) {
+            if (! this.preview) {
                 $('#previewButton').addClass('active');
                 contextModel.set({'preview': true});
                  treeContext.trigger('propagate');
                 $('#widget-toolbox').removeClass('grid')
-                this.preview = false;
+                this.preview = true;
             } else {
                 $('#previewButton').removeClass('active');
                 contextModel.set({'preview': false});
                  treeContext.trigger('propagate');
                 $('#widget-toolbox').addClass('grid')
-                this.preview = true;
+                this.preview = false;
             }
         }
 

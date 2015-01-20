@@ -25,14 +25,17 @@
                     <p class="attn-text">in the time frame from </p>
                     <div style="clear:both" value=0; name="minDays" class="min-days detail-input"></div>
 
+                         <div style = "margin-left: 5%; margin-right:5%; width: 90%"class="col-sm-12">
 
-                    <div style="width: 80%; margin-left: 10%; margin-right: 10%">
-                        <div style="margin-top: 10px; margin-right: 5%;  float: left; width: 80%" id="myslider"
-                             class="ui-slider-simple ui-slider-blue"></div>
-                        <input style="width: 15%" type=text value="0" name="maxDays" class="detail-input" id="maxDays"
-                               style="float: left">
-                    </div>
+                                            <div style = "margin-top: 10px" class = "col-sm-8" id="myslider"
+                                                 class="ui-slider-simple ui-slider-blue"></div>
 
+											<input style = "margin-left: 10px" id="maxDays" type=text value="0" name="maxDays"  placeholder="Days" class="detail-input col-sm-1">
+											<span class="help-inline col-sm-1">
+												<span class="middle">Days</span>
+											</span>
+                     </div>
+                    <br>
                     <script>
                         $('#myslider').slider({
                             value: 0,
@@ -42,8 +45,7 @@
                             min: 0
                         });
                     </script>
-                    <div style=" margin-right: 4px; float: left" id="number" style="clear: both">0 Years, 0 Months, 0
-                        Days,
+                    <div style="clear: both; margin-right: 4px; float: left" id="number" style="clear: both">0 Years, 0 Months, 0
                     </div>
                     until the present.
                     <script>

@@ -13,15 +13,15 @@ require.config({
         jquery: ['jquery-stub'],
         jquery_ui: ['//code.jquery.com/ui/1.10.1/jquery-ui.min', 'libs/jquery/jquery-ui.min'],
         jquery_autocomplete: 'libs/jquery/jquery.ui.autocomplete.html',
-	touch: 'libs/jquery/jquery.ui.touch-punch.min',
+        touch: 'libs/jquery/jquery.ui.touch-punch.min',
         underscore: 'libs/underscore/underscore-min',
         backbone: ['libs/backbone/backbone', '//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.2/backbone-min.js'],
         jsplumb: ['libs/jsplumb2/js/jquery.jsPlumb-1.6.2-min', 'libs/jsplumb2/js/jsplumb'],
         //bootstrap: ['//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min', '../css/bootstrap/js/bootstrap.min'],
         bootstrap: '../css/bootstrap/js/bootstrap.min',
-	bootstrapswitch: 'libs/bootstrap-switch/bootstrap-switch',
-	nestedSortable: 'libs/nestedSortable/nestedSortable',
-	nestable: '../ace/assets/js/jquery.nestable',
+        bootstrapswitch: 'libs/bootstrap-switch/bootstrap-switch',
+        nestedSortable: 'libs/nestedSortable/nestedSortable',
+        nestable: '../ace/assets/js/jquery.nestable',
         fullcalendar: 'libs/fullCalendar/fullcalendar.min',
         moment: 'libs/fullCalendar/moment.min',
         ckeditor2: 'libs/ckeditor/ckeditor',
@@ -33,11 +33,11 @@ require.config({
         amcharts: 'libs/amcharts/amcharts',
         ace: 'libs/ace/ace.min',
         aceelements: 'libs/ace/ace-elements.min',
-        aceextra: 'libs/ace/ace-extra.min'
+        aceextra: 'libs/ace/ace-extra.min',
     },
     shim: {
-	touch: {deps: ['jquery_ui']},
-        ace: {deps: ['jquery', 'jquery_ui','bootstrap', 'aceelements']},
+        touch: {deps: ['jquery_ui']},
+        ace: {deps: ['jquery', 'jquery_ui', 'bootstrap', 'aceelements']},
         aceextra: {deps: ['bootstrap', 'jquery', 'jquery_ui']},
         aceelements: {deps: ['aceextra', 'bootstrap', 'jquery_ui', 'jquery']},
 //        'ace/assets/js/flot/jquery.flot.pie': {deps: ['ace/assets/js/flot/jquery.flot']},
@@ -88,5 +88,6 @@ require([
     // The "app" dependency is passed in as "App"
     // Again, the other dependencies passed in are not "AMD" therefore don't pass a parameter to this function
     App.initialize();
-    require(['touch'], function() {})
+    require(['touch'], function () {
+    })
 });
