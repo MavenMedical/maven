@@ -115,7 +115,6 @@ define([
 	    var userrow = new UserRow({model: user});
 	    $('.usertable').append(userrow.render().el);
 	    this.$el.show();
-        userrow.events();
 	},	
 	reset: function() {
 	    $('.usertable > tbody', this.$el).empty();

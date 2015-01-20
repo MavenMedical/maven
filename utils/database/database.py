@@ -130,6 +130,8 @@ class AsyncConnectionPool():
             ML.ERROR("Error Querying Database: %s" % e)
             raise RuntimeError("There was an error querying the database")
         finally:
+            if conn.status != psycopg2.extensions.STATUS_READY:
+                conn.close()
             if conn.closed:
                 self.in_use.remove(conn)
                 asyncio.Task(self._test_connection())  # see if other connections are dead too
