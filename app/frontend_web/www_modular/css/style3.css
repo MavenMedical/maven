@@ -256,6 +256,13 @@ a.disabled {
     clear: both;
 }
 
+.user-row-dropdown > .dropdown-label {
+    width: 88%;
+}
+.user-row-dropdown > .dropdown-toggle {
+    width: 9%;
+}
+
 /******************************************************************
  * The following customize the fonts and colors of the trigger modal *
  ******************************************************************/
