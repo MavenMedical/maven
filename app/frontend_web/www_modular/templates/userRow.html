@@ -3,23 +3,41 @@
     <%= profession %>
 </td>
 <td>
-    <% if (last_login) { print(last_login + ' GMT'); } %> <br/>
+    <%= (last_login) ? last_login + ' GMT' : 'N/A' %> <br/>
     <a class="audit-hover hover-link">
         View Audits
     </a>
 </td>
 <td>
-    <div width="100%">
-        <a>
-            <input class="ace ace-switch ace-switch-8 toggle-status" type="checkbox"
+    <div width="100%" style="clear:both;">
+        <%
+        var check_class = 'glyphicon toggle-status';
+        if (roles.indexOf("administrator")==-1 && ehr_state != 'active'){
+            check_class = check_class + ' glyphicon-unchecked check-disabled';
+        }
+        else if (state == 'active' && ehr_state == 'active') {
+            check_class = check_class + ' glyphicon-check'
+        }
+        else {
+            check_class = check_class + ' glyphicon-unchecked';
+        }
+        %>
+        <a><span style="padding-right: 1px;" class="<%=check_class%>"></span></a> <small>Active in Maven</small>
+
+        <!--<input class="toggle-status" type="checkbox"
+                <%= (roles.indexOf("administrator")==-1 && ehr_state != 'active') ? "disabled" : '' %>
+                <%= (state == 'active' && ehr_state == 'active') ? 'checked' : '' %>
+        > Active in Maven
+        <!--<a>
+            <input class="ace ace-switch ace-switch-3 toggle-status" type="checkbox"
                 <%= (roles.indexOf("administrator")==-1 && ehr_state != 'active') ? "disabled" : '' %>
                 <%= (state == 'active' && ehr_state == 'active') ? 'checked' : '' %>>
-            <span class="lbl" data-lbl="Active &nbsp;&nbsp;Inactive"></span>
-        </a>
+            <span class="lbl" ></span>
+        </a>-->
     </div>
     <% if (ehr_state == 'active' || roles.indexOf("administrator")!=-1) { %>
     <div width="100%">
-        <button class="btn btn-xs reset-user-password btn-primary btn-block btn-white" value="">Reset Password</button>
+        <button class="btn btn-xs reset-user-password btn-primary btn-white" value="">Reset Password</button>
     </div>
     <% } %>
 </td>

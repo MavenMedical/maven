@@ -72,10 +72,17 @@ define([
                 });
 
                 $('.toggle-status', that.$el).click(function(event) {
+                    var button=event.target;
+                    if ($(button).hasClass("check-disabled")) return;
 
                     var status = "disabled";
-                    var button=event.target;
-                    if (button.checked) status = "active";
+                    if ($(button).hasClass("glyphicon-unchecked")) {
+                        status = "active";
+                        $(button).switchClass("glyphicon-unchecked", "glyphicon-check");
+                    }
+                    else {
+                        $(button).switchClass("glyphicon-check", "glyphicon-unchecked");
+                    }
                     $.ajax({
                         url: "/update_user",
                         data: $.param(contextModel.toParams()) + "&target_user=" + that.model.get("user_name") +
@@ -84,19 +91,19 @@ define([
                             if (data!='TRUE'){
                                 alert(data);
                             }
-                            $("#save-user-message").html("User Updated!");
+                            //$("#save-user-message").html("User Updated!");
                             that.model.set('state', status)
                         },
                         error: function () {
                             alert("Sorry, an error occurred. Please try again later");
                             //reset switch to its prior state
                             if (status =='active'){
-                                $(button).attr('checked','');
+                                $(button).switchClass("glyphicon-check", "glyphicon-unchecked");
                             }
                             else {
-                                $(button).attr('checked','checked');
+                                $(button).switchClass("glyphicon-unchecked", "glyphicon-check");
                             }
-                            $("#save-user-message").html("Sorry, an error occurred. Please try again later");
+                            //$("#save-user-message").html("Sorry, an error occurred. Please try again later");
 
                         }
                     });

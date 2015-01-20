@@ -231,10 +231,6 @@ a.disabled {
     background-color: #FEE188 !important;
 }
 
-.action-buttons > a > .check-disabled {
-    color: #696969;
-}
-
 .dd2-handle {
     z-index: inherit;
 }
@@ -248,10 +244,17 @@ a.disabled {
     display:none;
 }
 
-.customer-info-click {
+.customer-info-click, .toggle-status {
     cursor: pointer;
 }
 
+.check-disabled {
+    color: #696969;
+}
+
+.user-row{
+    clear: both;
+}
 
 /******************************************************************
  * The following customize the fonts and colors of the trigger modal *
@@ -341,4 +344,10 @@ left: 53px;
 .hasDatepicker {
     position: relative;
     z-index: 9999 !important;
+}
+
+.footer{
+    background-color: white;
+    overflow:hidden;
+    clear: both;
 }
