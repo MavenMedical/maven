@@ -125,7 +125,7 @@ define([
                 focus: function(event, ui){
                     //prevent the auto focus from changing the value of the text box
                     event.preventDefault();
-                },
+                }
             });
         },
         removeFollowup: function(event) {

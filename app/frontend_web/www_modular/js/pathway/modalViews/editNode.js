@@ -20,7 +20,13 @@ define([
 
         el: $("#modal-target"),
         initialize: function () {
-            that = this;
+            var that = this
+           curTree.on('sync', function(){that.render()})
+           this.render();
+        },
+        render: function(){
+             //IF this is a protocol node, create a protocol node editor
+            var that = this;
             if (treeContext.get('selectedNode').attributes.isProtocol) {
                 this.template = _.template(protocolTemplate),
                     this.$el.html(this.template(treeContext.get('selectedNode').attributes));
@@ -30,7 +36,7 @@ define([
                 $(treeContext.get('selectedNode').attributes.followups).each(function () {
                     //show all default followups
                     $('#followups', that.$el).append("<div class='followup'></div>");
-                    el = $('.followup', $('#followups', that.$el)).last();
+                    var el = $('.followup', $('#followups', that.$el)).last();
                     var followup = new ReminderRow({model: new Backbone.Model(this), el: el});
 
                     followups.push(followup);
@@ -144,7 +150,9 @@ define([
                     event.preventDefault();
                 },
             });
-            }else{
+
+             //IF this is an internal node, create an internal node editor
+            } else {
                 this.template = _.template(nodeTemplate),
                     this.$el.html(this.template(treeContext.get('selectedNode').attributes));
                 $('#addNodeButton')[0].onclick = function () {
@@ -161,6 +169,10 @@ define([
                     CKEDITOR.replace('newNodeSideText');
                 })
             }
+
+
+
+
         },
         removeFollowup: function(event) {
             //remove reference to followup
