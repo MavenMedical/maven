@@ -12,12 +12,13 @@ define([
 ], function ($, _, Backbone, AuditCollection, AuditRow, contextModel) {
     var downloadaudit = ['date', 'patient', 'action', 'target', 'device', 'details'];
     var auditCollection;
-
+    var that;
     var AuditList = Backbone.View.extend({
     extraData: {},
     lastHeight: 0,
     first: true,
     initialize: function(arg) {
+        that = this;
         if (typeof arg.extraData !== "undefined") {
             this.extraData = arg.extraData;
         }
@@ -40,13 +41,13 @@ define([
         'scroll .audit-scroll': 'handleScroll',
 	'click .download-user-audits': 'downloadAudits'
     },
-        showhide: function(){
-            if(contextModel.get('page') == 'auditlist'){
-                this.$el.show();
-            }else{
-                this.$el.hide();
-            }
-        },
+    showhide: function(){
+        if(contextModel.get('page') == 'auditlist'){
+            this.$el.show();
+        }else{
+            this.$el.hide();
+        }
+    },
     downloadAudits: function() {
         that = this;
         var argData = {};
@@ -91,10 +92,10 @@ define([
 	    this.reset();
 	    var nonempty = false;
 	    if (auditCollection.length) {
-		for(audit in auditCollection.models) {
-			this.addAudit(auditCollection.models[audit]);
-			nonempty = true;
-		}
+            for(audit in auditCollection.models) {
+                this.addAudit(auditCollection.models[audit]);
+                nonempty = true;
+            }
 	    }
 	    if(!nonempty) {
             $('.audittable > tbody', this.$el).html("<tr class='empty-row'><td colspan=\"5\">"+empty_text+"</td></tr>");
@@ -103,10 +104,7 @@ define([
             this.$el.show();
 	    }
         else {
-            $('.audittable > thead', this.$el).show();
-            $('.empty-row', this.$el).hide();
-            $('.audit-control-row', this.$el).show();
-            this.$el.show();
+            this.showWidget();
             var auditlist = $('.audit-scroll', this.$el);
             setTimeout(function () {
                 var auditHeight = auditlist.innerHeight();
@@ -117,11 +115,18 @@ define([
             }, 500);
         }
 	},
+    showWidget: function(){
+        $('.audittable > thead', this.$el).show();
+        $('.empty-row', this.$el).remove();
+        $('.audit-control-row', this.$el).show();
+        this.$el.show();
+    },
 	addAudit: function(audit) {
 	    var auditrow = new AuditRow({model: audit});
 	    $('.audittable', this.$el).append(auditrow.render().el);
 	    this.$el.show();
         //auditrow.events();
+        this.showWidget();
 	},	
 	reset: function() {
 	    $('.audittable > tbody', this.$el).empty();

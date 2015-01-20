@@ -264,6 +264,16 @@ a.disabled {
 }
 
 /******************************************************************
+ * The following customize the audit widget *
+ ******************************************************************/
+
+
+.audit-control-row {
+    padding: 9px 10px 10px;
+    border-top: 1px solid rgb(221, 221, 221);
+}
+
+/******************************************************************
  * The following customize the fonts and colors of the trigger modal *
  ******************************************************************/
 #modal-target{
