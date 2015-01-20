@@ -12,7 +12,7 @@
                 <div style="clear:both" class="detail-sections">
                     <div style="text-align: center;">
                         <%if (isHead){%>
-                            All of the Following Groups of Requirements Must be Fulfilled in Order to Show the Pathway
+                            Any of the Following Groups of Requirements Must be Fulfilled in Order to Show the Pathway
                         <%}else{%>
                             Clicking on the selected node implies the following
                         <%}%>
@@ -31,18 +31,9 @@
 
                  <div class='detailButton btn btn-light btn-sm'
                          id="all_dx"
-                         title="Specify a
-                         <%if (isHead){%>
-                            constraint based on a diagnosis in the patient’s problem list
-
-                         <%}else{%>
-                            diagnosis implied by a click on this node
-
-
-                         <%}%>">
+                         title="Specify a <%if (isHead){%> constraint based on the patient's diagnostic history <%}else{%> diagnosis implied by a click on this node <%}%>">
                      <%
                      if (isHead){
-
                      %> All Diagnoses <%
                      } else {
                      %> Diagnosis Implication <%
@@ -75,9 +66,9 @@
 
                     <div class='detailButton btn btn-light btn-sm'
                          id="hist_proc"
-                         title="Specify a constraint based on the patient's procedure history"
+                         title="Specify a constraint based on the patient's procedures"
                             >
-                        Historical Procedure
+                        Any Procedure
                     </div>
                      <div class='detailButton btn btn-light btn-sm'
                          id="cur_med"

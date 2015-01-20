@@ -71,6 +71,7 @@ define([
                     }
                 }
             } else {
+                panel.avail.fetch()
                 $('.search-input').hide()
                 $('.search-button').hide()
             }
