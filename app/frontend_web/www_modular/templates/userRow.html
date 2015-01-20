@@ -11,11 +11,11 @@
 <td>
     <div width="100%">
         <a>
-            <input class="ace ace-switch ace-switch-8 toggle-status" type="checkbox"
+            <input type="checkbox" class='activate-checkbox'
                 <%= (roles.indexOf("administrator")==-1 && ehr_state != 'active') ? "disabled" : '' %>
                 <%= (state == 'active' && ehr_state == 'active') ? 'checked' : '' %>>
-            <span class="lbl" data-lbl="Active &nbsp;&nbsp;Inactive"></span>
-        </a>
+            <span class="lbl toggle-status" data-lbl="Active &nbsp;&nbsp;Inactive"></span>
+        </a>Activated in Maven
     </div>
     <% if (ehr_state == 'active' || roles.indexOf("administrator")!=-1) { %>
     <div width="100%">
