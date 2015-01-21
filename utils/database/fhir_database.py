@@ -799,7 +799,8 @@ class FHIRPersistanceBase():
             raise Exception("Error matching pathways from database")
 
     def _pathways_additional_selection_logic(self, codelists):
-
+        if not codelists:
+            return []
         rtn_matched_rules = []
         cur_id = 0
         cur_id_processed = False
@@ -853,7 +854,7 @@ class FHIRPersistanceBase():
             last_codelist = cl
 
         # If last_codelist_eval is True at the end, we assume the group/codelist passed, so we add the last_codelist
-        if last_codelist_eval and last_codelist.get('protocol_full_spec', None) is not None:
+        if last_codelist_eval and last_codelist and last_codelist.get('protocol_full_spec', None) is not None:
             rtn_matched_rules.append(FHIR_API.Rule(protocol_details=last_codelist.get('protocol_full_spec'),
                                                    CDS_rule_id=last_codelist.get('protocol_id'),
                                                    name=last_codelist.get('protocol_name'),

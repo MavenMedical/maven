@@ -65,6 +65,7 @@ def check_output(jobj, empty_ok=False):
     try:
         obj = json.loads(jobj)
         if "Error" in obj[0]:
+            ML.INFO(obj)
             exc = AllscriptsError(obj[0]["Error"])
         elif (not empty_ok) and len(list(obj[0].values())[0]) == 0:
             # exc = AllscriptsError("Query returned empty list")
@@ -151,6 +152,7 @@ class allscripts_api(http.http_api):
             ret['PatientID'] = patient
 
         ret.update(zip(['Parameter' + str(n + 1) for n in range(ALLSCRIPTS_NUM_PARAMETERS)], args))
+        # ML.INFO(ret)
         return ret
 
     @asyncio.coroutine
@@ -197,18 +199,20 @@ class allscripts_api(http.http_api):
                     if self.unitytoken:
                         return (yield from co_func(self, *args, **kwargs))
                 except AllscriptsError as e:
-                    if lasterror != e.args[0]:
-                        lasterrorcount = 0
-                        lasterror = e.args[0]
-                        EXCEPTION('allscripts exception')
-                    else:
-                        lasterrorcount += 1
-                        if is_power_two(lasterrorcount):
-                            WARN("%s times: %s" % (lasterrorcount, e.args[0]))
+                    #if lasterror != e.args[0]:
+                    #    lasterrorcount = 0
+                    #    lasterror = e.args[0]
+                    #    EXCEPTION('allscripts exception')
+                    #else:
+                    #    lasterrorcount += 1
+                    #    if is_power_two(lasterrorcount):
+                    #        WARN("%s times: %s" % (lasterrorcount, e.args[0]))
                     if e.args[0].find('you have been logged out') >= 0 or e.args[0].find('Action is not valid for this license') >= 0:
                         self.unitytoken = None
-                        if not lasterrorcount:
-                            WARN("resetting unitytoken: " + e.args[0])
+                        #    if not lasterrorcount:
+                        WARN("resetting unitytoken: " + e.args[0])
+                    else:
+                        raise
                     yield from asyncio.sleep(30)
 
         return asyncio.coroutine(wraps(func)(worker))
