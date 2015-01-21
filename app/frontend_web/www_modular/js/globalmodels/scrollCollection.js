@@ -20,7 +20,7 @@ define([
     lastRefresh: new Date(),
     getLastRefresh: function() {
         //returns the formatted version of the last time this collection was refreshed/initialized
-        return this.lastRefresh.toISOString().replace("T", " ").substr(0,19);
+        return String(this.lastRefresh).substr(0, String(this.lastRefresh).indexOf(' GMT'));//.toISOString().replace("T", " ").substr(0,19);
     },
     context: function(){
         //context change listener - this will need to be defined by the subclass
@@ -74,7 +74,7 @@ define([
             this.fetch({
                 data: $.param(data),
                 remove: true,
-                success: function(fullcol, res) {that.full = res.length < that.limit; that.active=0},
+                success: function(fullcol, res) {that.full = res.length < that.limit; that.active=0; that.lastRefresh = new Date();},
                 error: function() {that.full = 1; that.active=0}
             });
         }
