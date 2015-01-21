@@ -213,8 +213,12 @@ def wrap_exception():
                                           data=json.dumps({"text": hostname + x}))
         resp.close()
 
-    def handle_exception(x):
+    def handle_exception(x, post=True):
         old_exception(x)
+        if not post:
+            return
+        if type(x) == list:
+            x = tuple(x)
         last = last_exception_map.get(x, datetime.min)
         now = datetime.now()
         if now - last > timedelta(minutes=5):
