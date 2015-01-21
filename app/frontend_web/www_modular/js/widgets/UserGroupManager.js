@@ -76,9 +76,9 @@ define([
             var curGroupEl = $('#curGroup', this.$el)
 
 
-            for (var i in this.model.models){
-                var cur = this.model.models[i]
-                var curGroupNameEl = $(this.rowTemplate(cur.attributes))
+            $.each(this.model.models, function(){
+                var cur = this
+                var curGroupNameEl = $(that.rowTemplate(this.attributes))
                 $('.nameDiv', curGroupNameEl).on('click', function(){
                     that.curGroup = cur;
                     new GroupView(cur, curGroupEl)
@@ -87,7 +87,8 @@ define([
                     that.model.remove(cur)
                 })
                 groupListEl.append(curGroupNameEl)
-            }
+            })
+
             if (that.curGroup){
                 new GroupView(that.curGroup, curGroupEl)
             }
