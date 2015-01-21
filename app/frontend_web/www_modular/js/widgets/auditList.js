@@ -22,13 +22,15 @@ define([
         if (typeof arg.extraData !== "undefined") {
             this.extraData = arg.extraData;
         }
-        auditCollection = new (AuditCollection.extend({extraData: this.extraData}));
 
 	    this.template = _.template(arg.template); // this must already be loaded
+        var auditlist = $('.audit-scroll', this.$el);
+
+        auditCollection = new (AuditCollection.extend({extraData: this.extraData}));
 	    auditCollection.bind('add', this.addAudit, this);
 	    auditCollection.bind('reset', this.reset, this);
+	    auditCollection.bind('sync', this.addAll, this);
 	    this.render('Loading ...');
-        var auditlist = $('.audit-scroll', this.$el);
 
         $(auditlist).on('show', function(){
             //make sure that audit list is correct when loaded (target user's audits vs. current user audits)
@@ -36,10 +38,18 @@ define([
             auditCollection.initialize();
         });
 
+        $(".refreshButton", this.$el).click(function(event){
+            $( '.audittable > tbody', this.$el).empty();
+            auditCollection.refresh();
+        });
+        $(".refreshButton", this.$el).hover(function(event) {
+            $(event.target).attr('title', "Last Refresh: " + auditCollection.getLastRefresh());
+        });
+
 	},
     events: {
         'scroll .audit-scroll': 'handleScroll',
-	'click .download-user-audits': 'downloadAudits'
+	    'click .download-user-audits': 'downloadAudits'
     },
     showhide: function(){
         if(contextModel.get('page') == 'auditlist'){
@@ -130,8 +140,9 @@ define([
 	},	
 	reset: function() {
 	    $('.audittable > tbody', this.$el).empty();
+        //this.addAll("Refreshing...");
             //this.render()
-	    this.$el.hide();
+	    //this.$el.hide();
 	},
     });
 
