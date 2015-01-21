@@ -16,9 +16,10 @@ define([
     'pathway/models/pathwayCollection',
     'text!templates/pathway/pathwayListEntry.html',
     '../../widgets/pathway/historyList',
-    'pathway/modalViews/rename'
+    'pathway/modalViews/rename',
+    'pathway/modalViews/deletePath'
 
-], function ($, _, Backbone, router, contextModel, pathwayCollection, pathRowTemplate, HistoryList, Rename) {
+], function ($, _, Backbone, router, contextModel, pathwayCollection, pathRowTemplate, HistoryList, Rename, DeletePath) {
 
     var ruleRow = Backbone.View.extend({
         tagName: "li class='dd-item pathrow-item dd2-item dd-collapsed'",
@@ -130,18 +131,7 @@ define([
             event.data.model.set('id', event.data.that.historyList.currentPath);
         },
     	handleRemove: function() {
-            var del = confirm("Are you sure you want to delete this pathway?");
-            if (!del) return;
-            this.model.destroy({success: function(){
-                pathwayCollection.fetch()
-            }})
-
-            this.undelegateEvents(); // Unbind all local event bindings
-
-            $(this.el).remove(); // Remove view from DOM
-
-            delete this.$el; // Delete the jQuery wrapped object variable
-            delete this.el; // Delete the variable reference to this node
+            new DeletePath({el: '#modal-target' , elModel: this.model, elToDelete: this.el});
     	}
     });
 
