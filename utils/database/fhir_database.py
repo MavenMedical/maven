@@ -181,11 +181,16 @@ class FHIRPersistanceBase():
     @ML.coroutine_trace(timing=True, write=FHIR_DB_LOG.debug)
     def write_composition_encounter_orders(self, composition):
         try:
-            if composition.get_encounter_orders() is None:
-                return
+            # Write encounter orders
+            if composition.get_encounter_orders() is not None:
+                for order in [(order) for order in composition.get_encounter_orders() if isinstance(order.detail[0], (FHIR_API.Medication, FHIR_API.Procedure))]:
+                    yield from self.write_composition_encounter_order(order, composition)
 
-            for order in [(order) for order in composition.get_encounter_orders() if isinstance(order.detail[0], (FHIR_API.Medication, FHIR_API.Procedure))]:
-                yield from self.write_composition_encounter_order(order, composition)
+            # Write procedure history orders
+            if composition.get_procedure_history() is not None:
+                for order in [(order) for order in composition.get_procedure_history() if isinstance(order.detail[0], (FHIR_API.Medication, FHIR_API.Procedure))]:
+                    yield from self.write_composition_proc_history_order(order, composition)
+
         except:
             raise Exception("Error inserting composition encounter orders into database")
 
@@ -212,9 +217,40 @@ class FHIRPersistanceBase():
                        order.detail[0].text,
                        order_type,
                        order.detail[0].cost,
-                       composition.lastModifiedDate]
+                       order.date]
 
             cur = yield from self.db.execute_single("SELECT upsert_enc_order(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", extra=cmdargs)
+            cur.close()
+        except:
+            raise Exception("Error inserting encounter order into database")
+
+    @ML.coroutine_trace(timing=True, write=FHIR_DB_LOG.debug)
+    def write_composition_proc_history_order(self, order, composition):
+        try:
+            if isinstance(order.detail[0], FHIR_API.Procedure):
+                code_id = order.detail[0].type.coding[0].code
+                code_system = order.detail[0].type.coding[0].system
+                order_type = order.detail[0].type.text
+            elif isinstance(order.detail[0], FHIR_API.Medication):
+                code_id = order.detail[0].code.coding[0].code
+                order_type = order.detail[0].code.text
+            cmdargs = [composition.customer_id,
+                       '',
+                       composition.subject.get_pat_id(),
+                       composition.encounter.get_csn(),
+                       composition.get_author_id(),
+                       composition.get_author_id(),
+                       order.get_orderable_ID(),
+                       order.status,
+                       ORDER_SOURCE.WEBSERVICE.name,
+                       code_id,
+                       code_system,
+                       order.text,
+                       order_type,
+                       None,
+                       order.detail[0].date]
+
+            cur = yield from self.db.execute_single("SELECT upsert_historic_order(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", extra=cmdargs)
             cur.close()
         except:
             raise Exception("Error inserting encounter order into database")
