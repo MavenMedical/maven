@@ -19,6 +19,7 @@ define([
      'pathway/modalViews/DeleteDialog',
 
     'pathway/modalViews/ruleWizard',
+    'pathway/modalViews/publishModal',
     'pathway/singleRows/pathRow',
     'pathway/internalViews/treeNodeActionSet',
 
@@ -27,7 +28,7 @@ define([
 
 ], function ($, _, Backbone, contextModel, curCollection, curTree, treeContext,
              NewPathway, editNode, NodeEditor, ProtocolEditor,deleteDialog,
-             ruleWizard, PathRow, treeNodeActionSet, listEntry, toolbarTemplate) {
+             ruleWizard,PublishPath, PathRow, treeNodeActionSet, listEntry, toolbarTemplate) {
 
 
     var exportPathway = function (strData, strFileName, strMimeType) {
@@ -114,18 +115,7 @@ define([
         },
         handle_publishPath: function (e) {
             e.preventDefault();
-
-            var r = confirm("Are you sure you want to push this version of the pathway into production?");
-            if (r != true) return;
-
-            $.ajax({
-                type: 'POST',
-                url: "/history/"  + contextModel.get("canonical") + "/" + curTree.get('pathid'),
-                dataType: "json",
-                success: function (data) {
-                    console.log("Pathway version published");
-                }
-            });
+            new PublishPath({el: '#modal-target'});
         },
         handle_copyPath: function(){
             $.ajax({

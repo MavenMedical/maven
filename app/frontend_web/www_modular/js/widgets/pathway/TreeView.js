@@ -158,7 +158,7 @@ define([
                                 // (string | mandatory) the text inside the notification
                                 text: 'more explanation goes here',
                                 sticky: false,
-                                time: '3000',
+                                time: '',
                                 //This is to show only one notification at a time
                                 before_open: function(){
 							if($('.gritter-item-wrapper').length >= 1)

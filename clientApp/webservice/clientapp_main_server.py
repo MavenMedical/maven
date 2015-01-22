@@ -8,6 +8,9 @@ import maven_logging as ML
 if __name__ == '__main__':
     from app.backend.remote_procedures.server_rpc_endpoint import ServerEndpoint
 
+    if MC.wrap_exception:
+        ML.wrap_exception()
+
     rpc_client_stream_processor = 'Client App Manager RPC Stream Processor'
 
     ClientAppManagerConfig = {
@@ -46,7 +49,7 @@ if __name__ == '__main__':
                 yield from server_interface.get_customer_configurations()
                 return
             except:
-                ML.EXCEPTION('starting up clientapp')
+                ML.WARN('starting up clientapp')
                 yield from asyncio.sleep(5)
 
     ML.TASK(get_customer_configurations())
