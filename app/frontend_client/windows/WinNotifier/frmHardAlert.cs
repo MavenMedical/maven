@@ -34,8 +34,13 @@ namespace MavenAsDemo
         public frmHardAlert(string inUrl, string location)
         {
             loc = location;
-            url = inUrl.Replace("http://","https://");
+            url = inUrl.Replace("http://", "https://");
             InitializeComponent();
+        }
+
+        void frmHardAlert_Leave(object sender, EventArgs e)
+        {
+            btnMinMax_Click(sender, e);
         }
         private void frmHardAlert_Load(object sender, EventArgs e)
         {
@@ -109,7 +114,7 @@ namespace MavenAsDemo
 
             //automatically close out after 5 minutes. 
             //this is the case where the user doesnt close out, but just puts it behind  his EMR screen. 
-            if (tix == 300)
+            if (false)//tix == 300) //Removed the 5 minute kill per MAV-643
             {
                 timer.Stop();
                 this.Close();
