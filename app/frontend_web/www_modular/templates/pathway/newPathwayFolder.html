@@ -1,20 +1,21 @@
-<div class="widget-column col-sm-6">
-    <div id="detail-modal" class="modal fade" role="dialog" aria-hidden="true" data-backdrop="static">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-body">
-                    <form>
-                        <div class="input-group input-group-sm" style="max-width:360px;">
-                            Folder Name:<input type="text" class="form-control pathwayFolderName" name="folderName" value="">
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary createPathwayFolder">Create</button>
-                </div>
-
+<div id="detail-modal" class="modal fade" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Folder Name:</h4>
             </div>
+            <div class="modal-body">
+                <form class="bootbox-form">
+                    <input class="pathwayFolderName bootbox-input bootbox-input-text form-control" name="folderName"
+                           type="text" autofocus>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary createPathwayFolder">Create</button>
+            </div>
+
         </div>
     </div>
 </div>
+
