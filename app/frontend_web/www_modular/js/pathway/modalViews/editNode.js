@@ -69,7 +69,7 @@ define([
                     var followupRecipientName = $("#defaultFollowupRecipientName").val();
                     var followupInfo = [];
 
-                    $(followups).each(function() {
+                    $(that.followups).each(function() {
                         //store all followups
                         var curFollowup = this.getCurrentParams();
                         if (!_.isEmpty(curFollowup)){
@@ -189,7 +189,7 @@ define([
         },
         removeFollowup: function(event) {
             //remove reference to followup
-            followups = _.without(followups, event.data.followup);
+            this.followups = _.without(followups, event.data.followup);
         }
 
     });
