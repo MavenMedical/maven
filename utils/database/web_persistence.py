@@ -104,6 +104,8 @@ Results = Enum('Results',
     groupid
     group_name
     count
+    membershipid
+    status
 """)
 
 
@@ -590,6 +592,85 @@ class WebPersistenceBase():
 
         results = yield from self.execute(cmd, cmdargs, self._display_user_info, desired)
         return results
+
+    _default_membership_info = set((Results.membershipid,))
+    _available_membership_info = {
+        Results.membershipid: "user_membership.membership_id",
+        Results.customerid: "user_membership.customer_id",
+        Results.groupid: "user_membership.group_id",
+        Results.username: "user_membership.user_name",
+        Results.userid: "user_membership.user_id",
+        Results.status: "user_membership.status",
+        Results.startdate: "user_membership.begin_datetime",
+        Results.enddate: "user_membership.end_datetime",
+    }
+    _display_membership_info = _build_format({
+        Results.startdate: lambda x: x and _prettify_datetime(x),
+        Results.enddate: lambda x: x and _prettify_datetime(x),
+    })
+
+    @asyncio.coroutine
+    def membership_info(self, desired, customer, orderby=Results.membershipid, group=None,
+                        ascending=True, startdate=None, enddate=None, limit=None):
+        columns = build_columns(desired.keys(), self._available_membership_info,
+                                self._default_membership_info)
+
+        cmd = []
+        cmdargs = []
+        cmd.append("SELECT")
+        cmd.append(columns)
+        cmd.append("FROM user_membership")
+        cmd.append("WHERE user_membership.customer_id = %s")
+        cmdargs.append(customer)
+        if group:
+            cmd.append("AND user_membership.group_id=%s")
+            cmdargs.append(group)
+
+        append_extras(cmd, cmdargs, None, startdate, enddate, orderby, ascending,
+                      None, limit, self._available_membership_info)
+
+        results = yield from self.execute(cmd, cmdargs, self._display_membership_info, desired)
+        return results
+
+    @asyncio.coroutine
+    def get_recipients(self, customer, role=None, search_term=None, ascending=True, limit=None):
+
+        cmd = []
+        cmdargs = []
+        cmd.append("SELECT official_name as name, CONCAT('user_', user_name) as value")
+        cmd.append("FROM users")
+        cmd.append("WHERE users.customer_id = %s")
+        cmdargs.append(customer)
+
+        if search_term:
+            substring = "%" + search_term + "%"
+            cmd.append("AND UPPER(users.official_name) LIKE UPPER(%s)")
+            cmdargs.append(substring)
+        if role:
+            cmd.append("AND %s = ANY(users.roles)")
+            cmdargs.append(role)
+
+        cmd.append("UNION ALL")
+        cmd.append("SELECT group_name as name, CONCAT('group_', group_id) as value")
+        cmd.append("FROM user_group")
+        cmd.append("WHERE user_group.customer_id = %s")
+        cmdargs.append(customer)
+
+        if search_term:
+            cmd.append("AND UPPER(user_group.group_name) LIKE UPPER(%s)")
+            cmdargs.append(substring)
+
+        cmd.append("ORDER BY name")
+        # cmdargs.append(orderby)
+
+        if not ascending:
+            cmd.append("DESC")
+
+        if limit:
+            cmd.append(limit)
+
+        results = yield from self.db.execute_single(' '.join(cmd) + ";", cmdargs)
+        return list(results)
 
     @asyncio.coroutine
     def customer_specific_user_info(self, desired, limit="", customer_id=None):

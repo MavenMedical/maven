@@ -48,10 +48,10 @@ define([
             $('#protocolRecipient').autocomplete({
                 source: function (request, response) {
                     $.ajax({
-                        url: "/users",
+                        url: "/recipients",
                         term: request.term,
                         dataType: "json",
-                        data: $.param(contextModel.toParams()) + "&target_user=" + request.term + "&target_role=provider",
+                        data: $.param(contextModel.toParams()) + "&name=" + request.term + "&target_role=provider",
                         success: function (data) {
                             response(data);
                         }

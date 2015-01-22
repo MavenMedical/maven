@@ -120,7 +120,7 @@ define([
             $('#defaultRecipient, #defaultFollowupRecipient', this.$el).autocomplete({
                 source: function (request, response) {
                     $.ajax({
-                        url: "/users",
+                        url: "/recipient",
                         term: request.term,
                         dataType: "json",
                         data: $.param(contextModel.toParams()) + "&target_user=" + request.term + "&target_role=provider",

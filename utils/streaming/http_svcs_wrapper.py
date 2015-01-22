@@ -62,6 +62,7 @@ class CONTEXT():
     ACTIVITY = 'activity'
     ENABLED = 'enabled'
     PROTOCOL = 'protocol'
+    GROUP = 'group'
 
 
 def http_service(methods, url, required, available, roles):

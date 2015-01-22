@@ -63,7 +63,6 @@ define([
                 $(that.followups).each(function(){
                     this.sendFollowup();
                 });
-                alert("Followups Sent");
                $('#detail-modal').modal('hide')
             })
 
