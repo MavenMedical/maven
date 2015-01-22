@@ -27,6 +27,7 @@ import maven_logging as ML
 import utils.web_client.allscripts_http_client as AHC
 from utils.web_client.builder import builder
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
+from utils.enums import ORDER_STATUS
 
 
 COMP_BUILD_LOG = ML.get_logger('clientApp.webservice.allscripts_server')
@@ -183,7 +184,7 @@ class CompositionBuilder(builder):
             # date_completed = None if row[2] == "-" else dateutil.parser.parse(row[2])
 
             # Order Status
-            procstatus = columns[3].text
+            procstatus = ORDER_STATUS.CM.name if columns[3].text == 'Ordered' else 'UK'
 
             # Generate the FHIR Procedure/Order Object and add to the Encounter Orders Composition Section
             procedure = FHIR_API.Procedure(name=procname,

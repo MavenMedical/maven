@@ -191,34 +191,44 @@ def report(message):
     pass
 
 
+import socket
+import sys
+hostname = socket.gethostname() + ' ' + sys.argv[0] + ": "
+
+message_to_slack = lambda x: None
+
+
+@asyncio.coroutine
+def _message_to_slack(x):
+    slackurl = 'https://hooks.slack.com/services/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'
+    import aiohttp
+    import json
+    resp = yield from aiohttp.request('POST',
+                                      slackurl,
+                                      data=json.dumps({"text": hostname + x}))
+    resp.close()
+
+
 def wrap_exception():
+    global message_to_slack
+    message_to_slack = lambda x: asyncio.async(_message_to_slack(x))
+
     global EXCEPTION
     last_exception_map = {}
 
-    url = 'https://hooks.slack.com/services/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'
-
-    import aiohttp
     from datetime import datetime, timedelta
-    import socket
-    import json
-    import sys
 
-    hostname = socket.gethostname() + ' ' + sys.argv[0] + ": "
     old_exception = EXCEPTION
 
-    @asyncio.coroutine
-    def msg_to_slack(x):
-        resp = yield from aiohttp.request('POST',
-                                          url,
-                                          data=json.dumps({"text": hostname + x}))
-        resp.close()
-
-    def handle_exception(x):
+    def handle_exception(x, post=True):
         old_exception(x)
+        if not post:
+            return
+        if type(x) == list:
+            x = tuple(x)
         last = last_exception_map.get(x, datetime.min)
         now = datetime.now()
         if now - last > timedelta(minutes=5):
             last_exception_map[x] = now
-            print('firing off message')
-            TASK(msg_to_slack(x))
+            TASK(message_to_slack(x))
     EXCEPTION = handle_exception

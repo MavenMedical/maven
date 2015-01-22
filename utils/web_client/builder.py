@@ -105,9 +105,10 @@ class builder():
                 done, pending = yield from asyncio.wait(args, return_when=asyncio.FIRST_EXCEPTION)
                 task_errors = list(filter(lambda task: task.exception(), done))
                 if pending or any(task_errors):
-                    ML.INFO((done, pending))
+                    ML.INFO((task_errors, pending))
                     for task in task_errors:
-                        ML.EXCEPTION(traceback.format_exception_only(type(task.exception()), task.exception()))
+                        ML.EXCEPTION(traceback.format_exception_only(type(task.exception()), task.exception()), False)
+                    raise Exception('error processing dependencies: ' + str(task_errors))
                 arg_results = [f.result() for f in args]
                 yield from asyncio.coroutine(func)(cls, obj, *arg_results)  # call the function
 
@@ -143,9 +144,11 @@ class builder():
                                                             return_when=asyncio.FIRST_EXCEPTION)
                     task_errors = list(filter(lambda task: task.exception(), done))
                     if pending or any(task_errors):
-                        ML.INFO((done, pending))
+                        ML.INFO((task_errors, pending))
                         for task in task_errors:
-                            ML.EXCEPTION(traceback.format_exception_only(type(task.exception()), task.exception()))
+                            ML.EXCEPTION(traceback.format_exception_only(type(task.exception()), task.exception()), False)
+                        ML.report('/composition_failed')
+                        raise Exception('Error processing dependencies: ' + str(task_errors))
                     # pass the obj to the original function
                     return (yield from asyncio.coroutine(func)(s, obj, *args))
                 finally:

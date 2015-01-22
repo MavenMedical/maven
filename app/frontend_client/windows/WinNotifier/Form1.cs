@@ -226,6 +226,7 @@ namespace MavenAsDemo
         /// </summary>
         private void launchHardAlert()
         {
+            Logger.Log("Displaying hard alert form due to soft alert hyperlink click", "AlertFormDisplay");
             Program.ShowAlertForm(Settings.AlertMode.deskHard);
         }
     }
