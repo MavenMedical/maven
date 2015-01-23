@@ -125,10 +125,8 @@ define([
         },
         showPathway: function (path, code, pat, date, user, customer, userAuth) {
             layoutModel.set({'fluidContent': false})
-            if (path && code && pat && date && user && customer && userAuth && !currentContext.get('userAuth')) {
-                console.log('setting activity callback', currentContext.get('userAuth'))
+            if (path && code && pat && date && user && customer && !currentContext.get('userAuth')) {
                 currentContext.once('change:userAuth', function() {
-                    console.log('posting activity callback', currentContext.get('userAuth'))
                     $.ajax({
                         type: 'POST',
                         dataType: 'json',
@@ -137,7 +135,6 @@ define([
                             'patient_id': pat,
                             'protocol_id': path,
                             'node_state': code,
-                            'datetime': date,
                             'action': 'display full alert'
                         }),
                         success: function () {

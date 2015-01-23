@@ -1656,7 +1656,7 @@ class WebPersistenceBase():
                    activity_msg.get('patient_id', None),
                    protocol_id,
                    node_id,
-                   activity_msg.get('datetime', None),
+                   activity_msg.get('datetime', datetime.now()),
                    activity_msg.get('action', None),
                    activity_msg.get('details', None),
                    protocol_id]
