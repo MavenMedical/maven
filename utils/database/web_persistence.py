@@ -1644,12 +1644,12 @@ class WebPersistenceBase():
         cmd = ["INSERT INTO trees.activity(" + columns + ")",
                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, (SELECT canonical_id FROM trees.protocol WHERE protocol_id = %s)) RETURNING activity_id"]
 
-        node_state_raw = activity_msg.get('node_state', None)
+        node_state_raw = activity_msg.get('node_state', '')
         node_state = node_state_raw.split("-")
 
         # Splice the last element from the node state (which returns a single element list),
         # and then take the only element from it and turn it into an integer
-        node_id = node_state[-1:][0]
+        node_id = node_state[-1]
         protocol_id = activity_msg.get('protocol_id', None)
         cmdArgs = [customer_id,
                    user_id,
