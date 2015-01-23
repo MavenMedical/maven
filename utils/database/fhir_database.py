@@ -327,8 +327,8 @@ class FHIRPersistanceBase():
                                                             "VALUES (%s, "
                                                             "(SELECT user_id FROM users WHERE customer_id=%s AND prov_id=%s),"
                                                             "%s, %s, now(), 'alert generated', "
-                                                            "(SELECT canonical_id FROM trees.protocol WHERE protocol_id = %s));",
-                                                            (customer_id, customer_id, provider_id, patient_id, patient_id, alert.CDS_rule, alert.CDS_rule))
+                                                            "(SELECT canonical_id FROM trees.protocol WHERE customer_id=%s AND protocol_id = %s));",
+                                                            (customer_id, customer_id, provider_id, patient_id, alert.CDS_rule, customer_id, alert.CDS_rule))
             except:
                 raise Exception("Error inserting Alerts into the database")
 
