@@ -103,6 +103,7 @@ Results = Enum('Results',
     msg_body
     groupid
     group_name
+    group_description
     count
     membershipid
     status
@@ -1842,11 +1843,12 @@ class WebPersistenceBase():
     _display_group_info = _build_format({})
 
     @asyncio.coroutine
-    def get_groups(self, customer_id):
+    def get_groups(self, customer_id, search_term=None, extra_info={}, limit=None):
         desired = {
             Results.groupid: "id",
             Results.group_name: "term",
         }
+        desired.update(extra_info)
         columns = build_columns(desired.keys(), self._available_group_info,
                                 self._default_group_info)
         cmd = ["SELECT",
@@ -1854,6 +1856,13 @@ class WebPersistenceBase():
                "FROM public.user_group",
                "WHERE customer_id=%s"]
         cmdArgs = [customer_id]
+
+        if search_term:
+            substring = "%" + search_term + "%"
+            cmd.append("AND UPPER(group_name) LIKE UPPER(%s)")
+            cmdArgs.append(substring)
+        if limit:
+            cmd.append(limit)
 
         rtn = None
         try:

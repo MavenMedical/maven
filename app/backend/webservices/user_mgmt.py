@@ -216,6 +216,22 @@ class UserMgmtWebservices():
                 json.dumps([{'label': k[0], 'value': k[1]} for k in results]),
                 None)
 
+    @http_service(['GET'], '/user_group(?:(\d+)-(\d+)?)?',
+                  [CONTEXT.CUSTOMERID],
+                  {CONTEXT.CUSTOMERID: int, CONTEXT.ROLES: list, CONTEXT.NAME: str},
+                  {USER_ROLES.administrator, USER_ROLES.supervisor})
+    def get_group_info(self, _header, _body, context, matches, _key):
+        customer = context[CONTEXT.CUSTOMERID]
+        name = context.get(CONTEXT.NAME, None)
+        limit = self.helper.limit_clause(matches)
+        extra_info = {WP.Results.group_description: 'description'}
+
+        results = yield from self.persistence.get_groups(customer, search_term=name, extra_info=extra_info, limit=limit)
+
+        return (HTTP.OK_RESPONSE,
+                json.dumps([{'label': k[0], 'value': k[1]} for k in results]),
+                None)
+
     @http_service(['POST'], '/send_message',
                   [CONTEXT.CUSTOMERID, CONTEXT.USER, CONTEXT.TARGETUSER],
                   {CONTEXT.CUSTOMERID: int, CONTEXT.USER: str,

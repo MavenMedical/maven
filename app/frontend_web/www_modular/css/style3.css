@@ -267,6 +267,14 @@ a.disabled {
     width: 9%;
 }
 
+.widget-modal-dialog {
+    width: 80% !important;
+}
+
+.useraccordion{
+    padding-bottom: 30px;
+}
+
 /******************************************************************
  * The following customize the audit widget *
  ******************************************************************/
