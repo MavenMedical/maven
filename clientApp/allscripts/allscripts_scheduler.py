@@ -42,6 +42,7 @@ class scheduler():
         self.disabled = disabled
         self.firsts = defaultdict(lambda: True)
         self.evaluated_states = []
+        self.evaluated_states_time_limit = {}
         self.report = lambda s: ML.report('/%s/%s' % (self.customer_id, s))
         self.listening = set()
         self.unitytimeoffset = timedelta()
@@ -90,6 +91,7 @@ class scheduler():
                     self.unitytimeoffset = now - servertime
                     self.lastday = today = servertime.date()
                     self.evaluated_states.clear()
+                    self.evaluated_states_time_limit.clear()
                 try:
                     if sched_count and sched:
                         sched_count -= 1
@@ -167,7 +169,7 @@ class scheduler():
                         encounter_dx = icd9_capture.findall(doc.get('keywords', ''))
 
                         # This function will call GetCDA and build a proper proc_history ONLY if "185" in encounter_dx
-                        proc_history, pat_cda_result = yield from self._build_proc_history_from_cda(provider_username, patient, encounter_dx)
+                        proc_history, pat_cda_result = yield from self._build_proc_history_from_cda(provider_username, patient, encounter_id, encounter_dx)
 
                         # Generate the eval_state hash and see if it's been evaluated before
                         eval_state = hash((provider_id, patient, encounter_id, tuple(sorted(encounter_dx)), tuple(sorted(proc_history))))
@@ -186,23 +188,29 @@ class scheduler():
             self.taskcount -= 1
 
     @asyncio.coroutine
-    def _build_proc_history_from_cda(self, provider_username, patient, encounter_dx_list):
+    def _build_proc_history_from_cda(self, provider_username, patient, encounter_id, encounter_dx_list):
+
+        pat_cda_result = None
+        proc_history = []
 
         # The below IF STATEMENT is the hacky solution to not hitting allscripts too hard on getCDA
         if "185" in encounter_dx_list:
 
-            # GetCDA call is needed for procedure history, which is a component in the eval_state hash
-            pat_cda_result = yield from self.allscripts_api.GetPatientCDA(provider_username, patient)
-            procedure_history_section = self.comp_builder.extract_hcpcs_codes_from_cda(pat_cda_result)
+            # Add timer for this extra GetCDA loop for multiple A&P evaluations
+            if (provider_username, patient, encounter_id) not in self.evaluated_states_time_limit.keys():
+                self.evaluated_states_time_limit.update({(provider_username, patient, encounter_id): datetime.now()})
 
-            proc_history = []
-            if procedure_history_section:
-                for enc_ord in [(order) for order in procedure_history_section.content if isinstance(order.detail[0], FHIR_API.Procedure)]:
-                    terminology_code = enc_ord.get_proc_med_terminology_coding()
-                    proc_history.append(terminology_code.code)
-        else:
-            pat_cda_result = None
-            proc_history = []
+            if datetime.now() < (self.evaluated_states_time_limit[(provider_username, patient, encounter_id)] + timedelta(minutes=20)):
+
+                # GetCDA call is needed for procedure history, which is a component in the eval_state hash
+                pat_cda_result = yield from self.allscripts_api.GetPatientCDA(provider_username, patient)
+                procedure_history_section = self.comp_builder.extract_hcpcs_codes_from_cda(pat_cda_result)
+
+                proc_history = []
+                if procedure_history_section:
+                    for enc_ord in [(order) for order in procedure_history_section.content if isinstance(order.detail[0], FHIR_API.Procedure)]:
+                        terminology_code = enc_ord.get_proc_med_terminology_coding()
+                        proc_history.append(terminology_code.code)
 
         return proc_history, pat_cda_result
 
