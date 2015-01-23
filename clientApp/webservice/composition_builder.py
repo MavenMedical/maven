@@ -61,7 +61,7 @@ class CompositionBuilder(builder):
 
     @builder.build(FHIR_API.Composition)
     @ML.trace(COMP_BUILD_LOG.debug, True)
-    def build_composition(self, obj, username, patient, doc_id, doc_datetime, encounter_dx):
+    def build_composition(self, obj, username, patient, doc_id, doc_datetime, encounter_dx, cda_result):
         obj.author = self.provs[username]
         obj.encounter = FHIR_API.Encounter(identifier=[FHIR_API.Identifier(label="Internal",
                                                                            system="clientEMR",
@@ -75,13 +75,13 @@ class CompositionBuilder(builder):
 
     @builder.provide(Types.Patient)
     @ML.coroutine_trace(COMP_BUILD_LOG.debug, True)
-    def _patient(self, username, patient, doc_id, doc_datetime, encounter_dx):
+    def _patient(self, username, patient, doc_id, doc_datetime, encounter_dx, cda_result):
         ret = yield from self.allscripts_api.GetPatient(username, patient)
         return ret
 
     @builder.provide(Types.ClinicalSummary)
     @ML.coroutine_trace(COMP_BUILD_LOG.debug, True)
-    def _clin_summary(self, username, patient, doc_id, doc_datetime, encounter_dx):
+    def _clin_summary(self, username, patient, doc_id, doc_datetime, encounter_dx, cda_result):
         ret = yield from self.allscripts_api.GetClinicalSummary(username, patient, AHC.CLINICAL_SUMMARY.All)
         return ret, encounter_dx
 
@@ -94,9 +94,12 @@ class CompositionBuilder(builder):
     #    return ret
 
     @builder.provide(Types.CDASummary)
-    def _CDA_summary(self, username, patient, doc_id, doc_datetime, encounter_dx):
-        ret = yield from self.allscripts_api.GetPatientCDA(username, patient)
-        return ret
+    def _CDA_summary(self, username, patient, doc_id, doc_datetime, encounter_dx, cda_result):
+        if cda_result:
+            return cda_result
+        else:
+            ret = yield from self.allscripts_api.GetPatientCDA(username, patient)
+            return ret
 
     @builder.require(Types.Patient, Types.ClinicalSummary, Types.CDASummary)
     # @ML.coroutine_trace(COMP_BUILD_LOG.debug, True)
@@ -108,7 +111,7 @@ class CompositionBuilder(builder):
                                                                             code="74028-2")])
 
         # Extract the "J-codes" (HCPCS procedure codes) from the CDA
-        proc_history_section = self._extract_hcpcs_codes_from_cda(CDA_summary_result)
+        proc_history_section = self.extract_hcpcs_codes_from_cda(CDA_summary_result)
         if proc_history_section:
             composition.section.append(proc_history_section)
 
@@ -136,7 +139,7 @@ class CompositionBuilder(builder):
     def _build_encounter(self):
         pass
 
-    def _extract_hcpcs_codes_from_cda(self, cda_result):
+    def extract_hcpcs_codes_from_cda(self, cda_result):
 
         # Make sure the CDA result is there
         if cda_result.get('cdaxml', None) is None:
