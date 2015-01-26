@@ -1880,7 +1880,6 @@ class WebPersistenceBase():
             Results.group_name: "term",
             Results.group_description: "description"
         }
-        desired.update(extra_info)
         columns = build_columns(desired.keys(), self._available_group_info,
                                 self._default_group_info)
         cmd = ["SELECT",
