@@ -226,9 +226,16 @@ class UserMgmtWebservices():
         limit = self.helper.limit_clause(matches)
         extra_info = {WP.Results.group_description: 'description'}
 
+        ret = []
         results = yield from self.persistence.get_groups(customer, search_term=name, extra_info=extra_info, limit=limit)
+        if results:
+            desired = {WP.Results.username: 'value', WP.Results.officialname: 'label'}
+            for group in results:
+                users = yield from self.persistence.membership_info(desired, customer, group=group[WP.Results.groupid])
+                group.update({'users': users})
+                ret.append(group)
 
-        return (HTTP.OK_RESPONSE,json.dumps(results),None)
+        return HTTP.OK_RESPONSE, json.dumps(ret), None
 
     @http_service(['POST'], '/send_message',
                   [CONTEXT.CUSTOMERID, CONTEXT.USER, CONTEXT.TARGETUSER],
