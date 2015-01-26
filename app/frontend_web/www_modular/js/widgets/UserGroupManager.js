@@ -114,7 +114,8 @@ define([
 
             this.groupModel = new GroupModel()
             this.groupModel.set('id', groupID)
-            this.groupModel.on('sync', function () {
+            this.groupModel.on('sync', function (data) {
+                var e = data;
                 that.render()
             })
 
@@ -125,8 +126,9 @@ define([
         render: function () {
             this.$el.html(this.template(this.groupModel.attributes))
             var selectEl = $('#selectionBox', this.$el)
+
             $.each(this.groupModel.get('users'), function () {
-                var newEl = $("<option value=''" + "this.id" + "'>" + "this.name" + "</option>")
+                var newEl = $("<option value='" + this.value + "'>" + this.value + "</option>")
                 //add click handlers
 
                 //append
@@ -139,12 +141,33 @@ define([
 
 
             })
-
+            var that = this;
+            $(document).ready(function() {
+                $('#user-field').autocomplete({
+                    source: function (request, response) {
+                        $.ajax({
+                            url: "/users",
+                            term: request.term,
+                            dataType: "json",
+                            data: $.param(contextModel.toParams()) + "&target_user=" + request.term + "&group=" + that.groupModel.get('id'),
+                            success: function (data) {
+                                response(data);
+                            }
+                        });
+                    },
+                    minLength: 3,
+                    select: function (event, ui) {
+                        event.preventDefault();
+                        if (ui.item) {
+                            $(event.target).val("");(ui.item.label);
+                            $("#recipientUserName").val(ui.item.value);
+                            var newEl = $("<option value='" + ui.item.value + "'>" + ui.item.label + "</option>")
+                            selectEl.append(newEl)
+                        }
+                    }
+                });
+            });
         }
-
-
-
-
     })
 
     return GroupManager;

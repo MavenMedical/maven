@@ -81,7 +81,7 @@ class AdministrationWebservices():
                   [CONTEXT.CUSTOMERID],
                   {CONTEXT.CUSTOMERID: int, CONTEXT.ROLES: list,
                    CONTEXT.TARGETROLE: str, CONTEXT.TARGETUSER: str,
-                   CONTEXT.TARGETCUSTOMER: int},
+                   CONTEXT.TARGETCUSTOMER: int, CONTEXT.GROUP: int},
                   {USER_ROLES.administrator, USER_ROLES.provider,
                    USER_ROLES.mavensupport, USER_ROLES.supervisor})
     def get_users(self, _header, _body, context, matches, _key):
@@ -89,6 +89,7 @@ class AdministrationWebservices():
         roles = context[CONTEXT.ROLES]
         targetrole = context.get(CONTEXT.TARGETROLE, None)
         targetuser = context.get(CONTEXT.TARGETUSER, None)
+        group = context.get(CONTEXT.GROUP, None)
         target_customer = context.get(CONTEXT.TARGETCUSTOMER, None)
         if not target_customer or USER_ROLES.mavensupport.value not in roles:
             target_customer = customer
@@ -96,7 +97,7 @@ class AdministrationWebservices():
         limit = self.helper.limit_clause(matches)
 
         if {USER_ROLES.administrator.value, USER_ROLES.provider.value,
-           USER_ROLES.mavensupport.value}.intersection(roles) and not targetrole:
+           USER_ROLES.mavensupport.value}.intersection(roles) and not targetrole and not group:
             desired = {
                 WP.Results.userid: 'user_id',
                 WP.Results.customerid: 'customer_id',
@@ -120,7 +121,7 @@ class AdministrationWebservices():
                 WP.Results.username: 'value',
             }
         results = yield from self.persistence.user_info(desired, target_customer, role=targetrole,
-                                                        officialname=targetuser,
+                                                        officialname=targetuser, groupexclude=group,
                                                         orderby=[WP.Results.ehrstate, WP.Results.profession,
                                                                  WP.Results.displayname],
                                                         limit=limit)

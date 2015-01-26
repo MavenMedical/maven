@@ -216,7 +216,6 @@ class UserMgmtWebservices():
                 json.dumps([{'label': k[0], 'value': k[1]} for k in results]),
                 None)
 
-
     @http_service(['GET'], '/user_group/(\d+)',
                   [CONTEXT.CUSTOMERID],
                   {CONTEXT.CUSTOMERID: int, CONTEXT.ROLES: list, CONTEXT.NAME: str},
@@ -232,9 +231,7 @@ class UserMgmtWebservices():
 
         ret = {'users': users, 'name': results[0]['term'], 'id': id, 'description': results[0]['description']}
 
-        return HTTP.OK_RESPONSE, json.dumps(users), None
-
-
+        return HTTP.OK_RESPONSE, json.dumps(ret), None
 
     @http_service(['GET'], '/user_group/',
                   [CONTEXT.CUSTOMERID],
@@ -242,7 +239,8 @@ class UserMgmtWebservices():
                   {USER_ROLES.administrator, USER_ROLES.supervisor, USER_ROLES.provider})
     def get_groups(self, _header, _body, context, matches, _key):
         customer = context[CONTEXT.CUSTOMERID]
-        results = yield from self.persistence.get_groups(customer)
+        search_term = context.get(CONTEXT.NAME, None)
+        results = yield from self.persistence.get_groups(customer, search_term=search_term)
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
     @http_service(['DELETE'], '/user_group/(\d+)',
@@ -250,7 +248,7 @@ class UserMgmtWebservices():
                   {CONTEXT.CUSTOMERID: int, CONTEXT.ROLES: list, CONTEXT.NAME: str},
                   {USER_ROLES.administrator, USER_ROLES.supervisor, USER_ROLES.provider})
     def remove_group(self, _header, _body, context, matches, _key):
-        customer = context[CONTEXT.CUSTOMERID]
+        # customer = context[CONTEXT.CUSTOMERID]
         results = yield from self.persistence.remove_group(matches[0])
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
@@ -264,7 +262,6 @@ class UserMgmtWebservices():
 
         yield from self.persistence.create_group(customer, body['term'], body['description'])
         return HTTP.OK_RESPONSE, json.dumps({}), None
-
 
     @http_service(['POST'], '/send_message',
                   [CONTEXT.CUSTOMERID, CONTEXT.USER, CONTEXT.TARGETUSER],

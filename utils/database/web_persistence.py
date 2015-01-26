@@ -532,16 +532,16 @@ class WebPersistenceBase():
 
     _default_user_info = set((Results.userid,))
     _available_user_info = {
-        Results.userid: "users.user_id",
-        Results.customerid: "users.customer_id",
-        Results.provid: "users.prov_id",
-        Results.username: "users.user_name",
-        Results.officialname: "users.official_name",
-        Results.displayname: "users.display_name",
-        Results.state: "users.state",
-        Results.ehrstate: "users.ehr_state",
-        Results.roles: "users.roles",
-        Results.profession: "users.profession",
+        Results.userid: "u.user_id",
+        Results.customerid: "u.customer_id",
+        Results.provid: "u.prov_id",
+        Results.username: "u.user_name",
+        Results.officialname: "u.official_name",
+        Results.displayname: "u.display_name",
+        Results.state: "u.state",
+        Results.ehrstate: "u.ehr_state",
+        Results.roles: "u.roles",
+        Results.profession: "u.profession",
         Results.lastlogin: "logins2.last_login",
         Results.notify1: "user_pref.notify_primary",
         Results.notify2: "user_pref.notify_secondary"
@@ -552,7 +552,7 @@ class WebPersistenceBase():
     })
 
     @asyncio.coroutine
-    def user_info(self, desired, customer, orderby=Results.userid, role=None,
+    def user_info(self, desired, customer, orderby=Results.userid, role=None, groupexclude=None,
                   officialname=None, ascending=True, startdate=None, enddate=None, limit=None):
         columns = build_columns(desired.keys(), self._available_user_info,
                                 self._default_user_info)
@@ -561,14 +561,14 @@ class WebPersistenceBase():
         cmdargs = []
         cmd.append("SELECT")
         cmd.append(columns)
-        cmd.append("FROM users")
+        cmd.append("FROM users u")
         if Results.lastlogin in desired:
             cmd.append("LEFT JOIN ( ")
             cmd.append("SELECT user_name, customer_id, max(logintime) as last_login")
             cmd.append("FROM logins where method != 'failed'")
             cmd.append("GROUP BY user_name,customer_id ) logins2")
-            cmd.append("ON (users.user_name = logins2.user_name")
-            cmd.append("AND users.customer_id = logins2.customer_id)")
+            cmd.append("ON (u.user_name = logins2.user_name")
+            cmd.append("AND u.customer_id = logins2.customer_id)")
         else:
             # can't sort by date if login field is not being used
             startdate = None
@@ -576,17 +576,21 @@ class WebPersistenceBase():
         if (Results.notify1 in desired) or (Results.notify2 in desired):
             # Left Join in case preferences haven't been set yet (or if support user)
             cmd.append("LEFT JOIN user_pref")
-            cmd.append("ON user_pref.user_name = users.user_name")
-            cmd.append("AND user_pref.customer_id = users.customer_id")
-        cmd.append("WHERE users.customer_id = %s")
+            cmd.append("ON user_pref.user_name = u.user_name")
+            cmd.append("AND user_pref.customer_id = u.customer_id")
+        cmd.append("WHERE u.customer_id = %s")
         cmdargs.append(customer)
         if role:
-            cmd.append("AND %s = ANY(users.roles)")
+            cmd.append("AND %s = ANY(u.roles)")
             cmdargs.append(role)
         if officialname:
             substring = "%" + officialname + "%"
-            cmd.append("AND UPPER(users.official_name) LIKE UPPER(%s)")
+            cmd.append("AND UPPER(u.official_name) LIKE UPPER(%s)")
             cmdargs.append(substring)
+        if groupexclude:
+            cmd.append("AND NOT EXISTS")
+            cmd.append("(SELECT 1 from user_membership where group_id=%s and user_membership.user_id=u.user_id)")
+            cmdargs.append(groupexclude)
 
         append_extras(cmd, cmdargs, Results.lastlogin, startdate, enddate, orderby, ascending,
                       None, limit, self._available_user_info)
@@ -1836,18 +1840,16 @@ class WebPersistenceBase():
     ##########################################################################################
     ##########################################################################################
 
-
     _default_group_info = set((Results.groupid,))
     _available_group_info = {
         Results.groupid: "user_group.group_id",
         Results.group_name: "user_group.group_name",
-        Results.group_description:"user_group.group_description"
+        Results.group_description: "user_group.group_description"
     }
     _display_group_info = _build_format({})
 
     @asyncio.coroutine
     def create_group(self, customer_id, group_name, group_desc="testDesc", status=""):
-
 
         cmd = ["INSERT INTO public.user_group",
                "(customer_id, group_name, group_description, status)",
@@ -1855,32 +1857,27 @@ class WebPersistenceBase():
                "(%s, %s, %s ,%s)"
                "RETURNING group_id"]
 
-
         cmdArgs = [customer_id, group_name, group_desc, status]
-        id  = yield from self.db.execute_single(' '.join(cmd) +";", cmdArgs)
+        id = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
         return id
 
     @asyncio.coroutine
     def remove_group(self, groupID):
 
-
         cmd = ["DELETE FROM public.user_group",
                "WHERE group_id = %s"]
-
-
         cmdArgs = [groupID]
-        yield from self.db.execute_single(' '.join(cmd) +";", cmdArgs)
+
+        yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
         return
 
-
     @asyncio.coroutine
-    def get_groups(self, customer_id,search_term=None, extra_info={}, limit=None,  group_id= None):
+    def get_groups(self, customer_id, search_term=None, limit=None, group_id=None):
         desired = {
             Results.groupid: "id",
             Results.group_name: "term",
             Results.group_description: "description"
         }
-        desired.update(extra_info)
         columns = build_columns(desired.keys(), self._available_group_info,
                                 self._default_group_info)
         cmd = ["SELECT",
@@ -1907,5 +1904,3 @@ class WebPersistenceBase():
 
         finally:
             return list(rtn)
-
-
