@@ -109,6 +109,7 @@ namespace MavenAsDemo
                 frmHardAlert frm = new frmHardAlert(url, cursettings.location);
                 frm.ShowInTaskbar = true;
                 frm.Visible = true;
+                frm.TopMost = false;
                 Application.Run(frm);
             }
         }
@@ -124,6 +125,7 @@ namespace MavenAsDemo
             }
             if (cursettings.mode == Settings.AlertMode.combo || cursettings.mode == Settings.AlertMode.deskSoft)
             {
+                Logger.Log("Displaying soft alert form", "AlertFormDisplay");
                 frmAlert frm = new frmAlert(cursettings.fadeSlowness, cursettings.location, url);
                 frm.ShowInTaskbar = false;
                 frm.Visible = true;
@@ -132,6 +134,7 @@ namespace MavenAsDemo
             }
             else if (cursettings.mode == Settings.AlertMode.deskHard)
             {
+                Logger.Log("Displaying hard alert form", "AlertFormDisplay");
                 frmHardAlert frm = new frmHardAlert(url, cursettings.location);
                 frm.ShowInTaskbar = true;
                 frm.Visible = true;
@@ -217,7 +220,7 @@ namespace MavenAsDemo
             }
             //continueon=false. stop the tracker and exit gracefully
             tracker.Stop();
-
+            
         }
         /// <summary>
         /// Checks for token expiration and re-prompts for a login if expired

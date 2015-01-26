@@ -96,13 +96,36 @@ class TimedFollowUpService():
         else:
             expire_datetime = due_datetime + dateutil.relativedelta.relativedelta(years=1)
 
-        insert_task_result = yield from self.persistence.insert_followup_task(customer_id, author_id, target_username, patient_id,
-                                                                              delivery_method, due_datetime, expire_datetime, msg_subject, msg_body)
+        if target_username.startswith('user_'):
+            target_username = target_username.replace('user_', '')
 
-        if insert_task_result:
-            return HTTP.OK_RESPONSE, json.dumps({"task_id": insert_task_result}), None
-        else:
-            return HTTP.BAD_RESPONSE, "", None
+            insert_task_result = yield from self.persistence.insert_followup_task(customer_id, author_id,
+                                                                                  target_username, patient_id,
+                                                                                  delivery_method, due_datetime,
+                                                                                  expire_datetime, msg_subject,
+                                                                                  msg_body)
+            if insert_task_result:
+                return HTTP.OK_RESPONSE, json.dumps({"task_id": insert_task_result}), None
+        elif target_username.startswith('group_'):
+            group = target_username.replace('group_', '')
+
+            results = yield from self.persistence.membership_info({WP.Results.username: 'user_name'},
+                                                                  customer_id, group=group)
+            tasks = []
+            for row in results:
+                target_username = row['user_name']
+                insert_task_result = yield from self.persistence.insert_followup_task(customer_id, author_id,
+                                                                                      target_username, patient_id,
+                                                                                      delivery_method, due_datetime,
+                                                                                      expire_datetime, msg_subject,
+                                                                                      msg_body)
+                if insert_task_result:
+                    tasks.append({"task_id": insert_task_result})
+
+            if tasks:
+                return HTTP.OK_RESPONSE, json.dumps(tasks), None
+
+        return HTTP.BAD_RESPONSE, "", None
 
     @http_service(['GET'], '/get_task',
                   [CONTEXT.USERID, CONTEXT.CUSTOMERID, CONTEXT.TASKID],

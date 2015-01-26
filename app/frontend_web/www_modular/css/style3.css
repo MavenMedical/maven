@@ -235,6 +235,10 @@ a.disabled {
     z-index: inherit;
 }
 
+#avail-paths-list {
+    padding-bottom: 30px;
+}
+
 /******************************************************************
  * The following customize the support widgets *
  ******************************************************************/
@@ -261,6 +265,14 @@ a.disabled {
 }
 .user-row-dropdown > .dropdown-toggle {
     width: 9%;
+}
+
+.widget-modal-dialog {
+    width: 80% !important;
+}
+
+.useraccordion{
+    padding-bottom: 30px;
 }
 
 /******************************************************************

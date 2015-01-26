@@ -125,6 +125,24 @@ define([
         },
         showPathway: function (path, code, pat, date, user, customer, userAuth) {
             layoutModel.set({'fluidContent': false})
+            if (path && code && pat && date && user && customer && !currentContext.get('userAuth')) {
+                currentContext.once('change:userAuth', function() {
+                    $.ajax({
+                        type: 'POST',
+                        dataType: 'json',
+                        url: "/activity?" + $.param(currentContext.toParams()),
+                        data: JSON.stringify({
+                            'patient_id': pat,
+                            'protocol_id': path,
+                            'node_state': code,
+                            'action': 'display full alert'
+                        }),
+                        success: function () {
+                            console.log("click tracked");
+                        }
+                    });
+                })
+            }
             currentContext.set({page: 'pathway', code: code, pathid: path, patients: pat, enc_date: date,
                                 startdate: null, enddate: null});
 

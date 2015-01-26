@@ -42,12 +42,17 @@ define([
 
     var loginCallback = function (res) {
         console.log('login call back', contextModel);
+        if (contextModel.get('customer_id') == 0 && contextModel.get('page')==null){
+            contextModel.set({'page': 'customers'})
+            Backbone.history.navigate('customers');
+        }
         var offset = (new Date()) - readCookie('now')
         scheduleLogout(offset);
 	contextModel.set({'loginTemplate':null});
 	//if(res.get('stylesheet')) {
 
 	    setActiveStyleSheet('demo');
+
 	//}
 	// each row is {element, widget, template}
 	var widgetlist = res.get('widgets');

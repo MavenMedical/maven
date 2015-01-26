@@ -22,6 +22,7 @@ from dateutil.parser import parse
 from utils.web_client.allscripts_http_client import AllscriptsError
 from clientApp.webservice.composition_builder import CompositionBuilder
 import maven_logging as ML
+import utils.api.pyfhir.pyfhir_generated as FHIR_API
 from collections import defaultdict
 from utils.enums import CONFIG_PARAMS
 icd9_keyword_match = re.compile('\(V?[0-9]+(?:\.[0-9]+)?(?:(?:\s+)?\|(?:\s+)?\w+)?\)')
@@ -40,7 +41,8 @@ class scheduler():
         self.active_providers = {}
         self.disabled = disabled
         self.firsts = defaultdict(lambda: True)
-        self.evaluations = {}
+        self.evaluated_states = []
+        self.evaluated_states_time_limit = {}
         self.report = lambda s: ML.report('/%s/%s' % (self.customer_id, s))
         self.listening = set()
         self.unitytimeoffset = timedelta()
@@ -79,7 +81,6 @@ class scheduler():
         sched = None
         while True:
             self.report('polling')
-            
             try:
                 now = datetime.now()
                 today = (now - self.unitytimeoffset).date()
@@ -89,7 +90,8 @@ class scheduler():
                     servertime = datetime.strptime(serverinfo['ServerTime'], '%Y-%m-%dT%H:%M:%S')
                     self.unitytimeoffset = now - servertime
                     self.lastday = today = servertime.date()
-                    self.evaluations.clear()
+                    self.evaluated_states.clear()
+                    self.evaluated_states_time_limit.clear()
                 try:
                     if sched_count and sched:
                         sched_count -= 1
@@ -144,7 +146,7 @@ class scheduler():
             provider = self.active_providers.get((provider_id, str(self.customer_id)))
             provider_username = provider.get('user_name')
             self.report('user/' + provider_username + '/query')
-            
+
             now = datetime.now()
             prior = now - timedelta(seconds=12000)
             try:
@@ -162,32 +164,22 @@ class scheduler():
                         if not (enc_datetime.date() == today):
                             continue
 
-                        # Add the provider/patient/encounter key to dictionary of evaluations if we haven't already
+                        # Document ID becomes encounter_id and we extract encounter ICD-9/10 keywords
                         encounter_id = doc.get('DocumentID')
-                        if (provider_id, patient, encounter_id) not in self.evaluations.keys():
-                            self.evaluations[(provider_id, patient, encounter_id)] = {"encounter_create": True,
-                                                                                      "assessment_and_plan": True}
-                        # Check the keywords, and if there are ICD9 keywords we know that the clinician is already
-                        # at the Assessment & Plan, so perform the "assessment_and_plan" evaluation (if haven't already)
-                        document_keywords = doc.get('keywords', '')
-                        has_ICD9_keywords = icd9_keyword_match.search(document_keywords)
-                        encounter_dx = icd9_capture.findall(document_keywords)
+                        encounter_dx = icd9_capture.findall(doc.get('keywords', ''))
 
-                        if has_ICD9_keywords and self.evaluations[(provider_id, patient, encounter_id)].get('assessment_and_plan'):
-                            self.evaluations[(provider_id, patient, encounter_id)]['assessment_and_plan'] = False
-                            self.evaluations[(provider_id, patient, encounter_id)]['encounter_create'] = False
-                            if not first:
-                                ML.INFO('building composition - a&p')
-                                yield from self.build_composition_and_evaluate(provider_username, patient, encounter_id, enc_datetime, encounter_dx, 'assessment_and_plan')
-                            # Set the flag in the evaluations dictionary so we don't do this evaluation again
+                        # This function will call GetCDA and build a proper proc_history ONLY if "185" in encounter_dx
+                        proc_history, pat_cda_result = yield from self._build_proc_history_from_cda(provider_username, patient, encounter_id, encounter_dx)
 
-                        # If there are no ICD9 keywords, perform the "encounter_create" evaluation (if we haven't already)
-                        elif self.evaluations[(provider_id, patient, encounter_id)].get('encounter_create'):
-                            self.evaluations[(provider_id, patient, encounter_id)]['encounter_create'] = False
+                        # Generate the eval_state hash and see if it's been evaluated before
+                        eval_state = hash((provider_id, patient, encounter_id, tuple(sorted(encounter_dx)), tuple(sorted(proc_history))))
+                        if eval_state not in self.evaluated_states:
+                            self.evaluated_states.append(eval_state)
                             if not first:
-                                ML.INFO('building composition - encounter_create ' + patient)
-                                yield from self.build_composition_and_evaluate(provider_username, patient, encounter_id, enc_datetime, encounter_dx, 'encounter_create')
- 
+                                ML.INFO('building composition')
+                                eval_type = 'assessment_and_plan' if len(encounter_dx) > 0 else 'encounter_create'
+                                yield from self.build_composition_and_evaluate(provider_username, patient, encounter_id, enc_datetime, encounter_dx, eval_type, pat_cda_result)
+
             except AllscriptsError as e:
                 CLIENT_SERVER_LOG.exception(e)
             except Exception as e:
@@ -196,10 +188,37 @@ class scheduler():
             self.taskcount -= 1
 
     @asyncio.coroutine
-    def build_composition_and_evaluate(self, provider_username, patient, encounter_id, enc_datetime, encounter_dx, eval_type):
+    def _build_proc_history_from_cda(self, provider_username, patient, encounter_id, encounter_dx_list):
+
+        pat_cda_result = None
+        proc_history = []
+
+        # The below IF STATEMENT is the hacky solution to not hitting allscripts too hard on getCDA
+        if "185" in encounter_dx_list:
+
+            # Add timer for this extra GetCDA loop for multiple A&P evaluations
+            if (provider_username, patient, encounter_id) not in self.evaluated_states_time_limit.keys():
+                self.evaluated_states_time_limit.update({(provider_username, patient, encounter_id): datetime.now()})
+
+            if datetime.now() < (self.evaluated_states_time_limit[(provider_username, patient, encounter_id)] + timedelta(minutes=20)):
+
+                # GetCDA call is needed for procedure history, which is a component in the eval_state hash
+                pat_cda_result = yield from self.allscripts_api.GetPatientCDA(provider_username, patient)
+                procedure_history_section = self.comp_builder.extract_hcpcs_codes_from_cda(pat_cda_result)
+
+                proc_history = []
+                if procedure_history_section:
+                    for enc_ord in [(order) for order in procedure_history_section.content if isinstance(order.detail[0], FHIR_API.Procedure)]:
+                        terminology_code = enc_ord.get_proc_med_terminology_coding()
+                        proc_history.append(terminology_code.code)
+
+        return proc_history, pat_cda_result
+
+    @asyncio.coroutine
+    def build_composition_and_evaluate(self, provider_username, patient, encounter_id, enc_datetime, encounter_dx, eval_type, pat_cda_result):
         CLIENT_SERVER_LOG.info("About to send to Composition Builder... %s, %s " % (provider_username, encounter_id))
         self.report('user/' + provider_username + '/' + eval_type)
-        composition = yield from self.comp_builder.build_composition(provider_username, patient, encounter_id, enc_datetime, encounter_dx)
+        composition = yield from self.comp_builder.build_composition(provider_username, patient, encounter_id, enc_datetime, encounter_dx, pat_cda_result)
         CLIENT_SERVER_LOG.info(("Sending to backend for %s evaluation. Composition ID = %s" % (composition.id, eval_type)))
         ML.TASK(self.parent.evaluate_composition(composition))
 

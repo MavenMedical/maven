@@ -321,8 +321,14 @@ class FHIRPersistanceBase():
                 else:
                     cmd.append("VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
 
-                cur = yield from self.db.execute_single(' '.join(cmd) + ';', cmdargs)
-                cur.close()
+                yield from self.db.execute_and_close_single(' '.join(cmd) + ';', cmdargs)
+                yield from self.db.execute_and_close_single("INSERT INTO trees.activity "
+                                                            "(customer_id, user_id, patient_id, protocol_id, datetime, action, canonical_id) "
+                                                            "VALUES (%s, "
+                                                            "(SELECT user_id FROM users WHERE customer_id=%s AND prov_id=%s),"
+                                                            "%s, %s, now(), 'alert generated', "
+                                                            "(SELECT canonical_id FROM trees.protocol WHERE customer_id=%s AND protocol_id = %s));",
+                                                            (customer_id, customer_id, provider_id, patient_id, alert.CDS_rule, customer_id, alert.CDS_rule))
             except:
                 raise Exception("Error inserting Alerts into the database")
 

@@ -198,23 +198,82 @@ class UserMgmtWebservices():
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
+    @http_service(['GET'], '/recipients(?:(\d+)-(\d+)?)?',
+                  [CONTEXT.CUSTOMERID],
+                  {CONTEXT.CUSTOMERID: int, CONTEXT.ROLES: list,
+                   CONTEXT.NAME: str, CONTEXT.TARGETROLE: str},
+                  {USER_ROLES.administrator, USER_ROLES.provider,
+                   USER_ROLES.mavensupport, USER_ROLES.supervisor})
+    def get_recipients(self, _header, _body, context, matches, _key):
+        customer = context[CONTEXT.CUSTOMERID]
+        name = context.get(CONTEXT.NAME, None)
+        targetrole = context.get(CONTEXT.TARGETROLE, None)
+        limit = self.helper.limit_clause(matches)
+
+        results = yield from self.persistence.get_recipients(customer, role=targetrole, search_term=name, limit=limit)
+
+        return (HTTP.OK_RESPONSE,
+                json.dumps([{'label': k[0], 'value': k[1]} for k in results]),
+                None)
+
+    @http_service(['GET'], '/user_group(?:(\d+)-(\d+)?)?',
+                  [CONTEXT.CUSTOMERID],
+                  {CONTEXT.CUSTOMERID: int, CONTEXT.ROLES: list, CONTEXT.NAME: str},
+                  {USER_ROLES.administrator, USER_ROLES.supervisor})
+    def get_group_info(self, _header, _body, context, matches, _key):
+        customer = context[CONTEXT.CUSTOMERID]
+        name = context.get(CONTEXT.NAME, None)
+        limit = self.helper.limit_clause(matches)
+        extra_info = {WP.Results.group_description: 'description'}
+
+        ret = []
+        results = yield from self.persistence.get_groups(customer, search_term=name, extra_info=extra_info, limit=limit)
+        if results:
+            desired = {WP.Results.username: 'value', WP.Results.officialname: 'label'}
+            for group in results:
+                users = yield from self.persistence.membership_info(desired, customer, group=group[WP.Results.groupid])
+                group.update({'users': users})
+                ret.append(group)
+
+        return HTTP.OK_RESPONSE, json.dumps(ret), None
+
     @http_service(['POST'], '/send_message',
                   [CONTEXT.CUSTOMERID, CONTEXT.USER, CONTEXT.TARGETUSER],
-                  {CONTEXT.CUSTOMERID: int, CONTEXT.USER: str, CONTEXT.TARGETUSER: str,
-                   CONTEXT.PATIENTLIST: str},
+                  {CONTEXT.CUSTOMERID: int, CONTEXT.USER: str,
+                   CONTEXT.TARGETUSER: str, CONTEXT.PATIENTLIST: str},
                   {USER_ROLES.provider, USER_ROLES.supervisor, USER_ROLES.administrator})
     def send_message(self, _header, body, context, _matches, _key):
         user = context[CONTEXT.USER]
         customer = context[CONTEXT.CUSTOMERID]
-        target = context[CONTEXT.TARGETUSER]
         patient = context.get(CONTEXT.PATIENTLIST, None)
         body = json.loads(body.decode('utf-8'))
         subject = body['subject'] + " - " + user
         message = body['message']
-        # patient = body.get('patient', None)
-        yield from self.client_interface.notify_user(customer, user, subject, message,
-                                                     patient=patient, target=target)
-        return HTTP.OK_RESPONSE, b'', None
+        target = context[CONTEXT.TARGETUSER]
+
+        if target.startswith('user_'):
+            target = target.replace('user_', '')
+
+            body = json.loads(body.decode('utf-8'))
+            subject = body['subject'] + " - " + user
+            message = body['message']
+            # patient = body.get('patient', None)
+            yield from self.client_interface.notify_user(customer, user, subject, message,
+                                                         patient=patient, target=target)
+            return HTTP.OK_RESPONSE, b'', None
+
+        elif target.startswith('group_'):
+            group = target.replace('group_', '')
+
+            results = yield from self.persistence.membership_info({WP.Results.username: 'user_name'},
+                                                                  customer, group=group)
+            for row in results:
+                target = row['user_name']
+                yield from self.client_interface.notify_user(customer, user, subject, message,
+                                                             patient=patient, target=target)
+            return HTTP.OK_RESPONSE, b'', None
+
+        return HTTP.BAD_REQUEST, json.dumps("INVALID RECIPIENT"), None
 
     @http_service(['GET'], '/download_audits',
                   [CONTEXT.PROVIDER, CONTEXT.USER, CONTEXT.CUSTOMERID],
