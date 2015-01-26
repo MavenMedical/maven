@@ -47,6 +47,7 @@ class scheduler():
         self.listening = set()
         self.unitytimeoffset = timedelta()
         self.taskcount = 0
+        self.failed_patient_cdas = {}
         try:
             self.sleep_interval = float(sleep_interval)
         except ValueError as e:
@@ -96,7 +97,7 @@ class scheduler():
                     if sched_count and sched:
                         sched_count -= 1
                     else:
-                        sched_count = 20
+                        sched_count = 5
                         sched = yield from self.allscripts_api.GetSchedule(None, today)
                     polling_providers = {x[0] for x in filter(self.check_notification_policy, self.active_providers)}
                     tasks = set()
@@ -125,7 +126,7 @@ class scheduler():
                     for task in tasks:
                         self.taskcount += 1
                         ML.TASK(self.evaluate(*task))
-                        yield from asyncio.sleep(.1)
+                        yield from asyncio.sleep(.2)
                 except AllscriptsError as e:
                     CLIENT_SERVER_LOG.exception(e)
 
@@ -152,24 +153,33 @@ class scheduler():
             try:
                 documents = yield from self.allscripts_api.GetDocuments(provider_username, patient,
                                                                         prior, now)
+                self.report('user/' + provider_username + '/got_docs/' + str(len(documents)))
+                
                 if documents:
                     for doc in documents:
                         # Ignore documents/encounters that were created by other providers
                         if not (doc.get('mydocument', 'N') == 'Y'):
+                            self.report('user/' + provider_username + '/not_my_doc')
                             continue
 
                         # Ignore old encounters
                         doctime = doc.get('SortDate', None)
                         enc_datetime = doctime and parse(doctime)
                         if not (enc_datetime.date() == today):
+                            self.report('user/' + provider_username + '/wrong_day_doc')
                             continue
 
                         # Document ID becomes encounter_id and we extract encounter ICD-9/10 keywords
                         encounter_id = doc.get('DocumentID')
                         encounter_dx = icd9_capture.findall(doc.get('keywords', ''))
+                        CLIENT_SERVER_LOG.info(encounder_dx)
 
                         # This function will call GetCDA and build a proper proc_history ONLY if "185" in encounter_dx
                         proc_history, pat_cda_result = yield from self._build_proc_history_from_cda(provider_username, patient, encounter_id, encounter_dx)
+
+                        # hack because allscripts messes up GetPatientCDA sometimes
+                        if proc_history == None and pat_cda_result == None:
+                            return
 
                         # Generate the eval_state hash and see if it's been evaluated before
                         eval_state = hash((provider_id, patient, encounter_id, tuple(sorted(encounter_dx)), tuple(sorted(proc_history))))
@@ -193,6 +203,9 @@ class scheduler():
         pat_cda_result = None
         proc_history = []
 
+        if patient in self.failed_patient_cdas:
+            return None, None
+
         # The below IF STATEMENT is the hacky solution to not hitting allscripts too hard on getCDA
         if "185" in encounter_dx_list:
 
@@ -203,7 +216,15 @@ class scheduler():
             if datetime.now() < (self.evaluated_states_time_limit[(provider_username, patient, encounter_id)] + timedelta(minutes=20)):
 
                 # GetCDA call is needed for procedure history, which is a component in the eval_state hash
-                pat_cda_result = yield from self.allscripts_api.GetPatientCDA(provider_username, patient)
+                try:
+                    ML.report('%s/GetPatientCDA' % (self.customer_id,))
+                    pat_cda_result = yield from self.allscripts_api.GetPatientCDA(provider_username, patient)
+                except Exception as e:
+                    ML.WARN('skipping patient %s with prior CDA fail, %s in list for %s' % (patient, len(self.failed_patient_cdas), self.customer_id))
+                    ML.report('%s/Failed_GetPatientCDA' % (self.customer_id,))
+                    self.failed_patient_cdas[patient]=True
+                    return None, None
+
                 procedure_history_section = self.comp_builder.extract_hcpcs_codes_from_cda(pat_cda_result)
 
                 proc_history = []

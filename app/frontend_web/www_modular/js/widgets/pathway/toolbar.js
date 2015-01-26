@@ -115,7 +115,7 @@ define([
         },
         handle_publishPath: function (e) {
             e.preventDefault();
-            new PublishPath({el: '#modal-target'});
+            new PublishPath({el: '#modal-target', type:'pathway'});
         },
         handle_copyPath: function(){
             $.ajax({

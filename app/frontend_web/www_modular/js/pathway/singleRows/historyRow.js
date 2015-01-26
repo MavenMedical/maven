@@ -14,8 +14,10 @@ define([
     'text!templates/pathway/pathwayHistoryRow.html',
 
     'globalmodels/contextModel',
+        'pathway/modalViews/publishModal',
 
-], function ($, _, Backbone, historyRowTemplate, contextModel) {
+
+], function ($, _, Backbone, historyRowTemplate, contextModel,PublishPath) {
 
     var HistoryRow = Backbone.View.extend({
         tagName: "li class='dd-item history-row'",
@@ -32,16 +34,8 @@ define([
         },
         handleCheck: function(event){
             if ($(event.target).hasClass("check-disabled")) return;
+            new PublishPath({el: '#modal-target', type:'history', elToPublish: this.el , modelToPublish:this.model});
 
-            var r = confirm("Are you sure you want to push this version of the pathway into production?")
-            if (r != true) return;
-
-            $(this.el).parent().find(".history-checkbox").switchClass("glyphicon-check", "glyphicon-unchecked")
-            $(this.el).parent().find(".history-checkbox").attr('title','Publish this snapshot');
-            $(".history-checkbox", this.$el).switchClass("glyphicon-unchecked", "glyphicon-check");
-            $(".history-checkbox", this.$el).attr('title','');
-            //$(this.el).trigger("change");
-            this.model.save();
         },
         handleSelect: function() {
             if (contextModel.get('code') == 'undefined') {

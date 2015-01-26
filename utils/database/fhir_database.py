@@ -619,8 +619,9 @@ class FHIRPersistanceBase():
                     columns = DBMapper.select_rows_from_map(column_map)
                     cur = yield from self.db.execute_single("select " + columns + " from terminology.codemap where code=%s and codetype=%s", extra=[coding.code, coding.system])
                     for result in cur:
-                        FHIR_DB_LOG.debug("Result from Database: %s" % result)
-                        snomed_ids.append(int(result[0]))
+                        FHIR_DB_LOG.info("Result from Database: %s, %s -> %s" % (coding.code, coding.system, result))
+                        if results[0]:
+                            snomed_ids.append(int(result[0]))
                     cur.close()
 
                 for snomed_id in snomed_ids:
