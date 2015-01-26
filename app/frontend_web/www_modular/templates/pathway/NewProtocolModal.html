@@ -15,76 +15,108 @@
                         <textarea id="ProtocolText" type="text" class="form-control" placeholder=""></textarea>
                     </div>
 
-                    <div class="form-group">
-                        <span class="headings">Note to copy:</span>
-                        <textarea id="NoteToCopyText" class="form-control" placeholder=""></textarea>
-                    </div>
 
-                    <div class="form-group">
-                        <span class="headings">Send Defaults:</span><br/>
-                        <div class="row">
-                            <div class="col-sm-6">
-                                <div class="row">
-                                    <div class="search-box" style='width:10%;'></div>
-                                    <form class="search-box">
-                                        <div class="input-group input-group-sm control-group" style="max-width:360px;">
-                                              Recipient:<input type="text" class="form-control" placeholder="Search Provider"
-                                                 name="protocolRecipient" id="defaultRecipient" >
-                                            <input id="defaultRecipientName" name="defaultRecipientName" type="hidden" value="">
-                                        </div>
-                                    </form>
-                                </div>
+                    <div class="accordion-style1 panel-group" id="accordion">
+
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse"
+                                       data-parent="#accordion" href="#collapseOne">
+                                        <i data-icon-show="ace-icon fa fa-angle-right"
+                                           data-icon-hide="ace-icon fa fa-angle-down"
+                                           class="bigger-110 ace-icon fa fa-angle-right"></i>
+                                        Note to copy:
+                                    </a>
+                                </h4>
                             </div>
-                            <div class="col-sm-6">
-                                <div class="row">
-                                    Quick Note:<textarea size=10 id="defaultQuickNote" type="text" class="form-control" placeholder=""></textarea>
+                            <div id="collapseOne" class="panel-collapse collapse">
+                                <div class="panel-body">
+                                    <textarea id="NoteToCopyText" class="form-control" placeholder=""></textarea>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="form-group" >
-                        <span class="glyphicon glyphicon-chevron-right show-advanced-settings"></span>
-                        <span class="headings">Advanced</span><br/>
-                    </div>
 
-                    <div class="form-group advanced-settings">
-                        <div class="row followup-header">
-                            <div class="col-sm-6">
-                                    <span class="headings">Timed Followup Plan</span>
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse"
+                                       data-parent="#accordion" href="#collapseTwo">
+                                        <i data-icon-show="ace-icon fa fa-angle-right"
+                                           data-icon-hide="ace-icon fa fa-angle-down"
+                                           class="bigger-110 ace-icon fa fa-angle-right"></i>
+                                        Send Defaults:
+                                    </a>
+                                </h4>
                             </div>
-                            <div class="col-sm-6">
-                                <div class="input-group input-group-sm" style="max-width:360px;">
-                                    Default Recipient:<input type="text" class="form-control" placeholder="Search Provider"
-                                                     name="defaultFollowupRecipient" id="defaultFollowupRecipient">
-                                                <input id="defaultFollowupRecipientName" name="defaultFollowupRecipientName" type="hidden" value="">
+                            <div id="collapseTwo" class="panel-collapse collapse">
+                                <div class="panel-body">
+                                    Recipient:<input type="text" class="form-control" placeholder="Search Provider"
+                                                     name="protocolRecipient" id="defaultRecipient">
+                                    <input id="defaultRecipientName" name="defaultRecipientName" type="hidden" value="">
+                                    Quick Note:<textarea size=10 id="defaultQuickNote" type="text" class="form-control"
+                                                         placeholder=""></textarea>
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse"
+                                       data-parent="#accordion" href="#collapseThree">
+                                        <i data-icon-show="ace-icon fa fa-angle-right"
+                                           data-icon-hide="ace-icon fa fa-angle-down"
+                                           class="bigger-110 ace-icon fa fa-angle-right"></i>
+                                        Timed Followup Plan
+                                    </a>
+                                </h4>
+                            </div>
+                            <div id="collapseThree" class="panel-collapse collapse">
+                                <div class="panel-body">
+                                    <div class="input-group input-group-sm" style="max-width:360px;">
+                                        Default Recipient:<input type="text" class="form-control"
+                                                                 placeholder="Search Provider"
+                                                                 name="defaultFollowupRecipient"
+                                                                 id="defaultFollowupRecipient">
+                                        <input id="defaultFollowupRecipientName" name="defaultFollowupRecipientName"
+                                               type="hidden" value="">
                                     </div>
-                            </div>
-                        </div>
-                        <div class="row followup-header-columns" style="display:none;">
-                            <div class="col-sm-6">
+                                    <div class="row followup-header-columns" style="margin-top:10px; margin-bottom:10px;display:none;">
+                                <div class="col-sm-6">
                                     <span class="headings">What</span>
-                            </div>
-                            <div class="col-sm-2">
+                                </div>
+                                <div class="col-sm-2">
                                     <span class="headings">When</span>
-                            </div>
-                            <div class="col-sm-1">
+                                </div>
+                                <div class="col-sm-1">
                                     <span class="headings">Who</span>
+                                </div>
+                                <div class="col-sm-1">
+                                    &nbsp;
+                                    <!-- <span class="headings">Repeat</span> -->
+                                </div>
                             </div>
-                            <div class="col-sm-1">
-                                &nbsp;
-                                <!-- <span class="headings">Repeat</span> -->
+                            <div id="followups"></div>
+                            <div class="row followup-footer">
+                                <div class="col-sm-12">
+                                    <button type="button" id='add-new-followup' class="btn btn-default btn-xs">
+                                        <span class="glyphicon glyphicon-plus"></span>
+                                    </button>
+                                    New Followup
+                                </div>
                             </div>
-                        </div>
-                        <div id="followups">
+                                </div>
+                            </div>
 
                         </div>
-                        <div class="row followup-footer">
-                            <div class="col-sm-12">
-                                <button type="button" id='add-new-followup'  class="btn btn-default btn-xs">
-                                    <span class="glyphicon glyphicon-plus"></span>
-                                </button> New Followup
-                            </div>
-                        </div>
+
+
+                        <!---
+                        ... other panels ...
+                        -->
+
                     </div>
 
                 </div>
