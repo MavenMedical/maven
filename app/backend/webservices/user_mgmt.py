@@ -216,26 +216,55 @@ class UserMgmtWebservices():
                 json.dumps([{'label': k[0], 'value': k[1]} for k in results]),
                 None)
 
-    @http_service(['GET'], '/user_group(?:(\d+)-(\d+)?)?',
+
+    @http_service(['GET'], '/user_group/(\d+)',
                   [CONTEXT.CUSTOMERID],
                   {CONTEXT.CUSTOMERID: int, CONTEXT.ROLES: list, CONTEXT.NAME: str},
                   {USER_ROLES.administrator, USER_ROLES.supervisor, USER_ROLES.provider})
-    def get_group_info(self, _header, _body, context, matches, _key):
+    def get_group(self, _header, _body, context, matches, _key):
         customer = context[CONTEXT.CUSTOMERID]
-        name = context.get(CONTEXT.NAME, None)
-        limit = self.helper.limit_clause(matches)
-        extra_info = {WP.Results.group_description: 'description'}
+        id = matches[0]
+        desired = {WP.Results.username: 'value'}
 
-        ret = []
-        results = yield from self.persistence.get_groups(customer, search_term=name, extra_info=extra_info, limit=limit)
-        if results:
-            desired = {WP.Results.username: 'value', WP.Results.officialname: 'label'}
-            for group in results:
-                users = yield from self.persistence.membership_info(desired, customer, group=group[WP.Results.groupid])
-                group.update({'users': users})
-                ret.append(group)
+        users = yield from self.persistence.membership_info(desired, customer, group=id)
 
-        return HTTP.OK_RESPONSE, json.dumps(ret), None
+        results = yield from self.persistence.get_groups(customer, None, None, None, id)
+
+        ret = {'users': users, 'name': results[0]['term'], 'id': id, 'description': results[0]['description']}
+
+        return HTTP.OK_RESPONSE, json.dumps(users), None
+
+
+
+    @http_service(['GET'], '/user_group/',
+                  [CONTEXT.CUSTOMERID],
+                  {CONTEXT.CUSTOMERID: int, CONTEXT.ROLES: list, CONTEXT.NAME: str},
+                  {USER_ROLES.administrator, USER_ROLES.supervisor, USER_ROLES.provider})
+    def get_groups(self, _header, _body, context, matches, _key):
+        customer = context[CONTEXT.CUSTOMERID]
+        results = yield from self.persistence.get_groups(customer)
+        return HTTP.OK_RESPONSE, json.dumps(results), None
+
+    @http_service(['DELETE'], '/user_group/(\d+)',
+                  [CONTEXT.CUSTOMERID],
+                  {CONTEXT.CUSTOMERID: int, CONTEXT.ROLES: list, CONTEXT.NAME: str},
+                  {USER_ROLES.administrator, USER_ROLES.supervisor, USER_ROLES.provider})
+    def remove_group(self, _header, _body, context, matches, _key):
+        customer = context[CONTEXT.CUSTOMERID]
+        results = yield from self.persistence.remove_group(matches[0])
+        return HTTP.OK_RESPONSE, json.dumps(results), None
+
+    @http_service(['POST'], '/user_group/',
+                  [CONTEXT.CUSTOMERID],
+                  {CONTEXT.CUSTOMERID: int, CONTEXT.ROLES: list, CONTEXT.NAME: str},
+                  {USER_ROLES.administrator, USER_ROLES.supervisor, USER_ROLES.provider})
+    def create_group(self, _header, _body, context, matches, _key):
+        customer = context[CONTEXT.CUSTOMERID]
+        body = json.loads(_body.decode('utf-8'))
+
+        yield from self.persistence.create_group(customer, body['term'], body['description'])
+        return HTTP.OK_RESPONSE, json.dumps({}), None
+
 
     @http_service(['POST'], '/send_message',
                   [CONTEXT.CUSTOMERID, CONTEXT.USER, CONTEXT.TARGETUSER],

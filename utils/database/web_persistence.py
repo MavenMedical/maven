@@ -1835,6 +1835,8 @@ class WebPersistenceBase():
     ##########################################################################################
     ##########################################################################################
     ##########################################################################################
+
+
     _default_group_info = set((Results.groupid,))
     _available_group_info = {
         Results.groupid: "user_group.group_id",
@@ -1844,10 +1846,39 @@ class WebPersistenceBase():
     _display_group_info = _build_format({})
 
     @asyncio.coroutine
-    def get_groups(self, customer_id, search_term=None, extra_info={}, limit=None):
+    def create_group(self, customer_id, group_name, group_desc="testDesc", status=""):
+
+
+        cmd = ["INSERT INTO public.user_group",
+               "(customer_id, group_name, group_description, status)",
+               "VALUES",
+               "(%s, %s, %s ,%s)"
+               "RETURNING group_id"]
+
+
+        cmdArgs = [customer_id, group_name, group_desc, status]
+        id  = yield from self.db.execute_single(' '.join(cmd) +";", cmdArgs)
+        return id
+
+    @asyncio.coroutine
+    def remove_group(self, groupID):
+
+
+        cmd = ["DELETE FROM public.user_group",
+               "WHERE group_id = %s"]
+
+
+        cmdArgs = [groupID]
+        yield from self.db.execute_single(' '.join(cmd) +";", cmdArgs)
+        return
+
+
+    @asyncio.coroutine
+    def get_groups(self, customer_id,search_term=None, extra_info={}, limit=None,  group_id= None):
         desired = {
             Results.groupid: "id",
             Results.group_name: "term",
+            Results.group_description: "description"
         }
         desired.update(extra_info)
         columns = build_columns(desired.keys(), self._available_group_info,
@@ -1857,13 +1888,15 @@ class WebPersistenceBase():
                "FROM public.user_group",
                "WHERE customer_id=%s"]
         cmdArgs = [customer_id]
-
         if search_term:
             substring = "%" + search_term + "%"
             cmd.append("AND UPPER(group_name) LIKE UPPER(%s)")
             cmdArgs.append(substring)
         if limit:
             cmd.append(limit)
+        if group_id:
+            cmd.append("AND group_id = %s")
+            cmdArgs.append(group_id)
 
         rtn = None
         try:
@@ -1874,3 +1907,5 @@ class WebPersistenceBase():
 
         finally:
             return list(rtn)
+
+
