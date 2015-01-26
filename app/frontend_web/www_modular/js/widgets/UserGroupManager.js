@@ -126,9 +126,8 @@ define([
             this.$el.html(this.template(this.groupModel.attributes))
             var selectEl = $('#selectionBox', this.$el)
             $.each(this.groupModel.get('users'), function () {
-                var newEl = $("<option value=''" + "this.id" + "'>" + "this.name" + "</option>")
+                var newEl = $("<option value=''" + "this.id" + "'>" + this.value + "</option>")
                 //add click handlers
-
                 //append
                 selectEl.append(newEl)
 

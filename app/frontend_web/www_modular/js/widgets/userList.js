@@ -8,7 +8,7 @@ define([
     'singleRow/userRow',
 
     'globalmodels/contextModel',
-    'text!templates/userScroll.html',
+    'text!templates/userScroll.html'
 
 ], function ($, _, Backbone, UserCollection, UserRow, contextModel, UserListTemplate) {
 
@@ -53,7 +53,7 @@ define([
 
 	},
     events: {
-	    'click #save-user-changes': 'saveChanges',
+	    'click #save-user-changes': 'saveChanges'
     },
     saveChanges: function() {
     /*    that = this;
