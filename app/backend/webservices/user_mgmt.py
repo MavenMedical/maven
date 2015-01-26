@@ -219,7 +219,7 @@ class UserMgmtWebservices():
     @http_service(['GET'], '/user_group(?:(\d+)-(\d+)?)?',
                   [CONTEXT.CUSTOMERID],
                   {CONTEXT.CUSTOMERID: int, CONTEXT.ROLES: list, CONTEXT.NAME: str},
-                  {USER_ROLES.administrator, USER_ROLES.supervisor})
+                  {USER_ROLES.administrator, USER_ROLES.supervisor, USER_ROLES.provider})
     def get_group_info(self, _header, _body, context, matches, _key):
         customer = context[CONTEXT.CUSTOMERID]
         name = context.get(CONTEXT.NAME, None)
@@ -228,9 +228,7 @@ class UserMgmtWebservices():
 
         results = yield from self.persistence.get_groups(customer, search_term=name, extra_info=extra_info, limit=limit)
 
-        return (HTTP.OK_RESPONSE,
-                json.dumps([{'label': k[0], 'value': k[1]} for k in results]),
-                None)
+        return (HTTP.OK_RESPONSE,json.dumps(results),None)
 
     @http_service(['POST'], '/send_message',
                   [CONTEXT.CUSTOMERID, CONTEXT.USER, CONTEXT.TARGETUSER],

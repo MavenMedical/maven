@@ -1839,6 +1839,7 @@ class WebPersistenceBase():
     _available_group_info = {
         Results.groupid: "user_group.group_id",
         Results.group_name: "user_group.group_name",
+        Results.group_description:"user_group.group_description"
     }
     _display_group_info = _build_format({})
 
@@ -1872,4 +1873,4 @@ class WebPersistenceBase():
             ML.EXCEPTION("Error Querying Groups for CustomerID={}".format(customer_id))
 
         finally:
-            return rtn
+            return list(rtn)

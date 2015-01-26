@@ -17,16 +17,8 @@ define([
     //A model representing the state of groups, connected to the database
     var GroupsCollection = Backbone.Collection.extend({
         //this is the url for syncing this model with the server
-        URL: '/EMAIL_GROUP',
+        url: '/user_group',
         //When the server gives us info in JSON form this is how we put in Backbone Model form,
-        parse: function(JSON){
-            for (var i in JSON){
-                var cur = JSON[i]
-                var curModel = new GroupModel()
-                curModel.populate(cur)
-            }
-
-        },
         //when we send data to the server turn the data in the Backbone Model into the JSON to sync
         toJSON: function(){
                var convertedAttribs = this.attributes
@@ -51,18 +43,23 @@ define([
        template: _.template(GroupEditorTemplate),
        rowTemplate: _.template(GroupNameRow),
        initialize: function(){
-
+            var that = this
            //create a model which will match the server
            this.model = new GroupsCollection()
            //fetch the data from the server
-           this.model.fetch()
 
            //If the model changes, which this view will do, sync with the server
-           this.model.on('change', this.model.save)
-           this.model.on('add', this.model.save)
-           this.model.on('remove', this.model.save)
+           this.model.on('change', function(){that.model.save()})
+           this.model.on('add', function(){that.model.save()})
+           this.model.on('remove', function(){that.model.save()})
            //Whenever we sync with the server, rerender the view
-           this.model.on('sync', this.render)
+           this.model.on('sync', this.render, this)
+           this.model.on('error', function(){
+               that.model.set([{users:['a', 'b'], id: 1, term:"test name", description: "test desc"}], {silent: true})
+               that.render()
+           })
+                      this.model.fetch()
+
 
 
        },
@@ -75,6 +72,13 @@ define([
             var groupListEl = $('#groupNames', this.$el)
             var curGroupEl = $('#curGroup', this.$el)
 
+            $('#addGroupButton', this.$el).on('click', function(){
+                var newName = prompt("Please enter the new group name");
+                if (newName){
+                    that.model.add(new Backbone.Model({users: [], term: newName, description: "handle later"}))
+                }
+
+            })
 
             $.each(this.model.models, function(){
                 var cur = this
@@ -101,11 +105,27 @@ define([
         initialize: function(groupModel, elIn){
             this.$el = elIn
             this.groupModel = groupModel
+            this.render()
 
 
         },
         render: function(){
             this.$el.html(this.template(this.groupModel.attributes))
+            var selectEl = $('#selectionBox', this.$el)
+            $.each(this.groupModel.get('users'), function(){
+                var newEl = $("<option value=''" + "this.id" + "'>" + "this.name" + "</option>")
+                //add click handlers
+
+                //append
+                selectEl.append(newEl)
+
+
+            })
+            $('#removeButton', this.$el).on('click', function(){
+                //remove the selected users from the group
+
+
+            })
 
         }
 

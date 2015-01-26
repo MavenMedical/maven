@@ -74,7 +74,7 @@ class SearchWebservices():
         # return HTTP.OK_RESPONSE, json.dumps(results), None
         return HTTP.OK_RESPONSE, json.dumps(['Alzheimer\'s', 'Diabetes']), None
 
-    @http_service(['GET'], '/groups',
+    @http_service(['GET'], '/search/groups',
                   [CONTEXT.PROVIDER, CONTEXT.CUSTOMERID],
                   {CONTEXT.PROVIDER: str, CONTEXT.CUSTOMERID: int},
                   {USER_ROLES.provider, USER_ROLES.supervisor})

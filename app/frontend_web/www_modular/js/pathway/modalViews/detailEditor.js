@@ -61,7 +61,7 @@ define([
                 if (populateType == "snomed_diagnosis" || populateType =="hist_proc")
                     anon =  Backbone.Collection.extend( {url: '/search'})
                 else if (populateType == "groups")
-                    anon =  Backbone.Collection.extend( {url: '/groups'})
+                    anon =  Backbone.Collection.extend( {url: '/search/groups'})
                 else
                     anon =  Backbone.Collection.extend( {url: '/search'})
 
