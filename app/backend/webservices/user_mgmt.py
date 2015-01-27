@@ -223,15 +223,31 @@ class UserMgmtWebservices():
     def get_group(self, _header, _body, context, matches, _key):
         customer = context[CONTEXT.CUSTOMERID]
         id = matches[0]
-        desired = {WP.Results.username: 'value'}
+        desired = {WP.Results.username: 'value', WP.Results.userid: 'id'}
 
         users = yield from self.persistence.membership_info(desired, customer, group=id)
 
-        results = yield from self.persistence.get_groups(customer, None, None, None, id)
+        results = yield from self.persistence.get_groups(customer, None, None, id)
 
         ret = {'users': users, 'name': results[0]['term'], 'id': id, 'description': results[0]['description']}
 
         return HTTP.OK_RESPONSE, json.dumps(ret), None
+
+    @http_service(['PUT'], '/user_group/(\d+)',
+                  [CONTEXT.CUSTOMERID],
+                  {CONTEXT.CUSTOMERID: int, CONTEXT.ROLES: list, CONTEXT.NAME: str},
+                  {USER_ROLES.administrator, USER_ROLES.supervisor, USER_ROLES.provider})
+    def put_group(self, _header, _body, context, matches, _key):
+        customer = context[CONTEXT.CUSTOMERID]
+        id = matches[0]
+        body = json.loads(_body.decode('utf-8'))
+        usersJSON = body['users']
+        name = body['name']
+        description = body['description']
+
+        body = yield from self.persistence.update_group(customer, id, name, description, "", usersJSON)
+
+        return HTTP.OK_RESPONSE, json.dumps({}), None
 
     @http_service(['GET'], '/user_group/',
                   [CONTEXT.CUSTOMERID],

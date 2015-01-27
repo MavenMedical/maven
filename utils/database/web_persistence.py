@@ -1862,6 +1862,19 @@ class WebPersistenceBase():
         return id
 
     @asyncio.coroutine
+    def update_group(self, customer, id, name, description, status, userJSON):
+        cmd = ["UPDATE public.user_group SET (group_name, group_description, status) = (%s, %s, %s);"]
+        cmdArgs = [name, description, status]
+        cmd.append("DELETE FROM public.user_membership WHERE group_id= %s AND customer_id = %s;")
+        cmdArgs.append(id)
+        cmdArgs.append(customer)
+        for key in userJSON:
+            cmd.append("INSERT INTO public.user_membership (customer_id, group_id, user_id, name, description, status) values (%s, %s, %s, %s %s);")
+            cmdArgs.append(customer, id, key['id'], name, description, status)
+
+        return
+
+    @asyncio.coroutine
     def remove_group(self, groupID):
 
         cmd = ["DELETE FROM public.user_group",

@@ -114,8 +114,7 @@ define([
 
             this.groupModel = new GroupModel()
             this.groupModel.set('id', groupID)
-            this.groupModel.on('sync', function (data) {
-                var e = data;
+            this.groupModel.on('sync', function () {
                 that.render()
             })
 
@@ -126,11 +125,9 @@ define([
         render: function () {
             this.$el.html(this.template(this.groupModel.attributes))
             var selectEl = $('#selectionBox', this.$el)
-
             $.each(this.groupModel.get('users'), function () {
                 var newEl = $("<option value='" + this.value + "'>" + this.value + "</option>")
                 //add click handlers
-
                 //append
                 selectEl.append(newEl)
 
@@ -168,6 +165,10 @@ define([
                 });
             });
         }
+
+
+
+
     })
 
     return GroupManager;
