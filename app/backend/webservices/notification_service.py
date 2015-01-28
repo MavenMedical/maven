@@ -75,7 +75,10 @@ class NotificationService():
         customer = context[CONTEXT.CUSTOMERID]
         key = user, customer
         if not self.recent_count[(customer, user)]:
-            yield from self.listening_state(customer, user, True)
+            try:
+                yield from self.listening_state(customer, user, True)
+            except:
+                return HR.ERROR_RESPONSE, '', None
         self.recent_count[(customer, user)] += 1
         ML.TASK(self.decrement_count(customer, user, 120))  # 2 minutes
 
