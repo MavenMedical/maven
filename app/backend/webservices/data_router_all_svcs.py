@@ -19,7 +19,7 @@ import pickle
 from utils.streaming import stream_processor as SP
 import utils.streaming.rpc_processor as RP
 from utils.enums import CONFIG_PARAMS, USER_ROLES
-import utils.database.web_persistence as WP
+import app.database.web_persistence as WP
 from app.backend.remote_procedures.server_rpc_endpoint import ServerEndpoint
 import asyncio
 import maven_config as MC

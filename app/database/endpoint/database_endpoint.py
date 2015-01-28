@@ -20,7 +20,7 @@ from utils.enums import CONFIG_PARAMS
 from utils.database.database import AsyncConnectionPool
 import asyncio
 import maven_config as MC
-import utils.database.web_persistence as WP
+import app.database.web_persistence as WP
 import utils.database.web_search as WS
 import utils.database.fhir_database as FD
 
