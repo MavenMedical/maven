@@ -235,9 +235,13 @@ a.disabled {
     z-index: inherit;
 }
 
-#avail-paths-list {
-    padding-bottom: 30px;
+#avail-paths-list:after {
+  content: "";
+  display: block;
+  height: 30px;
+  width: 100%;
 }
+
 
 /******************************************************************
  * The following customize the support widgets *

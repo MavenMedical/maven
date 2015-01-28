@@ -130,13 +130,9 @@ define([
                 //add click handlers
                 //append
                 selectEl.append(newEl)
-
-
             })
             $('#removeButton', this.$el).on('click', function () {
                 //remove the selected users from the group
-
-
             })
             var that = this;
             $(document).ready(function() {
@@ -165,10 +161,6 @@ define([
                 });
             });
         }
-
-
-
-
     })
 
     return GroupManager;
