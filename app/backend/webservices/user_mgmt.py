@@ -296,7 +296,6 @@ class UserMgmtWebservices():
         if target.startswith('user_'):
             target = target.replace('user_', '')
 
-            body = json.loads(body.decode('utf-8'))
             subject = body['subject'] + " - " + user
             message = body['message']
             # patient = body.get('patient', None)

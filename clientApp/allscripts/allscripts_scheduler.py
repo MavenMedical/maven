@@ -172,7 +172,7 @@ class scheduler():
                         # Document ID becomes encounter_id and we extract encounter ICD-9/10 keywords
                         encounter_id = doc.get('DocumentID')
                         encounter_dx = icd9_capture.findall(doc.get('keywords', ''))
-                        CLIENT_SERVER_LOG.info(encounder_dx)
+                        CLIENT_SERVER_LOG.info(encounter_dx)
 
                         # This function will call GetCDA and build a proper proc_history ONLY if "185" in encounter_dx
                         proc_history, pat_cda_result = yield from self._build_proc_history_from_cda(provider_username, patient, encounter_id, encounter_dx)
