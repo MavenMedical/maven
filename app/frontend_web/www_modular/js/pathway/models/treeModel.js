@@ -10,7 +10,7 @@ define([
 ], function ($, _, Backbone, contextModel, nodeModel, pathwayCollection, treeContext, triggerGroupCollection) {
     var CURRENT_VERSION = "version1";
     var treeModel;
-
+    //delete a node and either delete its children, or move them to its parent node
     var deleteRecur = function (me, toDelete, saveChildren) {
         if (!me.get('isProtocol')) {
             for (var i in me.get('children').models) {
@@ -37,6 +37,8 @@ define([
         }
 
     }
+
+    //find the node with the given id
     var getNodeByID = function(head, target){
         var toCheck = [head]
         while (toCheck){
@@ -48,6 +50,7 @@ define([
         }
 
     }
+    //alter the child visiblity in order to show a path to the target node
     var openPathToTarget = function (cur, target, path) {
 
         if (cur.get('nodeID') == target) {
@@ -69,7 +72,7 @@ define([
             }
         }
     }
-
+    //move a node relative to its siblings under its parent
     var nodePosition = function (cur, target, change, pointer) {
 
         var doWork = false
@@ -120,6 +123,7 @@ define([
         }
 
     }
+
     var findCurNode = function (me) {
 
         if (!me.get('isProtocol')) {
@@ -147,7 +151,7 @@ define([
             return ([me.get('nodeID')])
         }
     }
-
+    //find the parent of the chosen node and collape all of its children other than the target
     var hideSiblingsRecur = function (me, toHide) {
 
         if (me.get('isProtocol')) return
@@ -166,7 +170,7 @@ define([
             }
         }
     }
-
+    //collapse the entire tree
     var recursiveCollapse = function (node) {
 
 
@@ -177,6 +181,7 @@ define([
         })
 
     }
+    //expand the entire tree
     var recursiveExpand = function (node) {
         if (node.get('isProtocol')) return
         node.showChildren()
@@ -186,11 +191,12 @@ define([
 
     }
 
-
+    //Model for a currently loaded pathway
     var TreeModel = nodeModel.extend({
         elPairs: [],
 	    idAttribute: 'pathid',
         urlRoot: '/tree',
+        //call the recursion to move this node relative to its siblings
         changeNodePosition: function (target, change) {
             var pointer = {}
             var r = nodePosition(this, target, change, pointer)
@@ -199,9 +205,11 @@ define([
             parent.set('children', new Backbone.Collection(children), {silent: true})
             this.trigger('propagate')
         },
+        //call the recursion to expand the entire tree
         expandAll: function () {
             recursiveExpand(this)
         },
+        //find the code representing a path expanded to the current tree state
         getShareCode: function () {
             var nodes = findCurNode(this)
             var nodestr = ""
@@ -217,9 +225,12 @@ define([
             contextModel.set('code', nodestr)
 
         },
+        //call the recursion to find the node object in the tree with the given id
         getNodeByID: function(target){
             return getNodeByID(this, target)
         },
+
+        //expand a path to each of the following id's and update the url to the representative string
         getPathToIDS: function (ids) {
             this.collapse(this)
             if (!ids && contextModel.get('code')) {
@@ -247,9 +258,11 @@ define([
             })
             this.populateChildren();
             var that = this
+            //if the page changes, redraw
             contextModel.on('change:page', function () {
                 treeContext.trigger('propagate')
             })
+            //if the pathid changes load the new pathway
             contextModel.on('change:pathid', function () {
                 var newpathid = contextModel.get('pathid')
                 if (newpathid && newpathid != '0') {
@@ -273,12 +286,15 @@ define([
                     Backbone.history.navigate("pathway/" + newpathid + "/node/" + code);
                 }
             })
+            //if the code representing the currently expanded path changes change the expansion state to the new one
             contextModel.on('change:code', function () {
                 if (contextModel.get('code')) {
                     that.getPathToIDS()
                     treeContext.trigger('propagate')
                 }
             })
+            //if anything calls propogate on this model, it is indicating that it needs an update to persistance
+            //call a save and rerender
             this.on('propagate', function () {
                 if (this.oldContent != JSON.stringify(this.toJSON())) {
                     this.save(null, {
@@ -320,13 +336,16 @@ define([
             }
             this.elPairs = []
         },
+        //find the next node id to assign to a newly created node
         getNextNodeID: function () {
             this.set('nodeCount', this.get('nodeCount') + 1, {silent: true})
             return this.get('nodeCount')
         },
+        //call the recursion to hide all the siblings of the chosen node
         hideSiblings: function (toHide) {
             hideSiblingsRecur(this, toHide)
         },
+        //call the recursion to collapse the entire tree, or all of the children of a given node
         collapse: function (node) {
             if (!node) {
                 recursiveCollapse(this)
@@ -334,14 +353,17 @@ define([
                 recursiveCollapse(node)
             }
         },
+        //call the recursion to delete a given node and either delete its children, or move them up
         deleteNode: function (toDelete, saveChildren) {
 
             deleteRecur(this, toDelete, saveChildren)
             this.save()
         },
+        //string representing that this is the model of a top level tree
         getNodeType: function () {
             return "treeModel"
         },
+        //convert this tree to a persistance friendly json
         toJSON: function (options) {
             if (!options) {
                 options = {}
@@ -371,7 +393,7 @@ define([
             return retMap
         },
 
-
+        //create a new pathway with the given name and load it
         loadNewPathway: function (params, options) {
 
             this.set({
@@ -390,6 +412,8 @@ define([
             this.set('triggers', n, {silent: true});
             this.unset('pathid', {silent: true})
             var that = this
+
+            //once the correct data is modeled in the pathway, save it and get the id back
             this.save({}, {
                 success: function (ogj, data) {
                     pathwayCollection.fetch()
@@ -414,7 +438,10 @@ define([
             })
 
         },
+        //when this model fetches a json from persistance, this indicates how to parse it into the model
         parse: function (response, options) {
+
+            //if the protocol doesnt have a version tag it as a preversion protocol, otherwise tag it with its given version
             if (!response.protocolVersion) {
                 this.set('protocolVersion', "preversion", {silent: true})
             } else {
@@ -422,7 +449,7 @@ define([
             }
             var self = this;
 
-
+           //different parse functions based on the version of the protocol we want
             var versions = {
                 "preversion": function (response, options) {
                     if (options && options.toImport) {
@@ -481,14 +508,16 @@ define([
                         })
 
                     })
+
                     n.populate(response.triggers, self.get('protocolVersion'));
 
                     self.set('triggers', n, {silent: true});
                 }
 
             }
-
+            //call the correct parse function
             versions[this.get('protocolVersion')](response, options)
+            //upon parse completion the model matches the current version so update it
             this.set('protocolVersion', CURRENT_VERSION)
         }
     });
