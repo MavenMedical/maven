@@ -20,7 +20,7 @@ from utils.enums import USER_ROLES
 from collections import defaultdict
 import maven_config as MC
 from datetime import date
-import utils.database.web_persistence as WP
+import app.database.web_persistence as WP
 import utils.streaming.http_responder as HTTP
 import json
 import asyncio

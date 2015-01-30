@@ -19,7 +19,7 @@ import json
 import bcrypt
 import asyncio
 import utils.crypto.authorization_key as AK
-import utils.database.web_persistence as WP
+import app.database.web_persistence as WP
 from utils.streaming.http_svcs_wrapper import http_service, CONTEXT, CONFIG_PERSISTENCE
 import utils.streaming.http_responder as HTTP
 from utils.enums import CONFIG_PARAMS, USER_ROLES

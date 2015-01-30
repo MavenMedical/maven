@@ -17,7 +17,7 @@ __author__ = 'Yuki Uchino'
 # LAST MODIFIED FOR JIRA ISSUE: MAV-404
 # *************************************************************************
 import asyncio
-import utils.database.web_persistence as WP
+import app.database.web_persistence as WP
 import utils.streaming.stream_processor as SP
 from utils.enums import CONFIG_PARAMS
 import maven_logging as ML

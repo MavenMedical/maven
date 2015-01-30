@@ -18,7 +18,7 @@ __author__ = 'Yuki Uchino'
 from utils.streaming.http_svcs_wrapper import CONFIG_PERSISTENCE
 import asyncio
 import maven_config as MC
-import utils.database.web_persistence as WP
+import app.database.web_persistence as WP
 import utils.streaming.stream_processor as SP
 import utils.streaming.http_responder as HTTP
 import utils.streaming.http_helper as HH

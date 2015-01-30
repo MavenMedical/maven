@@ -15,7 +15,7 @@ __author__ = 'Yuki Uchino'
 # LAST MODIFIED FOR JIRA ISSUE: MAV-303
 # *************************************************************************
 import utils.database.web_search as WS
-import utils.database.web_persistence as WP
+import app.database.web_persistence as WP
 import maven_config as MC
 from utils.streaming.http_svcs_wrapper import http_service, CONTEXT, CONFIG_PERSISTENCE, EMPTY_RETURN
 from utils.enums import USER_ROLES

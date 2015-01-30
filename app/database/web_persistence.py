@@ -689,7 +689,7 @@ class WebPersistenceBase():
         cmdargs = [customer_id]
         cmd.append("SELECT")
         cmd.append(columns)
-        cmd.append("FROM users")
+        cmd.append("FROM users u")
         cmd.append("WHERE customer_id=%s")
         if limit:
             cmd.append(limit)

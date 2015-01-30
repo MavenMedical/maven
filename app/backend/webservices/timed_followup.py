@@ -18,7 +18,7 @@ from utils.enums import USER_ROLES, CONFIG_PARAMS
 import json
 import asyncio
 import datetime
-import utils.database.web_persistence as WP
+import app.database.web_persistence as WP
 from utils.streaming.http_svcs_wrapper import http_service, CONTEXT, CONFIG_PERSISTENCE
 import dateutil.relativedelta
 import dateutil.parser
