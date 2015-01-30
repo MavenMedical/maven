@@ -223,7 +223,7 @@ class UserMgmtWebservices():
     def get_group(self, _header, _body, context, matches, _key):
         customer = context[CONTEXT.CUSTOMERID]
         id = matches[0]
-        desired = {WP.Results.username: 'value', WP.Results.userid: 'id'}
+        desired = {WP.Results.username: 'value', WP.Results.userid: 'id', WP.Results.officialname: 'label'}
 
         users = yield from self.persistence.membership_info(desired, customer, group=id)
 
