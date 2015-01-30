@@ -128,7 +128,7 @@ define([
             this.$el.html(this.template(this.groupModel.attributes))
             var selectEl = $('#selectionBox', this.$el)
             $.each(this.groupModel.get('users'), function () {
-                var newEl = $("<option value='" + this.value + "'>" + this.label + "</option>")
+                var newEl = $("<option value='" + this.value + "'>" + this.value + "</option>")
                 //add click handlers
                 //append
                 selectEl.append(newEl)
@@ -167,7 +167,10 @@ define([
                         if (ui.item) {
                             $(event.target).val("");(ui.item.label);
                             $("#recipientUserName").val(ui.item.value);
-                            var newUser = {value: ui.item.value, label: ui.item.label}
+                            var id = parseInt(ui.item.value.split('-')[0])
+                            var value = ui.item.value.split('-')[1]
+                            var newUser = {id:id, value: value, label: ui.item.label}
+
                             that.groupModel.get("users").push(newUser)
                             that.groupModel.save();
                            // var newEl = $("<option value='" + ui.item.value + "'>" + ui.item.label + "</option>")

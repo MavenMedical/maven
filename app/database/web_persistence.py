@@ -1870,8 +1870,8 @@ class WebPersistenceBase():
         cmdArgs.append(group_id)
         cmdArgs.append(customer)
         for key in userJSON:
-            cmd.append("INSERT INTO public.user_membership (customer_id, group_id,  user_name, status) values (%s, %s, %s, %s);")
-            cmdArgs.extend([customer, group_id,  key['value'], status])
+            cmd.append("INSERT INTO public.user_membership (customer_id, group_id, user_name, user_id, status) values (%s, %s, %s, %s, %s);")
+            cmdArgs.extend([customer, group_id,  key['value'], key['id'], status])
         yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
 
         return ""
