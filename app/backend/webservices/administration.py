@@ -119,6 +119,7 @@ class AdministrationWebservices():
                 # WP.Results.username: 'user_name',
                 WP.Results.officialname: 'label',
                 WP.Results.username: 'value',
+                WP.Results.userid: 'user_id',
             }
         results = yield from self.persistence.user_info(desired, target_customer, role=targetrole,
                                                         officialname=targetuser, groupexclude=group,

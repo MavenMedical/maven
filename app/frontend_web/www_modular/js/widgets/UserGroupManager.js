@@ -144,6 +144,9 @@ define([
                             dataType: "json",
                             data: $.param(contextModel.toParams()) + "&target_user=" + request.term + "&group=" + that.groupModel.get('id'),
                             success: function (data) {
+                                for (var i = 0; i < data.length; i++){
+                                    data[i].value = data[i].user_id + "-" + data[i].value;
+                                }
                                 response(data);
                             }
                         });

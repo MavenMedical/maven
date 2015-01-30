@@ -9,8 +9,9 @@ define([
     'globalmodels/contextModel',
     'globalmodels/userCollection',
     'text!templates/adminSettings.html',
-], function ($, _, Backbone, contextModel, userCollection, AdminSettingsTemplate) {
+], function ($, _, Backbone, contextModel, UserCollection, AdminSettingsTemplate) {
     var AdminModel = Backbone.Model.extend({url: '/customer_info'});
+    var userCollection = new UserCollection;
 
     var AdminSettings = Backbone.View.extend({
         model: null,
@@ -98,7 +99,7 @@ define([
             {
                 $("#save-admin-message").html("Please enter a valid number for the timeout");
             }
-            else if (unlocked && ip == "")
+            else if (unlocked && ip == "" && contextModel.get("customer_id")==0)
             {
                 $("#save-admin-message").html("Please enter a Unity URL");
             }
@@ -109,7 +110,7 @@ define([
             else {
                 var protocol = $("#httphttps").find(":selected").text();
                 var data;
-                if (unlocked || !this.model.attributes.settings) {
+                if ((unlocked && contextModel.get("customer_id")==0) || !this.model.attributes.settings) {
                     console.log('loading from fields');
                     data = {
                         "EHRURL": $.trim(protocol) + $.trim(ip),
@@ -120,6 +121,9 @@ define([
                     console.log('loading from ', this.model.attributes.settings);
                     data = _.clone(this.model.attributes.settings);
                     _.extend(data, {"EHRPolling": polling, "UserTimeout": timeout, 'locked': 'locked'});
+                    if (unlocked) {
+                        _.extend(data, {'EHRDisabled': disabled})
+                    }
                 }
 
                 var argData = {};
@@ -140,7 +144,7 @@ define([
                             alert("Connection settings saved!");
                         }
                         userCollection.refresh();
-                        setTimeout(function() {userCollection.refresh()}, 7000);
+                        //setTimeout(function() {userCollection.refresh()}, 7000);
                         },
                         error: function (resp){
                             alert("The server could NOT successfully connect using this configuration.  " + resp.responseJSON);
@@ -161,7 +165,9 @@ define([
                 }
                 this.model.attributes.settings.target_customer = this.extraData['target_customer'];
             }
-            this.$el.html(this.template(this.model.attributes.settings));
+            var params = {}
+            $.extend(params, contextModel.toParams(), {customer: contextModel.get("customer_id")})
+            this.$el.html(this.template(params));
             /*$(document).ready(function(){
                 $("#admin-ehr-disable", this.$el).bootstrapSwitch();
             });*/
