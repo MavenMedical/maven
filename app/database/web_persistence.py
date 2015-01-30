@@ -608,6 +608,7 @@ class WebPersistenceBase():
         Results.status: "user_membership.status",
         Results.startdate: "user_membership.begin_datetime",
         Results.enddate: "user_membership.end_datetime",
+        Results.officialname: "users.official_name",
     }
     _display_membership_info = _build_format({
         Results.startdate: lambda x: x and _prettify_datetime(x),
@@ -625,6 +626,7 @@ class WebPersistenceBase():
         cmd.append("SELECT")
         cmd.append(columns)
         cmd.append("FROM user_membership")
+        cmd.append("LEFT JOIN users on users.user_id = user_membership.user_id")
         cmd.append("WHERE user_membership.customer_id = %s")
         cmdargs.append(customer)
         if group:
