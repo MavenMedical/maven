@@ -1862,25 +1862,31 @@ class WebPersistenceBase():
         return id
 
     @asyncio.coroutine
-    def update_group(self, customer, id, name, description, status, userJSON):
-        cmd = ["UPDATE public.user_group SET (group_name, group_description, status) = (%s, %s, %s);"]
-        cmdArgs = [name, description, status]
+    def update_group(self, customer, group_id, name, description, status, userJSON):
+      try:
+        cmd = ["UPDATE public.user_group SET (group_name, group_description, status) = (%s, %s, %s) WHERE group_id = %s and customer_id = %s;"]
+        cmdArgs = [name, description, status, group_id, customer]
         cmd.append("DELETE FROM public.user_membership WHERE group_id= %s AND customer_id = %s;")
-        cmdArgs.append(id)
+        cmdArgs.append(group_id)
         cmdArgs.append(customer)
         for key in userJSON:
-            cmd.append("INSERT INTO public.user_membership (customer_id, group_id, user_id, name, description, status) values (%s, %s, %s, %s %s);")
-            cmdArgs.append(customer, id, key['id'], name, description, status)
+            cmd.append("INSERT INTO public.user_membership (customer_id, group_id,  user_name, status) values (%s, %s, %s, %s);")
+            cmdArgs.extend([customer, group_id,  key['value'], status])
+        yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
 
-        return
+        return ""
+      except:
+          ML.EXCEPTION('here')
+          raise
 
     @asyncio.coroutine
-    def remove_group(self, groupID):
+    def remove_group(self, customer, groupID):
 
-        cmd = ["DELETE FROM public.user_group",
-               "WHERE group_id = %s"]
+        cmd = ["DELETE FROM public.user_group WHERE group_id = %s;"]
         cmdArgs = [groupID]
-
+        cmd.append("DELETE FROM public.user_membership WHERE group_id= %s AND customer_id = %s;")
+        cmdArgs.append(groupID)
+        cmdArgs.append(customer)
         yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
         return
 

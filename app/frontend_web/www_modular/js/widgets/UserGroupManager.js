@@ -123,18 +123,28 @@ define([
 
         },
         render: function () {
+            var that = this;
+
             this.$el.html(this.template(this.groupModel.attributes))
             var selectEl = $('#selectionBox', this.$el)
             $.each(this.groupModel.get('users'), function () {
-                var newEl = $("<option value='" + this.value + "'>" + this.value + "</option>")
+                var newEl = $("<option value='" + this.value + "'>" + this.label + "</option>")
                 //add click handlers
                 //append
                 selectEl.append(newEl)
             })
             $('#removeButton', this.$el).on('click', function () {
                 //remove the selected users from the group
+                var value = $('#selectionBox', that.$el).val()
+                for (var i in that.groupModel.get('users')){
+                    var cur = that.groupModel.get('users')[i]
+                    if (cur.value == value){
+                        that.groupModel.get('users').splice(i, 1)
+                    }
+
+                }
+                that.groupModel.save()
             })
-            var that = this;
             $(document).ready(function() {
                 $('#user-field').autocomplete({
                     source: function (request, response) {
@@ -154,8 +164,11 @@ define([
                         if (ui.item) {
                             $(event.target).val("");(ui.item.label);
                             $("#recipientUserName").val(ui.item.value);
-                            var newEl = $("<option value='" + ui.item.value + "'>" + ui.item.label + "</option>")
-                            selectEl.append(newEl)
+                            var newUser = {value: ui.item.value, label: ui.item.label}
+                            that.groupModel.get("users").push(newUser)
+                            that.groupModel.save();
+                           // var newEl = $("<option value='" + ui.item.value + "'>" + ui.item.label + "</option>")
+                           // selectEl.append(newEl)
                         }
                     }
                 });

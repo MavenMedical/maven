@@ -264,8 +264,8 @@ class UserMgmtWebservices():
                   {CONTEXT.CUSTOMERID: int, CONTEXT.ROLES: list, CONTEXT.NAME: str},
                   {USER_ROLES.administrator, USER_ROLES.supervisor, USER_ROLES.provider})
     def remove_group(self, _header, _body, context, matches, _key):
-        # customer = context[CONTEXT.CUSTOMERID]
-        results = yield from self.persistence.remove_group(matches[0])
+        customer = context[CONTEXT.CUSTOMERID]
+        results = yield from self.persistence.remove_group(customer, matches[0])
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
     @http_service(['POST'], '/user_group/',
