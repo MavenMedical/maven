@@ -46,7 +46,7 @@ define([
                 this.type  = 'implications'
             }
 
-             this.activeTriggers = treeContext.get('selectedNode').get(this.type)
+            this.activeTriggers = treeContext.get('selectedNode').get(this.type)
             var that = this;
             this.template = _.template(wizardTemplate)
             this.$el.html(this.template({isHead: this.type == 'triggers'}))
