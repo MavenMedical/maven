@@ -1,6 +1,9 @@
 #!/bin/bash
 SYSNAME=$1
-DISKNAME=$2
+DISKNAME=$1-disk
+MACHINEREGION=$2
+MACHINETYPE=$3  # if machine type is empty - assume the machine already exists
+DISKSIZE=$4
 
 # Check to see if DISKNAME already exists
 if gcloud compute disks list | grep "^..${DISKNAME} "; then
@@ -8,20 +11,24 @@ if gcloud compute disks list | grep "^..${DISKNAME} "; then
     exit 1
 fi
 # Create the Disk
-gcloud compute disks create $DISKNAME --size 100 --type pd-standard --zone us-central1-f
+gcloud compute disks create $DISKNAME --size $DISKSIZE --type pd-standard --zone $MACHINEREGION
 
-# Check to see if SYSNAME already exists
-if gcloud compute instances list | grep "^..${SYSNAME} "; then
-    echo instance $SYSNAME already exists
-    exit 1
-fi
-# Create the Instance
-gcloud compute instances create $SYSNAME --zone us-central1-f --machine-type g1-small --image centos-7  --tags dev ssh
-if [ $? -eq 0 ]; then
-    sleep 60
-else
-    echo gcloud compute instances create $SYSNAME failed
-    exit 1
+if [ ! -z $MACHINETYPE ]; then
+    # only create the instance in it a machinetype is passed in
+    # Check to see if SYSNAME already exists
+    if gcloud compute instances list | grep "^..${SYSNAME} "; then
+        echo instance $SYSNAME already exists
+        exit 1
+    fi
+
+    # Create the Instance
+    gcloud compute instances create $SYSNAME --zone $MACHINEREGION --machine-type $MACHINETYPE --image centos-7  --tags dev ssh
+    if [ $? -eq 0 ]; then
+        sleep 60
+    else
+        echo gcloud compute instances create $SYSNAME failed
+        exit 1
+    fi
 fi
 
 # Make sure that the Instance was created before trying to attach the disk to the instance
@@ -35,13 +42,13 @@ if ! (gcloud compute disks list | grep $DISKNAME) then
     exit 1
 fi
 # Attach the Disk to the Instance
-gcloud compute instances attach-disk $SYSNAME --disk $DISKNAME --zone us-central1-f
+gcloud compute instances attach-disk $SYSNAME --disk $DISKNAME --zone $MACHINEREGION
 
 # Send the Setup Scripts needed to install the components for the database host
-gcloud compute copy-files setup_scripts/common.sh setup_scripts/database_only.sh setup_scripts/postgres_helper.sh $SYSNAME:~/ --zone us-central1-f
-gcloud compute copy-files ~/maven/app/database $SYSNAME:~/database --zone us-central1-f
+gcloud compute copy-files setup_scripts/common.sh setup_scripts/database_only.sh setup_scripts/postgres_helper.sh $SYSNAME:~/ --zone $MACHINEREGION
+gcloud compute copy-files ~/maven/app/database $SYSNAME:~/database --zone $MACHINEREGION
 
 # Run the Setup Scripts
-#echo "bash common.sh" | gcloud compute ssh $SYSNAME --zone us-central1-f
-gcloud compute ssh $SYSNAME --zone us-central1-f --ssh-flag="-t" --command "bash common.sh"
-gcloud compute ssh $SYSNAME --zone us-central1-f --ssh-flag="-t" --command "bash database_only.sh"
+#echo "bash common.sh" | gcloud compute ssh $SYSNAME --zone $MACHINEREGION
+gcloud compute ssh $SYSNAME --zone $MACHINEREGION --ssh-flag="-t" --command "bash common.sh"
+gcloud compute ssh $SYSNAME --zone $MACHINEREGION --ssh-flag="-t" --command "bash database_only.sh"

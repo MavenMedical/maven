@@ -1,4 +1,9 @@
 #!/bin/bash
+if [ -e common.started ]; then
+    exit 0
+fi
+touch common.started
+
 sudo yum update -y
 sudo yum install epel-release -y
 sudo yum install elinks screen git emacs kernel-headers fuse-libs fuse-devel fuse lvm2 wireshark nc iptraf iftop psacct pam-devel collectl pcre-devel zlib-devel openssl-devel gcc libpqxx-devel libpqxx libffi-devel readline-devel -y
