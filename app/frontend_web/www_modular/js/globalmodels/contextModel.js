@@ -48,40 +48,39 @@ define([
         }
         var offset = (new Date()) - readCookie('now')
         scheduleLogout(offset);
-	contextModel.set({'loginTemplate':null});
-	//if(res.get('stylesheet')) {
+        contextModel.set({'loginTemplate':null});
+        //if(res.get('stylesheet')) {
 
-	    setActiveStyleSheet('demo');
+        setActiveStyleSheet('demo');
 
-	//}
-	// each row is {element, widget, template}
-	var widgetlist = res.get('widgets');
-	var viewlist = [];
+        //}
+        // each row is {element, widget, template}
+        var widgetlist = res.get('widgets');
+        var viewlist = [];
 
-	var templatelist = [];
-	for (var ind in widgetlist) {
-	    var row = widgetlist[ind];
-	    viewlist.push('widgets/'+row.widget);
-		templatelist.push('text!/templates/'+row.template);
-	    console.log('adding view '+row.widget +' to element #'+row.element +
-			' with template '+ row.template); //templatelist[templatelist.length-1]);
-	}
-	require(viewlist.concat(templatelist), function () {
-	    for(var i=0;i<viewlist.length;i++) {
+         var templatelist = [];
+         for (var ind in widgetlist) {
+             var row = widgetlist[ind];
+             viewlist.push('widgets/'+row.widget);
+                 templatelist.push('text!/templates/'+row.template);
+             console.log('adding view '+row.widget +' to element #'+row.element +
+                         ' with template '+ row.template); //templatelist[templatelist.length-1]);
+         }
+         require(viewlist.concat(templatelist), function () {
+             for(var i=0;i<viewlist.length;i++) {
 
-        var el
-        if (widgetlist[i].element =='contentRow'){
-            $('#dynamic-content').append("<div class='row content-row'></div>")
-	    el = $('.row', $('#dynamic-content')).last()
-	} else if (widgetlist[i].element == 'floating-right') {
-            $('#floating-right').append("<div class='row content-row'></div>")
-	    el = $('.row', $('#floating-right')).last()
-	} else if (widgetlist[i].element =='floating-left') {
-            $('#floating-left').append("<div class='row content-row'></div>")
-	    el = $('.row', $('#floating-left')).last()
-        } else if (widgetlist[i].element =='fixed-topB') {
-            $('#fixed-topB').append("<div class='col-xs-12'></div>")
-	    el = $('.col-xs-12', $('#fixed-topB')).last()
+         var el
+         if (widgetlist[i].element =='contentRow'){
+             $('#dynamic-content').append("<div class='row content-row'></div>")
+             el = $('.row', $('#dynamic-content')).last()
+         } else if (widgetlist[i].element == 'floating-right') {
+             $('#floating-right').append("<div class='row content-row'></div>")
+             el = $('.row', $('#floating-right')).last()
+         } else if (widgetlist[i].element =='floating-left') {
+             $('#floating-left').append("<div class='row content-row'></div>")
+             el = $('.row', $('#floating-left')).last()
+         } else if (widgetlist[i].element =='fixed-topB') {
+             el = $("<div></div>").appendTo($('#fixed-topB'))
         } else {
             el = $("#"+ widgetlist[i].element)
 	}
