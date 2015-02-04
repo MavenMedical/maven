@@ -32,12 +32,14 @@ if ! (gcloud compute instances list | grep $SYSNAME) then
     exit 1
 fi
 
+gcloud compute instances add-tags $SYSNAME --tags web
+
 gcloud compute copy-files $DEPLOYKEYFILE $SYSNAME:~/deploy-key
-gcloud compute copy-files $GITSERVERFINGERPRINTFILE $SYSNAME:~/githug_server_fingerprint --zone $MACHINEREGION
+gcloud compute copy-files $GITSERVERFINGERPRINTFILE $SYSNAME:~/github_server_fingerprint --zone $MACHINEREGION
 gcloud compute copy-files $WEBSERVERCRT $SYSNAME:~/server.crt --zone $MACHINEREGION
 gcloud compute copy-files $WEBSERVERKEY $SYSNAME:~/server.key --zone $MACHINEREGION
 
-gcloud compute copy-files setup_scripts/common.sh setup_scripts/web_host_only.sh .bashrc $SYSNAME:~/ --zone $MACHINEREGION
+gcloud compute copy-files setup_scripts/common.sh setup_scripts/web_host_only.sh .bashrc maven.config nginx.base.conf nginx.conf $SYSNAME:~/ --zone $MACHINEREGION
 
 gcloud compute ssh $SYSNAME --zone $MACHINEREGION --ssh-flag="-t" --command "bash common.sh"
 gcloud compute ssh $SYSNAME --zone $MACHINEREGION --ssh-flag="-t" --command "bash web_host_only.sh"

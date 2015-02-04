@@ -8,9 +8,10 @@ sudo yum install cryptsetup -y
 sudo yum install postgresql94 postgresql94-server postgresql94-contrib -y
 
 DATA_DRIVE=/dev/sdb
-PW="maven"
+read -p 'enter database partition password: ' PW
 echo $PW | sudo cryptsetup --verbose --batch-mode --key-file - luksFormat $DATA_DRIVE
 echo $PW | sudo cryptsetup --key-file - luksOpen $DATA_DRIVE maven_LUKS
+
 #Format the partition
 sudo mkfs.ext4 /dev/mapper/maven_LUKS
 
@@ -21,7 +22,7 @@ sudo mount -t ext4 /dev/mapper/maven_LUKS ~postgres
 sudo cd ~postgres
 sudo chown postgres ~postgres
 sudo chgrp postgres ~postgres
-sudo setenforce 0
+#sudo setenforce 0
 
 # Run database set-up commands as the Root user
 sudo su -c "bash postgres_helper.sh"
@@ -46,7 +47,3 @@ echo "
 "  | sudo tee -a /etc/rc.local
 
 chmod g+rx /home/devel
-cd ~/database
-sudo ./installAsRoot.sh
-cd ~/maven/scripts_testing_benchmarking/gitHooks/cloudBoxes
-./explicit-db-update
