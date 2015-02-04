@@ -4,6 +4,10 @@ DISKNAME=$1-disk
 MACHINEREGION=$2
 MACHINETYPE=$3  # if machine type is empty - assume the machine already exists
 DISKSIZE=$4
+DEPLOYKEYFILE=$5
+GITSERVERFINGERPRINTFILE=$6
+DBPASSWORD=$7 
+#echo create database: $@
 
 # Check to see if DISKNAME already exists
 if gcloud compute disks list | grep "^..${DISKNAME} "; then
@@ -45,8 +49,10 @@ fi
 gcloud compute instances attach-disk $SYSNAME --disk $DISKNAME --zone $MACHINEREGION
 
 # Send the Setup Scripts needed to install the components for the database host
-gcloud compute copy-files setup_scripts/common.sh setup_scripts/database_only.sh setup_scripts/postgres_helper.sh $SYSNAME:~/ --zone $MACHINEREGION
-gcloud compute copy-files ~/maven/app/database $SYSNAME:~/database --zone $MACHINEREGION
+gcloud compute copy-files $DEPLOYKEYFILE $SYSNAME:~/deploy-key --zone $MACHINEREGION
+gcloud compute copy-files $GITSERVERFINGERPRINTFILE $SYSNAME:~/github_server_fingerprint --zone $MACHINEREGION
+gcloud compute copy-files setup_scripts/common.sh setup_scripts/database_only.sh setup_scripts/postgres_helper.sh .bashrc maven.config $SYSNAME:~/ --zone $MACHINEREGION
+#gcloud compute copy-files ~/maven/app/database $SYSNAME:~/database --zone $MACHINEREGION
 
 # Run the Setup Scripts
 #echo "bash common.sh" | gcloud compute ssh $SYSNAME --zone $MACHINEREGION

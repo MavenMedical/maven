@@ -7,14 +7,7 @@ source ~/.bashrc
 
 cd
 
-cp deploy-key .ssh/id_rsa
-cat github_server_fingerprint >> .ssh/known_hosts
-chmod 600 .ssh/*
-git clone git@github.com:MavenMedical/maven.git
-
-cd maven
-git checkout DEV
-cp scripts_testing_benchmarking/gitHooks/cloudBoxes/* .git/hooks/
+cp ~/maven/scripts_testing_benchmarking/gitHooks/cloudBoxes/* .git/hooks/
 chmod +x .git/hooks/*
 
 cd
@@ -38,10 +31,10 @@ chmod g+rx `pwd`
 
 sudo usermod -G `whoami` -a nginx
 sudo systemctl start nginx
+cd ~/maven/app/frontend_web/nodejs/ && node r.js -o build.js && cd
 
 sudo yum install rabbitmq-server -y
-chown -R rabbitmq:rabbitmq /var/log/rabbitmq
-sudo systemctl start rabbitmq-server
+sudo chown -R rabbitmq:rabbitmq /var/log/rabbitmq
 sudo systemctl enable rabbitmq-server
 
 echo "/etc/limited/restartnginx
@@ -63,16 +56,17 @@ sudo chcon -R -t httpd_user_content_t .
 sudo setenforce 1
 sudo chmod +x /etc/rc.d/rc.local
 mkdir ~/.postgresql
-cd .postgresql/
-echo user=postgres dbname=maven >> command-line-connect
+mv command-line-connect .postgresql
+if [ -r postgresql.crt ]; then
+    mv postgresql.crt postgresql.key root.crt .postgresql
+fi
 
 sudo setsebool -P httpd_read_user_content 1
 sudo semanage port -a -t http_port_t -p tcp 8087
 sudo semanage port -a -t http_port_t -p tcp 8092
 sudo semanage port -a -t http_port_t -p tcp 8088
 sudo semanage port -a -t amqp_port_t -p tcp 25672
+sudo systemctl start rabbitmq-server
 
-cd ~/database
-sudo ./installAsRoot.sh
 cd ~/maven/scripts_testing_benchmarking/gitHooks/cloudBoxes
 ./explicit-db-update

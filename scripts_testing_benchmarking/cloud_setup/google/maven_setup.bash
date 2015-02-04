@@ -80,7 +80,7 @@ while [[ ! $PROTOCOL =~ ^[hsb]$ ]] ; do
 done
 
 if [[ $PROTOCOL =~ ^[sb]$ ]]; then
-   while [[ -z $WEBSERVERCRT || -z WEBSERVERKEY ]]; do
+   while [[ ! ( -r $WEBSERVERCRT && -r $WEBSERVERKEY ) ]]; do
      read -p 'Enter the filename of the ssl server crt and (unencrypted) server key to be copied to the web host, with the filenames separated by a space ' WEBSERVERCRT WEBSERVERKEY
    done
    ./nginx.conf.bash ssl >> nginx.conf
@@ -102,7 +102,7 @@ if [[ $HARDEN =~ ^y$ ]]; then
 fi
 
 DEPLOYKEY=
-while [ -z $DEPLOYKEY ]; do
+while [[ ! -r $DEPLOYKEY ]]; do
   read -p 'Enter the filename for the ssh deploykey to pull the software from git ' DEPLOYKEY
 done
 
@@ -119,7 +119,8 @@ else
    DBEXTRA="sslmode=verify-ca"
 fi
 
-echo "dbconnection: dbname=maven user=maven host=$DBCONHOST port=5432 $DBEXTRA
+echo "[global]
+dbconnection: dbname=maven user=maven host=$DBCONHOST port=5432 $DBEXTRA
 reporterhost: $REPORTERHOST
 http_addr: $WEBURL
 wrap_exception: $WRAPEXCEPTION
@@ -127,9 +128,13 @@ slack_url: $SLACKURL
 recaptcha_public: $RECAPTCHAPUBLIC
 recaptcha_private: $RECAPTCHAPRIVATE" > maven.config
 
-echo ./create_new_database_host $DBHOST $MACHINEREGION $MACHINETYPE $DISKSIZE
+rm -f command-line-connect
+echo user=maven dbname=maven host=$DBHOST $DBEXTRA > command-line-connect
+
+
+./create_new_database_host $DBHOST $MACHINEREGION $MACHINETYPE $DISKSIZE $DEPLOYKEY github_server_fingerprint $DBPASSWORDd
 if [[ $ARCH =~ ^s$ ]]; then
- echo   ./create_new_web_host $WEBHOST $MACHINEREGION "" $DEPLOYKEY github_server_fingerprint $WEBSERVERCRT $WEBSERVERKEY
+    ./create_new_web_host $WEBHOST $MACHINEREGION "" $DEPLOYKEY github_server_fingerprint $WEBSERVERCRT $WEBSERVERKEY
 else
- echo   ./create_new_web_host $WEBHOST $MACHINEREGION $MACHINETYPE $DEPLOYKEY github_server_fingerprint $WEBSERVERCRT $WEBSERVERKEY
+    ./create_new_web_host $WEBHOST $MACHINEREGION $MACHINETYPE $DEPLOYKEY github_server_fingerprint $WEBSERVERCRT $WEBSERVERKEY
 fi

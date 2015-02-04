@@ -23,11 +23,13 @@ cd Python-3.4.2
 make -j 4
 sudo make altinstall
 
+cd
 wget http://yum.postgresql.org/9.4/redhat/rhel-7-x86_64/pgdg-centos94-9.4-1.noarch.rpm
 sudo yum install pgdg-centos94-9.4-1.noarch.rpm -y
-sudo yum install postgresql94
-sudo ln -s /usr/pgsql-0.4/bin/psql /usr/bin
+sudo yum install postgresql94 -y
+sudo rm /usr/bin/psql && sudo ln -s /usr/pgsql-9.4/bin/psql /usr/bin
 
+cd
 sudo usermod -a -G adm devel
 sudo mkdir /etc/mavenmedical
 sudo cp maven.config /etc/mavenmedical/
@@ -43,3 +45,11 @@ sudo mkdir /etc/limited
 sudo chmod -R 755 /etc/limited
 
 #%adm ALL=(postgres)NOPASSWD: /usr/bin/mount,/etc/limited/restartpostgres,/etc/limited/restartnginx 
+
+cd
+cp deploy-key .ssh/id_rsa
+cat github_server_fingerprint >> .ssh/known_hosts
+chmod 600 .ssh/*
+git clone git@github.com:MavenMedical/maven.git
+cd maven
+git checkout DEV

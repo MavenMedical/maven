@@ -1,4 +1,5 @@
 #!/bin/bash
+PASSWORD=$1
 echo "local0.*		  /var/log/postgresql" | sudo tee -a /etc/rsyslog.conf
 
 #LUKS,install if nessecary 
@@ -47,3 +48,6 @@ echo "
 "  | sudo tee -a /etc/rc.local
 
 chmod g+rx /home/devel
+
+cd ~/maven/app/database
+sudo ./installAsRoot.sh $PASSWORD
