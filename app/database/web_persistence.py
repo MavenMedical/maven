@@ -1,3 +1,10 @@
+# This file provides the high level wrapper for all of our database calls.
+# It sits on top of the connection-pool layer, and provides a much nicer abstraction.
+# Where we're managed to stick with the pattern, each function takes a map of desired return values for each row.
+# Only the desired rows are fetched, and returned with a name supplied by the calling function.
+# With this pattern, an order by parameter, and data ranges can also be specified (though this convention
+# was somewhat lost with others working on this file as well.
+
 import asyncio
 from enum import Enum
 from collections import defaultdict

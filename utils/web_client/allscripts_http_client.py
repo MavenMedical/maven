@@ -7,7 +7,7 @@ from xml.etree import ElementTree as ETree
 from enum import Enum
 from maven_config import MavenConfig
 import maven_logging as ML
-from maven_logging import WARN, EXCEPTION, INFO
+from maven_logging import WARN, INFO
 import utils.database.memory_cache as memory_cache
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
 import dateutil.parser
@@ -59,6 +59,9 @@ def is_power_two(num: int):
 
 
 def check_output(jobj, empty_ok=False):
+    """ Called on the output from (most) unity API calls.
+    Parse the return value, and throw an error if indicated
+    """
     exc = None
     if not jobj:
         raise AllscriptsError("Query returned empty string")
@@ -199,6 +202,10 @@ class allscripts_api(http.http_api):
                     if self.unitytoken:
                         return (yield from co_func(self, *args, **kwargs))
                 except AllscriptsError as e:
+                    # !!!! at one point we kept trying in the event of certain kinds of errors
+                    # Allscripts is *not* robust to handle this.  If it gets heavily loaded,
+                    # it can give back nonsense errors.  If we keep trying, we just increase the load
+
                     #if lasterror != e.args[0]:
                     #    lasterrorcount = 0
                     #    lasterror = e.args[0]
@@ -765,6 +772,8 @@ class allscripts_api(http.http_api):
         return fhir_practitioner
 
 
+# this main section is entirely for testing out commands manually.  Expect to tweak the code directly to connect
+# to a different server or with different credentials, or to call things in a different way.
 if __name__ == '__main__':
     MavenConfig['allscripts_old_demo'] = {
         http.CONFIG_BASEURL: 'http://aws-eehr-11.4.1.unitysandbox.com/Unity/UnityService.svc',

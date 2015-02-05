@@ -70,3 +70,6 @@ sudo systemctl start rabbitmq-server
 
 cd ~/maven/scripts_testing_benchmarking/gitHooks/cloudBoxes
 ./explicit-db-update
+cd ~/maven
+nohup ./run_maven.sh
+

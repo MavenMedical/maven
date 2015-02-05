@@ -33,7 +33,6 @@ class NotificationService():
                 asyncio.Task(save_task_fn(customer, user, 'Notification from Maven',
                                           v))
 
-        self.messages = TimeoutDict(expire_fn, 2)
         self.listeners = {}
         self.queue_delay = self.config.get(CONFIG_QUEUEDELAY, 0)
         self.loop = loop or asyncio.get_event_loop()
@@ -84,23 +83,20 @@ class NotificationService():
 
         ML.report('/notification_service/%s/poll/%s' % (customer, user))
 
-        if key in self.messages:
-            ret = self.messages.pop(key)
+        if key in self.listeners and not self.listeners[key].done():
+            f = self.listeners[key]
         else:
-            if key in self.listeners and not self.listeners[key].done():
-                f = self.listeners[key]
-            else:
-                f = asyncio.Future()
-                self.listeners[key] = f
-            try:
-                # wait for a message
-                ret = yield from asyncio.wait_for(f, self.queue_delay, loop=self.loop)
-            except:
-                pass
-            finally:
-                # wait_for does not cancel the future, so do that explicitly upon any error
-                if not f.done():
-                    f.cancel()
+            f = asyncio.Future()
+            self.listeners[key] = f
+        try:
+            # wait for a message
+            ret = yield from asyncio.wait_for(f, self.queue_delay, loop=self.loop)
+        except:
+            pass
+        finally:
+            # wait_for does not cancel the future, so do that explicitly upon any error
+            if not f.done():
+                f.cancel()
 
         return (HR.OK_RESPONSE, json.dumps(ret), None)
 

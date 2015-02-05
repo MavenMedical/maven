@@ -20,7 +20,7 @@ sudo mkfs.ext4 /dev/mapper/maven_LUKS
 #switch to root user
 #sudo su --> this causes the script to hang, not sure what changed in the gcutil-to-gcloud transition
 sudo mount -t ext4 /dev/mapper/maven_LUKS ~postgres
-sudo cd ~postgres
+
 sudo chown postgres ~postgres
 sudo chgrp postgres ~postgres
 #sudo setenforce 0
@@ -29,8 +29,16 @@ sudo chgrp postgres ~postgres
 sudo su -c "bash postgres_helper.sh"
 
 sudo usermod -G `whoami` -a postgres
+
+cd
+if [[ -r database_add_ssl.sh && -r db-server.key ]]; then
+    chmod a+r db-*
+    mv db-* /tmp
+    sudo bash ./database_add_ssl.sh
+fi
+
 sudo systemctl start postgresql-9.4
-sudo systemctl enable postgresql-9.4
+#sudo systemctl enable postgresql-9.4
 sudo echo 'PATH=/usr/pgsql-9.4/bin:${PATH}' >> ~/.bashrc
 
 #Note - on google, EBS storage of a truecrypt encrypted partition passed the closest I can get to a "disk pull plug" test.  A single pass doesn't prove much - only that the system isn't horribly broken.  It was also getting around 120 writes/second (compared to amazon's 80).  The writes/second matches what happened without truecrypt, so I don't think encryption costs us anything.

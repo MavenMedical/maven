@@ -6,10 +6,13 @@ DEPLOYKEYFILE=$4
 GITSERVERFINGERPRINTFILE=$5
 WEBSERVERCRT=$6
 WEBSERVERKEY=$7
+DBCLIENTKEY=$8
+DBCLIENTCERT=$9
+DBCLIENTROOT=${10}
 
 echo create web host: $@
 
-if [ ! -z $MACHINETYPE ]; then
+if [[ ! -z $MACHINETYPE ]]; then
     # only create the instance in it a machinetype is passed in
     # Check to see if SYSNAME Instance already exists
     if gcloud compute instances list | grep "^..${SYSNAME} "; then
@@ -33,12 +36,19 @@ if ! (gcloud compute instances list | grep $SYSNAME) then
     exit 1
 fi
 
-gcloud compute instances add-tags $SYSNAME --tags web
+gcloud compute instances add-tags $SYSNAME --tags web --zone $MACHINEREGION
 
-gcloud compute copy-files $DEPLOYKEYFILE $SYSNAME:~/deploy-key
+gcloud compute copy-files $DEPLOYKEYFILE $SYSNAME:~/deploy-key --zone $MACHINEREGION
 gcloud compute copy-files $GITSERVERFINGERPRINTFILE $SYSNAME:~/github_server_fingerprint --zone $MACHINEREGION
-gcloud compute copy-files $WEBSERVERCRT $SYSNAME:~/server.crt --zone $MACHINEREGION
-gcloud compute copy-files $WEBSERVERKEY $SYSNAME:~/server.key --zone $MACHINEREGION
+if [[ -r "$WEBSERVERCRT" ]]; then
+    gcloud compute copy-files $WEBSERVERCRT $SYSNAME:~/server.crt --zone $MACHINEREGION
+    gcloud compute copy-files $WEBSERVERKEY $SYSNAME:~/server.key --zone $MACHINEREGION
+fi
+if [[ -r "$DBCLIENTKEY" ]]; then
+    gcloud compute copy-files $DBCLIENTKEY $SYSNAME:~/postgresql.key --zone $MACHINEREGION
+    gcloud compute copy-files $DBCLIENTCERT $SYSNAME:~/postgresql.crt --zone $MACHINEREGION
+    gcloud compute copy-files $DBCLIENTROOT $SYSNAME:~/root.crt --zone $MACHINEREGION
+fi
 
 gcloud compute copy-files setup_scripts/common.sh setup_scripts/web_host_only.sh .bashrc maven.config nginx.base.conf nginx.conf command-line-connect $SYSNAME:~/ --zone $MACHINEREGION
 

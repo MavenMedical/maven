@@ -80,7 +80,7 @@ while [[ ! $PROTOCOL =~ ^[hsb]$ ]] ; do
 done
 
 if [[ $PROTOCOL =~ ^[sb]$ ]]; then
-   while [[ ! ( -r $WEBSERVERCRT && -r $WEBSERVERKEY ) ]]; do
+   while [[ ! ( -r "$WEBSERVERCRT" && -r "$WEBSERVERKEY" ) ]]; do
      read -p 'Enter the filename of the ssl server crt and (unencrypted) server key to be copied to the web host, with the filenames separated by a space ' WEBSERVERCRT WEBSERVERKEY
    done
    ./nginx.conf.bash ssl >> nginx.conf
@@ -90,19 +90,8 @@ if [[ $PROTOCOL =~ ^[hb]$ ]]; then
     ./nginx.conf.bash >> nginx.conf
 fi
 
-HARDEN=
-while [[ ! $HARDEN =~ ^[ny]$ ]]; do
-      read -n 1 -p 'Do you want to significantly limit ssh access to the machine?  This creates a gateway user as the only user with externally allowed access.  It is accessed only with an ssh key, and it only redirects to an administrative user, or a log-access-only user depending on that key.  That redirect only succeeds if you have the proper google authenticator token.  (y/n) ' HARDEN
-      echo
-done
-
-if [[ $HARDEN =~ ^y$ ]]; then
-   read -p 'Enter the administrative user ssh public key ' ADMINKEY
-   read -p 'Enter the log access user ssh public key ' LOGACCESSKEY
-fi
-
 DEPLOYKEY=
-while [[ ! -r $DEPLOYKEY ]]; do
+while [[ ! -r "$DEPLOYKEY" ]]; do
   read -p 'Enter the filename for the ssh deploykey to pull the software from git ' DEPLOYKEY
 done
 
@@ -115,8 +104,33 @@ if [[ $DBPASSWORD =~ p ]]; then
    read -p 'What password? ' DBPASSWORD
    DBEXTRA="password=$DBPASSWORD"
 else
-   DBPASSWORD=
+   DBPASSWORD=mavendevel
    DBEXTRA="sslmode=verify-ca"
+   DBTRUSTEDCA=
+   CLIENTTRUSTEDCA=
+   DBCERT=
+   DBKEY=
+   CLIENTCERT=
+   CLIENTKEY=
+   echo each of the database and web app need a paired cert and key file, as well as a CA cert - the one which signed the others key file
+   while [ ! -r "$DBKEY" ]; do
+       read -p "Enter the database ssl key filename: " DBKEY
+   done
+   while [ ! -r "$DBCERT" ]; do
+       read -p "Enter the cert for this key: " DBCERT
+   done
+   while [ ! -r "$CLIENTTRUSTEDCA" ]; do
+       read -p "Enter the cert of the authority which signed that key, producing the cert: " CLIENTTRUSTEDCA
+   done
+   while [ ! -r "$CLIENTKEY" ]; do
+       read -p "Enter the psql client ssl key filename: " CLIENTKEY
+   done
+   while [ ! -r "$CLIENTCERT" ]; do
+       read -p "Enter the cert for this key: " CLIENTCERT
+   done
+   while [ ! -r "$DBTRUSTEDCA" ]; do
+       read -p "Enter the cert of the authority which signed that key, producing the cert: " DBTRUSTEDCA
+   done
 fi
 
 echo "[global]
@@ -132,9 +146,31 @@ rm -f command-line-connect
 echo user=maven dbname=maven host=$DBHOST $DBEXTRA > command-line-connect
 
 
-./create_new_database_host $DBHOST $MACHINEREGION $MACHINETYPE $DISKSIZE $DEPLOYKEY github_server_fingerprint $DBPASSWORDd
+./create_new_database_host $DBHOST $MACHINEREGION $MACHINETYPE $DISKSIZE $DEPLOYKEY github_server_fingerprint "$DBPASSWORD" "$DBKEY" "$DBCERT" "$DBTRUSTEDCA"
 if [[ $ARCH =~ ^s$ ]]; then
-    ./create_new_web_host $WEBHOST $MACHINEREGION "" $DEPLOYKEY github_server_fingerprint $WEBSERVERCRT $WEBSERVERKEY
+    ./create_new_web_host $WEBHOST $MACHINEREGION "" $DEPLOYKEY github_server_fingerprint "$WEBSERVERCRT" "$WEBSERVERKEY" "$CLIENTKEY" "$CLIENTCERT" "$CLIENTTRUSTEDCA"
 else
-    ./create_new_web_host $WEBHOST $MACHINEREGION $MACHINETYPE $DEPLOYKEY github_server_fingerprint $WEBSERVERCRT $WEBSERVERKEY
+    ./create_new_web_host $WEBHOST $MACHINEREGION $MACHINETYPE $DEPLOYKEY github_server_fingerprint "$WEBSERVERCRT" "$WEBSERVERKEY" "$CLIENTKEY" "$CLIENTCERT" "$CLIENTTRUSTEDCA"
 fi
+
+
+HARDEN=
+while [[ ! $HARDEN =~ ^[ny]$ ]]; do
+      read -n 1 -p 'Do you want to significantly limit ssh access to the machine?  This creates a gateway user as the only user with externally allowed access.  It is accessed only with an ssh key, and it only redirects to an administrative user, or a log-access-only user depending on that key.  That redirect only succeeds if you have the proper google authenticator token.  (y/n) ' HARDEN
+      echo
+done
+
+if [[ $HARDEN =~ ^y$ ]]; then
+    while [ -z "$ADMINKEY" ]; do
+        read -p 'Enter the administrative user ssh public key ' ADMINKEY
+    done
+    while [ -z "$LOGACCESSKEY" ]; do
+        read -p 'Enter the log access user ssh public key ' LOGACCESSKEY
+    done
+    for machine in `echo $WEBHOST $DBHOST | xargs -n1 | sort -u`; do
+        echo hardening $machine.  to copy down both authenticator keys, and connect by ssh gateway@machine.  your private key will determine which user you log in as
+        gcloud compute copy-files --zone $MACHINEREGION setup_scripts/harden.sh $machine:
+        gcloud compute ssh $machine --zone $MACHINEREGION --ssh-flag="-t" --command "bash harden.sh \"$ADMINKEY\" \"$LOGACCESSKEY\""
+    done
+fi
+
