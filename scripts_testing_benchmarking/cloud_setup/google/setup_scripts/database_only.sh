@@ -25,16 +25,18 @@ sudo chown postgres ~postgres
 sudo chgrp postgres ~postgres
 #sudo setenforce 0
 
-# Run database set-up commands as the Root user
-sudo su -c "bash postgres_helper.sh"
-
 sudo usermod -G `whoami` -a postgres
 
 cd
 if [[ -r database_add_ssl.sh && -r db-server.key ]]; then
     chmod a+r db-*
     mv db-* /tmp
+    # Run database set-up commands as the Root user
+    sudo su -c "bash postgres_helper.sh"
     sudo bash ./database_add_ssl.sh
+else
+    # Run database set-up commands as the Root user
+    sudo su -c "bash postgres_helper.sh"
 fi
 
 sudo systemctl start postgresql-9.4

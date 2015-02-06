@@ -13,7 +13,7 @@ sed -i.bak\
 postgresql.conf
 
 rm -f pg_hba.conf
-if [ ! -r db-server.key ]; then
+if [ ! -r /tmp/db-server.key ]; then
     echo "local all all ident
 host   all    postgres          127.0.0.1/32   password
 host   maven  maven             127.0.0.1/32   password

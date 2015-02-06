@@ -44,7 +44,7 @@ read -p 'what region? ' MACHINEREGION
 
 read -p 'How many GB should the database disk be (recommend at least 100)? ' DISKSIZE
 
-read -p "Maven hosts log realtime events to a designated server so that support personel can get quick insights into what's happening.  It is preferred for this host to be on a different machine.  If you have one designated, enter its name here, otherwise enter 'localhost' " REPORTER
+read -p "Maven hosts log realtime events to a designated server so that support personel can get quick insights into what's happening.  It is preferred for this host to be on a different machine.  If you have one designated, enter its name here, otherwise enter 'localhost' " REPORTERHOST
 
 read -p "Maven supports users resetting their own password - but requires a recaptcha first.  Enter two strings separated by a space, the public recaptcha key and then the private key (or leave blank to disable this feature). " RECAPTCHAPUBLIC RECAPTCHAPRIVATE
 
@@ -56,21 +56,21 @@ else
    WRAPEXCEPTION=1
 fi
 
-LOGLEVEL=
-while [[ ! $LOGLEVEL =~ ^[diw]$ ]]; do
-      read -n 1 -p 'Enter the log level, [w]arn, [i]nfo, [d]ebug.  Only use debug on a system with *no* access to ephi as some patient information may be logged to an insecure location, which is only allowed for fake patients in a development/test system. ' LOGLEVEL
-      echo
-done
+#LOGLEVEL=
+#while [[ ! $LOGLEVEL =~ ^[diw]$ ]]; do
+#      read -n 1 -p 'Enter the log level, [w]arn, [i]nfo, [d]ebug.  Only use debug on a system with *no* access to ephi as some patient information may be logged to an insecure location, which is only allowed for fake patients in a development/test system. ' LOGLEVEL
+#      echo
+#done
 
-if [[ $LOGLEVEL =~ ^[d]$ ]]; then
-   LOGLEVEL=DEBUG
-else
-        if [[ $LOGLEVEL =~ ^[i]$ ]]; then
-           LOGLEVEL=INFO
-        else
-           LOGLEVEL=WARN
-        fi
-fi
+#if [[ $LOGLEVEL =~ ^[d]$ ]]; then
+#   LOGLEVEL=DEBUG
+#else
+#        if [[ $LOGLEVEL =~ ^[i]$ ]]; then
+#           LOGLEVEL=INFO
+#        else
+#           LOGLEVEL=WARN
+#        fi
+#fi
 
 PROTOCOL=
 while [[ ! $PROTOCOL =~ ^[hsb]$ ]] ; do
