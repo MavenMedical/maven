@@ -1,0 +1,5 @@
+These are the allscripts-specific files in our clientapp.
+
+allscripts_scheduler.py polls Unity (allscripts 3rd party interface) for the schedule, then for the Maven active providers, it regularly polls Unity for updates to their patients.  If significant updates have happened, we pull more patient information - enough to put together a FHIR composition for further evaluation.  This composition is sent to the backend for further analysis.
+
+allscripts_customer_interface.py is ment to be provide an EHR-generic interface to the clientapp.  It can test if config settings are valid, send messages, keeps track of what users are actively awaiting alerts, and a few other things.

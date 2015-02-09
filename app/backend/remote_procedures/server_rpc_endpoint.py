@@ -6,7 +6,9 @@ __author__ = 'Yuki Uchino'
 # ************************
 # DESCRIPTION:
 #
-#
+# This file runs with the data_router_all_services, but it's interface (over rpc) runs in
+# the clientApp.  So the clientApp can remotely call any of these functions, and they will
+# execute on the data_router
 #
 #
 # ************************

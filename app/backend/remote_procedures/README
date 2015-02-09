@@ -1,0 +1,3 @@
+This file is instantiated by the data_router, and it's interface is registered on the clientApp.  
+
+So this defines the remote-procedure-call interface that the clientapp uses to signal the data_router
