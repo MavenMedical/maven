@@ -1,0 +1,6 @@
+This module encapsulates Maven's cryptographic signing.  Essentially, I don't want a second, authorization related database call for every user-driven operation.  So instead when someone logs in (and when they renew their authorization timeout), we look up all of their credentials, and give them the credentials along with an expiration time, and a hash of these to act as a signature.  An adversary cannot reproduce this, because along with the supplied credentials we hash a 256-bit string generated using postgresql's crypto module when the database is instantiated.
+
+It's fairly straight-forward (because crypto is really easy to mess up), and relies on SHA-2 for all of the cryptographic properties we need.
+def set_secret(b): should be called once before any other crypto methods are called.  These are the keys to the kingdom and should never leave this module.
+def authorization_key(data, length=44, timeout=None, timecode=None): create a base64 encoded authorization key (len=44 is enough for 256 bits) to expire at a given timout in the future, or using a supplied timecode.
+def check_authorization(data, auth, length=44): Check whether a key matches the supplied data and is still valid.

@@ -1,0 +1,29 @@
+Welcome to Maven's software repo.
+
+./run_maven.sh launches our processes on a system properly set up.
+reporter/watcher.py - a real-time statistics aggregator and web server for monitoring our services
+app/database/endpoint/database_endpoint.py - an RPC server which connects to the database.  eventually this can be moved onto the database machine itself, so no other machine get's a direct psql connection to our db.
+app/backend/webservices/data_router_all_services.py - our core application, it includes our web server, as well as the interface with the db and clientapp
+clientApp/webservice/client_server.py - server for epic/vista style push notifications to enter into maven's system
+clientApp/webservice/clientapp_main_server.py - for allscripts, a server which interfaces with Allscripts Unity servers, posting messages, polling for the schedule, and quering to build compositions.
+app/backend/evaluators/composition_evaluator.py - we can support many different kinds of supplimental information added onto a composition.  that information is generated and added here.
+
+
+
+individual files:
+maven_config.py is reads /etc/mavenmedical/maven.config (if exists) and provides a namespace for a dictionary containing other, process-specific parameters.  In general the main module of a program will populate maven_config.MavenConfig with configuration, and other modules will read it and set themselves up correctly.  
+
+maven_logging.py is in part a wrapper around python's logging module, and it also contains functions which are either no-ops, or send messages to the reporter process, or slack.  It reads configuration (like debug level) from a process-name specific logging file in /etc/mavenmedical.net, or a default.
+
+unit_tests.py is a testing framework which looks for files matching unit_test.py, executes them, passes them if they throw no exceptions and (if exists) match a golden file.
+
+
+directories:
+reporter contains the real-time event monitoring server
+scripts_testing_benchmarking contains various scripts - githooks for developer and cloud boxes, those for backing up the db, and those for creating a new maven env in google cloud.  maven_setup.bash is the most important file to know about here.
+app - most of the files needed to run on the server (plus the windows and android clients)
+clientApp - EHR integration specific files (also typically run on the server, but useful to keep distinct)
+env - python environment files
+utils - (mostly) non-maven specific files, stream_processor, database connectivity, crypto, fhir, etc
+exercises - a real-time web-based code editor.  I developed this as a first step in interviewing people - they solve the coding problem in the box provided, and I get to play back a time-accurate version of what they typed to watch them work through the problem.
+

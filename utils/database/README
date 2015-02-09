@@ -1,0 +1,25 @@
+This directory contains utility functions to support database connections, and database connections through remote procedure calls (RPC)
+
+database.py is a wrapper around psycopg2 (open-source postgres connector for python.  It needed a few changes to work with asyncio, plus I added connection pooling.  
+
+Our database stack is as follows:
+5. Non-database application code
+4. Application-specific database code (web_persistence.py)
+3. utils.database.database (connection pooling)
+2. psycopg
+1. postgresql server
+
+This stack permits a lot of flexibility, including making it (relatively) easy to move away from postgres, or a single database machine if desired.
+
+Layer's 1 and 2 can be on the same machine, or different ones (if different, postgres's ssl, ssh-tunneling, or some other encryption/authentication must be used).  In the current configuration (2/9/2015) they use mutual ssl or password, and may or may not be on different machines.
+
+Layers 2 and 3 are tightly bound as database.py is written specifically for psycopg2.  Layer 3 handles mogrification.  So as long as layer 4 developers never add parameters directly to strings.  Layer 4 build sql queries, so it is tied to sql, but could easily work with a different layer 3.
+
+Layer's 4 and 5 are very loosely bound.  Every discinct kind of request needs a function supplied by layer 4.  Layer 5 calls these functions, and doesn't care how they happen.  In it's current form (2/9/2015) layer 5 is running in a different process from layer 4, and calls it's functions transparently via RPC.  As long as the layer 4 functions are defined with coroutines, these is no difference in how one creates a new function between direct functions and rpc calls.
+
+
+memory_cache.py contains code which supplies decorators for any coroutine function that will remember (up to a configurable maximum number of entries) the last value fetched for a given set of parameters (useful for caching return values that rarely change)
+
+timeout_dict provides a dictionary where key/value pairs expire after a supplied amount of time.  Also useful for cachine.
+
+The other files here: web_searcgh, fhir_database are layer 4 files, and probably belong somewhere else (maven/app/database).

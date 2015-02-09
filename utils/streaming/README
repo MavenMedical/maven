@@ -1,0 +1,51 @@
+Early on, we made the decision to abstract away network communication from our application modules.  This directory provides that abstraction layer.
+
+Application code is written to take an input (sent to the module by calling read_object which passes in the object, and a channel key), and possibly give off one or more outputs (by calling write_object, possibly also providing a channel key).  We also support (but don't use - at least not much) a timed_message, which gets called with no arguments periodically.  The application code simply has to subclass stream_processor, and define it's network connections in a configuration file (we support connections through direct function call (mostly for unit-testing), rabbitmq, and asyncio tcp connections.
+
+This framework makes unit-testing and topology reconfiguration easy, and forces asyncronous processing.
+
+Some examples: if you want to listen for input, clean it up, and send it on it is meets some condition, simply define a processor when tests/cleans/and calls write_object on any data it gets.  As long as the configuration dict specifies how to listen and where to write, it works.
+
+If configured that way, processors can write back to the channel that the data came from.  So an echo server would look like:
+@asyncio.coroutine
+def read_object(self, obj, channel):
+    self.write_object(obj, channel)
+
+
+We can also have paired processors, different classes but running in the same process.  So one server can receive input from a client, send it and it's channel name on to further processing.  Another processor can received data after the processing elsewhere is complete, and forward the response back back to the client:
+(initial receiver)
+def read_object(self, obj, channel):
+    self.write_object((obj, channel))
+
+(processor which returns the object)
+def read_object(self, obj, channel):
+    return_object, return_channel = obj  # obj is assumed to be a tuple here
+    self.write_object(return_object, return_channel)
+
+
+Since we had this framework, we built our web server on top of it.  http_responder implements read_object to parse out an http header and body, see if any registered URLs match (see files in app/backend/webservices for examples), and calling the registered function passing in headers, body, context (a dict containing cookings and query string parameters), reg-exp matches from the url, and the channel), then formatting the return value (or exception thrown) for return as a (typically json) http response.  Http handler functions are registered using a decorator "http_service".  This encapsulates url/method matching, parameter checking, and authorization from the application code.  "http_helper" does the actual authorization checks (HTTP UNAUTHORIZED if failed), and makes sure all required parameters are there (http BAD_REQUEST if failed).  Helper also makes sure that with every request, the authorization token is updated (so that auto-logout happens in x minutes after the last activity instead of after login), and sends login credintials as parameters/cookies/http_only cookies as necessary.
+
+webservices_core starts a basic web server, and lets other classes register their http handlers.  This is so we can easily put different groups of services in different files.  See app/backend/webservices for how the different files are set up.
+
+rpc_processor is module written on top of stream_processor.  If you instantiate a pair of rpc_processors configured to talk with each other, it makes inter-process communication with static classes and asyncio.coroutines very simple as follows:
+(common code)
+class foo:
+      asyncio.coroutine
+      def echo(self, param):
+          return param
+
+(client machine with rpc_processor instance rpc)
+remote_foo = rpc.create_client(foo)
+echo = yield from remote_foo.echo('text to echo')
+
+
+(server machine with rpc_processor instance rpc)
+f = foo()
+rpc.register_server(f)
+
+
+Now calling yild from remote_foo.echo(...) marshals up the parameters, sends them and a nonce over the wire to the server, which directs them to the registered object of the same class on the other end, which executes, marshals the return value (or exception), and the client's calling function works just as if it executed locally.  
+
+Note, the terms client and server here refer only to where the instantiated object lives - both ends of the rpc connection work as clients and servers for as many objects as you want.
+
+

@@ -1,0 +1,10 @@
+When we started to go live, our need for a service which monitored out application in real-time and gave out lots of performance/is it down statistics became immediate.
+
+This module creates two servers.  One on port 54321 is a web service, 54320 is an rpc server.
+
+Any process connecting to the rpc server can send events that look like file paths, for example: /prod_server/module_a/function_b.  The watcher process will record that this event happened at this time.  Rather than treating time continuously, it groups things into buckets (minute, hour, day).  When you go to the web server, looking for path /, you will see how many times a 'prod_server' (or decendent) event happened in the last few minutes/hours/seconds.  If you look for /prod_server, you will how often modle_a (or any other modules) happened.
+
+The client programs do not need to use this directory structure.  Whatever structure you like will work fine.
+
+
+If any event path ends in /heartbeat, it is treated specially.  Once ten of a path ending in /heartbeat are recorded, they heartbeats are expected.  If they ever stop (or slow down drastically), the reporter will post to slack.  This enables us to have real-time 'is it down' monitoring simply by posting a new event at regular intervals.
