@@ -40,6 +40,7 @@ define([
         render: function(){
              //IF this is a protocol node, create a protocol node editor
             var that = this;
+            var test = treeContext.get('selectedNode').attributes;
             if (treeContext.get('selectedNode').attributes.isProtocol) {
                 this.template = _.template(protocolTemplate),
                     this.$el.html(this.template(treeContext.get('selectedNode').attributes));

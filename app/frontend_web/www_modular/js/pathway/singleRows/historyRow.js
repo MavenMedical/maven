@@ -24,7 +24,8 @@ define([
         template: _.template(historyRowTemplate),
         events: {
             'click .history-checkbox': 'handleCheck',
-            'click .history-select-button': 'handleSelect'
+            'click .history-select-button': 'handleSelect',
+            'click .delete-hist': 'handleDelete'
         },
         render: function(){
             $(this.el).html(this.template($.extend({viewid:this.cid},this.model.toJSON())));
@@ -48,6 +49,9 @@ define([
 
             $(".active-pathway").removeClass("active-pathway");
             $(this.el).addClass("active-pathway")
+        },
+        handleDelete: function(){
+
         }
     });
 

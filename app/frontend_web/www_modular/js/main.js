@@ -20,7 +20,6 @@ require.config({
         //bootstrap: ['//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min', '../css/bootstrap/js/bootstrap.min'],
         bootstrap: '../css/bootstrap/js/bootstrap.min',
         bootstrapswitch: 'libs/bootstrap-switch/bootstrap-switch',
-        nestedSortable: 'libs/nestedSortable/nestedSortable',
         nestable: '../ace/assets/js/jquery.nestable',
         fullcalendar: 'libs/fullCalendar/fullcalendar.min',
         moment: 'libs/fullCalendar/moment.min',

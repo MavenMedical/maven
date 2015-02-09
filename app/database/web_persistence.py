@@ -384,6 +384,7 @@ class WebPersistenceBase():
                                 [actioncomment, alertid, customer, user,
                                  category, ruleid], {}, {})
 
+    # handles when a user either likes or dislikes an alert
     @asyncio.coroutine
     def rate_alert(self, customer_id, user_id, category, subcategory,
                    alertid, rule_id, scope, action, update=0):
@@ -551,6 +552,7 @@ class WebPersistenceBase():
         Results.settings: lambda x: x and repr(x)
     })
 
+    # returns a list of users with the desired information (columns). Also used for autocomplete
     @asyncio.coroutine
     def user_info(self, desired, customer, orderby=Results.userid, role=None, groupexclude=None,
                   officialname=None, ascending=True, startdate=None, enddate=None, limit=None):
@@ -615,6 +617,7 @@ class WebPersistenceBase():
         Results.enddate: lambda x: x and _prettify_datetime(x),
     })
 
+    # returns group membership information (i.e. return a list of users in a specified group)
     @asyncio.coroutine
     def membership_info(self, desired, customer, orderby=Results.membershipid, group=None,
                         ascending=True, startdate=None, enddate=None, limit=None):
@@ -1865,21 +1868,21 @@ class WebPersistenceBase():
 
     @asyncio.coroutine
     def update_group(self, customer, group_id, name, description, status, userJSON):
-      try:
-        cmd = ["UPDATE public.user_group SET (group_name, group_description, status) = (%s, %s, %s) WHERE group_id = %s and customer_id = %s;"]
-        cmdArgs = [name, description, status, group_id, customer]
-        cmd.append("DELETE FROM public.user_membership WHERE group_id= %s AND customer_id = %s;")
-        cmdArgs.append(group_id)
-        cmdArgs.append(customer)
-        for key in userJSON:
-            cmd.append("INSERT INTO public.user_membership (customer_id, group_id, user_name, user_id, status) values (%s, %s, %s, %s, %s);")
-            cmdArgs.extend([customer, group_id,  key['value'], key['id'], status])
-        yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
+        try:
+            cmd = ["UPDATE public.user_group SET (group_name, group_description, status) = (%s, %s, %s) WHERE group_id = %s and customer_id = %s;"]
+            cmdArgs = [name, description, status, group_id, customer]
+            cmd.append("DELETE FROM public.user_membership WHERE group_id= %s AND customer_id = %s;")
+            cmdArgs.append(group_id)
+            cmdArgs.append(customer)
+            for key in userJSON:
+                cmd.append("INSERT INTO public.user_membership (customer_id, group_id, user_name, user_id, status) values (%s, %s, %s, %s, %s);")
+                cmdArgs.extend([customer, group_id, key['value'], key['id'], status])
+            yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
 
-        return ""
-      except:
-          ML.EXCEPTION('here')
-          raise
+            return ""
+        except:
+            ML.EXCEPTION('here')
+            raise
 
     @asyncio.coroutine
     def remove_group(self, customer, groupID):
