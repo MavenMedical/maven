@@ -97,18 +97,19 @@ class scheduler():
                     if sched_count and sched:
                         sched_count -= 1
                     else:
-                        sched_count = 5
+                        sched_count = 2
                         sched = yield from self.allscripts_api.GetSchedule(None, today)
                     polling_providers = {x[0] for x in filter(self.check_notification_policy, self.active_providers)}
                     tasks = set()
                     CLIENT_SERVER_LOG.info('processing %s providers for %s, %s apts' % (polling_providers, self.customer_id, len(sched)))
                     servernow = now - self.unitytimeoffset
-                    if servernow.hour > 0:
-                        lowertime = (servernow - timedelta(hours=1)).strftime('%H:%M')
+                    window_radius = 4
+                    if servernow.hour > window_radius:
+                        lowertime = (servernow - timedelta(hours=window_radius)).strftime('%H:%M')
                     else:
                         lowertime = '00:00'
-                    if servernow.hour < 23:
-                        uppertime = (servernow + timedelta(hours=1)).strftime('%H:%M')
+                    if servernow.hour < 23 - window_radius:
+                        uppertime = (servernow + timedelta(hours=window_radius)).strftime('%H:%M')
                     else:
                         uppertime = '24:00'
                     # skipped = [s for s in sched if lowertime > s['ApptTime'] or s['ApptTime'] <  uppertime]
@@ -172,7 +173,6 @@ class scheduler():
                         # Document ID becomes encounter_id and we extract encounter ICD-9/10 keywords
                         encounter_id = doc.get('DocumentID')
                         encounter_dx = icd9_capture.findall(doc.get('keywords', ''))
-                        CLIENT_SERVER_LOG.info(encounter_dx)
 
                         # This function will call GetCDA and build a proper proc_history ONLY if "185" in encounter_dx
                         proc_history, pat_cda_result = yield from self._build_proc_history_from_cda(provider_username, patient, encounter_id, encounter_dx)

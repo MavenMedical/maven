@@ -126,7 +126,6 @@
         'widgets/pathway/toolbar.js',
         'widgets/pathway/TreeView.js',
         'widgets/pathway/pathwaysList.js',
-        'widgets/pathway/triggerEditor.js',
         'widgets/interactionList.js',
         'Helpers',
         'singleRow/customerRow',

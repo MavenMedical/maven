@@ -1,3 +1,10 @@
+# This file provides the high level wrapper for all of our database calls.
+# It sits on top of the connection-pool layer, and provides a much nicer abstraction.
+# Where we're managed to stick with the pattern, each function takes a map of desired return values for each row.
+# Only the desired rows are fetched, and returned with a name supplied by the calling function.
+# With this pattern, an order by parameter, and data ranges can also be specified (though this convention
+# was somewhat lost with others working on this file as well.
+
 import asyncio
 from enum import Enum
 from collections import defaultdict
@@ -278,10 +285,10 @@ class WebPersistenceBase():
     def update_user(self, user, customer, state, desired=None):
         cmd = []
         cmdargs = []
-        cmd.append("UPDATE users")
-        cmd.append("set (state) = (%s)")
+        cmd.append("UPDATE users u")
+        cmd.append("set state=%s")
         cmdargs.append(state)
-        cmd.append("where user_name = UPPER(%s) and customer_id = %s")
+        cmd.append("where user_name=UPPER(%s) and customer_id=%s")
         cmdargs.append(user)
         cmdargs.append(customer)
         if desired:
@@ -1881,8 +1888,7 @@ class WebPersistenceBase():
 
             return ""
         except:
-            ML.EXCEPTION('here')
-            raise
+            ML.EXCEPTION('Error updating user groups in database')
 
     @asyncio.coroutine
     def remove_group(self, customer, groupID):

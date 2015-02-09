@@ -16,6 +16,7 @@ import os
 import os.path
 import logging
 import logging.config
+import maven_config as MC
 import sys
 import io
 import time
@@ -200,7 +201,7 @@ message_to_slack = lambda x: None
 
 @asyncio.coroutine
 def _message_to_slack(x):
-    slackurl = 'https://hooks.slack.com/services/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'
+    slackurl = MC.slack_url
     import aiohttp
     import json
     resp = yield from aiohttp.request('POST',

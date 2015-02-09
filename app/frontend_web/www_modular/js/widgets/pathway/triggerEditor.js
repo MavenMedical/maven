@@ -16,6 +16,8 @@ define([
 
 
 ], function ($, _, Backbone, contextModel, layoutModel, detailEditor, DetailGroup, curTree, helpers, detailSection, disjoinedGroupTemplate) {
+
+    //this function appends all of the triggers of a given type using the correct template into a specified
     var printGroup = function (key, curGroup, location) {
         require(['text!/templates/pathway/details/' + key + 'Detail.html'], function (key) {
             return  function (curTemplate) {
@@ -37,8 +39,7 @@ define([
 
     }
     var ruleWizard = Backbone.View.extend({
-
-        el: '#modal-target',
+        //render into the modal target       el: '#modal-target',
 
         initialize: function (params) {
             this.template = _.template(params.template)
