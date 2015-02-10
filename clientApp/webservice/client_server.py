@@ -26,7 +26,7 @@ import maven_logging as ML
 import utils.streaming.stream_processor as SP
 import utils.streaming.http_responder as HR
 import utils.api.pyfhir.pyfhir_generated as FHIR_API
-from clientApp.webservice.emr_parser import VistaParser
+from utils.api.vista.emr_parser import VistaParser
 import clientApp.notification_generator.notification_generator as NG
 import clientApp.webservice.notification_service as NS
 
@@ -83,15 +83,7 @@ class IncomingFromMavenMessageHandler(HR.HTTPWriter):
     @asyncio.coroutine
     def format_response(self, obj, _):
 
-        # TODO - Need to configure the logic below to load from JSON if Client-App is installed WITHIN hospital
-        # TODO - infrastructure b/c we cannot send pickles over the wire (but we can if Client-App is in cloud)
-        # json_composition = json.loads(obj.decode())
-        # composition = FHIR_API.Composition().create_composition_from_json(json_composition)
-
         composition = pickle.loads(obj)
-
-        # ## tom: this has no authentication yet
-        # composition.customer_id
         user = composition.get_author_id()
 
         if self.notification_service.send_messages(user, None):

@@ -20,7 +20,7 @@
                 <b>Encounter Cost Details</b>
             </a>
             <br/>
-            <b style='font-size: 130%;'>$540</b>
+            <b style='font-size: 130%;'>${{ total_cost }}</b>
         </td>
 
   <td valign='top'>
@@ -29,11 +29,9 @@
 
         <td valign='top' style='font-family: Arial; color: #444; word-spacing: normal; text-align: left; letter-spacing: 0; font-size: 104%;'>
             <table>
-
-                    <tr><td>IMMUNOGLOBULINS</td><td>$20</td></tr>
-
-                    <tr><td>CEFIXIME TAB</td><td>$520</td></tr>
-
+                {% for order in order_list %}
+                    <tr><td>{{ order['order_name'] }}</td><td>${{ order['order_cost'] }}</td></tr>
+                {% endfor %}
             </table>
         </td>
  </tr>

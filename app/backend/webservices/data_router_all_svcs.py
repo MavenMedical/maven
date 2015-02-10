@@ -3,7 +3,7 @@
 #
 # ************************
 # AUTHOR:
-__author__ = 'Yuki Uchino'
+__author__ = 'Tom Dubois, Yuki Uchino'
 # ************************
 # DESCRIPTION:   This file creates a an asynchronous listening server for incoming messages.
 #
@@ -17,7 +17,10 @@ __author__ = 'Yuki Uchino'
 import argparse
 import pickle
 from utils.streaming import stream_processor as SP
+import utils.streaming.http_responder as HR
+import clientApp.notification_generator.notification_generator as NG
 import utils.streaming.rpc_processor as RP
+from utils.api.vista.emr_parser import VistaParser
 from utils.enums import CONFIG_PARAMS, USER_ROLES
 import app.database.web_persistence as WP
 from app.backend.remote_procedures.server_rpc_endpoint import ServerEndpoint
@@ -40,6 +43,7 @@ from app.backend.webservices.support import SupportWebservices
 from app.backend.webservices.timed_followup import TimedFollowUpService
 import app.backend.webservices.notification_service as NS
 from reporter.stats_interface import StatsInterface
+
 ARGS = argparse.ArgumentParser(description='Maven Client Receiver Configs.')
 ARGS.add_argument(
     '--emr', action='store', dest='emr',
@@ -47,7 +51,14 @@ ARGS.add_argument(
 args = ARGS.parse_args()
 
 
-class IncomingMessageHandler(SP.StreamProcessor):
+##########################################################################################
+##########################################################################################
+#####
+# Pathway Stream Processors
+#####
+##########################################################################################
+##########################################################################################
+class IncomingPathwayMessageHandler(SP.StreamProcessor):
 
     def __init__(self, configname):
         SP.StreamProcessor.__init__(self, configname)
@@ -56,17 +67,15 @@ class IncomingMessageHandler(SP.StreamProcessor):
 
     @asyncio.coroutine
     def read_object(self, obj, key2):
-        # obj_list = json.loads(obj.decode())
         obj_list = pickle.loads(obj)
         composition = obj_list[0]
         key1 = obj_list[1]
         ML.DEBUG(key1)
-        # composition = api.Composition().create_composition_from_json(json_composition)
         composition.write_key = [key1, key2]
-        self.write_object(composition, writer_key="CostEval")
+        self.write_object(composition, writer_key="PathEval")
 
 
-class OutgoingMessageHandler(SP.StreamProcessor):
+class OutgoingPathwaysMessageHandler(SP.StreamProcessor):
 
     def __init__(self, configname, client_interface):
         SP.StreamProcessor.__init__(self, configname)
@@ -85,10 +94,72 @@ class OutgoingMessageHandler(SP.StreamProcessor):
             yield from self.client_interface.handle_evaluated_composition(customer_id, obj)
 
 
+##########################################################################################
+##########################################################################################
+#####
+# Transparent Stream Processors
+#####
+##########################################################################################
+##########################################################################################
+class IncomingTransparentMessageHandler(HR.HTTPReader):
+
+    def __init__(self, configname, wk):
+        HR.HTTPReader.__init__(self, configname)
+        self.wk = wk
+        # TODO - Need to change the EMR Parser based on config
+        self.emr_msg_parser = VistaParser()
+
+    @asyncio.coroutine
+    def read_object(self, obj, key):
+        try:
+            body = obj[1]
+            if not len(body):
+                self.write_object(HR.wrap_response(HR.BAD_RESPONSE, b'', None), key)
+            else:
+                message = body.decode()
+                composition = self.emr_msg_parser.create_composition(message)
+                composition.write_key = [key]
+                self.write_object(composition, writer_key=self.wk)
+        except:
+            try:
+                self.write_object(HR.wrap_response(HR.ERROR_RESPONSE, b'', None), key)
+                # traceback.print_exc()
+            except:
+                # TODO - maven logging here instead of quietly passing
+                pass
+
+
+class OutgoingTransparentMessageHandler(HR.HTTPWriter):
+
+    def __init__(self, configname, notification_service=None):
+        HR.HTTPWriter.__init__(self, configname)
+        self.notification_generator = NG.NotificationGenerator(MC.MavenConfig[configname])
+        self.notification_service = notification_service
+
+    @asyncio.coroutine
+    def format_response(self, obj, _):
+
+        # TODO - Fix hardcoded authentication for Transparent
+        obj.userAuth = AK.authorization_key(['YUKIU', str(obj.customer_id)], 44, 60 * 60)
+        # obj.userAuth = AK.authorization_key([obj.author.get_provider_username(), str(obj.customer_id)], 44, 60 * 60)
+
+        notifications = yield from self.notification_generator.generate_alert_content(obj, 'vista', None)
+        alert_notification_content = ""
+        if notifications is not None and len(notifications) > 0:
+            for notification_body in notifications:
+                alert_notification_content += str(notification_body)
+
+        ML.DEBUG("NOTIFY HTML BODY: " + alert_notification_content)
+
+        return (HR.OK_RESPONSE, alert_notification_content, [], obj.write_key[0])
+
+
 def main(loop):
 
     outgoingtohospitalsmessagehandler = 'responder socket'
     incomingtomavenmessagehandler = 'receiver socket'
+    transparentmessageconsumer = 'transparent consumer socket'
+    transparentoutgoingproducer = 'transparent producer socket'
     rpc_server_stream_processor = 'Server-side RPC Stream Processor'
     rpc_database_stream_processor = 'Client to Database RPC Stream Processor'
     rpc_reporter_stream_processor = 'Server to Reporter RPC Stream Processor'
@@ -115,8 +186,8 @@ def main(loop):
             SP.CONFIG_READERTYPE: SP.CONFIGVALUE_ASYNCIOSERVERSOCKET,
             SP.CONFIG_READERNAME: incomingtomavenmessagehandler + ".Reader",
             SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_THREADEDRABBIT,
-            SP.CONFIG_WRITERNAME: [incomingtomavenmessagehandler + ".Writer",
-                                   incomingtomavenmessagehandler + ".Writer_CostEval"],
+            SP.CONFIG_WRITERNAME: [incomingtomavenmessagehandler + ".Writer_CostEval",
+                                   incomingtomavenmessagehandler + ".Writer_PathEval"],
             SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_IDENTITYPARSER,
             SP.CONFIG_WRITERDYNAMICKEY: 1,
         },
@@ -125,13 +196,13 @@ def main(loop):
             SP.CONFIG_HOST: '127.0.0.1',
             SP.CONFIG_PORT: 8090
         },
-
-        incomingtomavenmessagehandler + ".Writer":
+        incomingtomavenmessagehandler + ".Writer_PathEval":
         {
             SP.CONFIG_HOST: 'localhost',
-            SP.CONFIG_QUEUE: 'incoming_cost_evaluator_work_queue',
+            SP.CONFIG_QUEUE: 'incoming_path_evaluator_work_queue',
             SP.CONFIG_EXCHANGE: 'maven_exchange',
-            SP.CONFIG_KEY: 'incomingcost'
+            SP.CONFIG_KEY: 'incomingpatheval',
+            SP.CONFIG_WRITERKEY: 'PathEval'
         },
         incomingtomavenmessagehandler + ".Writer_CostEval":
         {
@@ -163,6 +234,48 @@ def main(loop):
         {
             SP.CONFIG_WRITERKEY: 1
         },
+        transparentmessageconsumer:
+            {
+                SP.CONFIG_READERTYPE: SP.CONFIGVALUE_ASYNCIOSERVERSOCKET,
+                SP.CONFIG_READERNAME: transparentmessageconsumer + ".Reader",
+                SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_THREADEDRABBIT,
+                SP.CONFIG_WRITERNAME: transparentmessageconsumer + ".Writer",
+                SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_IDENTITYPARSER,
+                SP.CONFIG_WRITERDYNAMICKEY: 7,
+                HR.CONFIG_SSLAUTH: None,
+                },
+        transparentmessageconsumer + ".Reader":
+            {
+                SP.CONFIG_HOST: '127.0.0.1',
+                SP.CONFIG_PORT: 8088
+            },
+        transparentmessageconsumer + ".Writer":
+        {
+            SP.CONFIG_HOST: 'localhost',
+            SP.CONFIG_QUEUE: 'incoming_path_evaluator_work_queue',
+            SP.CONFIG_EXCHANGE: 'maven_exchange',
+            SP.CONFIG_KEY: 'incomingpatheval',
+            SP.CONFIG_WRITERKEY: 'PathEval',
+        },
+        transparentoutgoingproducer:
+            {
+                SP.CONFIG_READERTYPE: SP.CONFIGVALUE_THREADEDRABBIT,
+                SP.CONFIG_READERNAME: transparentoutgoingproducer + ".Reader",
+                SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOSOCKETREPLY,
+                SP.CONFIG_WRITERNAME: transparentoutgoingproducer + ".Writer",
+                SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_UNPICKLEPARSER,
+            },
+        transparentoutgoingproducer + ".Reader":
+            {
+                SP.CONFIG_HOST: 'localhost',
+                SP.CONFIG_QUEUE: 'transparent_send_queue',
+                SP.CONFIG_EXCHANGE: 'maven_exchange',
+                SP.CONFIG_KEY: 'transparent',
+            },
+        transparentoutgoingproducer + ".Writer":
+            {
+                SP.CONFIG_WRITERKEY: 7
+            },
         CONFIG_PARAMS.PERSISTENCE_SVC.value: {WP.CONFIG_DATABASE: rpc_database_stream_processor},
         "httpserver":
         {
@@ -262,16 +375,22 @@ def main(loop):
 
         asyncio.async(heartbeat())
 
-    sp_consumer = IncomingMessageHandler(incomingtomavenmessagehandler)
+    sp_consumer = IncomingPathwayMessageHandler(incomingtomavenmessagehandler)
     sp_consumer.schedule(loop)
+
+    transparent_consumer = IncomingTransparentMessageHandler(transparentmessageconsumer, 'PathEval')
+    transparent_consumer.schedule(loop)
+
+    transparent_producer = OutgoingTransparentMessageHandler(transparentoutgoingproducer)
+    transparent_producer.schedule(loop)
 
     client_interface = clientapp_rpc.create_client(ClientAppEndpoint)
     server_endpoint = ServerEndpoint(client_interface,
-                                     lambda x: sp_consumer.write_object(x, writer_key="CostEval"))
+                                     lambda x: sp_consumer.write_object(x, writer_key="PathEval"))
     server_endpoint.persistence.schedule(loop)
     clientapp_rpc.register(server_endpoint)
 
-    sp_producer = OutgoingMessageHandler(outgoingtohospitalsmessagehandler, client_interface)
+    sp_producer = OutgoingPathwaysMessageHandler(outgoingtohospitalsmessagehandler, client_interface)
     sp_producer.schedule(loop)
 
     core_scvs = WC.WebserviceCore('httpserver', client_interface=client_interface)

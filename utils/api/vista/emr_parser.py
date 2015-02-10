@@ -192,19 +192,15 @@ class VistaParser():
         self.terminologies = ['icd', 'icd9', 'icd10', 'icd-9', 'icd-10', 'cpt', 'cpt4', 'cpt3']
 
     def create_composition(self, xml_enc):
-        ###
-        # Create the FHIR Bundle Object for bundling the FHIR Composition and it's Resources up.
-        # fhir_bundle = FHIR_API.Bundle(title="Vista EMR Message")
-
-        ##
         # Create the FHIR Composition Object with a Type=LOINC coded version of
-        # Virtual Medical Record for Clinical Decision Support ("74028-2") and append to the FHIR Bundle's Entries
+        # Virtual Medical Record for Clinical Decision Support ("74028-2")
         composition = FHIR_API.Composition(type=FHIR_API.CodeableConcept())
         composition.type.coding.append(FHIR_API.Coding(system="http://loinc.org", code="74028-2"))
 
-        # fhir_bundle.entry.append(composition)
+        # We need this FHIR Coding to discern Pathway and Transparent message handling
+        composition.type.coding.append(FHIR_API.Coding(system="maven_eval", code="transparent"))
 
-        # TODO - Hardcoded customer id
+        # TODO - Hardcoded customer id - this should be coming in like Pathways configuration
         composition.customer_id = 1
         composition.encounter = FHIR_API.Encounter(customer_id=composition.customer_id)
         composition.author = FHIR_API.Practitioner(customer_id=composition.customer_id)
@@ -292,6 +288,8 @@ class VistaParser():
 
         except:
             raise Exception('Error constructing FHIR patient from VistA XML data')
+        finally:
+            return
 
     def parse_encounter_orders(self, xml_root, composition):
         try:
