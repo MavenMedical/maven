@@ -1069,6 +1069,7 @@
 		<row><td>ISSelfRegisterFinalize</td><td>1</td><td>ISSELFREG.DLL</td><td>ISSelfRegisterFinalize</td><td/><td/></row>
 		<row><td>ISUnSelfRegisterFiles</td><td>3073</td><td>ISSELFREG.DLL</td><td>ISUnSelfRegisterFiles</td><td/><td/></row>
 		<row><td>SetARPINSTALLLOCATION</td><td>51</td><td>ARPINSTALLLOCATION</td><td>[INSTALLDIR]</td><td/><td/></row>
+		<row><td>SetARPReadme</td><td>51</td><td>ARPREADME</td><td>;'flkdsmlfkjadkfljsd;lkfj;lsdakjf;ladkjf </td><td/><td/></row>
 		<row><td>SetAllUsersProfileNT</td><td>51</td><td>ALLUSERSPROFILE</td><td>[%SystemRoot]\Profiles\All Users</td><td/><td/></row>
 		<row><td>ShowMsiLog</td><td>226</td><td>SystemFolder</td><td>[SystemFolder]notepad.exe "[MsiLogFileLocation]"</td><td/><td>Shows Property-driven MSI Log</td></row>
 		<row><td>setAllUsersProfile2K</td><td>51</td><td>ALLUSERSPROFILE</td><td>[%ALLUSERSPROFILE]</td><td/><td/></row>
@@ -3745,6 +3746,7 @@
 		<row><td>IDS__TargetReq_DESC_RAM</td><td>1033</td><td>The amount of RAM is not adequate for running [ProductName].</td><td>0</td><td/><td>1948406638</td></row>
 		<row><td>IDS__TargetReq_DESC_RESOLUTION</td><td>1033</td><td>The screen resolution is not adequate for running [ProductName].</td><td>0</td><td/><td>1948406638</td></row>
 		<row><td>ID_STRING1</td><td>1033</td><td/><td>0</td><td/><td>1948406638</td></row>
+		<row><td>ID_STRING2</td><td>1033</td><td>MAVEND~1|MavenDesktop</td><td>0</td><td/><td>1361304232</td></row>
 		<row><td>ID_STRING3</td><td>1033</td><td>MAVEND~1|MavenDesktop</td><td>0</td><td/><td>2082662222</td></row>
 		<row><td>ID_STRING4</td><td>1033</td><td>UNINST~1|Uninstall Maven</td><td>0</td><td/><td>2082615150</td></row>
 		<row><td>ID_STRING5</td><td>1033</td><td>http://www.MavenMedical.net</td><td>0</td><td/><td>-601707698</td></row>
@@ -3859,6 +3861,7 @@
 		<col def="S255">ISBuildSourcePath</col>
 		<col def="I2">ISIconIndex</col>
 		<row><td>ARPPRODUCTICON.exe</td><td/><td>C:\Users\dave\Documents\Visual Studio 2012\Projects\MavenAsDemo\maven.ico</td><td>0</td></row>
+		<row><td>NewShortcut21_1C6FF80FDB74426486C9A203CA601F22.exe</td><td/><td>C:\Users\dave\Documents\Visual Studio 2012\Projects\MavenAsDemo\bin\Debug\MavenDesktop.exe</td><td>0</td></row>
 		<row><td>NewShortcut2_40F4F62B28DB4B6C97DC1BD094771648.exe</td><td/><td>C:\Users\dave\Documents\Visual Studio 2012\Projects\MavenAsDemo\bin\Debug\MavenDesktop.exe</td><td>0</td></row>
 		<row><td>NewShortcut3_B056B2D638A04214A393D12D9FCCF55E.exe</td><td/><td>C:\Program Files (x86)\InstallShield\2013LE\Redist\Language Independent\OS Independent\uninstall.ico</td><td>0</td></row>
 	</table>
@@ -3949,6 +3952,7 @@
 		<row><td>SelfRegModules</td><td/><td>5600</td><td>SelfRegModules</td><td/></row>
 		<row><td>SelfUnregModules</td><td/><td>2200</td><td>SelfUnregModules</td><td/></row>
 		<row><td>SetARPINSTALLLOCATION</td><td/><td>1100</td><td>SetARPINSTALLLOCATION</td><td/></row>
+		<row><td>SetARPReadme</td><td/><td>1001</td><td/><td/></row>
 		<row><td>SetAllUsersProfileNT</td><td>VersionNT = 400</td><td>970</td><td/><td/></row>
 		<row><td>SetODBCFolders</td><td/><td>1200</td><td>SetODBCFolders</td><td/></row>
 		<row><td>StartServices</td><td>VersionNT</td><td>5900</td><td>StartServices</td><td/></row>
@@ -4030,6 +4034,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>PatchWelcome</td><td>Installed And PATCH And Not IS_MAJOR_UPGRADE</td><td>1205</td><td>Patch Panel</td><td/></row>
 		<row><td>RMCCPSearch</td><td>Not CCP_SUCCESS And CCP_TEST</td><td>600</td><td>RMCCPSearch</td><td/></row>
 		<row><td>ResolveSource</td><td>Not Installed</td><td>990</td><td>ResolveSource</td><td/></row>
+		<row><td>SetARPReadme</td><td/><td>1001</td><td/><td/></row>
 		<row><td>SetAllUsersProfileNT</td><td>VersionNT = 400</td><td>970</td><td/><td/></row>
 		<row><td>SetupCompleteError</td><td/><td>-3</td><td>SetupCompleteError</td><td/></row>
 		<row><td>SetupCompleteSuccess</td><td/><td>-1</td><td>SetupCompleteSuccess</td><td/></row>
@@ -4300,6 +4305,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>ALLUSERS</td><td>1</td><td/></row>
 		<row><td>ARPINSTALLLOCATION</td><td/><td/></row>
 		<row><td>ARPPRODUCTICON</td><td>ARPPRODUCTICON.exe</td><td/></row>
+		<row><td>ARPREADME</td><td>;'flkdsmlfkjadkfljsd;lkfj;lsdakjf;ladkjf </td><td/></row>
 		<row><td>ARPSIZE</td><td/><td/></row>
 		<row><td>ARPURLINFOABOUT</td><td>##ID_STRING5##</td><td/></row>
 		<row><td>AgreeToLicense</td><td>No</td><td/></row>
@@ -4339,7 +4345,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>InstallChoice</td><td>AR</td><td/></row>
 		<row><td>LAUNCHPROGRAM</td><td>1</td><td/></row>
 		<row><td>LAUNCHREADME</td><td>1</td><td/></row>
-		<row><td>MSIFASTINSTALL</td><td>0</td><td/></row>
+		<row><td>MSIFASTINSTALL</td><td>1</td><td/></row>
 		<row><td>Manufacturer</td><td>##COMPANY_NAME##</td><td/></row>
 		<row><td>PIDKEY</td><td/><td/></row>
 		<row><td>PIDTemplate</td><td>12345&lt;###-%%%%%%%&gt;@@@@@</td><td/></row>
@@ -4368,7 +4374,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>PROGMSG_IIS_ROLLBACKWEBSERVICEEXTENSIONS</td><td>##IDS_PROGMSG_IIS_ROLLBACKWEBSERVICEEXTENSIONS##</td><td/></row>
 		<row><td>ProductCode</td><td>{2FEF2EB0-104F-42E8-A52A-F2CF4B6D83CD}</td><td/></row>
 		<row><td>ProductName</td><td>MavenDesktop</td><td/></row>
-		<row><td>ProductVersion</td><td>1.00.0036</td><td/></row>
+		<row><td>ProductVersion</td><td>1.00.0040</td><td/></row>
 		<row><td>ProgressType0</td><td>install</td><td/></row>
 		<row><td>ProgressType1</td><td>Installing</td><td/></row>
 		<row><td>ProgressType2</td><td>installed</td><td/></row>
@@ -4539,6 +4545,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<col def="S255">ISShortcutName</col>
 		<col def="I4">ISAttributes</col>
 		<row><td>NewShortcut2</td><td>ProgramMenuFolder</td><td>##ID_STRING3##</td><td>MavenDesktop.exe</td><td>[INSTALLDIR]MavenDesktop.exe</td><td/><td/><td/><td>NewShortcut2_40F4F62B28DB4B6C97DC1BD094771648.exe</td><td>1</td><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
+		<row><td>NewShortcut21</td><td>DesktopFolder</td><td>##ID_STRING3##</td><td>MavenDesktop.exe</td><td>[INSTALLDIR]MavenDesktop.exe</td><td/><td/><td/><td>NewShortcut21_1C6FF80FDB74426486C9A203CA601F22.exe</td><td>1</td><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 		<row><td>NewShortcut3</td><td>ProgramMenuFolder</td><td>##ID_STRING4##</td><td>ISX_DEFAULTCOMPONENT1</td><td>[SystemFolder]MsiExec.exe</td><td>/x [ProductCode]</td><td/><td/><td>NewShortcut3_B056B2D638A04214A393D12D9FCCF55E.exe</td><td>0</td><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 	</table>
 
