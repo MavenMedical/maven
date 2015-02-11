@@ -22,14 +22,11 @@ INSERT INTO orderable(
             rx_pharm_subclass, rx_simple_generic)
     VALUES (1,'2','Proc','','IMMUNOGLOBULINS','','','maven','2','maven',NULL,NULL,NULL,NULL,'','','','','','','','','');
 
-1,'76370','Proc','','CT SINUS COMPLETE W/O CONTRAST','','','HCPCS','76370','HCPCS',NULL,NULL,NULL,NULL,'','','','','','','','',''
-
 
 INSERT INTO transparent.costmap(
             customer_id, code, code_type, department, cost_type, orderable_id,
             cost)
     VALUES (1,'2','HCPCS','-1',100,'2',10.14);
-
 
 INSERT INTO transparent.costmap(
             customer_id, code, code_type, department, cost_type, orderable_id,
