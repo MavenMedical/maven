@@ -203,10 +203,11 @@ class CompositionEvaluator(SP.StreamProcessor):
                     order_detail.cost_type = cost_type
                     order.totalCost += cost
 
-            encounter_cost_breakdown['details'].append({"order_name": coding.display,
-                                                        "order_cost": order_detail.cost,
-                                                        "order_type": order_detail.resourceType})
-            encounter_cost_breakdown['total_cost'] += order.totalCost
+            if coding is not None and cost:
+                encounter_cost_breakdown['details'].append({"order_name": coding.display,
+                                                            "order_cost": order_detail.cost,
+                                                            "order_type": order_detail.resourceType})
+                encounter_cost_breakdown['total_cost'] += order.totalCost
 
         # Only generate the alert if there are costs to show
         if len(encounter_cost_breakdown['details']) > 0 and encounter_cost_breakdown['total_cost'] > 0:

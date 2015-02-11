@@ -582,14 +582,14 @@ class FHIRPersistanceBase():
                 department = ""
 
             if isinstance(order_detail, FHIR_API.Procedure):
-                proc_coding = order_detail.type.get_coding_by_system(["HCPCS", "CPT"])
+                proc_coding = order_detail.type.get_coding_by_system(["HCPCS", "CPT", "maven"])
                 cmdargs = [proc_coding.code,
                            proc_coding.system,
                            composition.customer_id,
                            department]
 
             elif isinstance(order_detail, FHIR_API.Medication):
-                med_coding = order_detail.code.get_coding_by_system(["rxnorm"])
+                med_coding = order_detail.code.get_coding_by_system(["rxnorm", "maven"])
                 cmdargs = [med_coding.code,
                            med_coding.system,
                            composition.customer_id,
