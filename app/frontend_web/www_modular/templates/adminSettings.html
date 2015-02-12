@@ -71,8 +71,10 @@
                <div class="col-sm-6">
                     <div class="row" style='margin-bottom:10px;'>
                         &nbsp;
-                        <!-- <div class="span3">App Password:</div>
-                        <input id="admin-pw-input" class='form-control' type="password" <%= disabled %>> -->
+                         <% if (customer == 0){ %>
+                        <div class="span3">App Password:</div>
+                        <input id="admin-pw-input" class='form-control' type="password" <%= disabled %>>
+                        <% } %>
                     </div>
                 </div>
                 <br/>

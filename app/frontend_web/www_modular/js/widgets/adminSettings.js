@@ -103,7 +103,7 @@ define([
             {
                 $("#save-admin-message").html("Please enter a Unity URL");
             }
-            else if (unlocked && pw == "")
+            else if (unlocked && pw == "" && contextModel.get("customer_id")==0)
             {
                 $("#save-admin-message").html("Please enter the password");
             }
