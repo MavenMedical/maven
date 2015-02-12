@@ -1,0 +1,11 @@
+this directory contains everything for our web frontend, building our web frontend, or designing our web frontend.
+
+ace - this is an add-on to bootstrap that provides the styling that we use.  I believe the professional version is paid
+frontend - deprecated, this contains an outdated version of our website for the transparent product.  
+nodejs - this directory only exists for minifying the maven web application (which makes it load much, much faster).  It contains a custom build.js file describing what to minify plus other packages I downloaded which do the minification.  Perform the minification by running node r.js -o build.js
+prototypes - a directory for prototyping widgets, pages, etc.
+redirect - when running an https-only server, place some text here for port 80 telling people that they came to the wrong place.
+static - (git rm -r'ed directory that contained a static version of our early site)
+
+
+www_modular - our core website, and by far the most important and most often updated directory here
