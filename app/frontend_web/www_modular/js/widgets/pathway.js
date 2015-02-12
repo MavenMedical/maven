@@ -1,5 +1,8 @@
 /**
  * Created by Asmaa Aljuhani on 8/8/14.
+ * Description:
+ * This file was used as a prototype for pathway. It was created for demo purpose.
+ * This file is associated with pathway.html file
  */
 
 define([

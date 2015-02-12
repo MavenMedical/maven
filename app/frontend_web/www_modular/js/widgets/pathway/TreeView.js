@@ -156,7 +156,7 @@ define([
                                 // (string | mandatory) the heading of the notification
                                 title: 'You are modifiyng an active pathway',
                                 // (string | mandatory) the text inside the notification
-                                text: 'more explanation goes here',
+                                text: '',
                                 sticky: false,
                                 time: '',
                                 //This is to show only one notification at a time
