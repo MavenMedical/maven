@@ -1,0 +1,8 @@
+index.html and index3.html are nearly the same file, except that index.html loads the minified maven application, and index3.html loads every file separately.  This second file is for debugging and development purposes only.  This way you do not have to rebuild the minified file when making incremental (debugging) changes to a file.
+
+
+The other files in this directory are mostly self-explanatory
+ - js contains our javascript files as well as 3rd party libraries
+ - template contains html templates
+ - images contains images to be included in our pages
+ - css contains the css files

@@ -1,0 +1,96 @@
+main.js:
+  Our web application's entry point is main.js (or min.js for the minified version).  This is a requirejs-loadable script which lays out short names, package dependencies, and starts the apprunning.
+
+app.js:
+  instantiates a router and a sidebar, thus starting our core application
+
+
+router.js:
+  This is what I think of as the real start of the application.  Big changes in what the user sees are all driven by the URL line - that way copying links, as well as the forward/back buttons work.  In backbonejs, this is all handled by the router.  In our application, whenever the URL changes, a router function corresponding to that URL is called.  If a user isn't logged in, they are redirected to the login screen (and then directed to the page they originally asked for).  The router updates the globalmodel/contextModel.js state (this is where all of the session-wide global state is stored - like user name, roles, etc, and also current patient/date range/pathwayid/etc).  These changes to the contextModel trigger individual widgets to show/hide/update as needed.
+
+text.js:
+  requirejs file for loading templates
+
+textstub.js:
+  - including some template files so that they will get put in the minified application
+
+ckeditor-customize.js:
+  - ckeditor is the open-source web text editor we include in our application anywhere a user might want to include text color/alignment/size/etc.  This loads the package, and sets some custom options.
+
+jquery-stub.js:
+  wraps jquery in a requirejs style module
+
+
+globalmodels: Shared backbone models go here.  Models reflecting global state (most of them) return an instance of the model, those containing local state (like a model which can be simultaneously used with different parameters by different instances) return the class.  Models with global state are persistent - so the current patient model is created only once.  When the patient changes, the model goes and fetches the new patient's information (rather than being destroyed and a new model created for the new patient).
+libs - third party libraries go here
+min.js - our minified application
+pathway - most files associated with pathways (modals, models, nodes), other pathway related files are in widgets/pathway (because all widgets go here)
+singleRow - whenever we display a list of things, each entry in the list gets a view.  those views go here (or pathway/singleRows)
+widgets - the main widgets of our app.  What widgets are displayed for a user and where those widgets are displayed come from the backend after logging in.  Each widget is responsible for listening to the relevant global events (changes in 'page', current patient, any of the global models, etc) and showing/hiding/reconfiguring itself as necessary.  They should be stand-alone in this sense.
+
+
+
+Asmaa also put a good overview of our UI on our wiki: https://mavenmedical.atlassian.net/wiki/display/MAV/Structure+of+maven%27s+Frontend
+I've copied the text below
+
+For our web application, users only have to load the page when they first land on our site.  After that, all page/data updates are done with javascript and a rest web service. 
+The most important background information to know before developing for our UI revolves around backbone.js.
+There's a good introductory video available here: http://backbonetutorials.com/
+I also like a series of well organized blog posts on the subject here: http://bardevblog.wordpress.com/2012/12/04/re-learning-backbone-js/
+I heavily use the backbone api docs at http://backbonejs.org, the underscore api does at http://underscorejs.org/.  While I can't find something equivalent for jquery, the jquery  docs at http://www.w3schools.com/jQuery/ are a good place to start.
+For organizing the application using backbone check this helpful resource http://backbonetutorials.com/organizing-backbone-using-modules/
+Overview Structure of www_modular:
+/* www_modular overview File Structure
+├── ace // bootstrap theme
+├── css // bootstrap css and custom css
+│ └── style3.css (in use - others are deprecated)
+├── evidence
+├── images
+├── js
+│ ├── globalmodels // collections and models 
+│ ├── libs // al adds-on libraries used for transparent and pathway apps
+│ ├── pathway // views, models, single rows and modal views relate to pathway app
+│ ├── singleRow
+│ ├── widgets
+│ ├── router.js
+│ ├── app.js
+│ ├── main.js // Bootstrap
+│ ├── order.js //Require.js plugin
+│ └── text.js //Require.js plugin
+├── templates // all template file used for transparency and pathway apps 
+│ ├── pathway // most pathway related file are here
+│ └── details // detailed trigger modals
+├── index.html // using minified require script
+├── index2.html // not in use , for testing dynamic layout
+└── index3.html // using regular require script
+ */
+Libraries to include (required):
+backbone.js  http://backbonejs.org/
+jquery.js   http://jquery.com/download/
+underscore.js  http://underscorejs.org/
+require.js  http://requirejs.org/docs/download.html#requirejs
+text.js (require plugin)  http://requirejs.org/docs/download.html#text
+bootstrap http://getbootstrap.com/
+Additional libraries we used in Maven application:
+amchart  http://www.amcharts.com/
+we used this library for maven transparent application to visualize data as charts. We used different kind of charts such as column, bar and donuts.  
+jsplumb  http://www.jsplumb.org/demo/flowchart/dom.html
+we used this library for maven pathway application.
+(jsplumb - (is not in use) has two js files which needed other dependencies - so we added jsplumb2 with all its dependencies)
+ckeditor - http://ckeditor.com/
+this editor is used mainly in pathway app.
+How to follow Backbone structure(everything below assumes the root directory maven/app/frontend_web/www_modular):
+js/main.js:
+starting from main.js, require allows us to configure shortcut alias. We added almost all used libraries paths. You can use shim configuration to express libraries' dependencies. main.js also has the app initialization.
+js/app.js:
+This file has the router initialization.
+js/router.js:
+* Router is used for routing maven applications URL's when using hash tags(#).
+* Routing to an URL would set the page variables to the contextModal.
+* With each routing, app will check whether the user is logged in and set the current context to the url variables.
+index.html:
+Using Require.js we define a single entry point on our index page.
+<!-- Load the require script-->
+<script data-main="js/main" src="js/libs/require/require.js"></script>
+We used node.js (http://requirejs.org/docs/node.html) to minify the main file 
+<script data-main="js/min" src="js/libs/require/require.js"></script>
