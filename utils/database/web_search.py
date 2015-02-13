@@ -1,3 +1,5 @@
+#This file handles searches to the terminology, as well as persistance for the now defunct Transparancy Rule Editor
+
 import asyncio
 from utils.database.database import AsyncConnectionPool
 import maven_config as MC
@@ -33,7 +35,7 @@ class web_search_base():
         print(MC.MavenConfig)
         self.db = AsyncConnectionPool(MC.MavenConfig[configname][CONFIG_DATABASE])
         self.db.schedule(asyncio.get_event_loop())
-
+    #This method executes a search of specified type for the specified string
     @asyncio.coroutine
     def do_search(self, search_str, search_type):
         cmd = []
@@ -41,6 +43,7 @@ class web_search_base():
         if (not search_str):
             return EMPTY_RETURN
         if (search_type == "CPT"):
+            #A CPT Search searches for the string in either the term or code number in the CPT procedure DB
             cmd.append("SELECT DISTINCT a.cpt_code, a.name FROM public.orderable as a WHERE a.customer_id = -1 AND ord_type = 'Proc' AND (to_tsvector('maven', a.name) @@  plainto_tsquery('maven', %s) OR a.cpt_code = %s) ORDER BY a.name ASC LIMIT 100 ")
             cmd_args.append(search_str)
             cmd_args.append(search_str)
@@ -52,7 +55,9 @@ class web_search_base():
             for row in results:
                 ret.append({'id': row[0], 'term': row[1], 'code': row[0], 'type': 'CPT'})
             return ret
-
+        ##The snomed basic search, does a fuzzy search in the TERM column of the snomed terminology table
+        ##It then counts all of the children of each matching concept, and uses that to sort them in descending order
+        ##Broad high level topics will appear at the top, while specific topics appear at the bottom
         if (search_type == "snomed_basic"):
             cmd.append("SET enable_seqscan = off;")
             cmd.append("SELECT x.ancestor, min(x.term),count(*), x.code, x.codetype FROM  (SELECT b.ancestor,a.term,cm.code,cm.codetype FROM terminology.descriptions a, terminology.conceptancestry b inner join terminology.codemap cm on b.ancestor=cm.snomedid")
@@ -72,7 +77,8 @@ class web_search_base():
             for row in results:
                 ret.append({'id': int(row[0]), 'term': row[1], 'code': int(row[0]), 'type': 'snomed'})
             return ret
-
+        #a snomed zoom in is similar to a regular snomed search, except it returns all of the direct child concepts
+        # of the search term which in this case, is a snomed code, it still sorts them based on their number of children
         if (search_type == "snomed_zoom_in"):
             cmd_args = []
             cmd = []
@@ -93,7 +99,9 @@ class web_search_base():
             for row in results:
                 ret.append({'id': int(row[0]), 'term': row[1], 'code': int(row[0]), 'type': 'snomed'})
             return ret
-
+        #the snomed zoom out searches for any concepts which are direct parents of the selected concept, pased by its
+        #snomed code into search_term, it does not sort based on number of children, but the total number
+        #of concepts is usually very low
         if (search_type == "snomed_zoom_out"):
             cmd_args = []
             cmd = []
@@ -106,7 +114,8 @@ class web_search_base():
             for row in results:
                 ret.append({'id': int(row[0]), 'term': row[1], 'code': int(row[0]), 'type': 'snomed'})
             return ret
-
+        #this handles no masic snomed seaches which specify in their type where they need to return only drugs,
+        #or only diagnosis
         elif (search_type.split("_")[0] == "snomed"):
 
             print("QUERYING")
@@ -123,6 +132,8 @@ class web_search_base():
             cmd_args.append(search_str)
 
             snomed_type = search_type.split("_")[1]
+            #based on which specific snomed search we are doing only look for children of the top level drug concept
+            #or the top level "finding" concept
             if (snomed_type == 'drug'):
                 cmd_args.append(373873005)
             if (snomed_type == 'diagnosis'):
@@ -137,7 +148,7 @@ class web_search_base():
                 codetype = row[4]
                 ret.append({'id': int(row[0]), 'term': row[1], 'code': int(row[0]), 'type': 'snomed', 'codetype': codetype, 'codedvalue': code})
             return ret
-
+        #simple search through all loinc lab values for the search term, return as many as 50, unsorted, perhaps we should sort
         if (search_type == "loinc"):
 
             cmd.append("SELECT loinc_num, component FROM terminology.loinc WHERE to_tsvector('maven', component) @@ plainto_tsquery('maven', %s) OR loinc_num = %s ")
@@ -151,6 +162,9 @@ class web_search_base():
             for row in results:
                 ret.append({'id': row[0], 'term': row[1], 'type': 'loinc'})
             return ret
+
+##########Below this point is defunct code for the old Transparancy Rule editor, all similar functionality#########
+#########For The pathway editor is in web_persistance.py                                                  #########
 
     @asyncio.coroutine
     def add_to_db(self, ruleJSON):
@@ -178,7 +192,6 @@ class web_search_base():
         cmd.append("RETURNING ruleid")
         c = yield from self.db.execute_single(' '.join(cmd) + ';', cmdArgs)
         return c.fetchone()[0]
-
     @asyncio.coroutine
     def update_db(self, ruleJSON):
         id = ruleJSON['id']
