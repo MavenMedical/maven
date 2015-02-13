@@ -118,7 +118,6 @@
         'widgets/spend_histogram',
         'widgets/maveninfo',
         'widgets/adminSettings',
-        'widgets/pathway',
         'widgets/datepicker-chart',
         'widgets/settings',
         'widgets/topBanner',

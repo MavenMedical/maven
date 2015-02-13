@@ -20,7 +20,7 @@ require.config({
         //bootstrap: ['//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min', '../css/bootstrap/js/bootstrap.min'],
         bootstrap: '../css/bootstrap/js/bootstrap.min',
         bootstrapswitch: 'libs/bootstrap-switch/bootstrap-switch',
-        nestable: '../ace/assets/js/jquery.nestable',
+        nestable: 'libs/ace/jquery.nestable',
         fullcalendar: 'libs/fullCalendar/fullcalendar.min',
         moment: 'libs/fullCalendar/moment.min',
         ckeditor2: 'libs/ckeditor/ckeditor',
