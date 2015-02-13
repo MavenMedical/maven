@@ -70,12 +70,12 @@ class PathwaysWebservices():
                              CONTEXT.ENABLED: k[5]} for k in protocols]),
                 None)
 
+    # choose which pathway in history is currently active
     @http_service(['POST'], '/history/(\d+)/(\d+)',
                   [CONTEXT.USER, CONTEXT.CUSTOMERID],
                   {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int},
                   {USER_ROLES.provider, USER_ROLES.supervisor})
     def publish_pathway(self, _header, body, context, matches, _key):
-        # choose which pathway in history is currently active
 
         canonical_id = int(matches[0])
         path_id = int(matches[1])
@@ -220,6 +220,7 @@ class PathwaysWebservices():
         else:
             return HTTP.BAD_RESPONSE, "", None
 
+    # update whether or not a pathway is enabled
     @http_service(['PUT'], '/list/(\d+)',
                   [CONTEXT.USERID, CONTEXT.CUSTOMERID],
                   {CONTEXT.USERID: int, CONTEXT.CUSTOMERID: int},
@@ -236,6 +237,7 @@ class PathwaysWebservices():
 
         return (HTTP.OK_RESPONSE, "", None)
 
+    # update the folder for a pathway in the pathway manager
     @http_service(['POST'], '/update_pathway_location',
                   [CONTEXT.USERID, CONTEXT.CUSTOMERID, CONTEXT.CANONICALID],
                   {CONTEXT.USERID: int, CONTEXT.CUSTOMERID: int, CONTEXT.CANONICALID: int},
@@ -262,6 +264,7 @@ class PathwaysWebservices():
 
         return (HTTP.OK_RESPONSE, "", None)
 
+    # create an exact copy of a pathway, just with a new canonical and path id
     @http_service(['GET'], '/pathway_version',
                   [CONTEXT.USERID, CONTEXT.CUSTOMERID, CONTEXT.PATHID],
                   {CONTEXT.USERID: int, CONTEXT.CUSTOMERID: int, CONTEXT.PATHID: int},

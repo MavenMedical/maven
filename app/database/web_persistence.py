@@ -649,6 +649,7 @@ class WebPersistenceBase():
         results = yield from self.execute(cmd, cmdargs, self._display_membership_info, desired)
         return results
 
+    # return possible recipients for a message - includes both users and groups
     @asyncio.coroutine
     def get_recipients(self, customer, role=None, search_term=None, ascending=True, limit=None):
 
@@ -1026,6 +1027,7 @@ class WebPersistenceBase():
         Results.layoutid: lambda x: x,
     })
 
+    # get all the widgets that should be loaded for a given user
     @asyncio.coroutine
     def layout_info(self, desired, user):
         columns = build_columns(desired.keys(), self._available_layout_info,
@@ -1350,9 +1352,9 @@ class WebPersistenceBase():
         ret = yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
         return list(ret)
 
+    # copy the newly published version of a pathway so that owners of downstream versions can see access it
     @asyncio.coroutine
     def propagate_pathway(self, parent_canonical, child_canonical, parent_customer, child_customer):
-        # copy the newly published version of a pathway
         cmd = ["INSERT INTO trees.protocol (customer_id, description, minage, maxage, sex,",
                "full_spec, canonical_id, deleted, creator, parent_id, tags)",
                "SELECT %s, p.description, p.minage, p.maxage, p.sex, p.full_spec, %s, false,",
@@ -1391,6 +1393,7 @@ class WebPersistenceBase():
             ML.EXCEPTION("Error Inserting {} Protocol for Customer #{}".format(treeJSON['name'], customer_id))
         return None
 
+    # create an exact copy of a pathway, just with a new canonical and path id
     @asyncio.coroutine
     def copy_protocol(self, customer_id, user_id, protocol_id, folder=None):
 
@@ -1536,6 +1539,7 @@ class WebPersistenceBase():
             ML.EXCEPTION("Error Selecting TreeID #{}".format(protocol_id))
             return None
 
+    # return all versions of a pathway for a given customer and canonical id
     @asyncio.coroutine
     def get_protocol_history(self, customer_id, canonical_id, limit=None):
         cmd = ["SELECT protocol_id, trees.protocol.canonical_id, creation_time, public.users.official_name, ",
@@ -1556,6 +1560,7 @@ class WebPersistenceBase():
 
         return list(ret)
 
+    # update the published pathway version for a given customer and canonical id
     @asyncio.coroutine
     def select_active_pathway(self, customer_id, canonical_id, protocol_id):
         cmd = ["UPDATE trees.canonical_protocol SET current_id=%s"]
@@ -1592,6 +1597,7 @@ class WebPersistenceBase():
         except:
             ML.EXCEPTION("Error Updating TreeID #{}".format(canonical_id))
 
+    # update whether or not a pathway is enabled
     @asyncio.coroutine
     def toggle_pathway(self, customer_id, canonical_id, enabled=False):
         cmd = ["UPDATE trees.canonical_protocol SET enabled=%s ",
@@ -1691,6 +1697,7 @@ class WebPersistenceBase():
         else:
             return False
 
+    # update the folder for a pathway in the pathway manager
     @asyncio.coroutine
     def post_pathway_location(self, customer_id, canonical_id, location_msg):
 

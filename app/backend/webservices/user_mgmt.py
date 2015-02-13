@@ -285,6 +285,7 @@ class UserMgmtWebservices():
         yield from self.persistence.create_group(customer, body['term'], body['description'])
         return HTTP.OK_RESPONSE, json.dumps({}), None
 
+    # send a messge to either a user or group
     @http_service(['POST'], '/send_message',
                   [CONTEXT.CUSTOMERID, CONTEXT.USER, CONTEXT.TARGETUSER],
                   {CONTEXT.CUSTOMERID: int, CONTEXT.USER: str,
@@ -300,6 +301,7 @@ class UserMgmtWebservices():
         target = context[CONTEXT.TARGETUSER]
 
         if target.startswith('user_'):
+            # send to an individual user
             target = target.replace('user_', '')
 
             subject = body['subject'] + " - " + user
@@ -310,6 +312,7 @@ class UserMgmtWebservices():
             return HTTP.OK_RESPONSE, b'', None
 
         elif target.startswith('group_'):
+            # send to a group
             group = target.replace('group_', '')
 
             results = yield from self.persistence.membership_info({WP.Results.username: 'user_name'},
@@ -322,7 +325,7 @@ class UserMgmtWebservices():
 
         return HTTP.BAD_REQUEST, json.dumps("INVALID RECIPIENT"), None
 
-    # returns a full list of audits (instead of using a limit) with certain parameters
+    # returns a full list of audits (no limit) with certain parameters
     @http_service(['GET'], '/download_audits',
                   [CONTEXT.PROVIDER, CONTEXT.USER, CONTEXT.CUSTOMERID],
                   {CONTEXT.PROVIDER: str, CONTEXT.PATIENTLIST: list, CONTEXT.CUSTOMERID: int,
