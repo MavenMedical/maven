@@ -103,9 +103,8 @@ class OutgoingPathwaysMessageHandler(SP.StreamProcessor):
 ##########################################################################################
 class IncomingTransparentMessageHandler(HR.HTTPReader):
 
-    def __init__(self, configname, wk):
+    def __init__(self, configname):
         HR.HTTPReader.__init__(self, configname)
-        self.wk = wk
         # TODO - Need to change the EMR Parser based on config
         self.emr_msg_parser = VistaParser()
 
@@ -119,11 +118,15 @@ class IncomingTransparentMessageHandler(HR.HTTPReader):
                 message = body.decode()
                 composition = self.emr_msg_parser.create_composition(message)
                 composition.write_key = [key]
-                self.write_object(composition, writer_key=self.wk)
+
+                # We actually send this to the same composition evaluator that evaluates Pathways
+                # The composition evaluator determines what needs to be done and will write back to
+                # different read_object() methods in this file so they're handled appropriately (since
+                # Transparent handles the delivery of the notification differently than Pathways
+                self.write_object(composition, writer_key='PathEval')
         except:
             try:
                 self.write_object(HR.wrap_response(HR.ERROR_RESPONSE, b'', None), key)
-                # traceback.print_exc()
             except:
                 # TODO - maven logging here instead of quietly passing
                 pass
@@ -226,8 +229,7 @@ def main(loop):
             SP.CONFIG_HOST: 'localhost',
             SP.CONFIG_QUEUE: 'aggregator_work_queue',
             SP.CONFIG_EXCHANGE: 'maven_exchange',
-            SP.CONFIG_KEY: 'aggregate',
-            # SP.CONFIG_WRITERKEY: 'aggregate',
+            SP.CONFIG_KEY: 'pathwaysoutgoing',
         },
 
         outgoingtohospitalsmessagehandler + ".Writer":
@@ -378,7 +380,7 @@ def main(loop):
     sp_consumer = IncomingPathwayMessageHandler(incomingtomavenmessagehandler)
     sp_consumer.schedule(loop)
 
-    transparent_consumer = IncomingTransparentMessageHandler(transparentmessageconsumer, 'PathEval')
+    transparent_consumer = IncomingTransparentMessageHandler(transparentmessageconsumer)
     transparent_consumer.schedule(loop)
 
     transparent_producer = OutgoingTransparentMessageHandler(transparentoutgoingproducer)
