@@ -98,7 +98,7 @@ class CompositionEvaluator(SP.StreamProcessor):
         # Send message back to data_router (or aggregate)
         for code in composition.type.coding:
             if code.system == 'maven_eval' and code.code == 'pathways':
-                self.write_object(composition, writer_key='aggregate')
+                self.write_object(composition, writer_key='pathwaysoutgoing')
             elif code.system == 'maven_eval' and code.code == 'transparent':
                 self.write_object(composition, writer_key='transparent')
 
@@ -556,7 +556,7 @@ def run_composition_evaluator():
             SP.CONFIG_READERTYPE: SP.CONFIGVALUE_THREADEDRABBIT,
             SP.CONFIG_READERNAME: rabbithandler + ".Reader",
             SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_THREADEDRABBIT,
-            SP.CONFIG_WRITERNAME: [rabbithandler + ".Writer", rabbithandler + ".Writer2", rabbithandler + ".WriterCost"],
+            SP.CONFIG_WRITERNAME: [rabbithandler + ".WriterPath", rabbithandler + ".WriterCost"],
             SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_IDENTITYPARSER,
 
         },
@@ -568,22 +568,13 @@ def run_composition_evaluator():
             SP.CONFIG_KEY: 'incomingpatheval'
         },
 
-        rabbithandler + ".Writer":
+        rabbithandler + ".WriterPath":
         {
             SP.CONFIG_HOST: 'localhost',
             SP.CONFIG_QUEUE: 'aggregator_work_queue',
             SP.CONFIG_EXCHANGE: 'maven_exchange',
-            SP.CONFIG_KEY: 'aggregate',
-            SP.CONFIG_WRITERKEY: 'aggregate',
-        },
-
-        rabbithandler + ".Writer2":
-        {
-            SP.CONFIG_HOST: 'localhost',
-            SP.CONFIG_QUEUE: 'logger_work_queue',
-            SP.CONFIG_EXCHANGE: 'fanout_evaluator',
-            SP.CONFIG_KEY: 'logging',
-            SP.CONFIG_WRITERKEY: 'logging',
+            SP.CONFIG_KEY: 'pathwaysoutgoing',
+            SP.CONFIG_WRITERKEY: 'pathwaysoutgoing',
         },
         rabbithandler + ".WriterCost":
             {

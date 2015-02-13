@@ -1,0 +1,17 @@
+The only TRULY functional file in this 'evaluators' directory is the 'composition_evaluator.py'
+
+This file is responsible for listening to the 'incomingpatheval' RabbitMQ queue (this queue is populated
+by incoming compositions sent to data_router_all_svcs.py.
+
+Once the 'composition_evaluator.py' file receives a composition, it runs through the the various analyses,
+populating the Alerts FHIR Section of the Composition with any alerts that are created (Transparent/Pathways/Recent
+Results/etc.)
+
+The 'composition_evaluator.py' then writes the Composition (which may or may not have Alerts attached to it now)
+back to data_router_all_svcs.py via two different RabbitMQ queues, one for transparent and one for Pathways
+b/c the notifications are handled differently for the two.
+
+The extra files in this directory were the beginning attempts to parallelize the Transparent and Pathways analysis,
+so that each would listen to it's own queue, but they would be spun up under the same thread (sort of the way
+decorators are used for the HTTP routes). But this functionality got side-tracked in Summer of 2014 to focus on Pathways
+exclusively.
