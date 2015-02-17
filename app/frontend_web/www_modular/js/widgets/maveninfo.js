@@ -11,6 +11,9 @@ define([
     'pathway/models/treeModel',
     'pathway/models/treeContext',
 ], function ($, _, Backbone, contextModel, curTree, treeContext) {
+    //This view is to control maven info for pathway app
+    // maven info is a friendly pop-up in the lower-left corner
+    // that shows more information about the tree node
     var MavenInfo = Backbone.View.extend({
 
             initialize: function (arg) {
@@ -18,6 +21,7 @@ define([
                 treeContext.on('propagate', this.render, this);
                 contextModel.on('change:page change:pathid', this.hidePopup, this);
             },
+            // not in use
             showhide: function () {
                 this.$el.show();
             },
@@ -29,6 +33,7 @@ define([
                     this.hidePopup()
                     return
                 }
+                // this code is used to prevent the pop-up from poping again if it is the same selected node
                 if (treeContext.get('selectedNode') == this.selectedNode) {
                     return
                 }
