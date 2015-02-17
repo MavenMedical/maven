@@ -60,7 +60,9 @@ class CompositionEvaluator(SP.StreamProcessor):
         yield from self.fhir_persistence.write_composition_json(composition)
 
         # Add the alerts section so that the components below can add their respective alerts
-        self._add_alerts_section(composition)
+        composition.section.append(FHIR_API.Section(title="Maven Alerts", code=FHIR_API.CodeableConcept(text="Maven Alerts",
+                                                                                                        coding=[FHIR_API.Coding(system="maven",
+                                                                                                                                code="alerts")])))
 
         # Identify Encounter Orderables
         yield from self.identify_encounter_orderables(composition)
@@ -101,10 +103,6 @@ class CompositionEvaluator(SP.StreamProcessor):
                 self.write_object(composition, writer_key='pathwaysoutgoing')
             elif code.system == 'maven_eval' and code.code == 'transparent':
                 self.write_object(composition, writer_key='transparent')
-
-    def _add_alerts_section(self, composition):
-        composition.section.append(FHIR_API.Section(title="Maven Alerts", code=FHIR_API.CodeableConcept(text="Maven Alerts", coding=[FHIR_API.Coding(system="maven",
-                                                                                                                                                     code="alerts")])))
 
     ##########################################################################################
     ##########################################################################################
