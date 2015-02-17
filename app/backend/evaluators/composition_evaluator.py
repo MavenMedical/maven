@@ -96,7 +96,11 @@ class CompositionEvaluator(SP.StreamProcessor):
         # COMP_EVAL_LOG.debug(json.dumps(FHIR_API.remove_none(json.loads(json.dumps(composition, default=FHIR_API.jdefault))), default=FHIR_API.jdefault, indent=4))
 
         # Send message back to data_router (or aggregate)
-        self.write_object(composition, writer_key='aggregate')
+        for code in composition.type.coding:
+            if code.system == 'maven_eval' and code.code == 'pathways':
+                self.write_object(composition, writer_key='pathwaysoutgoing')
+            elif code.system == 'maven_eval' and code.code == 'transparent':
+                self.write_object(composition, writer_key='transparent')
 
     def _add_alerts_section(self, composition):
         composition.section.append(FHIR_API.Section(title="Maven Alerts", code=FHIR_API.CodeableConcept(text="Maven Alerts", coding=[FHIR_API.Coding(system="maven",
@@ -193,13 +197,17 @@ class CompositionEvaluator(SP.StreamProcessor):
             order.totalCost = 0
             coding = order.get_proc_med_terminology_coding()
             for order_detail in order.detail:
-                yield from self.fhir_persistence.get_order_detail_cost(order_detail, composition)
-                order.totalCost += order_detail.cost
+                cost, cost_type = yield from self.fhir_persistence.get_order_detail_cost(order_detail, composition)
+                if cost:
+                    order_detail.cost = cost
+                    order_detail.cost_type = cost_type
+                    order.totalCost += cost
 
-            encounter_cost_breakdown['details'].append({"order_name": coding.display,
-                                                        "order_cost": order_detail.cost,
-                                                        "order_type": order_detail.resourceType})
-            encounter_cost_breakdown['total_cost'] += order.totalCost
+            if coding is not None and cost:
+                encounter_cost_breakdown['details'].append({"order_name": coding.display,
+                                                            "order_cost": order_detail.cost,
+                                                            "order_type": order_detail.resourceType})
+                encounter_cost_breakdown['total_cost'] += order.totalCost
 
         # Only generate the alert if there are costs to show
         if len(encounter_cost_breakdown['details']) > 0 and encounter_cost_breakdown['total_cost'] > 0:
@@ -548,35 +556,34 @@ def run_composition_evaluator():
             SP.CONFIG_READERTYPE: SP.CONFIGVALUE_THREADEDRABBIT,
             SP.CONFIG_READERNAME: rabbithandler + ".Reader",
             SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_THREADEDRABBIT,
-            SP.CONFIG_WRITERNAME: [rabbithandler + ".Writer", rabbithandler + ".Writer2"],
+            SP.CONFIG_WRITERNAME: [rabbithandler + ".WriterPath", rabbithandler + ".WriterCost"],
             SP.CONFIG_PARSERTYPE: SP.CONFIGVALUE_IDENTITYPARSER,
 
         },
         rabbithandler + ".Reader":
         {
             SP.CONFIG_HOST: 'localhost',
-            SP.CONFIG_QUEUE: 'incoming_cost_evaluator_work_queue',
+            SP.CONFIG_QUEUE: 'incoming_path_evaluator_work_queue',
             SP.CONFIG_EXCHANGE: 'maven_exchange',
-            SP.CONFIG_KEY: 'incomingcosteval'
+            SP.CONFIG_KEY: 'incomingpatheval'
         },
 
-        rabbithandler + ".Writer":
+        rabbithandler + ".WriterPath":
         {
             SP.CONFIG_HOST: 'localhost',
             SP.CONFIG_QUEUE: 'aggregator_work_queue',
             SP.CONFIG_EXCHANGE: 'maven_exchange',
-            SP.CONFIG_KEY: 'aggregate',
-            SP.CONFIG_WRITERKEY: 'aggregate',
+            SP.CONFIG_KEY: 'pathwaysoutgoing',
+            SP.CONFIG_WRITERKEY: 'pathwaysoutgoing',
         },
-
-        rabbithandler + ".Writer2":
-        {
-            SP.CONFIG_HOST: 'localhost',
-            SP.CONFIG_QUEUE: 'logger_work_queue',
-            SP.CONFIG_EXCHANGE: 'fanout_evaluator',
-            SP.CONFIG_KEY: 'logging',
-            SP.CONFIG_WRITERKEY: 'logging',
-        },
+        rabbithandler + ".WriterCost":
+            {
+                SP.CONFIG_HOST: 'localhost',
+                SP.CONFIG_QUEUE: 'transparent_send_queue',
+                SP.CONFIG_EXCHANGE: 'maven_exchange',
+                SP.CONFIG_KEY: 'transparent',
+                SP.CONFIG_WRITERKEY: 'transparent',
+            },
         CONFIG_PARAMS.PERSISTENCE_SVC.value: {FD.CONFIG_DATABASE: rpc_database_stream_processor},
         rpc_database_stream_processor: {
             SP.CONFIG_WRITERTYPE: SP.CONFIGVALUE_ASYNCIOSOCKETREPLY,

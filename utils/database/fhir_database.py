@@ -107,8 +107,14 @@ class FHIRPersistanceBase():
         try:
             encounter_id = composition.encounter.get_csn()
             patient_id = composition.subject.get_pat_id()
-            encounter_type = composition.encounter.fhir_class.code or None
-            encounter_date = composition.encounter.period.start.date().isoformat() or None
+            if composition.encounter.fhir_class is not None:
+                encounter_type = composition.encounter.fhir_class.code
+            else:
+                encounter_type = None
+            if composition.encounter.period is not None:
+                encounter_date = composition.encounter.period.start.date().isoformat()
+            else:
+                encounter_date = None
             provider_id = composition.get_author_id()
             bill_prov_id = composition.get_author_id()
             encounter_dep = None
@@ -576,14 +582,14 @@ class FHIRPersistanceBase():
                 department = ""
 
             if isinstance(order_detail, FHIR_API.Procedure):
-                proc_coding = order_detail.type.get_coding_by_system(["HCPCS", "CPT"])
+                proc_coding = order_detail.type.get_coding_by_system(["HCPCS", "CPT", "maven"])
                 cmdargs = [proc_coding.code,
                            proc_coding.system,
                            composition.customer_id,
                            department]
 
             elif isinstance(order_detail, FHIR_API.Medication):
-                med_coding = order_detail.code.get_coding_by_system(["rxnorm"])
+                med_coding = order_detail.code.get_coding_by_system(["rxnorm", "maven"])
                 cmdargs = [med_coding.code,
                            med_coding.system,
                            composition.customer_id,
@@ -591,10 +597,12 @@ class FHIRPersistanceBase():
 
             cur = yield from self.db.execute_single(' '.join(cmd), cmdargs)
 
-            for result in cur:
+            result = cur.fetchone()
+            if not result:
+                return None, None
+            else:
                 FHIR_DB_LOG.debug("Result from DB query (get_order_detail_cost): %s" % [(result[x]) for x in range(len(result))])
-                order_detail.cost = FHIR_API.round_up_five(result[0])
-                order_detail.cost_type = result[1]
+                return FHIR_API.round_up_five(result[0]), result[1]
         except:
             raise Exception("Error querying the transparent.costmap table")
 

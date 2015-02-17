@@ -1,3 +1,10 @@
+# This file provides the high level wrapper for all of our database calls.
+# It sits on top of the connection-pool layer, and provides a much nicer abstraction.
+# Where we're managed to stick with the pattern, each function takes a map of desired return values for each row.
+# Only the desired rows are fetched, and returned with a name supplied by the calling function.
+# With this pattern, an order by parameter, and data ranges can also be specified (though this convention
+# was somewhat lost with others working on this file as well.
+
 import asyncio
 from enum import Enum
 from collections import defaultdict
@@ -278,10 +285,10 @@ class WebPersistenceBase():
     def update_user(self, user, customer, state, desired=None):
         cmd = []
         cmdargs = []
-        cmd.append("UPDATE users")
-        cmd.append("set (state) = (%s)")
+        cmd.append("UPDATE users u")
+        cmd.append("set state=%s")
         cmdargs.append(state)
-        cmd.append("where user_name = UPPER(%s) and customer_id = %s")
+        cmd.append("where user_name=UPPER(%s) and customer_id=%s")
         cmdargs.append(user)
         cmdargs.append(customer)
         if desired:
@@ -384,6 +391,7 @@ class WebPersistenceBase():
                                 [actioncomment, alertid, customer, user,
                                  category, ruleid], {}, {})
 
+    # handles when a user either likes or dislikes an alert
     @asyncio.coroutine
     def rate_alert(self, customer_id, user_id, category, subcategory,
                    alertid, rule_id, scope, action, update=0):
@@ -551,6 +559,7 @@ class WebPersistenceBase():
         Results.settings: lambda x: x and repr(x)
     })
 
+    # returns a list of users with the desired information (columns). Also used for autocomplete
     @asyncio.coroutine
     def user_info(self, desired, customer, orderby=Results.userid, role=None, groupexclude=None,
                   officialname=None, ascending=True, startdate=None, enddate=None, limit=None):
@@ -608,12 +617,14 @@ class WebPersistenceBase():
         Results.status: "user_membership.status",
         Results.startdate: "user_membership.begin_datetime",
         Results.enddate: "user_membership.end_datetime",
+        Results.officialname: "users.official_name",
     }
     _display_membership_info = _build_format({
         Results.startdate: lambda x: x and _prettify_datetime(x),
         Results.enddate: lambda x: x and _prettify_datetime(x),
     })
 
+    # returns group membership information (i.e. return a list of users in a specified group)
     @asyncio.coroutine
     def membership_info(self, desired, customer, orderby=Results.membershipid, group=None,
                         ascending=True, startdate=None, enddate=None, limit=None):
@@ -625,6 +636,7 @@ class WebPersistenceBase():
         cmd.append("SELECT")
         cmd.append(columns)
         cmd.append("FROM user_membership")
+        cmd.append("LEFT JOIN users on users.user_id = user_membership.user_id")
         cmd.append("WHERE user_membership.customer_id = %s")
         cmdargs.append(customer)
         if group:
@@ -1862,25 +1874,30 @@ class WebPersistenceBase():
         return id
 
     @asyncio.coroutine
-    def update_group(self, customer, id, name, description, status, userJSON):
-        cmd = ["UPDATE public.user_group SET (group_name, group_description, status) = (%s, %s, %s);"]
-        cmdArgs = [name, description, status]
-        cmd.append("DELETE FROM public.user_membership WHERE group_id= %s AND customer_id = %s;")
-        cmdArgs.append(id)
-        cmdArgs.append(customer)
-        for key in userJSON:
-            cmd.append("INSERT INTO public.user_membership (customer_id, group_id, user_id, name, description, status) values (%s, %s, %s, %s %s);")
-            cmdArgs.append(customer, id, key['id'], name, description, status)
+    def update_group(self, customer, group_id, name, description, status, userJSON):
+        try:
+            cmd = ["UPDATE public.user_group SET (group_name, group_description, status) = (%s, %s, %s) WHERE group_id = %s and customer_id = %s;"]
+            cmdArgs = [name, description, status, group_id, customer]
+            cmd.append("DELETE FROM public.user_membership WHERE group_id= %s AND customer_id = %s;")
+            cmdArgs.append(group_id)
+            cmdArgs.append(customer)
+            for key in userJSON:
+                cmd.append("INSERT INTO public.user_membership (customer_id, group_id, user_name, user_id, status) values (%s, %s, %s, %s, %s);")
+                cmdArgs.extend([customer, group_id, key['value'], key['id'], status])
+            yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
 
-        return
+            return ""
+        except:
+            ML.EXCEPTION('Error updating user groups in database')
 
     @asyncio.coroutine
-    def remove_group(self, groupID):
+    def remove_group(self, customer, groupID):
 
-        cmd = ["DELETE FROM public.user_group",
-               "WHERE group_id = %s"]
+        cmd = ["DELETE FROM public.user_group WHERE group_id = %s;"]
         cmdArgs = [groupID]
-
+        cmd.append("DELETE FROM public.user_membership WHERE group_id= %s AND customer_id = %s;")
+        cmdArgs.append(groupID)
+        cmdArgs.append(customer)
         yield from self.db.execute_single(' '.join(cmd) + ";", cmdArgs)
         return
 

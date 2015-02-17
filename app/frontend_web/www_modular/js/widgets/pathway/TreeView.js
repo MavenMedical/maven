@@ -16,7 +16,7 @@ define([
     ],
 
     function ($, _, Backbone, contextModel, curTree, treeContext, toolbar, TriggerNode, NodeEditor, Helpers, pathwayCollection, treeTemplate, insertDiv) {
-
+        //the top level view for the pathway object, depicts the curTree in the global treeModel
         var TreeView = Backbone.View.extend({
 
             template: _.template(treeTemplate),
@@ -43,6 +43,7 @@ define([
                         this.$el.hide()
                     }
                 }, this)
+                //set up jsplumb's settings
                 this.plumb = jsPlumb.getInstance({
                     MaxConnections: -1,
                     Connector: [ "Flowchart", { cornerRadius: 3 }],
@@ -79,7 +80,9 @@ define([
                     }
                 })
                 var that = this
+                //set jsplumb's container
                 this.plumb.setContainer(this.treeEl[0])
+                //zoom code
                 this.$el.on('wheel', function (data) {
                         var mouseX = data.originalEvent.pageX;
                         var mouseY = data.originalEvent.pageY;
@@ -122,6 +125,7 @@ define([
                 )
 
                 var resizetimer
+                //redraw when the window changes but not more than once every 100 ms
                 window.onresize = function () {
 
                     window.clearTimeout(resizetimer)
@@ -148,6 +152,7 @@ define([
                     }, 500)
                 })
                 this.userNotified = false;
+
                 contextModel.on('change:pathid', function () {
                     if (Object.keys(contextModel.changed).length == 1 && contextModel.get('active') && !this.userNotified) {
                         // alert('You are about to modify Active pathway')
@@ -180,6 +185,8 @@ define([
 
                 this.render()
             },
+
+            //render the display of this tree
             render: function () {
 
 
@@ -201,12 +208,13 @@ define([
                     this.$el.hide()
                 }
                 curTree.elPairs = []
+                //delete the old jsplumb lines
                 this.plumb.deleteEveryEndpoint();
                 this.treeEl.html('')
-
+                //create the spot for the large tree
                 $('.pathtree', that.$el).append("<div style= 'width:auto; height: auto' class='nodeEl'></div>")
                 $('.pathtree', that.$el).append("<div style='height:100px'></div>")
-
+                //create the top level tree node which will contain the rest of them
                 var topLevel = new TriggerNode({el: $('.nodeEl', this.$el).last(), model: curTree});
 
                 if (contextModel.get('page') == 'pathEditor')
@@ -216,6 +224,7 @@ define([
                 else {
                     $('#pathwayName').html("")
                 }
+                //draw the jsplumb based on the el pairs for the tree
                 this.renderJSPlumb()
                 this.adjustWidth()
                 this.setDraggableBox()
@@ -287,19 +296,24 @@ define([
 
                     }
                 })
+                //draw a line between the exit of the source and entrance of the target for each el pair
 
                 for (var i in curTree.elPairs) {
                     var cur = curTree.elPairs[i]
+
+                    //only if both the source and target are visible
                     if ((cur.source.$el.is(":visible")) && (cur.target.$el.is(":visible"))) {
 
                         var a = cur.source.makeExit(that.plumb)
                         var b = cur.target.makeEntrance(that.plumb)
-
+                        //if the pair is to be bold, draw a bold line
                         if (cur.bold) {
                             that.plumb.connect({
                                 source: a,
                                 target: b,
                                 overlays: [
+                                    //define the custom insert overlay which will call to insert a node between these two
+                                    //on click
                                     ["Custom", {
                                         create: function (component) {
 
@@ -321,10 +335,14 @@ define([
                                     strokeStyle: '#46bdec'
                                 }
                             })
+
+                         //otherwise draw a regular line
                         } else {
                             that.plumb.connect({
 
                                 overlays: [
+                                    //define the custom insert overlay which will call to insert a node between these two
+                                    //on click
                                     ["Custom", {
                                         create: function (component) {
 
@@ -369,13 +387,6 @@ define([
                     old.left = selected.offset().left
                     old.top = selected.offset().top
                 }
-            },
-            showExtraInfo: function () {
-
-            },
-            drawNodes: function () {
-
-
             },
         })
 

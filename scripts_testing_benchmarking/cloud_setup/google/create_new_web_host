@@ -1,19 +1,33 @@
 #!/bin/bash
 SYSNAME=$1
+MACHINEREGION=$2
+MACHINETYPE=$3
+DEPLOYKEYFILE=$4
+GITSERVERFINGERPRINTFILE=$5
+WEBSERVERCRT=$6
+WEBSERVERKEY=$7
+DBCLIENTKEY=$8
+DBCLIENTCERT=$9
+DBCLIENTROOT=${10}
 
-# Check to see if SYSNAME Instance already exists
-if gcloud compute instances list | grep "^..${SYSNAME} "; then
-    echo instance $SYSNAME already exists
-    exit 1
-fi
+echo create web host: $@
 
-# Create the Instance
-gcloud compute instances create $SYSNAME --zone us-central1-f --machine-type g1-small --image centos-7  --tags dev ssh
-if [ $? -eq 0 ]; then
-    sleep 60
-else
-    echo gcloud compute instances create $SYSNAME failed
-    exit 1
+if [[ ! -z $MACHINETYPE ]]; then
+    # only create the instance in it a machinetype is passed in
+    # Check to see if SYSNAME Instance already exists
+    if gcloud compute instances list | grep "^..${SYSNAME} "; then
+        echo instance $SYSNAME already exists
+        exit 1
+    fi
+
+    # Create the Instance
+    gcloud compute instances create $SYSNAME --zone $MACHINEREGION --machine-type $MACHINETYPE --image centos-7  --tags dev ssh
+    if [ $? -eq 0 ]; then
+        sleep 60
+    else
+        echo gcloud compute instances create $SYSNAME failed
+        exit 1
+    fi
 fi
 
 # Make sure that the Instance was created before trying to send the Setup Scripts
@@ -22,11 +36,21 @@ if ! (gcloud compute instances list | grep $SYSNAME) then
     exit 1
 fi
 
-gcloud compute copy-files /media/readyshare/public_keys/deploy-key /media/readyshare/public_keys/github_server_fingerprint $SYSNAME:~/ --zone us-central1-f
-gcloud compute copy-files /media/readyshare/public_keys/dev-server.crt $SYSNAME:~/server.crt --zone us-central1-f
-gcloud compute copy-files /media/readyshare/public_keys/dev-server.key $SYSNAME:~/server.key --zone us-central1-f
+gcloud compute instances add-tags $SYSNAME --tags web --zone $MACHINEREGION
 
-gcloud compute copy-files setup_scripts/common.sh setup_scripts/web_host_only.sh ~/.bashrc $SYSNAME:~/ --zone us-central1-f
+gcloud compute copy-files $DEPLOYKEYFILE $SYSNAME:~/deploy-key --zone $MACHINEREGION
+gcloud compute copy-files $GITSERVERFINGERPRINTFILE $SYSNAME:~/github_server_fingerprint --zone $MACHINEREGION
+if [[ -r "$WEBSERVERCRT" ]]; then
+    gcloud compute copy-files $WEBSERVERCRT $SYSNAME:~/server.crt --zone $MACHINEREGION
+    gcloud compute copy-files $WEBSERVERKEY $SYSNAME:~/server.key --zone $MACHINEREGION
+fi
+if [[ -r "$DBCLIENTKEY" ]]; then
+    gcloud compute copy-files $DBCLIENTKEY $SYSNAME:~/postgresql.key --zone $MACHINEREGION
+    gcloud compute copy-files $DBCLIENTCERT $SYSNAME:~/postgresql.crt --zone $MACHINEREGION
+    gcloud compute copy-files $DBCLIENTROOT $SYSNAME:~/root.crt --zone $MACHINEREGION
+fi
 
-gcloud compute ssh $SYSNAME --zone us-central1-f --ssh-flag="-t" --command "bash common.sh"
-gcloud compute ssh $SYSNAME --zone us-central1-f --ssh-flag="-t" --command "bash web_host_only.sh"
+gcloud compute copy-files setup_scripts/common.sh setup_scripts/web_host_only.sh .bashrc maven.config nginx.base.conf nginx.conf command-line-connect $SYSNAME:~/ --zone $MACHINEREGION
+
+gcloud compute ssh $SYSNAME --zone $MACHINEREGION --ssh-flag="-t" --command "bash common.sh"
+gcloud compute ssh $SYSNAME --zone $MACHINEREGION --ssh-flag="-t" --command "bash web_host_only.sh"

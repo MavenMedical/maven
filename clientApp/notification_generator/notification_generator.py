@@ -108,7 +108,7 @@ class NotificationGenerator():
         base_alert_data = {"alert_id": composition.id,
                            "rule_id": 0,
                            "provider": composition.get_author_id(),
-                           "user": composition.author.get_provider_username(),
+                           "user": composition.author.get_provider_username() or "YUKIU",
                            "customer_id": composition.customer_id,
                            "userAuth": composition.userAuth,
                            "csn": urllib.parse.quote(composition.encounter.get_csn()),

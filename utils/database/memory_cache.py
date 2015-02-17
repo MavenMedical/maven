@@ -5,8 +5,12 @@
 #  Description: This provides the unit tests for the memory_cache
 #
 #  Author: Tom DuBois
-#  Assumes: A working asyncio memory cache
-#  Side Effects: None
+#  Provides: A working asyncio memory cache
+#  This isn't particularly critical, but it can be used for lessening a load
+#  on a database or API server.  Essentially you can wrap this around a function
+#  and it will cache results from that function for a period of time, so that
+#  subsequent calls with the same key do not need to actually call the function
+#  again.
 ##############################################################################
 import asyncio
 import time

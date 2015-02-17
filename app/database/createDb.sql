@@ -1,4 +1,4 @@
-create user maven password 'temporary' SUPERUSER CREATEDB CREATEROLE INHERIT LOGIN;
+create user maven password :pw SUPERUSER CREATEDB CREATEROLE INHERIT LOGIN;
 
 CREATE DATABASE maven
   WITH OWNER = maven

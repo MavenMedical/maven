@@ -110,6 +110,9 @@ class CompositionBuilder(builder):
         composition.type = FHIR_API.CodeableConcept(coding=[FHIR_API.Coding(system="http://loinc.org",
                                                                             code="74028-2")])
 
+        # We need this FHIR Coding to discern Pathway and Transparent message handling
+        composition.type.coding.append(FHIR_API.Coding(system="maven_eval", code="pathways"))
+
         # Extract the "J-codes" (HCPCS procedure codes) from the CDA
         proc_history_section = self.extract_hcpcs_codes_from_cda(CDA_summary_result)
         if proc_history_section:

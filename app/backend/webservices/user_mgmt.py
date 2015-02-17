@@ -77,6 +77,7 @@ class UserMgmtWebservices():
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
+    # handles when a user either likes or dislikes an alert
     @http_service(['GET'], '/rate_alert',
                   [CONTEXT.USERID, CONTEXT.CUSTOMERID, CONTEXT.ALERTID, CONTEXT.ACTION,
                    CONTEXT.RULEID, CONTEXT.CATEGORY],
@@ -113,6 +114,7 @@ class UserMgmtWebservices():
         else:
             return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
 
+    # handles when a user provides extra information as to why he/she liked/disliked an alert
     @http_service(['GET'], '/critique_alert',
                   [CONTEXT.CUSTOMERID, CONTEXT.RULEID, CONTEXT.USERID,
                    CONTEXT.CATEGORY, CONTEXT.ACTIONCOMMENT, CONTEXT.ALERTID],
@@ -137,6 +139,7 @@ class UserMgmtWebservices():
         else:
             return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
 
+    # handles when a user updates his/her profile settings
     @http_service(['GET'], '/save_user_settings',
                   [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.OFFICIALNAME, CONTEXT.DISPLAYNAME],
                   {CONTEXT.USER: str, CONTEXT.CUSTOMERID: int,
@@ -154,6 +157,7 @@ class UserMgmtWebservices():
         else:
             return HTTP.OK_RESPONSE, json.dumps(['FALSE']), None
 
+    # returns a list of audits with the specified information
     @http_service(['GET'], '/audits(?:(\d+)-(\d+)?)?',
                   [CONTEXT.USER, CONTEXT.CUSTOMERID, CONTEXT.ROLES],
                   {CONTEXT.CUSTOMERID: int,
@@ -198,6 +202,7 @@ class UserMgmtWebservices():
 
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
+    # used to return a list of recipients, typically for an autocomplete box. Can return users and/or groups
     @http_service(['GET'], '/recipients(?:(\d+)-(\d+)?)?',
                   [CONTEXT.CUSTOMERID],
                   {CONTEXT.CUSTOMERID: int, CONTEXT.ROLES: list,
@@ -216,6 +221,7 @@ class UserMgmtWebservices():
                 json.dumps([{'label': k[0], 'value': k[1]} for k in results]),
                 None)
 
+    # returns a list of user groups
     @http_service(['GET'], '/user_group/(\d+)',
                   [CONTEXT.CUSTOMERID],
                   {CONTEXT.CUSTOMERID: int, CONTEXT.ROLES: list, CONTEXT.NAME: str},
@@ -223,7 +229,7 @@ class UserMgmtWebservices():
     def get_group(self, _header, _body, context, matches, _key):
         customer = context[CONTEXT.CUSTOMERID]
         id = matches[0]
-        desired = {WP.Results.username: 'value', WP.Results.userid: 'id'}
+        desired = {WP.Results.username: 'value', WP.Results.userid: 'id', WP.Results.officialname: 'label'}
 
         users = yield from self.persistence.membership_info(desired, customer, group=id)
 
@@ -264,8 +270,8 @@ class UserMgmtWebservices():
                   {CONTEXT.CUSTOMERID: int, CONTEXT.ROLES: list, CONTEXT.NAME: str},
                   {USER_ROLES.administrator, USER_ROLES.supervisor, USER_ROLES.provider})
     def remove_group(self, _header, _body, context, matches, _key):
-        # customer = context[CONTEXT.CUSTOMERID]
-        results = yield from self.persistence.remove_group(matches[0])
+        customer = context[CONTEXT.CUSTOMERID]
+        results = yield from self.persistence.remove_group(customer, matches[0])
         return HTTP.OK_RESPONSE, json.dumps(results), None
 
     @http_service(['POST'], '/user_group/',
@@ -316,6 +322,7 @@ class UserMgmtWebservices():
 
         return HTTP.BAD_REQUEST, json.dumps("INVALID RECIPIENT"), None
 
+    # returns a full list of audits (instead of using a limit) with certain parameters
     @http_service(['GET'], '/download_audits',
                   [CONTEXT.PROVIDER, CONTEXT.USER, CONTEXT.CUSTOMERID],
                   {CONTEXT.PROVIDER: str, CONTEXT.PATIENTLIST: list, CONTEXT.CUSTOMERID: int,
@@ -347,26 +354,5 @@ class UserMgmtWebservices():
         results = yield from self.persistence.audit_info(desired, provider, customer,
                                                          startdate=startdate,
                                                          enddate=enddate, limit=None)
-
-        """ with open('audits.csv', 'rb') as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerows(results)
-        write_string = ""
-        for audit in results:
-            write_string += audit["date"] + "," + audit["patient"] + "," + audit["action"]
-            write_string += audit["device"] + "," + audit["details"] + ",\n"
-
-        filename = "/home/devel/maven/userFiles/" + provider + "_" + str(customer) + "_audit.csv"
-        file = open(filename, 'w+')
-        file.write(write_string)
-        file.close()
-
-        generator = (cell for row in results
-                     for cell in row)
-
-        return Response(generator,
-                        mimetype="text/plain",
-                        headers={"Content-Disposition":
-                        "attachment;filename=audits.txt"})"""
 
         return HTTP.OK_RESPONSE, json.dumps(results), None

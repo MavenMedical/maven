@@ -16,6 +16,7 @@
         <div class="col-md-12">
             <div class="row">
                 <div class="col-sm-6">
+                    <% if (customer == 0){ %>
                     <div class="row">
                         <div class="span3">Unity Server Address</div>
                         <div style='float:left'>
@@ -56,6 +57,7 @@
                             <%= (typeof EHRServiceUser !== 'undefined') ? "value='"+EHRServiceUser+"' disabled" : "value='MavenPathways'" %>>
                     </div>
                 </div>
+                <% } %>
                 <div class="col-sm-6">
                     <div class="row">
                         <div class="span3">EHR Integration</div>
@@ -66,17 +68,21 @@
                             </a>
                     </div>
                 </div>
-                <div class="col-sm-6">
+               <div class="col-sm-6">
                     <div class="row" style='margin-bottom:10px;'>
+                        &nbsp;
+                         <% if (customer == 0){ %>
                         <div class="span3">App Password:</div>
                         <input id="admin-pw-input" class='form-control' type="password" <%= disabled %>>
+                        <% } %>
                     </div>
                 </div>
                 <br/>
             </div>
             <div class="row">
                 <div class="col-sm-6">
-                    <div id="admin-setup-message" class="span3">&nbsp;</div>
+                    &nbsp;
+                    <!-- <div id="admin-setup-message" class="span3">&nbsp;</div> -->
                 </div>
                 <div class="col-sm-6">
                     <div style='float:right'>

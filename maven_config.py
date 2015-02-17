@@ -27,6 +27,7 @@ if isfile('/etc/mavenmedical/maven.config'):
     recaptcha_public = MavenConfig['global'].get('recaptcha_public', '')
     recaptcha_private = MavenConfig['global'].get('recaptcha_private', '')
     wrap_exception = MavenConfig['global'].get('wrap_exception', None)
+    slack_url = MavenConfig['global'].get('slack_url', None)
     sslcrtfile = None
     sslkeyfile = None
     sslkeypassword = None
@@ -49,6 +50,7 @@ else:
     sslcadata = None
     sslcapath = None
     sslcafile = None
+    slack_url = None
 
 
 class InvalidConfig(Exception):

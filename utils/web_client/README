@@ -1,0 +1,8 @@
+This package provides a wrapper for aiohttp (a package providing an asyncio web get/post interface. 
+
+An EHR's api consists of a base url with parameters and/or subdirectories to indicate the particular query.
+
+http_client.py encapsulates translating GETs/POSTs into queries, and handles the common root of the remote API.
+
+allscripts_http_client.py encapsulates connecting to allscripts unity servers.  It provides a python interface for the allscripts API calls we might be interested in.  Allscripts returns JSON wrapped in XML in an odd way usually, sometimes they return just xml, and they return errors in a few different non-standard ways.  This file hides all of that, as well as token management, to expose just the python versions of the API calls as coroutines.
+

@@ -1,0 +1,3 @@
+this module contains a very early prototype android app.  It does not support authentication, all it does is query a hard-coded web server, display notifications, and take you to a browser when the notifications are selected.
+
+It was developed with android studio, if you you continue work on it, you should use the same.  It was only about a week's worth of effort, and has a few things that I would want to re-write, so you may want to just take a loo, and then start from scratch.

@@ -28,8 +28,8 @@ define([
             });
         },
         render: function(){
-            template= _.template(patientListTemplate, {display: contextModel.get('display')});
-            this.$el.html(template);
+            template= _.template(patientListTemplate)
+            this.$el.html(template({display: contextModel.get('display')}));
             return this;
         },
 	    addPatient: function(pat){

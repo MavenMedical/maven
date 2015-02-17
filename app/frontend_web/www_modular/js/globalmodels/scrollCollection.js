@@ -74,7 +74,10 @@ define([
             this.fetch({
                 data: $.param(data),
                 remove: true,
-                success: function(fullcol, res) {that.full = res.length < that.limit; that.active=0; that.lastRefresh = new Date();},
+                success: function(fullcol, res) {
+                    that.full = res.length < that.limit; that.active=0;
+                    that.set({lastRefresh: new Date()});
+                },
                 error: function() {that.full = 1; that.active=0}
             });
         }

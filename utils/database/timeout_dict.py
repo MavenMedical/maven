@@ -1,3 +1,6 @@
+# NOTE - timeout_dict was written for using the the polling notification service
+# We ended up using something else, so this code is dead.  I'm keeping it around
+# because it might be good for something later
 import asyncio
 
 

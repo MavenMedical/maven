@@ -1,3 +1,6 @@
+# Starting with Centos-7, the old way of starting/stopping services automatically is gone, replaced by systemctl and it's data files
+# This was my attempt at making Maven work with that.  The problem is that we need user intervention in a few places (decrypting things for HIPAA compliance)
+# So we ended up not using this 
 [Unit]
 Description=Maven Web Services
 After=rabbitmq-server
