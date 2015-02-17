@@ -19,7 +19,6 @@ define([
     'pathway/modalViews/newPathwayFolder',
     'pathway/singleRows/folderRow',
     'globalmodels/sidebarModel',
-    'nestable',
 
 ], function ($, _, Backbone,  contextModel, curCollection, curTree,  NewPathway, PathRow, pathwaysListTemplate, newPathwayFolder, FolderRow, sidebarModel) {
 
