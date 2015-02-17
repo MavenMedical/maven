@@ -63,7 +63,7 @@
         'pathway/modalViews/sendProtocol',
         'pathway/modalViews/editNode',
         'pathway/modalViews/sendFollowups',
-        'pathway/modalViews/detailEditor_archaic',
+        'pathway/modalViews/detailEditor',
         'pathway/modalViews/nodeEditor',
         'pathway/modalViews/newPathway',
         'pathway/modalViews/detailEditor',
