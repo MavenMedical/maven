@@ -8,8 +8,10 @@ define([
     'singleRow/interactionRow',
 
     'globalmodels/contextModel',
-    'pathway/models/treeContext'
-], function ($, _, Backbone, InteractionCollection, InteractionRow, contextModel, treeContext) {
+    'pathway/models/treeContext',
+    'globalmodels/sidebarModel'
+
+], function ($, _, Backbone, InteractionCollection, InteractionRow, contextModel, treeContext, sidebarModel) {
     var interactionCollection;
 
     var flip = function() {
@@ -29,7 +31,7 @@ define([
     $(document).keydown(function(evt) {keyflip(evt)})
 
 
-    var InteractionList = Backbone.View.extend({
+        var InteractionList = Backbone.View.extend({
         extraData: {},
         lastHeight: 0,
         first: true,
@@ -38,12 +40,13 @@ define([
                 this.extraData = arg.extraData;
             }
             interactionCollection = new (InteractionCollection.extend({extraData: this.extraData}));
-            
+
 	    this.template = _.template(arg.template); // this must already be loaded
             this.$el.html(this.template());
 	    interactionCollection.bind('add', this.addInteraction, this);
 	    interactionCollection.bind('reset', this.reset, this);
 	    //interactionCollection.bind('sync', this.render, this);
+        sidebarModel.addOption('Dashboard')
 	    this.render('Loading ...');
 	    contextModel.on('change:page change:history', function() {this.showhide()}, this)
             contextModel.on('change:history change:historyposition change:historydetails', function() {this.updatehistory()}, this)

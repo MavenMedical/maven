@@ -30,7 +30,6 @@ define([
             this.template = _.template(sidebarTemplate);
             this.render();
             sidebarModel.on('change', this.change, this)
-            sidebarModel.addOption('Dashboard')
         },
         change: function() {
             _.each(sidebarModel.changed, function(v, k) {
