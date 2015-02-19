@@ -84,19 +84,10 @@ define([
         }
 	},
 	addHistory: function(history) {
-     /*   curpath = history.get("pathid");
-        if (this.currentPath == curpath){
-            history.set({active: 1});
-        }
-        else {
-            history.set({active: 0});
-        }*/
+
 	    var historyrow = new HistoryRow({model: history});
 	    $('.historyaccordion', this.$el).append(historyrow.render().el);
         $(historyrow.el).bind("change", {activePath: historyrow.model.get("pathid"), that: this}, this.updateActivePathway);
-
-	    //this.$el.show();
-        //historyrow.events();
 	},
     updateActivePathway: function(event) {
         event.data.that.currentPath = event.data.activePath;

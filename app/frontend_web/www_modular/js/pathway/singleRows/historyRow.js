@@ -14,8 +14,7 @@ define([
     'text!templates/pathway/pathwayHistoryRow.html',
 
     'globalmodels/contextModel',
-        'pathway/modalViews/publishModal',
-
+    'pathway/modalViews/publishModal',
 
 ], function ($, _, Backbone, historyRowTemplate, contextModel,PublishPath) {
 

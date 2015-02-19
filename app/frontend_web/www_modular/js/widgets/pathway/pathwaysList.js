@@ -1,6 +1,10 @@
-/**
- * Created by Asmaa Aljuhani on 8/7/14.
- */
+/***************************************************************************
+ * Copyright (c) 2014 - Maven Medical
+ * AUTHOR: 'Asmaa Aljuhani', 'Carlos Brenneisen'
+ * DESCRIPTION: This file controls all of the events for the Pathway Manager.
+ *              Events for individual Pathways, Folders, and History Items
+ *              are handled by separate JS files for those specific objects
+ **************************************************************************/
 
 define([
     // These are path alias that we configured in our main.js
@@ -26,7 +30,6 @@ define([
     var PathwaysList = Backbone.View.extend({
         template: _.template(pathwaysListTemplate),
         events: {
-            //'click #newpath-button': 'handle_newPath',
             'click #add-base-pathway': 'handle_newPath',
             'click #save-button': 'handle_save',
             'click #paths-list-add-folder': 'handle_new_folder',
@@ -41,7 +44,7 @@ define([
                     }
                 }, this)
                 sidebarModel.addOption('Pathway Mgmt')
-            //curCollection.on('sync', this.render, this)
+
             curCollection.bind('add', this.addNewPathway, this);
 
             this.render();
@@ -86,8 +89,9 @@ define([
             var currentEl = $("#avail-paths-list");
             var path = model.get('folder');
 
-            //if path isn't specified, simply add pathway to the top level
             if (path!=null && path!="") {
+                //if path isn't specified, simply add pathway to the top level
+
                 var folders = path.split('/');
 
                 for (var i = 0; i < folders.length; i++) {
@@ -137,12 +141,9 @@ define([
                         parentFolder.children(".show-hist").click();
                     }
                 }
-                //
+
                 pathRow.$el.prepend("<button data-action='collapse' title='Collapse' style='display:none;'>collapse</button>");
                 pathRow.$el.prepend("<button data-action='expand' title='Expand' class='show-hist'>expand</button>");
-                /*$(document).ready(function(){
-                    curCollection.makeSortable();
-                });*/
             }
         },
         render: function(){
@@ -151,7 +152,6 @@ define([
             if (contextModel.get('page') != 'pathEditor') {
                 this.$el.hide()
             }
-            var appendEl =  $('#avail-paths-list', this.$el)
 
             _.each(curCollection.models, function(cur){
                 that.insertPathway(cur, false);
@@ -168,7 +168,6 @@ define([
             a = new newPathwayFolder({el: '#modal-target'});
         },
         handle_newPath: function () {
-         //   a = new NewPathway({el: '#modal-target'});
             a = new NewPathway({el: '#modal-target'});
         },
         handle_save: function(){
