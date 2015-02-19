@@ -1,9 +1,11 @@
 /***************************************************************************
  * Copyright (c) 2014 - Maven Medical
  * AUTHOR: 'Asmaa Aljuhani'
- * DESCRIPTION: This Javascript file has the main router functions that calls
- *               all other views.
- * PREREQUISITE: libraries should be predefine in main.js
+ * DESCRIPTION: Router is used for routing maven applications URL's when using hash tags(#).
+ *              Routing to an URL would set the page variables to the contextModal.
+ *              With each routing, app will check whether the user is logged in and
+ *              set the current context to the url variables.
+ * PREREQUISITE: libraries should be predefined in main.js
  * LAST MODIFIED FOR JIRA ISSUE: MAV-98
  **************************************************************************/
 
@@ -11,14 +13,13 @@ define([
     'jquery',     // lib/jquery/jquery
     'underscore', // lib/underscore/underscore
     'backbone',    // lib/backbone/backbone,
-
     'globalmodels/contextModel',
     'globalmodels/layoutModel',
     'widgets/evidence',
     'widgets/login',
     'widgets/settings'
 ], function ($, _, Backbone, currentContext, layoutModel, Evidence, Login, Settings) {
-
+    // Check if the user is logged in before each route
     var CheckLogin = function () {
         if (!currentContext.get('user') || !currentContext.get('userAuth')) {
             new Login({el: '#login-modal'})
@@ -26,10 +27,12 @@ define([
         }
         return true;
     };
+    //UPDATE : this is not inuse anymore after switching to Ace theme
     //This variables holds an array of the content of the container in index.html
     var layout = ["#floating-left",
-                  "#dynamic-content",
-                  "#floating-right"];
+        "#dynamic-content",
+        "#floating-right"];
+    //UPDATE : this is not inuse anymore after switching to Ace theme
     //This variable holds each page and its layout
     // array length should match the number of layouts
     // the sum of each array should be 12 (Following bootstrap grid)
@@ -39,10 +42,10 @@ define([
         "episode": [0, 9, 3],
         "pathway": [0, 12, 0],
         "pathEditor": [0, 12, 0],
-        "triggerEditor": [0,12, 0]
+        "triggerEditor": [0, 12, 0]
     };
+    //UPDATE : this is not inuse anymore after switching to Ace theme
     changePageLayout = function (page) {
-
         if (page in pageLayout) {
             $.each(layout, function (index, value) {
                 if (pageLayout[page][index] == 0) {
@@ -52,14 +55,14 @@ define([
                     $(value).show();
                     $(value).removeClass();
                     //$(value)[0].className = $(value)[0].className.replace(/(\s)*(col-md-.*?)(?=\s)/g, "col-md-"+pageLayout[page][index]);
-                    $(value).addClass("content col-md-"+pageLayout[page][index]);
+                    $(value).addClass("content col-md-" + pageLayout[page][index]);
                 }
             });
         }
         else
             return;//"#f2c313";
     };
-
+    // This function is used to set the current context with new variables for each route
     var showPage = function (user, customer, userAuth) {
         if ((document.cookie && !currentContext.get('userAuth')) || (user && !currentContext.get('user'))) {
             currentContext.autoSetUser(user, customer, userAuth, Login);
@@ -68,12 +71,12 @@ define([
                 console.log('showing page ' + currentContext.get('page'));
                 changePageLayout(currentContext.get('page'));
                 /* do more stuff here */
-		return true;
+                return true;
             } else {
                 console.log('trying to log in');
             }
         }
-	return false;
+        return false;
     };
 
     var AppRouter = Backbone.Router.extend({
@@ -95,14 +98,14 @@ define([
             //default
             '*action': 'defaultAction',
         },
-	password: function (type, user, customer, oauth) {
-	    if (currentContext.get('userAuth')) {
-		window.location = '#';
-	    } else {
-		currentContext.set({'loginTemplate': type+'.html', 'user':user, 'customer_id':customer, 'oauth':oauth});
-		new Login({el: '#login-modal'});
-	    }
-	},
+        password: function (type, user, customer, oauth) {
+            if (currentContext.get('userAuth')) {
+                window.location = '#';
+            } else {
+                currentContext.set({'loginTemplate': type + '.html', 'user': user, 'customer_id': customer, 'oauth': oauth});
+                new Login({el: '#login-modal'});
+            }
+        },
         showPathManager: function (user, customer, userAuth) {
             /* remove the current patient list, encounter, etc to revert the view to the doctor's user page */
             currentContext.set({page: 'pathEditor', patients: null, encounter: null, patientName: null});
@@ -126,7 +129,7 @@ define([
         showPathway: function (path, code, pat, date, user, customer, userAuth) {
             layoutModel.set({'fluidContent': false})
             if (path && code && pat && date && user && customer && !currentContext.get('userAuth')) {
-                currentContext.once('change:userAuth', function() {
+                currentContext.once('change:userAuth', function () {
                     $.ajax({
                         type: 'POST',
                         dataType: 'json',
@@ -144,54 +147,54 @@ define([
                 })
             }
             currentContext.set({page: 'pathway', code: code, pathid: path, patients: pat, enc_date: date,
-                                startdate: null, enddate: null});
+                startdate: null, enddate: null});
 
             showPage(user, customer, userAuth);
         },
         showEvidence: function (enc, pat, evi, user, customer, userAuth) {
             currentContext.set({page: 'episode', encounter: enc, patients: pat});
-	    if(showPage(user, customer, userAuth)) {
+            if (showPage(user, customer, userAuth)) {
                 var evidence = new Evidence({'evi': evi});
                 //$('#evidence-' + evi).modal();
             }
         },
         EditPathway: function (path, code, user, customer, userAuth) {
             layoutModel.set('fluidContent', true)
-            currentContext.set({page: 'pathEditor',  pathid: path, code: code});
+            currentContext.set({page: 'pathEditor', pathid: path, code: code});
             showPage(user, customer, userAuth);
         },
         EditTriggers: function (path, code, user, customer, userAuth) {
             layoutModel.set('fluidContent', false)
-            currentContext.set({page: 'triggerEditor',  pathid: path, code: code});
+            currentContext.set({page: 'triggerEditor', pathid: path, code: code});
             showPage(user, customer, userAuth);
         },
         showPathwayHistory: function (path, code, user, customer, userAuth) {
-            currentContext.set({page: 'pathHistory',  pathid: path, code: code});
+            currentContext.set({page: 'pathHistory', pathid: path, code: code});
             showPage(user, customer, userAuth);
         },
-        showCustomers: function(user, customer, userAuth){
-            currentContext.set({page:'customers'});
+        showCustomers: function (user, customer, userAuth) {
+            currentContext.set({page: 'customers'});
             showPage(user, customer, userAuth);
         },
-        showProfile: function(user, customer, userAuth){
-            currentContext.set({page:'profile'});
+        showProfile: function (user, customer, userAuth) {
+            currentContext.set({page: 'profile'});
             showPage(user, customer, userAuth);
         },
-        showAudit: function(user, customer, userAuth){
-            currentContext.set({page:'auditlist'});
+        showAudit: function (user, customer, userAuth) {
+            currentContext.set({page: 'auditlist'});
             showPage(user, customer, userAuth);
         },
         logout: function () {
-	    eraseCookie('valid-through')
-	    eraseCookie('roles')
-	    eraseCookie('username')
-	    var max=10;
-	    while(document.cookie && max>0) {
-		max = max-1
-		eraseCookie(document.cookie.split('=')[0]);
-	    }
+            eraseCookie('valid-through')
+            eraseCookie('roles')
+            eraseCookie('username')
+            var max = 10;
+            while (document.cookie && max > 0) {
+                max = max - 1
+                eraseCookie(document.cookie.split('=')[0]);
+            }
             currentContext.clear({silent: true});
-	    $.ajax({type: 'POST',dataType: 'json',url: "/logout"})
+            $.ajax({type: 'POST', dataType: 'json', url: "/logout"})
             location.href = "/index.html";
         },
         defaultAction: function (action) {
@@ -201,8 +204,8 @@ define([
             //ajaxPrefilter
             $.ajaxPrefilter(function (options, originalOptions, jqXHR) {
                 console.log("prefiltering", options.url)
-                if (options.url!='/broadcaster/poll')
-                options.url = 'services' + options.url;
+                if (options.url != '/broadcaster/poll')
+                    options.url = 'services' + options.url;
             });
             Backbone.history.start();
         }

@@ -1,3 +1,10 @@
+/*
+This file is a prototype that was created for demo purpose of pathway application
+It is associated with pathway.js
+In this version, everything is a static (nothing from DB).
+*/
+
+
 <style>
 
 
@@ -198,76 +205,79 @@
     }
 
 </style>
-<div class = "widget-column col-sm-12">
+<div class="widget-column col-sm-12">
 
-<div id="toast">
-    <span class="glyphicon glyphicon-ok"></span>
-    Note-ready text added to clipboard
-</div>
+    <div id="toast">
+        <span class="glyphicon glyphicon-ok"></span>
+        Note-ready text added to clipboard
+    </div>
 
-<div class="row" style="margin: 0px auto; width: 90%;">
+    <div class="row" style="margin: 0px auto; width: 90%;">
         <span class="title headings">
         <!-- static -->
             CRPC Pathway
             <button type="button" class="btn btn-default btn-sm path" id="expandAll" style="float: right">
-<span data-toggle="tooltip" title="Expand All"><img src="../images/pathway-icon2.png" style="width: 30px; height: 30px"></span>
-                </button>
+                <span data-toggle="tooltip" title="Expand All"><img src="../images/pathway-icon2.png"
+                                                                    style="width: 30px; height: 30px"></span>
+            </button>
 
             <button type="button" class="btn btn-default btn-sm path" id="sugPath" style="float: right">
 
-                <span data-toggle="tooltip" title="Suggested Pathway"><img src="../images/pathway-icon3.png" style="width: 35px; height: 30px"></span></button>
+                <span data-toggle="tooltip" title="Suggested Pathway"><img src="../images/pathway-icon3.png"
+                                                                           style="width: 35px; height: 30px"></span>
+            </button>
         </span>
 
-    <div id="pathway-container" style="transform: scale(1); width: 2000px">
+        <div id="pathway-container" style="transform: scale(1); width: 2000px">
 
-        <div class="tree2">
-            <ul>
-                <li class='parent'>
-                    <div id="n1" class="qualifier suggested">
-                        <!-- content & helping text -->
-                        <span>CRPC</span>
-                    </div>
-                    <ul class="children">
-                        <li class='parent'>
-                            <div id='n1-1' style="display:run-in" class="qualifier suggested">
-                                <!-- content & helping text -->
-                                <span data-toggle="tooltip" title="This patient has mCRPC">Metastatic</span>
-                            </div>
+            <div class="tree2">
+                <ul>
+                    <li class='parent'>
+                        <div id="n1" class="qualifier suggested">
+                            <!-- content & helping text -->
+                            <span>CRPC</span>
+                        </div>
+                        <ul class="children">
+                            <li class='parent'>
+                                <div id='n1-1' style="display:run-in" class="qualifier suggested">
+                                    <!-- content & helping text -->
+                                    <span data-toggle="tooltip" title="This patient has mCRPC">Metastatic</span>
+                                </div>
 
-                            <ul class="children">
-                                <li class='parent'>
-                                    <div id='n-1-1-1' class="qualifier">
-                                        <!-- content & helping text -->
-                                        <span>Prior Docetaxel</span>
-                                    </div>
+                                <ul class="children">
+                                    <li class='parent'>
+                                        <div id='n-1-1-1' class="qualifier">
+                                            <!-- content & helping text -->
+                                            <span>Prior Docetaxel</span>
+                                        </div>
 
-                                </li>
-                                <li class='parent'>
-                                    <div class="qualifier suggested">
-                                        <!-- content & helping text -->
+                                    </li>
+                                    <li class='parent'>
+                                        <div class="qualifier suggested">
+                                            <!-- content & helping text -->
                                             <span data-toggle="tooltip"
                                                   title="This patient has mCRPC, but has not received prior docetaxel therapy">No Prior Docetaxel</span>
-                                    </div>
-                                    <ul class="children">
-                                        <li class="parent">
-                                            <div class="qualifier suggested">
-                                                <!-- content & helping text -->
+                                        </div>
+                                        <ul class="children">
+                                            <li class="parent">
+                                                <div class="qualifier suggested">
+                                                    <!-- content & helping text -->
                                                     <span data-toggle="tooltip"
                                                           title="This patient has symptomatic mCRPC, but has not received prior docetaxel therapy">Symptomatic</span>
-                                            </div>
-                                            <ul class="children">
-                                                <li class="parent">
-                                                    <div id='gp' class="qualifier suggested">
-                                                        <!-- content & helping text -->
+                                                </div>
+                                                <ul class="children">
+                                                    <li class="parent">
+                                                        <div id='gp' class="qualifier suggested">
+                                                            <!-- content & helping text -->
                                                             <span data-toggle="tooltip"
                                                                   title="This patient has symptomatic mCRPC and good performance status (ECOG 0-1), but has not received prior docetaxel therapy.">
                                                                 Good Performance</span>
-                                                    </div>
-                                                    <ul class="children">
-                                                        <li class='parent'>
-                                                            <div id='i3' class="protocole suggested">
-                                                                <!-- content & helping text -->
-                                                                <div class="index headings">Index Patient 3</div>
+                                                        </div>
+                                                        <ul class="children">
+                                                            <li class='parent'>
+                                                                <div id='i3' class="protocole suggested">
+                                                                    <!-- content & helping text -->
+                                                                    <div class="index headings">Index Patient 3</div>
                                                             <span class="plan">
                                                                 <span>
                                                                     <strong>STANDARD</strong>
@@ -315,57 +325,55 @@
 
 
                                                             </span>
-                                                            </div>
+                                                                </div>
 
-                                                        </li>
-                                                    </ul>
-                                                </li>
-                                                <li class="parent">
-                                                    <div class="qualifier">
-                                                        <!-- content & helping text -->
-                                                        <span>Poor Performance</span>
-                                                    </div>
-                                                </li>
-                                            </ul>
+                                                            </li>
+                                                        </ul>
+                                                    </li>
+                                                    <li class="parent">
+                                                        <div class="qualifier">
+                                                            <!-- content & helping text -->
+                                                            <span>Poor Performance</span>
+                                                        </div>
+                                                    </li>
+                                                </ul>
 
-                                        </li>
-                                        <li class="parent">
-                                            <div class="qualifier">
-                                                <!-- content & helping text -->
-                                                <span>Asymptomatic</span>
-                                            </div>
-                                        </li>
-                                    </ul>
+                                            </li>
+                                            <li class="parent">
+                                                <div class="qualifier">
+                                                    <!-- content & helping text -->
+                                                    <span>Asymptomatic</span>
+                                                </div>
+                                            </li>
+                                        </ul>
 
-                                </li>
-                            </ul>
-                        </li>
-                        <li class='parent'>
-                            <div id='n1-2' class="qualifier">
-                                <!-- content & helping text -->
-                                <span data-toggle="tooltip">Non-Metastatic</span>
-                            </div>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class='parent'>
+                                <div id='n1-2' class="qualifier">
+                                    <!-- content & helping text -->
+                                    <span data-toggle="tooltip">Non-Metastatic</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+
         </div>
 
 
     </div>
 
-
-</div>
-
-<!--
-    <div class="row">
-        <div class="col-md-12">
-            <hr>
+    <!--
+        <div class="row">
+            <div class="col-md-12">
+                <hr>
+            </div>
         </div>
-    </div>
--->
-
-
+    -->
 
 
 </div>

@@ -8,6 +8,11 @@ define([
     'backbone',   // lib/backbone/backbone
     'globalmodels/contextModel'
 ], function ($, _, Backbone, contextModel) {
+    //This view is used by widgets that has page options on the sidebar
+    // each widget would use this view to append the option
+    // options can be nested
+
+    //each option is composed of icon and href and the label
     var elem = function (page, icon, menu_text) {
         return $('<li>', {}).append(
             $('<a>', {
@@ -26,6 +31,7 @@ define([
         )
     };
 
+    // a recursive function to handle nested options
     var appendOption = function (opt, list) {
         list = typeof list !== 'undefined' ? list : '#sidebar-list';
         for (o in opt) {
@@ -58,7 +64,7 @@ define([
             e.preventDefault();
 
            var href = $(e.currentTarget).attr("href");
-           
+            // pathway has special href so we need to add mor info for the url
             if(href =='pathway'){
                 Backbone.history.navigate("pathway/" + contextModel.get('pathid') + "/node/" + contextModel.get('code'), {trigger: true});
             }

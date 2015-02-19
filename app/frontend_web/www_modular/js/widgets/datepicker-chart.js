@@ -10,7 +10,8 @@ define([
     'globalmodels/contextModel',
     'globalmodels/histogramModel'
 ], function ($, _, Backbone, contextModel, histogramModel) {
-
+    // This view is to show a histogram chart for how much is spent each day
+    // Upon feedback, this wasn't intuitive and clear to use as datepicker
     var DatepickerChart = Backbone.View.extend({
         initialize: function (arg) {
             this.template = _.template(arg.template); // this must already be loaded

@@ -30,7 +30,12 @@ define([
              NewPathway, editNode, NodeEditor, ProtocolEditor,deleteDialog,
              ruleWizard,PublishPath, PathRow, treeNodeActionSet, listEntry, toolbarTemplate) {
 
-
+    // This view is to render the toolbar for the pathway editor
+    // toolbar enable users to create new pathway, add triggers, export the current pathway,
+    // copy pathway, publish pathway
+    // when a node is selected, more options are displayed like edit node, delete node, expand/collaps node
+    // at the very right side there is the preview button which allow users to see how pathway looks like without
+    // navigating to the pathway viewer.
     var exportPathway = function (strData, strFileName, strMimeType) {
 	require(['libs/jquery/Blob', 'libs/jquery/FileSaver.min'], function(blob, saveAs) {
 	    var b = new Blob([strData], {type: strMimeType});

@@ -1,5 +1,6 @@
 /**
  * Created by Asmaa Aljuhani on 3/11/14.
+ * DESCREPTION: This Javascript file initialize the router.
  */
 
 define([
