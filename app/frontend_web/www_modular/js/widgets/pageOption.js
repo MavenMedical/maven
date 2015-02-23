@@ -35,17 +35,22 @@ define([
     var appendOption = function (opt, list) {
         list = typeof list !== 'undefined' ? list : '#sidebar-list';
         for (o in opt) {
-            var option = elem(opt[o][1], opt[o][0], o);
-            if (opt[o].length == 3) {
+            var thisopt = opt[o]
+            
+            var option = elem(thisopt.page, thisopt.icon, o);
+            if (thisopt.children) {
                 $(option.children()[0]).append($('<b>', {'class': "arrow fa fa-angle-down"}))
                 var suboption = $('<ul>', {'class': "submenu"});
-                var submenu = opt[o][2];
+                var submenu = thisopt.children;
                 for (s in submenu) {
                     appendOption(submenu[s], suboption);
                 }
                 option.append(suboption);
             }
             option.appendTo(list);
+            if (thisopt.init) {
+                thisopt.init(option)
+            }
         }
 
     };

@@ -20,7 +20,7 @@ define([
         makeSortable: function(){
             			jQuery(function($){
 
-				$('.dd').nestable();
+				    //$('.dd').nestable();
 
 				$('.dd-handle a').on('mousedown', function(e){
 					e.stopPropagation();

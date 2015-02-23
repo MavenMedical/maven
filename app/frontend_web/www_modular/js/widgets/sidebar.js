@@ -12,18 +12,6 @@ define([
     'widgets/pageOption',
     'text!../templates/sidebar.html'
 ], function ($, _, Backbone, ace, contextModel, sidebarModel, PageOption, sidebarTemplate) {
-    //This list has been deprecated. Each widget appends its option to the sidebar
-    var sidebarMap = {
-        'Dashboard': ['fa-tachometer', 'home'],
-        'Pathway Mgmt': ['fa-cloud', 'pathway', [
-            {'Pathway Viewer': ['icon', 'pathway']},
-            {'Pathway Editor': ['icon', 'pathwayEditor']}]],
-        'Users': ['fa-user', 'users'],
-        'Reports': ['fa-bar-chart-o', 'reports'],
-        'Research': ['fa-institution', 'research'],
-        'EHR Setup': ['fa-database', 'research'],
-        'Customers':['fa-user', 'customers']
-    }
 
     var Sidebar = Backbone.View.extend({
         initialize: function (arg) {

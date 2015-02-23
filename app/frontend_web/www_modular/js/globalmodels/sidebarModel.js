@@ -2,17 +2,34 @@
  * Created by devel on 11/19/14.
  */
 define([
-    'backbone'
+    'backbone',
+    'globalmodels/contextModel'
 ],
-       function(Backbone) {
+       function(Backbone, contextModel) {
            var details = {
-               'Profile':['fa-user', 'profile'],
-               'Customers':['fa-user', 'customers'],
-               'Pathways':['fa-user', 'pathways'],
-               'Pathway Mgmt': ['fa-cloud', 'pathway', [
-                   {'Pathway Viewer': ['icon', 'pathway']},
-                   {'Pathway Editor': ['icon', 'pathwayEditor']}]],
-               'Dashboard': ['fa-tachometer', 'home']
+               'Profile':{icon:'fa-user', page:'profile'},
+               'Customers':{icon:'fa-user', page:'customers'},
+               'Pathways':{icon:'fa-user', page:'pathways'},
+               'Pathway Mgmt': {icon:'fa-cloud', page:'pathwayeditor', children:[
+                   {'Pathway Editor': {icon:'icon', page:'pathwayEditor'}}, 
+                   {'Pathway Viewer': {icon:'icon', page:'pathway',
+                                      init: 
+                                       function(el) {
+                                           console.log(contextModel)
+                                           contextModel.on('change:pathid', 
+                                                           function() {
+                                                               if(contextModel.get('pathid')) {
+                                                                   el.show()
+                                                               } else {
+                                                                   el.hide()
+                                                               }});
+                                       if (contextModel.get('pathid')) {
+                                           el.show()
+                                       } else {
+                                           el.hide()
+                                       }}
+                                      }}]},
+               'Dashboard': {icon:'fa-tachometer', page:'home'}
            }
            
 	   var SidebarModel = Backbone.Model.extend({
