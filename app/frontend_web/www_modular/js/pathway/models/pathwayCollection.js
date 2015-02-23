@@ -3,6 +3,7 @@ define([
     'underscore',
     'backbone',
     'globalmodels/contextModel',
+    'nestable'
 
 ], function($, _, Backbone, contextModel){
 
@@ -20,7 +21,7 @@ define([
         makeSortable: function(){
             			jQuery(function($){
 
-				    //$('.dd').nestable();
+				    $('.dd').nestable();
 
 				$('.dd-handle a').on('mousedown', function(e){
 					e.stopPropagation();
