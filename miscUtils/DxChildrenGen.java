@@ -54,7 +54,7 @@ public class DxChildrenGen {
                         //(Allows you to stop and restart without truncating and going back to the begining)
                         Connection db=DriverManager.getConnection(url,user,pass);
                         Statement st=db.createStatement();
-                        ResultSet rs=st.executeQuery("select distinct id from concept where id not in (select distinct ancestor from conceptancestry);");
+                        ResultSet rs=st.executeQuery("select distinct id from terminology.concept where id not in (select distinct ancestor from terminology.conceptancestry);");
                         while (rs.next())
                         {
                             //get variable to track whether snomed has listed the concept as a child of itself 
@@ -66,7 +66,7 @@ public class DxChildrenGen {
                             try
                             {
                                 Connection insertDb=DriverManager.getConnection(url,user,pass); //create a database connectino to insert the children
-                                PreparedStatement insertSt=insertDb.prepareStatement("insert into conceptAncestry values (?,?)");
+                                PreparedStatement insertSt=insertDb.prepareStatement("insert into terminology.conceptAncestry values (?,?)");
                                 for (Long child : al)
                                 {
                                     insertSt.setLong(1, curconcept); //set the params in the insert statement
@@ -109,9 +109,9 @@ public class DxChildrenGen {
             Connection db=DriverManager.getConnection(url,user,pass);
             Statement st=db.createStatement();
             String sql="select distinct child.id child " +
-                "from concept child " +
-                "inner join relationships rel on rel.sourceid=child.id " +
-                "inner join concept parent on parent.id=rel.destinationid " +
+                "from terminology.concept child " +
+                "inner join terminology.relationships rel on rel.sourceid=child.id " +
+                "inner join terminology.concept parent on parent.id=rel.destinationid " +
                 "where rel.typeid=116680003 /*isa*/ " +
                 "and  rel.active=1 and parent.active=1 and child.active=1 and parent.id="+ParentConcept.toString();
             ResultSet rs=st.executeQuery(sql);

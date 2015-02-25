@@ -1,0 +1,33 @@
+<div id="detail-modal" class="modal fade" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span
+                        aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title">Create/Edit Encounter Diagnosis Constraint</h4>
+            </div>
+
+            <div class="modal-body">
+
+                <select class="detail-input form-control attn-text" name="exists">
+                    <option value="true" selected>Alert the clinician only if</option>
+                    <option value="false"> Do not alert the clinician if</option>
+                </select>
+
+                <p class="attn-text">The patients encounter contains any of the diagnoses </p>
+
+                <div style="clear:both" class="multi-select-search" type="snomed_diagnosis" name="code"></div>
+
+                <div style="clear: both; min-height: 30px;"></div>
+
+            </div>
+
+
+            <div class="modal-footer">
+                <button style="float:left" class="btn btn btn-sm btn-default cancel-edit-button">Cancel</button>
+                <button style="float:right" class="btn btn btn-sm btn-info confirm-detail-button">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+

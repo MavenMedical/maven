@@ -1,0 +1,20 @@
+1
+yielding from b.times2
+4
+yielding from b.times2
+10
+yielding from b.times2
+22
+yielding from b.times2
+46
+yielding from b.times2
+caught in rpc
+Traceback (most recent call last):
+  File "/home/devel/maven/utils/streaming/rpc_processor.py", line 149, in read_object
+    ret = yield from self._execute(*obj)
+  File "/home/devel/maven/utils/streaming/rpc_processor.py", line 170, in _execute
+    ret = yield from s.__class__.__dict__[fn](s, *args, **kwargs)
+  File "/home/devel/maven/utils/streaming/unit_test_rpc_processor.py", line 24, in setX
+    raise Exception('bad x')
+Exception: bad x
+bad x

@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>Maven Medical</title>
+</head>
+<body>
+
+  Welcome to Maven Medical's application server.  All of our customer services are provided securely through https.  If you are a customer and are getting this page, please try the following <a id='secure'>link</a>, or <a href='mailto:support@mavenmedical.net'>email us</a><br> 
+
+  If you are not a customer, please visit our corporate <a href='http://www.mavenmedical.net'>website</a>.
+
+</body>
+<script type="text/javascript">
+ var oldURL = window.location.hostname + window.location.pathname;
+ var newURL = "https://" + oldURL;
+
+ var yourElement = document.getElementById('secure');
+ yourElement.setAttribute('href', newURL);
+</script>
+</html> 
+

@@ -1,0 +1,108 @@
+<div class="page-header">
+    <h1>
+        Support Dashboard
+        <small>
+            <i class="ace-icon fa fa-angle-double-right"></i>
+            Customer Maintanence &amp; Support
+        </small>
+    </h1>
+</div>
+<div class="row">
+    <div class="col-xs-12 col-sm-6 widget-container-col">
+        <!-- #section:custom/widget-box -->
+        <div class="widget-box">
+            <div class="widget-header">
+                <h5 class="widget-title">Add Customer</h5>
+                <!-- #section:custom/widget-box.toolbar -->
+                <div class="widget-toolbar">
+                    <div class="widget-menu">
+                        <a href="#" data-action="settings" data-toggle="dropdown">
+                            <i class="ace-icon fa fa-bars"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-right dropdown-light-blue dropdown-caret dropdown-closer">
+                            <li>
+                                <a data-toggle="tab" href="#dropdown1">Option#1</a>
+                            </li>
+                            <li>
+                                <a data-toggle="tab" href="#dropdown2">Option#2</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <a href="#" data-action="fullscreen" class="orange2">
+                        <i class="ace-icon fa fa-expand"></i>
+                    </a>
+                    <a href="#" data-action="reload">
+                        <i class="ace-icon fa fa-refresh"></i>
+                    </a>
+                    <a href="#" data-action="collapse">
+                        <i class="ace-icon fa fa-chevron-up"></i>
+                    </a>
+                    <a href="#" data-action="close">
+                        <i class="ace-icon fa fa-times"></i>
+                    </a>
+                </div>
+                <!-- /section:custom/widget-box.toolbar -->
+            </div>
+            <div class="widget-body">
+                <div class="widget-main">
+                    <!-- FORM BEGINS -->
+                    <form class="form-horizontal" role="form">
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label no-padding-right" for="customer-name-input">
+                                Customer Name </label>
+
+                            <div class="col-sm-9">
+                                <input type="text" id="customer-name-input" class="form-control"/>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label no-padding-right" for="customer-license-input">
+                                # of Licenses </label>
+
+                            <div class="col-sm-9">
+                                <input type="text" id="customer-license-input" class="form-control"/>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label no-padding-right" for="customer-abbr-input">
+                                Customer Abbreviation </label>
+
+                            <div class="col-sm-9">
+                                <input type="text" id="customer-abbr-input" class="form-control"/>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label no-padding-right" for="customer-ituser-input">
+                                Initial IT User </label>
+
+                            <div class="col-sm-9">
+                                <input type="text" id="customer-ituser-input" class="form-control"/>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label no-padding-right" for="customer-config-input">
+                                Customer Type </label>
+
+                            <div class="col-sm-9">
+                                <select id="customer-config-input" class='form-control'>
+                                    <option value='{"emr": "Allscripts Professional", "version": "14.0"}'>
+                                        Allscripts Professional
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-actions center">
+                            <div class="col-sm-offset-9">
+                                <button type="button" class="btn btn-info add-customer-button">
+                                    Submit
+                                    <i class="ace-icon fa fa-arrow-right icon-on-right bigger-110"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    <div id='add-customer-message'></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

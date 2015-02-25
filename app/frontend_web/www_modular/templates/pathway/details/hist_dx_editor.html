@@ -1,0 +1,120 @@
+<div id="detail-modal" class="modal fade" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span
+                        aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title">Create/Edit Historical Diagnosis Constraint</h4>
+            </div>
+
+            <div class="modal-body">
+
+
+                <div>
+
+                    <select class="detail-input form-control attn-text" name="exists">
+                        <option value="true" selected>only alert the clinician if</option>
+                        <option value="false"> do not alert the clinician if</option>
+
+                    </select>
+
+                    <p class="attn-text">The subject had the diagnosis</p>
+
+                    <div style="clear:both; left: 70px" class="multi-select-search" type="snomed_diagnosis"
+                         name="code"></div>
+                    <p class="attn-text">in the time frame from </p>
+                    <div style="clear:both" value=0; name="minDays" class="min-days detail-input"></div>
+
+                         <div style = "margin-left: 5%; margin-right:5%; width: 90%"class="col-sm-12">
+
+                                            <div style = "margin-top: 10px" class = "col-sm-8" id="myslider"
+                                                 class="ui-slider-simple ui-slider-blue"></div>
+
+											<input style = "margin-left: 10px" id="maxDays" type=text value="0" name="maxDays"  placeholder="Days" class="detail-input col-sm-1">
+											<span class="help-inline col-sm-1">
+												<span class="middle">Days</span>
+											</span>
+                     </div>
+                    <br>
+                    <script>
+                        $('#myslider').slider({
+                            value: 0,
+                            range: "min",
+                            animate: true,
+                            max: 105,
+                            min: 0
+                        });
+                    </script>
+                    <div style="clear: both; margin-right: 4px; float: left" id="number" style="clear: both">0 Years, 0 Months, 0
+                    </div>
+                    until the present.
+                    <script>
+                        var handle = function () {
+                            var value = (Math.pow(Math.E, $('#myslider').slider("option", "value") / 10))
+                            $('#maxDays').val(parseInt(value))
+                            var years = parseInt(value / 356)
+                            value %= 365;
+                            var months = parseInt(value / 30);
+                            value %= 30
+                            var days = parseInt(value)
+                            $('#number').html(years + " years, " + months + " months, " + days + " days,")
+                        }
+                        var handleChange = function () {
+                            var maxDaysValue = $('#maxDays').val()
+
+                            console.log(maxDaysValue)
+
+                            maxDaysValue = $('#maxDays').val()
+
+                            console.log(maxDaysValue)
+                            if (!parseInt(maxDaysValue)) {
+                                return;
+                            }
+                            var toSliderNumber = Math.log(maxDaysValue) * 10
+                            var years = parseInt(maxDaysValue / 356)
+                            maxDaysValue %= 365;
+                            var months = parseInt(maxDaysValue / 30);
+                            maxDaysValue %= 30
+                            var days = parseInt(maxDaysValue)
+                            $('#number').html(years + " years, " + months + " months, " + days + " days,")
+                            $("#myslider").slider("value", toSliderNumber)
+                        }
+                        $('#maxDays').change(handleChange)
+                        $('#maxDays').on('ready', handleChange)
+                        $("#myslider").slider({
+
+                            slide: handle,
+                            start: handle,
+                            stop: handle
+
+
+                        });
+
+
+                    </script>
+
+                    <div style="clear:both">
+                        <br>
+
+                    </div>
+                    <div style="clear:both"></div>
+
+
+                    <div class="modal-footer">
+                        <button style="float:left" class="btn btn-sm btn-info cancel-edit-button">Cancel</button>
+                        <button style="float:right" class="btn btn-sm btn-info confirm-detail-button">Confirm</button>
+                    </div>
+                </div>
+            </div>
+
+<script>
+
+
+        $('.confirm-detail-button').on('click', function () {
+        $('.min-days').val(0)
+    })
+</script>
+
+        </div>
+    </div>
+</div>

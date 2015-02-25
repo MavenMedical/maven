@@ -1,0 +1,3 @@
+only build.js is a maven file.  r.js and the directories are downloaded from requirejs.org and using nodejs's package manager npm.
+
+This directory's purpose is building a minified file of maven's web application

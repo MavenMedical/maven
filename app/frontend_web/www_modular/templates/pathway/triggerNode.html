@@ -1,0 +1,20 @@
+<ul>
+    <li>
+        <div title="<%=node.tooltip%>" clickID = "TN-<%=node.id%>-<%=node.nodeID%>" style="text-align: center; border-style:solid;  width:auto;" class="treeNode expanded-path click-tracked">
+            <span data-toggle="tooltip" ><%=node.name%></span>
+            <br>
+            <% if (page == 'pathEditor' && !preview){ %>
+            <div style ="clear:both" class="btn-group btn-corner" role="toolbar">
+                <button type="button" class="btn btn-app btn-light btn-sm" id="addChildButton"><img src="../images/temp/newChild.jpg" style="width: 25px; height: 25px"></button>
+                </div>
+            <%}%>
+
+        </div>
+
+        <!--<div style="clear: both; height:100px; width:10px;"></div>-->
+        <ul style="clear: both; width: 100%; text-align: center" class='children2'></ul>
+
+        <div style='padding-top: 25px; ' class='protocol'></div>
+        </div>
+    </li>
+</ul>

@@ -1,0 +1,42 @@
+
+
+
+<div class = "protocolNode click-tracked" clickID = "TN-<%=pathID%>-<%=protocolNode.nodeID%>">
+    <span>
+        <strong>
+            PROTOCOL
+        </strong>
+        <span style="max-width: 350px;">
+            <%= protocolText %>
+        </span>
+
+    </span>
+
+
+    <br>
+     <% if (page == 'pathEditor' && !preview) { %>
+    <div class="btn-group btn-group-xs">
+        <button id='sendSetup-button' type="button" class="btn btn-default btn-sm" style="float: right">
+        <span class="glyphicon glyphicon-envelope"></span>
+        </button>
+       <button id="removeProtocolButton" type="button" class="btn btn-default btn-sm removeProtocolButton" style="float: right">
+           Remove
+       </button>
+    </div>
+
+    <%} else if (page !== 'pathHistory') {%>
+     <div class="btn-group btn-group-xs">
+         <button id='send-button' type="button" class="btn btn-default btn-sm click-tracked" style="float: right" clickid="TN-<%=pathID%>-<%=protocolNode.nodeID%>" clickaction="send">
+        <span class="glyphicon glyphicon-envelope"></span>
+        </button>
+         <button id='followup-button' type="button" class="btn btn-default btn-sm click-tracked" style="float: right" clickid="TN-<%=pathID%>-<%=protocolNode.nodeID%>" clickaction="followup">
+        <span class="glyphicon glyphicon-time"></span>
+        </button>
+	<% if (typeof(protocolNode.noteToCopy) != 'undefined' && protocolNode.noteToCopy) { %>
+	<button id='copybutton' type="button" class="btn btn-default btn-sm click-tracked" style="float: right" clickid="TN-<%=pathID%>-<%=protocolNode.nodeID%>" clickaction="copy">
+        <img src="../images/copy-icon.png" style="width: 20px; height: 20px;" title="Copy">
+	<% } %>
+	</button>
+     </div>
+    <% } %>
+</div>

@@ -1,0 +1,130 @@
+#*************************************************************************
+#Copyright (c) 2014 - Maven Medical
+#************************
+#AUTHOR:
+__author__='Yuki Uchino'
+#************************
+#DESCRIPTION:   This FHIR Python Object API was automatically generated from JSON examples
+#               provided by HL7 FHIR Working Group.
+#
+#
+#
+#************************
+#ASSUMES:
+#************************
+#SIDE EFFECTS:
+#************************
+#LAST MODIFIED FOR JIRA ISSUE: MAV-
+#*************************************************************************
+import uuid
+import datetime
+import dateutil.parser
+from utils.api.pyfhir.fhir_datatypes import *
+
+
+class Resource():
+
+    def __init__(self, customer_id=None, name_space=None, id=None, versionId=1, lastModifiedDate=None, identifier=None, text=None, resourceType=None):
+        self.customer_id = customer_id
+        self.name_space = name_space
+        if id is None:
+            self.id = uuid.uuid1()
+        if versionId is None:
+            self.version_id = versionId
+        if lastModifiedDate is None:
+            self.lastModifiedDate = datetime.datetime.now()
+        self.resourceType = resourceType
+
+        if text is None:
+            self.text = ""
+        if identifier is None:
+            self.identifier = []
+
+    def add_identifier(self, use=None, label=None, system=None, value=None, period=None, assigner=None):
+        """
+        This method is used to add an identifier to the list of identifiers associated with this resource
+
+        :param use:
+        :param label:
+        :param system:
+        :param value:
+        :param period:
+        :param assigner:
+        """
+        self.identifier.append(Identifier(use=use,
+                                          label=label,
+                                          system=system,
+                                          value=value,
+                                          period=period,
+                                          assigner=assigner))
+
+    def add_maven_identifier(self, value, period=None, assigner=None):
+        """
+        This method is used to add an identifier to the list of identifiers associated with this resource
+
+        :param use:
+        :param label:
+        :param system:
+        :param value:
+        :param period:
+        :param assigner:
+        """
+        identifier_use = 'official'
+        identifier_label = 'Internal'
+        identifier_system = 'maven'
+
+        self.identifier.append(Identifier(use=identifier_use,
+                                          label=identifier_label,
+                                          system=identifier_system,
+                                          value=value,
+                                          period=period,
+                                          assigner=assigner))
+
+def jdefault(o):
+    if isinstance(o, datetime.datetime):
+        return datetime.datetime.isoformat(o)
+    elif hasattr(o, 'hex'):
+        return o.hex
+    else:
+        if hasattr(o, '__dict__') and o is not None:
+            return o.__dict__
+
+
+class Bundle(Resource):
+
+    def __init__(self,
+        customer_id=None,
+        name_space=None,
+        identifier=None,
+        versionId=None,
+        resourceType="Bundle",
+        title=None,
+        lastModifiedDate=None,
+        id=None,
+        link=None,
+        category=None,
+        entry=None,
+        totalResults=None):
+        Resource.__init__(self,
+                          customer_id=customer_id,
+                          name_space=name_space,
+                          identifier=identifier,
+                          versionId=versionId,
+                          id=id,
+                          resourceType=resourceType,
+                          lastModifiedDate=lastModifiedDate)
+        self.title = title
+        self.link = link
+        self.category = category
+        self.totalResults = totalResults
+
+        if entry is None:
+            self.entry = []
+        if category is None:
+            self.category = []
+
+
+class Section():
+
+    def __init__():
+

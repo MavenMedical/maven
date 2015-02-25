@@ -1,0 +1,919 @@
+@import url('../css/bootstrap/css/bootstrap.min.css');
+@import url('../css/bootstrap/css/bootstrap-switch.css');
+
+
+
+/* sadly css variables aren't supported by much of anything, so we'll do this with copy and paste.
+ * Here is a list of all of the values which can be modified
+ * The places where each is used includes a comment with the variable name after it
+ * This allows changing exactly the right things using search and replace (almost)
+    var-fixed-top-size
+    var-fixed-bottom-size
+    var-fixed-left-size
+    var-fixed-right-size
+    var-floating-top-size
+    var-floating-bottom-size
+    var-floating-left-size
+    var-floating-right-size
+ */
+
+
+.mouseover{
+    color: black
+}
+
+.mouseover:hover{
+    color: blue
+}
+    .expanded-path{
+        border-color: #ffff00 ;
+    }
+    #pathway-container {
+        position: relative;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+    }
+    .selected {
+        border: 4px solid #2c2f74 !important ;
+
+    }
+    .tree ul {
+        padding-top: 20px;
+        position: relative;
+
+        transition: all 0.5s;
+        -webkit-transition: all 0.5s;
+        -moz-transition: all 0.5s;
+    }
+
+    .tree li {
+        float: left;
+        text-align: center;
+        list-style-type: none;
+        position: relative;
+        padding: 20px 5px 0 5px;
+
+        transition: all 0.5s;
+        -webkit-transition: all 0.5s;
+        -moz-transition: all 0.5s;
+    }
+
+    .protocolNode li {
+        clear: both !important;
+        list-style-type: circle !important;
+
+
+    }
+
+    /*Remove space from the top of single children*/
+    .tree li:only-child {
+        padding-top: 0;
+    }
+
+    .tree li div.treeNode {
+        max-width: 400px;
+        border: 2px solid #ccc;
+        background-color: whitesmoke;
+        padding: 5px 10px;
+        text-decoration: none;
+        color: #666;
+        font-family: arial, verdana, tahoma;
+        font-size: 13px;
+        font-weight: bold;
+        display: inline-block;
+
+        border-radius: 5px;
+        -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+
+        transition: all 0.5s;
+        -webkit-transition: all 0.5s;
+        -moz-transition: all 0.5s;
+    }
+
+    .tree li div.protocolNode {
+        text-align: left;
+        max-width: 400px;
+        border: 2px solid #18bc9a;
+        background-color: whitesmoke;
+        padding: 5px 10px;
+        text-decoration: none;
+        color: #666;
+        font-family: arial, verdana, tahoma;
+        font-size: 11px;
+        display: inline-block;
+
+        border-radius: 5px;
+        -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+
+        transition: all 0.5s;
+        -webkit-transition: all 0.5s;
+        -moz-transition: all 0.5s;
+    }
+
+    /*Time for some hover effects*/
+    /*We will apply the hover effect the the lineage of the element also*/
+    .tree li div.treeNode:hover, .tree li div.treeNode:hover + ul li div.treeNode {
+        background: #c8e4f8;
+        color: #000;
+        border: 1px solid #94a0b4;
+    }
+
+
+    #copiedText {
+        display: none !important;
+    }
+
+    #toast {
+        height: 30px;
+        width: 250px;
+        padding-right: 10px;
+        background-color: whitesmoke;
+        position: fixed;
+        opacity: 0.8;
+        filter: alpha(opacity=80); /* For IE8 and earlier */
+        border-radius: 5px;
+        -webkit-border-radius: 5px;
+        color: #36485c;
+        box-shadow: 7px 7px 4px #888888;
+        visibility: hidden;
+        z-index: 5;
+    }
+
+.watermark{
+    opacity:0.3;
+}
+
+.chart-col-6 {
+    width: 100%;
+    height:350px;
+}
+
+.chart-col-12 {
+    width: 100%;
+}
+
+.attn-text{
+    font-size: 200%;
+    height: auto;
+    width: auto;
+}
+.range-input{
+    width:100px
+}
+
+.conflict {
+    border-style: solid;
+    border-color: red;
+
+}
+.detail-input{
+    font-size: 130%;
+    height: auto;
+}
+.attn-text-small{
+    font-size: 130%;
+    height: auto;
+    width: auto
+}
+.loinc-list-box{
+    width:300px;
+    height: 200px;
+
+}
+.trigger-list-box{
+    width:45%;
+    height:400px;
+    font-size: 150%;
+}
+html, body {
+    padding:0px;
+    margin:0px;
+}
+
+.content-row {
+    overflow:hidden;
+}
+
+#fixed-topA {
+    position:fixed;
+    top:0px;
+    left:0px;
+    right:0px;
+    z-index:11;
+    /*height: 130px; /*var-fixed-top-size*/
+    background: #ffffff;
+}
+.toolbar-button {
+    height: 50px
+
+}
+
+    .btn-file {
+    position: relative;
+    overflow: hidden;
+    }
+    .btn-file input[type=file] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 100%;
+    min-height: 100%;
+    font-size: 100px;
+    text-align: right;
+    filter: alpha(opacity=0);
+    opacity: 0;
+    outline: none;
+    background: white;
+    cursor: inherit;
+    display: block;
+    }
+
+/*#fixed-topB {
+>>>>>>> origin/DEV-python3.4
+    position:fixed;
+    text-align: center;
+    width: 90%;
+    height:50px;
+    top:55px;
+
+    left:5%;
+    right:5%;
+    z-index:10;
+    /*height: 130px; /*var-fixed-top-size
+    background: lightblue;
+}*/
+
+#fixed-topA > .col-sm-12{
+    padding: 0;
+}
+
+#fixed-topA > .widget-column > .navbar {
+    margin: 0;
+}
+
+.pat-info {
+    height:50px;
+    display:table;
+}
+
+#fixed-bottom {
+    display: none;
+    position:fixed;
+    bottom:0px;
+    left:0px;
+    right:0px;
+    z-index:10;
+    height: 0px; /*var-fixed-bottom-size*/
+}
+
+#fixed-left {
+    display: none;
+    position: fixed;
+    width: 20%; /*var-fixed-left-size*/
+    top: 130px; /*var-fixed-top-size*/
+    bottom: 0px; /*var-fixed-bottom-size*/
+    left: 0px;
+}
+
+#fixed-right {
+    position: fixed;
+    visibility: hidden;
+    width: 20%; /*var-fixed-right-size*/
+    top: 130px; /*var-fixed-top-size*/
+    bottom: 0px; /*var-fixed-bottom-size*/
+    right: 0px;
+}
+#wrapper {
+    position: relative;
+    min-width: 90%; /*100% minus var-fixed-left-size minus var-fixed-right-size */;
+    bottom: 0px;
+    z-index: 1;
+    margin-top: 130px; /*var-fixed-top-size*/
+}
+
+#floating-top {
+    position: relative;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    display: none;
+    height: 0px; /*var-floating-top-size*/
+    z-index: 2;
+}
+
+#floating-bottom {
+    display: none;
+    position: relative;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    height: 30px; /*var-floating-bottom-size*/
+    margin-bottom: 0px; /*var-fixed-bottom-size*/
+    z-index: 2;
+}
+
+#floating-left {
+    /*position:relative;
+    float:left;
+    width:19%; /*var-floating-right-size*/
+   /* height: 600px;
+    margin-right: 15px;*/
+}
+
+#floating-right {
+    /*position:relative;
+    float:right;
+    width:19%; /*var-floating-right-size*/
+    /*height: 600px;
+    margin-left: 15px */
+}
+.widget-column {
+
+}
+
+#content {
+    overflow:hidden;
+    position:relative;
+    height: 2000px;
+    margin-left:0px; /*var-float-left-size*/
+    width:60%; /*100 minus var-float-left-size minus var-floating-right-size*/
+}
+
+#dynamic-content{
+}
+
+.mavenpadding {
+    padding:10px;
+    clear:both;
+}
+
+.detail-entry {
+    border-top:solid;
+    border-color: lightblue;
+    border-width: 2px;
+    font-size: 125%;
+
+}
+
+.detail-selector {
+    min-width: 100px;
+    min-width: 100px;
+
+
+}
+/******************************************************************
+ * The following customize the fonts and colors of the side-popup *
+ ******************************************************************/
+#side-popup{
+     border-top: 7px solid #2c2f74;
+    background-color: whitesmoke;
+    /*opacity: 0.8;
+    filter: alpha(opacity=80); /* For IE8 and earlier */
+    box-shadow: 1px 3px 8px rgba(0, 0, 0, 0.2);
+    display:none;
+    position: fixed;
+  /*  bottom: 5px;
+    right: 5px;  */
+    z-index: 100;
+    max-width: 300px;
+}
+
+#side-popup .heading{
+   /* background-color: #2c2f74;
+    color: #ffffff;*/
+    padding-left: 2px;
+    word-wrap: break-word;
+}
+
+#side-popup .nodeInfo{
+    width:300px;
+    min-height: 200px;
+    max-height: 400px;
+    overflow: auto;
+    padding: 10px;
+}
+
+#side-popup button.close{
+    color: #ffffff;
+    background-color: #2c2f74;
+    opacity: 1;
+    padding: 5px;
+
+}
+/***************************************************************
+ * The following customize the fonts and colors of the widgets *
+ ***************************************************************/
+
+.full-height {
+    height:100%;
+}
+
+.detail-editor-heading{
+    font-size: 160%;
+    color: darkblue;
+}
+.alert-type {
+    text-align:center;
+    font-size:20px;
+}
+
+body {
+    height: 100%;
+    margin-top: 50px;
+    background-color: rgb(255, 246, 246);
+    background-repeat: repeat-x;
+}
+
+.main-header{
+    color: #f6a828;
+    background-color: #46bdec;
+
+}
+
+.brand{
+    color: #ffffff;
+    font-size: 30px;
+
+}
+
+.page-title{
+    margin-left: 8px;
+    color: #ffffff;
+    font-size: 20px;
+}
+
+.dr{
+    color: #ffffff;
+}
+
+.navbar-lower{
+    top: 50px;
+    width: 100%;
+    background-color: #dff5fd;
+}
+
+.navbar-nav{
+    color: #ffffff;
+}
+
+.pat-nav{
+  height: 100%;
+
+}
+
+.divide-text{
+    color:#fff;
+    line-height: 20px;
+    font-size:20px;
+    padding: 15px 0;
+}
+
+.pat-title{
+    color: #46bdec;
+    font-size: 10px;
+    padding-bottom: 3px;
+    padding-top: 3px;
+}
+
+.pat-sub{
+    color: #46bdec;
+    font-size: 10px;
+    padding-bottom: 3px;
+    padding-top: 5px;
+}
+
+#pat-name{
+    font-size: 18px;
+}
+
+.col-sm-3{
+    margin-left: 5px;
+}
+
+.col-sm-2{
+    margin-left: 5px;
+}
+
+.col-sm-1{
+    margin-left: 5px;
+}
+.divider{
+    border-right: 1px solid #46bdec;
+}
+.content{
+    overflow: hidden;
+    height:100%;
+    margin-top: 8px ;
+    background-color: #ffffff;
+    box-shadow: 1px 3px 8px rgba(0, 0, 0, 0.2);
+    color: #465766;
+}
+
+.side{
+    margin-left: -2px;
+    margin-top: 8px;
+    min-height: 100%;
+    background-color: #fffafa;
+    box-shadow: 1px 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+.headings {
+    font-family: 'Maven Pro', sans-serif;
+}
+
+.enc-date{
+    font-size: 15px;
+    margin-top: -10px;
+    margin-bottom: 10px;
+}
+
+.enc-date a{
+    font-size: 10px;
+}
+
+.title{
+    font-size: 20px;
+}
+
+.trigger-list {
+    font-size: 60%;
+
+
+}
+.cost-num{
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.badge{
+    float: right;
+    color: #465766;
+    background-color: transparent;
+}
+
+.panel-default > .panel-heading {
+    color: #465766;
+    background-color: #dff5fd;
+}
+
+
+.alerts{
+    color: #46bdec;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.impact{
+    font-weight: bold;
+}
+
+.alert-type{
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.alert-type img{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.center{
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+    text-align: center;
+}
+
+.chart-div{
+    margin-top: -60px;
+    width: 100%;
+    height: 350px;
+
+}
+
+.modal-body{
+    background-color: rgb(235, 235, 235);
+    background-image: linear-gradient(to top, rgb(253, 253, 253), rgb(229, 229, 229));
+    background-repeat: repeat-x;
+}
+
+.search-box {
+    display: table-cell;
+    vertical-align: middle;
+    horizontal-align:middle;
+    margin: auto;
+}
+
+.alert-list-panel {
+        background-color: #c0c0c0;
+}
+
+/**********************************************************************
+ * The following customize the styles and colors of the profile modal *
+ *********************************************************************/
+body.modal-open, .modal-open .navbar-fixed-top, .modal-open .navbar-fixed-bottom {
+    overflow-y: auto;
+}
+
+.modal {
+    overflow-y: auto;
+}
+#profile-modal {
+    max-height: 600px;
+}
+
+
+#pathway-tabs {
+    background-color: rgb(235, 235, 235);
+    background-image: linear-gradient(to bottom, rgb(253, 253, 253), rgb(209, 209, 209));
+    background-repeat: repeat-x;
+}
+
+#pathway-tabs a {
+    display: table-cell;
+list-style: none outside none;
+border-left: 1px solid white;
+border-right: 1px solid rgb(204, 204, 204);
+
+}
+
+.nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus {
+    background-color: rgb(235, 235, 235);
+}
+
+.pane-content{
+    background-image: linear-gradient(to bottom, rgb(235, 235, 235), rgb(253, 253, 253));
+    padding: 30px;
+}
+
+.rule {
+    background-color: red;
+}
+
+.setting-row {
+    width:100%;
+    float:left;
+}
+
+.setting-row > input {
+    float:right;
+}
+
+.setting-footer {
+    width:100%;
+    float:left;
+    padding-top: 3%;
+}
+.hoverDrop{
+    border-style: dashed !important;
+    background-color: #d3d3d3 !important;
+
+}
+.activeDrop{
+    border-style: dashed !important;
+    border-color: #808080;
+}
+.setting-footer > button {
+    float:left;
+    margin-right: 10px;
+}
+
+.setting-footer > .save-status {
+    float:right;
+}
+
+/***************************************************************
+ * The following customize the Audit and User List widgets *
+ ***************************************************************/
+
+.auditrow {
+    margin-right:10px;
+}
+
+.hover-link:hover {
+    cursor: pointer;
+}
+
+#mouse-target > .widget-column > .audit-scroll {
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    border: 1px solid rgb(221, 221, 221);
+}
+
+.user-val-input {
+    display:none;
+}
+
+
+.userlist {
+    width: 99%;
+    margin:auto;
+    padding-bottom: 15px;
+}
+
+.interaction-scroll {
+    overflow-y:scroll;
+    max-height:300px;
+    width:100%;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+}
+
+.audit-scroll {
+    overflow-y:scroll;
+    max-height:200px;
+    width:100%;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+}
+
+.audittable {
+    width:100%;
+    padding: 0;
+}
+
+.audittable > tbody > tr > td {
+    padding: 10px 15px;
+    background-color: white;
+}
+
+.audittable > thead > tr > th {
+    background-color: rgb(223, 245, 253);
+    color: rgb(70, 87, 102);
+    border-bottom: 1px solid transparent;
+    border-top: 1px solid transparent;
+    font-weight: normal;
+    padding: 10px 15px;
+}
+
+.audit-panel > .col-sm-12{
+    padding:0;
+}
+
+.audittable > tbody, .audit-scroll {
+    background-color: white;
+}
+
+.audit-header h4 {
+    margin: 0;
+}
+
+.audit-control-row {
+    padding: 9px 10px 10px;
+    border-top: 1px solid rgb(221, 221, 221);
+    background-color: white;
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+}
+
+#mouse-target > .widget-column > .audit-control-row {
+    border: 1px solid rgb(221, 221, 221);
+}
+
+/***************************************************************
+ * The following customize action buttons *
+ ***************************************************************/
+
+#actions button {
+	background-color: #46bdec;
+	color: #fff;
+	margin: 0 auto;
+	padding: 4px 0;
+	width: 200px;
+    -webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 15px;
+}
+
+#actions button:hover {
+	background-color: #465766;
+}
+
+#action-buttons {
+    text-align: center;
+}
+
+
+/* adjust the contents on smaller devices */
+@media (max-width: 768px) {
+    .chart-div{
+	margin-top: -60px;
+	width: 100%;
+	height: 350px;
+    }
+}
+
+/***************************************************************
+ * The following customize the Customer Creation widget *
+ ***************************************************************/
+
+.customer-creation {
+    float:left;
+}
+
+.customer-creation > title {
+    float:left;
+}
+
+.customer-creation > .row {
+    float:left;
+    margin-top: 5px;
+}
+
+.customer-creation > select {
+    float:right;
+}
+
+.save-settings-row {
+    padding-top: 15px;
+    padding-bottom: 15px;
+    clear:both;
+}
+
+.customer-row-edit{
+    display:none;
+}
+
+/***************************************************************
+ * The following customize the Admin Settings widget *
+ ***************************************************************/
+
+.setting-option {
+    width:45%;
+    float:left;
+    padding: 0px 10px;
+}
+
+.option-left {
+    margin-right: 5%;
+}
+
+.option-right {
+    margin-left: 5%;
+}
+
+.setting-option > input, .setting-option > .btn, .setting-option > select{
+    float:right;
+}
+
+.time-input {
+    width:60px;
+}
+
+/* Needed to make autocomplete work in modals */
+ul.ui-autocomplete.ui-menu {   z-index: 100000; }
+
+.modal-dialog-lg {
+    width:800px;
+}
+
+button .btn-hover { display: none; }
+button:hover .btn-label { display: none; }
+button:hover .btn-hover { display: inline; }
+
+/***************************************************************
+ * The following customize the timed followup, etc. widgets *
+ ***************************************************************/
+
+
+.advanced-settings {
+    display: none;
+}
+
+.show-advanced-settings, #add-new-followup {
+    cursor: pointer;
+}
+
+.followup-header, .followup {
+    margin-bottom: 10px;
+}
+
+.followup-footer {
+    margin-top: 10px;
+}
+
+.followup-header-columns{
+    margin-bottom: 5px;
+}
+
+.deleteFollowup {
+    float:right;
+    width:100%;
+}
+
+.glyphicon-lg {
+  font-size: 18px;
+  cursor: pointer;
+}
+
+#send-followups-message{
+    float:left;
+}
+

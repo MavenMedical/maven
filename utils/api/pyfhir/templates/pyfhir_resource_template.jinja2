@@ -1,0 +1,35 @@
+
+
+class {{ class_name }}(Resource):
+    """
+    Short Description: {{  class_definition_short }}
+
+    Formal Description: {{ class_definition_long }}
+
+    {% for attb in attributes %}:param {{ attb['name'] }}: {{ attb['formal_desc'] }}
+    {% endfor %}
+    {% for attb in list_attributes %}:param {{  attb['name'] }}: {{ attb['formal_desc'] }}
+    {% endfor %}
+    """
+    def __init__(self,
+                 customer_id=None,
+                 name_space=None,
+                 id=None,
+                 identifier=None,
+                 versionId=None,
+                 resourceType="{{ class_name }}",
+                 {%  for attb in attributes %}{{ attb['name'] }}=None,
+                 {% endfor %}{%  for attb in list_attributes %}{{ attb['name'] }}=None,
+                 {% endfor %}):
+        Resource.__init__(self,
+                          customer_id=customer_id,
+                          name_space=name_space,
+                          identifier=identifier,
+                          id=id,
+                          versionId=versionId,
+                          resourceType=resourceType)
+        {% for attb in attributes %}self.{{ attb['name'] }} = {{ attb['name'] }}                                     # {{ attb['object_type'] }}, {{ attb['short_desc'] }}
+        {% endfor %}
+        {% for attb in list_attributes %}if {{  attb['name'] }} is None:
+            self.{{ attb['name'] }} = []                                     # {{ attb['object_type'] }}, { attb['short_desc'] }}
+        {% endfor %}

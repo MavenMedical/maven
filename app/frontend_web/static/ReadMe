@@ -1,0 +1,25 @@
+Transparent Maven  prototype 1  1/30/2015
+
+GENERAL USAGE NOTES
+-------------------
+
+- This is the first high fidelity prototype for Transparent Maven
+- Built using : HTML, Javascript, CSS, Bootstrap, amcharts(for charts)
+- These files can be open directly in your browser.
+
+LIBRARIES
+---------
+- In these prototypes we used the free version of amcharts , amstockcharts.
+- bootstrap
+- jquery
+
+CONTENT
+-------
+- home.html : patient list widget , total spend and cost breakdown charts.
+- encounter.html : order list and their cost, patient info header, cost charts.
+- alert.html
+- patient.html
+- redesign-v1 : another design for the encounter page with evidence modal
+                to pop-up when clicking on show evidence.
+
+

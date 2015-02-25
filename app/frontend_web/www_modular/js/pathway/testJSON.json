@@ -1,0 +1,180 @@
+{"children": [
+    {
+        "children": [
+            {
+                "protocol": {
+                    "defaultRecipient": "",
+                    "defaultRecipientName": "",
+                    "noteToCopy":"                        \n",
+                    "defaultQuickNote": "",
+                    "protocol": "<p>Continue Bone Health and Diagnostic surveylance</p>\n\n<p><strong>Bone Health Plan</strong></p>\n\n<div>&bull;Vitamin D</div>\n\n<div>&bull;Calcium</div>\n\n<div>&bull;Dexa Scan (ostopenia)</div>\n\n<div>&bull;Consider Prolia</div>\n\n<div>&nbsp;</div>\n\n<div>\n<p><strong>Diagnostic Surveillance</strong></p>\n\n<div>&bull;PSA testing every 3-6 mos.</div>\n\n<div>&bull;Total PSA</div>\n\n<div>&bull;PSA Doubling Time (rising PSA)</div>\n\n<div>&bull;Testosterone</div>\n</div>\n"
+                },
+                "children": [],
+                "hasLeft": false,
+                "sidePanelText": "<p><strong><span style=\"font-size:16px\">CRPC if:</span></strong></p>\n\n<div style=\"line-height: 20.7999992370605px;\">&nbsp; &bull; Testosterone &lt; 50 ng/dl,\n<div style=\"line-height: 20.7999992370605px;\"><strong>And</strong></div>\n\n<div style=\"line-height: 20.7999992370605px;\">\n<div style=\"line-height: 20.7999992370605px;\">&nbsp; &bull; 2 consecutive PSA rises 2 weeks apart,&nbsp;<u>and/or</u></div>\n\n<div style=\"line-height: 20.7999992370605px;\">&nbsp; &bull; Progression on imaging</div>\n</div>\n</div>\n",
+                "name": "Androgen Sensitive",
+                "nodeID": 3,
+                "tooltip": "",
+                "hasRight": true
+            },
+            {
+                "children": [
+                    {
+                        "children": [
+                            {
+                                "children": [
+                                    {
+                                        "children": [
+                                            {
+                                                "protocol": {
+                                                    "protocol": "<div>&bull; Provenge</div>\n\n<div>&bull; <a href=\"http://clinicaltrials.gov\">Consider Research&nbsp;</a></div>\n\n<div>&nbsp;</div>\n\n<div>\n<p><span style=\"color:#FF0000\">Questions?</span>&nbsp;Send the chart to the CRPC team.&nbsp;</p>\n</div>\n",
+                                                    "defaultQuickNote": "",
+                                                    "defaultRecipient": "",
+                                                    "defaultRecipientName": "",
+                                                    "noteToCopy": "                        ",
+                                                    "isProtocol": true
+                                                },
+                                                "children": [],
+                                                "hasLeft": false,
+                                                "sidePanelText": "",
+                                                "name": "Asymptomatic / Minimally Symptomatic",
+                                                "nodeID": 16,
+                                                "tooltip": "",
+                                                "hasRight": true
+                                            },
+                                            {
+                                                "protocol": {
+                                                    "protocol": "<div>&bull; Xtandi</div>\n\n<div>&bull; Zytiga</div>\n\n<div>&bull; Taxotere</div>\n\n<div>\n<div>&bull; <a href=\"http://ClinicalTrials.gov\">Consider Research</a></div>\n\n<div>&nbsp;</div>\n\n<div>\n<p><span style=\"color:#FF0000\">Questions?</span>&nbsp;Send the chart to the CRPC team.&nbsp;</p>\n</div>\n</div>\n",
+                                                    "defaultQuickNote": "",
+                                                    "defaultRecipient": "",
+                                                    "defaultRecipientName": "",
+                                                    "noteToCopy": "                        ",
+                                                    "isProtocol": true
+                                                },
+                                                "children": [],
+                                                "hasLeft": true,
+                                                "sidePanelText": "",
+                                                "name": "Symptomatic",
+                                                "nodeID": 17,
+                                                "tooltip": "",
+                                                "hasRight": false
+                                            }
+                                        ],
+                                        "hasLeft": false,
+                                        "sidePanelText": "",
+                                        "name": "Lymph / Soft Tissue Mets",
+                                        "nodeID": 11,
+                                        "tooltip": "",
+                                        "hasRight": true
+                                    },
+                                    {
+                                        "children": [
+                                            {
+                                                "protocol": {
+                                                    "protocol": "<div>&bull; Provenge</div>\n\n<div>&bull; Zytiga</div>\n\n<div>&bull; Xtandi</div>\n\n<div>&bull; Taxotere\n<div>&bull; <a href=\"http://clinicaltrials.gov\">Consider Research</a></div>\n</div>\n\n<div>&nbsp;</div>\n\n<div>\n<p><span style=\"color:#FF0000\">Questions?</span>&nbsp;Send the chart to the CRPC team.&nbsp;</p>\n</div>\n",
+                                                    "defaultQuickNote": "",
+                                                    "defaultRecipient": "",
+                                                    "defaultRecipientName": "",
+                                                    "noteToCopy": "                        ",
+                                                    "isProtocol": true
+                                                },
+                                                "children": [],
+                                                "hasLeft": false,
+                                                "sidePanelText": "<div>&bull; Consider Xgeva</div>\n\n<div>&bull; Xofigo requires analgesia or narcotic use to qualify</div>\n\n<div>&bull; Reimaging to verify METS not required for reimbursement if previous positive imaging exists</div>\n",
+                                                "name": "Asymptomatic",
+                                                "nodeID": 13,
+                                                "tooltip": "",
+                                                "hasRight": true
+                                            },
+                                            {
+                                                "protocol": {
+                                                    "protocol": "<div style=\"line-height: 20.7999992370605px;\">&bull; Consider Xgeva</div>\n\n<div style=\"line-height: 20.7999992370605px;\">&bull; Xofigo requires analgesia or narcotic use to qualify</div>\n\n<div style=\"line-height: 20.7999992370605px;\">&bull; Reimaging to verify METS not required for reimbursement if previous positive imaging exists</div>\n",
+                                                    "defaultQuickNote": "",
+                                                    "defaultRecipient": "",
+                                                    "defaultRecipientName": "",
+                                                    "noteToCopy": "                        ",
+                                                    "isProtocol": true
+                                                },
+                                                "children": [],
+                                                "hasLeft": true,
+                                                "sidePanelText": "",
+                                                "name": "Minimally Symptomatic",
+                                                "nodeID": 14,
+                                                "tooltip": "",
+                                                "hasRight": true
+                                            },
+                                            {
+                                                "protocol": {
+                                                    "protocol": "<div>&bull; Zytiga</div>\n\n<div>&bull; Xtandi</div>\n\n<div>&bull; Xofigo</div>\n\n<div>&bull; Taxotere\n<div>&bull;&nbsp;<a href=\"http://clinicaltrials.gov/\" style=\"line-height: 1.6;\">Consider Research</a>\n\n<p>&nbsp;</p>\n<span style=\"color:#FF0000\">Questions?</span>&nbsp;Send the chart to the CRPC team.</div>\n</div>\n",
+                                                    "defaultQuickNote": "",
+                                                    "defaultRecipient": "",
+                                                    "defaultRecipientName": "",
+                                                    "noteToCopy": "                        ",
+                                                    "isProtocol": true
+                                                },
+                                                "children": [],
+                                                "hasLeft": true,
+                                                "sidePanelText": "<div style=\"line-height: 20.7999992370605px;\">&bull; Consider Xgeva</div>\n\n<div style=\"line-height: 20.7999992370605px;\">&bull; Xofigo requires analgesia or narcotic use to qualify</div>\n\n<div style=\"line-height: 20.7999992370605px;\">&bull; Reimaging to verify METS not required for reimbursement if previous positive imaging exists</div>\n",
+                                                "name": "Symptomatic",
+                                                "nodeID": 15,
+                                                "tooltip": "",
+                                                "hasRight": false
+                                            }
+                                        ],
+                                        "hasLeft": true,
+                                        "sidePanelText": "<div>&bull;Consider Xgeva</div>\n\n<div>&bull;Xofigo requires analgesia or narcotic use to qualify</div>\n\n<div>&bull;Reimaging to verify METS not required for reimbursement if previous positive imaging exists</div>\n",
+                                        "name": "Bone Mets",
+                                        "nodeID": 12,
+                                        "tooltip": "",
+                                        "hasRight": false
+                                    }
+                                ],
+                                "hasLeft": false,
+                                "sidePanelText": "",
+                                "name": "Detectable Mets",
+                                "nodeID": 8,
+                                "tooltip": "",
+                                "hasRight": true
+                            },
+                            {
+                                "protocol": {
+                                    "protocol": "<div>&bull; Repeat radiography or imaging every 6 months for sequencing &amp; decision making</div>\n\n<div>&bull; Consider <a href=\"http://clinicaltrials.gov\">clinical trials</a> as appropriate</div>\n\n<div>&nbsp;</div>\n\n<div><span style=\"color:#FF0000\">Questions?</span> Send the chart to the CRPC team.&nbsp;</div>\n",
+                                    "defaultQuickNote": "",
+                                    "defaultRecipient": "",
+                                    "defaultRecipientName": "",
+                                    "noteToCopy": "                        ",
+                                    "isProtocol": true
+                                },
+                                "children": [],
+                                "hasLeft": true,
+                                "sidePanelText": "",
+                                "name": "No Detectable Mets",
+                                "nodeID": 10,
+                                "tooltip": "",
+                                "hasRight": false
+                            }
+                        ],
+                        "hasLeft": false,
+                        "sidePanelText": "<p>Continue Bone Health Plan</p>\n\n<p>Continue&nbsp;Diagnostic Surveillance</p>\n",
+                        "name": "Initiate Radiography or Imaging as appropraite",
+                        "nodeID": 7,
+                        "tooltip": "",
+                        "hasRight": false
+                    }
+                ],
+                "hasLeft": true,
+                "sidePanelText": "<p><strong><span style=\"font-size:16px\">CRPC if:</span></strong></p>\n\n<div style=\"line-height: 20.7999992370605px;\">&nbsp; &bull; Testosterone &lt; 50 ng/dl,\n<div style=\"line-height: 20.7999992370605px;\"><strong>And</strong></div>\n\n<div style=\"line-height: 20.7999992370605px;\">\n<div style=\"line-height: 20.7999992370605px;\">&nbsp; &bull; 2 consecutive PSA rises 2 weeks apart,&nbsp;<u>and/or</u></div>\n\n<div style=\"line-height: 20.7999992370605px;\">&nbsp; &bull;&nbsp;Progression on imaging</div>\n</div>\n</div>\n",
+                "name": "CRPC",
+                "nodeID": 4,
+                "tooltip": "",
+                "hasRight": false
+            }
+        ],
+        "hasLeft": false,
+        "sidePanelText": "<p><strong>Initiate Bone Health Plan</strong></p>\n\n<div>&bull;Vitamin D</div>\n\n<div>&bull;Calcium</div>\n\n<div>&bull;Dexa Scan (ostopenia)</div>\n\n<div>&bull;Consider Prolia</div>\n\n<div>&nbsp;</div>\n\n<div>\n<p><strong>Initiate Diagnostic Surveillance</strong></p>\n\n<div>&bull;PSA testing every 3-6 mos.</div>\n\n<div>&bull;Total PSA</div>\n\n<div>&bull;PSA Doubling Time (rising PSA)</div>\n\n<div>&bull;Testosterone</div>\n</div>\n",
+        "name": "Initiation of ADT",
+        "nodeID": 2,
+        "tooltip": "",
+        "hasRight": false
+    }
+], "sidePanelText": "", "nodeID": 1, "nodeCount": 17, "name": "Prostate Cancer", "triggers": {}, "id": 7}

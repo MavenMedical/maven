@@ -1,0 +1,16 @@
+# Starting with Centos-7, the old way of starting/stopping services automatically is gone, replaced by systemctl and it's data files
+# This was my attempt at making Maven work with that.  The problem is that we need user intervention in a few places (decrypting things for HIPAA compliance)
+# So we ended up not using this 
+[Unit]
+Description=Maven Web Services
+After=rabbitmq-server
+Requires=rabbitmq-server
+
+[Service]
+Type=oneshot
+ExecStart=/etc/limited/startup
+ExecStop=/usr/bin/kill `/usr/bin/ps -aef | /usr/bin/grep /home/devel/maven | /usr/bin/grep env/bin/python | /usr/bin/awk '{print $2}'`
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

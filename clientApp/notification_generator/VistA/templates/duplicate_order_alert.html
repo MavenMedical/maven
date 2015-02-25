@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+<body bgcolor=#FFFFFF style='font-family: Arial; color: #444; word-spacing: normal; text-align: left; letter-spacing: 0; font-size: 104%%;'>
+<table>
+    <col width=32px>
+    <col width=30%%>
+    <col width=5%%>
+    <col width=65%%>
+    <tr>
+        <td valign='top'>
+            <img src='/home/devel/maven/clientApp/notification_generator/img/duplicate-29x37.png' />
+        </td>
+
+        <td valign='top'>
+            <a href='{{ http_address }}/#/episode/{{ encounter_id }}/patient/{{ patient_id }}/login/{{ user }}/{{ customer_id }}/{{ user_auth }}'>
+                <b>{{ alert_tag_line }}</b>
+            </a>
+            <br/>
+            {{ alert_description }}
+        </td>
+
+        <td>
+        </td>
+
+        <td valign='top' style='font-family: Arial; color: #444; word-spacing: normal; text-align: left; letter-spacing: 0; font-size: 104%%;'>
+            <table>
+                <col width=40%%>
+                <col width=60%%>
+                {% for observation in related_observations %}
+                    <tr><td>{{ observation.name }}</td> <td>{{ observation.valueQuantity.value }} {{ observation.valueQuantity.units }}   ({{ observation.appliesdateTime }})</td></tr>
+                {% endfor %}
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

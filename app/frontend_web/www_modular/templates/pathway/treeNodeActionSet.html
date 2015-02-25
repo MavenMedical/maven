@@ -1,0 +1,89 @@
+<li class="hover" id="editNode-button">
+    <a href="javascript:void(0)">
+        <i class="menu-icon">
+            <img src="../images/temp/newPath.jpg"
+                 style="width: 30px; height: 25px"></i>
+			 <span class="menu-text">
+			  Edit Selected Node
+			 </span>
+
+    </a>
+    <b class="arrow"></b>
+</li>
+
+<li class="hover" id="deleteNodeButton">
+    <a href="javascript:void(0)">
+        <i class="menu-icon">
+            <img src="../images/temp/newPath.jpg"
+                 style="width: 30px; height: 25px"></i>
+			 <span class="menu-text">
+			  Delete Selected Node
+			 </span>
+
+    </a>
+    <b class="arrow"></b>
+</li>
+
+
+<% if (page == 'pathEditor') { %>
+
+<li class="hover" id="addChildButton">
+    <a href="javascript:void(0)">
+        <i class="menu-icon">
+            <img src="../images/temp/newChild.jpg"
+                 style="width: 30px; height: 25px"></i>
+			 <span class="menu-text">
+			  Add Child
+			 </span>
+
+    </a>
+    <b class="arrow"></b>
+</li>
+
+
+<% if (treeNode.children && treeNode.children.length == 0){%>
+<li class="hover" id="addProtocolButton">
+    <a href="javascript:void(0)">
+        <i class="menu-icon">
+            <img src="../images/temp/newProtocole.jpg"
+                 style="width: 30px; height: 25px"></i>
+			 <span class="menu-text">
+			  Add Protocol
+			 </span>
+
+    </a>
+    <b class="arrow"></b>
+</li>
+<%}%>
+<%}%>
+
+<% if (page == 'pathEditor' && ((treeNode.children && treeNode.children.length > 0)||treeNode.protocol) ) {%>
+
+<li class="hover" id="collapseButton">
+    <a href="javascript:void(0)">
+        <% if (childrenHidden){%>
+        <i class="menu-icon">
+            <img src="../images/temp/expand.jpg"
+                 style="width: 30px; height: 25px"></i>
+			 <span class="menu-text">
+			  Expand Node
+			 </span>
+        <%}else{%>
+        <i class="menu-icon">
+            <img src="../images/temp/collapse.jpg"
+                 style="width: 30px; height: 25px"></i>
+			 <span class="menu-text">
+			  Collapse Node
+			 </span>
+        <%}%>
+    </a>
+    <b class="arrow"></b>
+</li>
+
+
+<% } %>
+
+<%= (typeof sidePanelText !== 'undefined') ? sidePanelText : '' %>
+
+
+

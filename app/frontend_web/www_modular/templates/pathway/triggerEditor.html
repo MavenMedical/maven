@@ -1,0 +1,35 @@
+<div id="detail-modal" class="modal fade"  role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog" style="width: 1000px">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span
+                        aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title">Protocol Triggering Diagnoses</h4>
+            </div>
+
+            <div class="modal-body">
+
+                <div class='detail-editor-heading'>Create/Edit Assessment &amp; Plan Diagnosis Constraint</div>
+
+
+                <select id="existsField" class="detail-input form-control attn-text"
+                        name="exists">
+                    <option value="true" selected>Alert the clinician only if</option>
+                    <option value="false"> Do not alert the clinician if</option>
+                </select>
+
+                <p class="attn-text"> The patient's Assessment &amp; Plan contains any of the following diagnoses </p>
+
+                <div class="multi-select-search" type="snomed_diagnosis" name="code"></div>
+            </div>
+
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmDetailButton">Confirm</button>
+            </div>
+
+        </div>
+    </div>
+</div>

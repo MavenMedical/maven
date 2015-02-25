@@ -1,0 +1,19 @@
+This package contains the handlers for our website, our http notification service, and an interface for the clientapp to talk with the other maven services.
+
+data_router_all_svcs.py - as it's name implies, this file is the main hub moving data around  It's also one of the "main" functions of the maven services.  It starts up all of the web services, as well as the rpc to communicate with the clientapp(s).  It pushed compositions onto a rabbitmq queue, and processes them once the evaluators add notifications to them, sending them back to the clientapp for notifications.
+
+
+Web Handlers
+administration.py - web handlers for settuping up/modifing users and customers
+authentication.py - web handlers for logings
+notification_service.py - web handlers for the long-polling notification service
+pathways.py - web handlers for operations on pathway trees
+patient_mgmt.py - web handlers dealing with patients (getting filtered lists, details demographic details)
+reporting.py - web handlers supporting the flipbook feature (showing, click-by-click, a provider's interaction with a pathway.  
+search.py - autocomplete web handler
+support.py - web handlers for maven support tasks (list, add, modify customers)
+transparent.py - web handlers to get spending and order information for retrospective analsis of costs
+user_mgmt.py - web handlers for lots of user-specific functions.  messaging, group membership, audits, alerts, user settings
+
+
+timed_followup.py - web handlers for delayed tasks (create, modify, etc) as well as the daemon which queries the database and sends these messages when their time comes

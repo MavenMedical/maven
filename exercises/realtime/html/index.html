@@ -1,0 +1,152 @@
+<html leng='en'>
+<head>
+  <title>Maven Candidate Exercises</title>
+  <meta charset='utf-8'>
+</head>
+<body>
+  <div style='width: 30%; float:left'>
+    <p>
+      We want to parse an certain (simpler) type of arithmetic expression.  An expression E can be either:
+      <ul>
+	<li>a single integer digit n, or </li>
+	<li>any string "(E&plusmn;E)" - where &plusmn; means either the symbol "+" or "-" and E is any valid expression.</li>
+      </ul>
+      
+      For example, "5" is a valid expression.  So is "(6-2)", though not "6-2".  "((1+((2-3)-(4+5)))+6)" is a longer example.  If x and y are both strings represention valid expressions, so is the new string "("+x+"-"+y+")".
+    </p>
+
+    <p>
+      An expression is naturally represented as a tree:
+      <ul>
+	<li> n becomes a leaf node.</li>
+	<li> (x&plusmn;y) becomes an internal node with two children - the trees from x and y.</li>
+      </ul>
+    </p>
+
+    <p>
+      Create any reasonable tree representation and write a function parse(x) which takes a string x and returns the corresponding tree.  This can be in Python, C/C++, Java, bash, or any other commonly used language you like.  You may assume that every input will be valid, so don't worry about error checking.
+    </p>
+
+    <p> Spend no more than 10-15 minutes on the above problem.  I highly recommend that you spend this time as follows:
+      <ul>
+	<li>Spend a minute or two coming up with a tree structure (it does not have to be a custom class, a recursive list is fine for the inductive case).  Write it as a comment if you like.</li>
+	<li>Define your main function (and any helpers) a give a brief comment for each.</li>
+	<li>Write the main function assuming the helpers work as specified.</li>
+	<li>Fill in the helper functions.</li>
+      </ul>
+      If you finish this task quickly, you can also do the following.
+    </p>
+
+    <p>
+      Now write a function evaluate(t) which takes your tree as input, evaluates the expression, and returns the integer answer.
+    </p>
+    
+
+  </div>
+  <div style='float:left' width=90%>
+    <textarea id='textbox' rows=40 cols=100 onchange='process_update()' onkeyup='process_update()' onkeydown='suppresstab(event)'></textarea>
+    <br>
+    <button id=done onclick='done()'>Submit</button>
+  </div>
+</body>
+<script src="http://code.jquery.com/jquery-latest.min.js"
+        type="text/javascript"></script>
+<script>
+  function getParameterByName(name) {
+   name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+   var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+   results = regex.exec(location.search);
+   return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+ }
+
+ var user = getParameterByName('user');
+ 
+ var textbox = document.getElementById('textbox');
+
+ var suppresstab = function(e) { 
+   var keyCode = e.keyCode || e.which; 
+   
+   if (keyCode == 9) { 
+     e.preventDefault(); 
+     start=textbox.selectionStart;
+     textbox.value=textbox.value.slice(0,textbox.selectionStart) + '\t' + textbox.value.slice(textbox.selectionEnd,textbox.value.length);
+     textbox.selectionStart = textbox.selectionEnd = start+1;
+   }; 
+ };
+
+ var oldvalue = '';
+
+ // longer one is first
+ finddiff = function(v1, v2) {
+   var offset=0;
+   var diffchar=v1.length-1;;
+   for(var i=0; i < v2.length; i++) {
+     if (v1[i+offset]!=v2[i]) {
+       if(offset == 0) {
+	 diffchar = i;
+	 offset = 1;
+	 //console.log(v1[i+offset]+" not equal "+v2[i]);
+       } else {
+	 return null;
+       }
+     } else {
+       //console.log(v2[i]+ " equal");
+     }
+   }
+ if (diffchar >=0) {
+     return [diffchar, v1[diffchar]];
+   } else {
+     return null;
+   }
+ }
+ 
+ var process_update = function() {
+   if(isdone) {
+     return;
+   }
+   if (textbox.value.length == oldvalue.length -1) {
+     // user deleted a character (probably)
+     var d=finddiff(oldvalue,textbox.value);
+     post([d[0],"-",d[1]]);
+     
+   } else if (textbox.value.length == oldvalue.length +1) {
+     // user added a character (probably)
+     var d=finddiff(textbox.value,oldvalue);
+     post([d[0],"+",d[1]]);
+     
+   } else if(textbox.value != oldvalue) {
+     // something else, just send the entire string
+     post(textbox.value)
+   }
+   oldvalue = textbox.value;
+ }
+
+ var post = function(obj) {
+   //console.log(str(obj));
+   $.ajax({
+     type: "POST",
+     url: 'capture/update'+'?user='+user,
+     data: JSON.stringify(obj),
+     dataType: 'text/json'
+   });
+ }
+
+ var isdone = false;
+ 
+ var done = function() {
+   if(!isdone) {
+     isdone=true;
+     textbox.readOnly=true;
+     $.ajax({
+       type: "POST",
+       url: 'capture/done'+'?user='+user,
+     });
+    window.location.href = 'replay.html?user='+user;
+   }   
+ };
+    
+ post(' ');
+
+
+</script>
+</html>

@@ -1,0 +1,165 @@
+<!doctype html>
+<!--[if lt IE 7]>
+<html class="no-js ie6 oldie" lang="en"> <![endif]-->
+<!--[if IE 7]>
+<html class="no-js ie7 oldie" lang="en"> <![endif]-->
+<!--[if IE 8]>
+<html class="no-js ie8 oldie" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="description" content="">
+    <meta name="author" content="developer">
+    <meta name="viewport" content="width=device-width,initialbs-example-modal-lg-scale=1">
+
+    <title>maven</title>
+
+    <!-- bootstrap & fontawesome -->
+    <link rel="stylesheet" href="css/bootstrap/css/bootstrap.css"/>
+    <link rel="stylesheet" href="css/font-awesome.css"/>
+
+    <!-- page specific plugin styles -->
+
+    <!-- text fonts -->
+    <link rel="stylesheet" href="css/ace-fonts.css"/>
+
+    <!-- ace styles -->
+    <link href="css/ace.css" rel="stylesheet" type="text/css" id="main-ace-style" title="demo">
+
+    <!--[if lte IE 9]>
+    <link rel="stylesheet" href="ace/assets/css/ace-part2.css" class="ace-main-stylesheet"/>
+    <![endif]-->
+
+    <!--[if lte IE 9]>
+    <link rel="stylesheet" href="ace/assets/css/ace-ie.css"/>
+    <![endif]-->
+
+
+    <!-- HTML5shiv and Respond.js for IE8 to support HTML5 elements and media queries -->
+
+    <!--[if lte IE 8]>
+    <script src="ace/assets/js/html5shiv.js"></script>
+    <script src="ace/assets/js/respond.js"></script>
+    <![endif]-->
+
+
+    <link rel="stylesheet" href="css/jquery-ui.custom.css"/>
+    <link rel="stylesheet" href="css/ace-rtl.css"/>
+
+    <link href="css/style3.css" rel="alternate stylesheet" type="text/css" title="demo">
+    <!--
+    <link rel="stylesheet" href="js/libs/jquery/jquery-ui.css"/>
+
+    <!-- Load fullCalendar style sheet
+    <link href="js/libs/fullCalendar/fullcalendar.css" rel="stylesheet" type="text/css">-->
+    <!--<link href="css/style1.css" rel="stylesheet" type="text/css" title='original'>
+    <link href="css/style2.css" rel="alternate stylesheet" type="text/css" title="demo">
+    <link href="css/style.css" rel="alternate stylesheet" type="text/css" title="alternate">-->
+
+    <script type="text/javascript">
+        if (typeof console === "undefined" || typeof console.log === "undefined") {
+            var console = Object
+            console.log = function () {
+            }
+        }
+
+        var colorMap = {
+            "Consultation": "#18bc9a",
+            "Imaging": "#36485c",
+            "Laboratory": "#eb4b3b",
+            "Medication": "#9155ad",
+            "Procedure": "#3598dc",
+        };
+        findColor = function (type) {
+            if (type in colorMap)
+                return colorMap[type];
+            else
+                return "#f2c313";
+        }
+        function createCookie(name, value, days) {
+            if (days) {
+                var date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                var expires = "; expires=" + date.toGMTString();
+            }
+            else var expires = "";
+            document.cookie = name + "=" + value + expires + "; path=/";
+        }
+
+        function readCookie(name) {
+            var nameEQ = name + "=";
+            var ca = document.cookie.split(';');
+            for (var i = 0; i < ca.length; i++) {
+                var c = ca[i];
+                while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+
+        function eraseCookie(name) {
+            createCookie(name, "", -1);
+        }
+    </script>
+
+
+</head>
+
+<body class="no-skin">
+<div id="detailed-trigger-modal" ></div>
+<div id='modal-target'></div>
+
+<div id="login-modal" class="modal fade" role="login"></div>
+<div id="datepicker-modal" class="modal fade" role="datepicker"></div>
+<div id="profile-modal" class="modal fade" role="profile"></div>
+<div id="settings-modal" class="modal fade" role="login"></div>
+<div id='mouse-target' style='display:none; position:absolute; z-index:10000'></div>
+<div id="side-popup"></div>
+<div id="toast"></div>
+
+<div id="navbar" class="navbar navbar-default navbar-collapse navbar-fixed-top">
+    <div id='fixed-topA' class='navbar-container'></div>
+</div>
+
+<div id="main-container" class="main-container">
+    <div class="sidebar responsive menu-min" id="sidebar" data-sidebar="true"
+         data-sidebar-hover="true">
+
+    </div>
+    <!-- /.sidebar -->
+
+    <div class="main-content">
+        <div class="main-content-inner">
+            <div class="page-content">
+
+
+
+                <div id='fixed-topB' class='sidebar  h-sidebar navbar-collapse collapse'></div>
+
+                <div id="dynamic-content" class="page-content-area"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="footer">
+    <div class="footer-inner">
+        <!-- #section:basics/footer -->
+        <div class="footer-content">
+                        <span class="bigger-120">
+                            <span class="blue bolder">Maven</span>
+                            &copy; 2015
+                        </span>
+        </div>
+        <!-- /section:basics/footer -->
+    </div>
+</div>
+
+
+<script src='js/libs/jquery/jquery-min.js'></script>
+<!-- Load the require script-->
+<script data-main="js/min" src="js/libs/require/require.js"></script>
+
+</body>
+</html>

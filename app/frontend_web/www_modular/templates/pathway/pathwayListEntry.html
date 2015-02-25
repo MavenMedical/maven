@@ -1,0 +1,42 @@
+<div id="<%=canonical%>" class="path-row dd-handle dd2-handle" title="Pathway">
+    <!--<i class="normal-icon ace-icon fa fa-signal orange bigger-130"></i>-->
+    <img class='normal-icon' src="../images/temp/newPath.jpg" style="width: 20px; height: 20px"/>
+    <i class="drag-icon ace-icon fa fa-arrows bigger-125"></i>
+</div>
+<div class="dd2-content">
+    <span title="Select Pathway"><a class='select-button'><%=name%></a></span>
+    <div class="pull-right action-buttons">
+
+        <div class="btn-group">
+            <div class="btn-group">
+                <button class="btn btn-white btn-primary btn-xs dropdown-toggle" data-toggle="dropdown">Edit<span class="ace-icon fa fa-caret-down icon-on-right"></span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-right dropdown-caret">
+                    <li>
+                        <a class="rename-pathway">Rename</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="btn-group">
+                <ul class="dropdown-menu dropdown-menu-right dropdown-caret">
+                    <li>
+                        <a class="rename-pathway">Rename</a>
+                    </li>
+                </ul>
+                <a>
+                    <input class="ace ace-switch ace-switch-3 pathway-enable" type="checkbox"
+                        <%= (enabled == 1) ? "checked title='Disable Pathway'" : "title='Enable Pathway'" %>/>
+                        <span class="lbl"></span>
+                </a>
+            </div>
+            <div class="btn-group">
+                <a class="red delete-button" style="vertical-align: top;" title="Delete Pathway">
+                    <i class="ace-icon fa fa-trash-o bigger-140"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<ol class="pathway-history-section dd-list">
+
+</ol>

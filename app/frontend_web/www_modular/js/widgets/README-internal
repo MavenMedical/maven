@@ -1,0 +1,6 @@
+The widgets folder contains JS files for each of the widgets. Each one returns a view which handles all of the events
+and model (if needed) required for the widget. Generally the template (html file) is loaded from the DB by the context model,
+and supplied as a argument upon initialization of the context model (on login, etc.). Some widgets explicitly specify a
+template in the JS file if necessary, and many specify a template when loading another widget after an event is triggered.
+
+Widgets which are primarily related to pathways are in the pathway folder, all others in are in this main folder.

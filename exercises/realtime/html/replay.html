@@ -1,0 +1,118 @@
+<html>
+<head>
+  <title>Replay</title>
+</head>
+<body>
+  <textarea id='textbox' rows=20 cols=100></textarea>
+  <br>
+  <!--  <textarea id=progress rows=1 cols=20></textarea>-->
+  <input type=range id=progress min=0 max=10 readonly='true' value=0>
+  <button id='play' onclick='play(1)'>Play at 1x</button>
+  <button id='play2' onclick='play(2)'>Play at 2x</button>
+  <button id='play4' onclick='play(10)'>Play at 10x</button>
+  <button id='reset' onclick='reset()'>Reset</button>
+</body>
+<script src="http://code.jquery.com/jquery-latest.min.js"
+        type="text/javascript"></script>
+
+<script type='text/javascript'>
+ var stopped=true;
+ 
+ var reset = function() {
+   i=0;
+   textbox.value='';
+   progress.value = 0;
+   stopped=true;
+ };
+ 
+ function getParameterByName(name) {
+   name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+   var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+   results = regex.exec(location.search);
+   return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+ };
+ 
+ var user = getParameterByName('user');
+ 
+ var textbox = document.getElementById('textbox');
+ var progress = document.getElementById('progress');
+ 
+ var basetime;
+ var i=0;
+ var rate;
+ var play = function(r) {
+   rate = r;
+   if(stopped) {
+     textbox.value='';
+     i=0;
+   }
+   stopped=false;
+   if(i==0) {
+     basetime = ((new Date()).getTime());
+     query();
+   }
+ };
+
+ var success = function(val) {
+   if(!stopped) {
+     if(typeof(val)=='string') {
+       textbox.value = val;
+       
+     } else {
+       pos = val[0];
+       ch = val[2];
+       if (val[1]=='+') {
+	 textbox.value=textbox.value.slice(0,pos)+ch+textbox.value.slice(pos,textbox.value.length);
+       } else {
+	 // val[1] == '-'
+	 textbox.value=textbox.value.slice(0,pos-1)+textbox.value.slice(pos,textbox.value.length);
+       }
+     }
+     query();
+   }
+ };
+
+ var query = function() {
+   if(!stopped) {
+     $.ajax({
+       type: "GET",
+       url: 'capture/text',
+       data: 'i='+i+"&user="+user,
+       success: function(obj) {
+	 //console.log(obj);
+	 if(!obj) {
+	   stopped=true;
+	   progress.value = progress.max;
+	   return;
+	 }
+	 timer = obj[0] * 1000 / rate;
+	 i++;
+	 timedelta = ((new Date()).getTime()-basetime);
+	 console.log("timer: "+timer +", delta: "+timedelta);
+	 progress.value = obj[0];
+	 if(timedelta < timer) {
+	   setTimeout(function() {success(obj[1])}, timer - timedelta);
+	 } else {
+	   success(obj[1]);
+	 }
+       },
+       error: function(status, err) {
+	 console.log(status);
+	 i=0;
+       },
+       dataType: 'json'
+     });
+   }
+ };
+
+ $.ajax({
+   type: "GET",
+   url: "capture/duration",
+   data: "user="+user,
+   dataType: "json",
+   success: function(obj) {
+     progress.max = obj;
+   }
+ });
+</script>
+</html>
